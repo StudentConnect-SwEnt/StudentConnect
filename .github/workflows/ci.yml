@@ -119,5 +119,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=$JAVA_HOME/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=changeit"
+          JAVA_TOOL_OPTIONS: "-Djavax.net.ssl.trustStore=${{ env.JAVA_HOME }}/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=changeit"
         run: ./gradlew sonar --parallel --build-cache
