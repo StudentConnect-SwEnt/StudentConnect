@@ -22,3 +22,10 @@ sonar {
     }
 }
 
+// Override Sonar's outdated bouncycastle version
+buildscript {
+    dependencies {
+        classpath(libs.bouncycastle)
+    }
+}
+

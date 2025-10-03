@@ -7,6 +7,9 @@ gms = "4.4.2"
 ktfmt = "0.17.0"
 sonarqube = "6.3.1.5724"
 
+# For Sonar (to override Sonar's bouncycastle version)
+bouncycastle = "1.78.1"
+
 # UI Compose
 mockitoAndroid = "5.13.0"
 ui = "1.6.8"
@@ -55,7 +58,6 @@ mockkAgent = "1.13.7"
 mockkAndroid = "1.13.7"
 navigationCompose = "2.7.7"
 robolectric = "4.11.1"
-
 
 # AndroidX and Core Libraries
 activityCompose = "1.9.1"
@@ -119,7 +121,7 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidxCoreKtx" }
-
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
