@@ -33,7 +33,7 @@ class AdditionalTests {
     val activityClass = MainActivity::class.java
     Assert.assertNotNull("MainActivity class should exist", activityClass)
     Assert.assertEquals(
-        "Package name should match", "com.android.sample", activityClass.packageName)
+        "Package name should match", "com.github.se.studentconnect", activityClass.packageName)
   }
 
   @Test
@@ -44,7 +44,7 @@ class AdditionalTests {
 
   @Test
   fun testSampleAppThemeExists() {
-    val themeClass = Class.forName("com.android.sample.ui.theme.ThemeKt")
+    val themeClass = Class.forName("com.github.se.studentconnect.ui.theme.ThemeKt")
     Assert.assertNotNull("SampleAppTheme should exist", themeClass)
   }
 
@@ -72,7 +72,7 @@ class AdditionalTests {
 
   @Test
   fun testGreetingFunction() {
-    val greetingClass = Class.forName("com.android.sample.MainActivityKt")
+    val greetingClass = Class.forName("com.github.se.studentconnect.MainActivityKt")
     val methods = greetingClass.declaredMethods
     val greetingMethod = methods.find { it.name == "Greeting" }
     Assert.assertNotNull("Greeting function should exist", greetingMethod)
@@ -90,7 +90,7 @@ class AdditionalTests {
   @Test
   fun testGreetingFunctionSignature() {
     // Test that Greeting function exists with correct parameter types
-    val greetingClass = Class.forName("com.android.sample.MainActivityKt")
+    val greetingClass = Class.forName("com.github.se.studentconnect.MainActivityKt")
     val methods = greetingClass.declaredMethods
     val greetingMethods = methods.filter { it.name == "Greeting" }
 
@@ -131,7 +131,7 @@ class AdditionalTests {
   @Test
   fun testSampleAppThemeFunctionExists() {
     // Test that SampleAppTheme function exists
-    val themeClass = Class.forName("com.android.sample.ui.theme.ThemeKt")
+    val themeClass = Class.forName("com.github.se.studentconnect.ui.theme.ThemeKt")
     val methods = themeClass.declaredMethods
     val themeMethod = methods.find { it.name == "SampleAppTheme" }
     Assert.assertNotNull("SampleAppTheme function should exist", themeMethod)
@@ -140,7 +140,7 @@ class AdditionalTests {
   @Test
   fun testThemeParameterTypes() {
     // Test that SampleAppTheme has correct parameter types
-    val themeClass = Class.forName("com.android.sample.ui.theme.ThemeKt")
+    val themeClass = Class.forName("com.github.se.studentconnect.ui.theme.ThemeKt")
     val methods = themeClass.declaredMethods
     val themeMethods = methods.filter { it.name == "SampleAppTheme" }
 
