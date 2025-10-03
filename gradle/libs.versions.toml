@@ -5,7 +5,7 @@ json = "20240303"
 kotlin = "1.9.0"
 gms = "4.4.2"
 ktfmt = "0.17.0"
-sonarqube = "6.3.1.5724"
+sonar = "6.3.1.5724"
 
 # For Sonar (to override Sonar's bouncycastle version)
 bouncycastle = "1.78.1"
@@ -129,5 +129,5 @@ jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "k
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 gms = { id = "com.google.gms.google-services", version.ref = "gms" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-sonar = { id = "org.sonarqube", version.ref = "sonarqube" }
+sonar = { id = "org.sonarqube", version.ref = "sonar" }
 
