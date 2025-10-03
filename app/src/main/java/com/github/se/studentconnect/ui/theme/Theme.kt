@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.theme
+package com.github.se.studentconnect.ui.theme
 
 import android.app.Activity
 import android.os.Build

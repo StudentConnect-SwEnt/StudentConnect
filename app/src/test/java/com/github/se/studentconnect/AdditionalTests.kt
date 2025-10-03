@@ -7,13 +7,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.theme.Pink40
-import com.github.se.studentconnect.theme.Pink80
-import com.github.se.studentconnect.theme.Purple40
-import com.github.se.studentconnect.theme.Purple80
-import com.github.se.studentconnect.theme.PurpleGrey40
-import com.github.se.studentconnect.theme.PurpleGrey80
-import com.github.se.studentconnect.theme.Typography
+import com.github.se.studentconnect.ui.theme.Pink40
+import com.github.se.studentconnect.ui.theme.Pink80
+import com.github.se.studentconnect.ui.theme.Purple40
+import com.github.se.studentconnect.ui.theme.Purple80
+import com.github.se.studentconnect.ui.theme.PurpleGrey40
+import com.github.se.studentconnect.ui.theme.PurpleGrey80
+import com.github.se.studentconnect.ui.theme.Typography
 import org.junit.Assert
 import org.junit.Test
 

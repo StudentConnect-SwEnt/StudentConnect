@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.theme.SampleAppTheme
+import com.github.se.studentconnect.ui.theme.SampleAppTheme
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
