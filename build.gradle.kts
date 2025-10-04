@@ -1,8 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("org.sonarqube") version "6.3.1.5724"
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.jetbrainsKotlinAndroid) apply false
+    alias(libs.plugins.ktfmt) apply false
+    alias(libs.plugins.gms) apply false
+    alias(libs.plugins.sonar)
 }
 
 sonar {
@@ -17,6 +19,13 @@ sonar {
         property("sonar.androidLint.reportPaths", "${project.layout.buildDirectory.get()}/reports/lint-results-debug.xml")
         // Paths to JaCoCo XML coverage report files.
         property("sonar.coverage.jacoco.xmlReportPaths", "${project.layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+    }
+}
+
+// Override Sonar's outdated bouncycastle version
+buildscript {
+    dependencies {
+        classpath(libs.bouncycastle)
     }
 }
 
