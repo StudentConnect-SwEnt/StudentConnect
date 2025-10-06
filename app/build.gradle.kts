@@ -104,6 +104,14 @@ android {
     }
 }
 
+sonarqube {
+    properties {
+        property("sonar.tests", "src/test/java")
+        property("sonar.junit.reportPaths", "build/test-results/testDebugUnitTest")
+    }
+}
+
+
 dependencies {
     // Core
     implementation(libs.core.ktx)
