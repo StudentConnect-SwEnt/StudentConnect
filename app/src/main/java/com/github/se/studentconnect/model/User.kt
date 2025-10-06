@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.model
 
-
 /**
  * Represents a User in the StudentConnect application.
  *

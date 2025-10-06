@@ -74,7 +74,11 @@ class UserTest {
   @Test(expected = IllegalArgumentException::class)
   fun testUserCreationWithBlankUid() {
     User(
-        userId = "", email = "test@epfl.ch", firstName = "John", lastName = "Doe", university = "EPFL")
+        userId = "",
+        email = "test@epfl.ch",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
   }
 
   @Test(expected = IllegalArgumentException::class)
@@ -471,7 +475,10 @@ class UserTest {
   fun testFromMapWithMissingEmail() {
     val map =
         mapOf(
-            "userId" to "user123", "firstName" to "John", "lastName" to "Doe", "university" to "EPFL")
+            "userId" to "user123",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL")
 
     val user = User.fromMap(map)
     assertNull(user)
