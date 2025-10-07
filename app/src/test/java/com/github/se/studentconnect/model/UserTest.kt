@@ -228,7 +228,7 @@ class UserTest {
   @Test
   fun testUpdateEmail() {
     val beforeUpdate = System.currentTimeMillis()
-    val updatedUser = validUser.update(email = "newemail@epfl.ch")
+    val updatedUser = validUser.update(email = User.UpdateValue.SetValue("newemail@epfl.ch"))
     val afterUpdate = System.currentTimeMillis()
 
     assertEquals("newemail@epfl.ch", updatedUser.email)
@@ -244,21 +244,21 @@ class UserTest {
 
   @Test
   fun testUpdateFirstName() {
-    val updatedUser = validUser.update(firstName = "Jack")
+    val updatedUser = validUser.update(firstName = User.UpdateValue.SetValue("Jack"))
     assertEquals("Jack", updatedUser.firstName)
     assertEquals(validUser.email, updatedUser.email)
   }
 
   @Test
   fun testUpdateLastName() {
-    val updatedUser = validUser.update(lastName = "Brown")
+    val updatedUser = validUser.update(lastName = User.UpdateValue.SetValue("Brown"))
     assertEquals("Brown", updatedUser.lastName)
     assertEquals(validUser.firstName, updatedUser.firstName)
   }
 
   @Test
   fun testUpdateUniversity() {
-    val updatedUser = validUser.update(university = "UNIL")
+    val updatedUser = validUser.update(university = User.UpdateValue.SetValue("UNIL"))
     assertEquals("UNIL", updatedUser.university)
     assertEquals(validUser.firstName, updatedUser.firstName)
   }
@@ -266,7 +266,7 @@ class UserTest {
   @Test
   fun testUpdateHobbies() {
     val newHobbies = listOf("Reading", "Swimming", "Cooking")
-    val updatedUser = validUser.update(hobbies = newHobbies)
+    val updatedUser = validUser.update(hobbies = User.UpdateValue.SetValue(newHobbies))
     assertEquals(newHobbies, updatedUser.hobbies)
     assertEquals(3, updatedUser.hobbies.size)
     assertEquals(validUser.firstName, updatedUser.firstName)
@@ -275,7 +275,7 @@ class UserTest {
   @Test
   fun testUpdateProfilePictureUrl() {
     val newUrl = "https://example.com/newpic.jpg"
-    val updatedUser = validUser.update(profilePictureUrl = newUrl)
+    val updatedUser = validUser.update(profilePictureUrl = User.UpdateValue.SetValue(newUrl))
     assertEquals(newUrl, updatedUser.profilePictureUrl)
     assertEquals(validUser.email, updatedUser.email)
   }
@@ -283,7 +283,7 @@ class UserTest {
   @Test
   fun testUpdateBio() {
     val newBio = "Engineering student passionate about AI"
-    val updatedUser = validUser.update(bio = newBio)
+    val updatedUser = validUser.update(bio = User.UpdateValue.SetValue(newBio))
     assertEquals(newBio, updatedUser.bio)
     assertEquals(validUser.email, updatedUser.email)
   }
@@ -292,7 +292,9 @@ class UserTest {
   fun testUpdateMultipleFields() {
     val updatedUser =
         validUser.update(
-            email = "newemail@epfl.ch", firstName = "Jack", hobbies = listOf("Reading"))
+            email = User.UpdateValue.SetValue("newemail@epfl.ch"),
+            firstName = User.UpdateValue.SetValue("Jack"),
+            hobbies = User.UpdateValue.SetValue(listOf("Reading")))
     assertEquals("newemail@epfl.ch", updatedUser.email)
     assertEquals("Jack", updatedUser.firstName)
     assertEquals(1, updatedUser.hobbies.size)
@@ -395,13 +397,15 @@ class UserTest {
 
   @Test
   fun testFromMapWithMissingOptionalFields() {
+    val now = System.currentTimeMillis()
     val map =
         mapOf(
             "userId" to "user456",
             "email" to "test@unil.ch",
             "firstName" to "Jane",
             "lastName" to "Smith",
-            "university" to "UNIL")
+            "university" to "UNIL",
+            "updatedAt" to now)
 
     val user = User.fromMap(map)
 
@@ -415,7 +419,7 @@ class UserTest {
     assertNull(user.profilePictureUrl)
     assertNull(user.bio)
     assertTrue(user.createdAt > 0)
-    assertTrue(user.updatedAt > 0)
+    assertEquals(now, user.updatedAt)
   }
 
   @Test
@@ -634,5 +638,241 @@ class UserTest {
     assertEquals(validUser.email, copiedUser.email)
     assertEquals(validUser.lastName, copiedUser.lastName)
     assertEquals(validUser.university, copiedUser.university)
+  }
+
+  // Edge case tests for extremely long strings
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithVeryLongFirstName() {
+    val longName = "a".repeat(101) // 101 characters
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        firstName = longName,
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithVeryLongLastName() {
+    val longName = "a".repeat(101) // 101 characters
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        firstName = "John",
+        lastName = longName,
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithVeryLongUniversity() {
+    val longUniversity = "a".repeat(201) // 201 characters
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        firstName = "John",
+        lastName = "Doe",
+        university = longUniversity)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithVeryLongBio() {
+    val longBio = "a".repeat(501) // 501 characters
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL",
+        bio = longBio)
+  }
+
+  @Test
+  fun testUserCreationWithMaxLengthFields() {
+    val maxFirstName = "a".repeat(100)
+    val maxLastName = "b".repeat(100)
+    val maxUniversity = "c".repeat(200)
+    val maxBio = "d".repeat(500)
+
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            firstName = maxFirstName,
+            lastName = maxLastName,
+            university = maxUniversity,
+            bio = maxBio)
+
+    assertEquals(maxFirstName, user.firstName)
+    assertEquals(maxLastName, user.lastName)
+    assertEquals(maxUniversity, user.university)
+    assertEquals(maxBio, user.bio)
+  }
+
+  // Edge case tests for special characters
+  @Test
+  fun testUserCreationWithSpecialCharactersInNames() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            firstName = "José-María",
+            lastName = "O'Connor-Smith",
+            university = "École Polytechnique Fédérale de Lausanne")
+
+    assertEquals("José-María", user.firstName)
+    assertEquals("O'Connor-Smith", user.lastName)
+    assertEquals("École Polytechnique Fédérale de Lausanne", user.university)
+  }
+
+  @Test
+  fun testUserCreationWithUnicodeCharacters() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            firstName = "张三",
+            lastName = "李四",
+            university = "苏黎世联邦理工学院")
+
+    assertEquals("张三", user.firstName)
+    assertEquals("李四", user.lastName)
+    assertEquals("苏黎世联邦理工学院", user.university)
+  }
+
+  // Edge case tests for email validation
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithMultipleAtSymbols() {
+    User(
+        userId = "user123",
+        email = "test@@epfl.ch",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithInvalidEmailDomain() {
+    User(
+        userId = "user123",
+        email = "test@",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithInvalidEmailMissingTld() {
+    User(
+        userId = "user123",
+        email = "test@epfl",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test
+  fun testUserCreationWithValidComplexEmails() {
+    val emails =
+        listOf(
+            "test.user+tag@epfl.ch",
+            "user.name-123@university.edu",
+            "a@b.co",
+            "very.long.email.address@very-long-domain.university.edu")
+
+    emails.forEach { email ->
+      val user =
+          User(
+              userId = "user123",
+              email = email,
+              firstName = "John",
+              lastName = "Doe",
+              university = "EPFL")
+      assertEquals(email, user.email)
+    }
+  }
+
+  // Timestamp ordering edge cases
+  @Test
+  fun testTimestampOrdering() {
+    val now = System.currentTimeMillis()
+    val user1 =
+        User(
+            userId = "user1",
+            email = "test1@epfl.ch",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL",
+            createdAt = now,
+            updatedAt = now)
+
+    Thread.sleep(1) // Ensure different timestamps
+
+    val user2 =
+        User(
+            userId = "user2",
+            email = "test2@epfl.ch",
+            firstName = "Jane",
+            lastName = "Doe",
+            university = "EPFL",
+            createdAt = now + 1,
+            updatedAt = now + 1)
+
+    assertTrue(user2.createdAt > user1.createdAt)
+    assertTrue(user2.updatedAt > user1.updatedAt)
+  }
+
+  // Test fromMap with missing updatedAt (should fail with new implementation)
+  @Test
+  fun testFromMapWithMissingUpdatedAt() {
+    val map =
+        mapOf(
+            "userId" to "user123",
+            "email" to "test@epfl.ch",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL",
+            "createdAt" to 1000L
+            // missing updatedAt
+            )
+
+    val user = User.fromMap(map)
+    assertNull(user) // Should fail due to missing updatedAt
+  }
+
+  // Test UpdateValue functionality
+  @Test
+  fun testUpdateValueSetToNull() {
+    val user =
+        validUser.update(
+            profilePictureUrl = User.UpdateValue.SetValue(null),
+            bio = User.UpdateValue.SetValue(null))
+
+    assertNull(user.profilePictureUrl)
+    assertNull(user.bio)
+    assertEquals(validUser.firstName, user.firstName)
+  }
+
+  @Test
+  fun testUpdateValueNoChange() {
+    val user =
+        validUser.update(
+            profilePictureUrl = User.UpdateValue.NoChange(), bio = User.UpdateValue.NoChange())
+
+    assertEquals(validUser.profilePictureUrl, user.profilePictureUrl)
+    assertEquals(validUser.bio, user.bio)
+  }
+
+  @Test
+  fun testUpdateValueSetNewValue() {
+    val newUrl = "https://new.example.com/pic.jpg"
+    val newBio = "New bio"
+
+    val user =
+        validUser.update(
+            profilePictureUrl = User.UpdateValue.SetValue(newUrl),
+            bio = User.UpdateValue.SetValue(newBio))
+
+    assertEquals(newUrl, user.profilePictureUrl)
+    assertEquals(newBio, user.bio)
   }
 }

@@ -37,6 +37,22 @@ interface UserRepository {
   fun getAllUsers(onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit)
 
   /**
+   * Retrieves users from the database with pagination.
+   *
+   * @param limit Maximum number of users to retrieve.
+   * @param lastUserId The ID of the last user from the previous page (for pagination).
+   * @param onSuccess Callback invoked with a list of Users and a boolean indicating if there are
+   *   more pages.
+   * @param onFailure Callback invoked with an Exception if the operation fails.
+   */
+  fun getUsersPaginated(
+      limit: Int,
+      lastUserId: String? = null,
+      onSuccess: (List<User>, hasMore: Boolean) -> Unit,
+      onFailure: (Exception) -> Unit
+  )
+
+  /**
    * Creates or updates a user in the database.
    *
    * @param user The User to save.

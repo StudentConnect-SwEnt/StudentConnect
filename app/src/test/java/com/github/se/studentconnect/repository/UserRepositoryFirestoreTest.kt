@@ -731,4 +731,268 @@ class UserRepositoryFirestoreTest {
     assert(resultUsers?.size == 1)
     assert(resultUsers?.get(0)?.userId == "user123")
   }
+
+  // Error scenario tests
+  @Test
+  fun testGetUserByIdWithMalformedDocument() {
+    // Arrange
+    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockDocumentSnapshot.data)
+        .thenReturn(
+            mapOf(
+                "userId" to "user123",
+                "email" to "invalid-email", // Invalid email format
+                "firstName" to "John",
+                "lastName" to "Doe",
+                "university" to "EPFL",
+                "createdAt" to 1000L,
+                "updatedAt" to 1000L))
+
+    var resultUser: User? =
+        User(
+            userId = "dummy",
+            email = "dummy@test.com",
+            firstName = "dummy",
+            lastName = "dummy",
+            university = "dummy") // Set to non-null initially
+    var failureCalled = false
+
+    // Mock the task to immediately invoke onSuccess
+    whenever(mockDocumentTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
+      listener.onSuccess(mockDocumentSnapshot)
+      mockDocumentTask
+    }
+    whenever(mockDocumentTask.addOnFailureListener(any())).thenReturn(mockDocumentTask)
+
+    // Act
+    repository.getUserById(
+        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureCalled = true })
+
+    // Assert - Should return null for malformed document
+    assert(resultUser == null)
+    assert(!failureCalled)
+  }
+
+  @Test
+  fun testGetUserByIdWithNetworkFailure() {
+    // Arrange
+    val exception = RuntimeException("Network error")
+    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+
+    var resultUser: User? = null
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure
+    whenever(mockDocumentTask.addOnSuccessListener(any())).thenReturn(mockDocumentTask)
+    whenever(mockDocumentTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockDocumentTask
+    }
+
+    // Act
+    repository.getUserById(
+        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureException = it })
+
+    // Assert
+    assert(resultUser == null)
+    assert(failureException == exception)
+  }
+
+  @Test
+  fun testSaveUserWithNetworkFailure() {
+    // Arrange
+    val exception = RuntimeException("Network error")
+    whenever(mockDocumentReference.set(any())).thenReturn(mockTask)
+
+    var successCalled = false
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure
+    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
+    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    // Act
+    repository.saveUser(
+        user = testUser,
+        onSuccess = { successCalled = true },
+        onFailure = { failureException = it })
+
+    // Assert
+    assert(!successCalled)
+    assert(failureException == exception)
+  }
+
+  @Test
+  fun testUpdateUserWithNetworkFailure() {
+    // Arrange
+    val exception = RuntimeException("Network error")
+    val updates = mapOf("firstName" to "UpdatedName")
+    whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
+
+    var successCalled = false
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure
+    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
+    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    // Act
+    repository.updateUser(
+        userId = "user123",
+        updates = updates,
+        onSuccess = { successCalled = true },
+        onFailure = { failureException = it })
+
+    // Assert
+    assert(!successCalled)
+    assert(failureException == exception)
+  }
+
+  @Test
+  fun testDeleteUserWithNetworkFailure() {
+    // Arrange
+    val exception = RuntimeException("Network error")
+    whenever(mockDocumentReference.delete()).thenReturn(mockTask)
+
+    var successCalled = false
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure
+    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
+    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    // Act
+    repository.deleteUser(
+        userId = "user123",
+        onSuccess = { successCalled = true },
+        onFailure = { failureException = it })
+
+    // Assert
+    assert(!successCalled)
+    assert(failureException == exception)
+  }
+
+  @Test
+  fun testGetUsersByHobbyWithMalformedDocuments() {
+    // Arrange
+    val validDocSnapshot: DocumentSnapshot = mock()
+    val invalidDocSnapshot: DocumentSnapshot = mock()
+
+    whenever(validDocSnapshot.data).thenReturn(testUser.toMap())
+    whenever(invalidDocSnapshot.data)
+        .thenReturn(
+            mapOf(
+                "userId" to "user456",
+                "email" to "invalid-email", // Invalid email
+                "firstName" to "", // Empty first name
+                "lastName" to "Doe",
+                "university" to "EPFL",
+                "hobbies" to listOf("Football"),
+                "createdAt" to 1000L,
+                "updatedAt" to 1000L))
+
+    whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
+        .thenReturn(mockCollectionReference)
+    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(validDocSnapshot, invalidDocSnapshot))
+
+    var resultUsers: List<User>? = null
+
+    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
+      listener.onSuccess(mockQuerySnapshot)
+      mockQueryTask
+    }
+    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
+
+    // Act
+    repository.getUsersByHobby(hobby = "Football", onSuccess = { resultUsers = it }, onFailure = {})
+
+    // Assert - Only valid user should be returned
+    assert(resultUsers != null)
+    assert(resultUsers?.size == 1)
+    assert(resultUsers?.get(0)?.userId == "user123")
+  }
+
+  @Test
+  fun testGetUsersPaginatedWithNetworkFailure() {
+    // Arrange
+    val exception = RuntimeException("Network timeout")
+    whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockCollectionReference)
+    whenever(mockCollectionReference.limit(11L)).thenReturn(mockCollectionReference)
+    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+
+    var resultUsers: List<User>? = null
+    var hasMore: Boolean? = null
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure
+    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
+    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockQueryTask
+    }
+
+    // Act
+    repository.getUsersPaginated(
+        limit = 10,
+        lastUserId = null,
+        onSuccess = { users, more ->
+          resultUsers = users
+          hasMore = more
+        },
+        onFailure = { failureException = it })
+
+    // Assert
+    assert(resultUsers == null)
+    assert(hasMore == null)
+    assert(failureException == exception)
+  }
+
+  @Test
+  fun testConcurrentModificationScenario() {
+    // Arrange - Simulate concurrent modification by having update fail
+    val exception = RuntimeException("Document was modified")
+    val updates = mapOf("firstName" to "UpdatedName")
+    whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
+
+    var successCalled = false
+    var failureException: Exception? = null
+
+    // Mock the task to immediately invoke onFailure (simulating concurrent modification)
+    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
+    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
+      val listener = invocation.getArgument<OnFailureListener>(0)
+      listener.onFailure(exception)
+      mockTask
+    }
+
+    // Act
+    repository.updateUser(
+        userId = "user123",
+        updates = updates,
+        onSuccess = { successCalled = true },
+        onFailure = { failureException = it })
+
+    // Assert
+    assert(!successCalled)
+    assert(failureException == exception)
+    assert(failureException?.message == "Document was modified")
+  }
 }
