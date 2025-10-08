@@ -11,58 +11,56 @@ import org.junit.Before
 
 open class FirestoreStudentConnectTest : StudentConnectTest() {
 
-    suspend fun getEventsCount(): Int {
-        val user = FirebaseEmulator.auth.currentUser ?: return 0
-        return FirebaseEmulator.firestore
+  suspend fun getEventsCount(): Int {
+    val user = FirebaseEmulator.auth.currentUser ?: return 0
+    return FirebaseEmulator.firestore
+        .collection(EVENTS_COLLECTION_PATH)
+        .whereEqualTo("ownerId", user.uid)
+        .get()
+        .await()
+        .size()
+  }
+
+  private suspend fun clearTestCollection() {
+    val user = FirebaseEmulator.auth.currentUser ?: return
+    val todos =
+        FirebaseEmulator.firestore
             .collection(EVENTS_COLLECTION_PATH)
             .whereEqualTo("ownerId", user.uid)
             .get()
             .await()
-            .size()
+
+    val batch = FirebaseEmulator.firestore.batch()
+    todos.documents.forEach { batch.delete(it.reference) }
+    batch.commit().await()
+
+    val count = getEventsCount()
+    assert(count == 0) { "Test collection is not empty after clearing, count: ${count}" }
+  }
+
+  override fun createInitializedRepository(): EventRepository {
+    return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
+  }
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    runTest {
+      val todosCount = getEventsCount()
+      if (todosCount > 0) {
+        Log.w(
+            "FirebaseEmulatedTest",
+            "Warning: Test collection is not empty at the beginning of the test, count: $todosCount",
+        )
+        clearTestCollection()
+      }
     }
+  }
 
-    private suspend fun clearTestCollection() {
-        val user = FirebaseEmulator.auth.currentUser ?: return
-        val todos =
-            FirebaseEmulator.firestore
-                .collection(EVENTS_COLLECTION_PATH)
-                .whereEqualTo("ownerId", user.uid)
-                .get()
-                .await()
-
-        val batch = FirebaseEmulator.firestore.batch()
-        todos.documents.forEach { batch.delete(it.reference) }
-        batch.commit().await()
-
-        val count = getEventsCount()
-        assert(count == 0) {
-            "Test collection is not empty after clearing, count: ${count}"
-        }
-    }
-
-    override fun createInitializedRepository(): EventRepository {
-        return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
-    }
-
-    @Before
-    override fun setUp() {
-        super.setUp()
-        runTest {
-            val todosCount = getEventsCount()
-            if (todosCount > 0) {
-                Log.w(
-                    "FirebaseEmulatedTest",
-                    "Warning: Test collection is not empty at the beginning of the test, count: $todosCount",
-                )
-                clearTestCollection()
-            }
-        }
-    }
-
-    @After
-    override fun tearDown() {
-        runTest { clearTestCollection() }
-        FirebaseEmulator.clearFirestoreEmulator()
-        super.tearDown()
-    }
+  @After
+  override fun tearDown() {
+    runTest { clearTestCollection() }
+    FirebaseEmulator.clearFirestoreEmulator()
+    super.tearDown()
+  }
 }

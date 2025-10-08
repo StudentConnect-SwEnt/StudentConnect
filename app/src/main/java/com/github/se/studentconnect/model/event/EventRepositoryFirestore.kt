@@ -24,87 +24,85 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   private fun eventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event {
-      return when (val type = documentSnapshot.getString("type")) {
-          "private" -> privateEventFromDocumentSnapshot(documentSnapshot)
-          "public" -> publicEventFromDocumentSnapshot(documentSnapshot)
-          else -> throw IllegalArgumentException("Unknown event type: $type")
-      }
+    return when (val type = documentSnapshot.getString("type")) {
+      "private" -> privateEventFromDocumentSnapshot(documentSnapshot)
+      "public" -> publicEventFromDocumentSnapshot(documentSnapshot)
+      else -> throw IllegalArgumentException("Unknown event type: $type")
+    }
   }
 
   private fun privateEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Private {
-      val uid = documentSnapshot.id
-      val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
-      val title = checkNotNull(documentSnapshot.getString("title"))
-      val description = checkNotNull(documentSnapshot.getString("description"))
-      val imageUrl = documentSnapshot.getString("imageUrl")
+    val uid = documentSnapshot.id
+    val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+    val title = checkNotNull(documentSnapshot.getString("title"))
+    val description = checkNotNull(documentSnapshot.getString("description"))
+    val imageUrl = documentSnapshot.getString("imageUrl")
 
-      val location = (documentSnapshot.get("location") as? Map<*, *>)?.let {
+    val location =
+        (documentSnapshot.get("location") as? Map<*, *>)?.let {
           Location(
               latitude = it["latitude"] as Double,
               longitude = it["longitude"] as Double,
-              name = it["name"] as String
-          )
-      }
+              name = it["name"] as String)
+        }
 
-      val start = checkNotNull(documentSnapshot.getTimestamp("start"))
-      val end = documentSnapshot.getTimestamp("end")
-      val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
-      val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
-      val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
+    val start = checkNotNull(documentSnapshot.getTimestamp("start"))
+    val end = documentSnapshot.getTimestamp("end")
+    val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
+    val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
+    val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
 
-      return Event.Private(
-          uid = uid,
-          ownerId = ownerId,
-          title = title,
-          description = description,
-          imageUrl = imageUrl,
-          location = location,
-          start = start,
-          end = end,
-          maxCapacity = maxCapacity,
-          participationFee = participationFee,
-          isFlash = isFlash
-      )
+    return Event.Private(
+        uid = uid,
+        ownerId = ownerId,
+        title = title,
+        description = description,
+        imageUrl = imageUrl,
+        location = location,
+        start = start,
+        end = end,
+        maxCapacity = maxCapacity,
+        participationFee = participationFee,
+        isFlash = isFlash)
   }
 
   private fun publicEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Public {
-      val uid = documentSnapshot.id
-      val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
-      val title = checkNotNull(documentSnapshot.getString("title"))
-      val description = checkNotNull(documentSnapshot.getString("description"))
-      val imageUrl = documentSnapshot.getString("imageUrl")
+    val uid = documentSnapshot.id
+    val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+    val title = checkNotNull(documentSnapshot.getString("title"))
+    val description = checkNotNull(documentSnapshot.getString("description"))
+    val imageUrl = documentSnapshot.getString("imageUrl")
 
-      val location = (documentSnapshot.get("location") as? Map<*, *>)?.let {
+    val location =
+        (documentSnapshot.get("location") as? Map<*, *>)?.let {
           Location(
               latitude = it["latitude"] as Double,
               longitude = it["longitude"] as Double,
-              name = it["name"] as String
-          )
-      }
+              name = it["name"] as String)
+        }
 
-      val start = checkNotNull(documentSnapshot.getTimestamp("start"))
-      val end = documentSnapshot.getTimestamp("end")
-      val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
-      val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
-      val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
-      val tags = documentSnapshot.get("tags") as? List<String> ?: emptyList()
-      val website = documentSnapshot.getString("website")
+    val start = checkNotNull(documentSnapshot.getTimestamp("start"))
+    val end = documentSnapshot.getTimestamp("end")
+    val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
+    val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
+    val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
+    val tags = documentSnapshot.get("tags") as? List<String> ?: emptyList()
+    val website = documentSnapshot.getString("website")
 
-      return Event.Public(
-          uid = uid,
-          ownerId = ownerId,
-          title = title,
-          description = description,
-          imageUrl = imageUrl,
-          location = location,
-          start = start,
-          end = end,
-          maxCapacity = maxCapacity,
-          participationFee = participationFee,
-          isFlash = isFlash,
-          tags = tags,
-          website = website
-      )
+    return Event.Public(
+        uid = uid,
+        ownerId = ownerId,
+        title = title,
+        description = description,
+        imageUrl = imageUrl,
+        location = location,
+        start = start,
+        end = end,
+        maxCapacity = maxCapacity,
+        participationFee = participationFee,
+        isFlash = isFlash,
+        tags = tags,
+        website = website)
   }
 
   override suspend fun getAllVisibleEvents(): List<Event> {
@@ -119,14 +117,13 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return eventFromDocumentSnapshot(documentSnapshot)
   }
 
-  private fun eventParticipantFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): EventParticipant {
-      val uid = checkNotNull(documentSnapshot.getString("uid"))
-      val joinedAt = checkNotNull(documentSnapshot.getTimestamp("joinedAt"))
+  private fun eventParticipantFromDocumentSnapshot(
+      documentSnapshot: DocumentSnapshot
+  ): EventParticipant {
+    val uid = checkNotNull(documentSnapshot.getString("uid"))
+    val joinedAt = checkNotNull(documentSnapshot.getTimestamp("joinedAt"))
 
-      return EventParticipant(
-          uid = uid,
-          joinedAt = joinedAt
-      )
+    return EventParticipant(uid = uid, joinedAt = joinedAt)
   }
 
   override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
@@ -165,18 +162,15 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val eventSnapshot = eventRef.get().await()
 
     // check if event exists
-    if (!eventSnapshot.exists())
-      throw IllegalArgumentException("Event $eventUid does not exist")
+    if (!eventSnapshot.exists()) throw IllegalArgumentException("Event $eventUid does not exist")
 
-    val participantRef = eventRef
-        .collection(PARTICIPANTS_COLLECTION_PATH)
-        .document(participant.uid)
+    val participantRef = eventRef.collection(PARTICIPANTS_COLLECTION_PATH).document(participant.uid)
 
     val participantSnapshot = participantRef.get().await()
 
     // check if already joined
     if (participantSnapshot.exists())
-     throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
+        throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
 
     participantRef.set(participant).await()
   }

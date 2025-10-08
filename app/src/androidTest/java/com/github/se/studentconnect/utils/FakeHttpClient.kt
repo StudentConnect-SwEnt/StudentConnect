@@ -44,9 +44,7 @@ object FakeHttpClient {
                   Location(
                       0.0,
                       0.0,
-                      "This is a very long location name designed to test how the application handles location names that exceed typical lengths, ensuring that text wrapping, truncation, or overflow behaviors are correctly implemented in the UI components that display location information."
-                  )
-              )
+                      "This is a very long location name designed to test how the application handles location names that exceed typical lengths, ensuring that text wrapping, truncation, or overflow behaviors are correctly implemented in the UI components that display location information."))
         }
 
   val FakeLocation.getRequestURL: String
@@ -87,13 +85,11 @@ object FakeHttpClient {
 
       Log.d("MockInterceptor", "Intercepted URL: $url")
       if (checkUrl) {
-          Assert.assertTrue("Request must use HTTPS", request.url.isHttps)
-          Assert.assertTrue(
-              "Invalid host in $url",
-              request.url.host.contains("nominatim.openstreetmap.org")
-          )
-          Assert.assertNotNull(request.url.queryParameter("q"))
-          Assert.assertEquals("json", request.url.queryParameter("format"))
+        Assert.assertTrue("Request must use HTTPS", request.url.isHttps)
+        Assert.assertTrue(
+            "Invalid host in $url", request.url.host.contains("nominatim.openstreetmap.org"))
+        Assert.assertNotNull(request.url.queryParameter("q"))
+        Assert.assertEquals("json", request.url.queryParameter("format"))
       }
       if (request.url.host == NOMINATIM_HOST &&
           request.url.pathSegments.contains(SEARCH_PATH) &&

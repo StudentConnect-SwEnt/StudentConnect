@@ -8,7 +8,7 @@ import com.google.firebase.ktx.Firebase
  * purposes.
  */
 object EventRepositoryProvider {
-    private val _repository: EventRepository = EventRepositoryFirestore(Firebase.firestore)
+  private val _repository: EventRepository = EventRepositoryFirestore(Firebase.firestore)
 
-    var repository: EventRepository = _repository
+  var repository: EventRepository = _repository
 }
