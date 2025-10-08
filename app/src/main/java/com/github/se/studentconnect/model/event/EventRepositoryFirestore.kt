@@ -13,8 +13,8 @@ import kotlinx.coroutines.tasks.await
  */
 class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventRepository {
   companion object {
-    private const val EVENTS_COLLECTION_PATH = "events"
-    private const val PARTICIPANTS_COLLECTION_PATH = "participants"
+    const val EVENTS_COLLECTION_PATH = "events"
+    const val PARTICIPANTS_COLLECTION_PATH = "participants"
   }
 
   override fun getNewUid(): String {
