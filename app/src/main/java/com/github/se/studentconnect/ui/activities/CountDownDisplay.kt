@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 fun CountDownDisplay(timeLeft: Long) {
   Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     TimeUnitBox(timeLeft = days(timeLeft))
@@ -42,7 +42,7 @@ private fun TimeUnitBox(timeLeft: String) {
       shape = MaterialTheme.shapes.medium,
       color = MaterialTheme.colorScheme.primary) {
         Text(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 3.dp, vertical = 3.dp),
             color = Color.White,
             text = timeLeft.padStart(2, '0'),
             style = MaterialTheme.typography.displayMedium)

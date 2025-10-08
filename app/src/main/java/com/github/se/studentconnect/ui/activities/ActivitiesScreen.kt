@@ -3,13 +3,22 @@
 
 package com.github.se.studentconnect.ui.activities
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Textsms
@@ -25,8 +34,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.util.lerp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -36,6 +46,7 @@ import java.time.ZoneId
 import java.util.Date
 import kotlin.math.absoluteValue
 
+
 data class CarouselItem(
     val id: Int,
     val title: String,
@@ -44,10 +55,18 @@ data class CarouselItem(
     val start: Timestamp
 )
 
-@OptIn(ExperimentalFoundationApi::class)
+enum class EventTab{
+    JoinedEvents,
+    Invitations
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun ActivitiesScreen(
     navController: NavHostController = rememberNavController(),
+    activitiesViewModel: ActivitiesViewModel = viewModel(),
 ) {
   val carouselItems = remember {
     // getEventsAttendedByUser(Firebase.auth.currentUser?.uid)
@@ -70,7 +89,7 @@ fun ActivitiesScreen(
   }
 
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-  val mainItemWidth = screenWidth * 0.7f
+  val mainItemWidth = screenWidth * 0.75f
   val sidePeekWidth = (screenWidth - mainItemWidth) / 2
   val pagerState = rememberPagerState { carouselItems.size }
   val countDownViewModel: CountDownViewModel = viewModel()
@@ -79,74 +98,178 @@ fun ActivitiesScreen(
     val currentEvent = carouselItems[pagerState.currentPage]
     countDownViewModel.startCountdown(currentEvent.start)
   }
-  Scaffold { paddingValues ->
+  Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text("Activities")},
+                modifier = Modifier.fillMaxWidth() )
+        },
+        //bottomBar =
+  ) { paddingValues ->
     Column(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-        horizontalAlignment = Alignment.Start) {
-          HorizontalPager(
-              state = pagerState,
-              modifier = Modifier.fillMaxWidth(),
-              pageSpacing = 10.dp,
-              contentPadding = PaddingValues(horizontal = sidePeekWidth),
-          ) { page ->
-            CarouselCard(
-                item = carouselItems[page],
-                modifier =
-                    Modifier.width(mainItemWidth).graphicsLayer {
-                      val pageOffset =
-                          (pagerState.currentPage - page + pagerState.currentPageOffsetFraction)
-                              .absoluteValue
+        modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(25.dp, Alignment.Top),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+            ActivitiesTab()
+          Carousel(pagerState, sidePeekWidth, carouselItems, mainItemWidth, screenWidth)
+          ChatButton()
+            AnimatedContent(
+                targetState = pagerState.currentPage,
+                label = "ContentAnimator",
+                transitionSpec = {
+                    val exit = fadeOut(animationSpec = tween(durationMillis = 400))
 
-                      lerp(
-                              start = 75.dp,
-                              stop = 100.dp,
-                              fraction = 1f - pageOffset.coerceIn(0f, 1f))
-                          .also { scale -> scaleY = scale / 100.dp }
-                    })
-          }
+                    val enter = fadeIn(animationSpec = tween(durationMillis = 400, delayMillis = 400))
 
-          Button(
-              onClick = {
-                // navController.navigate("all_events_screen")
-              },
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp),
-          ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-              Column(
-                  horizontalAlignment = Alignment.Start, modifier = Modifier.wrapContentHeight()) {
-                    Text(text = "Event chat", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = "Get The Latest News About The Event",
-                        style = MaterialTheme.typography.labelSmall)
-                  }
-              Icon(
-                  imageVector = Icons.Default.Textsms,
-                  contentDescription = "Go to chat",
-                  tint = MaterialTheme.colorScheme.onPrimary)
+                    enter togetherWith exit
+                }
+            ) { targetPage ->
+                InfoEvent(
+                    timeLeft = timeLeft,
+                    carouselItems = carouselItems,
+                    currentPage = targetPage
+                )
             }
-          }
-
-          Column(
-              verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.Top),
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp)) {
-                Text(text = "CountDown :", style = TitleTextStyle())
-                CountDownDisplay(timeLeft)
-                Text(text = "Description", style = TitleTextStyle())
-                Text(text = carouselItems[pagerState.currentPage].description)
-              }
-          Spacer(modifier = Modifier.weight(1f))
+          //Spacer(modifier = Modifier.weight(1f))
           EventActionButtons()//activitiesViewModel)
         }
   }
+}
+
+@Composable
+private fun ActivitiesTab() {
+    var selectedTab by remember { mutableStateOf(EventTab.JoinedEvents) }
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+    ) {
+        Row(
+        ) {
+            TabButton(
+                text = "Joined Events",
+                isSelected = selectedTab == EventTab.JoinedEvents,
+                onClick = { selectedTab = EventTab.JoinedEvents }
+            )
+            TabButton(
+                text = "Invitations",
+                isSelected = selectedTab == EventTab.Invitations,
+                onClick = { selectedTab = EventTab.Invitations }
+            )
+        }
+    }
+}
+
+@Composable
+private fun TabButton(
+    text : String,
+    isSelected : Boolean,
+    onClick : () -> Unit,
+){
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor
+        ),
+        shape = RoundedCornerShape(50),
+        elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        Text(text = text, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@Composable
+private fun InfoEvent(
+    timeLeft: Long,
+    carouselItems: List<CarouselItem>,
+    currentPage: Int
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.Top),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp)
+    ) {
+        Text(text = "CountDown :", style = TitleTextStyle())
+        CountDownDisplay(timeLeft)
+        Text(text = "Description", style = TitleTextStyle())
+        Text(text = carouselItems[currentPage].description)
+    }
+}
+
+@Composable
+private fun ChatButton() {
+    Button(
+        onClick = {
+            // navController.navigate("all_events_screen")
+        },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.Start, modifier = Modifier.wrapContentHeight()
+            ) {
+                Text(text = "Event chat", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Get The Latest News About The Event",
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.Textsms,
+                contentDescription = "Go to chat",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+private fun Carousel(
+    pagerState: PagerState,
+    sidePeekWidth: Dp,
+    carouselItems: List<CarouselItem>,
+    mainItemWidth: Dp,
+    screenWidth: Dp
+) {
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth(),
+        pageSpacing = 8.dp,
+        contentPadding = PaddingValues(horizontal = sidePeekWidth),
+    ) { page ->
+        CarouselCard(
+            item = carouselItems[page],
+            modifier =
+                Modifier
+                    .width(mainItemWidth)
+                    .graphicsLayer {
+                        val pageOffset =
+                            (pagerState.currentPage - page + pagerState.currentPageOffsetFraction)
+                                .absoluteValue
+
+                        val scale = lerp(
+                            start = 0.85f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+                        scaleX = scale
+                        scaleY = scale
+                    },
+            screenHeight = LocalConfiguration.current.screenHeightDp.dp, screenWidth
+        )
+    }
 }
 
 private fun date(seconds: Long): Timestamp =
@@ -155,11 +278,11 @@ private fun date(seconds: Long): Timestamp =
             LocalDateTime.now().plusSeconds(seconds).atZone(ZoneId.systemDefault()).toInstant()))
 
 @Composable
-fun CarouselCard(item: CarouselItem /*Event*/, modifier: Modifier = Modifier) {
+fun CarouselCard(item: CarouselItem /*Event*/, modifier: Modifier = Modifier, screenHeight: Dp, screenWidth: Dp) {
   Card(
-      modifier = modifier.height(220.dp),
+      modifier = modifier.height( screenHeight*0.5f),
       elevation = CardDefaults.cardElevation(8.dp),
-      shape = RoundedCornerShape(24.dp)) {
+      shape = RoundedCornerShape(12.dp)) {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween,
@@ -173,12 +296,25 @@ fun CarouselCard(item: CarouselItem /*Event*/, modifier: Modifier = Modifier) {
                   model = item.imageUrl,
                   contentDescription = "Event Image",
               )*/
-              Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = item.title, style = TitleTextStyle(), textAlign = TextAlign.Center)
-                Text(
-                    text = item.supportingText,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center)
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically) {
+                  Column {
+                      Text(text = item.title, style = TitleTextStyle(), textAlign = TextAlign.Center)
+                      Text(
+                          text = item.supportingText,
+                          style = MaterialTheme.typography.bodySmall,
+                          textAlign = TextAlign.Center)
+                  }
+                  Button(
+                      contentPadding = PaddingValues(horizontal = 10.dp),
+                        onClick = {}
+                  ) {
+                    Text("View on Map", style = MaterialTheme.typography.labelSmall)
+
+                  }
+
               }
             }
       }
@@ -195,16 +331,14 @@ fun EventActionButtons(/*activitiesViewModel: ActivitiesViewModel*/) {
         ) {
           // Bouton "Visit Website"
           Button(
-              onClick = { /* TODO: Naviguer vers le site web */},
-              shape = RoundedCornerShape(16.dp)) {
+              onClick = { /* TODO: Naviguer vers le site web */}) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Visit Website")
               }
 
           // Bouton "Share Event"
           Button(
-              onClick = { /* TODO: Partager l'événement */},
-              shape = RoundedCornerShape(16.dp),
+              onClick = { /* TODO: Partager l'événement */}
           ) {
             Spacer(modifier = Modifier.width(8.dp))
             Text("Share Event")
@@ -214,11 +348,10 @@ fun EventActionButtons(/*activitiesViewModel: ActivitiesViewModel*/) {
         // Bouton "Leave Event"
         OutlinedButton(
             onClick = { /* TODO: Quitter l'événement */},
-            shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
             border = BorderStroke(1.dp, Color.Red)) {
               Spacer(modifier = Modifier.width(8.dp))
-              Text("Leave Event")
+              Text("Leave Event", style = MaterialTheme.typography.labelSmall)
             }
       }
 }
