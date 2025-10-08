@@ -1,6 +1,5 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.model.User
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
@@ -8,12 +7,13 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -21,21 +21,29 @@ import org.mockito.kotlin.whenever
 
 class UserRepositoryFirestoreTest {
 
-  @Mock private lateinit var mockFirestore: FirebaseFirestore
+  @Mock
+  private lateinit var mockFirestore: FirebaseFirestore
 
-  @Mock private lateinit var mockCollectionReference: CollectionReference
+  @Mock
+  private lateinit var mockCollectionReference: CollectionReference
 
-  @Mock private lateinit var mockDocumentReference: DocumentReference
+  @Mock
+  private lateinit var mockDocumentReference: DocumentReference
 
-  @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
+  @Mock
+  private lateinit var mockDocumentSnapshot: DocumentSnapshot
 
-  @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
+  @Mock
+  private lateinit var mockQuerySnapshot: QuerySnapshot
 
-  @Mock private lateinit var mockTask: Task<Void>
+  @Mock
+  private lateinit var mockTask: Task<Void>
 
-  @Mock private lateinit var mockDocumentTask: Task<DocumentSnapshot>
+  @Mock
+  private lateinit var mockDocumentTask: Task<DocumentSnapshot>
 
-  @Mock private lateinit var mockQueryTask: Task<QuerySnapshot>
+  @Mock
+  private lateinit var mockQueryTask: Task<QuerySnapshot>
 
   private lateinit var repository: UserRepositoryFirestore
 
@@ -59,7 +67,7 @@ class UserRepositoryFirestoreTest {
 
     // Default mock behavior
     whenever(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
-    whenever(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
+    whenever(mockCollectionReference.document(ArgumentMatchers.anyString())).thenReturn(mockDocumentReference)
   }
 
   @Test
@@ -89,8 +97,8 @@ class UserRepositoryFirestoreTest {
     assert(resultUser?.userId == "user123")
     assert(resultUser?.email == "test@epfl.ch")
     assert(!failureCalled)
-    verify(mockCollectionReference).document("user123")
-    verify(mockDocumentReference).get()
+    Mockito.verify(mockCollectionReference).document("user123")
+    Mockito.verify(mockDocumentReference).get()
   }
 
   @Test
@@ -148,7 +156,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUserByEmailSuccess() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(false)
@@ -180,7 +188,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUserByEmailNotFound() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
@@ -211,7 +219,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUserByEmailFailure() {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
 
@@ -249,7 +257,7 @@ class UserRepositoryFirestoreTest {
             createdAt = 1000L,
             updatedAt = 1000L)
 
-    val mockDocSnapshot2: DocumentSnapshot = mock()
+    val mockDocSnapshot2: DocumentSnapshot = Mockito.mock()
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
     whenever(mockDocSnapshot2.data).thenReturn(user2.toMap())
 
@@ -348,7 +356,7 @@ class UserRepositoryFirestoreTest {
     // Assert
     assert(successCalled)
     assert(!failureCalled)
-    verify(mockDocumentReference).set(testUser.toMap())
+    Mockito.verify(mockDocumentReference).set(testUser.toMap())
   }
 
   @Test
@@ -404,7 +412,7 @@ class UserRepositoryFirestoreTest {
     // Assert
     assert(successCalled)
     assert(!failureCalled)
-    verify(mockDocumentReference).update(any<Map<String, Any?>>())
+    Mockito.verify(mockDocumentReference).update(any<Map<String, Any?>>())
   }
 
   @Test
@@ -425,7 +433,7 @@ class UserRepositoryFirestoreTest {
 
     // Assert - Verify that updatedAt was added to the updates
     val captor = argumentCaptor<Map<String, Any?>>()
-    verify(mockDocumentReference).update(captor.capture())
+    Mockito.verify(mockDocumentReference).update(captor.capture())
     val capturedUpdates = captor.firstValue
     assert(capturedUpdates.containsKey("updatedAt"))
     assert(capturedUpdates["firstName"] == "Jack")
@@ -484,7 +492,7 @@ class UserRepositoryFirestoreTest {
     // Assert
     assert(successCalled)
     assert(!failureCalled)
-    verify(mockDocumentReference).delete()
+    Mockito.verify(mockDocumentReference).delete()
   }
 
   @Test
@@ -517,7 +525,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByUniversitySuccess() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
@@ -547,7 +555,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByUniversityEmpty() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("university", "ETHZ")).thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
     whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
@@ -576,7 +584,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUsersByUniversityFailure() {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
 
@@ -604,7 +612,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByHobbySuccess() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
@@ -635,7 +643,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByHobbyEmpty() {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Swimming"))
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
@@ -665,7 +673,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUsersByHobbyFailure() {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = Mockito.mock()
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockQueryTask)
@@ -700,13 +708,13 @@ class UserRepositoryFirestoreTest {
 
     // Assert
     assert(newuserId == "generated_userId_123")
-    verify(mockCollectionReference).document()
+    Mockito.verify(mockCollectionReference).document()
   }
 
   @Test
   fun testGetAllUsersWithInvalidData() {
     // Arrange
-    val invalidDocSnapshot: DocumentSnapshot = mock()
+    val invalidDocSnapshot: DocumentSnapshot = Mockito.mock()
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
     whenever(invalidDocSnapshot.data).thenReturn(mapOf("userId" to "")) // Invalid data
 
@@ -890,8 +898,8 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByHobbyWithMalformedDocuments() {
     // Arrange
-    val validDocSnapshot: DocumentSnapshot = mock()
-    val invalidDocSnapshot: DocumentSnapshot = mock()
+    val validDocSnapshot: DocumentSnapshot = Mockito.mock()
+    val invalidDocSnapshot: DocumentSnapshot = Mockito.mock()
 
     whenever(validDocSnapshot.data).thenReturn(testUser.toMap())
     whenever(invalidDocSnapshot.data)
