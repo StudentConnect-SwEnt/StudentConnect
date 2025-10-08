@@ -132,6 +132,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.material)
     implementation(libs.androidx.material.icons.extended)
+    // Maps
+    implementation("com.mapbox.maps:android-ndk27:11.15.2")
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.15.2")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -224,8 +227,8 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
 }
 
 configurations.forEach { configuration ->
-  // Exclude protobuf-lite from all configurations
-  // This fixes a fatal exception for tests interacting with Cloud Firestore
-  configuration.exclude("com.google.protobuf", "protobuf-lite")
+    // Exclude protobuf-lite from all configurations
+    // This fixes a fatal exception for tests interacting with Cloud Firestore
+    configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
