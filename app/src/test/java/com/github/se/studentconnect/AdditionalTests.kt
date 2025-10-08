@@ -6,7 +6,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.*
 import org.junit.Assert
@@ -158,7 +157,8 @@ class AdditionalTests {
     Assert.assertNotNull("AppTypography should exist", AppTypography)
     Assert.assertNotNull("AppTypography.bodyLarge should exist", AppTypography.bodyLarge)
     // AppTypography is a default Typography() instance, so just verify it exists
-    Assert.assertNotNull("AppTypography bodyLarge fontSize should exist", AppTypography.bodyLarge.fontSize)
+    Assert.assertNotNull(
+        "AppTypography bodyLarge fontSize should exist", AppTypography.bodyLarge.fontSize)
   }
 
   @Test
