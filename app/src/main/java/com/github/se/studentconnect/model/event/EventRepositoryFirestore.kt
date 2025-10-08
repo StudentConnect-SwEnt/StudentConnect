@@ -2,6 +2,7 @@
 
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -23,16 +24,87 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   private fun eventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event {
-    val type = documentSnapshot.getString("type")
-    checkNotNull(type)
+      return when (val type = documentSnapshot.getString("type")) {
+          "private" -> privateEventFromDocumentSnapshot(documentSnapshot)
+          "public" -> publicEventFromDocumentSnapshot(documentSnapshot)
+          else -> throw IllegalArgumentException("Unknown event type: $type")
+      }
+  }
 
-    return when (type) {
-      "private" ->
-          documentSnapshot.toObject(Event.Private::class.java)!!.copy(uid = documentSnapshot.id)
-      "public" ->
-          documentSnapshot.toObject(Event.Public::class.java)!!.copy(uid = documentSnapshot.id)
-      else -> throw IllegalArgumentException("Unknown event type: $type")
-    }
+  private fun privateEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Private {
+      val uid = documentSnapshot.id
+      val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+      val title = checkNotNull(documentSnapshot.getString("title"))
+      val description = checkNotNull(documentSnapshot.getString("description"))
+      val imageUrl = documentSnapshot.getString("imageUrl")
+
+      val location = (documentSnapshot.get("location") as? Map<*, *>)?.let {
+          Location(
+              latitude = it["latitude"] as Double,
+              longitude = it["longitude"] as Double,
+              name = it["name"] as String
+          )
+      }
+
+      val start = checkNotNull(documentSnapshot.getTimestamp("start"))
+      val end = documentSnapshot.getTimestamp("end")
+      val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
+      val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
+      val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
+
+      return Event.Private(
+          uid = uid,
+          ownerId = ownerId,
+          title = title,
+          description = description,
+          imageUrl = imageUrl,
+          location = location,
+          start = start,
+          end = end,
+          maxCapacity = maxCapacity,
+          participationFee = participationFee,
+          isFlash = isFlash
+      )
+  }
+
+  private fun publicEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Public {
+      val uid = documentSnapshot.id
+      val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+      val title = checkNotNull(documentSnapshot.getString("title"))
+      val description = checkNotNull(documentSnapshot.getString("description"))
+      val imageUrl = documentSnapshot.getString("imageUrl")
+
+      val location = (documentSnapshot.get("location") as? Map<*, *>)?.let {
+          Location(
+              latitude = it["latitude"] as Double,
+              longitude = it["longitude"] as Double,
+              name = it["name"] as String
+          )
+      }
+
+      val start = checkNotNull(documentSnapshot.getTimestamp("start"))
+      val end = documentSnapshot.getTimestamp("end")
+      val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
+      val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
+      val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
+      val tags = documentSnapshot.get("tags") as? List<String> ?: emptyList()
+      val website = documentSnapshot.getString("website")
+
+      return Event.Public(
+          uid = uid,
+          ownerId = ownerId,
+          title = title,
+          description = description,
+          imageUrl = imageUrl,
+          location = location,
+          start = start,
+          end = end,
+          maxCapacity = maxCapacity,
+          participationFee = participationFee,
+          isFlash = isFlash,
+          tags = tags,
+          website = website
+      )
   }
 
   override suspend fun getAllVisibleEvents(): List<Event> {
@@ -64,12 +136,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
   override suspend fun addEvent(event: Event) {
     val docRef = db.collection(EVENTS_COLLECTION_PATH).document(event.uid)
-    docRef.set(event.toMap()).await()
+    val data = event.toMap()
+    docRef.set(data).await()
   }
 
   override suspend fun editEvent(eventUid: String, newEvent: Event) {
     require(eventUid == newEvent.uid)
-    db.collection(EVENTS_COLLECTION_PATH).document(eventUid).set(newEvent).await()
+    val data = newEvent.toMap()
+    db.collection(EVENTS_COLLECTION_PATH).document(eventUid).set(data).await()
   }
 
   override suspend fun deleteEvent(eventUid: String) {

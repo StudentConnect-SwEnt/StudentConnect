@@ -27,8 +27,8 @@ sealed class Event {
           "location" to location,
           "start" to start,
           "end" to end,
-          "maxCapacity" to maxCapacity,
-          "participationFee" to participationFee,
+          "maxCapacity" to maxCapacity?.toLong(),
+          "participationFee" to participationFee?.toLong(),
           "isFlash" to isFlash,
       )
 

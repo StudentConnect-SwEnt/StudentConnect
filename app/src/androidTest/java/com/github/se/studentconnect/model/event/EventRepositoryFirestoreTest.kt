@@ -2,7 +2,6 @@
 
 package com.github.se.studentconnect.model.event
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.utils.FirebaseEmulator
@@ -127,7 +126,6 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     fun editEvent_withValidUid_updates() {
         runBlocking {
             val e = Event.Private(repository.getNewUid(), "o", "Draft", "d", null, null, now, null, null, null, false)
-            Log.d("WWWWW", "${e.toMap()}")
             repository.addEvent(e)
             val updated = e.copy(title = "Updated")
             repository.editEvent(e.uid, updated)
