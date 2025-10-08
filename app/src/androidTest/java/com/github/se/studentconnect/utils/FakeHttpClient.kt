@@ -1,5 +1,3 @@
-// From the bootcamp
-
 package com.github.se.studentconnect.utils
 
 import android.util.Log
@@ -7,11 +5,10 @@ import com.github.se.studentconnect.model.location.Location
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 
 /**
  * A fake HTTP client that intercepts requests and provides predefined responses for testing
@@ -47,7 +44,9 @@ object FakeHttpClient {
                   Location(
                       0.0,
                       0.0,
-                      "This is a very long location name designed to test how the application handles location names that exceed typical lengths, ensuring that text wrapping, truncation, or overflow behaviors are correctly implemented in the UI components that display location information."))
+                      "This is a very long location name designed to test how the application handles location names that exceed typical lengths, ensuring that text wrapping, truncation, or overflow behaviors are correctly implemented in the UI components that display location information."
+                  )
+              )
         }
 
   val FakeLocation.getRequestURL: String
@@ -88,10 +87,13 @@ object FakeHttpClient {
 
       Log.d("MockInterceptor", "Intercepted URL: $url")
       if (checkUrl) {
-        assertTrue("Request must use HTTPS", request.url.isHttps)
-        assertTrue("Invalid host in $url", request.url.host.contains("nominatim.openstreetmap.org"))
-        assertNotNull(request.url.queryParameter("q"))
-        assertEquals("json", request.url.queryParameter("format"))
+          Assert.assertTrue("Request must use HTTPS", request.url.isHttps)
+          Assert.assertTrue(
+              "Invalid host in $url",
+              request.url.host.contains("nominatim.openstreetmap.org")
+          )
+          Assert.assertNotNull(request.url.queryParameter("q"))
+          Assert.assertEquals("json", request.url.queryParameter("format"))
       }
       if (request.url.host == NOMINATIM_HOST &&
           request.url.pathSegments.contains(SEARCH_PATH) &&
@@ -103,7 +105,7 @@ object FakeHttpClient {
             .code(200)
             .message("OK")
             .request(request)
-            .protocol(okhttp3.Protocol.HTTP_1_1)
+            .protocol(Protocol.HTTP_1_1)
             .body(
                 location.locationSuggestionsAsJson.toResponseBody("application/json".toMediaType()))
             .build()
@@ -113,7 +115,7 @@ object FakeHttpClient {
           .code(404)
           .message("Not Found")
           .request(request)
-          .protocol(okhttp3.Protocol.HTTP_1_1)
+          .protocol(Protocol.HTTP_1_1)
           .body("{\"error\":\"Not Found\"}".toResponseBody("application/json".toMediaType()))
           .build()
     }
