@@ -119,6 +119,16 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return eventFromDocumentSnapshot(documentSnapshot)
   }
 
+  private fun eventParticipantFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): EventParticipant {
+      val uid = checkNotNull(documentSnapshot.getString("uid"))
+      val joinedAt = checkNotNull(documentSnapshot.getTimestamp("joinedAt"))
+
+      return EventParticipant(
+          uid = uid,
+          joinedAt = joinedAt
+      )
+  }
+
   override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
     val documentSnapshot =
         db.collection(EVENTS_COLLECTION_PATH)
@@ -126,7 +136,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
             .collection(PARTICIPANTS_COLLECTION_PATH)
             .get()
             .await()
-    return documentSnapshot.documents.mapNotNull { it.toObject(EventParticipant::class.java) }
+    return documentSnapshot.documents.map(::eventParticipantFromDocumentSnapshot)
   }
 
   override suspend fun getEventsAttendedByUser(userUid: String): List<Event> {
