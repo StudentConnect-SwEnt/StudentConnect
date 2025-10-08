@@ -75,7 +75,7 @@ interface EventRepository {
    *
    * @param eventUid The unique identifier of the event to which the participant should be added.
    * @param participant The [EventParticipant] object representing the participant being added.
-   * @throws Exception if the participant already joined the event.
+   * @throws Exception if the event is not found or the participant already joined the event.
    */
   suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant)
 

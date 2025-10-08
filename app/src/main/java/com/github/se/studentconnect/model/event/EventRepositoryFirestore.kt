@@ -161,16 +161,22 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) {
-    val participantRef =
-        db.collection(EVENTS_COLLECTION_PATH)
-            .document(eventUid)
-            .collection(PARTICIPANTS_COLLECTION_PATH)
-            .document(participant.uid)
+    val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
+    val eventSnapshot = eventRef.get().await()
 
-    val snapshot = participantRef.get().await()
+    // check if event exists
+    if (!eventSnapshot.exists())
+      throw IllegalArgumentException("Event $eventUid does not exist")
+
+    val participantRef = eventRef
+        .collection(PARTICIPANTS_COLLECTION_PATH)
+        .document(participant.uid)
+
+    val participantSnapshot = participantRef.get().await()
+
     // check if already joined
-    if (snapshot.exists())
-        throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
+    if (participantSnapshot.exists())
+     throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
 
     participantRef.set(participant).await()
   }
