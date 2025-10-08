@@ -21,33 +21,39 @@ import kotlinx.coroutines.tasks.await
 class AuthRepositoryFirebase(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val helper: GoogleSignInHelper = DefaultGoogleSignInHelper()
-): AuthRepository {
+) : AuthRepository {
 
-    /** Builds the Google sign-in option to be used with Credential Manager. */
-    fun getGoogleSignInOption(serverClientId: String): GetSignInWithGoogleOption =
-        GetSignInWithGoogleOption.Builder(serverClientId).build()
+  /** Builds the Google sign-in option to be used with Credential Manager. */
+  fun getGoogleSignInOption(serverClientId: String): GetSignInWithGoogleOption =
+      GetSignInWithGoogleOption.Builder(serverClientId).build()
 
-    override suspend fun signInWithGoogle(credential: Credential): Result<FirebaseUser> = try {
-        if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-            val idToken = helper.extractIdTokenCredential(credential.data).idToken
-            val firebaseCred = helper.toFirebaseCredential(idToken)
+  override suspend fun signInWithGoogle(credential: Credential): Result<FirebaseUser> {
+    return try {
+      if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+        val idToken = helper.extractIdTokenCredential(credential.data).idToken
+        val firebaseCred = helper.toFirebaseCredential(idToken)
 
-            val user = auth.signInWithCredential(firebaseCred).await().user
-                ?: return Result.failure(IllegalStateException("Login failed: missing Firebase user"))
-
-            Result.success(user)
+        val user = auth.signInWithCredential(firebaseCred).await().user
+        if (user == null) {
+          Result.failure(IllegalStateException("Login failed: missing Firebase user"))
         } else {
-            Result.failure(IllegalStateException("Login failed: not a Google ID credential"))
+          Result.success(user)
         }
+      } else {
+        Result.failure(IllegalStateException("Login failed: not a Google ID credential"))
+      }
     } catch (e: Exception) {
-        Result.failure(IllegalStateException("Login failed: ${e.localizedMessage ?: "Unexpected error."}"))
+      Result.failure(
+          IllegalStateException("Login failed: ${e.localizedMessage ?: "Unexpected error."}"))
     }
+  }
 
-    override fun signOut(): Result<Unit> = try {
+  override fun signOut(): Result<Unit> =
+      try {
         auth.signOut()
         Result.success(Unit)
-    } catch (e: Exception) {
-        Result.failure(IllegalStateException("Logout failed: ${e.localizedMessage ?: "Unexpected error."}"))
-    }
-
+      } catch (e: Exception) {
+        Result.failure(
+            IllegalStateException("Logout failed: ${e.localizedMessage ?: "Unexpected error."}"))
+      }
 }
