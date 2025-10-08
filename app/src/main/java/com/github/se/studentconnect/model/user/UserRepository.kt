@@ -1,6 +1,4 @@
-package com.github.se.studentconnect.repository
-
-import com.github.se.studentconnect.model.User
+package com.github.se.studentconnect.model.user
 
 /**
  * Repository interface for User operations.

@@ -1,6 +1,5 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.model.User
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
