@@ -13,22 +13,17 @@ import androidx.compose.ui.semantics.testTag
 import com.github.se.studentconnect.resources.C
 
 @Composable
-fun TestMapboxMap(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit = {}
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .semantics { testTag = C.Tag.map_screen },
-        contentAlignment = Alignment.Center
-    ) {
+fun TestMapboxMap(modifier: Modifier = Modifier, content: @Composable () -> Unit = {}) {
+  Box(
+      modifier =
+          modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant).semantics {
+            testTag = C.Tag.map_screen
+          },
+      contentAlignment = Alignment.Center) {
         Text(
             text = "Test Map View",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
         content()
-    }
+      }
 }
