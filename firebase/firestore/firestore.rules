@@ -11,14 +11,18 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       allow read: if request.auth != null;
     }
-    
-    // Default deny for all other collections
-    match /{document=**} {
-      allow read, write: if false;
+
+    match /events/{eventUid} {
+      allow read, write: if true;
     }
 
     match /events/{eventUid}/participants/{participantUid} {
       allow read, write: if true;
+    }
+
+    // Default deny for all other collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
