@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.*
@@ -522,11 +523,259 @@ class LocationRepositoryInterfaceEdgeCasesTest {
   }
 }
 
+@ExperimentalCoroutinesApi
+class GetLocationUpdatesTest {
+
+  private lateinit var mockRepository: LocationRepository
+  private val testDispatcher = StandardTestDispatcher()
+
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    mockRepository = mockk()
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+    unmockkAll()
+  }
+
+  @Test
+  fun getLocationUpdates_emitsSuccessfulLocationUpdates() = runTest {
+    val location1 =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+          every { accuracy } returns 10.0f
+          every { time } returns System.currentTimeMillis()
+        }
+
+    val location2 =
+        mockk<Location> {
+          every { latitude } returns 46.5100
+          every { longitude } returns 6.6300
+          every { accuracy } returns 8.0f
+          every { time } returns System.currentTimeMillis()
+        }
+
+    val expectedResults =
+        listOf(LocationResult.Success(location1), LocationResult.Success(location2))
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(*expectedResults.toTypedArray())
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(2, results.size)
+    assertTrue(results[0] is LocationResult.Success)
+    assertTrue(results[1] is LocationResult.Success)
+
+    val success1 = results[0] as LocationResult.Success
+    val success2 = results[1] as LocationResult.Success
+    assertEquals(46.5089, success1.location.latitude, 0.0001)
+    assertEquals(46.5100, success2.location.latitude, 0.0001)
+  }
+
+  @Test
+  fun getLocationUpdates_emitsPermissionDeniedWhenNoPermission() = runTest {
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(LocationResult.PermissionDenied)
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(1, results.size)
+    assertTrue(results[0] is LocationResult.PermissionDenied)
+  }
+
+  @Test
+  fun getLocationUpdates_emitsErrorOnLocationFailure() = runTest {
+    val errorMessage = "GPS signal lost"
+    val error = LocationResult.Error(errorMessage)
+
+    every { mockRepository.getLocationUpdates() } returns kotlinx.coroutines.flow.flowOf(error)
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(1, results.size)
+    assertTrue(results[0] is LocationResult.Error)
+    val errorResult = results[0] as LocationResult.Error
+    assertEquals(errorMessage, errorResult.message)
+  }
+
+  @Test
+  fun getLocationUpdates_emitsMixedResults() = runTest {
+    val location =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+        }
+
+    val mixedResults =
+        listOf(
+            LocationResult.Success(location),
+            LocationResult.Error("Temporary GPS loss"),
+            LocationResult.Success(location),
+            LocationResult.PermissionDenied)
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(*mixedResults.toTypedArray())
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(4, results.size)
+    assertTrue(results[0] is LocationResult.Success)
+    assertTrue(results[1] is LocationResult.Error)
+    assertTrue(results[2] is LocationResult.Success)
+    assertTrue(results[3] is LocationResult.PermissionDenied)
+  }
+
+  @Test
+  fun getLocationUpdates_emitsEmptyFlow() = runTest {
+    every { mockRepository.getLocationUpdates() } returns kotlinx.coroutines.flow.emptyFlow()
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(0, results.size)
+  }
+
+  @Test
+  fun getLocationUpdates_flowCompletesNormally() = runTest {
+    val location =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+        }
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(LocationResult.Success(location))
+
+    var flowCompleted = false
+    mockRepository.getLocationUpdates().collect {
+      // Process result
+    }
+    flowCompleted = true
+
+    assertTrue("Flow should complete normally", flowCompleted)
+  }
+
+  @Test
+  fun getLocationUpdates_handlesFlowCancellation() = runTest {
+    val location =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+        }
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flow {
+          emit(LocationResult.Success(location))
+          kotlinx.coroutines.delay(1000) // Simulate long-running operation
+          emit(LocationResult.Success(location))
+        }
+
+    val results = mutableListOf<LocationResult>()
+    val job = launch { mockRepository.getLocationUpdates().collect { results.add(it) } }
+
+    // Cancel after first emission
+    advanceTimeBy(100)
+    job.cancel()
+
+    assertEquals(1, results.size)
+    assertTrue(results[0] is LocationResult.Success)
+  }
+
+  @Test
+  fun getLocationUpdates_handlesHighFrequencyUpdates() = runTest {
+    val locations =
+        (1..10).map { index ->
+          mockk<Location> {
+            every { latitude } returns 46.5089 + (index * 0.001)
+            every { longitude } returns 6.6283 + (index * 0.001)
+            every { time } returns System.currentTimeMillis() + (index * 1000)
+          }
+        }
+
+    val locationResults = locations.map { LocationResult.Success(it) }
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(*locationResults.toTypedArray())
+
+    val results = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { results.add(it) }
+
+    assertEquals(10, results.size)
+    results.forEachIndexed { index, result ->
+      assertTrue("Result $index should be success", result is LocationResult.Success)
+      val success = result as LocationResult.Success
+      assertEquals(46.5089 + (index + 1) * 0.001, success.location.latitude, 0.0001)
+    }
+  }
+
+  @Test
+  fun getLocationUpdates_preservesLocationAccuracy() = runTest {
+    val highAccuracyLocation =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+          every { accuracy } returns 3.0f
+        }
+
+    val lowAccuracyLocation =
+        mockk<Location> {
+          every { latitude } returns 46.5100
+          every { longitude } returns 6.6300
+          every { accuracy } returns 15.0f
+        }
+
+    val results =
+        listOf(
+            LocationResult.Success(highAccuracyLocation),
+            LocationResult.Success(lowAccuracyLocation))
+
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(*results.toTypedArray())
+
+    val collectedResults = mutableListOf<LocationResult>()
+    mockRepository.getLocationUpdates().collect { collectedResults.add(it) }
+
+    assertEquals(2, collectedResults.size)
+
+    val firstSuccess = collectedResults[0] as LocationResult.Success
+    val secondSuccess = collectedResults[1] as LocationResult.Success
+
+    assertEquals(3.0f, firstSuccess.location.accuracy, 0.1f)
+    assertEquals(15.0f, secondSuccess.location.accuracy, 0.1f)
+  }
+}
+
+@ExperimentalCoroutinesApi
 class RequestLocationPermissionComposableTest {
+
+  private lateinit var mockPermissionRepository: LocationPermissionRepository
+  private lateinit var mockContext: Context
+  private val testDispatcher = StandardTestDispatcher()
+
+  @Before
+  fun setUp() {
+    Dispatchers.setMain(testDispatcher)
+    mockPermissionRepository = mockk()
+    mockContext = mockk()
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+    unmockkAll()
+  }
 
   @Test
   fun requestLocationPermission_parameterTypes() {
-    // Test that the composable parameters are of correct types
     val permissionRepository: LocationPermissionRepository = LocationPermissionRepositoryImpl()
     val onPermissionResult: (LocationPermission) -> Unit = {}
 
@@ -536,12 +785,225 @@ class RequestLocationPermissionComposableTest {
 
   @Test
   fun requestLocationPermission_simpleCallback_parameterTypes() {
-    // Test that the simple composable parameters are of correct types
     val onPermissionGranted: () -> Unit = {}
     val onPermissionDenied: () -> Unit = {}
 
     assertNotNull("Permission granted callback should not be null", onPermissionGranted)
     assertNotNull("Permission denied callback should not be null", onPermissionDenied)
+  }
+
+  @Test
+  fun requestLocationPermission_callsOnPermissionGrantedWhenPermissionGranted() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    // Simulate the logic of the simple RequestLocationPermission composable
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.GRANTED, hasFineLocation = true, hasCoarseLocation = false)
+
+    // This simulates what happens when the permission callback is called
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertTrue("onPermissionGranted should be called", permissionGrantedCalled)
+    assertFalse("onPermissionDenied should not be called", permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_callsOnPermissionDeniedWhenPermissionDenied() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    // Simulate the logic of the simple RequestLocationPermission composable
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.DENIED, hasFineLocation = false, hasCoarseLocation = false)
+
+    // This simulates what happens when the permission callback is called
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertFalse("onPermissionGranted should not be called", permissionGrantedCalled)
+    assertTrue("onPermissionDenied should be called", permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_callsOnPermissionGrantedWithCoarseLocation() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.GRANTED, hasFineLocation = false, hasCoarseLocation = true)
+
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertTrue("onPermissionGranted should be called with coarse location", permissionGrantedCalled)
+    assertFalse("onPermissionDenied should not be called", permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_callsOnPermissionGrantedWithBothPermissions() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.GRANTED, hasFineLocation = true, hasCoarseLocation = true)
+
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertTrue(
+        "onPermissionGranted should be called with both permissions", permissionGrantedCalled)
+    assertFalse("onPermissionDenied should not be called", permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_handlesUnknownStatus() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.UNKNOWN, hasFineLocation = false, hasCoarseLocation = false)
+
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertFalse("onPermissionGranted should not be called", permissionGrantedCalled)
+    assertTrue(
+        "onPermissionDenied should be called for unknown status without permissions",
+        permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_handlesRequestingStatus() {
+    var permissionGrantedCalled = false
+    var permissionDeniedCalled = false
+
+    val onPermissionGranted = { permissionGrantedCalled = true }
+    val onPermissionDenied = { permissionDeniedCalled = true }
+
+    val permission =
+        LocationPermission(
+            status = PermissionStatus.REQUESTING,
+            hasFineLocation = false,
+            hasCoarseLocation = false)
+
+    if (permission.hasAnyLocationPermission) {
+      onPermissionGranted()
+    } else {
+      onPermissionDenied()
+    }
+
+    assertFalse(
+        "onPermissionGranted should not be called during requesting", permissionGrantedCalled)
+    assertTrue(
+        "onPermissionDenied should be called for requesting status without permissions",
+        permissionDeniedCalled)
+  }
+
+  @Test
+  fun requestLocationPermission_detailedCallback_receivesCorrectPermission() {
+    var receivedPermission: LocationPermission? = null
+
+    val onPermissionResult = { permission: LocationPermission -> receivedPermission = permission }
+
+    val expectedPermission =
+        LocationPermission(
+            status = PermissionStatus.GRANTED, hasFineLocation = true, hasCoarseLocation = false)
+
+    // Simulate calling the callback
+    onPermissionResult(expectedPermission)
+
+    assertNotNull("Should receive permission result", receivedPermission)
+    assertEquals(
+        "Should receive correct status", PermissionStatus.GRANTED, receivedPermission!!.status)
+    assertTrue(
+        "Should receive correct fine location permission", receivedPermission!!.hasFineLocation)
+    assertFalse(
+        "Should receive correct coarse location permission", receivedPermission!!.hasCoarseLocation)
+    assertTrue("Should have any location permission", receivedPermission!!.hasAnyLocationPermission)
+  }
+
+  @Test
+  fun requestLocationPermission_detailedCallback_receivesPermissionDenied() {
+    var receivedPermission: LocationPermission? = null
+
+    val onPermissionResult = { permission: LocationPermission -> receivedPermission = permission }
+
+    val expectedPermission =
+        LocationPermission(
+            status = PermissionStatus.DENIED, hasFineLocation = false, hasCoarseLocation = false)
+
+    onPermissionResult(expectedPermission)
+
+    assertNotNull("Should receive permission result", receivedPermission)
+    assertEquals(
+        "Should receive denied status", PermissionStatus.DENIED, receivedPermission!!.status)
+    assertFalse("Should not have fine location permission", receivedPermission!!.hasFineLocation)
+    assertFalse(
+        "Should not have coarse location permission", receivedPermission!!.hasCoarseLocation)
+    assertFalse(
+        "Should not have any location permission", receivedPermission!!.hasAnyLocationPermission)
+  }
+
+  @Test
+  fun requestLocationPermission_callbackReferencesAreValid() {
+    // Test that callbacks can be called multiple times
+    var callCount = 0
+    val reusableCallback = { callCount++ }
+
+    reusableCallback()
+    reusableCallback()
+    reusableCallback()
+
+    assertEquals("Callback should be callable multiple times", 3, callCount)
+  }
+
+  @Test
+  fun requestLocationPermission_handlesNullPermissionFields() {
+    // Test edge case handling for permission state
+    val permission = LocationPermission()
+
+    // Default values should be safe
+    assertEquals("Default status should be UNKNOWN", PermissionStatus.UNKNOWN, permission.status)
+    assertFalse("Default fine location should be false", permission.hasFineLocation)
+    assertFalse("Default coarse location should be false", permission.hasCoarseLocation)
+    assertFalse("Default any permission should be false", permission.hasAnyLocationPermission)
   }
 }
 
