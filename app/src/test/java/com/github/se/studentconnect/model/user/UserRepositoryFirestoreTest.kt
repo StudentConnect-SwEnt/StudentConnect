@@ -21,29 +21,21 @@ import org.mockito.kotlin.whenever
 
 class UserRepositoryFirestoreTest {
 
-  @Mock
-  private lateinit var mockFirestore: FirebaseFirestore
+  @Mock private lateinit var mockFirestore: FirebaseFirestore
 
-  @Mock
-  private lateinit var mockCollectionReference: CollectionReference
+  @Mock private lateinit var mockCollectionReference: CollectionReference
 
-  @Mock
-  private lateinit var mockDocumentReference: DocumentReference
+  @Mock private lateinit var mockDocumentReference: DocumentReference
 
-  @Mock
-  private lateinit var mockDocumentSnapshot: DocumentSnapshot
+  @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
 
-  @Mock
-  private lateinit var mockQuerySnapshot: QuerySnapshot
+  @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
 
-  @Mock
-  private lateinit var mockTask: Task<Void>
+  @Mock private lateinit var mockTask: Task<Void>
 
-  @Mock
-  private lateinit var mockDocumentTask: Task<DocumentSnapshot>
+  @Mock private lateinit var mockDocumentTask: Task<DocumentSnapshot>
 
-  @Mock
-  private lateinit var mockQueryTask: Task<QuerySnapshot>
+  @Mock private lateinit var mockQueryTask: Task<QuerySnapshot>
 
   private lateinit var repository: UserRepositoryFirestore
 
@@ -67,7 +59,8 @@ class UserRepositoryFirestoreTest {
 
     // Default mock behavior
     whenever(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
-    whenever(mockCollectionReference.document(ArgumentMatchers.anyString())).thenReturn(mockDocumentReference)
+    whenever(mockCollectionReference.document(ArgumentMatchers.anyString()))
+        .thenReturn(mockDocumentReference)
   }
 
   @Test
