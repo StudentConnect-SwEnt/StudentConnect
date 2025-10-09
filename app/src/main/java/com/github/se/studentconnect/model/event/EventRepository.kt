@@ -19,6 +19,15 @@ interface EventRepository {
   suspend fun getAllVisibleEvents(): List<Event>
 
   /**
+   * Retrieves all events that are visible and satisfy the given predicate.
+   *
+   * @param predicate The predicate to filter the events by.
+   * @return A list of [Event] objects.
+   * @throws Exception if the retrieval fails.
+   */
+  suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event>
+
+  /**
    * Retrieves a specific event by its unique identifier.
    *
    * @param eventUid The unique identifier of the event to retrieve.

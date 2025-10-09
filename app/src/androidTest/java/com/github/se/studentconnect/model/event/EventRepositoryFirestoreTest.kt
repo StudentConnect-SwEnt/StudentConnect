@@ -339,4 +339,121 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       repository.getEvent(badUid) // should throw
     }
   }
+
+  // --- Event filtering ---
+  @Test
+  fun getAllVisibleEventsSatisfying_whenEmpty_returnsEmpty() {
+    runBlocking {
+      val results = repository.getAllVisibleEventsSatisfying { true }
+      Assert.assertTrue(results.isEmpty())
+    }
+  }
+
+  @Test
+  fun getAllVisibleEventsSatisfying_withPredicate_matchingAll() {
+    runBlocking {
+      val e1 =
+          Event.Private(
+              repository.getNewUid(),
+              "owner1",
+              "Party",
+              "secret",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false)
+      val e2 =
+          Event.Public(
+              repository.getNewUid(),
+              "owner2",
+              "Hackathon",
+              "fun",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Hack all day!",
+              listOf("tech"))
+      repository.addEvent(e1)
+      repository.addEvent(e2)
+
+      val results = repository.getAllVisibleEventsSatisfying { true }
+
+      Assert.assertEquals(2, results.size)
+      Assert.assertTrue(results.any { it.title == "Party" })
+      Assert.assertTrue(results.any { it.title == "Hackathon" })
+    }
+  }
+
+  @Test
+  fun getAllVisibleEventsSatisfying_withPredicate_matchingNone() {
+    runBlocking {
+      val e =
+          Event.Public(
+              repository.getNewUid(),
+              "owner",
+              "Concert",
+              "music",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Loud!")
+      repository.addEvent(e)
+
+      val results = repository.getAllVisibleEventsSatisfying { it.title == "Nope" }
+
+      Assert.assertTrue(results.isEmpty())
+    }
+  }
+
+  @Test
+  fun getAllVisibleEventsSatisfying_withPredicate_matchingSubset() {
+    runBlocking {
+      val e1 =
+          Event.Private(
+              repository.getNewUid(),
+              "o1",
+              "Private Party",
+              "secret",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false)
+      val e2 =
+          Event.Public(
+              repository.getNewUid(),
+              "o2",
+              "Public Concert",
+              "fun",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Exciting!",
+              listOf("music"))
+      repository.addEvent(e1)
+      repository.addEvent(e2)
+
+      val results = repository.getAllVisibleEventsSatisfying { it is Event.Public }
+
+      Assert.assertEquals(1, results.size)
+      Assert.assertEquals("Public Concert", results.first().title)
+    }
+  }
 }

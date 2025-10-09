@@ -114,6 +114,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return querySnapshot.documents.map(::eventFromDocumentSnapshot)
   }
 
+  override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> {
+    return getAllVisibleEvents().filter(predicate)
+  }
+
   override suspend fun getEvent(eventUid: String): Event {
     val documentSnapshot = db.collection(EVENTS_COLLECTION_PATH).document(eventUid).get().await()
     return eventFromDocumentSnapshot(documentSnapshot)
