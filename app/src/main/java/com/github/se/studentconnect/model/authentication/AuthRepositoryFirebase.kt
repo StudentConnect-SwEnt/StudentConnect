@@ -6,6 +6,7 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -42,9 +43,11 @@ class AuthRepositoryFirebase(
       } else {
         Result.failure(IllegalStateException("Login failed: not a Google ID credential"))
       }
+    } catch (ce: CancellationException) {
+      throw ce
     } catch (e: Exception) {
       Result.failure(
-          IllegalStateException("Login failed: ${e.localizedMessage ?: "Unexpected error."}"))
+          IllegalStateException("Login failed: ${e.localizedMessage ?: "Unexpected error."}", e))
     }
   }
 
@@ -54,6 +57,6 @@ class AuthRepositoryFirebase(
         Result.success(Unit)
       } catch (e: Exception) {
         Result.failure(
-            IllegalStateException("Logout failed: ${e.localizedMessage ?: "Unexpected error."}"))
+            IllegalStateException("Logout failed: ${e.localizedMessage ?: "Unexpected error."}", e))
       }
 }

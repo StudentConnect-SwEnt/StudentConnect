@@ -12,6 +12,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -254,5 +255,61 @@ class AuthRepositoryFirebaseTest {
     assertNotNull(cred)
     assertEquals(
         com.google.firebase.auth.GoogleAuthProvider.PROVIDER_ID, cred.provider) // "google.com"
+  }
+
+  @Test
+  fun `signInWithGoogle propagates CancellationException`() = runTest {
+    // Arrange
+    val bundle = Bundle()
+    val idToken = "t"
+
+    val googleCred = mock(GoogleIdTokenCredential::class.java)
+    whenever(googleCred.idToken).thenReturn(idToken)
+    whenever(helper.extractIdTokenCredential(bundle)).thenReturn(googleCred)
+
+    val firebaseAuthCred = mock(AuthCredential::class.java)
+    whenever(helper.toFirebaseCredential(idToken)).thenReturn(firebaseAuthCred)
+
+    // Make Firebase task be canceled -> await() throws CancellationException
+    whenever(auth.signInWithCredential(firebaseAuthCred)).thenReturn(Tasks.forCanceled())
+
+    val cred: Credential = CustomCredential(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL, bundle)
+
+    // Act + Assert: the suspend function should rethrow, not wrap in Result
+    try {
+      repo.signInWithGoogle(cred)
+      fail("Expected CancellationException to propagate")
+    } catch (e: CancellationException) {
+      // expected
+    }
+  }
+
+  @Test
+  fun `signInWithGoogle wraps other failures and preserves cause`() = runTest {
+    // Arrange
+    val bundle = Bundle()
+    val idToken = "t"
+
+    val googleCred = mock(GoogleIdTokenCredential::class.java)
+    whenever(googleCred.idToken).thenReturn(idToken)
+    whenever(helper.extractIdTokenCredential(bundle)).thenReturn(googleCred)
+
+    val firebaseAuthCred = mock(AuthCredential::class.java)
+    whenever(helper.toFirebaseCredential(idToken)).thenReturn(firebaseAuthCred)
+
+    val boom = RuntimeException("boom")
+    whenever(auth.signInWithCredential(firebaseAuthCred)).thenReturn(Tasks.forException(boom))
+
+    val cred: Credential = CustomCredential(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL, bundle)
+
+    // Act
+    val res = repo.signInWithGoogle(cred)
+
+    // Assert
+    assertTrue(res.isFailure)
+    val ex = res.exceptionOrNull()
+    assertTrue(ex is IllegalStateException)
+    assertSame(boom, ex!!.cause) // original exception is attached
+    assertTrue(ex.message!!.contains("boom")) // message is surfaced
   }
 }
