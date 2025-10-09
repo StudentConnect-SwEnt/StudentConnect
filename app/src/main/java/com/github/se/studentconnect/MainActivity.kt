@@ -1,10 +1,10 @@
 package com.github.se.studentconnect
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +45,7 @@ object HttpClientProvider {
   var client: OkHttpClient = OkHttpClient()
 }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
