@@ -26,15 +26,24 @@ object FirebaseEmulator {
     get() = Firebase.firestore
 
   private fun isInAndroidEmulator(): Boolean {
-    return (Build.FINGERPRINT.startsWith("generic") ||
-        Build.FINGERPRINT.lowercase().contains("vbox") ||
-        Build.FINGERPRINT.lowercase().contains("test-keys") ||
-        Build.MODEL.contains("google_sdk") ||
-        Build.MODEL.contains("Emulator") ||
-        Build.MODEL.contains("Android SDK built for x86") ||
-        Build.MANUFACTURER.contains("Genymotion") ||
-        Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic") ||
-        "google_sdk" == Build.PRODUCT)
+    val fingerprint = Build.FINGERPRINT.lowercase()
+    val model = Build.MODEL.lowercase()
+    val product = Build.PRODUCT.lowercase()
+    val brand = Build.BRAND.lowercase()
+    val device = Build.DEVICE.lowercase()
+    val manufacturer = Build.MANUFACTURER.lowercase()
+
+    return (fingerprint.startsWith("generic") ||
+        fingerprint.contains("vbox") ||
+        fingerprint.contains("test-keys") ||
+        model.contains("google_sdk") ||
+        model.contains("emulator") ||
+        model.contains("android sdk built for x86") ||
+        model.contains("sdk_gphone") ||
+        manufacturer.contains("genymotion") ||
+        (brand.startsWith("generic") && device.startsWith("generic")) ||
+        product == "google_sdk" ||
+        product.contains("sdk_gphone"))
   }
 
   val HOST = if (isInAndroidEmulator()) "10.0.2.2" else "localhost"
