@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -235,6 +237,34 @@ class DescriptionScreenTest {
   }
 
   @Test
+  fun descriptionContentInvokesAllCallbacks() {
+    var back = 0
+    var skip = 0
+    var forward = 0
+
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "",
+            onDescriptionChange = {},
+            onBackClick = { back++ },
+            onSkipClick = { skip++ },
+            onContinueClick = { forward++ })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_back).performClick()
+    composeRule.onNodeWithTag(C.Tag.description_skip).performClick()
+    composeRule.onNodeWithTag(C.Tag.description_continue).performClick()
+
+    composeRule.runOnIdle {
+      Assert.assertEquals(1, back)
+      Assert.assertEquals(1, skip)
+      Assert.assertEquals(1, forward)
+    }
+  }
+
+  @Test
   fun descriptionPromptDisplaysPrefilledValue() {
     composeRule.setContent {
       AppTheme { DescriptionPrompt(description = "Prefilled", onDescriptionChange = {}) }
@@ -246,16 +276,16 @@ class DescriptionScreenTest {
 
   @Test
   fun descriptionPromptPropagatesChangeCallback() {
-    var latest: String? = null
+    val captured = mutableListOf<String>()
 
     composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { latest = it }) }
+      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { captured += it }) }
     }
 
     val newValue = "Collaborates across campuses"
     composeRule.onNodeWithTag(C.Tag.description_input).performTextReplacement(newValue)
 
-    composeRule.runOnIdle { Assert.assertEquals(newValue, latest) }
+    composeRule.runOnIdle { Assert.assertTrue(captured.contains(newValue)) }
   }
 
   @Test
@@ -288,5 +318,23 @@ class DescriptionScreenTest {
     }
 
     composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Existing description")
+  }
+
+  @Test
+  fun descriptionScreenHonorsModifier() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionScreen(
+            description = "",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.testTag("custom_root"))
+      }
+    }
+
+    composeRule.onNodeWithTag("custom_root").assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
   }
 }

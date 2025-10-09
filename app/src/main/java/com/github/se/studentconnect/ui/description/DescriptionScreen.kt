@@ -66,67 +66,65 @@ fun DescriptionContent(
 ) {
   val background = MaterialTheme.colorScheme.surface
 
-  Surface(
-      modifier = modifier.fillMaxWidth().semantics { testTag = C.Tag.description_screen_container },
-      color = background) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally) {
-              Column(
-                  modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
-                  horizontalAlignment = Alignment.Start) {
-                    DescriptionTopBar(onBackClick = onBackClick, onSkipClick = onSkipClick)
+  Surface(modifier = modifier.fillMaxWidth(), color = background) {
+    Column(
+        modifier =
+            Modifier.fillMaxWidth().semantics { testTag = C.Tag.description_screen_container },
+        horizontalAlignment = Alignment.CenterHorizontally) {
+          Column(
+              modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+              horizontalAlignment = Alignment.Start) {
+                DescriptionTopBar(onBackClick = onBackClick, onSkipClick = onSkipClick)
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    Column(
-                        modifier =
-                            Modifier.weight(1f).fillMaxWidth().semantics {
-                              testTag = C.Tag.description_prompt_container
-                            },
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                          OutlinedTextField(
-                              value = description,
-                              onValueChange = onDescriptionChange,
-                              modifier =
-                                  Modifier.fillMaxSize()
-                                      .padding(bottom = 64.dp)
-                                      .border(
-                                          width = 2.dp,
-                                          color = MaterialTheme.colorScheme.primary,
-                                          shape = RoundedCornerShape(size = 16.dp))
-                                      .fillMaxWidth()
-                                      .semantics { testTag = C.Tag.description_input },
-                              placeholder = {
-                                Text(
-                                    text = "What should other students know about you?",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.outline)
-                              },
-                              shape = RoundedCornerShape(16.dp),
-                              colors =
-                                  TextFieldDefaults.colors(
-                                      focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                                      unfocusedIndicatorColor =
-                                          MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                                      cursorColor = MaterialTheme.colorScheme.primary,
-                                      focusedContainerColor = Color.Transparent,
-                                      unfocusedContainerColor = Color.Transparent,
-                                      disabledContainerColor = Color.Transparent,
-                                      focusedPlaceholderColor = MaterialTheme.colorScheme.primary,
-                                      unfocusedPlaceholderColor =
-                                          MaterialTheme.colorScheme.primary),
-                              textStyle =
-                                  MaterialTheme.typography.bodyMedium.copy(
-                                      color = MaterialTheme.colorScheme.outline),
-                              maxLines = 8,
-                              minLines = 6)
-                        }
-                    ContinueButton(onContinueClick = onContinueClick)
-                  }
-            }
-      }
+                Column(
+                    modifier =
+                        Modifier.weight(1f).fillMaxWidth().semantics {
+                          testTag = C.Tag.description_prompt_container
+                        },
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                      OutlinedTextField(
+                          value = description,
+                          onValueChange = onDescriptionChange,
+                          modifier =
+                              Modifier.fillMaxSize()
+                                  .padding(bottom = 64.dp)
+                                  .border(
+                                      width = 2.dp,
+                                      color = MaterialTheme.colorScheme.primary,
+                                      shape = RoundedCornerShape(size = 16.dp))
+                                  .fillMaxWidth()
+                                  .semantics { testTag = C.Tag.description_input },
+                          placeholder = {
+                            Text(
+                                text = "What should other students know about you?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline)
+                          },
+                          shape = RoundedCornerShape(16.dp),
+                          colors =
+                              TextFieldDefaults.colors(
+                                  focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                  unfocusedIndicatorColor =
+                                      MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                  cursorColor = MaterialTheme.colorScheme.primary,
+                                  focusedContainerColor = Color.Transparent,
+                                  unfocusedContainerColor = Color.Transparent,
+                                  disabledContainerColor = Color.Transparent,
+                                  focusedPlaceholderColor = MaterialTheme.colorScheme.primary,
+                                  unfocusedPlaceholderColor = MaterialTheme.colorScheme.primary),
+                          textStyle =
+                              MaterialTheme.typography.bodyMedium.copy(
+                                  color = MaterialTheme.colorScheme.outline),
+                          maxLines = 8,
+                          minLines = 6)
+                    }
+                ContinueButton(onContinueClick = onContinueClick)
+              }
+        }
+  }
 }
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
