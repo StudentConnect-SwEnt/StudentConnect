@@ -80,6 +80,7 @@ class EventTest {
             uid = "public1",
             ownerId = "owner3",
             title = "Public Title",
+            subtitle = "Subtitle",
             description = "Public Description",
             imageUrl = "https://example.com/public.png",
             location = Location(30.0, 40.0, "Public Place"),
@@ -94,6 +95,7 @@ class EventTest {
     assertEquals("public1", event.uid)
     assertEquals("owner3", event.ownerId)
     assertEquals("Public Title", event.title)
+    assertEquals("Subtitle", event.subtitle)
     assertEquals("Public Description", event.description)
     assertEquals("https://example.com/public.png", event.imageUrl)
     assertEquals(Location(30.0, 40.0, "Public Place"), event.location)
@@ -113,6 +115,7 @@ class EventTest {
             uid = "public2",
             ownerId = "owner4",
             title = "Public Title 2",
+            subtitle = "Subtitle 2",
             description = "Public Desc",
             imageUrl = null,
             location = null,
@@ -128,6 +131,7 @@ class EventTest {
     assertEquals("public2", map["uid"])
     assertEquals("owner4", map["ownerId"])
     assertEquals("Public Title 2", map["title"])
+    assertEquals("Subtitle 2", map["subtitle"])
     assertEquals("Public Desc", map["description"])
     assertNull(map["imageUrl"])
     assertNull(map["location"])

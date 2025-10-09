@@ -70,6 +70,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val uid = documentSnapshot.id
     val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
     val title = checkNotNull(documentSnapshot.getString("title"))
+    val subtitle = checkNotNull(documentSnapshot.getString("subtitle"))
     val description = checkNotNull(documentSnapshot.getString("description"))
     val imageUrl = documentSnapshot.getString("imageUrl")
 
@@ -93,6 +94,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         uid = uid,
         ownerId = ownerId,
         title = title,
+        subtitle = subtitle,
         description = description,
         imageUrl = imageUrl,
         location = location,

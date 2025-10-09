@@ -36,6 +36,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               uid = repository.getNewUid(),
               ownerId = "owner1",
               title = "Concert",
+              subtitle = "Epic!",
               description = "desc",
               imageUrl = "http://img.com/pic.png",
               location = Location(46.5, 6.6, "EPFL"),
@@ -52,6 +53,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
 
       Assert.assertEquals(event.uid, loaded.uid)
       Assert.assertEquals("Concert", loaded.title)
+      Assert.assertEquals("Epic!", loaded.subtitle)
       Assert.assertEquals("http://img.com/pic.png", loaded.imageUrl)
       Assert.assertEquals("EPFL", loaded.location?.name)
       Assert.assertEquals(50u, loaded.maxCapacity!!)
@@ -120,6 +122,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               null,
               null,
               false,
+              "Hack all day!",
               listOf("tech"))
       repository.addEvent(e1)
       repository.addEvent(e2)
@@ -196,7 +199,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val e =
           Event.Public(
-              repository.getNewUid(), "o", "Concert", "d", null, null, now, null, null, null, false)
+              repository.getNewUid(),
+              "o",
+              "Concert",
+              "d",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Epic!")
       repository.addEvent(e)
       val p = EventParticipant("user1", now)
       repository.addParticipantToEvent(e.uid, p)
@@ -211,7 +225,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val e =
           Event.Public(
-              repository.getNewUid(), "o", "Concert", "d", null, null, now, null, null, null, false)
+              repository.getNewUid(),
+              "o",
+              "Concert",
+              "d",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Epic!")
       repository.addEvent(e)
       val p = EventParticipant("user1", now)
       repository.addParticipantToEvent(e.uid, p)
@@ -236,7 +261,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val e =
           Event.Public(
-              repository.getNewUid(), "o", "Empty", "d", null, null, now, null, null, null, false)
+              repository.getNewUid(),
+              "o",
+              "Empty",
+              "d",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Nothing")
       repository.addEvent(e)
       Assert.assertTrue(repository.getEventParticipants(e.uid).isEmpty())
     }
@@ -247,7 +283,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val e =
           Event.Public(
-              repository.getNewUid(), "o", "Concert", "d", null, null, now, null, null, null, false)
+              repository.getNewUid(),
+              "o",
+              "Concert",
+              "d",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Epic!")
       repository.addEvent(e)
       val p = EventParticipant("user1", now)
       repository.addParticipantToEvent(e.uid, p)
@@ -261,7 +308,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val e =
           Event.Public(
-              repository.getNewUid(), "o", "Concert", "d", null, null, now, null, null, null, false)
+              repository.getNewUid(),
+              "o",
+              "Concert",
+              "d",
+              null,
+              null,
+              now,
+              null,
+              null,
+              null,
+              false,
+              "Epic!")
       repository.addEvent(e)
       repository.removeParticipantFromEvent(e.uid, "not-there")
       Assert.assertTrue(repository.getEventParticipants(e.uid).isEmpty())

@@ -64,10 +64,12 @@ sealed class Event {
       override val maxCapacity: UInt? = null,
       override val participationFee: UInt? = null,
       override val isFlash: Boolean,
+      val subtitle: String,
       val tags: List<String> = emptyList(),
       val website: String? = null, // optional website
   ) : Event() {
     override fun toMap(): Map<String, Any?> =
-        super.toMap() + mapOf("tags" to tags, "website" to website, "type" to "public")
+        super.toMap() +
+            mapOf("subtitle" to subtitle, "tags" to tags, "website" to website, "type" to "public")
   }
 }
