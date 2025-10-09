@@ -346,8 +346,12 @@ class LocationResultTest {
 
     assertTrue("Success should be Success type", successResult is LocationResult.Success)
     assertTrue("Error should be Error type", errorResult is LocationResult.Error)
-    assertTrue("PermissionDenied should be PermissionDenied type", permissionDeniedResult is LocationResult.PermissionDenied)
-    assertTrue("LocationDisabled should be LocationDisabled type", locationDisabledResult is LocationResult.LocationDisabled)
+    assertTrue(
+        "PermissionDenied should be PermissionDenied type",
+        permissionDeniedResult is LocationResult.PermissionDenied)
+    assertTrue(
+        "LocationDisabled should be LocationDisabled type",
+        locationDisabledResult is LocationResult.LocationDisabled)
     assertTrue("Timeout should be Timeout type", timeoutResult is LocationResult.Timeout)
   }
 }
@@ -357,36 +361,50 @@ class LocationConfigEdgeCasesTest {
   @Test
   fun locationConfig_intervalHierarchy() {
     // Test that intervals make sense relative to each other
-    assertTrue("High accuracy should be faster than regular updates", 
+    assertTrue(
+        "High accuracy should be faster than regular updates",
         LocationConfig.HIGH_ACCURACY_INTERVAL_MS < LocationConfig.LOCATION_UPDATES_INTERVAL_MS)
-    assertTrue("Min update interval should be less than regular interval", 
+    assertTrue(
+        "Min update interval should be less than regular interval",
         LocationConfig.MIN_UPDATE_INTERVAL_MS < LocationConfig.LOCATION_UPDATES_INTERVAL_MS)
-    assertTrue("Request timeout should be longer than update intervals",
+    assertTrue(
+        "Request timeout should be longer than update intervals",
         LocationConfig.LOCATION_REQUEST_TIMEOUT_MS > LocationConfig.LOCATION_UPDATES_INTERVAL_MS)
-    assertTrue("Freshness threshold should be longer than request timeout",
+    assertTrue(
+        "Freshness threshold should be longer than request timeout",
         LocationConfig.LOCATION_FRESHNESS_THRESHOLD_MS > LocationConfig.LOCATION_REQUEST_TIMEOUT_MS)
   }
 
   @Test
   fun locationConfig_errorMessages_notEmpty() {
-    assertFalse("Permission required message should not be empty", LocationConfig.PERMISSION_REQUIRED.isEmpty())
-    assertFalse("Permission required for feature message should not be empty", LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE.isEmpty())
-    assertFalse("Location timeout message should not be empty", LocationConfig.LOCATION_TIMEOUT.isEmpty())
-    assertFalse("Location disabled message should not be empty", LocationConfig.LOCATION_DISABLED.isEmpty())
+    assertFalse(
+        "Permission required message should not be empty",
+        LocationConfig.PERMISSION_REQUIRED.isEmpty())
+    assertFalse(
+        "Permission required for feature message should not be empty",
+        LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE.isEmpty())
+    assertFalse(
+        "Location timeout message should not be empty", LocationConfig.LOCATION_TIMEOUT.isEmpty())
+    assertFalse(
+        "Location disabled message should not be empty", LocationConfig.LOCATION_DISABLED.isEmpty())
   }
 
   @Test
   fun locationConfig_permissionStrings() {
-    assertTrue("Fine location should contain ACCESS_FINE_LOCATION", 
+    assertTrue(
+        "Fine location should contain ACCESS_FINE_LOCATION",
         LocationConfig.FINE_LOCATION.contains("ACCESS_FINE_LOCATION"))
-    assertTrue("Coarse location should contain ACCESS_COARSE_LOCATION", 
+    assertTrue(
+        "Coarse location should contain ACCESS_COARSE_LOCATION",
         LocationConfig.COARSE_LOCATION.contains("ACCESS_COARSE_LOCATION"))
   }
 
   @Test
   fun locationConfig_maxUpdatesValue() {
     assertTrue("Max updates should be positive", LocationConfig.MAX_UPDATES_SINGLE_REQUEST > 0)
-    assertTrue("Max updates should be reasonable for single request", LocationConfig.MAX_UPDATES_SINGLE_REQUEST <= 5)
+    assertTrue(
+        "Max updates should be reasonable for single request",
+        LocationConfig.MAX_UPDATES_SINGLE_REQUEST <= 5)
   }
 }
 
@@ -409,7 +427,8 @@ class LocationPermissionRepositoryEdgeCasesTest {
 
   @Test
   fun checkPermissionStatus_contextException_handlesGracefully() {
-    every { ContextCompat.checkSelfPermission(context, any()) } throws SecurityException("Permission check failed")
+    every { ContextCompat.checkSelfPermission(context, any()) } throws
+        SecurityException("Permission check failed")
 
     try {
       val result = permissionRepository.checkPermissionStatus(context)
@@ -449,22 +468,25 @@ class LocationRepositoryInterfaceEdgeCasesTest {
 
   @Test
   fun getLocationUpdates_flowEmitsMultipleResults() = runTest {
-    val location1 = mockk<Location> {
-      every { latitude } returns 46.5089
-      every { longitude } returns 6.6283
-    }
-    val location2 = mockk<Location> {
-      every { latitude } returns 46.5100
-      every { longitude } returns 6.6290
-    }
+    val location1 =
+        mockk<Location> {
+          every { latitude } returns 46.5089
+          every { longitude } returns 6.6283
+        }
+    val location2 =
+        mockk<Location> {
+          every { latitude } returns 46.5100
+          every { longitude } returns 6.6290
+        }
 
-    val results = listOf(
-        LocationResult.Success(location1),
-        LocationResult.Success(location2),
-        LocationResult.Error("GPS lost")
-    )
+    val results =
+        listOf(
+            LocationResult.Success(location1),
+            LocationResult.Success(location2),
+            LocationResult.Error("GPS lost"))
 
-    every { mockRepository.getLocationUpdates() } returns kotlinx.coroutines.flow.flowOf(*results.toTypedArray())
+    every { mockRepository.getLocationUpdates() } returns
+        kotlinx.coroutines.flow.flowOf(*results.toTypedArray())
 
     val flow = mockRepository.getLocationUpdates()
     val collectedResults = mutableListOf<LocationResult>()
@@ -478,13 +500,13 @@ class LocationRepositoryInterfaceEdgeCasesTest {
 
   @Test
   fun getCurrentLocation_allErrorTypes() = runTest {
-    val errorTypes = listOf(
-        LocationResult.PermissionDenied,
-        LocationResult.LocationDisabled,
-        LocationResult.Timeout,
-        LocationResult.Error("Network error"),
-        LocationResult.Error("GPS unavailable", RuntimeException("Hardware failure"))
-    )
+    val errorTypes =
+        listOf(
+            LocationResult.PermissionDenied,
+            LocationResult.LocationDisabled,
+            LocationResult.Timeout,
+            LocationResult.Error("Network error"),
+            LocationResult.Error("GPS unavailable", RuntimeException("Hardware failure")))
 
     errorTypes.forEachIndexed { index, expectedResult ->
       coEvery { mockRepository.getCurrentLocation() } returns expectedResult
@@ -501,7 +523,7 @@ class RequestLocationPermissionComposableTest {
   fun requestLocationPermission_parameterTypes() {
     // Test that the composable parameters are of correct types
     val permissionRepository: LocationPermissionRepository = LocationPermissionRepositoryImpl()
-    val onPermissionResult: (LocationPermission) -> Unit = { }
+    val onPermissionResult: (LocationPermission) -> Unit = {}
 
     assertNotNull("Permission repository should not be null", permissionRepository)
     assertNotNull("Permission result callback should not be null", onPermissionResult)
@@ -510,8 +532,8 @@ class RequestLocationPermissionComposableTest {
   @Test
   fun requestLocationPermission_simpleCallback_parameterTypes() {
     // Test that the simple composable parameters are of correct types
-    val onPermissionGranted: () -> Unit = { }
-    val onPermissionDenied: () -> Unit = { }
+    val onPermissionGranted: () -> Unit = {}
+    val onPermissionDenied: () -> Unit = {}
 
     assertNotNull("Permission granted callback should not be null", onPermissionGranted)
     assertNotNull("Permission denied callback should not be null", onPermissionDenied)
@@ -522,23 +544,25 @@ class LocationPermissionEdgeCasesTest {
 
   @Test
   fun locationPermission_allCombinations() {
-    val combinations = listOf(
-        LocationPermission(PermissionStatus.UNKNOWN, false, false),
-        LocationPermission(PermissionStatus.GRANTED, true, false),
-        LocationPermission(PermissionStatus.GRANTED, false, true),
-        LocationPermission(PermissionStatus.GRANTED, true, true),
-        LocationPermission(PermissionStatus.DENIED, false, false),
-        LocationPermission(PermissionStatus.REQUESTING, false, false)
-    )
+    val combinations =
+        listOf(
+            LocationPermission(PermissionStatus.UNKNOWN, false, false),
+            LocationPermission(PermissionStatus.GRANTED, true, false),
+            LocationPermission(PermissionStatus.GRANTED, false, true),
+            LocationPermission(PermissionStatus.GRANTED, true, true),
+            LocationPermission(PermissionStatus.DENIED, false, false),
+            LocationPermission(PermissionStatus.REQUESTING, false, false))
 
     combinations.forEach { permission ->
       when {
         permission.hasFineLocation || permission.hasCoarseLocation -> {
-          assertTrue("Should have any location permission when fine or coarse is granted", 
+          assertTrue(
+              "Should have any location permission when fine or coarse is granted",
               permission.hasAnyLocationPermission)
         }
         else -> {
-          assertFalse("Should not have any location permission when neither is granted", 
+          assertFalse(
+              "Should not have any location permission when neither is granted",
               permission.hasAnyLocationPermission)
         }
       }

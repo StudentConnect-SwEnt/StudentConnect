@@ -185,7 +185,8 @@ class MapScreenParametersTest {
 
     assertNull("Default latitude should be null", defaultTargetLatitude)
     assertNull("Default longitude should be null", defaultTargetLongitude)
-    assertEquals("Default zoom should match TARGET", MapConfiguration.Zoom.TARGET, defaultTargetZoom, 0.0001)
+    assertEquals(
+        "Default zoom should match TARGET", MapConfiguration.Zoom.TARGET, defaultTargetZoom, 0.0001)
   }
 
   @Test
@@ -227,14 +228,18 @@ class MapUIConstantsEdgeCasesTest {
   fun size_validDimensions() {
     assertTrue("FAB size should be reasonable", Size.FAB.value >= 40 && Size.FAB.value <= 80)
     assertTrue("Icon size should be reasonable", Size.ICON.value >= 16 && Size.ICON.value <= 48)
-    assertTrue("Large icon size should be larger than regular icon", Size.LARGE_ICON.value > Size.ICON.value)
+    assertTrue(
+        "Large icon size should be larger than regular icon",
+        Size.LARGE_ICON.value > Size.ICON.value)
   }
 
   @Test
   fun corner_radiusValues() {
     assertTrue("Corner radius should be non-negative", Corner.RADIUS.value >= 0)
     assertTrue("Map radius should be non-negative", Corner.MAP_RADIUS.value >= 0)
-    assertTrue("Map radius should be larger than corner radius", Corner.MAP_RADIUS.value > Corner.RADIUS.value)
+    assertTrue(
+        "Map radius should be larger than corner radius",
+        Corner.MAP_RADIUS.value > Corner.RADIUS.value)
   }
 
   @Test
