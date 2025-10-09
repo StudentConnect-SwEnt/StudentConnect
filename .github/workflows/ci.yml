@@ -129,6 +129,12 @@ jobs:
         run: |
           ./gradlew jacocoTestReport
 
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coverage report
+          path: app/build/reports/jacoco/jacocoTestReport
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
