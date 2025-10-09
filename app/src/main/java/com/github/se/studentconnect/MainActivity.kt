@@ -24,6 +24,16 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
+import okhttp3.OkHttpClient
+
+/**
+ * Provide an OkHttpClient client for network requests.
+ *
+ * Property `client` is mutable for testing purposes.
+ */
+object HttpClientProvider {
+  var client: OkHttpClient = OkHttpClient()
+}
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
