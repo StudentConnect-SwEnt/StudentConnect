@@ -25,5 +25,11 @@ object C {
     const val experiences_filter_chip_prefix = "experiences_filter_chip"
     const val experiences_topic_chip_prefix = "experiences_topic_chip"
     const val experiences_cta = "experiences_cta"
+    const val map_screen = "map_screen"
+    const val map_top_app_bar = "map_top_app_bar"
+    const val map_container = "map_container"
+    const val map_locate_user_fab = "map_locate_user_fab"
+    const val map_toggle_view_fab = "map_toggle_view_fab"
+    const val map_search_field = "map_search_field"
   }
 }

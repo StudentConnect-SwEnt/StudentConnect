@@ -32,10 +32,13 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            // Use real map in debug builds, mock map for android tests
+            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
     }
     compileOptions {
@@ -68,10 +71,9 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
-
             isReturnDefaultValues = true
         }
-        packagingOptions {
+        packaging {
             jniLibs {
                 useLegacyPackaging = true
             }
@@ -101,6 +103,8 @@ android {
             java.srcDirs("src/testDebug/java")
             resources.srcDirs("src/testDebug/resources")
         }
+        
+
     }
 }
 
@@ -127,11 +131,15 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.play.services.location)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.material)
     implementation(libs.androidx.material.icons.extended)
+    // Maps
+    implementation("com.mapbox.maps:android-ndk27:11.15.2")
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.15.2")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -210,22 +218,22 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "android/**/*.*",
         "**/sigchecks/**",
     )
-    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+    val debugTree = fileTree("${project.layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
         exclude(fileFilter)
     }
     val mainSrc = "${project.projectDir}/src/main/java"
 
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
+    executionData.setFrom(fileTree(project.layout.buildDirectory.get().asFile) {
         include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
         include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
     })
 }
 
 configurations.forEach { configuration ->
-  // Exclude protobuf-lite from all configurations
-  // This fixes a fatal exception for tests interacting with Cloud Firestore
-  configuration.exclude("com.google.protobuf", "protobuf-lite")
+    // Exclude protobuf-lite from all configurations
+    // This fixes a fatal exception for tests interacting with Cloud Firestore
+    configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
 
