@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.content.ContextCompat
 import io.mockk.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
@@ -452,17 +453,21 @@ class LocationPermissionRepositoryEdgeCasesTest {
   }
 }
 
+@ExperimentalCoroutinesApi
 class LocationRepositoryInterfaceEdgeCasesTest {
 
   private lateinit var mockRepository: LocationRepository
+  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setUp() {
+    Dispatchers.setMain(testDispatcher)
     mockRepository = mockk()
   }
 
   @After
   fun tearDown() {
+    Dispatchers.resetMain()
     unmockkAll()
   }
 

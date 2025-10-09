@@ -5,6 +5,7 @@ import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import io.mockk.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.*
@@ -19,9 +20,11 @@ class MapScreenIntegrationTest {
   private lateinit var mockLocationRepository: LocationRepository
   private lateinit var mockContext: Context
   private lateinit var mapViewModel: MapViewModel
+  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setUp() {
+    Dispatchers.setMain(testDispatcher)
     mockLocationRepository = mockk()
     mockContext = mockk(relaxed = true)
 
@@ -40,6 +43,7 @@ class MapScreenIntegrationTest {
 
   @After
   fun tearDown() {
+    Dispatchers.resetMain()
     unmockkAll()
   }
 
