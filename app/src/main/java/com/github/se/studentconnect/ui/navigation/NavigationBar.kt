@@ -77,7 +77,7 @@ fun BottomNavigationBar(
                       Icons.Outlined.AddBox,
                       contentDescription = null,
                       modifier = Modifier.size(56.dp),
-                      tint = Purple40,
+                      tint = MaterialTheme.colorScheme.primary,
                   )
                 },
                 selected = tab == selectedTab,
@@ -108,7 +108,7 @@ class BottomNavigationTestActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
-      SampleAppTheme {
+      AppTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
