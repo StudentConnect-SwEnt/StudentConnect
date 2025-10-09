@@ -1,8 +1,8 @@
 package com.github.se.studentconnect
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
 
@@ -35,7 +36,7 @@ object HttpClientProvider {
   var client: OkHttpClient = OkHttpClient()
 }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
@@ -53,6 +54,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent() {
+  CreatePublicEventScreen()
+
+  return
+
   Column(
       modifier = Modifier.fillMaxSize(),
       horizontalAlignment = Alignment.CenterHorizontally,
