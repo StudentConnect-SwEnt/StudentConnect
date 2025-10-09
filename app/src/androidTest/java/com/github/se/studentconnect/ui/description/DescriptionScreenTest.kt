@@ -249,9 +249,7 @@ class DescriptionScreenTest {
     var latest: String? = null
 
     composeRule.setContent {
-      AppTheme {
-        DescriptionPrompt(description = "", onDescriptionChange = { latest = it })
-      }
+      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { latest = it }) }
     }
 
     val newValue = "Collaborates across campuses"

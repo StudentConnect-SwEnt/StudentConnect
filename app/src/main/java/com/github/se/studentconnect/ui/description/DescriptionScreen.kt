@@ -33,11 +33,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 @Composable
 fun DescriptionScreen(
@@ -272,18 +270,5 @@ internal fun ContinueButton(onContinueClick: () -> Unit) {
                     modifier = Modifier.size(24.dp))
               }
         }
-  }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun DescriptionScreenPreview() {
-  AppTheme {
-    DescriptionScreen(
-        description = "",
-        onDescriptionChange = {},
-        onBackClick = {},
-        onSkipClick = {},
-        onContinueClick = {})
   }
 }
