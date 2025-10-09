@@ -10,6 +10,7 @@ import com.github.se.studentconnect.model.User
  */
 interface UserRepository {
 
+  fun leaveEvent(eventId: String, userId: String)
   /**
    * Retrieves a user by their unique identifier.
    *
