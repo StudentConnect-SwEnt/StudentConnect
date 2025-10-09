@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -112,6 +113,31 @@ class DescriptionScreenTest {
   }
 
   @Test
+  fun placeholderReappearsWhenDescriptionCleared() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = { text = it },
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {})
+      }
+    }
+
+    val placeholder = "What should other students know about you?"
+    val field = composeRule.onNodeWithTag(C.Tag.description_input)
+
+    field.performTextInput("Temporary text")
+    field.assertTextEquals("Temporary text")
+
+    field.performTextReplacement("")
+
+    composeRule.onNodeWithText(placeholder).assertIsDisplayed()
+  }
+
+  @Test
   fun descriptionTopBarDisplaysNavigationElements() {
     composeRule.setContent {
       AppTheme {
@@ -166,6 +192,31 @@ class DescriptionScreenTest {
   }
 
   @Test
+  fun descriptionScreenPropagatesDescriptionChange() {
+    var latest: String? = null
+
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = {
+              text = it
+              latest = it
+            },
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {})
+      }
+    }
+
+    val value = "Compose all the things"
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextReplacement(value)
+
+    composeRule.runOnIdle { Assert.assertEquals(value, latest) }
+  }
+
+  @Test
   fun descriptionTopBarInvokesBackAndSkipCallbacks() {
     var back = 0
     var skip = 0
@@ -194,12 +245,35 @@ class DescriptionScreenTest {
   }
 
   @Test
+  fun descriptionPromptPropagatesChangeCallback() {
+    var latest: String? = null
+
+    composeRule.setContent {
+      AppTheme {
+        DescriptionPrompt(description = "", onDescriptionChange = { latest = it })
+      }
+    }
+
+    val newValue = "Collaborates across campuses"
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextReplacement(newValue)
+
+    composeRule.runOnIdle { Assert.assertEquals(newValue, latest) }
+  }
+
+  @Test
   fun continueButtonInvokesCallback() {
     var invoked = false
     composeRule.setContent { AppTheme { ContinueButton(onContinueClick = { invoked = true }) } }
 
     composeRule.onNodeWithText("Continue").performClick()
     composeRule.runOnIdle { Assert.assertTrue(invoked) }
+  }
+
+  @Test
+  fun continueButtonDisplaysArrowIconForAccessibility() {
+    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
+
+    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
   }
 
   @Test
