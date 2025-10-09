@@ -65,27 +65,17 @@ class MapConfigurationUnitTest {
 class MapViewEventUnitTest {
 
   @Test
-  fun mapViewEvent_toggleView_isCorrectType() {
-    val event = MapViewEvent.ToggleView
-    assertTrue(event is MapViewEvent.ToggleView)
-  }
+  fun mapViewEvent_allEventTypes_createCorrectly() {
+    // Test all event types in a single test to avoid duplication
+    val toggleView = MapViewEvent.ToggleView
+    val locateUser = MapViewEvent.LocateUser
+    val clearError = MapViewEvent.ClearError
+    val clearLocationAnimation = MapViewEvent.ClearLocationAnimation
 
-  @Test
-  fun mapViewEvent_locateUser_isCorrectType() {
-    val event = MapViewEvent.LocateUser
-    assertTrue(event is MapViewEvent.LocateUser)
-  }
-
-  @Test
-  fun mapViewEvent_clearError_isCorrectType() {
-    val event = MapViewEvent.ClearError
-    assertTrue(event is MapViewEvent.ClearError)
-  }
-
-  @Test
-  fun mapViewEvent_clearLocationAnimation_isCorrectType() {
-    val event = MapViewEvent.ClearLocationAnimation
-    assertTrue(event is MapViewEvent.ClearLocationAnimation)
+    assertTrue(toggleView is MapViewEvent.ToggleView)
+    assertTrue(locateUser is MapViewEvent.LocateUser)
+    assertTrue(clearError is MapViewEvent.ClearError)
+    assertTrue(clearLocationAnimation is MapViewEvent.ClearLocationAnimation)
   }
 
   @Test
@@ -99,11 +89,12 @@ class MapViewEventUnitTest {
 
   @Test
   fun mapViewEvent_setLocationPermission_hasCorrectValue() {
-    val granted = true
-    val event = MapViewEvent.SetLocationPermission(granted)
-
+    val event = MapViewEvent.SetLocationPermission(true)
     assertTrue(event is MapViewEvent.SetLocationPermission)
-    assertEquals(granted, event.granted)
+    assertTrue(event.granted)
+
+    val deniedEvent = MapViewEvent.SetLocationPermission(false)
+    assertFalse(deniedEvent.granted)
   }
 
   @Test
@@ -161,15 +152,13 @@ class TestMapComponentsTest {
 
   @Test
   fun testMapboxMap_hasCorrectTestTag() {
-    // Test that the component uses the correct test tag constant
     assertEquals("map_screen", C.Tag.map_screen)
   }
 
   @Test
   fun testMapboxMap_textContent() {
-    // Test the expected text content
     val expectedText = "Test Map View"
-    assertNotNull("Expected text should not be null", expectedText)
+    assertNotNull(expectedText)
     assertEquals("Test Map View", expectedText)
   }
 }
@@ -177,29 +166,26 @@ class TestMapComponentsTest {
 class MapScreenParametersTest {
 
   @Test
-  fun mapScreen_defaultParameters() {
-    // Test default parameter values
+  fun mapScreen_parameterValues() {
+    // Test default parameters
     val defaultTargetLatitude: Double? = null
     val defaultTargetLongitude: Double? = null
     val defaultTargetZoom = MapConfiguration.Zoom.TARGET
 
-    assertNull("Default latitude should be null", defaultTargetLatitude)
-    assertNull("Default longitude should be null", defaultTargetLongitude)
-    assertEquals(
-        "Default zoom should match TARGET", MapConfiguration.Zoom.TARGET, defaultTargetZoom, 0.0001)
-  }
+    assertNull(defaultTargetLatitude)
+    assertNull(defaultTargetLongitude)
+    assertEquals(MapConfiguration.Zoom.TARGET, defaultTargetZoom, 0.0001)
 
-  @Test
-  fun mapScreen_customParameters() {
+    // Test custom parameters
     val targetLatitude: Double? = 46.5089
     val targetLongitude: Double? = 6.6283
     val targetZoom = 15.0
 
-    assertNotNull("Custom latitude should not be null", targetLatitude)
-    assertNotNull("Custom longitude should not be null", targetLongitude)
-    assertEquals("Custom latitude should be EPFL", 46.5089, targetLatitude!!, 0.0001)
-    assertEquals("Custom longitude should be EPFL", 6.6283, targetLongitude!!, 0.0001)
-    assertEquals("Custom zoom should be 15.0", 15.0, targetZoom, 0.0001)
+    assertNotNull(targetLatitude)
+    assertNotNull(targetLongitude)
+    assertEquals(46.5089, targetLatitude!!, 0.0001)
+    assertEquals(6.6283, targetLongitude!!, 0.0001)
+    assertEquals(15.0, targetZoom, 0.0001)
   }
 }
 

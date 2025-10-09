@@ -37,7 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -298,10 +297,4 @@ private fun BoxScope.MapActionButtons(
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.Companion.size(Size.LARGE_ICON))
       }
-}
-
-@Preview
-@Composable
-fun MapViewScreenPreview() {
-  MapScreen()
 }
