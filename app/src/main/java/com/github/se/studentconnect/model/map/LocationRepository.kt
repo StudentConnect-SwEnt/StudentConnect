@@ -23,7 +23,6 @@ import com.google.android.gms.location.LocationResult as GmsLocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlin.coroutines.resume
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -161,8 +160,6 @@ class LocationRepositoryImpl(
               }
         }
       }
-    } catch (e: TimeoutCancellationException) {
-      LocationResult.Timeout
     } catch (e: SecurityException) {
       LocationResult.PermissionDenied
     } catch (e: Exception) {
@@ -187,9 +184,10 @@ class LocationRepositoryImpl(
     val locationCallback =
         object : LocationCallback() {
           override fun onLocationResult(locationResult: GmsLocationResult) {
-            locationResult.lastLocation?.let { location ->
-              trySend(LocationResult.Success(location))
-            } ?: trySend(LocationResult.Error("No location in update"))
+            val result =
+                locationResult.lastLocation?.let(LocationResult::Success)
+                    ?: LocationResult.Error("No location in update")
+            trySend(result)
           }
         }
 
@@ -251,38 +249,32 @@ fun RequestLocationPermission(
 ) {
   val context = LocalContext.current
   var permissionState by remember { mutableStateOf(LocationPermission()) }
-
   val permissions = arrayOf(LocationConfig.FINE_LOCATION, LocationConfig.COARSE_LOCATION)
 
   val permissionLauncher =
-      rememberLauncherForActivityResult(
-          contract = ActivityResultContracts.RequestMultiplePermissions()) { permissionsMap ->
-            val fineLocationGranted = permissionsMap[LocationConfig.FINE_LOCATION] ?: false
-            val coarseLocationGranted = permissionsMap[LocationConfig.COARSE_LOCATION] ?: false
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+          permissionsMap ->
+        val fineGranted = permissionsMap[LocationConfig.FINE_LOCATION] ?: false
+        val coarseGranted = permissionsMap[LocationConfig.COARSE_LOCATION] ?: false
 
-            val newState =
-                LocationPermission(
-                    status =
-                        if (fineLocationGranted || coarseLocationGranted) {
-                          PermissionStatus.GRANTED
-                        } else {
-                          PermissionStatus.DENIED
-                        },
-                    hasFineLocation = fineLocationGranted,
-                    hasCoarseLocation = coarseLocationGranted)
+        val newState =
+            LocationPermission(
+                status =
+                    if (fineGranted || coarseGranted) PermissionStatus.GRANTED
+                    else PermissionStatus.DENIED,
+                hasFineLocation = fineGranted,
+                hasCoarseLocation = coarseGranted)
 
-            permissionState = newState
-            onPermissionResult(newState)
-          }
+        permissionState = newState
+        onPermissionResult(newState)
+      }
 
   LaunchedEffect(Unit) {
     val currentState = permissionRepository.checkPermissionStatus(context)
     permissionState = currentState
 
     when {
-      currentState.hasAnyLocationPermission -> {
-        onPermissionResult(currentState)
-      }
+      currentState.hasAnyLocationPermission -> onPermissionResult(currentState)
       currentState.status == PermissionStatus.UNKNOWN -> {
         permissionState = permissionState.copy(status = PermissionStatus.REQUESTING)
         permissionLauncher.launch(permissions)

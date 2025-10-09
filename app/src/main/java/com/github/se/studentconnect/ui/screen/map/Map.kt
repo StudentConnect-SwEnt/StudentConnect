@@ -218,7 +218,7 @@ private fun MapContainer(
     modifier: Modifier = Modifier
 ) {
   Box(modifier = modifier.clip(RoundedCornerShape(Corner.MAP_RADIUS))) {
-    if (BuildConfig.USE_MOCK_MAP) {
+    if (BuildConfig.USE_MOCK_MAP || isInAndroidTest()) {
       TestMapboxMap()
     } else {
       MapboxMap(
@@ -228,7 +228,14 @@ private fun MapContainer(
           logo = {},
           attribution = {},
           compass = {}) {
-            LocationPuckEffect(hasLocationPermission)
+            MapEffect(true) { mapView ->
+              mapView.location.updateSettings {
+                locationPuck = createDefault2DPuck(withBearing = true)
+                puckBearingEnabled = true
+                enabled = true
+                pulsingEnabled = true
+              }
+            }
           }
     }
 
@@ -237,20 +244,6 @@ private fun MapContainer(
         isEventsView = isEventsView,
         onLocateUser = onLocateUser,
         onToggleView = onToggleView)
-  }
-}
-
-@Composable
-private fun LocationPuckEffect(hasLocationPermission: Boolean) {
-  if (hasLocationPermission && !BuildConfig.USE_MOCK_MAP) {
-    MapEffect(hasLocationPermission) { mapView ->
-      mapView.location.updateSettings {
-        locationPuck = createDefault2DPuck(withBearing = true)
-        puckBearingEnabled = true
-        enabled = true
-        pulsingEnabled = true
-      }
-    }
   }
 }
 
@@ -297,4 +290,17 @@ private fun BoxScope.MapActionButtons(
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.Companion.size(Size.LARGE_ICON))
       }
+}
+
+/**
+ * Detects if the app is running in an Android instrumentation test environment. This allows us to
+ * use the mock map during Android tests without changing build config.
+ */
+private fun isInAndroidTest(): Boolean {
+  return try {
+    Class.forName("androidx.test.espresso.Espresso")
+    true
+  } catch (e: ClassNotFoundException) {
+    false
+  }
 }

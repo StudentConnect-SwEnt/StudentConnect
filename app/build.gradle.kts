@@ -37,8 +37,8 @@ android {
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
-            // Use mock map in debug builds when running tests
-            buildConfigField("Boolean", "USE_MOCK_MAP", "true")
+            // Use real map in debug builds, mock map for android tests
+            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
     }
     compileOptions {
@@ -103,6 +103,8 @@ android {
             java.srcDirs("src/testDebug/java")
             resources.srcDirs("src/testDebug/resources")
         }
+        
+
     }
 }
 
