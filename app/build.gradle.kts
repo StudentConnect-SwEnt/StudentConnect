@@ -32,10 +32,13 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
+            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
+            // Use mock map in debug builds when running tests
+            buildConfigField("Boolean", "USE_MOCK_MAP", "true")
         }
     }
     compileOptions {
@@ -68,7 +71,6 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
-
             isReturnDefaultValues = true
         }
         packagingOptions {
@@ -127,6 +129,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.play.services.location)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
