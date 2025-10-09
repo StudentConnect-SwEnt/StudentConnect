@@ -24,22 +24,22 @@ class NavigationTest : TestCase() {
     step("Start Test Activity and check BottomNavigationBar") {
       composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
       composeTestRule
-        .onNodeWithTag(NavigationTestTags.HOME_TAB)
-        .assertIsDisplayed()
-        .assertTextContains("Home")
+          .onNodeWithTag(NavigationTestTags.HOME_TAB)
+          .assertIsDisplayed()
+          .assertTextContains("Home")
       composeTestRule
-        .onNodeWithTag(NavigationTestTags.MAP_TAB)
-        .assertIsDisplayed()
-        .assertTextContains("Map")
+          .onNodeWithTag(NavigationTestTags.MAP_TAB)
+          .assertIsDisplayed()
+          .assertTextContains("Map")
       composeTestRule.onNodeWithTag(NavigationTestTags.CREATE_EVENT_TAB).assertIsDisplayed()
       composeTestRule
-        .onNodeWithTag(NavigationTestTags.EVENTS_TAB)
-        .assertIsDisplayed()
-        .assertTextContains("Events")
+          .onNodeWithTag(NavigationTestTags.EVENTS_TAB)
+          .assertIsDisplayed()
+          .assertTextContains("Events")
       composeTestRule
-        .onNodeWithTag(NavigationTestTags.PROFILE_TAB)
-        .assertIsDisplayed()
-        .assertTextContains("Profile")
+          .onNodeWithTag(NavigationTestTags.PROFILE_TAB)
+          .assertIsDisplayed()
+          .assertTextContains("Profile")
     }
   }
 }

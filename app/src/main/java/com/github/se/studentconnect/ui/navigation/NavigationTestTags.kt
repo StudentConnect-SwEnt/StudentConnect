@@ -11,11 +11,11 @@ object NavigationTestTags {
   const val PROFILE_TAB = "ProfileTab"
 
   fun getTabTestTag(tab: Tab): String =
-    when (tab) {
-      is Tab.Home -> HOME_TAB
-      is Tab.Map -> MAP_TAB
-      is Tab.CreateEvent -> CREATE_EVENT_TAB
-      is Tab.Events -> EVENTS_TAB
-      is Tab.Profile -> PROFILE_TAB
-    }
+      when (tab) {
+        is Tab.Home -> HOME_TAB
+        is Tab.Map -> MAP_TAB
+        is Tab.CreateEvent -> CREATE_EVENT_TAB
+        is Tab.Events -> EVENTS_TAB
+        is Tab.Profile -> PROFILE_TAB
+      }
 }

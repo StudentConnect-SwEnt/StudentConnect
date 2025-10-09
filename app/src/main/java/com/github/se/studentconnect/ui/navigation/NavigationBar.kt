@@ -56,45 +56,45 @@ private val tabs = listOf(Tab.Home, Tab.Map, Tab.CreateEvent, Tab.Events, Tab.Pr
  */
 @Composable
 fun BottomNavigationBar(
-  selectedTab: Tab,
-  onTabSelected: (Tab) -> Unit,
-  modifier: Modifier = Modifier,
+    selectedTab: Tab,
+    onTabSelected: (Tab) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
   NavigationBar(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .height(64.dp)
-        .clip(RoundedCornerShape(100))
-        .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
-    windowInsets = WindowInsets(12.dp, 0.dp, 12.dp, 0.dp),
-    content = {
-      tabs.forEach { tab ->
-        if (tab == Tab.CreateEvent) {
-          NavigationBarItem(
-            icon = {
-              Icon(
-                Icons.Outlined.AddBox,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = Purple40,
-              )
-            },
-            selected = tab == selectedTab,
-            onClick = { onTabSelected(tab) },
-            modifier = Modifier.testTag(NavigationTestTags.CREATE_EVENT_TAB),
-          )
-        } else {
-          NavigationBarItem(
-            icon = { Icon(tab.icon, contentDescription = null) },
-            label = { Text(tab.name) },
-            selected = tab == selectedTab,
-            onClick = { onTabSelected(tab) },
-            modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
-          )
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .height(64.dp)
+              .clip(RoundedCornerShape(100))
+              .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
+      windowInsets = WindowInsets(12.dp, 0.dp, 12.dp, 0.dp),
+      content = {
+        tabs.forEach { tab ->
+          if (tab == Tab.CreateEvent) {
+            NavigationBarItem(
+                icon = {
+                  Icon(
+                      Icons.Outlined.AddBox,
+                      contentDescription = null,
+                      modifier = Modifier.size(56.dp),
+                      tint = Purple40,
+                  )
+                },
+                selected = tab == selectedTab,
+                onClick = { onTabSelected(tab) },
+                modifier = Modifier.testTag(NavigationTestTags.CREATE_EVENT_TAB),
+            )
+          } else {
+            NavigationBarItem(
+                icon = { Icon(tab.icon, contentDescription = null) },
+                label = { Text(tab.name) },
+                selected = tab == selectedTab,
+                onClick = { onTabSelected(tab) },
+                modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
+            )
+          }
         }
-      }
-    },
+      },
   )
 }
 
@@ -111,8 +111,8 @@ class BottomNavigationTestActivity : ComponentActivity() {
       SampleAppTheme {
         // A surface container using the 'background' color from the theme
         Surface(
-          modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-          color = MaterialTheme.colorScheme.background,
+            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+            color = MaterialTheme.colorScheme.background,
         ) {
           BottomNavigationBar(Tab.Home, onTabSelected = {})
         }

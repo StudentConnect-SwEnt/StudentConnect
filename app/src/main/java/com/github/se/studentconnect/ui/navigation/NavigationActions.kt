@@ -3,9 +3,9 @@ package com.github.se.studentconnect.ui.navigation
 import androidx.navigation.NavHostController
 
 sealed class Screen(
-  val route: String,
-  val name: String,
-  val isTopLevelDestination: Boolean = false,
+    val route: String,
+    val name: String,
+    val isTopLevelDestination: Boolean = false,
 ) {
   object Auth : Screen(route = "auth", name = "Authentication")
 
@@ -18,7 +18,7 @@ sealed class Screen(
   object Events : Screen(route = "events", name = "Events", isTopLevelDestination = true)
 
   object EventCreation :
-    Screen(route = "event_creation", name = "Create Event", isTopLevelDestination = true)
+      Screen(route = "event_creation", name = "Create Event", isTopLevelDestination = true)
 }
 
 open class NavigationActions(private val navController: NavHostController) {
