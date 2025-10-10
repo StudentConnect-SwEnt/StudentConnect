@@ -44,8 +44,8 @@ import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 object GetStartedScreenTestTags {
-    const val CAROUSEL = "getting_started_carousel"
-    const val GOOGLE_BUTTON = "google_sign_in_button"
+  const val CAROUSEL = "getting_started_carousel"
+  const val GOOGLE_BUTTON = "google_sign_in_button"
 }
 
 private data class CarouselItem(
@@ -62,64 +62,51 @@ fun GettingStartedScreen(
     onSignInError: (String) -> Unit = {},
     viewModel: GetStartedViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    val credentialManager = remember(context) { CredentialManager.create(context) }
-    val uiState by viewModel.uiState.collectAsState()
+  val context = LocalContext.current
+  val credentialManager = remember(context) { CredentialManager.create(context) }
+  val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(uiState.user) {
-        if (uiState.user != null) {
-            onSignedIn()
-        }
+  LaunchedEffect(uiState.user) {
+    if (uiState.user != null) {
+      onSignedIn()
     }
+  }
 
-    LaunchedEffect(uiState.errorMsg) {
-        uiState.errorMsg?.let(onSignInError)
-    }
+  LaunchedEffect(uiState.errorMsg) { uiState.errorMsg?.let(onSignInError) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+  Column(
+      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      horizontalAlignment = Alignment.CenterHorizontally) {
         // Reserved logo space
         Spacer(Modifier.height(64.dp))
 
         // Big carousel
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            val items = remember {
-                listOf(
-                    CarouselItem(0, R.drawable.fond, "amis"),
-                    CarouselItem(1, R.drawable.fond, "amis"),
-                    CarouselItem(2, R.drawable.fond, "amis"),
-                )
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
+          val items = remember {
+            listOf(
+                CarouselItem(0, R.drawable.fond, "amis"),
+                CarouselItem(1, R.drawable.fond, "amis"),
+                CarouselItem(2, R.drawable.fond, "amis"),
+            )
+          }
 
-            HorizontalMultiBrowseCarousel(
-                state = rememberCarouselState { items.size },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .fillMaxHeight()
-                    .padding(vertical = 16.dp)
-                    .testTag(GetStartedScreenTestTags.CAROUSEL), // <- added test tag
-                preferredItemWidth = 186.dp,
-                itemSpacing = 8.dp,
-                contentPadding = PaddingValues(horizontal = 16.dp)
-            ) { index ->
+          HorizontalMultiBrowseCarousel(
+              state = rememberCarouselState { items.size },
+              modifier =
+                  Modifier.fillMaxSize()
+                      .fillMaxHeight()
+                      .padding(vertical = 16.dp)
+                      .testTag(GetStartedScreenTestTags.CAROUSEL), // <- added test tag
+              preferredItemWidth = 186.dp,
+              itemSpacing = 8.dp,
+              contentPadding = PaddingValues(horizontal = 16.dp)) { index ->
                 val item = items[index]
                 Image(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .maskClip(MaterialTheme.shapes.extraLarge),
+                    modifier = Modifier.fillMaxHeight().maskClip(MaterialTheme.shapes.extraLarge),
                     painter = painterResource(id = item.imageResId),
                     contentDescription = item.contentDescription,
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    contentScale = ContentScale.Crop)
+              }
         }
 
         // Tagline
@@ -127,10 +114,7 @@ fun GettingStartedScreen(
             text = "Never miss out again.",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 12.dp)
-        )
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp))
 
         // Filled Google sign-in button with Google logo
         SignInButton(
@@ -139,22 +123,20 @@ fun GettingStartedScreen(
                     .height(56.dp)
                     .testTag(GetStartedScreenTestTags.GOOGLE_BUTTON),
             isLoading = uiState.isLoading,
-            onSignInClick = { viewModel.signIn(context, credentialManager) }
-        )
+            onSignInClick = { viewModel.signIn(context, credentialManager) })
 
         uiState.errorMsg?.let { error ->
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+          Spacer(Modifier.height(8.dp))
+          Text(
+              text = error,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.error,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth())
         }
 
         Spacer(Modifier.height(8.dp))
-    }
+      }
 }
 
 @Composable
@@ -163,51 +145,44 @@ private fun SignInButton(
     isLoading: Boolean,
     onSignInClick: () -> Unit
 ) {
-    Button(
-        onClick = onSignInClick,
-        modifier = modifier,
-        enabled = !isLoading,
-        shape = RoundedCornerShape(28.dp)
-    ) {
+  Button(
+      onClick = onSignInClick,
+      modifier = modifier,
+      enabled = !isLoading,
+      shape = RoundedCornerShape(28.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.google_logo),
-                contentDescription = "Google logo",
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Text("Get Started With Google", style = MaterialTheme.typography.titleMedium)
-        }
-    }
+            horizontalArrangement = Arrangement.Center) {
+              Image(
+                  painter = painterResource(id = R.drawable.google_logo),
+                  contentDescription = "Google logo",
+                  modifier = Modifier.size(24.dp))
+              Spacer(Modifier.width(12.dp))
+              Text("Get Started With Google", style = MaterialTheme.typography.titleMedium)
+            }
+      }
 }
 
 @Preview(
     name = "Getting Started – Preview",
     showBackground = true,
     backgroundColor = 0xFFF4F1F6,
-    widthDp = 412, heightDp = 915
-)
+    widthDp = 412,
+    heightDp = 915)
 @Composable
 private fun GettingStarted_Preview() {
-    AppTheme {
-        val previewViewModel = remember {
-            GetStartedViewModel(
-                PreviewAuthRepository()
-            )
-        }
-        GettingStartedScreen(onSignedIn = {}, onSignInError = {}, viewModel = previewViewModel)
-    }
+  AppTheme {
+    val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
+    GettingStartedScreen(onSignedIn = {}, onSignInError = {}, viewModel = previewViewModel)
+  }
 }
 
 private class PreviewAuthRepository : AuthRepository {
-    override suspend fun signInWithGoogle(
-        credential: androidx.credentials.Credential
-    ): Result<com.google.firebase.auth.FirebaseUser> =
-        Result.failure(UnsupportedOperationException("Preview only"))
+  override suspend fun signInWithGoogle(
+      credential: androidx.credentials.Credential
+  ): Result<com.google.firebase.auth.FirebaseUser> =
+      Result.failure(UnsupportedOperationException("Preview only"))
 
-    override fun signOut(): Result<Unit> = Result.success(Unit)
+  override fun signOut(): Result<Unit> = Result.success(Unit)
 }
