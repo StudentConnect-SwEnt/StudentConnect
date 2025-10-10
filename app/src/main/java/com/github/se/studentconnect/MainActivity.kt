@@ -23,7 +23,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
 
@@ -54,10 +54,6 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun MainContent() {
-  CreatePublicEventScreen()
-
-  return
-
   Column(
       modifier = Modifier.fillMaxSize(),
       horizontalAlignment = Alignment.CenterHorizontally,
