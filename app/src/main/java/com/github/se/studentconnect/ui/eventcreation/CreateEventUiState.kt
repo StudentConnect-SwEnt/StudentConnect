@@ -1,11 +1,12 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import com.github.se.studentconnect.model.location.Location
 import java.time.LocalTime
 
 sealed class CreateEventUiState {
   abstract val title: String
   abstract val description: String
-  abstract val locationString: String
+  abstract val location: Location?
 
   abstract val startDateString: String
   abstract val startTime: LocalTime
@@ -21,7 +22,7 @@ sealed class CreateEventUiState {
   data class Public(
       override val title: String = "",
       override val description: String = "",
-      override val locationString: String = "",
+      override val location: Location? = null,
       override val startDateString: String = "",
       override val startTime: LocalTime = LocalTime.of(0, 0),
       override val endDateString: String = "",
@@ -38,7 +39,7 @@ sealed class CreateEventUiState {
   data class Private(
       override val title: String = "",
       override val description: String = "",
-      override val locationString: String = "",
+      override val location: Location? = null,
       override val startDateString: String = "",
       override val startTime: LocalTime = LocalTime.of(0, 0),
       override val endDateString: String = "",
