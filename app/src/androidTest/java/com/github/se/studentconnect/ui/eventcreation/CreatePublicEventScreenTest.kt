@@ -25,95 +25,114 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     composeTestRule.activity.setContent { AppTheme { CreatePublicEventScreen() } }
   }
 
+  private fun waitForTag(tag: String) {
+    composeTestRule.waitUntil {
+      composeTestRule.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
+    }
+  }
+
+  private fun waitForText(text: String) {
+    composeTestRule.waitUntil {
+      composeTestRule.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
+    }
+  }
+
+  private fun waitUntilEnabled(tag: String) {
+    composeTestRule.waitUntil {
+      try {
+        composeTestRule.onNodeWithTag(tag).assertIsEnabled()
+        true
+      } catch (_: AssertionError) {
+        false
+      }
+    }
+  }
+
+  private fun waitUntilDisabled(tag: String) {
+    composeTestRule.waitUntil {
+      try {
+        composeTestRule.onNodeWithTag(tag).assertIsNotEnabled()
+        true
+      } catch (_: AssertionError) {
+        false
+      }
+    }
+  }
+
   // --------------------------------------------------
   // 1. Rendering & visibility
   // --------------------------------------------------
 
   @Test
   fun allInputs_areDisplayed() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.TITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT).assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.START_DATE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.END_DATE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
     composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT).assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH))
+    waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH))
+    waitForTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
         .assertIsDisplayed()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SAVE_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
     composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
   fun saveButton_disabled_whenMandatoryFieldsEmpty() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SAVE_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
     composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).assertIsNotEnabled()
   }
 
@@ -123,8 +142,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingInTitle_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.TITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     val titleNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     titleNode.performTextInput("My Event")
     titleNode.assertTextContains("My Event")
@@ -132,11 +150,10 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun emptyTitle_showsErrorText() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.TITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     val titleNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     titleNode.performTextInput(" ")
-    composeTestRule.waitUntilExactlyOneExists(hasText("Title cannot be blank"))
+    waitForText("Title cannot be blank")
     composeTestRule.onNodeWithText("Title cannot be blank").assertIsDisplayed()
   }
 
@@ -146,8 +163,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingInSubtitle_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
     val subtitleNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
     subtitleNode.performTextInput("Optional subtitle")
     subtitleNode.assertTextContains("Optional subtitle")
@@ -155,8 +171,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingInDescription_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
     val descNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
     descNode.performTextInput("This is my event description")
     descNode.assertTextContains("This is my event description")
@@ -168,8 +183,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingInLocation_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
     val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
     locationNode.performTextInput("Zurich, Switzerland")
     locationNode.assertTextContains("Zurich, Switzerland")
@@ -181,8 +195,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun enteringStartDate_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.START_DATE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
     val startDateNode =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
     startDateNode.performTextInput("01/01/2025")
@@ -191,8 +204,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun enteringEndDate_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.END_DATE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
     val endDateNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
     endDateNode.performTextInput("02/01/2025")
     endDateNode.assertTextContains("02/01/2025")
@@ -200,8 +212,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun clickingStartTimeButton_opensPicker() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
     val startTimeButton =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
     startTimeButton.performClick()
@@ -210,8 +221,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun clickingEndTimeButton_opensPicker() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
     val endTimeButton =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
     endTimeButton.performClick()
@@ -224,8 +234,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingNumberOfParticipants_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
     val participantsNode =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
     participantsNode.performTextInput("25")
@@ -234,8 +243,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun typingWebsite_updatesValue() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
     val websiteNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
     websiteNode.performTextInput("https://event.com")
     websiteNode.assertTextContains("https://event.com")
@@ -247,8 +255,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun participationFeeInput_disabledByDefault() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
         .assertIsNotEnabled()
@@ -256,33 +263,31 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun enablingParticipationFeeSwitch_enablesInput() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH))
+    waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val switch =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val input =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     switch.performClick()
-    composeTestRule.waitForIdle()
+    waitUntilEnabled(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     input.assertIsEnabled()
   }
 
   @Test
   fun disablingParticipationFeeSwitch_disablesAndClearsInput() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH))
+    waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val switch =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val input =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
 
     switch.performClick() // enable
-    composeTestRule.waitForIdle()
+    waitUntilEnabled(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     input.performTextInput("50")
     input.assertTextContains("50")
 
     switch.performClick() // disable
-    composeTestRule.waitForIdle()
+    waitUntilDisabled(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     input.assertIsNotEnabled()
     input.assertTextContains("") // cleared
   }
@@ -293,8 +298,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun togglingFlashSwitch_clickable() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH))
+    waitForTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
     val flashSwitch =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
     flashSwitch.performClick()
@@ -307,13 +311,11 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun saveButton_enabledOnlyWhenMandatoryFieldsPresent() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SAVE_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
     val save = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
     save.assertIsNotEnabled()
 
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.TITLE_INPUT))
+    waitForTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     val title = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     val startDate = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
     val endDate = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
@@ -327,8 +329,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
   @Test
   fun clickingSaveButton_callsSaveEvent() {
-    composeTestRule.waitUntilExactlyOneExists(
-        hasTestTag(CreatePublicEventScreenTestTags.SAVE_BUTTON))
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
     val title = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
     val startDate = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
     val endDate = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
