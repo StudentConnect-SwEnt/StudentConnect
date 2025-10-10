@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.lifecycle.ViewModel
+import com.github.se.studentconnect.model.location.Location
 import java.time.LocalTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +19,8 @@ class CreatePrivateEventViewModel : ViewModel() {
     _uiState.value = uiState.value.copy(description = newDescription)
   }
 
-  fun updateLocationString(newLocationString: String) {
-    _uiState.value = uiState.value.copy(locationString = newLocationString)
+  fun updateLocation(newLocation: Location?) {
+    _uiState.value = uiState.value.copy(location = newLocation)
   }
 
   fun updateStartDateString(newStartDateString: String) {
