@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model
 
+import com.github.se.studentconnect.model.event.Event
+
 /**
  * Represents a User in the StudentConnect application.
  *
@@ -24,7 +26,8 @@ data class User(
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val joinedEvents: List<Event> = emptyList(),
 ) {
   init {
     require(userId.isNotBlank()) { "User ID cannot be blank" }
@@ -123,7 +126,8 @@ data class User(
               is UpdateValue.SetValue -> bio.value
               else -> this.bio
             },
-        updatedAt = System.currentTimeMillis())
+        updatedAt = System.currentTimeMillis(),
+        joinedEvents = this.joinedEvents)
   }
 
   /**
@@ -142,7 +146,8 @@ data class User(
         "profilePictureUrl" to profilePictureUrl,
         "bio" to bio,
         "createdAt" to createdAt,
-        "updatedAt" to updatedAt)
+        "updatedAt" to updatedAt,
+        "joinedEvents" to joinedEvents.map { it.uid })
   }
 
   companion object {
