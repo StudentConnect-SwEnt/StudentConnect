@@ -91,10 +91,11 @@ internal fun ExperiencesContent(
   val scrollState = rememberScrollState()
   val topics = experienceTopics[selectedFilter] ?: emptyList()
 
-  Surface(
-      modifier = modifier.fillMaxSize().semantics { testTag = C.Tag.experiences_screen_container },
-      color = MaterialTheme.colorScheme.surface) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+    Box(
+        modifier =
+            Modifier.fillMaxSize().semantics { testTag = C.Tag.experiences_screen_container },
+        contentAlignment = Alignment.Center) {
           Column(
               modifier =
                   Modifier.fillMaxWidth()
@@ -210,7 +211,7 @@ internal fun ExperiencesContent(
               enabled = !isSaving,
               modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp))
         }
-      }
+  }
 }
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)

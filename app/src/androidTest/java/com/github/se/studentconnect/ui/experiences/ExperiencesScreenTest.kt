@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -389,7 +388,7 @@ class ExperiencesScreenTest {
       }
     }
 
-    composeRule.onNodeWithTag("experiences_root").assertIsDisplayed()
+    composeRule.onNodeWithTag("experiences_root", useUnmergedTree = true).assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.experiences_screen_container).assertIsDisplayed()
   }
 
@@ -400,7 +399,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         var errorMessage by remember { mutableStateOf("Temporary issue") }
-        clearError = { errorMessage = null }
+        clearError = { errorMessage = "" }
         ExperiencesContent(
             selectedFilter = filterOptions.first(),
             selectedTopics = emptySet(),
@@ -429,14 +428,11 @@ class ExperiencesScreenTest {
         var enabled by remember { mutableStateOf(false) }
         enableCta = { enabled = true }
         PrimaryCtaButton(
-            text = "Toggle CTA",
-            onClick = { clicks++ },
-            enabled = enabled,
-            modifier = Modifier.testTag("cta_button"))
+            text = "Toggle CTA", onClick = { clicks++ }, enabled = enabled, modifier = Modifier)
       }
     }
 
-    val node = composeRule.onNodeWithTag("cta_button")
+    val node = composeRule.onNodeWithTag(C.Tag.experiences_cta)
     node.assertIsNotEnabled()
 
     composeRule.runOnIdle { enableCta() }
