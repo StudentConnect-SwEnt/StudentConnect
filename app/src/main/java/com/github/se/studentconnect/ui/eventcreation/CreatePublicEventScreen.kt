@@ -148,6 +148,7 @@ fun CreatePublicEventScreen(
           label = "Participation fees",
           value = createPublicEventUiState.participationFeeString,
           onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
+          enabled = createPublicEventUiState.hasParticipationFee,
       )
 
       Switch(
