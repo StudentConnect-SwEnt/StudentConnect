@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.MainActivity
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import org.junit.Rule
 import org.junit.Test
@@ -17,7 +18,7 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class NavigationTest : TestCase() {
-  @get:Rule val composeTestRule = createAndroidComposeRule<BottomNavigationTestActivity>()
+  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun bottomNavigationBarTest() = run {
@@ -31,15 +32,15 @@ class NavigationTest : TestCase() {
           .onNodeWithTag(NavigationTestTags.MAP_TAB)
           .assertIsDisplayed()
           .assertTextContains("Map")
-      composeTestRule.onNodeWithTag(NavigationTestTags.CREATE_EVENT_TAB).assertIsDisplayed()
       composeTestRule
-          .onNodeWithTag(NavigationTestTags.EVENTS_TAB)
+          .onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB)
           .assertIsDisplayed()
-          .assertTextContains("Events")
+          .assertTextContains("Activities")
       composeTestRule
           .onNodeWithTag(NavigationTestTags.PROFILE_TAB)
           .assertIsDisplayed()
           .assertTextContains("Profile")
+      composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
     }
   }
 }
