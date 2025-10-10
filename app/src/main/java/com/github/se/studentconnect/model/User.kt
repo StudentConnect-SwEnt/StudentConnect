@@ -25,6 +25,8 @@ data class User(
     val hobbies: List<String> = emptyList(),
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
+    val country: String? = null, // optional
+    val birthday: String? = null, // optional
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val joinedEvents: List<Event> = emptyList(),
@@ -79,6 +81,10 @@ data class User(
    *   UpdateValue.NoChange to keep current).
    * @param bio The new bio (use UpdateValue.SetValue to change, UpdateValue.NoChange to keep
    *   current).
+   * @param country The new country (use UpdateValue.SetValue to change, UpdateValue.NoChange to
+   *   keep current).
+   * @param birthday The new birthday (use UpdateValue.SetValue to change, UpdateValue.NoChange to
+   *   keep current).
    * @return A new User instance with the updated fields.
    */
   fun update(
@@ -88,7 +94,9 @@ data class User(
       university: UpdateValue<String> = UpdateValue.NoChange(),
       hobbies: UpdateValue<List<String>> = UpdateValue.NoChange(),
       profilePictureUrl: UpdateValue<String?> = UpdateValue.NoChange(),
-      bio: UpdateValue<String?> = UpdateValue.NoChange()
+      bio: UpdateValue<String?> = UpdateValue.NoChange(),
+      country: UpdateValue<String?> = UpdateValue.NoChange(),
+      birthday: UpdateValue<String?> = UpdateValue.NoChange()
   ): User {
     return copy(
         email =
@@ -126,6 +134,16 @@ data class User(
               is UpdateValue.SetValue -> bio.value
               else -> this.bio
             },
+        country =
+            when (country) {
+              is UpdateValue.SetValue -> country.value
+              else -> this.country
+            },
+        birthday =
+            when (birthday) {
+              is UpdateValue.SetValue -> birthday.value
+              else -> this.birthday
+            },
         updatedAt = System.currentTimeMillis(),
         joinedEvents = this.joinedEvents)
   }
@@ -145,6 +163,8 @@ data class User(
         "hobbies" to hobbies,
         "profilePictureUrl" to profilePictureUrl,
         "bio" to bio,
+        "country" to country,
+        "birthday" to birthday,
         "createdAt" to createdAt,
         "updatedAt" to updatedAt,
         "joinedEvents" to joinedEvents.map { it.uid })
@@ -179,6 +199,8 @@ data class User(
             hobbies = (map["hobbies"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             profilePictureUrl = map["profilePictureUrl"] as? String,
             bio = map["bio"] as? String,
+            country = map["country"] as? String,
+            birthday = map["birthday"] as? String,
             createdAt = createdAt,
             updatedAt = updatedAt)
       } catch (e: Exception) {
