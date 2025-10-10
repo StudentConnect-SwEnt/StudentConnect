@@ -15,6 +15,12 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val COLLECTION_NAME = "users"
   }
 
+  override fun leaveEvent(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update("joinedEvents", FieldValue.arrayRemove(eventId))
+  }
+
   override fun getUserById(
       userId: String,
       onSuccess: (User?) -> Unit,
