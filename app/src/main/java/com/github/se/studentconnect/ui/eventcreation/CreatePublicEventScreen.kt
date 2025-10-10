@@ -92,12 +92,12 @@ fun CreatePublicEventScreen(
         onValueChange = { createPublicEventViewModel.updateDescription(it) },
     )
 
-    FormTextField(
+    LocationTextField(
         modifier = Modifier.fillMaxWidth(),
         label = "Location",
         placeholder = "Enter the event's location",
-        value = createPublicEventUiState.locationString,
-        onValueChange = { createPublicEventViewModel.updateLocationString(it) },
+        initialValue = "",
+        onLocationChange = { createPublicEventViewModel.updateLocation(it) }
     )
 
     Row(
@@ -208,24 +208,6 @@ fun TimePicker(time: LocalTime, onTimeChange: (LocalTime) -> Unit) {
         val formattedMinutes = time.minute.toString().padStart(2, '0')
         Text(text = "${formattedHour}:${formattedMinutes}")
       }
-}
-
-@Composable
-private fun FormTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String? = null,
-    placeholder: String? = null,
-) {
-  OutlinedTextField(
-      modifier = modifier,
-      value = value,
-      onValueChange = onValueChange,
-      label = label?.let { { Text(it) } },
-      placeholder = placeholder?.let { { Text(it) } },
-      shape = RoundedCornerShape(50.dp),
-  )
 }
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
