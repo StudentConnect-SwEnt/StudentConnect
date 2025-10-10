@@ -5,31 +5,37 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.activities.ActivitiesScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
@@ -61,24 +67,60 @@ class MainActivity : AppCompatActivity() {
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent() {
   val navController = rememberNavController()
-  var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = navBackStackEntry?.destination?.route
+
+  // Sync selected tab with current route
+  val selectedTab =
+      when (currentRoute) {
+        Route.HOME -> Tab.Home
+        Route.MAP -> Tab.Map
+        Route.ACTIVITIES -> Tab.Activities
+        Route.PROFILE -> Tab.Profile
+        else -> Tab.Home
+      }
 
   Scaffold(
+      topBar = {
+        when (currentRoute) {
+          Route.CREATE_PUBLIC_EVENT -> {
+            TopAppBar(
+                title = { Text("Public Event Creation") },
+                navigationIcon = {
+                  IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                  }
+                })
+          }
+          Route.CREATE_PRIVATE_EVENT -> {
+            TopAppBar(
+                title = { Text("Private Event Creation") },
+                navigationIcon = {
+                  IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                  }
+                })
+          }
+        }
+      },
       bottomBar = {
         BottomNavigationBar(
             selectedTab = selectedTab,
             onTabSelected = { tab: Tab ->
-              selectedTab = tab
               navController.navigate(tab.destination.route) {
                 launchSingleTop = true
                 restoreState = true
               }
             },
-            onCenterButtonClick = {
-              // Handle center button click - placeholder for now
+            onCreatePublicEvent = {
+              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+            },
+            onCreatePrivateEvent = {
+              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
             })
       }) { paddingValues ->
         NavHost(
@@ -89,8 +131,24 @@ fun MainContent() {
             exitTransition = { ExitTransition.None }) {
               composable(Route.HOME) { HomeScreen() }
               composable(Route.MAP) { MapScreen() }
-              composable(Route.ACTIVITIES) { ActivitiesScreen() }
+              composable(
+                  Route.MAP_WITH_LOCATION,
+                  arguments =
+                      listOf(
+                          navArgument("latitude") { type = NavType.StringType },
+                          navArgument("longitude") { type = NavType.StringType },
+                          navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
+                    val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
+                    val longitude =
+                        backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
+                    val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
+                    MapScreen(
+                        targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
+                  }
+              composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
               composable(Route.PROFILE) { ProfileScreen() }
+              composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
+              composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
             }
       }
 }

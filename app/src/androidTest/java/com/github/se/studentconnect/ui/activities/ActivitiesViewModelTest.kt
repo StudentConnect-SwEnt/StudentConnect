@@ -21,54 +21,54 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class ActivitiesViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private lateinit var viewModel: ActivitiesViewModel
-    private lateinit var mockEventRepository: EventRepository
-    private lateinit var mockUserRepository: UserRepository
+  private val testDispatcher = StandardTestDispatcher()
+  private lateinit var viewModel: ActivitiesViewModel
+  private lateinit var mockEventRepository: EventRepository
+  private lateinit var mockUserRepository: UserRepository
 
-    @Before
-    fun setup() {
-        Dispatchers.setMain(testDispatcher)
-        mockEventRepository = mockk(relaxed = true)
-        mockUserRepository = mockk(relaxed = true)
-        viewModel = ActivitiesViewModel(mockEventRepository, mockUserRepository)
-    }
+  @Before
+  fun setup() {
+    Dispatchers.setMain(testDispatcher)
+    mockEventRepository = mockk(relaxed = true)
+    mockUserRepository = mockk(relaxed = true)
+    viewModel = ActivitiesViewModel(mockEventRepository, mockUserRepository)
+  }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
 
-    @Test
-    fun testRefreshEvents() = runTest {
-        val events =
-            listOf(
-                Event.Public(
-                    uid = "1",
-                    ownerId = "user1",
-                    title = "Event 1",
-                    description = "Description 1",
-                    start = Timestamp.now(),
-                    isFlash = false,
-                    subtitle = "Subtitle 1"))
-        coEvery { mockEventRepository.getEventsAttendedByUser("user1") } returns events
+  @Test
+  fun testRefreshEvents() = runTest {
+    val events =
+        listOf(
+            Event.Public(
+                uid = "1",
+                ownerId = "user1",
+                title = "Event 1",
+                description = "Description 1",
+                start = Timestamp.now(),
+                isFlash = false,
+                subtitle = "Subtitle 1"))
+    coEvery { mockEventRepository.getEventsAttendedByUser("user1") } returns events
 
-        viewModel.refreshEvents("user1")
-        testDispatcher.scheduler.advanceUntilIdle() // Ensure all coroutines have completed
+    viewModel.refreshEvents("user1")
+    testDispatcher.scheduler.advanceUntilIdle() // Ensure all coroutines have completed
 
-        val uiState = viewModel.uiState.first()
-        assertEquals(events, uiState.events)
-    }
+    val uiState = viewModel.uiState.first()
+    assertEquals(events, uiState.events)
+  }
 
-    @Test
-    fun testLeaveEvent() = runTest {
-        coEvery { mockUserRepository.leaveEvent(any(), any()) } returns Unit
-        coEvery { mockEventRepository.removeParticipantFromEvent(any(), any()) } returns Unit
+  @Test
+  fun testLeaveEvent() = runTest {
+    coEvery { mockUserRepository.leaveEvent(any(), any()) } returns Unit
+    coEvery { mockEventRepository.removeParticipantFromEvent(any(), any()) } returns Unit
 
-        viewModel.leaveEvent("event1")
-        testDispatcher.scheduler.advanceUntilIdle() // Ensure all coroutines have completed
+    viewModel.leaveEvent("event1")
+    testDispatcher.scheduler.advanceUntilIdle() // Ensure all coroutines have completed
 
-        // No direct state change to assert, but we can verify interactions if needed with MockK's
-        // coVerify
-    }
+    // No direct state change to assert, but we can verify interactions if needed with MockK's
+    // coVerify
+  }
 }

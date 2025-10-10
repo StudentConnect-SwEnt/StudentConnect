@@ -12,93 +12,87 @@ import org.junit.Test
 
 class ActivitiesScreenTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    /*@Test
-    fun screenDisplaysEventsByDefaultFromLocalRepository() {
+  /*@Test
+  fun screenDisplaysEventsByDefaultFromLocalRepository() {
 
-        val activitiesViewModel = ActivitiesViewModel()
+      val activitiesViewModel = ActivitiesViewModel()
 
-        composeTestRule.setContent {
-            ActivitiesScreen(
-                navController = rememberNavController(),
-                activitiesViewModel = activitiesViewModel
-            )
-        }
+      composeTestRule.setContent {
+          ActivitiesScreen(
+              navController = rememberNavController(),
+              activitiesViewModel = activitiesViewModel
+          )
+      }
 
-        composeTestRule.waitForIdle()
+      composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
 
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
+      composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
 
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.INFO_EVENT_SECTION).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EVENT_ACTION_BUTTONS).assertIsDisplayed()
-    }*/
+      composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.INFO_EVENT_SECTION).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EVENT_ACTION_BUTTONS).assertIsDisplayed()
+  }*/
 
-    @Test
-    fun emptyStateIsDisplayedWhenRepositoryIsEmpty() {
-        // Préparation : On écrase le repository par défaut avec une nouvelle instance VIDE.
-        // C'est la clé pour contrôler ce scénario.
-        EventRepositoryProvider.repository = EventRepositoryLocal()
+  @Test
+  fun emptyStateIsDisplayedWhenRepositoryIsEmpty() {
+    // Préparation : On écrase le repository par défaut avec une nouvelle instance VIDE.
+    // C'est la clé pour contrôler ce scénario.
+    EventRepositoryProvider.repository = EventRepositoryLocal()
 
-        val activitiesViewModel = ActivitiesViewModel()
+    val activitiesViewModel = ActivitiesViewModel()
 
-        // Action : Afficher le ActivitiesScreen
-        composeTestRule.setContent {
-            ActivitiesScreen(
-                navController = rememberNavController(),
-                activitiesViewModel = activitiesViewModel
-            )
-        }
-
-        composeTestRule.waitForIdle()
-
-        // Vérification : Le message d'état vide est bien affiché.
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EMPTY_STATE_TEXT).assertIsDisplayed()
-
-        // Vérification : Le carrousel n'est PAS affiché.
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertDoesNotExist()
+    // Action : Afficher le ActivitiesScreen
+    composeTestRule.setContent {
+      ActivitiesScreen(
+          navController = rememberNavController(), activitiesViewModel = activitiesViewModel)
     }
 
-    @Test
-    fun clickingOnTabsDoesNotCrash() {
-        // Ce test reste valide, il vérifie simplement l'interaction UI.
-        val activitiesViewModel = ActivitiesViewModel()
+    composeTestRule.waitForIdle()
 
-        composeTestRule.setContent {
-            ActivitiesScreen(
-                navController = rememberNavController(),
-                activitiesViewModel = activitiesViewModel
-            )
-        }
+    // Vérification : Le message d'état vide est bien affiché.
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.EMPTY_STATE_TEXT).assertIsDisplayed()
 
-        // Action & Vérification
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TAB_BUTTON_INVITATIONS).performClick()
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW).assertIsDisplayed()
+    // Vérification : Le carrousel n'est PAS affiché.
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertDoesNotExist()
+  }
 
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TAB_BUTTON_JOINED).performClick()
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW).assertIsDisplayed()
+  @Test
+  fun clickingOnTabsDoesNotCrash() {
+    // Ce test reste valide, il vérifie simplement l'interaction UI.
+    val activitiesViewModel = ActivitiesViewModel()
+
+    composeTestRule.setContent {
+      ActivitiesScreen(
+          navController = rememberNavController(), activitiesViewModel = activitiesViewModel)
     }
 
-    @Test
-    fun leaveEventButtonRemovesEventFromUI() {
-        EventRepositoryProvider.repository = EventRepositoryLocal()
-        val activitiesViewModel = ActivitiesViewModel()
+    // Action & Vérification
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TAB_BUTTON_INVITATIONS).performClick()
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW).assertIsDisplayed()
 
-        composeTestRule.setContent {
-            ActivitiesScreen(
-                navController = rememberNavController(),
-                activitiesViewModel = activitiesViewModel
-            )
-        }
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TAB_BUTTON_JOINED).performClick()
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW).assertIsDisplayed()
+  }
 
-        composeTestRule.waitForIdle()
+  @Test
+  fun leaveEventButtonRemovesEventFromUI() {
+    EventRepositoryProvider.repository = EventRepositoryLocal()
+    val activitiesViewModel = ActivitiesViewModel()
 
-        val firstEventUid = activitiesViewModel.uiState.value.events.first().uid
-
-        composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.carouselCardTag(firstEventUid)).assertIsDisplayed()
-
+    composeTestRule.setContent {
+      ActivitiesScreen(
+          navController = rememberNavController(), activitiesViewModel = activitiesViewModel)
     }
+
+    composeTestRule.waitForIdle()
+
+    val firstEventUid = activitiesViewModel.uiState.value.events.first().uid
+
+    composeTestRule
+        .onNodeWithTag(ActivitiesScreenTestTags.carouselCardTag(firstEventUid))
+        .assertIsDisplayed()
+  }
 }

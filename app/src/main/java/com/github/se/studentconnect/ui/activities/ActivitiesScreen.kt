@@ -53,6 +53,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.navigation.Route
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -154,7 +155,8 @@ fun ActivitiesScreen(
                 }
           } else {
             // This part remains the same
-            Carousel(pagerState, sidePeekWidth, carouselItems, mainItemWidth, screenWidth)
+            Carousel(
+                pagerState, sidePeekWidth, carouselItems, mainItemWidth, screenWidth, navController)
             ChatButton()
             AnimatedContent(
                 targetState = pagerState.currentPage,
@@ -313,7 +315,8 @@ private fun Carousel(
     sidePeekWidth: Dp,
     carouselItems: List<Event>,
     mainItemWidth: Dp,
-    screenWidth: Dp
+    screenWidth: Dp,
+    navController: NavHostController
 ) {
   HorizontalPager(
       state = pagerState,
@@ -323,6 +326,7 @@ private fun Carousel(
         val event = carouselItems[page]
         CarouselCard(
             item = event,
+            navController = navController,
             modifier =
                 Modifier.width(mainItemWidth)
                     .testTag("carousel_card_${event.uid}") // Dynamic test tag
@@ -355,7 +359,13 @@ private fun Carousel(
 }
 
 @Composable
-fun CarouselCard(item: Event, modifier: Modifier = Modifier, screenHeight: Dp, screenWidth: Dp) {
+fun CarouselCard(
+    item: Event,
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    screenHeight: Dp,
+    screenWidth: Dp
+) {
   Card(
       modifier = modifier.height(screenHeight * 0.5f),
       colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -399,10 +409,15 @@ fun CarouselCard(item: Event, modifier: Modifier = Modifier, screenHeight: Dp, s
                             ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         contentPadding = PaddingValues(horizontal = 4.dp),
-                        onClick = { /* TODO */}) {
+                        onClick = {
+                          item.location?.let { location ->
+                            val route = Route.mapWithLocation(location.latitude, location.longitude)
+                            navController.navigate(route)
+                          }
+                        }) {
                           Icon(
                               painter = painterResource(id = R.drawable.ic_location_pin),
-                              contentDescription = "Home",
+                              contentDescription = "View on Map",
                               modifier = Modifier.size(20.dp),
                               tint = MaterialTheme.colorScheme.onSecondaryContainer)
                         }
