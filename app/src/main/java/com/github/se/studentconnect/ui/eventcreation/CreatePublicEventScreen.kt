@@ -2,32 +2,23 @@
 
 package com.github.se.studentconnect.ui.eventcreation
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
-import com.google.android.material.timepicker.MaterialTimePicker
-import com.google.android.material.timepicker.TimeFormat
-import java.time.LocalTime
 
 @Composable
 fun CreatePublicEventScreen(
@@ -181,33 +172,6 @@ fun CreatePublicEventScreen(
       )
     }
   }
-}
-
-@Composable
-fun TimePicker(time: LocalTime, onTimeChange: (LocalTime) -> Unit) {
-  val context = LocalContext.current
-  val activity = context as AppCompatActivity
-
-  TextButton(
-      onClick = {
-        val picker =
-            MaterialTimePicker.Builder()
-                .setTimeFormat(TimeFormat.CLOCK_24H)
-                .setHour(time.hour)
-                .setMinute(time.minute)
-                .setTitleText("Select time")
-                .build()
-
-        picker.addOnPositiveButtonClickListener {
-          onTimeChange(LocalTime.of(picker.hour, picker.minute))
-        }
-
-        picker.show(activity.supportFragmentManager, "timePicker")
-      }) {
-        val formattedHour = time.hour.toString().padStart(2, '0')
-        val formattedMinutes = time.minute.toString().padStart(2, '0')
-        Text(text = "${formattedHour}:${formattedMinutes}")
-      }
 }
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
