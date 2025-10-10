@@ -5,12 +5,19 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,9 +30,21 @@ import com.github.se.studentconnect.ui.theme.AppTheme
 @Composable
 fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
+    // TODO: pass NavController here
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   val createPublicEventUiState by createPublicEventViewModel.uiState.collectAsState()
+
+  val canSave =
+      createPublicEventUiState.title.isNotBlank() &&
+          createPublicEventUiState.startDate != null &&
+          createPublicEventUiState.endDate != null
+
+  LaunchedEffect(createPublicEventUiState.finishedSaving) {
+    if (createPublicEventUiState.finishedSaving) {
+      // TODO: navigate out of this page
+    }
+  }
 
   Column(
       modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -65,7 +84,7 @@ fun CreatePublicEventScreen(
         placeholder = "My new event",
         value = createPublicEventUiState.title,
         onValueChange = { createPublicEventViewModel.updateTitle(it) },
-    )
+        errorText = if (createPublicEventUiState.title.isBlank()) "Title cannot be blank" else null)
 
     FormTextField(
         modifier = Modifier.fillMaxWidth(),
@@ -152,7 +171,10 @@ fun CreatePublicEventScreen(
 
       Switch(
           checked = createPublicEventUiState.hasParticipationFee,
-          onCheckedChange = { createPublicEventViewModel.updateHasParticipationFee(it) },
+          onCheckedChange = {
+            createPublicEventViewModel.updateHasParticipationFee(it)
+            if (!it) createPublicEventViewModel.updateParticipationFeeString("")
+          },
       )
     }
 
@@ -170,6 +192,18 @@ fun CreatePublicEventScreen(
           checked = createPublicEventUiState.isFlash,
           onCheckedChange = { createPublicEventViewModel.updateIsFlash(it) },
       )
+    }
+
+    Button(
+        enabled = canSave,
+        onClick = { createPublicEventViewModel.saveEvent() },
+    ) {
+      Icon(
+          imageVector = Icons.Default.SaveAlt,
+          contentDescription = "Save",
+          modifier = Modifier.size(20.dp))
+      Spacer(modifier = Modifier.size(6.dp))
+      Text("Save")
     }
   }
 }

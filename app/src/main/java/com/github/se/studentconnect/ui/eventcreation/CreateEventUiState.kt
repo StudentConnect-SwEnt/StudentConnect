@@ -19,6 +19,7 @@ sealed class CreateEventUiState {
   abstract val hasParticipationFee: Boolean
   abstract val participationFeeString: String
   abstract val isFlash: Boolean
+  abstract val finishedSaving: Boolean
 
   data class Public(
       override val title: String = "",
@@ -32,6 +33,7 @@ sealed class CreateEventUiState {
       override val hasParticipationFee: Boolean = false,
       override val participationFeeString: String = "",
       override val isFlash: Boolean = false,
+      override val finishedSaving: Boolean = false,
       val subtitle: String = "",
       val website: String = "",
       val tags: List<String> = emptyList(),
@@ -49,5 +51,6 @@ sealed class CreateEventUiState {
       override val hasParticipationFee: Boolean = false,
       override val participationFeeString: String = "",
       override val isFlash: Boolean = false,
+      override val finishedSaving: Boolean = false,
   ) : CreateEventUiState()
 }
