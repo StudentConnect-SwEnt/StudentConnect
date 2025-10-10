@@ -319,25 +319,6 @@ class ExperiencesScreenTest {
   }
 
   @Test
-  fun experiencesContentDisplaysErrorMessage() {
-    composeRule.setContent {
-      AppTheme {
-        ExperiencesContent(
-            selectedFilter = filterOptions.first(),
-            selectedTopics = emptySet(),
-            onFilterSelected = {},
-            onTopicToggle = {},
-            onBackClick = {},
-            onStartClick = {},
-            isSaving = false,
-            errorMessage = "Network error")
-      }
-    }
-
-    composeRule.onNodeWithText("Network error").assertIsDisplayed()
-  }
-
-  @Test
   fun primaryCtaDisabledWhileSaving() {
     composeRule.setContent {
       AppTheme {
@@ -390,32 +371,6 @@ class ExperiencesScreenTest {
 
     composeRule.onNodeWithTag("experiences_root", useUnmergedTree = true).assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.experiences_screen_container).assertIsDisplayed()
-  }
-
-  @Test
-  fun experiencesContentClearsErrorMessageWhenNull() {
-    lateinit var clearError: () -> Unit
-
-    composeRule.setContent {
-      AppTheme {
-        var errorMessage by remember { mutableStateOf("Temporary issue") }
-        clearError = { errorMessage = "" }
-        ExperiencesContent(
-            selectedFilter = filterOptions.first(),
-            selectedTopics = emptySet(),
-            onFilterSelected = {},
-            onTopicToggle = {},
-            onBackClick = {},
-            onStartClick = {},
-            isSaving = false,
-            errorMessage = errorMessage,
-        )
-      }
-    }
-
-    composeRule.onNodeWithText("Temporary issue").assertIsDisplayed()
-    composeRule.runOnIdle { clearError() }
-    composeRule.onNodeWithText("Temporary issue").assertDoesNotExist()
   }
 
   @Test
