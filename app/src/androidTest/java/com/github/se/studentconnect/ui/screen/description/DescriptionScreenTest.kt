@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.description
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,8 +15,10 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -336,5 +339,156 @@ class DescriptionScreenTest {
 
     composeRule.onNodeWithTag("custom_root").assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionContentHonorsModifier() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.testTag("custom_content").padding(16.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag("custom_content").assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionScreen_defaultParametersWork() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(description = text, onDescriptionChange = { text = it })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_back).performClick() // Should not crash
+    composeRule.onNodeWithTag(C.Tag.description_skip).performClick() // Should not crash
+    composeRule.onNodeWithTag(C.Tag.description_continue).performClick() // Should not crash
+  }
+
+  @Test
+  fun descriptionTopBar_displaysCorrectTexts() {
+    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_title).assertTextEquals("Tell us more about you")
+    composeRule
+        .onNodeWithTag(C.Tag.description_subtitle)
+        .assertTextEquals("What should others know")
+    composeRule.onNodeWithText("Skip").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionPrompt_nonEmptyDescriptionHidesPlaceholder() {
+    composeRule.setContent {
+      AppTheme { DescriptionPrompt(description = "Test content", onDescriptionChange = {}) }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Test content")
+    composeRule.onNodeWithText("What should other students know about you?").assertDoesNotExist()
+  }
+
+  @Test
+  fun descriptionScreen_textClearingRestoresPlaceholder() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("Initial text") }
+        DescriptionScreen(description = text, onDescriptionChange = { text = it })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Initial text")
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextClearance()
+    composeRule.onNodeWithText("What should other students know about you?").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionPrompt_handlesSpecialCharacters() {
+    var capturedText = ""
+    composeRule.setContent {
+      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { capturedText = it }) }
+    }
+
+    val specialText = "Special chars: @#$%^&*()_+-=[]{}|;:,.<>?"
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput(specialText)
+    composeRule.runOnIdle { Assert.assertEquals(specialText, capturedText) }
+  }
+
+  @Test
+  fun descriptionScreen_multipleTextUpdates() {
+    val textHistory = mutableListOf<String>()
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = {
+              text = it
+              textHistory.add(it)
+            })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput("First")
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput(" Second")
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput(" Third")
+
+    composeRule.runOnIdle {
+      Assert.assertTrue(textHistory.contains("First"))
+      Assert.assertTrue(textHistory.contains("First Second"))
+      Assert.assertTrue(textHistory.contains("First Second Third"))
+    }
+  }
+
+  @Test
+  fun descriptionTopBar_backIconHasCorrectContentDescription() {
+    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
+
+    composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
+  }
+
+  @Test
+  fun continueButton_displaysCorrectIconAndText() {
+    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
+
+    composeRule.onNodeWithText("Continue").assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionContent_allComponentsVisible() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Test description",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {})
+      }
+    }
+
+    // Verify all major components are present
+    composeRule.onNodeWithTag(C.Tag.description_app_bar).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionPrompt_behaviorWithComplexModifier() {
+    composeRule.setContent {
+      AppTheme { DescriptionPrompt(description = "Complex test", onDescriptionChange = {}) }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Complex test")
   }
 }

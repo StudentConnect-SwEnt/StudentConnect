@@ -4,10 +4,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
@@ -140,5 +145,117 @@ class NavigationBarTest {
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
 
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsSelected()
+  }
+
+  @Test
+  fun bottomNavigationBar_withCustomModifier() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(
+            selectedTab = Tab.Home,
+            onTabSelected = {},
+            onCenterButtonClick = {},
+            modifier = Modifier.testTag("custom_navigation"))
+      }
+    }
+
+    composeTestRule.onNodeWithTag("custom_navigation").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_onlySelectedTabIsSelected() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Map, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsNotSelected()
+  }
+
+  @Test
+  fun bottomNavigationBar_tabLabelsDisplayCorrectly() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Map").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_centerButtonHasCorrectContentDescription() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    composeTestRule.onNodeWithContentDescription("Add").assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_multipleTabSelections() {
+    composeTestRule.setContent {
+      AppTheme {
+        var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
+        BottomNavigationBar(
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it },
+            onCenterButtonClick = {})
+      }
+    }
+
+    // Start with Home selected
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+
+    // Switch to Activities
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsNotSelected()
+
+    // Switch to Profile
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsNotSelected()
+
+    // Switch back to Home
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsNotSelected()
+  }
+
+  @Test
+  fun bottomNavigationBar_centerButtonClickMultipleTimes() {
+    var clickCount = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(
+            selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = { clickCount++ })
+      }
+    }
+
+    repeat(3) { composeTestRule.onNodeWithTag("center_add_button").performClick() }
+
+    composeTestRule.runOnIdle { assert(clickCount == 3) }
+  }
+
+  @Test
+  fun bottomNavigationBar_defaultCenterButtonClickDoesNothing() {
+    composeTestRule.setContent {
+      AppTheme { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
+    }
+
+    // Should not crash when clicking center button with default empty callback
+    composeTestRule.onNodeWithTag("center_add_button").performClick()
   }
 }
