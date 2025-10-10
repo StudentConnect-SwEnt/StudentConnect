@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.screen
+package com.github.se.studentconnect.ui.screen
 
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import com.github.se.studentconnect.resources.C
