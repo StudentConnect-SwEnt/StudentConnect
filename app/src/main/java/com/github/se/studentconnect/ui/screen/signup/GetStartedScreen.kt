@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.signup
+package com.github.se.studentconnect.ui.screen.signup
 
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
@@ -194,7 +194,11 @@ private fun SignInButton(
 @Composable
 private fun GettingStarted_Preview() {
     AppTheme {
-        val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
+        val previewViewModel = remember {
+            GetStartedViewModel(
+                PreviewAuthRepository()
+            )
+        }
         GettingStartedScreen(onSignedIn = {}, onSignInError = {}, viewModel = previewViewModel)
     }
 }

@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.signup
+package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
