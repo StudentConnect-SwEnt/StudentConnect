@@ -1,7 +1,11 @@
-package com.github.se.studentconnect.ui.navigation
+package com.github.se.studentconnect.ui.screen.navigation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.navigation.Screen
+import com.github.se.studentconnect.ui.navigation.Tab
+import com.github.se.studentconnect.ui.navigation.bottomNavigationTabs
 import org.junit.Test
 import org.junit.runner.RunWith
 

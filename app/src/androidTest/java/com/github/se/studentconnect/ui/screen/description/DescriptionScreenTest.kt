@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.description
+package com.github.se.studentconnect.ui.screen.description
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue

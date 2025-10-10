@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.map
 
 import android.content.Context
+import android.location.Location
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -149,7 +150,7 @@ class MapScreenIntegrationTest {
   @Test
   fun mapViewModel_locateUser_withPermission_success() = runTest {
     val mockLocation =
-        mockk<android.location.Location> {
+        mockk<Location> {
           every { latitude } returns 46.5089
           every { longitude } returns 6.6283
         }

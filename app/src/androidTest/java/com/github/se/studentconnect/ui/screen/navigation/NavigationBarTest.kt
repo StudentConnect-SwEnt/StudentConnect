@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.navigation
+package com.github.se.studentconnect.ui.screen.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +10,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
+import com.github.se.studentconnect.ui.navigation.NavigationTestTags
+import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test

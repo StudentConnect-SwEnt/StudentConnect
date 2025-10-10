@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.navigation
+package com.github.se.studentconnect.ui.screen.navigation
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.MainActivity
+import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import org.junit.Rule
 import org.junit.Test
