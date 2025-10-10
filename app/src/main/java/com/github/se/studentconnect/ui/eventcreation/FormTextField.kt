@@ -15,6 +15,7 @@ fun FormTextField(
     onValueChange: (String) -> Unit,
     label: String? = null,
     placeholder: String? = null,
+    errorText: String? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -23,6 +24,8 @@ fun FormTextField(
         label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
         shape = RoundedCornerShape(50.dp),
+        isError = errorText != null,
+        supportingText = errorText?.let { { Text(it) }},
     )
 }
 
@@ -33,6 +36,7 @@ fun FormTextField(
     onValueChange: (TextFieldValue) -> Unit,
     label: String? = null,
     placeholder: String? = null,
+    errorText: String? = null,
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -41,5 +45,7 @@ fun FormTextField(
         label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
         shape = RoundedCornerShape(50.dp),
+        isError = errorText != null,
+        supportingText = errorText?.let { { Text(it) }},
     )
 }

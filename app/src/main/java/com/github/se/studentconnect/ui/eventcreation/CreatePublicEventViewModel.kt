@@ -6,6 +6,7 @@ import java.time.LocalTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.time.LocalDate
 
 class CreatePublicEventViewModel : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Public())
@@ -23,16 +24,16 @@ class CreatePublicEventViewModel : ViewModel() {
     _uiState.value = uiState.value.copy(location = newLocation)
   }
 
-  fun updateStartDateString(newStartDateString: String) {
-    _uiState.value = uiState.value.copy(startDateString = newStartDateString)
+  fun updateStartDate(newStartDate: LocalDate?) {
+    _uiState.value = uiState.value.copy(startDate = newStartDate)
   }
 
   fun updateStartTime(newStartTime: LocalTime) {
     _uiState.value = uiState.value.copy(startTime = newStartTime)
   }
 
-  fun updateEndDateString(newEndDateString: String) {
-    _uiState.value = uiState.value.copy(endDateString = newEndDateString)
+  fun updateEndDate(newEndDate: LocalDate?) {
+    _uiState.value = uiState.value.copy(endDate = newEndDate)
   }
 
   fun updateEndTime(newEndTime: LocalTime) {

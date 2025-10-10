@@ -96,12 +96,12 @@ fun CreatePublicEventScreen(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-      FormTextField(
+      DateTextField(
           modifier = Modifier.weight(0.7f),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
-          value = createPublicEventUiState.startDateString,
-          onValueChange = { createPublicEventViewModel.updateStartDateString(it) },
+          initialValue = "",
+          onDateChange = { createPublicEventViewModel.updateStartDate(it) },
       )
 
       TimePicker(
@@ -113,13 +113,13 @@ fun CreatePublicEventScreen(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-      FormTextField(
-          modifier = Modifier.weight(0.7f),
-          label = "End of the event",
-          placeholder = "DD/MM/YYYY",
-          value = createPublicEventUiState.endDateString,
-          onValueChange = { createPublicEventViewModel.updateEndDateString(it) },
-      )
+        DateTextField(
+            modifier = Modifier.weight(0.7f),
+            label = "End of the event",
+            placeholder = "DD/MM/YYYY",
+            initialValue = "",
+            onDateChange = { createPublicEventViewModel.updateEndDate(it) },
+        )
 
       TimePicker(createPublicEventUiState.endTime, { createPublicEventViewModel.updateEndTime(it) })
     }

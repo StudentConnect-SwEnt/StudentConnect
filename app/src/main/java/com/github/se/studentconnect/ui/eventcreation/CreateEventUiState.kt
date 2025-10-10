@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import com.github.se.studentconnect.model.location.Location
+import java.time.LocalDate
 import java.time.LocalTime
 
 sealed class CreateEventUiState {
@@ -8,10 +9,10 @@ sealed class CreateEventUiState {
   abstract val description: String
   abstract val location: Location?
 
-  abstract val startDateString: String
+  abstract val startDate: LocalDate?
   abstract val startTime: LocalTime
 
-  abstract val endDateString: String
+  abstract val endDate: LocalDate?
   abstract val endTime: LocalTime
 
   abstract val numberOfParticipantsString: String
@@ -23,9 +24,9 @@ sealed class CreateEventUiState {
       override val title: String = "",
       override val description: String = "",
       override val location: Location? = null,
-      override val startDateString: String = "",
+      override val startDate: LocalDate? = null,
       override val startTime: LocalTime = LocalTime.of(0, 0),
-      override val endDateString: String = "",
+      override val endDate: LocalDate? = null,
       override val endTime: LocalTime = LocalTime.of(0, 0),
       override val numberOfParticipantsString: String = "",
       override val hasParticipationFee: Boolean = false,
@@ -40,9 +41,9 @@ sealed class CreateEventUiState {
       override val title: String = "",
       override val description: String = "",
       override val location: Location? = null,
-      override val startDateString: String = "",
+      override val startDate: LocalDate? = LocalDate.of(0, 0, 0),
       override val startTime: LocalTime = LocalTime.of(0, 0),
-      override val endDateString: String = "",
+      override val endDate: LocalDate? = LocalDate.of(0, 0, 0),
       override val endTime: LocalTime = LocalTime.of(0, 0),
       override val numberOfParticipantsString: String = "",
       override val hasParticipationFee: Boolean = false,
