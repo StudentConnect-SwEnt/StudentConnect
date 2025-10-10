@@ -23,37 +23,34 @@ fun FormTextField(
     enabled: Boolean = true,
     errorText: String? = null,
 ) {
-    var hasBeenFocused by remember { mutableStateOf(false) }
+  var hasBeenFocused by remember { mutableStateOf(false) }
 
-    // remember if the field has been interacted with once before
-    // an interaction is: either the value has been modified, or the element was focused then
-    // unfocused
-    var hasBeenInteractedWith by remember { mutableStateOf(false) }
+  // remember if the field has been interacted with once before
+  // an interaction is: either the value has been modified, or the element was focused then
+  // unfocused
+  var hasBeenInteractedWith by remember { mutableStateOf(false) }
 
-    // only show the error if the field has been focused and modified once before
-    val shouldShowError = hasBeenInteractedWith && errorText != null
+  // only show the error if the field has been focused and modified once before
+  val shouldShowError = hasBeenInteractedWith && errorText != null
 
-    OutlinedTextField(
-        modifier =
-            modifier.onFocusChanged {
-                // if the element was focused and then unfocused, it is an interaction
-                if (it.isFocused) hasBeenFocused = true
-                else if (hasBeenFocused) hasBeenInteractedWith = true
-            },
-        value = value,
-        onValueChange = {
-            hasBeenInteractedWith = true
-            onValueChange(it)
-        },
-        label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it) } },
-        shape = RoundedCornerShape(50.dp),
-        enabled = enabled,
-        isError = shouldShowError,
-        supportingText = {
-            if (shouldShowError) Text(text = errorText!!)
-        }
-    )
+  OutlinedTextField(
+      modifier =
+          modifier.onFocusChanged {
+            // if the element was focused and then unfocused, it is an interaction
+            if (it.isFocused) hasBeenFocused = true
+            else if (hasBeenFocused) hasBeenInteractedWith = true
+          },
+      value = value,
+      onValueChange = {
+        hasBeenInteractedWith = true
+        onValueChange(it)
+      },
+      label = label?.let { { Text(it) } },
+      placeholder = placeholder?.let { { Text(it) } },
+      shape = RoundedCornerShape(50.dp),
+      enabled = enabled,
+      isError = shouldShowError,
+      supportingText = { if (shouldShowError) Text(text = errorText!!) })
 }
 
 @Composable
@@ -66,35 +63,32 @@ fun FormTextField(
     enabled: Boolean = true,
     errorText: String? = null,
 ) {
-    var hasBeenFocused by remember { mutableStateOf(false) }
+  var hasBeenFocused by remember { mutableStateOf(false) }
 
-    // remember if the field has been interacted with once before
-    // an interaction is: either the value has been modified, or the element was focused then
-    // unfocused
-    var hasBeenInteractedWith by remember { mutableStateOf(false) }
+  // remember if the field has been interacted with once before
+  // an interaction is: either the value has been modified, or the element was focused then
+  // unfocused
+  var hasBeenInteractedWith by remember { mutableStateOf(false) }
 
-    // only show the error if the field has been focused and modified once before
-    val shouldShowError = hasBeenInteractedWith && errorText != null
+  // only show the error if the field has been focused and modified once before
+  val shouldShowError = hasBeenInteractedWith && errorText != null
 
-    OutlinedTextField(
-        modifier =
-            modifier.onFocusChanged {
-                // if the element was focused and then unfocused, it is an interaction
-                if (it.isFocused) hasBeenFocused = true
-                else if (hasBeenFocused) hasBeenInteractedWith = true
-            },
-        value = value,
-        onValueChange = {
-            hasBeenInteractedWith = true
-            onValueChange(it)
-        },
-        label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it) } },
-        shape = RoundedCornerShape(50.dp),
-        enabled = enabled,
-        isError = shouldShowError,
-        supportingText = {
-            if (shouldShowError) Text(text = errorText!!)
-        }
-    )
+  OutlinedTextField(
+      modifier =
+          modifier.onFocusChanged {
+            // if the element was focused and then unfocused, it is an interaction
+            if (it.isFocused) hasBeenFocused = true
+            else if (hasBeenFocused) hasBeenInteractedWith = true
+          },
+      value = value,
+      onValueChange = {
+        hasBeenInteractedWith = true
+        onValueChange(it)
+      },
+      label = label?.let { { Text(it) } },
+      placeholder = placeholder?.let { { Text(it) } },
+      shape = RoundedCornerShape(50.dp),
+      enabled = enabled,
+      isError = shouldShowError,
+      supportingText = { if (shouldShowError) Text(text = errorText!!) })
 }

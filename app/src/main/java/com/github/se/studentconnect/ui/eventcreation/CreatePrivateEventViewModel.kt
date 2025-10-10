@@ -2,11 +2,11 @@ package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.lifecycle.ViewModel
 import com.github.se.studentconnect.model.location.Location
+import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.LocalDate
 
 class CreatePrivateEventViewModel : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Private())

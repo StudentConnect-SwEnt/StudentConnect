@@ -11,28 +11,27 @@ import java.time.LocalTime
 
 @Composable
 fun TimePicker(time: LocalTime, onTimeChange: (LocalTime) -> Unit) {
-    val context = LocalContext.current
-    val activity = context as AppCompatActivity
+  val context = LocalContext.current
+  val activity = context as AppCompatActivity
 
-    TextButton(
-        onClick = {
-            val picker =
-                MaterialTimePicker.Builder()
-                    .setTimeFormat(TimeFormat.CLOCK_24H)
-                    .setHour(time.hour)
-                    .setMinute(time.minute)
-                    .setTitleText("Select time")
-                    .build()
+  TextButton(
+      onClick = {
+        val picker =
+            MaterialTimePicker.Builder()
+                .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setHour(time.hour)
+                .setMinute(time.minute)
+                .setTitleText("Select time")
+                .build()
 
-            picker.addOnPositiveButtonClickListener {
-                onTimeChange(LocalTime.of(picker.hour, picker.minute))
-            }
+        picker.addOnPositiveButtonClickListener {
+          onTimeChange(LocalTime.of(picker.hour, picker.minute))
+        }
 
-            picker.show(activity.supportFragmentManager, "timePicker")
-        }) {
+        picker.show(activity.supportFragmentManager, "timePicker")
+      }) {
         val formattedHour = time.hour.toString().padStart(2, '0')
         val formattedMinutes = time.minute.toString().padStart(2, '0')
         Text(text = "${formattedHour}:${formattedMinutes}")
-    }
+      }
 }
-

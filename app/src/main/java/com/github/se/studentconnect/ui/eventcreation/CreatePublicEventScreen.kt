@@ -88,8 +88,7 @@ fun CreatePublicEventScreen(
         label = "Location",
         placeholder = "Enter the event's location",
         initialValue = "",
-        onLocationChange = { createPublicEventViewModel.updateLocation(it) }
-    )
+        onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -113,13 +112,13 @@ fun CreatePublicEventScreen(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DateTextField(
-            modifier = Modifier.weight(0.7f),
-            label = "End of the event",
-            placeholder = "DD/MM/YYYY",
-            initialValue = "",
-            onDateChange = { createPublicEventViewModel.updateEndDate(it) },
-        )
+      DateTextField(
+          modifier = Modifier.weight(0.7f),
+          label = "End of the event",
+          placeholder = "DD/MM/YYYY",
+          initialValue = "",
+          onDateChange = { createPublicEventViewModel.updateEndDate(it) },
+      )
 
       TimePicker(createPublicEventUiState.endTime, { createPublicEventViewModel.updateEndTime(it) })
     }
