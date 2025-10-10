@@ -3,6 +3,3 @@
 /build
 /app/build
 local.properties
-
-# Firebase
-google-services.json
