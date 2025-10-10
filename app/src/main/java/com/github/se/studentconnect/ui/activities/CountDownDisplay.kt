@@ -20,8 +20,6 @@ fun CountDownDisplay(timeLeft: Long) {
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
   ) {
-    TimeUnitBox(timeLeft = days(timeLeft))
-    Separator()
     TimeUnitBox(timeLeft = hours(timeLeft))
     Separator()
     TimeUnitBox(timeLeft = mins(timeLeft))
@@ -36,7 +34,7 @@ private fun Separator() {
 }
 
 @Composable
-private fun TimeUnitBox(timeLeft: String) {
+fun TimeUnitBox(timeLeft: String) {
   Surface(
       // modifier = Modifier.padding(horizontal = 10.dp),
       shape = MaterialTheme.shapes.medium,
@@ -49,18 +47,18 @@ private fun TimeUnitBox(timeLeft: String) {
       }
 }
 
-private fun days(seconds: Long): String {
+fun days(seconds: Long): String {
   return (seconds / (24 * 3600)).toString()
 }
 
-private fun hours(seconds: Long): String {
+fun hours(seconds: Long): String {
   return ((seconds % (24 * 3600)) / 3600).toString()
 }
 
-private fun mins(seconds: Long): String {
+fun mins(seconds: Long): String {
   return ((seconds % 3600) / 60).toString()
 }
 
-private fun secs(seconds: Long): String {
+fun secs(seconds: Long): String {
   return (seconds % 60).toString()
 }

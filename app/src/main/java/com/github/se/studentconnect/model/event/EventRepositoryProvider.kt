@@ -32,14 +32,14 @@ object EventRepositoryProvider {
                   "Get ready for an epic night! The iconic The Killers are hitting the stage with all their energy, blasting out their legendary hits and fresh new tracks. Huge vibes, a crowd going wild, and sing-along anthems all night long.",
               imageUrl = null,
               location = Location(46.5191, 6.5668, "EPFL"),
-              start = Timestamp.now(),
+              start = date(300),
               end = null,
               maxCapacity = 2000u,
               participationFee = 75u,
               isFlash = false,
               subtitle = "Live at the EPFL Campus",
               tags = listOf(),
-              website = ""))
+              website = "https://www.balelec.ch/fr"))
       // Event 2
       repository.addEvent(
           Event.Public(
@@ -57,7 +57,7 @@ object EventRepositoryProvider {
               isFlash = false,
               subtitle = "Data Science Student Association",
               tags = listOf(),
-              website = null))
+              website = "https://www.balelec.ch/fr"))
 
       // Event 3
       repository.addEvent(
@@ -72,7 +72,7 @@ object EventRepositoryProvider {
               start = date(1_209_600),
               isFlash = false,
               tags = listOf(),
-              website = ""))
+              website = "https://www.balelec.ch/fr"))
 
       // Event 4
       repository.addEvent(
@@ -196,9 +196,9 @@ object EventRepositoryProvider {
               website = null))
     }
   }
-}
 
-private fun date(seconds: Long): Timestamp =
-    Timestamp(
-        Date.from(
-            LocalDateTime.now().plusSeconds(seconds).atZone(ZoneId.systemDefault()).toInstant()))
+  private fun date(seconds: Long): Timestamp =
+      Timestamp(
+          Date.from(
+              LocalDateTime.now().plusSeconds(seconds).atZone(ZoneId.systemDefault()).toInstant()))
+}
