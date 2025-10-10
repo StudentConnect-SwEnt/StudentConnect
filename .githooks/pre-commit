@@ -1,0 +1,12 @@
+#!/bin/sh
+echo "[pre-commit] Checking formatting with ktfmt..."
+
+./gradlew ktfmtCheck --quiet
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "[pre-commit] Some files are not properly formatted."
+  exit 1
+fi
+
+exit 0
