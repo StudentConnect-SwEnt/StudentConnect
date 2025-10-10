@@ -22,10 +22,28 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
+
+object CreatePublicEventScreenTestTags {
+  const val TITLE_INPUT = "titleInput"
+  const val SUBTITLE_INPUT = "subtitleInput"
+  const val DESCRIPTION_INPUT = "descriptionInput"
+  const val LOCATION_INPUT = "locationInput"
+  const val START_DATE_INPUT = "startDateInput"
+  const val START_TIME_BUTTON = "startTimeButton"
+  const val END_DATE_INPUT = "endDateInput"
+  const val END_TIME_BUTTON = "endTimeButton"
+  const val NUMBER_OF_PARTICIPANTS_INPUT = "numberOfParticipantsInput"
+  const val WEBSITE_INPUT = "websiteInput"
+  const val PARTICIPATION_FEE_INPUT = "participationFeeInput"
+  const val PARTICIPATION_FEE_SWITCH = "participationFeeSwitch"
+  const val FLASH_EVENT_SWITCH = "flashEventSwitch"
+  const val SAVE_BUTTON = "saveButton"
+}
 
 @Composable
 fun CreatePublicEventScreen(
@@ -79,7 +97,7 @@ fun CreatePublicEventScreen(
     */
 
     FormTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TITLE_INPUT),
         label = "Title",
         placeholder = "My new event",
         value = createPublicEventUiState.title,
@@ -87,7 +105,7 @@ fun CreatePublicEventScreen(
         errorText = if (createPublicEventUiState.title.isBlank()) "Title cannot be blank" else null)
 
     FormTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT),
         label = "Subtitle",
         placeholder = "Optional supporting text",
         value = createPublicEventUiState.subtitle,
@@ -95,7 +113,8 @@ fun CreatePublicEventScreen(
     )
 
     FormTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT),
         label = "Description",
         placeholder = "Describe your event",
         value = createPublicEventUiState.description,
@@ -103,7 +122,7 @@ fun CreatePublicEventScreen(
     )
 
     LocationTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
         initialValue = "",
@@ -115,7 +134,8 @@ fun CreatePublicEventScreen(
         verticalAlignment = Alignment.CenterVertically,
     ) {
       DateTextField(
-          modifier = Modifier.weight(0.7f),
+          modifier =
+              Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
           initialValue = "",
@@ -123,7 +143,9 @@ fun CreatePublicEventScreen(
       )
 
       TimePicker(
-          createPublicEventUiState.startTime, { createPublicEventViewModel.updateStartTime(it) })
+          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON),
+          time = createPublicEventUiState.startTime,
+          onTimeChange = { createPublicEventViewModel.updateStartTime(it) })
     }
 
     Row(
@@ -132,25 +154,30 @@ fun CreatePublicEventScreen(
         verticalAlignment = Alignment.CenterVertically,
     ) {
       DateTextField(
-          modifier = Modifier.weight(0.7f),
+          modifier = Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
           label = "End of the event",
           placeholder = "DD/MM/YYYY",
           initialValue = "",
           onDateChange = { createPublicEventViewModel.updateEndDate(it) },
       )
 
-      TimePicker(createPublicEventUiState.endTime, { createPublicEventViewModel.updateEndTime(it) })
+      TimePicker(
+          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON),
+          time = createPublicEventUiState.endTime,
+          onTimeChange = { createPublicEventViewModel.updateEndTime(it) })
     }
 
     FormTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier.fillMaxWidth()
+                .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT),
         label = "Number of participants",
         value = createPublicEventUiState.numberOfParticipantsString,
         onValueChange = { createPublicEventViewModel.updateNumberOfParticipantsString(it) },
     )
 
     FormTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT),
         label = "Event website",
         value = createPublicEventUiState.website,
         onValueChange = { createPublicEventViewModel.updateWebsite(it) },
@@ -162,7 +189,9 @@ fun CreatePublicEventScreen(
         verticalAlignment = Alignment.CenterVertically,
     ) {
       FormTextField(
-          modifier = Modifier.weight(0.7f),
+          modifier =
+              Modifier.weight(0.7f)
+                  .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT),
           label = "Participation fees",
           value = createPublicEventUiState.participationFeeString,
           onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
@@ -170,6 +199,7 @@ fun CreatePublicEventScreen(
       )
 
       Switch(
+          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH),
           checked = createPublicEventUiState.hasParticipationFee,
           onCheckedChange = {
             createPublicEventViewModel.updateHasParticipationFee(it)
@@ -189,12 +219,14 @@ fun CreatePublicEventScreen(
       )
 
       Switch(
+          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH),
           checked = createPublicEventUiState.isFlash,
           onCheckedChange = { createPublicEventViewModel.updateIsFlash(it) },
       )
     }
 
     Button(
+        modifier = Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON),
         enabled = canSave,
         onClick = { createPublicEventViewModel.saveEvent() },
     ) {

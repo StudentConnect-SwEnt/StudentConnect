@@ -4,17 +4,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import java.time.LocalTime
 
 @Composable
-fun TimePicker(time: LocalTime, onTimeChange: (LocalTime) -> Unit) {
+fun TimePicker(modifier: Modifier = Modifier, time: LocalTime, onTimeChange: (LocalTime) -> Unit) {
   val context = LocalContext.current
   val activity = context as AppCompatActivity
 
   TextButton(
+      modifier = modifier,
       onClick = {
         val picker =
             MaterialTimePicker.Builder()
