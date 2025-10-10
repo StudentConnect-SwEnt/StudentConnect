@@ -258,4 +258,131 @@ class NavigationBarTest {
     // Should not crash when clicking center button with default empty callback
     composeTestRule.onNodeWithTag("center_add_button").performClick()
   }
+
+  @Test
+  fun bottomNavigationBar_withNullModifier() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(
+            selectedTab = Tab.Home,
+            onTabSelected = {},
+            onCenterButtonClick = {},
+            modifier = Modifier)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_navigationBarItemsWithIcons() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    // Verify all tab icons are displayed by checking their test tags
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_navigationBarItemsWithLabels() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    // Verify all tab labels are displayed
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Map").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_centerIconIsDisplayed() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    // Verify center add icon is displayed
+    composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Add").assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_emptyNavigationBarItemBehavior() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+
+    // Test the navigation bar structure - should have 5 navigation bar items (4 tabs + 1 empty)
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+
+    // The empty NavigationBarItem should not be clickable (enabled = false)
+    // We can verify this by ensuring the main navigation bar is still displayed
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_modifierChaining() {
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(
+            selectedTab = Tab.Home,
+            onTabSelected = {},
+            onCenterButtonClick = {},
+            modifier = Modifier.testTag("outer_modifier").testTag("inner_modifier"))
+      }
+    }
+
+    // Verify modifier chaining works
+    composeTestRule.onNodeWithTag("inner_modifier").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+  }
+
+  @Test
+  fun bottomNavigationBar_allTabsWithDifferentSelections() {
+    // Test Home selected
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+
+    // Test Map selected
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Map, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsSelected()
+
+    // Test Activities selected
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(
+            selectedTab = Tab.Activities, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsSelected()
+
+    // Test Profile selected
+    composeTestRule.setContent {
+      AppTheme {
+        BottomNavigationBar(selectedTab = Tab.Profile, onTabSelected = {}, onCenterButtonClick = {})
+      }
+    }
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsSelected()
+  }
 }

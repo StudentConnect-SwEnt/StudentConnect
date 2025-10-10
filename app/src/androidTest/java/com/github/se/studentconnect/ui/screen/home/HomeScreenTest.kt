@@ -1,9 +1,12 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test
@@ -57,5 +60,52 @@ class HomeScreenTest {
     composeTestRule.setContent { AppTheme { HomeScreen() } }
 
     composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_withCustomModifier() {
+    composeTestRule.setContent {
+      AppTheme { HomeScreen(modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
+    }
+
+    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_modifierChaining() {
+    composeTestRule.setContent {
+      AppTheme { HomeScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize()) }
+    }
+
+    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_emptyModifier() {
+    composeTestRule.setContent { AppTheme { HomeScreen(modifier = androidx.compose.ui.Modifier) } }
+
+    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_modifierWithPadding() {
+    composeTestRule.setContent {
+      AppTheme { HomeScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
+    }
+
+    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_modifierWithSizeAndTestTag() {
+    composeTestRule.setContent {
+      AppTheme { HomeScreen(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp)) }
+    }
+
+    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
   }
 }
