@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.screen.description
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -490,5 +492,297 @@ class DescriptionScreenTest {
 
     composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Complex test")
+  }
+
+  // === COMPREHENSIVE MODIFIER BRANCH COVERAGE TESTS ===
+
+  @Test
+  fun descriptionScreen_withCustomModifier() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = { text = it },
+            modifier = Modifier.padding(24.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionScreen_modifierChaining() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = { text = it },
+            modifier = Modifier.padding(8.dp).fillMaxSize())
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithText("Tell us more about you").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionScreen_emptyModifier() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text, onDescriptionChange = { text = it }, modifier = Modifier)
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionScreen_modifierWithSize() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = { text = it },
+            modifier = Modifier.size(400.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionContent_withCustomModifier() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Test",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.padding(32.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Test")
+  }
+
+  @Test
+  fun descriptionContent_modifierChaining() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Chained modifiers",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.fillMaxSize().padding(16.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Chained modifiers")
+  }
+
+  @Test
+  fun descriptionContent_emptyModifier() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Empty modifier test",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier)
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionContent_surfaceModifierBehavior() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Surface test",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.testTag("surface_modifier"))
+      }
+    }
+
+    composeRule.onNodeWithTag("surface_modifier").assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionTopBar_columnModifierLayout() {
+    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_app_bar).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_back).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_skip).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionTopBar_iconButtonModifiers() {
+    var backClicked = false
+    var skipClicked = false
+
+    composeRule.setContent {
+      AppTheme {
+        DescriptionTopBar(
+            onBackClick = { backClicked = true }, onSkipClick = { skipClicked = true })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_back).performClick()
+    composeRule.onNodeWithTag(C.Tag.description_skip).performClick()
+
+    composeRule.runOnIdle {
+      Assert.assertTrue(backClicked)
+      Assert.assertTrue(skipClicked)
+    }
+  }
+
+  @Test
+  fun descriptionTopBar_surfaceModifierForSkipButton() {
+    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_skip).assertIsDisplayed()
+    composeRule.onNodeWithText("Skip").assertIsDisplayed()
+  }
+
+  @Test
+  fun continueButton_boxModifierBehavior() {
+    var clicked = false
+    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = { clicked = true }) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_continue).performClick()
+
+    composeRule.runOnIdle { Assert.assertTrue(clicked) }
+  }
+
+  @Test
+  fun continueButton_buttonModifierWithSemantics() {
+    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+    composeRule.onNodeWithText("Continue").assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
+  }
+
+  @Test
+  fun continueButton_rowModifierWithArrangement() {
+    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
+
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+    composeRule.onNodeWithText("Continue").assertIsDisplayed()
+    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionPrompt_columnModifierWithSemantics() {
+    composeRule.setContent {
+      AppTheme { DescriptionPrompt(description = "Column modifier test", onDescriptionChange = {}) }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Column modifier test")
+  }
+
+  @Test
+  fun descriptionPrompt_outlinedTextFieldModifier() {
+    var textChanged = false
+    composeRule.setContent {
+      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { textChanged = true }) }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput("Test input")
+    composeRule.runOnIdle { Assert.assertTrue(textChanged) }
+  }
+
+  @Test
+  fun descriptionScreen_allModifierCombinations() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("Combined test") }
+        DescriptionScreen(
+            description = text,
+            onDescriptionChange = { text = it },
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.testTag("combined_modifier").padding(8.dp).fillMaxSize())
+      }
+    }
+
+    composeRule.onNodeWithTag("combined_modifier").assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Combined test")
+  }
+
+  @Test
+  fun descriptionContent_allModifierCombinations() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "All modifiers",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {},
+            modifier = Modifier.testTag("all_modifiers").size(500.dp).padding(24.dp))
+      }
+    }
+
+    composeRule.onNodeWithTag("all_modifiers").assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("All modifiers")
+  }
+
+  @Test
+  fun descriptionScreen_defaultModifierBehavior() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(description = text, onDescriptionChange = { text = it })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_app_bar).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionContent_defaultModifierBehavior() {
+    composeRule.setContent {
+      AppTheme {
+        DescriptionContent(
+            description = "Default behavior",
+            onDescriptionChange = {},
+            onBackClick = {},
+            onSkipClick = {},
+            onContinueClick = {})
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
+    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Default behavior")
   }
 }
