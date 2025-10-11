@@ -12,10 +12,6 @@ import org.junit.Test
 @OptIn(ExperimentalTestApi::class)
 class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
 
-  companion object {
-    const val TIMEOUT_MILLIS = 5000L
-  }
-
   override fun createInitializedRepository() = EventRepositoryLocal()
 
   @Composable
@@ -23,20 +19,20 @@ class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
     AppTheme { CreatePrivateEventScreen() }
   }
 
-  private fun waitForTag(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
-    composeTestRule.waitUntil(timeoutMillis) {
+  private fun waitForTag(tag: String) {
+    composeTestRule.waitUntil {
       composeTestRule.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
     }
   }
 
-  private fun waitForText(text: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
-    composeTestRule.waitUntil(timeoutMillis) {
+  private fun waitForText(text: String) {
+    composeTestRule.waitUntil {
       composeTestRule.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
     }
   }
 
-  private fun waitUntilEnabled(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
-    composeTestRule.waitUntil(timeoutMillis) {
+  private fun waitUntilEnabled(tag: String) {
+    composeTestRule.waitUntil {
       try {
         composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsEnabled()
         true
