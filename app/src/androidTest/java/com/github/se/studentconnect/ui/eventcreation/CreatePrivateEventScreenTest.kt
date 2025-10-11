@@ -2,31 +2,25 @@
 
 package com.github.se.studentconnect.ui.eventcreation
 
-import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalTestApi::class)
-class CreatePrivateEventScreenTest : StudentConnectTest() {
+class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
 
   companion object {
     const val TIMEOUT_MILLIS = 5000L
   }
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
-
   override fun createInitializedRepository() = EventRepositoryLocal()
 
-  @Before
-  fun setUpContent() {
-    composeTestRule.activity.setContent { AppTheme { CreatePrivateEventScreen() } }
+  @Composable
+  override fun TestScreen() {
+    AppTheme { CreatePrivateEventScreen() }
   }
 
   private fun waitForTag(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
