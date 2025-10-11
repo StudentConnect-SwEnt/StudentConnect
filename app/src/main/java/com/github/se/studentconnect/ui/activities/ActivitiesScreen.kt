@@ -3,19 +3,16 @@
 
 package com.github.se.studentconnect.ui.activities
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -39,25 +36,26 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import kotlin.math.absoluteValue
 
+/** Test tags for the Activities screen and its components. */
 object ActivitiesScreenTestTags {
   const val ACTIVITIES_SCREEN = "activities_screen"
   const val TOP_APP_BAR = "top_app_bar"
@@ -75,33 +73,39 @@ object ActivitiesScreenTestTags {
   const val LEAVE_EVENT_BUTTON = "leave_event_button"
   const val COUNTDOWN_TEXT_DAYS = "countdown_text_days"
   const val COUNTDOWN_DISPLAY_TIMER = "countdown_display"
+  const val ACTIVITIES_MAIN_COLUMN = "activities_main_column"
+  const val EMPTY_STATE_COLUMN = "empty_state_column"
 
   fun carouselCardTag(eventUid: String) = "carousel_card_$eventUid"
 }
 
-data class CarouselItem(
-    val id: Int,
-    val title: String,
-    val supportingText: String = "",
-    val description: String = "No description available",
-    val start: Timestamp
-)
+private val screenPadding = 25.dp
 
+/**
+ * Event tabs for the Activities screen.
+ * - JoinedEvents: Shows events the user has joined.
+ * - Invitations: Shows events the user has been invited to.
+ */
 enum class EventTab {
   JoinedEvents,
   Invitations
 }
 
-@OptIn(
-    ExperimentalFoundationApi::class,
-    ExperimentalAnimationApi::class,
-    ExperimentalMaterial3Api::class)
+/**
+ * Activities screen displaying joined events and invitations with a carousel, countdown timer, and
+ * action buttons.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param activitiesViewModel ViewModel for managing the state of the Activities screen.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivitiesScreen(
     navController: NavHostController = rememberNavController(),
     activitiesViewModel: ActivitiesViewModel = viewModel(),
 ) {
   val uiState by activitiesViewModel.uiState.collectAsState()
+  val selectedTab = uiState.selectedTab
   val carouselItems = uiState.events
   LaunchedEffect(Unit) { activitiesViewModel.refreshEvents(Firebase.auth.currentUser?.uid ?: "") }
 
@@ -120,11 +124,11 @@ fun ActivitiesScreen(
   }
 
   Scaffold(
-      modifier = Modifier.testTag("activities_screen"),
+      modifier = Modifier.testTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN),
       topBar = {
         CenterAlignedTopAppBar(
             title = { Text("Activities") },
-            modifier = Modifier.fillMaxWidth().testTag("top_app_bar"))
+            modifier = Modifier.fillMaxWidth().testTag(ActivitiesScreenTestTags.TOP_APP_BAR))
       },
   ) { paddingValues ->
     Column(
@@ -132,12 +136,12 @@ fun ActivitiesScreen(
             Modifier.fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .testTag("activities_main_column"),
-        verticalArrangement = Arrangement.spacedBy(25.dp, Alignment.Top),
+                .testTag(ActivitiesScreenTestTags.ACTIVITIES_MAIN_COLUMN),
+        verticalArrangement = Arrangement.spacedBy(screenPadding, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally) {
-          ActivitiesTab()
+          ActivitiesTab(
+              selectedTab = selectedTab, onTabSelected = { activitiesViewModel.onTabSelected(it) })
           if (carouselItems.isEmpty()) {
-            // Corrected Empty State Column
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -145,15 +149,16 @@ fun ActivitiesScreen(
                     Modifier.fillMaxWidth()
                         .weight(1f)
                         .padding(horizontal = 16.dp)
-                        .testTag("empty_state_column")) {
+                        .testTag(ActivitiesScreenTestTags.EMPTY_STATE_COLUMN)) {
                   Text(
                       text = "You have not joined any events yet",
                       style = MaterialTheme.typography.bodyLarge,
                       textAlign = TextAlign.Center,
-                      modifier = Modifier.padding(top = 16.dp).testTag("empty_state_text"))
+                      modifier =
+                          Modifier.padding(top = 16.dp)
+                              .testTag(ActivitiesScreenTestTags.EMPTY_STATE_TEXT))
                 }
           } else {
-            // This part remains the same
             Carousel(pagerState, sidePeekWidth, carouselItems, mainItemWidth, screenWidth)
             ChatButton()
             AnimatedContent(
@@ -168,37 +173,41 @@ fun ActivitiesScreen(
                       timeLeft = timeLeft,
                       carouselItems = carouselItems,
                       currentPage = targetPage,
-                      modifier = Modifier.testTag("info_event_section"))
+                      modifier = Modifier.testTag(ActivitiesScreenTestTags.INFO_EVENT_SECTION))
                 }
             EventActionButtons(
                 carouselItems[pagerState.currentPage],
                 activitiesViewModel,
-                modifier = Modifier.testTag("event_action_buttons"))
+                modifier = Modifier.testTag(ActivitiesScreenTestTags.EVENT_ACTION_BUTTONS))
           }
         }
   }
 }
 
+/**
+ * Tab row for switching between "Joined Events" and "Invitations".
+ *
+ * @param selectedTab Currently selected tab.
+ * @param onTabSelected Callback when a tab is selected.
+ */
 @Composable
-private fun ActivitiesTab() {
-  var selectedTab by remember { mutableStateOf(EventTab.JoinedEvents) }
+private fun ActivitiesTab(selectedTab: EventTab, onTabSelected: (EventTab) -> Unit) {
   Surface(
-      shape = RoundedCornerShape(50), modifier = Modifier.testTag("activities_tab_row")
-      // color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-      ) {
-        Row() {
+      shape = RoundedCornerShape(50),
+      modifier = Modifier.testTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW)) {
+        Row {
           TabButton(
               text = "Joined Events",
               isSelected = selectedTab == EventTab.JoinedEvents,
-              onClick = { selectedTab = EventTab.JoinedEvents },
+              onClick = { onTabSelected(EventTab.JoinedEvents) },
               id = R.drawable.ic_ticket,
-              modifier = Modifier.testTag("tab_button_joined"))
+              modifier = Modifier.testTag(ActivitiesScreenTestTags.TAB_BUTTON_JOINED))
           TabButton(
               text = "Invitations",
               isSelected = selectedTab == EventTab.Invitations,
-              onClick = { selectedTab = EventTab.Invitations },
+              onClick = { onTabSelected(EventTab.Invitations) },
               id = R.drawable.ic_invitation,
-              modifier = Modifier.testTag("tab_button_invitations"))
+              modifier = Modifier.testTag(ActivitiesScreenTestTags.TAB_BUTTON_INVITATIONS))
         }
       }
 }
@@ -220,7 +229,7 @@ private fun TabButton(
 
   Button(
       onClick = onClick,
-      modifier = modifier,
+      modifier = modifier.semantics { this.role = Role.Tab },
       colors =
           ButtonDefaults.buttonColors(
               containerColor = backgroundColor, contentColor = contentColor),
@@ -248,23 +257,27 @@ private fun InfoEvent(
   Column(
       verticalArrangement = Arrangement.spacedBy(15.dp, Alignment.Top),
       modifier =
-          modifier.fillMaxWidth().padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp)) {
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
         if (timeLeft > 86400) {
           Text(
               modifier =
                   Modifier.align(Alignment.CenterHorizontally)
                       .fillMaxHeight()
-                      .testTag("countdown_text_days"),
+                      .testTag(ActivitiesScreenTestTags.COUNTDOWN_TEXT_DAYS),
               color = MaterialTheme.colorScheme.primary,
               text = days(timeLeft) + " days left",
               style = MaterialTheme.typography.displaySmall)
         } else {
-          Box(modifier = Modifier.testTag("countdown_display")) { CountDownDisplay(timeLeft) }
+          Box(modifier = Modifier.testTag(ActivitiesScreenTestTags.COUNTDOWN_DISPLAY_TIMER)) {
+            CountDownDisplay(timeLeft)
+          }
         }
         Text(text = "Description", style = TitleTextStyle())
         Text(
             text = carouselItems[currentPage].description,
-            modifier = Modifier.testTag("event_description_text"))
+            modifier = Modifier.testTag(ActivitiesScreenTestTags.EVENT_DESCRIPTION_TEXT))
       }
 }
 
@@ -276,8 +289,8 @@ private fun ChatButton() {
       },
       modifier =
           Modifier.fillMaxWidth()
-              .padding(start = 25.dp, top = 6.dp, end = 25.dp, bottom = 6.dp)
-              .testTag("chat_button"),
+              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
+              .testTag(ActivitiesScreenTestTags.CHAT_BUTTON),
       colors =
           ButtonDefaults.buttonColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -306,7 +319,6 @@ private fun ChatButton() {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Carousel(
     pagerState: PagerState,
@@ -317,7 +329,7 @@ private fun Carousel(
 ) {
   HorizontalPager(
       state = pagerState,
-      modifier = Modifier.fillMaxWidth().testTag("activities_carousel"),
+      modifier = Modifier.fillMaxWidth().testTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL),
       pageSpacing = 8.dp,
       contentPadding = PaddingValues(horizontal = sidePeekWidth)) { page ->
         val event = carouselItems[page]
@@ -325,7 +337,7 @@ private fun Carousel(
             item = event,
             modifier =
                 Modifier.width(mainItemWidth)
-                    .testTag("carousel_card_${event.uid}") // Dynamic test tag
+                    .testTag(ActivitiesScreenTestTags.carouselCardTag(event.uid))
                     .graphicsLayer {
                       val pageOffset =
                           (pagerState.currentPage - page + pagerState.currentPageOffsetFraction)
@@ -347,7 +359,6 @@ private fun Carousel(
                                 colors =
                                     listOf(
                                         MaterialTheme.colorScheme.primaryContainer,
-                                        // MaterialTheme.colorScheme.primaryContainer,
                                         MaterialTheme.colorScheme.primary))),
             screenHeight = LocalConfiguration.current.screenHeightDp.dp,
             screenWidth)
@@ -384,11 +395,7 @@ fun CarouselCard(item: Event, modifier: Modifier = Modifier, screenHeight: Dp, s
                           maxLines = 1,
                           overflow = TextOverflow.Ellipsis)
                       Text(
-                          text =
-                              when (item) {
-                                is Event.Public -> item.subtitle
-                                else -> ""
-                              },
+                          text = (item as? Event.Public)?.subtitle ?: "",
                           style = MaterialTheme.typography.bodySmall,
                           color = MaterialTheme.colorScheme.onPrimary,
                           maxLines = 1,
@@ -411,7 +418,10 @@ fun CarouselCard(item: Event, modifier: Modifier = Modifier, screenHeight: Dp, s
       }
 }
 
-@SuppressLint("UseKtx")
+/**
+ * Action buttons for the event, including visiting the website, sharing the event, and leaving the
+ * event.
+ */
 @Composable
 fun EventActionButtons(
     currentEvent: Event,
@@ -421,13 +431,15 @@ fun EventActionButtons(
   val context = LocalContext.current
 
   Column(
-      modifier = modifier.fillMaxWidth().padding(start = 25.dp, end = 25.dp, bottom = 20.dp),
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         ) {
-          // Bouton "Visit Website"
           Button(
               contentPadding = PaddingValues(horizontal = 8.dp),
               onClick = {
@@ -453,7 +465,7 @@ fun EventActionButtons(
                   }
                 }
               },
-              modifier = Modifier.testTag("visit_website_button")) {
+              modifier = Modifier.testTag(ActivitiesScreenTestTags.VISIT_WEBSITE_BUTTON)) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_web),
                     contentDescription = "Website",
@@ -463,11 +475,10 @@ fun EventActionButtons(
                 Text("Visit Website")
               }
 
-          // Bouton "Share Event"
           Button(
               contentPadding = PaddingValues(horizontal = 8.dp),
               onClick = { /* TODO: Partager l'événement */},
-              modifier = Modifier.testTag("share_event_button")) {
+              modifier = Modifier.testTag(ActivitiesScreenTestTags.SHARE_EVENT_BUTTON)) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_share),
                     contentDescription = "Share",
@@ -478,11 +489,10 @@ fun EventActionButtons(
               }
         }
 
-        // Bouton "Leave Event"
         OutlinedButton(
             contentPadding = PaddingValues(horizontal = 8.dp),
             onClick = { activitiesViewModel.leaveEvent(eventUid = currentEvent.uid) },
-            modifier = Modifier.testTag("leave_event_button"),
+            modifier = Modifier.testTag(ActivitiesScreenTestTags.LEAVE_EVENT_BUTTON),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
             border = BorderStroke(1.dp, Color.Red)) {
               Icon(
@@ -496,14 +506,14 @@ fun EventActionButtons(
       }
 }
 
+/** Text style for titles in the Activities screen. */
 @Composable
 fun TitleTextStyle(): TextStyle =
     MaterialTheme.typography.titleLarge.copy(
         color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
 
-// This Preview needs a ViewModel, so it's better to handle it within a test environment
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun PreviewImageTitleCarousel() {
   MaterialTheme { ActivitiesScreen() }
-}
+}*/

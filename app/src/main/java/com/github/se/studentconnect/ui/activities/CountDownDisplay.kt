@@ -29,7 +29,7 @@ fun CountDownDisplay(timeLeft: Long) {
 }
 
 @Composable
-private fun Separator() {
+fun Separator() {
   Text(text = ":", style = TitleTextStyle())
 }
 

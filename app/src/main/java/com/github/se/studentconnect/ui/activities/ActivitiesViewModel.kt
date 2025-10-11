@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class ActivitiesUiState(val events: List<Event> = emptyList())
+data class ActivitiesUiState(
+    val events: List<Event> = emptyList(),
+    val selectedTab: EventTab = EventTab.JoinedEvents
+)
 
 class ActivitiesViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
@@ -24,6 +27,10 @@ class ActivitiesViewModel(
 
   private val _uiState = MutableStateFlow(ActivitiesUiState())
   val uiState: StateFlow<ActivitiesUiState> = _uiState.asStateFlow()
+
+  fun onTabSelected(tab: EventTab) {
+    _uiState.update { it.copy(selectedTab = tab) }
+  }
 
   fun refreshEvents(userUid: String) {
     viewModelScope.launch {
