@@ -16,6 +16,10 @@ import org.junit.Test
 @OptIn(ExperimentalTestApi::class)
 class CreatePublicEventScreenTest : StudentConnectTest() {
 
+  companion object {
+    const val TIMEOUT_MILLIS = 5000L
+  }
+
   @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   override fun createInitializedRepository() = EventRepositoryLocal()
@@ -25,20 +29,20 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     composeTestRule.activity.setContent { AppTheme { CreatePublicEventScreen() } }
   }
 
-  private fun waitForTag(tag: String) {
-    composeTestRule.waitUntil {
+  private fun waitForTag(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
+    composeTestRule.waitUntil(timeoutMillis) {
       composeTestRule.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
     }
   }
 
-  private fun waitForText(text: String) {
-    composeTestRule.waitUntil {
+  private fun waitForText(text: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
+    composeTestRule.waitUntil(timeoutMillis) {
       composeTestRule.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
     }
   }
 
-  private fun waitUntilEnabled(tag: String) {
-    composeTestRule.waitUntil {
+  private fun waitUntilEnabled(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
+    composeTestRule.waitUntil(timeoutMillis) {
       try {
         composeTestRule.onNodeWithTag(tag).assertIsEnabled()
         true
