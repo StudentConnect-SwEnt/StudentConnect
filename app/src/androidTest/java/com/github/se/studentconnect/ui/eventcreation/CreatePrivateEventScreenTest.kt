@@ -44,7 +44,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   private fun waitUntilEnabled(tag: String, timeoutMillis: Long = TIMEOUT_MILLIS) {
     composeTestRule.waitUntil(timeoutMillis) {
       try {
-        composeTestRule.onNodeWithTag(tag).assertIsEnabled()
+        composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsEnabled()
         true
       } catch (_: AssertionError) {
         false
@@ -55,7 +55,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   private fun waitUntilDisabled(tag: String) {
     composeTestRule.waitUntil {
       try {
-        composeTestRule.onNodeWithTag(tag).assertIsNotEnabled()
+        composeTestRule.onNodeWithTag(tag).performScrollTo().assertIsNotEnabled()
         true
       } catch (_: AssertionError) {
         false
@@ -70,66 +70,85 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun allInputs_areDisplayed() {
     waitForTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
-    composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.TITLE_INPUT).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
+        .performScrollTo()
+        .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.START_TIME_BUTTON)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.START_TIME_BUTTON)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+        .performScrollTo()
         .assertIsDisplayed()
 
     waitForTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
-    composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test
   fun saveButton_disabled_whenMandatoryFieldsEmpty() {
     waitForTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
-    composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON).assertIsNotEnabled()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
+        .performScrollTo()
+        .assertIsNotEnabled()
   }
 
   // --------------------------------------------------
@@ -140,6 +159,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   fun typingInTitle_updatesValue() {
     waitForTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
     val titleNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
+    titleNode.performScrollTo()
     titleNode.performTextInput("My Event")
     titleNode.assertTextContains("My Event")
   }
@@ -148,6 +168,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   fun emptyTitle_showsErrorText() {
     waitForTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
     val titleNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
+    titleNode.performScrollTo()
     titleNode.performTextInput(" ")
     waitForText("Title cannot be blank")
     composeTestRule.onNodeWithText("Title cannot be blank").assertIsDisplayed()
@@ -161,6 +182,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   fun typingInDescription_updatesValue() {
     waitForTag(CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT)
     val descNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT)
+    descNode.performScrollTo()
     descNode.performTextInput("This is my event description")
     descNode.assertTextContains("This is my event description")
   }
@@ -174,6 +196,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     val locationNode =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
     locationNode.performTextInput("Zurich, Switzerland")
     locationNode.assertTextContains("Zurich, Switzerland")
   }
@@ -187,6 +210,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
     val startDateNode =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
+    startDateNode.performScrollTo()
     startDateNode.performTextInput("01/01/2025")
     startDateNode.assertTextContains("01/01/2025")
   }
@@ -195,6 +219,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   fun enteringEndDate_updatesValue() {
     waitForTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
     val endDateNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
+    endDateNode.performScrollTo()
     endDateNode.performTextInput("02/01/2025")
     endDateNode.assertTextContains("02/01/2025")
   }
@@ -204,6 +229,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.START_TIME_BUTTON)
     val startTimeButton =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.START_TIME_BUTTON)
+    startTimeButton.performScrollTo()
     startTimeButton.performClick()
     // TODO: assert time picker dialog is visible
   }
@@ -213,6 +239,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
     val endTimeButton =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
+    endTimeButton.performScrollTo()
     endTimeButton.performClick()
     // TODO: assert time picker dialog is visible
   }
@@ -226,6 +253,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
     val participantsNode =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
+    participantsNode.performScrollTo()
     participantsNode.performTextInput("25")
     participantsNode.assertTextContains("25")
   }
@@ -239,6 +267,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
     composeTestRule
         .onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+        .performScrollTo()
         .assertIsNotEnabled()
   }
 
@@ -249,8 +278,10 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val input =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+    switch.performScrollTo()
     switch.performClick()
     waitUntilEnabled(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+    input.performScrollTo()
     input.assertIsEnabled()
   }
 
@@ -262,13 +293,17 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     val input =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
 
+    switch.performScrollTo()
     switch.performClick() // enable
     waitUntilEnabled(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+    input.performScrollTo()
     input.performTextInput("50")
     input.assertTextContains("50")
 
+    switch.performScrollTo()
     switch.performClick() // disable
     waitUntilDisabled(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+    input.performScrollTo()
     input.assertIsNotEnabled()
     input.assertTextContains("") // cleared
   }
@@ -282,6 +317,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
     val flashSwitch =
         composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    flashSwitch.performScrollTo()
     flashSwitch.performClick()
     flashSwitch.performClick()
   }
@@ -294,6 +330,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   fun saveButton_enabledOnlyWhenMandatoryFieldsPresent() {
     waitForTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
     val save = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
+    save.performScrollTo()
     save.assertIsNotEnabled()
 
     waitForTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
@@ -301,10 +338,16 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     val startDate = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
     val endDate = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
 
+    title.performScrollTo()
     title.performTextInput("My Event")
+
+    startDate.performScrollTo()
     startDate.performTextInput("01/01/2025")
+
+    endDate.performScrollTo()
     endDate.performTextInput("02/01/2025")
 
+    save.performScrollTo()
     save.assertIsEnabled()
   }
 
@@ -316,10 +359,16 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     val endDate = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
     val save = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
 
+    title.performScrollTo()
     title.performTextInput("My Event")
+
+    startDate.performScrollTo()
     startDate.performTextInput("01/01/2025")
+
+    endDate.performScrollTo()
     endDate.performTextInput("02/01/2025")
 
+    save.performScrollTo()
     save.assertIsEnabled()
     save.performClick()
 
