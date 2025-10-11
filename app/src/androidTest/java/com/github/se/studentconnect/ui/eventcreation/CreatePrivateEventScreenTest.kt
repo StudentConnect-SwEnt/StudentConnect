@@ -191,6 +191,205 @@ class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
     locationNode.assertTextContains("Zurich, Switzerland")
   }
 
+  @Test
+  fun locationTextField_typingEpfl_showsFakeEpflSuggestion() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("EPFL")
+
+    // Wait for the fake suggestion "Fake EPFL" to appear
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Verify suggestion exists
+    composeTestRule
+        .onNode(
+            hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun locationTextField_typingNowhere_showsNoSuggestions() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Nowhere")
+
+    // Wait for search debounce and ensure no suggestion appears
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+  }
+
+  @Test
+  fun locationTextField_selectingLausanneSuggestion_updatesTextField() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Lausanne")
+
+    // Wait for "Fake Lausanne" to appear
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Click the dropdown suggestion
+    composeTestRule
+        .onNode(
+            hasText("Fake Lausanne") and
+                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .performClick()
+
+    // Ensure field value updated
+    locationNode.assertTextContains("Fake Lausanne")
+  }
+
+  @Test
+  fun locationTextField_typingEverywhere_showsMultipleSuggestions() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Everywhere")
+
+    // Wait for many results
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Somewhere", substring = true) and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Assert multiple suggestions exist
+    val suggestionCount =
+        composeTestRule
+            .onAllNodes(
+                hasText("Somewhere", substring = true) and
+                    !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                useUnmergedTree = true)
+            .fetchSemanticsNodes(false)
+            .size
+    assert(suggestionCount > 1)
+  }
+
+  @Test
+  fun locationTextField_typingTooLong_showsTruncatedOrWrappedText() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Too long")
+
+    // Wait for long suggestion to appear
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("This is a very long location name", substring = true) and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // The long name should be visible at least partially
+    composeTestRule
+        .onNode(
+            hasText("This is a very long location name", substring = true) and
+                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .assertExists()
+  }
+
+  @Test
+  fun locationTextField_clearingInput_hidesSuggestions() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("EPFL")
+
+    // Wait for suggestion
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Clear input
+    locationNode.performTextClearance()
+
+    // Verify no suggestions remain
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+  }
+
+  @Test
+  fun locationTextField_dropdownClosesAfterSelection() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Lausanne")
+
+    // Wait for suggestion
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Click suggestion
+    composeTestRule
+        .onNode(
+            hasText("Fake Lausanne") and
+                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .performClick()
+
+    // Wait for dropdown to disappear
+    composeTestRule.waitUntil(3000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+  }
+
   // --------------------------------------------------
   // 5. Dates & times
   // --------------------------------------------------
