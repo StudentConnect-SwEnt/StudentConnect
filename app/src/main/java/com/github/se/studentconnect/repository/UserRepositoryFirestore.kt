@@ -3,6 +3,7 @@ package com.github.se.studentconnect.repository
 import com.github.se.studentconnect.model.User
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 /**
  * Implementation of UserRepository using Firebase Firestore.
@@ -15,164 +16,106 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val COLLECTION_NAME = "users"
   }
 
-  override fun leaveEvent(eventId: String, userId: String) {
-    db.collection(COLLECTION_NAME)
-        .document(userId)
-        .update("joinedEvents", FieldValue.arrayRemove(eventId))
-  }
+    override suspend fun getUserById(userId: String): User? {
+        val document = db.collection(COLLECTION_NAME)
+            .document(userId)
+            .get()
+            .await()
 
-  override fun getUserById(
-      userId: String,
-      onSuccess: (User?) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    db.collection(COLLECTION_NAME)
-        .document(userId)
-        .get()
-        .addOnSuccessListener { document ->
-          if (document.exists()) {
-            val user = User.fromMap(document.data ?: emptyMap())
-            onSuccess(user)
-          } else {
-            onSuccess(null)
-          }
+        return if (document.exists()) {
+            User.fromMap(document.data ?: emptyMap())
+        } else {
+            null
         }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+    }
 
-  override fun getUserByEmail(
-      email: String,
-      onSuccess: (User?) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    db.collection(COLLECTION_NAME)
-        .whereEqualTo("email", email)
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-          if (!querySnapshot.isEmpty) {
+    override suspend fun getUserByEmail(email: String): User? {
+        val querySnapshot = db.collection(COLLECTION_NAME)
+            .whereEqualTo("email", email)
+            .get()
+            .await()
+
+        return if (!querySnapshot.isEmpty) {
             val document = querySnapshot.documents.first()
-            val user = User.fromMap(document.data ?: emptyMap())
-            onSuccess(user)
-          } else {
-            onSuccess(null)
-          }
+            User.fromMap(document.data ?: emptyMap())
+        } else {
+            null
         }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+    }
 
-  override fun getAllUsers(onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit) {
-    db.collection(COLLECTION_NAME)
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-          val users =
-              querySnapshot.documents.mapNotNull { document ->
-                User.fromMap(document.data ?: emptyMap())
-              }
-          onSuccess(users)
-        }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
-
-  override fun getUsersPaginated(
-      limit: Int,
-      lastUserId: String?,
-      onSuccess: (List<User>, Boolean) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    var query =
-        db.collection(COLLECTION_NAME)
+    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?): Pair<List<User>, Boolean> {
+        var query = db.collection(COLLECTION_NAME)
             .orderBy("userId")
-            .limit((limit + 1).toLong()) // Request one extra to check if there are more pages
+            .limit((limit + 1).toLong())
 
-    // If we have a lastUserId, start after that document
-    lastUserId?.let { userId -> query = query.startAfter(userId) }
+        lastUserId?.let { query = query.startAfter(it) }
 
-    query
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-          val allUsers =
-              querySnapshot.documents.mapNotNull { document ->
-                User.fromMap(document.data ?: emptyMap())
-              }
+        val querySnapshot = query.get().await()
 
-          val hasMore = allUsers.size > limit
-          val users = if (hasMore) allUsers.take(limit) else allUsers
-
-          onSuccess(users, hasMore)
+        val allUsers = querySnapshot.documents.mapNotNull { document ->
+            User.fromMap(document.data ?: emptyMap())
         }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
 
-  override fun saveUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    db.collection(COLLECTION_NAME)
-        .document(user.userId)
-        .set(user.toMap())
-        .addOnSuccessListener { onSuccess() }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+        val hasMore = allUsers.size > limit
+        val users = if (hasMore) allUsers.take(limit) else allUsers
 
-  override fun updateUser(
-      userId: String,
-      updates: Map<String, Any?>,
-      onSuccess: () -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    // Add server timestamp to the updates
-    val updatesWithTimestamp = updates.toMutableMap()
-    updatesWithTimestamp["updatedAt"] = FieldValue.serverTimestamp()
+        return users to hasMore
+    }
 
-    db.collection(COLLECTION_NAME)
-        .document(userId)
-        .update(updatesWithTimestamp)
-        .addOnSuccessListener { onSuccess() }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+    override suspend fun getAllUsers(): List<User> {
+        val querySnapshot = db.collection(COLLECTION_NAME)
+            .get()
+            .await()
 
-  override fun deleteUser(userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    db.collection(COLLECTION_NAME)
-        .document(userId)
-        .delete()
-        .addOnSuccessListener { onSuccess() }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
-
-  override fun getUsersByUniversity(
-      university: String,
-      onSuccess: (List<User>) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    db.collection(COLLECTION_NAME)
-        .whereEqualTo("university", university)
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-          val users =
-              querySnapshot.documents.mapNotNull { document ->
-                User.fromMap(document.data ?: emptyMap())
-              }
-          onSuccess(users)
+        return querySnapshot.documents.mapNotNull { document ->
+            User.fromMap(document.data ?: emptyMap())
         }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+    }
 
-  override fun getUsersByHobby(
-      hobby: String,
-      onSuccess: (List<User>) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-    db.collection(COLLECTION_NAME)
-        .whereArrayContains("hobbies", hobby)
-        .get()
-        .addOnSuccessListener { querySnapshot ->
-          val users =
-              querySnapshot.documents.mapNotNull { document ->
-                User.fromMap(document.data ?: emptyMap())
-              }
-          onSuccess(users)
+    override suspend fun saveUser(user: User) {
+        db.collection(COLLECTION_NAME)
+            .document(user.userId)
+            .set(user.toMap())
+            .await()
+    }
+
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+        val updatesWithTimestamp = updates.toMutableMap()
+        updatesWithTimestamp["updatedAt"] = FieldValue.serverTimestamp()
+
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(updatesWithTimestamp)
+            .await()
+    }
+
+    override suspend fun deleteUser(userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .delete()
+            .await()
+    }
+
+    override suspend fun getUsersByUniversity(university: String): List<User> {
+        val querySnapshot = db.collection(COLLECTION_NAME)
+            .whereEqualTo("university", university)
+            .get()
+            .await()
+
+        return querySnapshot.documents.mapNotNull { document ->
+            User.fromMap(document.data ?: emptyMap())
         }
-        .addOnFailureListener { exception -> onFailure(exception) }
-  }
+    }
 
-  override fun getNewUid(): String {
-    return db.collection(COLLECTION_NAME).document().id
-  }
+    override suspend fun getUsersByHobby(hobby: String): List<User> {
+        val querySnapshot = db.collection(COLLECTION_NAME)
+            .whereArrayContains("hobbies", hobby)
+            .get()
+            .await()
+
+        return querySnapshot.documents.mapNotNull { document ->
+            User.fromMap(document.data ?: emptyMap())
+        }
+    }
+
 }
