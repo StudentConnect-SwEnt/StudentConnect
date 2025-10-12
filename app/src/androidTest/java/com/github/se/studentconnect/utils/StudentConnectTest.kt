@@ -2,12 +2,7 @@ package com.github.se.studentconnect.utils
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -73,12 +68,7 @@ abstract class StudentConnectTest(val useTestScreen: Boolean = false) {
     }
 
     if (useTestScreen) {
-      composeTestRule.activity.setContent {
-        // wrap in a scrollable container so performScrollTo() can be used on everything
-        Box(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-          TestScreen()
-        }
-      }
+      composeTestRule.activity.setContent { TestScreen() }
     }
   }
 
