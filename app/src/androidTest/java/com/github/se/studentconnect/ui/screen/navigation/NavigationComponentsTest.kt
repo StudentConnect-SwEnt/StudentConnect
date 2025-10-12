@@ -6,6 +6,9 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Screen
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.navigation.bottomNavigationTabs
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -13,105 +16,77 @@ import org.junit.runner.RunWith
 class NavigationComponentsTest {
 
   @Test
-  fun route_constants_areCorrect() {
-    assert(Route.AUTH == "auth")
-    assert(Route.HOME == "home")
-    assert(Route.MAP == "map")
-    assert(Route.ACTIVITIES == "activities")
-    assert(Route.PROFILE == "profile")
+  fun routes_haveCorrectConstants() {
+    assertEquals("auth", Route.AUTH)
+    assertEquals("home", Route.HOME)
+    assertEquals("map", Route.MAP)
+    assertEquals("activities", Route.ACTIVITIES)
+    assertEquals("profile", Route.PROFILE)
   }
 
   @Test
-  fun screen_auth_hasCorrectProperties() {
-    assert(Screen.Auth.route == Route.AUTH)
-    assert(Screen.Auth.name == "Authentication")
-    assert(!Screen.Auth.isTopLevelDestination)
+  fun screens_haveCorrectProperties() {
+    val expectedScreens =
+        mapOf(
+            Screen.Auth to Triple(Route.AUTH, "Authentication", false),
+            Screen.Home to Triple(Route.HOME, "Home", true),
+            Screen.Map to Triple(Route.MAP, "Map", true),
+            Screen.Activities to Triple(Route.ACTIVITIES, "Activities", true),
+            Screen.Profile to Triple(Route.PROFILE, "Profile", true))
+
+    expectedScreens.forEach { (screen, expected) ->
+      assertEquals("Route mismatch for ${screen::class.simpleName}", expected.first, screen.route)
+      assertEquals("Name mismatch for ${screen::class.simpleName}", expected.second, screen.name)
+      assertEquals(
+          "Top level destination mismatch for ${screen::class.simpleName}",
+          expected.third,
+          screen.isTopLevelDestination)
+    }
   }
 
   @Test
-  fun screen_home_hasCorrectProperties() {
-    assert(Screen.Home.route == Route.HOME)
-    assert(Screen.Home.name == "Home")
-    assert(Screen.Home.isTopLevelDestination)
+  fun tabs_haveCorrectProperties() {
+    val expectedTabs =
+        mapOf(
+            Tab.Home to Triple("Home", R.drawable.ic_home, Screen.Home),
+            Tab.Map to Triple("Map", R.drawable.ic_vector, Screen.Map),
+            Tab.Activities to Triple("Activities", R.drawable.ic_ticket, Screen.Activities),
+            Tab.Profile to Triple("Profile", R.drawable.ic_user, Screen.Profile))
+
+    expectedTabs.forEach { (tab, expected) ->
+      assertEquals("Name mismatch for ${tab::class.simpleName}", expected.first, tab.name)
+      assertEquals("Icon mismatch for ${tab::class.simpleName}", expected.second, tab.icon)
+      assertEquals(
+          "Destination mismatch for ${tab::class.simpleName}", expected.third, tab.destination)
+    }
   }
 
   @Test
-  fun screen_map_hasCorrectProperties() {
-    assert(Screen.Map.route == Route.MAP)
-    assert(Screen.Map.name == "Map")
-    assert(Screen.Map.isTopLevelDestination)
+  fun bottomNavigationTabs_isCorrectlyConfigured() {
+    val expectedTabs = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile)
+
+    assertEquals("Incorrect number of tabs", 4, bottomNavigationTabs.size)
+    assertEquals("Incorrect tab order", expectedTabs, bottomNavigationTabs)
+
+    expectedTabs.forEach { tab ->
+      assertTrue("Missing tab: ${tab.name}", bottomNavigationTabs.contains(tab))
+    }
   }
 
   @Test
-  fun screen_activities_hasCorrectProperties() {
-    assert(Screen.Activities.route == Route.ACTIVITIES)
-    assert(Screen.Activities.name == "Activities")
-    assert(Screen.Activities.isTopLevelDestination)
-  }
-
-  @Test
-  fun screen_profile_hasCorrectProperties() {
-    assert(Screen.Profile.route == Route.PROFILE)
-    assert(Screen.Profile.name == "Profile")
-    assert(Screen.Profile.isTopLevelDestination)
-  }
-
-  @Test
-  fun tab_home_hasCorrectProperties() {
-    assert(Tab.Home.name == "Home")
-    assert(Tab.Home.icon == R.drawable.ic_home)
-    assert(Tab.Home.destination == Screen.Home)
-  }
-
-  @Test
-  fun tab_map_hasCorrectProperties() {
-    assert(Tab.Map.name == "Map")
-    assert(Tab.Map.icon == R.drawable.ic_vector)
-    assert(Tab.Map.destination == Screen.Map)
-  }
-
-  @Test
-  fun tab_activities_hasCorrectProperties() {
-    assert(Tab.Activities.name == "Activities")
-    assert(Tab.Activities.icon == R.drawable.ic_ticket)
-    assert(Tab.Activities.destination == Screen.Activities)
-  }
-
-  @Test
-  fun tab_profile_hasCorrectProperties() {
-    assert(Tab.Profile.name == "Profile")
-    assert(Tab.Profile.icon == R.drawable.ic_user)
-    assert(Tab.Profile.destination == Screen.Profile)
-  }
-
-  @Test
-  fun bottomNavigationTabs_containsAllTabs() {
-    assert(bottomNavigationTabs.size == 4)
-    assert(bottomNavigationTabs.contains(Tab.Home))
-    assert(bottomNavigationTabs.contains(Tab.Map))
-    assert(bottomNavigationTabs.contains(Tab.Activities))
-    assert(bottomNavigationTabs.contains(Tab.Profile))
-  }
-
-  @Test
-  fun bottomNavigationTabs_hasCorrectOrder() {
-    assert(bottomNavigationTabs[0] == Tab.Home)
-    assert(bottomNavigationTabs[1] == Tab.Map)
-    assert(bottomNavigationTabs[2] == Tab.Activities)
-    assert(bottomNavigationTabs[3] == Tab.Profile)
-  }
-
-  @Test
-  fun allTopLevelScreens_areInBottomNavigation() {
+  fun navigationStructure_maintainsConsistency() {
     val topLevelScreens = listOf(Screen.Home, Screen.Map, Screen.Activities, Screen.Profile)
     val bottomNavScreens = bottomNavigationTabs.map { it.destination }
 
-    topLevelScreens.forEach { screen -> assert(bottomNavScreens.contains(screen)) }
-  }
+    topLevelScreens.forEach { screen ->
+      assertTrue(
+          "Top level screen ${screen.name} not found in bottom navigation",
+          bottomNavScreens.contains(screen))
+      assertTrue("Screen ${screen.name} should be top level", screen.isTopLevelDestination)
+    }
 
-  @Test
-  fun auth_screen_isNotInBottomNavigation() {
-    val bottomNavScreens = bottomNavigationTabs.map { it.destination }
-    assert(!bottomNavScreens.contains(Screen.Auth))
+    assertFalse(
+        "Auth screen should not be in bottom navigation", bottomNavScreens.contains(Screen.Auth))
+    assertFalse("Auth screen should not be top level", Screen.Auth.isTopLevelDestination)
   }
 }

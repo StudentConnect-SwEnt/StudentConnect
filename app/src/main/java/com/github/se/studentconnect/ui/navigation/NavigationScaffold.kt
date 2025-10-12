@@ -21,10 +21,10 @@ import com.github.se.studentconnect.R
 
 @Composable
 fun BottomNavigationBar(
+    modifier: Modifier = Modifier,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
-    onCenterButtonClick: () -> Unit = {},
-    modifier: Modifier = Modifier,
+    onCenterButtonClick: () -> Unit = {}
 ) {
   Box(modifier = modifier.fillMaxWidth()) {
     NavigationBar(
