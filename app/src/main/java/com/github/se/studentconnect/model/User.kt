@@ -27,7 +27,6 @@ data class User(
     val bio: String? = null, // optional
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
-    val joinedEvents: List<Event> = emptyList(),
 ) {
   init {
     require(userId.isNotBlank()) { "User ID cannot be blank" }
@@ -126,9 +125,7 @@ data class User(
               is UpdateValue.SetValue -> bio.value
               else -> this.bio
             },
-        updatedAt = System.currentTimeMillis(),
-        joinedEvents = this.joinedEvents)
-  }
+        updatedAt = System.currentTimeMillis())}
 
   /**
    * Converts the User to a Map for Firestore storage.
@@ -146,8 +143,7 @@ data class User(
         "profilePictureUrl" to profilePictureUrl,
         "bio" to bio,
         "createdAt" to createdAt,
-        "updatedAt" to updatedAt,
-        "joinedEvents" to joinedEvents.map { it.uid })
+        "updatedAt" to updatedAt)
   }
 
   companion object {
