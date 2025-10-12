@@ -87,16 +87,20 @@ fun GetStartedScreen(
   Column(
       modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
-        // Reserved logo space
-        Spacer(Modifier.height(64.dp))
+
+        // Studnet Logo
+        Image(
+            painter = painterResource(id = R.drawable.studnet_logo),
+            contentDescription = "StudentConnect logo",
+            modifier = Modifier.size(96.dp))
 
         // Carousel with Connect, Discover, Belong pictures
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
           val items = remember {
             listOf(
-                CarouselItem(0, R.drawable.fond, "Connect"),
-                CarouselItem(1, R.drawable.fond, "Discover"),
-                CarouselItem(2, R.drawable.fond, "Belong"),
+                CarouselItem(0, R.drawable.connect, "Connect"),
+                CarouselItem(1, R.drawable.discover, "Discover"),
+                CarouselItem(2, R.drawable.belong, "Belong"),
             )
           }
 
