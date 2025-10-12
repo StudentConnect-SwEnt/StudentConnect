@@ -147,16 +147,4 @@ class EventRepositoryLocalTest {
     eventRepository.removeParticipantFromEvent("event1", "user1")
     assertEquals(0, eventRepository.getEventParticipants("event1").size)
   }
-
-  @Test
-  fun getEventsAttendedByUser_returnsAllEvents_asPerCurrentImplementation() = runTest {
-    val event2 = testEvent.copy(uid = "event2")
-    eventRepository.addEvent(testEvent)
-    eventRepository.addEvent(event2)
-    eventRepository.addParticipantToEvent("event1", testParticipant)
-    val eventsForUser = eventRepository.getEventsAttendedByUser(testParticipant.uid)
-    assertEquals(2, eventsForUser.size)
-    assertTrue(eventsForUser.contains(testEvent))
-    assertTrue(eventsForUser.contains(event2))
-  }
 }

@@ -34,8 +34,10 @@ class ActivitiesViewModel(
 
   fun refreshEvents(userUid: String) {
     viewModelScope.launch {
-      val eventsList = eventRepository.getEventsAttendedByUser(userUid)
-      _uiState.update { currentState -> currentState.copy(events = eventsList) }
+      val eventsList = userRepository.getJoinedEvents(userUid)
+      _uiState.update { currentState ->
+        currentState.copy(events = eventsList.map { eventRepository.getEvent(it) })
+      }
     }
   }
 
