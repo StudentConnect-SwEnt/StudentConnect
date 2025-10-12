@@ -60,7 +60,7 @@ private data class CarouselItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetStartedScreen(
-    onSignedIn: () -> Unit,
+    onSignedIn: (String) -> Unit,
     onSignInError: (String) -> Unit = {},
     viewModel: GetStartedViewModel = viewModel()
 ) {
@@ -70,9 +70,9 @@ fun GetStartedScreen(
   var errorMessage by remember { mutableStateOf<String?>(null) }
 
   LaunchedEffect(uiState.user) {
-    if (uiState.user != null) {
+    uiState.user?.let { user ->
       errorMessage = null
-      onSignedIn()
+      onSignedIn(user.uid)
     }
   }
 
@@ -90,7 +90,7 @@ fun GetStartedScreen(
         // Reserved logo space
         Spacer(Modifier.height(64.dp))
 
-        // Big carousel
+        // Carousel with Connect, Discover, Belong pictures
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
           val items = remember {
             listOf(
@@ -119,7 +119,7 @@ fun GetStartedScreen(
               }
         }
 
-        // Tagline
+        // Tagline with "Never miss out again."
         Text(
             text = "Never miss out again.",
             style = MaterialTheme.typography.headlineMedium,
@@ -187,7 +187,7 @@ private fun SignInButton(
 private fun GettingStarted_Preview() {
   AppTheme {
     val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
-    GetStartedScreen(onSignedIn = {}, onSignInError = {}, viewModel = previewViewModel)
+    GetStartedScreen(onSignedIn = { _ -> }, onSignInError = {}, viewModel = previewViewModel)
   }
 }
 

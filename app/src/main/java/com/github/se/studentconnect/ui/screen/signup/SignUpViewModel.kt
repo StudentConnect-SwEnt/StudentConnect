@@ -10,17 +10,18 @@ import java.util.Locale
  * onboarding process.
  */
 enum class SignUpStep {
-    GettingStarted,
-    BasicInfo,
-    Nationality,
-    AddPicture,
-    Bio,
-    Interests,
-    Welcome
+  GettingStarted,
+  BasicInfo,
+  Nationality,
+  AddPicture,
+  Bio,
+  Interests,
+  Welcome
 }
 
 /** Immutable data class holding all information entered by the user throughout the signup flow. */
 data class SignUpState(
+    val userId: String? = null,
     val firstName: String = "",
     val lastName: String = "",
     val birthdateMillis: Long? = null,
@@ -41,76 +42,78 @@ class SignUpViewModel : ViewModel() {
     private val _state = mutableStateOf(SignUpState())
     val state: State<SignUpState> = _state
 
-    private fun update(block: (SignUpState) -> SignUpState) {
-        _state.value = block(_state.value)
-    }
+  private fun update(block: (SignUpState) -> SignUpState) {
+    _state.value = block(_state.value)
+  }
 
     // Field updates
+    fun setUserId(userId: String) = update { it.copy(userId = userId.trim().ifBlank { null }) }
+
     fun setFirstName(firstName: String) = update { it.copy(firstName = firstName.trim()) }
 
     fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
 
     fun setBirthdate(birthdate: Long?) = update { it.copy(birthdateMillis = birthdate) }
 
-    fun setNationality(nationality: String) = update {
-        it.copy(nationality = nationality.trim().uppercase(Locale.US))
-    }
+  fun setNationality(nationality: String) = update {
+    it.copy(nationality = nationality.trim().uppercase(Locale.US))
+  }
 
-    fun setProfilePictureUri(uri: String?) = update {
-        it.copy(profilePictureUri = uri?.ifBlank { null })
-    }
+  fun setProfilePictureUri(uri: String?) = update {
+    it.copy(profilePictureUri = uri?.ifBlank { null })
+  }
 
-    fun setBio(bio: String?) = update { it.copy(bio = bio?.ifBlank { null }) }
+  fun setBio(bio: String?) = update { it.copy(bio = bio?.ifBlank { null }) }
 
-    fun toggleInterest(key: String) = update {
-        val k = key.trim().uppercase(Locale.US) // normalize
-        it.copy(interests = it.interests.toMutableSet().apply { if (!add(k)) remove(k) })
-    }
+  fun toggleInterest(key: String) = update {
+    val k = key.trim().uppercase(Locale.US) // normalize
+    it.copy(interests = it.interests.toMutableSet().apply { if (!add(k)) remove(k) })
+  }
 
-    // Navigation step helpers
-    fun goTo(step: SignUpStep) = update { it.copy(currentStep = step) }
+  // Navigation step helpers
+  fun goTo(step: SignUpStep) = update { it.copy(currentStep = step) }
 
-    fun nextStep() = update { it.copy(currentStep = it.currentStep.next()) }
+  fun nextStep() = update { it.copy(currentStep = it.currentStep.next()) }
 
-    fun prevStep() = update { it.copy(currentStep = it.currentStep.prev()) }
+  fun prevStep() = update { it.copy(currentStep = it.currentStep.prev()) }
 
-    // Validation checks
-    val isBasicInfoValid: Boolean
-        get() =
-            state.value.firstName.isNotBlank() &&
-                    state.value.firstName.length <= 100 &&
-                    state.value.lastName.isNotBlank() &&
-                    state.value.lastName.length <= 100
+  // Validation checks
+  val isBasicInfoValid: Boolean
+    get() =
+        state.value.firstName.isNotBlank() &&
+            state.value.firstName.length <= 100 &&
+            state.value.lastName.isNotBlank() &&
+            state.value.lastName.length <= 100
 
-    val isNationalityValid: Boolean
-        get() = !state.value.nationality.isNullOrBlank()
+  val isNationalityValid: Boolean
+    get() = !state.value.nationality.isNullOrBlank()
 
-    val isBioValid: Boolean
-        get() = (state.value.bio?.length ?: 0) <= 500
+  val isBioValid: Boolean
+    get() = (state.value.bio?.length ?: 0) <= 500
 
-    fun reset() = update { SignUpState() }
+  fun reset() = update { SignUpState() }
 }
 
 /** Returns the next logical step in the signup sequence. */
 private fun SignUpStep.next(): SignUpStep =
     when (this) {
-        SignUpStep.GettingStarted -> SignUpStep.BasicInfo
-        SignUpStep.BasicInfo -> SignUpStep.Nationality
-        SignUpStep.Nationality -> SignUpStep.AddPicture
-        SignUpStep.AddPicture -> SignUpStep.Bio
-        SignUpStep.Bio -> SignUpStep.Interests
-        SignUpStep.Interests -> SignUpStep.Welcome
-        SignUpStep.Welcome -> SignUpStep.Welcome
+      SignUpStep.GettingStarted -> SignUpStep.BasicInfo
+      SignUpStep.BasicInfo -> SignUpStep.Nationality
+      SignUpStep.Nationality -> SignUpStep.AddPicture
+      SignUpStep.AddPicture -> SignUpStep.Bio
+      SignUpStep.Bio -> SignUpStep.Interests
+      SignUpStep.Interests -> SignUpStep.Welcome
+      SignUpStep.Welcome -> SignUpStep.Welcome
     }
 
 /** Returns the previous step in the signup sequence. */
 private fun SignUpStep.prev(): SignUpStep =
     when (this) {
-        SignUpStep.GettingStarted -> SignUpStep.GettingStarted
-        SignUpStep.BasicInfo -> SignUpStep.GettingStarted
-        SignUpStep.Nationality -> SignUpStep.BasicInfo
-        SignUpStep.AddPicture -> SignUpStep.Nationality
-        SignUpStep.Bio -> SignUpStep.AddPicture
-        SignUpStep.Interests -> SignUpStep.Bio
-        SignUpStep.Welcome -> SignUpStep.Interests
+      SignUpStep.GettingStarted -> SignUpStep.GettingStarted
+      SignUpStep.BasicInfo -> SignUpStep.GettingStarted
+      SignUpStep.Nationality -> SignUpStep.BasicInfo
+      SignUpStep.AddPicture -> SignUpStep.Nationality
+      SignUpStep.Bio -> SignUpStep.AddPicture
+      SignUpStep.Interests -> SignUpStep.Bio
+      SignUpStep.Welcome -> SignUpStep.Interests
     }
