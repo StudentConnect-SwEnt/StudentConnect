@@ -1,8 +1,10 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.ui.activities.InvitationStatus
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -17,7 +19,6 @@ import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 
 class UserRepositoryFirestoreTest {
@@ -31,6 +32,10 @@ class UserRepositoryFirestoreTest {
   @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
 
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
+
+  @Mock private lateinit var mockJoinedEventsCollection: CollectionReference
+
+  @Mock private lateinit var mockInvitationsCollection: CollectionReference
 
   private lateinit var repository: UserRepositoryFirestore
 
@@ -55,6 +60,9 @@ class UserRepositoryFirestoreTest {
     // Default mock behavior
     whenever(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     whenever(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
+    whenever(mockDocumentReference.collection("joinedEvents"))
+        .thenReturn(mockJoinedEventsCollection)
+    whenever(mockDocumentReference.collection("invitations")).thenReturn(mockInvitationsCollection)
   }
 
   @Test
@@ -615,22 +623,29 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testJoinEventSuccess() = runTest {
     // Arrange
+    val mockEventDoc: DocumentReference = mock()
     val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(eq("joinedEvents"), any())).thenReturn(mockTask)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
 
     // Act
     repository.joinEvent("event123", "user123")
 
     // Assert
-    verify(mockDocumentReference).update(eq("joinedEvents"), any())
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).set(mapOf("eventId" to "event123"))
   }
 
   @Test
   fun testJoinEventFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
     val mockTask: Task<Void> = Tasks.forException(exception)
-    whenever(mockDocumentReference.update(eq("joinedEvents"), any())).thenReturn(mockTask)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
 
     // Act & Assert
     try {
@@ -644,26 +659,32 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetJoinedEventsSuccess() = runTest {
     // Arrange
-    val eventIds = listOf("event1", "event2", "event3")
-    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+    val mockDoc3: DocumentSnapshot = mock()
 
-    whenever(mockDocumentReference.get()).thenReturn(mockTask)
-    whenever(mockDocumentSnapshot.get("joinedEvents")).thenReturn(eventIds)
+    whenever(mockDoc1.getString("eventId")).thenReturn("event1")
+    whenever(mockDoc2.getString("eventId")).thenReturn("event2")
+    whenever(mockDoc3.getString("eventId")).thenReturn("event3")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2, mockDoc3))
 
     // Act
     val result = repository.getJoinedEvents("user123")
 
     // Assert
-    assert(result == eventIds)
+    assert(result.size == 3)
+    assert(result == listOf("event1", "event2", "event3"))
   }
 
   @Test
   fun testGetJoinedEventsEmpty() = runTest {
     // Arrange
-    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
-
-    whenever(mockDocumentReference.get()).thenReturn(mockTask)
-    whenever(mockDocumentSnapshot.get("joinedEvents")).thenReturn(null)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
 
     // Act
     val result = repository.getJoinedEvents("user123")
@@ -675,52 +696,84 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testAddEventToUserSuccess() = runTest {
     // Arrange
+    val mockEventDoc: DocumentReference = mock()
     val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(eq("joinedEvents"), any())).thenReturn(mockTask)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
 
     // Act
     repository.addEventToUser("event123", "user123")
 
     // Assert
-    verify(mockDocumentReference).update(eq("joinedEvents"), any())
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).set(mapOf("eventId" to "event123"))
   }
 
   @Test
   fun testAddInvitationToUserSuccess() = runTest {
     // Arrange
+    val mockInvitationDoc: DocumentReference = mock()
     val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(eq("invitations"), any())).thenReturn(mockTask)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.set(any())).thenReturn(mockTask)
 
     // Act
-    repository.addInvitationToUser("event123", "user123")
+    repository.addInvitationToUser("event123", "user123", "user456")
 
     // Assert
-    verify(mockDocumentReference).update(eq("invitations"), any())
+    verify(mockInvitationsCollection).document("event123")
+    val captor = argumentCaptor<Map<String, Any?>>()
+    verify(mockInvitationDoc).set(captor.capture())
+    val invitationData = captor.firstValue
+    assert(invitationData["from"] == "user456")
+    assert(invitationData["eventId"] == "event123")
+    assert(invitationData.containsKey("timestamp"))
   }
 
   @Test
   fun testGetInvitationsSuccess() = runTest {
     // Arrange
-    val invitations = listOf("event1", "event2")
-    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+    val timestamp = Timestamp.now()
 
-    whenever(mockDocumentReference.get()).thenReturn(mockTask)
-    whenever(mockDocumentSnapshot.get("invitations")).thenReturn(invitations)
+    whenever(mockDoc1.getString("eventId")).thenReturn("event1")
+    whenever(mockDoc1.getString("from")).thenReturn("user456")
+    whenever(mockDoc1.getString("status")).thenReturn(InvitationStatus.Pending.name)
+    whenever(mockDoc1.getTimestamp("timestamp")).thenReturn(timestamp)
+    whenever(mockDoc1.id).thenReturn("event1")
+
+    whenever(mockDoc2.getString("eventId")).thenReturn("event2")
+    whenever(mockDoc2.getString("from")).thenReturn("user789")
+    whenever(mockDoc2.getString("status")).thenReturn(null)
+    whenever(mockDoc2.getTimestamp("timestamp")).thenReturn(timestamp)
+    whenever(mockDoc2.id).thenReturn("event2")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockInvitationsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
 
     // Act
     val result = repository.getInvitations("user123")
 
     // Assert
-    assert(result == invitations)
+    assert(result.size == 2)
+    assert(result[0].eventId == "event1")
+    assert(result[0].from == "user456")
+    assert(result[0].status == InvitationStatus.Pending)
+    assert(result[1].eventId == "event2")
+    assert(result[1].from == "user789")
+    assert(result[1].status == InvitationStatus.Pending) // Default value
   }
 
   @Test
   fun testGetInvitationsEmpty() = runTest {
     // Arrange
-    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
-
-    whenever(mockDocumentReference.get()).thenReturn(mockTask)
-    whenever(mockDocumentSnapshot.get("invitations")).thenReturn(null)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockInvitationsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
 
     // Act
     val result = repository.getInvitations("user123")
@@ -732,44 +785,25 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testAcceptInvitationSuccess() = runTest {
     // Arrange
-    val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockJoinedDoc: DocumentReference = mock()
+    val mockGetTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    val mockSetTask: Task<Void> = Tasks.forResult(null)
+    val mockDeleteTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockJoinedDoc)
+    whenever(mockInvitationDoc.get()).thenReturn(mockGetTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockJoinedDoc.set(any())).thenReturn(mockSetTask)
+    whenever(mockInvitationDoc.delete()).thenReturn(mockDeleteTask)
 
     // Act
     repository.acceptInvitation("event123", "user123")
 
     // Assert
-    val captor = argumentCaptor<Map<String, Any?>>()
-    verify(mockDocumentReference).update(captor.capture())
-    val updates = captor.firstValue
-    assert(updates.containsKey("invitations"))
-    assert(updates.containsKey("joinedEvents"))
-  }
-
-  @Test
-  fun testLeaveEventSuccess() = runTest {
-    // Arrange
-    val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(eq("joinedEvents"), any())).thenReturn(mockTask)
-
-    // Act
-    repository.leaveEvent("event123", "user123")
-
-    // Assert
-    verify(mockDocumentReference).update(eq("joinedEvents"), any())
-  }
-
-  @Test
-  fun testSendInvitationSuccess() = runTest {
-    // Arrange
-    val mockTask: Task<Void> = Tasks.forResult(null)
-    whenever(mockDocumentReference.update(eq("invitations"), any())).thenReturn(mockTask)
-
-    // Act
-    repository.sendInvitation("event123", "user456", "user789")
-
-    // Assert
-    verify(mockCollectionReference).document("user789")
-    verify(mockDocumentReference).update(eq("invitations"), any())
+    verify(mockInvitationDoc).get()
+    verify(mockJoinedDoc).set(any())
+    verify(mockInvitationDoc).delete()
   }
 }

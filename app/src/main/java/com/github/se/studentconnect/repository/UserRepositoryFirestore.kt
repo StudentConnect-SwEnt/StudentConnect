@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.ui.activities.Invitation
+import com.github.se.studentconnect.ui.activities.InvitationStatus
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -102,7 +104,9 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
   override suspend fun joinEvent(eventId: String, userId: String) {
     db.collection(COLLECTION_NAME)
         .document(userId)
-        .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+        .collection(JOINED_EVENT)
+        .document(eventId)
+        .set(mapOf("eventId" to eventId))
         .await()
   }
 
@@ -111,52 +115,85 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
   }
 
   override suspend fun getJoinedEvents(userId: String): List<String> {
-    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
-
-    return document.get(JOINED_EVENT) as? List<String> ?: emptyList()
+    val document =
+        db.collection(COLLECTION_NAME).document(userId).collection(JOINED_EVENT).get().await()
+    return document.documents.map { it.getString("eventId")!! }
   }
 
   override suspend fun addEventToUser(eventId: String, userId: String) {
     db.collection(COLLECTION_NAME)
         .document(userId)
-        .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+        .collection(JOINED_EVENT)
+        .document(eventId)
+        .set(mapOf("eventId" to eventId))
         .await()
   }
 
-  override suspend fun addInvitationToUser(eventId: String, userId: String) {
+  override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {
     db.collection(COLLECTION_NAME)
         .document(userId)
-        .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+        .collection(INVITATIONS)
+        .document(eventId)
+        .set(
+            mapOf(
+                "from" to fromUserId,
+                "eventId" to eventId,
+                "timestamp" to FieldValue.serverTimestamp()))
         .await()
   }
 
-  override suspend fun getInvitations(userId: String): List<String> {
-    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
+  override suspend fun getInvitations(userId: String): List<Invitation> {
+    val document =
+        db.collection(COLLECTION_NAME).document(userId).collection(INVITATIONS).get().await()
+    return document.documents.mapNotNull { doc ->
+      val statusString = doc.getString("status") ?: InvitationStatus.Pending.name
+      val status =
+          try {
+            InvitationStatus.valueOf(statusString)
+          } catch (e: IllegalArgumentException) {
+            InvitationStatus.Pending
+          }
 
-    return document.get(INVITATIONS) as? List<String> ?: emptyList()
+      Invitation(
+          eventId = doc.getString("eventId") ?: doc.id,
+          from = doc.getString("from") ?: "",
+          status = status,
+          timestamp = doc.getTimestamp("timestamp"))
+    }
   }
 
   override suspend fun acceptInvitation(eventId: String, userId: String) {
-    db.collection(COLLECTION_NAME)
-        .document(userId)
-        .update(
-            mapOf(
-                INVITATIONS to FieldValue.arrayRemove(eventId),
-                JOINED_EVENT to FieldValue.arrayUnion(eventId)))
-        .await()
+    val userDoc = db.collection(COLLECTION_NAME).document(userId)
+    val invitationRef = userDoc.collection(INVITATIONS).document(eventId)
+    val joinedRef = userDoc.collection(JOINED_EVENT).document(eventId)
+
+    val snapshot = invitationRef.get().await()
+    if (!snapshot.exists()) return
+    joinedRef.set(mapOf("eventId" to eventId, "timestamp" to FieldValue.serverTimestamp())).await()
+    invitationRef.delete().await()
   }
 
   override suspend fun leaveEvent(eventId: String, userId: String) {
     db.collection(COLLECTION_NAME)
         .document(userId)
-        .update(JOINED_EVENT, FieldValue.arrayRemove(eventId))
+        .collection(JOINED_EVENT)
+        .document(eventId)
+        .delete()
         .await()
   }
 
   override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
+    val invitationData =
+        mapOf(
+            "eventId" to eventId,
+            "from" to fromUserId,
+            "status" to InvitationStatus.Pending.name,
+            "timestamp" to FieldValue.serverTimestamp())
     db.collection(COLLECTION_NAME)
         .document(toUserId)
-        .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+        .collection(INVITATIONS)
+        .document(eventId)
+        .set(invitationData)
         .await()
   }
 }

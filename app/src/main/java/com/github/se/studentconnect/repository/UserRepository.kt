@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.ui.activities.Invitation
 
 /**
  * Repository interface for User operations.
@@ -95,8 +96,9 @@ interface UserRepository {
    *
    * @param eventId The unique identifier of the event for which the invitation is sent.
    * @param userId The unique identifier of the user to whom the invitation should be added
+   * @param fromUserId The unique identifier of the user sending the invitation.
    */
-  suspend fun addInvitationToUser(eventId: String, userId: String)
+  suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String)
 
   /**
    * Retrieves all event invitations for a given user.
@@ -104,7 +106,7 @@ interface UserRepository {
    * @param userId The unique identifier of the user whose invitations should be retrieved.
    * @return A list of event IDs that the user is invited to.
    */
-  suspend fun getInvitations(userId: String): List<String>
+  suspend fun getInvitations(userId: String): List<Invitation>
 
   /**
    * Accepts an event invitation for a user, adding the event to their joined events and removing it

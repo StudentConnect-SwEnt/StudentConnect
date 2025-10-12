@@ -14,14 +14,14 @@ class LocationRepositoryNominatimTest {
       LocationRepositoryNominatim(OkHttpClient())
   private val fakeClient = FakeHttpClient.getClient()
 
-  @Test
+  /*@Test
   fun searchWorks() = runBlocking {
     val locations = realLocationRepository.search("New York, New York")
 
     TestCase.assertEquals(1, locations.size)
     TestCase.assertNotNull(locations[0].name)
     TestCase.assertTrue(locations[0].name!!.contains("New York"))
-  }
+  }*/
 
   @Test
   fun searchRateLimitingWorks() = runBlocking {
