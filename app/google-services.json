@@ -12,7 +12,20 @@
           "package_name": "com.github.se.studentconnect"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1014128431937-vvd4dpdm53geq4mmc15kr5fpj32dk7v2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "c970b9ce9b20580af143715e0638111aca6da7a1"
+          }
+        },
+        {
+          "client_id": "1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBTom6xidq8mZHhR9ls3jGoD-JTvsoRLh8"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
