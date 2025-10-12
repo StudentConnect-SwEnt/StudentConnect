@@ -84,6 +84,62 @@ interface UserRepository {
       hobby: String
   ): List<User>
 
-  /** Returns a unique ID for a new user document. */
-  fun getNewUid(): String
+    /** Returns a unique ID for a new user document. */
+  suspend fun getNewUid(): String
+
+  /**
+   * Retrieves all events that a given user is participating in.
+   * @param userId The unique identifier
+  */
+  suspend fun getJoinedEvents(userId: String) : List<String>
+
+  /**
+   * adds an event to a user's list of joined events.
+   *
+   * @param eventId The unique identifier of the event to add.
+   * @param userId The unique identifier of the user to whom the event should be added
+  */
+  suspend fun addEventToUser(eventId: String, userId: String)
+
+  /**
+   * adds an invitation to a user's list of invitations.
+   *
+   * @param eventId The unique identifier of the event for which the invitation is sent.
+   * @param userId The unique identifier of the user to whom the invitation should be added
+   */
+  suspend fun addInvitationToUser(eventId: String, userId: String)
+
+  /**
+   * Retrieves all event invitations for a given user.
+   *
+   * @param userId The unique identifier of the user whose invitations should be retrieved.
+   * @return A list of event IDs that the user is invited to.
+   */
+  suspend fun getInvitations(userId: String) : List<String>
+
+  /**
+   * Accepts an event invitation for a user, adding the event to their joined events
+   * and removing it from their invitations.
+   *
+   * @param eventId The unique identifier of the event being accepted.
+   * @param userId The unique identifier of the user accepting the invitation.
+   */
+  suspend fun acceptInvitation(eventId: String, userId: String)
+
+  /**
+   * join an event (adds the event to the user's joined events and removes any invitation)à
+   *
+   * @param eventId The unique identifier of the event to join.
+   * @param userId The unique identifier of the user joining the event.
+   */
+  suspend fun joinEvent(eventId: String, userId: String)
+
+  /**
+   * Sends an event invitation from one user to another.
+   *
+   * @param eventId The unique identifier of the event for which the invitation is sent.
+   * @param fromUserId The unique identifier of the user sending the invitation.
+   * @param toUserId The unique identifier of the user receiving the invitation.
+   */
+  suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String)
 }

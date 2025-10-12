@@ -12,9 +12,11 @@ import kotlinx.coroutines.tasks.await
  */
 class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepository {
 
-  companion object {
-    private const val COLLECTION_NAME = "users"
-  }
+    companion object {
+        private const val COLLECTION_NAME = "users"
+        private const val JOINED_EVENT = "joinedEvents"
+        private const val INVITATIONS = "invitations"
+    }
 
     override suspend fun getUserById(userId: String): User? {
         val document = db.collection(COLLECTION_NAME)
@@ -118,4 +120,77 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         }
     }
 
+    override suspend fun joinEvent(eventId: String, userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+            .await()
+    }
+
+    override suspend fun getNewUid(): String {
+        return db.collection(COLLECTION_NAME).document().id
+    }
+
+    override suspend fun getJoinedEvents(userId: String): List<String> {
+        val document = db.collection(COLLECTION_NAME)
+            .document(userId)
+            .get()
+            .await()
+
+        return document.get(JOINED_EVENT) as? List<String> ?: emptyList()
+    }
+
+    override suspend fun addEventToUser(eventId: String, userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+            .await()
+    }
+
+    override suspend fun addInvitationToUser(eventId: String, userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+            .await()
+    }
+
+    override suspend fun getInvitations(userId: String): List<String> {
+        val document = db.collection(COLLECTION_NAME)
+            .document(userId)
+            .get()
+            .await()
+
+        return document.get(INVITATIONS) as? List<String> ?: emptyList()
+    }
+
+    override suspend fun acceptInvitation(eventId: String, userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(
+                mapOf(
+                    INVITATIONS to FieldValue.arrayRemove(eventId),
+                    JOINED_EVENT to FieldValue.arrayUnion(eventId)
+                )
+            )
+            .await()
+    }
+
+    override suspend fun leaveEvent(eventId: String, userId: String) {
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .update(JOINED_EVENT, FieldValue.arrayRemove(eventId))
+            .await()
+    }
+
+    override suspend fun sendInvitation(
+        eventId: String,
+        fromUserId: String,
+        toUserId: String
+    ) {
+        db.collection(COLLECTION_NAME)
+            .document(toUserId)
+            .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+            .await()
+
+    }
 }
