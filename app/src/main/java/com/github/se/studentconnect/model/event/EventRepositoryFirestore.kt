@@ -2,6 +2,7 @@
 
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,6 +17,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   companion object {
     const val EVENTS_COLLECTION_PATH = "events"
     const val PARTICIPANTS_COLLECTION_PATH = "participants"
+    const val INVITATIONS_COLLECTION_PATH = "invitations"
   }
 
   override fun getNewUid(): String {
@@ -142,11 +144,6 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return documentSnapshot.documents.map(::eventParticipantFromDocumentSnapshot)
   }
 
-  override suspend fun getEventsAttendedByUser(userUid: String): List<Event> {
-    // TODO: for now, gets all events
-    return getAllVisibleEvents()
-  }
-
   override suspend fun addEvent(event: Event) {
     val docRef = db.collection(EVENTS_COLLECTION_PATH).document(event.uid)
     val data = event.toMap()
@@ -179,6 +176,15 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
 
     participantRef.set(participant).await()
+  }
+
+  override suspend fun addInvitationToEvent(eventUid: String, invitedUser: User) {
+    db.collection(EVENTS_COLLECTION_PATH)
+        .document(eventUid)
+        .collection(INVITATIONS_COLLECTION_PATH)
+        .document(invitedUser.userId)
+        .set(invitedUser.toMap())
+        .await()
   }
 
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {

@@ -1,7 +1,5 @@
 package com.github.se.studentconnect.model
 
-import com.github.se.studentconnect.model.event.Event
-
 /**
  * Represents a User in the StudentConnect application.
  *
@@ -125,7 +123,8 @@ data class User(
               is UpdateValue.SetValue -> bio.value
               else -> this.bio
             },
-        updatedAt = System.currentTimeMillis())}
+        updatedAt = System.currentTimeMillis())
+  }
 
   /**
    * Converts the User to a Map for Firestore storage.

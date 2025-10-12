@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.User
+
 /** Represents a repository that manages events. */
 interface EventRepository {
 
@@ -46,16 +48,6 @@ interface EventRepository {
   suspend fun getEventParticipants(eventUid: String): List<EventParticipant>
 
   /**
-   * Retrieves all events that a given user is participating in.
-   *
-   * @param userUid The unique identifier of the user whose attended events should be retrieved.
-   * @return A list of [Event] objects that the user is participating in.
-   * @throws Exception if the retrieval fails or if the user cannot be found.
-   */
-  suspend fun getEventsAttendedByUser(userUid: String): List<Event>
-  // TODO: move getEventsAttendedByUser to UserRepository.getAttendingEvents
-
-  /**
    * Adds a new event to the repository.
    *
    * @param event The [Event] object to add.
@@ -87,6 +79,9 @@ interface EventRepository {
    * @throws Exception if the event is not found or the participant already joined the event.
    */
   suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant)
+
+  /** adds an invitation (a participant with pending status) to a given event. */
+  suspend fun addInvitationToEvent(eventUid: String, invitedUser: User)
 
   /**
    * Removes a participant from a given event.

@@ -1,6 +1,7 @@
 // Portions of this code were generated with the help of Gemini
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.User
 import java.util.UUID
 
 /**
@@ -30,13 +31,6 @@ class EventRepositoryLocal : EventRepository {
 
   override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
     return participantsByEvent[eventUid]?.toList() ?: emptyList()
-  }
-
-  /** Correctly implemented function to get events a user is attending. */
-  override suspend fun getEventsAttendedByUser(userUid: String): List<Event> {
-    // TODO filter based on if the currently logged in user can see the event or not; for now, gets
-    //  all events
-    return events
   }
 
   override suspend fun addEvent(event: Event) {
@@ -81,6 +75,10 @@ class EventRepositoryLocal : EventRepository {
     }
 
     participants.add(participant)
+  }
+
+  override suspend fun addInvitationToEvent(eventUid: String, invitedUser: User) {
+    TODO("Not yet implemented")
   }
 
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {

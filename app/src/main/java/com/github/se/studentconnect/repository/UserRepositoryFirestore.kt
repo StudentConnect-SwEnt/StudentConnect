@@ -12,185 +12,151 @@ import kotlinx.coroutines.tasks.await
  */
 class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepository {
 
-    companion object {
-        private const val COLLECTION_NAME = "users"
-        private const val JOINED_EVENT = "joinedEvents"
-        private const val INVITATIONS = "invitations"
+  companion object {
+    private const val COLLECTION_NAME = "users"
+    private const val JOINED_EVENT = "joinedEvents"
+    private const val INVITATIONS = "invitations"
+  }
+
+  override suspend fun getUserById(userId: String): User? {
+    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
+
+    return if (document.exists()) {
+      User.fromMap(document.data ?: emptyMap())
+    } else {
+      null
     }
+  }
 
-    override suspend fun getUserById(userId: String): User? {
-        val document = db.collection(COLLECTION_NAME)
-            .document(userId)
-            .get()
-            .await()
+  override suspend fun getUserByEmail(email: String): User? {
+    val querySnapshot = db.collection(COLLECTION_NAME).whereEqualTo("email", email).get().await()
 
-        return if (document.exists()) {
-            User.fromMap(document.data ?: emptyMap())
-        } else {
-            null
-        }
+    return if (!querySnapshot.isEmpty) {
+      val document = querySnapshot.documents.first()
+      User.fromMap(document.data ?: emptyMap())
+    } else {
+      null
     }
+  }
 
-    override suspend fun getUserByEmail(email: String): User? {
-        val querySnapshot = db.collection(COLLECTION_NAME)
-            .whereEqualTo("email", email)
-            .get()
-            .await()
+  override suspend fun getUsersPaginated(
+      limit: Int,
+      lastUserId: String?
+  ): Pair<List<User>, Boolean> {
+    var query = db.collection(COLLECTION_NAME).orderBy("userId").limit((limit + 1).toLong())
 
-        return if (!querySnapshot.isEmpty) {
-            val document = querySnapshot.documents.first()
-            User.fromMap(document.data ?: emptyMap())
-        } else {
-            null
-        }
+    lastUserId?.let { query = query.startAfter(it) }
+
+    val querySnapshot = query.get().await()
+
+    val allUsers =
+        querySnapshot.documents.mapNotNull { document -> User.fromMap(document.data ?: emptyMap()) }
+
+    val hasMore = allUsers.size > limit
+    val users = if (hasMore) allUsers.take(limit) else allUsers
+
+    return users to hasMore
+  }
+
+  override suspend fun getAllUsers(): List<User> {
+    val querySnapshot = db.collection(COLLECTION_NAME).get().await()
+
+    return querySnapshot.documents.mapNotNull { document ->
+      User.fromMap(document.data ?: emptyMap())
     }
+  }
 
-    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?): Pair<List<User>, Boolean> {
-        var query = db.collection(COLLECTION_NAME)
-            .orderBy("userId")
-            .limit((limit + 1).toLong())
+  override suspend fun saveUser(user: User) {
+    db.collection(COLLECTION_NAME).document(user.userId).set(user.toMap()).await()
+  }
 
-        lastUserId?.let { query = query.startAfter(it) }
+  override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+    val updatesWithTimestamp = updates.toMutableMap()
+    updatesWithTimestamp["updatedAt"] = FieldValue.serverTimestamp()
 
-        val querySnapshot = query.get().await()
+    db.collection(COLLECTION_NAME).document(userId).update(updatesWithTimestamp).await()
+  }
 
-        val allUsers = querySnapshot.documents.mapNotNull { document ->
-            User.fromMap(document.data ?: emptyMap())
-        }
+  override suspend fun deleteUser(userId: String) {
+    db.collection(COLLECTION_NAME).document(userId).delete().await()
+  }
 
-        val hasMore = allUsers.size > limit
-        val users = if (hasMore) allUsers.take(limit) else allUsers
+  override suspend fun getUsersByUniversity(university: String): List<User> {
+    val querySnapshot =
+        db.collection(COLLECTION_NAME).whereEqualTo("university", university).get().await()
 
-        return users to hasMore
+    return querySnapshot.documents.mapNotNull { document ->
+      User.fromMap(document.data ?: emptyMap())
     }
+  }
 
-    override suspend fun getAllUsers(): List<User> {
-        val querySnapshot = db.collection(COLLECTION_NAME)
-            .get()
-            .await()
+  override suspend fun getUsersByHobby(hobby: String): List<User> {
+    val querySnapshot =
+        db.collection(COLLECTION_NAME).whereArrayContains("hobbies", hobby).get().await()
 
-        return querySnapshot.documents.mapNotNull { document ->
-            User.fromMap(document.data ?: emptyMap())
-        }
+    return querySnapshot.documents.mapNotNull { document ->
+      User.fromMap(document.data ?: emptyMap())
     }
+  }
 
-    override suspend fun saveUser(user: User) {
-        db.collection(COLLECTION_NAME)
-            .document(user.userId)
-            .set(user.toMap())
-            .await()
-    }
+  override suspend fun joinEvent(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+        .await()
+  }
 
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
-        val updatesWithTimestamp = updates.toMutableMap()
-        updatesWithTimestamp["updatedAt"] = FieldValue.serverTimestamp()
+  override suspend fun getNewUid(): String {
+    return db.collection(COLLECTION_NAME).document().id
+  }
 
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(updatesWithTimestamp)
-            .await()
-    }
+  override suspend fun getJoinedEvents(userId: String): List<String> {
+    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
 
-    override suspend fun deleteUser(userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .delete()
-            .await()
-    }
+    return document.get(JOINED_EVENT) as? List<String> ?: emptyList()
+  }
 
-    override suspend fun getUsersByUniversity(university: String): List<User> {
-        val querySnapshot = db.collection(COLLECTION_NAME)
-            .whereEqualTo("university", university)
-            .get()
-            .await()
+  override suspend fun addEventToUser(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
+        .await()
+  }
 
-        return querySnapshot.documents.mapNotNull { document ->
-            User.fromMap(document.data ?: emptyMap())
-        }
-    }
+  override suspend fun addInvitationToUser(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+        .await()
+  }
 
-    override suspend fun getUsersByHobby(hobby: String): List<User> {
-        val querySnapshot = db.collection(COLLECTION_NAME)
-            .whereArrayContains("hobbies", hobby)
-            .get()
-            .await()
+  override suspend fun getInvitations(userId: String): List<String> {
+    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
 
-        return querySnapshot.documents.mapNotNull { document ->
-            User.fromMap(document.data ?: emptyMap())
-        }
-    }
+    return document.get(INVITATIONS) as? List<String> ?: emptyList()
+  }
 
-    override suspend fun joinEvent(eventId: String, userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
-            .await()
-    }
+  override suspend fun acceptInvitation(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update(
+            mapOf(
+                INVITATIONS to FieldValue.arrayRemove(eventId),
+                JOINED_EVENT to FieldValue.arrayUnion(eventId)))
+        .await()
+  }
 
-    override suspend fun getNewUid(): String {
-        return db.collection(COLLECTION_NAME).document().id
-    }
+  override suspend fun leaveEvent(eventId: String, userId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update(JOINED_EVENT, FieldValue.arrayRemove(eventId))
+        .await()
+  }
 
-    override suspend fun getJoinedEvents(userId: String): List<String> {
-        val document = db.collection(COLLECTION_NAME)
-            .document(userId)
-            .get()
-            .await()
-
-        return document.get(JOINED_EVENT) as? List<String> ?: emptyList()
-    }
-
-    override suspend fun addEventToUser(eventId: String, userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(JOINED_EVENT, FieldValue.arrayUnion(eventId))
-            .await()
-    }
-
-    override suspend fun addInvitationToUser(eventId: String, userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(INVITATIONS, FieldValue.arrayUnion(eventId))
-            .await()
-    }
-
-    override suspend fun getInvitations(userId: String): List<String> {
-        val document = db.collection(COLLECTION_NAME)
-            .document(userId)
-            .get()
-            .await()
-
-        return document.get(INVITATIONS) as? List<String> ?: emptyList()
-    }
-
-    override suspend fun acceptInvitation(eventId: String, userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(
-                mapOf(
-                    INVITATIONS to FieldValue.arrayRemove(eventId),
-                    JOINED_EVENT to FieldValue.arrayUnion(eventId)
-                )
-            )
-            .await()
-    }
-
-    override suspend fun leaveEvent(eventId: String, userId: String) {
-        db.collection(COLLECTION_NAME)
-            .document(userId)
-            .update(JOINED_EVENT, FieldValue.arrayRemove(eventId))
-            .await()
-    }
-
-    override suspend fun sendInvitation(
-        eventId: String,
-        fromUserId: String,
-        toUserId: String
-    ) {
-        db.collection(COLLECTION_NAME)
-            .document(toUserId)
-            .update(INVITATIONS, FieldValue.arrayUnion(eventId))
-            .await()
-
-    }
+  override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(toUserId)
+        .update(INVITATIONS, FieldValue.arrayUnion(eventId))
+        .await()
+  }
 }
