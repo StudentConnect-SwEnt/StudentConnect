@@ -41,9 +41,8 @@ class GetStartedScreenTest {
     every { credential.type } returns
         com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
             .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-    coEvery {
-      credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>())
-    } returns credentialResponse
+    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
+        credentialResponse
   }
 
   @After
@@ -60,10 +59,7 @@ class GetStartedScreenTest {
     var capturedUid: String? = null
 
     val scenario =
-        launchScreen(
-            viewModel = viewModel,
-            onSignedIn = { capturedUid = it },
-            onSignInError = {})
+        launchScreen(viewModel = viewModel, onSignedIn = { capturedUid = it }, onSignInError = {})
 
     // Act
     scenario.onActivity { activity -> viewModel.signIn(activity, credentialManager) }
@@ -85,10 +81,7 @@ class GetStartedScreenTest {
     var reportedError: String? = null
 
     val scenario =
-        launchScreen(
-            viewModel = viewModel,
-            onSignedIn = {},
-            onSignInError = { reportedError = it })
+        launchScreen(viewModel = viewModel, onSignedIn = {}, onSignInError = { reportedError = it })
 
     // Act
     scenario.onActivity { activity -> viewModel.signIn(activity, credentialManager) }
@@ -109,7 +102,8 @@ class GetStartedScreenTest {
     val scenario = ActivityScenario.launch(ComponentActivity::class.java)
     scenario.onActivity { activity ->
       activity.setContent {
-        GetStartedScreen(onSignedIn = onSignedIn, onSignInError = onSignInError, viewModel = viewModel)
+        GetStartedScreen(
+            onSignedIn = onSignedIn, onSignInError = onSignInError, viewModel = viewModel)
       }
     }
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()

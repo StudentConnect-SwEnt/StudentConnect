@@ -39,21 +39,21 @@ data class SignUpState(
  */
 class SignUpViewModel : ViewModel() {
 
-    private val _state = mutableStateOf(SignUpState())
-    val state: State<SignUpState> = _state
+  private val _state = mutableStateOf(SignUpState())
+  val state: State<SignUpState> = _state
 
   private fun update(block: (SignUpState) -> SignUpState) {
     _state.value = block(_state.value)
   }
 
-    // Field updates
-    fun setUserId(userId: String) = update { it.copy(userId = userId.trim().ifBlank { null }) }
+  // Field updates
+  fun setUserId(userId: String) = update { it.copy(userId = userId.trim().ifBlank { null }) }
 
-    fun setFirstName(firstName: String) = update { it.copy(firstName = firstName.trim()) }
+  fun setFirstName(firstName: String) = update { it.copy(firstName = firstName.trim()) }
 
-    fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
+  fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
 
-    fun setBirthdate(birthdate: Long?) = update { it.copy(birthdateMillis = birthdate) }
+  fun setBirthdate(birthdate: Long?) = update { it.copy(birthdateMillis = birthdate) }
 
   fun setNationality(nationality: String) = update {
     it.copy(nationality = nationality.trim().uppercase(Locale.US))

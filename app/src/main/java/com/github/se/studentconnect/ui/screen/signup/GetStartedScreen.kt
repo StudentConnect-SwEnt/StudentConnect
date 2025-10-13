@@ -37,13 +37,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.authentication.AuthRepository
-import com.github.se.studentconnect.ui.theme.AppTheme
+
+// import androidx.compose.ui.tooling.preview.Preview
+// import com.github.se.studentconnect.model.authentication.AuthRepository
+// import com.github.se.studentconnect.ui.theme.AppTheme
 
 object GetStartedScreenTestTags {
   const val CAROUSEL = "getting_started_carousel"
@@ -56,6 +57,17 @@ private data class CarouselItem(
     val contentDescription: String
 )
 
+/**
+ * Primary "Get Started" surface for onboarding.
+ *
+ * The screen presents a carousel, tagline, and Google Sign-In call-to-action. It reacts to
+ * [GetStartedViewModel] state to surface loading, error, and success feedback.
+ *
+ * @param onSignedIn invoked with the Firebase UID once authentication succeeds.
+ * @param onSignInError invoked whenever the sign-in flow emits a user-facing error.
+ * @param viewModel backing view-model exposing authentication state; defaults to the shared
+ *   instance.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -181,25 +193,25 @@ private fun SignInButton(
       }
 }
 
-@Preview(
-    name = "Getting Started – Preview",
-    showBackground = true,
-    backgroundColor = 0xFFF4F1F6,
-    widthDp = 412,
-    heightDp = 915)
-@Composable
-private fun GettingStarted_Preview() {
-  AppTheme {
-    val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
-    GetStartedScreen(onSignedIn = { _ -> }, onSignInError = {}, viewModel = previewViewModel)
-  }
-}
-
-private class PreviewAuthRepository : AuthRepository {
-  override suspend fun signInWithGoogle(
-      credential: androidx.credentials.Credential
-  ): Result<com.google.firebase.auth.FirebaseUser> =
-      Result.failure(UnsupportedOperationException("Preview only"))
-
-  override fun signOut(): Result<Unit> = Result.success(Unit)
-}
+// @Preview(
+//    name = "Getting Started – Preview",
+//    showBackground = true,
+//    backgroundColor = 0xFFF4F1F6,
+//    widthDp = 412,
+//    heightDp = 915)
+// @Composable
+// private fun GettingStarted_Preview() {
+//  AppTheme {
+//    val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
+//    GetStartedScreen(onSignedIn = { _ -> }, onSignInError = {}, viewModel = previewViewModel)
+//  }
+// }
+//
+// private class PreviewAuthRepository : AuthRepository {
+//  override suspend fun signInWithGoogle(
+//      credential: androidx.credentials.Credential
+//  ): Result<com.google.firebase.auth.FirebaseUser> =
+//      Result.failure(UnsupportedOperationException("Preview only"))
+//
+//  override fun signOut(): Result<Unit> = Result.success(Unit)
+// }

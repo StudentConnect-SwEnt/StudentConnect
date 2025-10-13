@@ -54,10 +54,7 @@ class GetStartedScreenBranchTest {
     val scenario = ActivityScenario.launch(ComponentActivity::class.java)
     scenario.onActivity { activity ->
       activity.setContent {
-        GetStartedScreen(
-            onSignedIn = {},
-            onSignInError = { reported = it },
-            viewModel = viewModel)
+        GetStartedScreen(onSignedIn = {}, onSignInError = { reported = it }, viewModel = viewModel)
       }
     }
 
@@ -77,8 +74,7 @@ class GetStartedScreenBranchTest {
     val scenario = ActivityScenario.launch(ComponentActivity::class.java)
     scenario.onActivity { activity ->
       activity.setContent {
-        GetStartedScreen(
-            onSignedIn = { received = it }, onSignInError = {}, viewModel = viewModel)
+        GetStartedScreen(onSignedIn = { received = it }, onSignInError = {}, viewModel = viewModel)
       }
     }
 
