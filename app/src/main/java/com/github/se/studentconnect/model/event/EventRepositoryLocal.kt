@@ -1,7 +1,6 @@
 // Portions of this code were generated with the help of Gemini
 package com.github.se.studentconnect.model.event
 
-import com.github.se.studentconnect.model.User
 import java.util.UUID
 
 /**
@@ -35,7 +34,6 @@ class EventRepositoryLocal : EventRepository {
 
   override suspend fun addEvent(event: Event) {
     if (events.any { it.uid == event.uid }) {
-      // This throws IllegalArgumentException, which is standard for invalid parameters.
       throw IllegalArgumentException("Event with UID ${event.uid} already exists.")
     }
     events.add(event)
@@ -43,13 +41,11 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun editEvent(eventUid: String, newEvent: Event) {
-    // 'require' correctly throws IllegalArgumentException for precondition failures.
     require(eventUid == newEvent.uid) { "Event UID mismatch" }
     val index = events.indexOfFirst { it.uid == eventUid }
     if (index != -1) {
       events[index] = newEvent
     } else {
-      // Throws NoSuchElementException when the item to edit isn't found.
       throw NoSuchElementException("Cannot edit. Event with UID $eventUid not found.")
     }
   }
@@ -57,7 +53,6 @@ class EventRepositoryLocal : EventRepository {
   override suspend fun deleteEvent(eventUid: String) {
     val removed = events.removeIf { it.uid == eventUid }
     if (!removed) {
-      // Throws NoSuchElementException when the item to delete isn't found.
       throw NoSuchElementException("Cannot delete. Event with UID $eventUid not found.")
     }
     participantsByEvent.remove(eventUid)
@@ -77,7 +72,11 @@ class EventRepositoryLocal : EventRepository {
     participants.add(participant)
   }
 
-  override suspend fun addInvitationToEvent(eventUid: String, invitedUser: User) {
+  override suspend fun addInvitationToEvent(
+      eventUid: String,
+      invitedUser: String,
+      currentUserId: String
+  ) {
     TODO("Not yet implemented")
   }
 
@@ -89,7 +88,6 @@ class EventRepositoryLocal : EventRepository {
 
     val removed = participants.removeIf { it.uid == participantUid }
     if (!removed) {
-      // Throws NoSuchElementException when the participant to remove isn't found in the list.
       throw NoSuchElementException(
           "Participant with UID $participantUid not found in event $eventUid.")
     }

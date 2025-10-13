@@ -18,22 +18,17 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-// Implémentation factice (dummy) pour satisfaire la dépendance du ViewModel
 class UserRepositoryDummy : UserRepository {
   private val joinedEventsByUser = mutableMapOf<String, MutableList<String>>()
 
-  // Implémentation réelle mais simplifiée de la méthode
   override suspend fun getJoinedEvents(userId: String): List<String> {
-    // Retourne la liste des IDs pour l'utilisateur, ou une liste vide s'il n'a rien rejoint.
     return joinedEventsByUser[userId] ?: emptyList()
   }
 
-  // Méthode de test pour ajouter un événement à un utilisateur
   override suspend fun addEventToUser(eventId: String, userId: String) {
     joinedEventsByUser.getOrPut(userId) { mutableListOf() }.add(eventId)
   }
 
-  // Implémentation réelle mais simplifiée de la méthode pour la suppression
   override suspend fun leaveEvent(eventId: String, userId: String) {
     joinedEventsByUser[userId]?.remove(eventId)
   }
@@ -165,7 +160,7 @@ class ActivitiesViewModelTest {
 
     // Act
     viewModel.refreshEvents(testUserId)
-    advanceUntilIdle() // Exécute les coroutines en attente
+    advanceUntilIdle() // wait for all coroutines to finish
 
     // Assert
     val uiState = viewModel.uiState.value

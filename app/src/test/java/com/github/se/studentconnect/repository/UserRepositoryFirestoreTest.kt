@@ -10,7 +10,9 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -90,12 +92,10 @@ class UserRepositoryFirestoreTest {
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(false)
-
-    // Act
-    val result = repository.getUserById("nonexistent")
-
     // Assert
-    assert(result == null)
+    assertThrows(IllegalArgumentException::class.java) {
+      runBlocking { repository.getUserById("nonexistent") }
+    }
   }
 
   @Test
@@ -144,12 +144,10 @@ class UserRepositoryFirestoreTest {
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
-
-    // Act
-    val result = repository.getUserByEmail("notfound@epfl.ch")
-
     // Assert
-    assert(result == null)
+    assertThrows(IllegalArgumentException::class.java) {
+      runBlocking { repository.getUserByEmail("notfound@epfl.ch") }
+    }
   }
 
   @Test
@@ -805,5 +803,182 @@ class UserRepositoryFirestoreTest {
     verify(mockInvitationDoc).get()
     verify(mockJoinedDoc).set(any())
     verify(mockInvitationDoc).delete()
+  }
+  // Add these tests to the existing UserRepositoryFirestoreTest class
+
+  @Test
+  fun testGetUserByIdThrowsException() = runTest {
+    // Arrange
+    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(false)
+
+    // Act & Assert
+    try {
+      repository.getUserById("nonexistent")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("No user found with ID"))
+    }
+  }
+
+  @Test
+  fun testGetUserByEmailThrowsException() = runTest {
+    // Arrange
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))
+        .thenReturn(mockQuery)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
+
+    // Act & Assert
+    try {
+      repository.getUserByEmail("notfound@epfl.ch")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("No user found with email"))
+    }
+  }
+
+  @Test
+  fun testLeaveEventSuccess() = runTest {
+    // Arrange
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act
+    repository.leaveEvent("event123", "user123")
+
+    // Assert
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).delete()
+  }
+
+  @Test
+  fun testLeaveEventFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.leaveEvent("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testSendInvitationSuccess() = runTest {
+    // Arrange
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockEventSnapshot: DocumentSnapshot = mock()
+    val mockInvitedUserDoc: DocumentReference = mock()
+    val mockInvitationsCollection: CollectionReference = mock()
+    val mockInvitationDoc: DocumentReference = mock()
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(Tasks.forResult(mockEventSnapshot))
+    whenever(mockEventSnapshot.getString("ownerId")).thenReturn("user123")
+
+    whenever(mockCollectionReference.document("user456")).thenReturn(mockInvitedUserDoc)
+    whenever(mockInvitedUserDoc.collection("invitations")).thenReturn(mockInvitationsCollection)
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.set(any())).thenReturn(Tasks.forResult(null))
+
+    // Act
+    repository.sendInvitation("event123", "user123", "user456")
+
+    // Assert
+    verify(mockInvitationDoc).set(any())
+  }
+
+  @Test
+  fun testSendInvitationNotOwner() = runTest {
+    // Arrange
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockEventSnapshot: DocumentSnapshot = mock()
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(Tasks.forResult(mockEventSnapshot))
+    whenever(mockEventSnapshot.getString("ownerId")).thenReturn("owner123")
+
+    // Act & Assert
+    try {
+      repository.sendInvitation("event123", "user456", "user789")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("not the owner"))
+    }
+  }
+
+  @Test
+  fun testSendInvitationFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<DocumentSnapshot> = Tasks.forException(exception)
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.sendInvitation("event123", "user123", "user456")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetJoinedEventsFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.getJoinedEvents("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testAddEventToUserFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.addEventToUser("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
   }
 }

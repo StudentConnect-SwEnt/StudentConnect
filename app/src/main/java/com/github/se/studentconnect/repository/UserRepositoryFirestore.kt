@@ -1,8 +1,10 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
 import com.github.se.studentconnect.ui.activities.Invitation
 import com.github.se.studentconnect.ui.activities.InvitationStatus
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -26,7 +28,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     return if (document.exists()) {
       User.fromMap(document.data ?: emptyMap())
     } else {
-      null
+      throw IllegalArgumentException("No user found with ID: $userId")
     }
   }
 
@@ -37,7 +39,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
       val document = querySnapshot.documents.first()
       User.fromMap(document.data ?: emptyMap())
     } else {
-      null
+      throw IllegalArgumentException("No user found with email: $email")
     }
   }
 
@@ -146,18 +148,11 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     val document =
         db.collection(COLLECTION_NAME).document(userId).collection(INVITATIONS).get().await()
     return document.documents.mapNotNull { doc ->
-      val statusString = doc.getString("status") ?: InvitationStatus.Pending.name
-      val status =
-          try {
-            InvitationStatus.valueOf(statusString)
-          } catch (e: IllegalArgumentException) {
-            InvitationStatus.Pending
-          }
-
       Invitation(
-          eventId = doc.getString("eventId") ?: doc.id,
-          from = doc.getString("from") ?: "",
-          status = status,
+          eventId = doc.getString("eventId")!!,
+          from = doc.getString("from")!!,
+          status =
+              InvitationStatus.valueOf(doc.getString("status") ?: InvitationStatus.Pending.name),
           timestamp = doc.getTimestamp("timestamp"))
     }
   }
@@ -168,7 +163,9 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     val joinedRef = userDoc.collection(JOINED_EVENT).document(eventId)
 
     val snapshot = invitationRef.get().await()
-    if (!snapshot.exists()) return
+    if (!snapshot.exists())
+        throw IllegalArgumentException(
+            "No invitation " + "found to event with ID : ${eventId} for user ID: $userId")
     joinedRef.set(mapOf("eventId" to eventId, "timestamp" to FieldValue.serverTimestamp())).await()
     invitationRef.delete().await()
   }
@@ -183,12 +180,12 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
   }
 
   override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
+    val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
+    if (event.getString("ownerId") != fromUserId) {
+      throw IllegalArgumentException("User $fromUserId is not the owner of event $eventId")
+    }
     val invitationData =
-        mapOf(
-            "eventId" to eventId,
-            "from" to fromUserId,
-            "status" to InvitationStatus.Pending.name,
-            "timestamp" to FieldValue.serverTimestamp())
+        Invitation(eventId, fromUserId, InvitationStatus.Pending, timestamp = Timestamp.now())
     db.collection(COLLECTION_NAME)
         .document(toUserId)
         .collection(INVITATIONS)

@@ -1,7 +1,5 @@
 package com.github.se.studentconnect.model.event
 
-import com.github.se.studentconnect.model.User
-
 /** Represents a repository that manages events. */
 interface EventRepository {
 
@@ -80,8 +78,8 @@ interface EventRepository {
    */
   suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant)
 
-  /** adds an invitation (a participant with pending status) to a given event. */
-  suspend fun addInvitationToEvent(eventUid: String, invitedUser: User)
+  /** Adds an invitation (a participant with pending status) to a given event. */
+  suspend fun addInvitationToEvent(eventUid: String, invitedUser: String, currentUserId: String)
 
   /**
    * Removes a participant from a given event.
