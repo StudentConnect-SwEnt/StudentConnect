@@ -76,10 +76,14 @@ fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: 
     }
   }
 
-  val nameText = signUpState.firstName
-  val isNameValid = nameText.isNotBlank()
+  val firstNameText = signUpState.firstName
+  val lastNameText = signUpState.lastName
+  val isFirstNameValid = firstNameText.isNotBlank()
+  val isLastNameValid = lastNameText.isNotBlank()
   val isContinueEnabled =
-      remember(isNameValid, isBirthdateValid) { isNameValid && isBirthdateValid }
+      remember(isFirstNameValid, isLastNameValid, isBirthdateValid) {
+        isFirstNameValid && isLastNameValid && isBirthdateValid
+      }
 
   Column(
       modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
@@ -114,11 +118,21 @@ fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: 
         Spacer(Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = nameText,
+            value = firstNameText,
             onValueChange = { text -> viewModel.setFirstName(text) },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Name") },
-            placeholder = { Text("Enter your name") },
+            label = { Text("First name") },
+            placeholder = { Text("Enter your first name") },
+            singleLine = true)
+
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = lastNameText,
+            onValueChange = { text -> viewModel.setLastName(text) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Last name") },
+            placeholder = { Text("Enter your last name") },
             singleLine = true)
 
         Spacer(Modifier.height(16.dp))
