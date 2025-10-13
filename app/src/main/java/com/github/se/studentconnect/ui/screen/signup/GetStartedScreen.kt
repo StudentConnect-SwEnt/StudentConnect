@@ -67,6 +67,9 @@ private data class CarouselItem(
  * @param onSignInError invoked whenever the sign-in flow emits a user-facing error.
  * @param viewModel backing view-model exposing authentication state; defaults to the shared
  *   instance.
+ * @param context ambient context used for launching Credential Manager; defaults to
+ *   [LocalContext.current].
+ * @param credentialManager optional override for dependency injection / tests.
  */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,10 +77,10 @@ private data class CarouselItem(
 fun GetStartedScreen(
     onSignedIn: (String) -> Unit,
     onSignInError: (String) -> Unit = {},
-    viewModel: GetStartedViewModel = viewModel()
+    viewModel: GetStartedViewModel = viewModel(),
+    context: android.content.Context = LocalContext.current,
+    credentialManager: CredentialManager = remember(context) { CredentialManager.create(context) }
 ) {
-  val context = LocalContext.current
-  val credentialManager = CredentialManager.create(context)
   val uiState by viewModel.uiState.collectAsState()
   var errorMessage by remember { mutableStateOf<String?>(null) }
 

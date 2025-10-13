@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.credentials.CredentialManager
-import androidx.test.core.app.ActivityScenario
 import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.every
@@ -20,6 +19,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.Robolectric
 import org.robolectric.shadows.ShadowLooper
 
 @RunWith(RobolectricTestRunner::class)
@@ -48,40 +48,52 @@ class GetStartedScreenBranchTest {
   @Test
   fun `error state invokes onSignInError and clears message`() {
     val error = "display me"
-    stateFlow.value = AuthUIState(errorMsg = error)
     var reported: String? = null
 
-    val scenario = ActivityScenario.launch(ComponentActivity::class.java)
-    scenario.onActivity { activity ->
-      activity.setContent {
-        GetStartedScreen(onSignedIn = {}, onSignInError = { reported = it }, viewModel = viewModel)
-      }
+    val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+    val activity = controller.get()
+    activity.setContent {
+      GetStartedScreen(
+          onSignedIn = {},
+          onSignInError = { reported = it },
+          viewModel = viewModel,
+          context = activity,
+          credentialManager = CredentialManager.create(activity))
     }
 
+    stateFlow.value = AuthUIState(errorMsg = error)
+    Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
     assertEquals(error, reported)
     assertNull(stateFlow.value.errorMsg)
-    scenario.close()
+    controller.pause().stop().destroy()
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
   @Test
   fun `signed in state forwards uid`() {
     val fakeUser = mockk<FirebaseUser> { every { uid } returns "uid-42" }
-    stateFlow.value = AuthUIState(user = fakeUser)
     var received: String? = null
 
-    val scenario = ActivityScenario.launch(ComponentActivity::class.java)
-    scenario.onActivity { activity ->
-      activity.setContent {
-        GetStartedScreen(onSignedIn = { received = it }, onSignInError = {}, viewModel = viewModel)
-      }
+    val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+    val activity = controller.get()
+    activity.setContent {
+      GetStartedScreen(
+          onSignedIn = { received = it },
+          onSignInError = {},
+          viewModel = viewModel,
+          context = activity,
+          credentialManager = CredentialManager.create(activity))
     }
 
+    stateFlow.value = AuthUIState(user = fakeUser)
+    Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
     assertEquals("uid-42", received)
-    scenario.close()
+    controller.pause().stop().destroy()
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
   private class NoopAuthRepository : AuthRepository {

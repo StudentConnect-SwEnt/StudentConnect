@@ -8,7 +8,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.test.core.app.ActivityScenario
+import org.robolectric.Robolectric
 import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
@@ -58,18 +58,18 @@ class GetStartedScreenTest {
     val viewModel = GetStartedViewModel(repository)
     var capturedUid: String? = null
 
-    val scenario =
-        launchScreen(viewModel = viewModel, onSignedIn = { capturedUid = it }, onSignInError = {})
+    val controller = launchController(viewModel, { capturedUid = it }, {})
+    val activity = controller.get()
 
-    // Act
-    scenario.onActivity { activity -> viewModel.signIn(activity, credentialManager) }
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    viewModel.signIn(activity, credentialManager)
+    Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-    // Assert
     assertEquals("uid-123", capturedUid)
     assertEquals(credential, repository.recordedCredential)
-    scenario.close()
+
+    controller.pause().stop().destroy()
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
   @Test
@@ -80,35 +80,37 @@ class GetStartedScreenTest {
     val viewModel = GetStartedViewModel(repository)
     var reportedError: String? = null
 
-    val scenario =
-        launchScreen(viewModel = viewModel, onSignedIn = {}, onSignInError = { reportedError = it })
+    val controller = launchController(viewModel, {}, { reportedError = it })
+    val activity = controller.get()
 
-    // Act
-    scenario.onActivity { activity -> viewModel.signIn(activity, credentialManager) }
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    viewModel.signIn(activity, credentialManager)
+    Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-    // Assert
     assertEquals(error.localizedMessage, reportedError)
     assertEquals(credential, repository.recordedCredential)
-    scenario.close()
+
+    controller.pause().stop().destroy()
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
-  private fun launchScreen(
+  private fun launchController(
       viewModel: GetStartedViewModel,
       onSignedIn: (String) -> Unit,
       onSignInError: (String) -> Unit
-  ): ActivityScenario<ComponentActivity> {
-    val scenario = ActivityScenario.launch(ComponentActivity::class.java)
-    scenario.onActivity { activity ->
-      activity.setContent {
-        GetStartedScreen(
-            onSignedIn = onSignedIn, onSignInError = onSignInError, viewModel = viewModel)
+  ) =
+      Robolectric.buildActivity(ComponentActivity::class.java).apply {
+        setup()
+        get().setContent {
+          GetStartedScreen(
+              onSignedIn = onSignedIn,
+              onSignInError = onSignInError,
+              viewModel = viewModel,
+              context = get(),
+              credentialManager = credentialManager)
+        }
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
       }
-    }
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
-    return scenario
-  }
 
   private class RecordingAuthRepository(private val result: Result<FirebaseUser>) : AuthRepository {
     var recordedCredential: Credential? = null
