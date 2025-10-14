@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NavigationComponentsTest {
 
+  /** Test to verify that route constants are correctly defined. */
   @Test
   fun routes_haveCorrectConstants() {
     assertEquals("auth", Route.AUTH)
@@ -24,6 +25,7 @@ class NavigationComponentsTest {
     assertEquals("profile", Route.PROFILE)
   }
 
+  /** Test to verify that the screens have correct properties. */
   @Test
   fun screens_haveCorrectProperties() {
     val expectedScreens =
@@ -44,6 +46,7 @@ class NavigationComponentsTest {
     }
   }
 
+  /** Test to verify that the tabs have correct properties. */
   @Test
   fun tabs_haveCorrectProperties() {
     val expectedTabs =
@@ -54,13 +57,15 @@ class NavigationComponentsTest {
             Tab.Profile to Triple("Profile", R.drawable.ic_user, Screen.Profile))
 
     expectedTabs.forEach { (tab, expected) ->
-      assertEquals("Name mismatch for ${tab::class.simpleName}", expected.first, tab.name)
+      assertEquals(
+          "Name mismatch for ${tab::class.simpleName}", expected.first, tab.destination.name)
       assertEquals("Icon mismatch for ${tab::class.simpleName}", expected.second, tab.icon)
       assertEquals(
           "Destination mismatch for ${tab::class.simpleName}", expected.third, tab.destination)
     }
   }
 
+  /** Test to verify that bottom navigation tabs are correctly configured. */
   @Test
   fun bottomNavigationTabs_isCorrectlyConfigured() {
     val expectedTabs = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile)
@@ -69,10 +74,11 @@ class NavigationComponentsTest {
     assertEquals("Incorrect tab order", expectedTabs, bottomNavigationTabs)
 
     expectedTabs.forEach { tab ->
-      assertTrue("Missing tab: ${tab.name}", bottomNavigationTabs.contains(tab))
+      assertTrue("Missing tab: ${tab.destination.name}", bottomNavigationTabs.contains(tab))
     }
   }
 
+  /** Test to verify that the navigation structure maintains consistency. */
   @Test
   fun navigationStructure_maintainsConsistency() {
     val topLevelScreens = listOf(Screen.Home, Screen.Map, Screen.Activities, Screen.Profile)
