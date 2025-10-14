@@ -28,6 +28,7 @@ class NavigationBarTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  /** Test to verify that all components of the BottomNavigationBar are displayed correctly. */
   @Test
   fun bottomNavigationBar_displaysAllComponents() {
     composeTestRule.setContent {
@@ -45,6 +46,7 @@ class NavigationBarTest {
     composeTestRule.onNodeWithContentDescription("Add").assertIsDisplayed()
   }
 
+  /** Test to verify that the BottomNavigationBar displays the correct labels for each tab. */
   @Test
   fun bottomNavigationBar_showsCorrectLabels() {
     composeTestRule.setContent {
@@ -59,6 +61,7 @@ class NavigationBarTest {
     composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
   }
 
+  /** Test to verify that tab selection updates the selected state correctly. */
   @Test
   fun bottomNavigationBar_tabSelectionWorks() {
     composeTestRule.setContent {
@@ -67,7 +70,8 @@ class NavigationBarTest {
         BottomNavigationBar(
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
-            onCenterButtonClick = {})
+            onCenterButtonClick = {},
+        )
       }
     }
 
@@ -86,6 +90,7 @@ class NavigationBarTest {
     composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsNotSelected()
   }
 
+  /** Test to verify that clicking the center button triggers the provided callback. */
   @Test
   fun bottomNavigationBar_centerButtonClickWorks() {
     var clickCount = 0
@@ -93,7 +98,10 @@ class NavigationBarTest {
     composeTestRule.setContent {
       AppTheme {
         BottomNavigationBar(
-            selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = { clickCount++ })
+            selectedTab = Tab.Home,
+            onTabSelected = {},
+            onCenterButtonClick = { clickCount++ },
+        )
       }
     }
 
@@ -104,6 +112,7 @@ class NavigationBarTest {
     composeTestRule.runOnIdle { assert(clickCount == 3) }
   }
 
+  /** Test to verify that the BottomNavigationBar handles default parameters correctly. */
   @Test
   fun bottomNavigationBar_handlesDefaultParameters() {
     composeTestRule.setContent {
@@ -114,6 +123,7 @@ class NavigationBarTest {
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
   }
 
+  /** Test to verify that a custom modifier is applied correctly to the BottomNavigationBar. */
   @Test
   fun bottomNavigationBar_supportsCustomModifier() {
     composeTestRule.setContent {
@@ -122,7 +132,8 @@ class NavigationBarTest {
             selectedTab = Tab.Home,
             onTabSelected = {},
             onCenterButtonClick = {},
-            modifier = Modifier.testTag("custom_navigation"))
+            modifier = Modifier.testTag("custom_navigation"),
+        )
       }
     }
 
@@ -130,6 +141,9 @@ class NavigationBarTest {
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
   }
 
+  /**
+   * Test to verify that the BottomNavigationBar maintains selection state across recompositions.
+   */
   @Test
   fun bottomNavigationBar_maintainsSelectionState() {
     composeTestRule.setContent {

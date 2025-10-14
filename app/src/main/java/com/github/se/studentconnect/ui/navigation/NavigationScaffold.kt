@@ -14,23 +14,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 
+/**
+ * A bottom navigation bar with four tabs and a centered action button.
+ *
+ * @param modifier Modifier to be applied to the navigation bar.
+ * @param selectedTab The currently selected tab.
+ * @param onTabSelected Callback when a tab is selected.
+ * @param onCenterButtonClick Callback when the center button is clicked.
+ */
 @Composable
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
-    onCenterButtonClick: () -> Unit = {}
+    onCenterButtonClick: () -> Unit = {},
 ) {
   Box(modifier = modifier.fillMaxWidth()) {
     NavigationBar(
         modifier =
             Modifier.fillMaxWidth()
-                .height(64.dp)
+                .height(LocalConfiguration.current.screenHeightDp.dp * 0.1f)
                 .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
         windowInsets = WindowInsets(12.dp, 0.dp, 12.dp, 0.dp),
     ) {
@@ -38,7 +47,7 @@ fun BottomNavigationBar(
       bottomNavigationTabs.take(2).forEach { tab ->
         NavigationBarItem(
             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-            label = { Text(tab.name) },
+            label = { Text(tab.destination.name) },
             selected = tab == selectedTab,
             onClick = { onTabSelected(tab) },
             modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
@@ -52,7 +61,7 @@ fun BottomNavigationBar(
       bottomNavigationTabs.drop(2).forEach { tab ->
         NavigationBarItem(
             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-            label = { Text(tab.name) },
+            label = { Text(tab.destination.name) },
             selected = tab == selectedTab,
             onClick = { onTabSelected(tab) },
             modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
@@ -69,6 +78,7 @@ fun BottomNavigationBar(
             Modifier.align(Alignment.Center)
                 .width(64.dp)
                 .clickable { onCenterButtonClick() }
-                .testTag("center_add_button"))
+                .testTag("center_add_button"),
+    )
   }
 }

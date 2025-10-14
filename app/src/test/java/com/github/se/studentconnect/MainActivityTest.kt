@@ -8,12 +8,14 @@ import org.junit.Test
 
 class MainActivityTest {
 
+  /** Test to verify that HttpClientProvider provides a default OkHttpClient instance. */
   @Test
   fun httpClientProvider_hasDefaultClient() {
     assertNotNull(HttpClientProvider.client)
     assertTrue(HttpClientProvider.client is OkHttpClient)
   }
 
+  /** Test to verify that HttpClientProvider allows setting a new OkHttpClient instance. */
   @Test
   fun httpClientProvider_clientIsMutable() {
     val originalClient = HttpClientProvider.client
@@ -25,26 +27,31 @@ class MainActivityTest {
     HttpClientProvider.client = originalClient
   }
 
+  /** Test to verify that Home tab object has correct destination. */
   @Test
   fun tab_homeDestination_isCorrect() {
     assertEquals(Route.HOME, Tab.Home.destination.route)
   }
 
+  /** Test to verify that Map tab object has correct destination. */
   @Test
   fun tab_mapDestination_isCorrect() {
     assertEquals(Route.MAP, Tab.Map.destination.route)
   }
 
+  /** Test to verify that Activities tab object has correct destination. */
   @Test
   fun tab_activitiesDestination_isCorrect() {
     assertEquals(Route.ACTIVITIES, Tab.Activities.destination.route)
   }
 
+  /** Test to verify that Profile tab object has correct destination. */
   @Test
   fun tab_profileDestination_isCorrect() {
     assertEquals(Route.PROFILE, Tab.Profile.destination.route)
   }
 
+  /** Test to verify that route constants are not empty strings. */
   @Test
   fun route_constants_areNotEmpty() {
     assertFalse(Route.HOME.isEmpty())
@@ -53,12 +60,14 @@ class MainActivityTest {
     assertFalse(Route.PROFILE.isEmpty())
   }
 
+    /** Test to verify that HttpClientProvider client is not null. */
   @Test
   fun httpClientProvider_clientIsNotNull() {
     val client = HttpClientProvider.client
     assertNotNull("HttpClientProvider client should not be null", client)
   }
 
+  /** Test to verify that Tab objects are not null. */
   @Test
   fun tab_values_exist() {
     assertNotNull(Tab.Home)
@@ -67,6 +76,7 @@ class MainActivityTest {
     assertNotNull(Tab.Profile)
   }
 
+  /** Test to verify that Tab objects have valid (non-empty) destination routes. */
   @Test
   fun tab_destinations_areValid() {
     assertTrue(Tab.Home.destination.route.isNotEmpty())
@@ -75,6 +85,7 @@ class MainActivityTest {
     assertTrue(Tab.Profile.destination.route.isNotEmpty())
   }
 
+    /** Test to verify that a new OkHttpClient can be created. */
   @Test
   fun httpClientProvider_canCreateNewClient() {
     val newClient = OkHttpClient.Builder().build()
@@ -82,14 +93,7 @@ class MainActivityTest {
     assertTrue(newClient is OkHttpClient)
   }
 
-  @Test
-  fun tab_names_areCorrect() {
-    assertEquals("Home", Tab.Home.name)
-    assertEquals("Map", Tab.Map.name)
-    assertEquals("Activities", Tab.Activities.name)
-    assertEquals("Profile", Tab.Profile.name)
-  }
-
+  /** Test to verify that Tab icons are not zero. */
   @Test
   fun tab_icons_areNotZero() {
     assertTrue(Tab.Home.icon != 0)
@@ -98,6 +102,7 @@ class MainActivityTest {
     assertTrue(Tab.Profile.icon != 0)
   }
 
+  /** Test to verify that Tab objects have correct destination routes. */
   @Test
   fun tab_destinations_haveCorrectRoutes() {
     assertEquals("home", Tab.Home.destination.route)
@@ -106,6 +111,7 @@ class MainActivityTest {
     assertEquals("profile", Tab.Profile.destination.route)
   }
 
+    /** Test to verify that Tab objects have correct destination names. */
   @Test
   fun tab_destinations_haveCorrectNames() {
     assertEquals("Home", Tab.Home.destination.name)
@@ -114,6 +120,7 @@ class MainActivityTest {
     assertEquals("Profile", Tab.Profile.destination.name)
   }
 
+    /** Test to verify that Tab destinations are marked as top level destinations. */
   @Test
   fun tab_destinations_areTopLevelDestinations() {
     assertTrue(Tab.Home.destination.isTopLevelDestination)
@@ -122,6 +129,7 @@ class MainActivityTest {
     assertTrue(Tab.Profile.destination.isTopLevelDestination)
   }
 
+    /** Test to verify that route constants have expected values. */
   @Test
   fun route_constants_haveExpectedValues() {
     assertEquals("home", Route.HOME)
@@ -131,6 +139,7 @@ class MainActivityTest {
     assertEquals("auth", Route.AUTH)
   }
 
+  /** Test to verify that HttpClientProvider client can be replaced and restored. */
   @Test
   fun httpClientProvider_clientCanBeReplacedAndRestored() {
     val originalClient = HttpClientProvider.client
@@ -149,6 +158,7 @@ class MainActivityTest {
     assertEquals(originalClient, HttpClientProvider.client)
   }
 
+  /** Test to verify that Tab objects have unique routes. */
   @Test
   fun tab_allTabsHaveUniqueRoutes() {
     val routes = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile).map { it.destination.route }
@@ -156,13 +166,15 @@ class MainActivityTest {
     assertEquals(routes.size, uniqueRoutes.size)
   }
 
+  /** Test to verify that Tab objects have unique destination names. */
   @Test
   fun tab_allTabsHaveUniqueNames() {
-    val names = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile).map { it.name }
+    val names = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile).map { it.destination.name }
     val uniqueNames = names.toSet()
     assertEquals(names.size, uniqueNames.size)
   }
 
+    /** Test to verify that Tab objects have unique icons. */
   @Test
   fun tab_allTabsHaveUniqueIcons() {
     val icons = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile).map { it.icon }
