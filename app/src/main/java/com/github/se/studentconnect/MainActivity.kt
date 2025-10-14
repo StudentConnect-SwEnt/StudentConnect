@@ -49,9 +49,10 @@ class MainActivity : ComponentActivity() {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-            color = MaterialTheme.colorScheme.background) {
-              MainContent()
-            }
+            color = MaterialTheme.colorScheme.background,
+        ) {
+          MainContent()
+        }
       }
     }
   }
@@ -75,18 +76,21 @@ fun MainContent() {
             },
             onCenterButtonClick = {
               // Handle center button click - placeholder for now
-            })
-      }) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Route.HOME,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }) {
-              composable(Route.HOME) { HomeScreen() }
-              composable(Route.MAP) { MapScreen() }
-              composable(Route.ACTIVITIES) { ActivitiesScreen() }
-              composable(Route.PROFILE) { ProfileScreen() }
-            }
+            },
+        )
       }
+  ) { paddingValues ->
+    NavHost(
+        navController = navController,
+        startDestination = Route.HOME,
+        modifier = Modifier.padding(paddingValues),
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+    ) {
+      composable(Route.HOME) { HomeScreen() }
+      composable(Route.MAP) { MapScreen() }
+      composable(Route.ACTIVITIES) { ActivitiesScreen() }
+      composable(Route.PROFILE) { ProfileScreen() }
+    }
+  }
 }

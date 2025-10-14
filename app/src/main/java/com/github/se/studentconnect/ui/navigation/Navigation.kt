@@ -2,7 +2,7 @@ package com.github.se.studentconnect.ui.navigation
 
 import com.github.se.studentconnect.R
 
-/** List of possible routes in the navigation bar **/
+/** List of possible routes in the navigation bar * */
 object Route {
   const val AUTH = "auth"
   const val HOME = "home"

@@ -60,7 +60,7 @@ class MainActivityTest {
     assertFalse(Route.PROFILE.isEmpty())
   }
 
-    /** Test to verify that HttpClientProvider client is not null. */
+  /** Test to verify that HttpClientProvider client is not null. */
   @Test
   fun httpClientProvider_clientIsNotNull() {
     val client = HttpClientProvider.client
@@ -85,7 +85,7 @@ class MainActivityTest {
     assertTrue(Tab.Profile.destination.route.isNotEmpty())
   }
 
-    /** Test to verify that a new OkHttpClient can be created. */
+  /** Test to verify that a new OkHttpClient can be created. */
   @Test
   fun httpClientProvider_canCreateNewClient() {
     val newClient = OkHttpClient.Builder().build()
@@ -111,7 +111,7 @@ class MainActivityTest {
     assertEquals("profile", Tab.Profile.destination.route)
   }
 
-    /** Test to verify that Tab objects have correct destination names. */
+  /** Test to verify that Tab objects have correct destination names. */
   @Test
   fun tab_destinations_haveCorrectNames() {
     assertEquals("Home", Tab.Home.destination.name)
@@ -120,7 +120,7 @@ class MainActivityTest {
     assertEquals("Profile", Tab.Profile.destination.name)
   }
 
-    /** Test to verify that Tab destinations are marked as top level destinations. */
+  /** Test to verify that Tab destinations are marked as top level destinations. */
   @Test
   fun tab_destinations_areTopLevelDestinations() {
     assertTrue(Tab.Home.destination.isTopLevelDestination)
@@ -129,7 +129,7 @@ class MainActivityTest {
     assertTrue(Tab.Profile.destination.isTopLevelDestination)
   }
 
-    /** Test to verify that route constants have expected values. */
+  /** Test to verify that route constants have expected values. */
   @Test
   fun route_constants_haveExpectedValues() {
     assertEquals("home", Route.HOME)
@@ -174,7 +174,7 @@ class MainActivityTest {
     assertEquals(names.size, uniqueNames.size)
   }
 
-    /** Test to verify that Tab objects have unique icons. */
+  /** Test to verify that Tab objects have unique icons. */
   @Test
   fun tab_allTabsHaveUniqueIcons() {
     val icons = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile).map { it.icon }
