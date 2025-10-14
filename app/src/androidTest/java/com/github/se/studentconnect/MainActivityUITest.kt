@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,21 +23,21 @@ class MainActivityUITest {
   @Test
   fun mainActivity_displaysCorrectly() {
     composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
   }
 
   /** Test to verify that navigation to the Activities tab works correctly. */
   @Test
   fun mainActivity_navigationToActivitiesWorks() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsSelected()
   }
 
   /** Test to verify that navigation to the Profile tab works correctly. */
   @Test
   fun mainActivity_navigationToProfileWorks() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsSelected()
   }
 
   /** Test to verify that navigation to the center button doesn't crash the app on one click. */
@@ -60,10 +59,10 @@ class MainActivityUITest {
   /** Test to verify that all tabs in the bottom navigation bar are displayed correctly. */
   @Test
   fun mainActivity_allTabsAreDisplayed() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsDisplayed()
     composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
   }
 
@@ -76,10 +75,10 @@ class MainActivityUITest {
   /** Test to verify that clicking the already selected Home tab does not change the selection. */
   @Test
   fun mainActivity_singleTopNavigation() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
   }
 
   /**
@@ -89,6 +88,6 @@ class MainActivityUITest {
   @Test
   fun mainActivity_scaffoldStructureIsCorrect() {
     composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
   }
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.resources.C
 
 /**
  * A bottom navigation bar with four tabs and a centered action button.
@@ -40,7 +41,7 @@ fun BottomNavigationBar(
         modifier =
             Modifier.fillMaxWidth()
                 .height(LocalConfiguration.current.screenHeightDp.dp * 0.1f)
-                .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
+                .testTag(C.Tag.bottom_navigation_menu),
         windowInsets = WindowInsets(12.dp, 0.dp, 12.dp, 0.dp),
     ) {
       // First two tabs (Home, Map)
@@ -50,7 +51,7 @@ fun BottomNavigationBar(
             label = { Text(tab.destination.name) },
             selected = tab == selectedTab,
             onClick = { onTabSelected(tab) },
-            modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
+            modifier = Modifier.testTag(C.Tag.getTabTestTag(tab)),
         )
       }
 
@@ -64,7 +65,7 @@ fun BottomNavigationBar(
             label = { Text(tab.destination.name) },
             selected = tab == selectedTab,
             onClick = { onTabSelected(tab) },
-            modifier = Modifier.testTag(NavigationTestTags.getTabTestTag(tab)),
+            modifier = Modifier.testTag(C.Tag.getTabTestTag(tab)),
         )
       }
     }

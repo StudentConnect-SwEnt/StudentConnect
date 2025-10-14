@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test
@@ -19,7 +20,7 @@ class ActivitiesScreenTest {
   fun activitiesScreen_displaysCorrectly() {
     composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
@@ -34,7 +35,7 @@ class ActivitiesScreenTest {
   fun activitiesScreen_columnLayout_isConfiguredCorrectly() {
     composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
   }
 
   @Test
@@ -48,7 +49,7 @@ class ActivitiesScreenTest {
 
   @Test
   fun activitiesScreen_testTag_exists() {
-    val expectedTag = "activities_screen"
+    val expectedTag = C.Tag.activities_screen
     assert(expectedTag.isNotEmpty())
 
     composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
@@ -59,7 +60,7 @@ class ActivitiesScreenTest {
   fun activitiesScreen_modifier_defaultValue() {
     composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
   }
 
   @Test
@@ -68,7 +69,7 @@ class ActivitiesScreenTest {
       AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
     }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
@@ -80,7 +81,7 @@ class ActivitiesScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
@@ -90,7 +91,7 @@ class ActivitiesScreenTest {
       AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier) }
     }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
   }
 
   @Test
@@ -99,7 +100,7 @@ class ActivitiesScreenTest {
       AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
     }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
@@ -111,7 +112,7 @@ class ActivitiesScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
     composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 }

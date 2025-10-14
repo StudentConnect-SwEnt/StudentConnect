@@ -54,7 +54,8 @@ class NavigationComponentsTest {
             Tab.Profile to Triple("Profile", R.drawable.ic_user, Screen.Profile))
 
     expectedTabs.forEach { (tab, expected) ->
-      assertEquals("Name mismatch for ${tab::class.simpleName}", expected.first, tab.name)
+      assertEquals(
+          "Name mismatch for ${tab::class.simpleName}", expected.first, tab.destination.name)
       assertEquals("Icon mismatch for ${tab::class.simpleName}", expected.second, tab.icon)
       assertEquals(
           "Destination mismatch for ${tab::class.simpleName}", expected.third, tab.destination)
@@ -69,7 +70,7 @@ class NavigationComponentsTest {
     assertEquals("Incorrect tab order", expectedTabs, bottomNavigationTabs)
 
     expectedTabs.forEach { tab ->
-      assertTrue("Missing tab: ${tab.name}", bottomNavigationTabs.contains(tab))
+      assertTrue("Missing tab: ${tab.destination.name}", bottomNavigationTabs.contains(tab))
     }
   }
 

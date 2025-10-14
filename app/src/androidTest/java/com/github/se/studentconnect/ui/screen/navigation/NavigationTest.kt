@@ -6,7 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.MainActivity
-import com.github.se.studentconnect.ui.navigation.NavigationTestTags
+import com.github.se.studentconnect.resources.C
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,15 +17,10 @@ class NavigationIntegrationTest {
 
   @Test
   fun mainActivity_displaysNavigationBarWithAllTabs() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
 
     val expectedTabs = listOf("Home", "Map", "Activities", "Profile")
-    val tabTags =
-        listOf(
-            NavigationTestTags.HOME_TAB,
-            NavigationTestTags.MAP_TAB,
-            NavigationTestTags.ACTIVITIES_TAB,
-            NavigationTestTags.PROFILE_TAB)
+    val tabTags = listOf(C.Tag.home_tab, C.Tag.map_tab, C.Tag.activities_tab, C.Tag.profile_tab)
 
     expectedTabs.zip(tabTags).forEach { (expectedText, tag) ->
       composeTestRule.onNodeWithTag(tag).assertIsDisplayed().assertTextContains(expectedText)
