@@ -15,8 +15,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
-import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
@@ -37,11 +37,11 @@ class NavigationBarTest {
       }
     }
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsDisplayed()
     composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
     composeTestRule.onNodeWithContentDescription("Add").assertIsDisplayed()
   }
@@ -75,19 +75,19 @@ class NavigationBarTest {
       }
     }
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsNotSelected()
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsNotSelected()
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsNotSelected()
   }
 
   /** Test to verify that clicking the center button triggers the provided callback. */
@@ -120,7 +120,7 @@ class NavigationBarTest {
     }
 
     composeTestRule.onNodeWithTag("center_add_button").performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
   }
 
   /** Test to verify that a custom modifier is applied correctly to the BottomNavigationBar. */
@@ -138,7 +138,7 @@ class NavigationBarTest {
     }
 
     composeTestRule.onNodeWithTag("custom_navigation").assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
   }
 
   /**
@@ -152,9 +152,9 @@ class NavigationBarTest {
       }
     }
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).assertIsSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).assertIsNotSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).assertIsNotSelected()
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsNotSelected()
+    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsNotSelected()
   }
 }
