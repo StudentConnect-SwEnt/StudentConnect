@@ -20,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,8 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -185,11 +185,13 @@ fun BasicInfoScreen(
                         viewModel.setBirthdate(millis)
                       }
                       showDateDialog = false
-                    }) { Text("OK") }
+                    }) {
+                      Text("OK")
+                    }
               },
               dismissButton = { Button(onClick = { showDateDialog = false }) { Text("Cancel") } }) {
                 DatePicker(state = datePickerState)
-          }
+              }
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -289,7 +291,5 @@ fun PrimaryActionButton(
 @Preview(showBackground = true)
 @Composable
 private fun BasicInfoScreenPreview() {
-  AppTheme {
-    BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {})
-  }
+  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
 }
