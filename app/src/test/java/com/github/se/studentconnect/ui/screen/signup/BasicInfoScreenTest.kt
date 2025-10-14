@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
 
@@ -135,6 +136,37 @@ class BasicInfoScreenTest {
 
     runOnIdle()
     assertEquals(jan2000, providedState?.selectedDateMillis)
+  }
+
+  @OptIn(ExperimentalMaterial3Api::class)
+  @Test
+  fun `date picker dialog confirms selection`() {
+    val dialogState = mutableStateOf(false)
+    var lastEnabled: Boolean? = null
+    var providedState: DatePickerState? = null
+
+    viewModel.setFirstName("Ada")
+    viewModel.setLastName("Lovelace")
+
+    composeScreen(
+        onContinueEnabledChanged = { lastEnabled = it },
+        showDateDialogState = dialogState,
+        datePickerStateFactory = {
+          rememberDatePickerState(initialSelectedDateMillis = null).also { providedState = it }
+        })
+
+    assertEquals(false, lastEnabled)
+    dialogState.value = true
+    runOnIdle()
+
+    val selected = 946684800000L
+    providedState?.selectedDateMillis = selected
+    runOnIdle()
+
+    viewModel.setBirthdate(selected)
+    runOnIdle()
+
+    assertEquals(true, lastEnabled)
   }
 
   @OptIn(ExperimentalMaterial3Api::class)
