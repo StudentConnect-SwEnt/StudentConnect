@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,18 +64,22 @@ fun BasicInfoScreen(
     viewModel: SignUpViewModel,
     onContinue: () -> Unit,
     onBack: () -> Unit,
-    onContinueEnabledChanged: ((Boolean) -> Unit)? = null
+    onContinueEnabledChanged: ((Boolean) -> Unit)? = null,
+    datePickerState: DatePickerState? = null,
+    showDateDialogState: MutableState<Boolean>? = null
 ) {
   val signUpState by viewModel.state
   val dateFormatter = remember {
     SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
   }
 
-  val datePickerState =
-      rememberDatePickerState(
-          initialDisplayMode = DisplayMode.Picker,
-          initialSelectedDateMillis = signUpState.birthdateMillis)
-  var showDateDialog by rememberSaveable { mutableStateOf(false) }
+  val pickerState =
+      datePickerState
+          ?: rememberDatePickerState(
+              initialDisplayMode = DisplayMode.Picker,
+              initialSelectedDateMillis = signUpState.birthdateMillis)
+  val dialogState = showDateDialogState ?: rememberSaveable { mutableStateOf(false) }
+
   var birthdayText by rememberSaveable { mutableStateOf("") }
   var isBirthdateValid by remember { mutableStateOf(signUpState.birthdateMillis != null) }
 
@@ -86,8 +92,8 @@ fun BasicInfoScreen(
       val formatted = dateFormatter.format(Date(storedDate))
       birthdayText = formatted
       isBirthdateValid = true
-      if (datePickerState.selectedDateMillis != storedDate) {
-        datePickerState.selectedDateMillis = storedDate
+      if (pickerState.selectedDateMillis != storedDate) {
+        pickerState.selectedDateMillis = storedDate
       }
     }
   }
@@ -152,7 +158,7 @@ fun BasicInfoScreen(
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { showDateDialog = true },
+            onClick = { dialogState.value = true },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors =
@@ -172,25 +178,27 @@ fun BasicInfoScreen(
               }
             }
 
-        if (showDateDialog) {
+        if (dialogState.value) {
           DatePickerDialog(
-              onDismissRequest = { showDateDialog = false },
+              onDismissRequest = { dialogState.value = false },
               confirmButton = {
                 Button(
                     onClick = {
-                      val millis = datePickerState.selectedDateMillis
+                      val millis = pickerState.selectedDateMillis
                       if (millis != null) {
                         birthdayText = dateFormatter.format(Date(millis))
                         isBirthdateValid = true
                         viewModel.setBirthdate(millis)
                       }
-                      showDateDialog = false
+                      dialogState.value = false
                     }) {
                       Text("OK")
                     }
               },
-              dismissButton = { Button(onClick = { showDateDialog = false }) { Text("Cancel") } }) {
-                DatePicker(state = datePickerState)
+              dismissButton = {
+                Button(onClick = { dialogState.value = false }) { Text("Cancel") }
+              }) {
+                DatePicker(state = pickerState)
               }
         }
 
@@ -288,6 +296,7 @@ fun PrimaryActionButton(
       }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 private fun BasicInfoScreenPreview() {
