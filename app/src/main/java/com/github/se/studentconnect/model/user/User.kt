@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.user
 
 import com.github.se.studentconnect.model.event.Event
 
