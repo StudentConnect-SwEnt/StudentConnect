@@ -20,12 +20,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DisplayMode
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,16 +56,26 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: () -> Unit) {
+fun BasicInfoScreen(
+    viewModel: SignUpViewModel,
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    onContinueEnabledChanged: ((Boolean) -> Unit)? = null
+) {
   val signUpState by viewModel.state
-  val birthdateRegex = remember { Regex("^\\d{2}/\\d{2}/\\d{4}$") }
   val dateFormatter = remember {
     SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
   }
 
+  val datePickerState =
+      rememberDatePickerState(
+          initialDisplayMode = DisplayMode.Picker,
+          initialSelectedDateMillis = signUpState.birthdateMillis)
+  var showDateDialog by rememberSaveable { mutableStateOf(false) }
   var birthdayText by rememberSaveable { mutableStateOf("") }
-  var isBirthdateValid by remember { mutableStateOf(false) }
+  var isBirthdateValid by remember { mutableStateOf(signUpState.birthdateMillis != null) }
 
   LaunchedEffect(signUpState.birthdateMillis) {
     val storedDate = signUpState.birthdateMillis
@@ -69,9 +84,10 @@ fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: 
       isBirthdateValid = false
     } else {
       val formatted = dateFormatter.format(Date(storedDate))
-      if (formatted != birthdayText) {
-        birthdayText = formatted
-        isBirthdateValid = true
+      birthdayText = formatted
+      isBirthdateValid = true
+      if (datePickerState.selectedDateMillis != storedDate) {
+        datePickerState.selectedDateMillis = storedDate
       }
     }
   }
@@ -80,10 +96,8 @@ fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: 
   val lastNameText = signUpState.lastName
   val isFirstNameValid = firstNameText.isNotBlank()
   val isLastNameValid = lastNameText.isNotBlank()
-  val isContinueEnabled =
-      remember(isFirstNameValid, isLastNameValid, isBirthdateValid) {
-        isFirstNameValid && isLastNameValid && isBirthdateValid
-      }
+  val isContinueEnabled = isFirstNameValid && isLastNameValid && isBirthdateValid
+  LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
 
   Column(
       modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
@@ -137,30 +151,46 @@ fun BasicInfoScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: 
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = birthdayText,
-            onValueChange = { text ->
-              birthdayText = text
-              val parsedDate =
-                  if (birthdateRegex.matches(text)) {
-                    runCatching { dateFormatter.parse(text) }.getOrNull()
-                  } else {
-                    null
-                  }
-              if (parsedDate != null) {
-                isBirthdateValid = true
-                viewModel.setBirthdate(parsedDate.time)
-              } else if (text.isEmpty()) {
-                isBirthdateValid = false
-                viewModel.setBirthdate(null)
-              } else {
-                isBirthdateValid = false
-              }
-            },
+        Button(
+            onClick = { showDateDialog = true },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Birthday") },
-            placeholder = { Text("DD/MM/YYYY") },
-            singleLine = true)
+            shape = RoundedCornerShape(12.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
+              Column(modifier = Modifier.fillMaxWidth()) {
+                Text("Birthday", style = MaterialTheme.typography.labelSmall)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = birthdayText.ifEmpty { "Select your birthdate" },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color =
+                        if (birthdayText.isEmpty())
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+            }
+
+        if (showDateDialog) {
+          DatePickerDialog(
+              onDismissRequest = { showDateDialog = false },
+              confirmButton = {
+                Button(
+                    onClick = {
+                      val millis = datePickerState.selectedDateMillis
+                      if (millis != null) {
+                        birthdayText = dateFormatter.format(Date(millis))
+                        isBirthdateValid = true
+                        viewModel.setBirthdate(millis)
+                      }
+                      showDateDialog = false
+                    }) { Text("OK") }
+              },
+              dismissButton = { Button(onClick = { showDateDialog = false }) { Text("Cancel") } }) {
+                DatePicker(state = datePickerState)
+          }
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -259,5 +289,7 @@ fun PrimaryActionButton(
 @Preview(showBackground = true)
 @Composable
 private fun BasicInfoScreenPreview() {
-  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
+  AppTheme {
+    BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {})
+  }
 }
