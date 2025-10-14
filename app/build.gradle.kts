@@ -166,6 +166,15 @@ dependencies {
     // Networking with OkHttp
     implementation(libs.okhttp)
 
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    // Use Guava Android variant for ListenableFuture support
+    implementation(libs.guava)
+
     // Testing Unit
     testImplementation(libs.junit)
     androidTestImplementation(libs.mockk)
@@ -192,6 +201,12 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
+configurations.all {
+    resolutionStrategy {
+        // Enforce a single Guava version (Android flavor)
+        force(libs.guava.get().toString())
+    }
+}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests
