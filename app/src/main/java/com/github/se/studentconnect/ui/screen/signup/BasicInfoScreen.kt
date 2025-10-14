@@ -73,11 +73,11 @@ fun BasicInfoScreen(
     SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
   }
 
+  val selectedMillis = signUpState.birthdateMillis
   val pickerState =
       datePickerState
           ?: rememberDatePickerState(
-              initialDisplayMode = DisplayMode.Picker,
-              initialSelectedDateMillis = signUpState.birthdateMillis)
+              initialDisplayMode = DisplayMode.Picker, initialSelectedDateMillis = selectedMillis)
   val dialogState = showDateDialogState ?: rememberSaveable { mutableStateOf(false) }
 
   var birthdayText by rememberSaveable { mutableStateOf("") }

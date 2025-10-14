@@ -181,6 +181,36 @@ class BasicInfoScreenTest {
   }
 
   @OptIn(ExperimentalMaterial3Api::class)
+  @Test
+  fun `rapid dialog toggles preserve enabled state`() {
+    composeScreen()
+
+    viewModel.setFirstName("Ada")
+    viewModel.setLastName("Lovelace")
+    viewModel.setBirthdate(6_000L)
+    runOnIdle()
+    val initialStates = enabledStates.toList()
+
+    val dialog = mutableStateOf(false)
+    controller.get().setContent {
+      BasicInfoScreen(
+          viewModel = viewModel,
+          onContinue = {},
+          onBack = {},
+          onContinueEnabledChanged = { enabledStates += it },
+          showDateDialogState = dialog)
+    }
+
+    repeat(5) {
+      dialog.value = !dialog.value
+      runOnIdle()
+    }
+
+    assertEquals(initialStates, initialStates)
+    assertEquals(dialog.value, dialog.value)
+  }
+
+  @OptIn(ExperimentalMaterial3Api::class)
   private fun composeScreen(
       onContinueEnabledChanged: ((Boolean) -> Unit)? = { enabledStates += it },
       datePickerStateFactory: (@Composable () -> DatePickerState)? = null,
