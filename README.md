@@ -16,3 +16,19 @@ Many students in Switzerland, especially newcomers, face difficulties building s
 
 View the design on [Figma](https://www.figma.com/design/o08ZOLr2SxUiip650CyqbW/App?m=auto&t=pcxsobh043Boudab-1)
 
+## Development Setup
+
+After cloning the repository, you need to configure Git to use the version-controlled hooks.
+
+### macOS / Linux / Windows (Git Bash)
+
+```sh
+./scripts/setup-hooks.sh
+```
+
+### Windows (PowerShell)
+
+```sh
+./scripts/setup-hooks.ps1
+```
+
