@@ -78,19 +78,18 @@ fun MainContent() {
               // Handle center button click - placeholder for now
             },
         )
+      }) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = Route.HOME,
+            modifier = Modifier.padding(paddingValues),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
+          composable(Route.HOME) { HomeScreen() }
+          composable(Route.MAP) { MapScreen() }
+          composable(Route.ACTIVITIES) { ActivitiesScreen() }
+          composable(Route.PROFILE) { ProfileScreen() }
+        }
       }
-  ) { paddingValues ->
-    NavHost(
-        navController = navController,
-        startDestination = Route.HOME,
-        modifier = Modifier.padding(paddingValues),
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
-    ) {
-      composable(Route.HOME) { HomeScreen() }
-      composable(Route.MAP) { MapScreen() }
-      composable(Route.ACTIVITIES) { ActivitiesScreen() }
-      composable(Route.PROFILE) { ProfileScreen() }
-    }
-  }
 }
