@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+// import androidx.compose.ui.tooling.preview.Preview
+// import com.github.se.studentconnect.ui.theme.AppTheme
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -49,11 +51,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.theme.AppTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -296,9 +296,9 @@ fun PrimaryActionButton(
       }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-private fun BasicInfoScreenPreview() {
-  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
-}
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Preview(showBackground = true)
+// @Composable
+// private fun BasicInfoScreenPreview() {
+//  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
+// }
