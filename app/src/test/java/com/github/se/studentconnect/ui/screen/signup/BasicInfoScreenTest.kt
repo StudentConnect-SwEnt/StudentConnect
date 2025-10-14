@@ -39,23 +39,23 @@ class BasicInfoScreenTest {
   fun `continue button enables only when all fields valid`() {
     composeScreen()
 
-    assertFalse(enabledStates.lastOrNull() ?: false)
+    assertFalse(enabledStates.last())
 
     viewModel.setFirstName("Ada")
     runOnIdle()
-    assertFalse(enabledStates.lastOrNull() ?: false)
+    assertEquals(listOf(false), enabledStates)
 
     viewModel.setLastName("Lovelace")
     runOnIdle()
-    assertFalse(enabledStates.lastOrNull() ?: false)
+    assertEquals(listOf(false), enabledStates)
 
     viewModel.setBirthdate(1_000L)
     runOnIdle()
-    assertEquals(true, enabledStates.last())
+    assertEquals(listOf(false, true), enabledStates)
 
     viewModel.setBirthdate(null)
     runOnIdle()
-    assertEquals(false, enabledStates.last())
+    assertEquals(listOf(false, true, false), enabledStates)
   }
 
   @Test
@@ -66,7 +66,7 @@ class BasicInfoScreenTest {
 
     composeScreen()
 
-    assertEquals(true, enabledStates.last())
+    assertEquals(listOf(true), enabledStates)
   }
 
   @Test
@@ -77,11 +77,26 @@ class BasicInfoScreenTest {
     viewModel.setLastName("Lovelace")
     viewModel.setBirthdate(2_000L)
     runOnIdle()
-    assertEquals(true, enabledStates.last())
+    assertEquals(listOf(false, true), enabledStates)
 
     viewModel.setLastName("")
     runOnIdle()
-    assertEquals(false, enabledStates.last())
+    assertEquals(listOf(false, true, false), enabledStates)
+  }
+
+  @Test
+  fun `reset clears enabled state`() {
+    composeScreen()
+
+    viewModel.setFirstName("Ada")
+    viewModel.setLastName("Lovelace")
+    viewModel.setBirthdate(3_000L)
+    runOnIdle()
+    assertEquals(listOf(false, true), enabledStates)
+
+    viewModel.reset()
+    runOnIdle()
+    assertEquals(listOf(false, true, false), enabledStates)
   }
 
   private fun composeScreen() {
