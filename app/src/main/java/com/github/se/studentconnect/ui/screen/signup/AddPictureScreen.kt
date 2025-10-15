@@ -170,7 +170,7 @@ private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onC
                   }
               Spacer(Modifier.height(16.dp))
               Text(
-                  text = if (hasSelection) "Photo selected" else "Upload your profile photo",
+                  text = if (hasSelection) "Photo selected" else "Upload/Take your profile photo",
                   style =
                       MaterialTheme.typography.bodyMedium.copy(
                           color = MaterialTheme.colorScheme.onSurfaceVariant))
