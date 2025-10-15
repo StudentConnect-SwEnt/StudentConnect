@@ -64,8 +64,8 @@ object EventMarkers {
   }
 
   /**
-   * Creates GeoJSON features from events that have location data. Each feature includes the
-   * event's title and UID as properties.
+   * Creates GeoJSON features from events that have location data. Each feature includes the event's
+   * title and UID as properties.
    */
   fun createEventFeatures(events: List<Event>): List<Feature> {
     return events.mapNotNull { event ->

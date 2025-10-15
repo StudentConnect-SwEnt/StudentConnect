@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.map
 
 import android.content.Context
 import android.location.Location
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -19,6 +20,7 @@ import org.junit.Test
 class MapScreenIntegrationTest {
 
   private lateinit var mockLocationRepository: LocationRepository
+  private lateinit var mockEventRepository: EventRepository
   private lateinit var mockContext: Context
   private lateinit var mapViewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
@@ -26,6 +28,11 @@ class MapScreenIntegrationTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
+
+    // Mock event repository to avoid Firebase initialization
+    mockEventRepository = mockk()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+
     mockLocationRepository = mockk()
     mockContext = mockk(relaxed = true)
 
@@ -39,7 +46,8 @@ class MapScreenIntegrationTest {
             })
     every { mockLocationRepository.getLocationUpdates() } returns flowOf()
 
-    mapViewModel = MapViewModel(mockLocationRepository)
+    // Inject mock repositories into MapViewModel
+    mapViewModel = MapViewModel(mockLocationRepository, mockEventRepository)
   }
 
   @After
@@ -49,7 +57,8 @@ class MapScreenIntegrationTest {
   }
 
   @Test
-  fun mapViewModel_initialState_isCorrect() {
+  fun mapViewModel_initialState_isCorrect() = runTest {
+    advanceUntilIdle()
     val state = mapViewModel.uiState.value
 
     assertEquals("", state.searchText)
