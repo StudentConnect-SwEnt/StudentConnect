@@ -24,6 +24,15 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Configure test sharding from gradle properties
+        val shardIndex = project.findProperty("testShardIndex")?.toString()?.toIntOrNull()
+        val numShards = project.findProperty("testNumShards")?.toString()?.toIntOrNull()
+
+        if (shardIndex != null && numShards != null) {
+            testInstrumentationRunnerArguments["numShards"] = numShards.toString()
+            testInstrumentationRunnerArguments["shardIndex"] = shardIndex.toString()
+        }
     }
 
     buildTypes {

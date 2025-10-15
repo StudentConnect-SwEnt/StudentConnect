@@ -136,11 +136,10 @@ jobs:
   instrumented-tests:
     name: Instrumented Tests - Shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    needs: [build-and-lint]
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2]
+        shard: [0, 1, 2, 3, 4]
 
     steps:
       - name: Checkout
@@ -226,12 +225,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Download pre-built APKs
-        uses: actions/download-artifact@v4
-        with:
-          name: apks
-          path: app/build/outputs/apk/
-
       - name: Start Firebase emulators
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
@@ -252,7 +245,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.numShards=3 -Pandroid.testInstrumentationRunnerArguments.shardIndex=${{ matrix.shard }} --parallel --build-cache --configuration-cache --max-workers=2
+          script: ./gradlew connectedCheck -PtestShardIndex=${{ matrix.shard }} -PtestNumShards=5 --parallel --build-cache --max-workers=2
 
       - name: Upload instrumented test results
         if: always()
@@ -344,6 +337,20 @@ jobs:
         with:
           name: instrumented-test-results-shard-2
           path: app/build/outputs/androidTest-results/shard-2/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 3)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-3
+          path: app/build/outputs/androidTest-results/shard-3/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 4)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-4
+          path: app/build/outputs/androidTest-results/shard-4/
         continue-on-error: true
 
       - name: Generate Coverage Report
