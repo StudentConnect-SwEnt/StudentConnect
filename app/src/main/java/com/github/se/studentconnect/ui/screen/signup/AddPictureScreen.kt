@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+// import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,11 +40,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-//import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
-//import com.github.se.studentconnect.ui.theme.AppTheme
+
+// import com.github.se.studentconnect.ui.theme.AppTheme
 
 private const val DEFAULT_PLACEHOLDER = "ic_user"
 
@@ -198,10 +199,10 @@ private fun Modifier.drawDashedCircleBorder(
           }
         })
 
-//@Preview(showBackground = true, widthDp = 360, heightDp = 720)
-//@Composable
-//private fun AddPictureScreenPreview() {
+// @Preview(showBackground = true, widthDp = 360, heightDp = 720)
+// @Composable
+// private fun AddPictureScreenPreview() {
 //  AppTheme {
 //    AddPictureScreen(viewModel = SignUpViewModel(), onSkip = {}, onContinue = {}, onBack = {})
 //  }
-//}
+// }

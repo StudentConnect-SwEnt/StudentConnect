@@ -182,10 +182,10 @@ class AddPictureScreenTest {
   private fun findNodeByContentDescription(description: String): SemanticsNode {
     val node =
         findNode {
-          val descriptions = it.config.getOrNull(SemanticsProperties.ContentDescription) ?: return@findNode false
+          val descriptions =
+              it.config.getOrNull(SemanticsProperties.ContentDescription) ?: return@findNode false
           description in descriptions
-        }
-            ?: error("Content description '$description' not found.")
+        } ?: error("Content description '$description' not found.")
     return node.clickableAncestor() ?: node
   }
 
@@ -227,8 +227,7 @@ class AddPictureScreenTest {
       node.config.getOrNull(SemanticsProperties.Text)?.map(AnnotatedString::text) ?: emptyList()
 
   private fun semanticsRoot(): SemanticsNode {
-    val content =
-        controller.get().window.decorView.findViewById<ViewGroup>(android.R.id.content)
+    val content = controller.get().window.decorView.findViewById<ViewGroup>(android.R.id.content)
     val rootView = content.getChildAt(0) ?: error("Compose root view missing.")
     val owner = extractSemanticsOwner(rootView)
     return owner.unmergedRootSemanticsNode
