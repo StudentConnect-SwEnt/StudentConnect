@@ -1,13 +1,9 @@
 package com.github.se.studentconnect.utils
 
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.github.se.studentconnect.HttpClientProvider
-import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.google.firebase.Timestamp
@@ -21,7 +17,6 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 
 const val UI_WAIT_TIMEOUT = 5_000L
 
@@ -52,23 +47,12 @@ abstract class StudentConnectTest(val useTestScreen: Boolean = false) {
     assert(FirebaseEmulator.isRunning) { "FirebaseEmulator must be running" }
   }
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
-
-  @Composable
-  open fun TestScreen() {
-    // only override if useTestScreen is true
-  }
-
   @Before
   open fun setUp() {
     EventRepositoryProvider.repository = createInitializedRepository()
     HttpClientProvider.client = initializeHTTPClient()
     if (shouldSignInAnounymously) {
       runTest { FirebaseEmulator.auth.signInAnonymously().await() }
-    }
-
-    if (useTestScreen) {
-      composeTestRule.activity.setContent { TestScreen() }
     }
   }
 
