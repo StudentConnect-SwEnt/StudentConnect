@@ -37,10 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
@@ -48,73 +44,15 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
 import com.github.se.studentconnect.model.map.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
-import com.mapbox.geojson.Feature
-import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
-import com.mapbox.maps.Style
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.style.expressions.dsl.generated.get
-import com.mapbox.maps.extension.style.expressions.dsl.generated.has
-import com.mapbox.maps.extension.style.expressions.dsl.generated.not
-import com.mapbox.maps.extension.style.expressions.dsl.generated.toString
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.layers.generated.circleLayer
-import com.mapbox.maps.extension.style.layers.generated.symbolLayer
-import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
-import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
-
-/** UI dimension constants for padding and spacing */
-object Padding {
-  val CONTENT: Dp = 16.dp
-  val VERTICAL_SPACING: Dp = 8.dp
-}
-
-/** UI dimension constants for component sizes */
-object Size {
-  val FAB: Dp = 56.dp
-  val ICON: Dp = 24.dp
-  val LARGE_ICON: Dp = 32.dp
-}
-
-/** UI dimension constants for corner radii */
-object Corner {
-  val RADIUS: Dp = 12.dp
-  val MAP_RADIUS: Dp = 16.dp
-}
-
-/** UI dimension constants for elevation */
-object Elevation {
-  val DEFAULT: Dp = 0.dp
-}
-
-/** Configuration constants for event markers and clustering */
-private object EventMarkerConfig {
-  const val ICON_ID = "event_marker_icon"
-  const val SOURCE_ID = "event_source"
-  const val LAYER_ID = "event_layer"
-  const val CLUSTER_LAYER_ID = "event_cluster_layer"
-  const val CLUSTER_COUNT_LAYER_ID = "event_cluster_count_layer"
-
-  const val COLOR = "#EF4444"
-  const val ICON_SIZE = 1.5
-  const val CLUSTER_RADIUS_PX = 30
-  const val CLUSTER_MAX_ZOOM = 16
-  const val CLUSTER_CIRCLE_RADIUS = 20.0
-  const val CLUSTER_STROKE_WIDTH = 2.0
-  const val CLUSTER_STROKE_COLOR = "#FFFFFF"
-  const val CLUSTER_TEXT_SIZE = 14.0
-  const val CLUSTER_TEXT_COLOR = "#FFFFFF"
-
-  val CLUSTER_TEXT_FONTS = listOf("DIN Offc Pro Bold", "Arial Unicode MS Bold")
-}
 
 /**
  * Main map screen composable that displays an interactive map with event markers.
@@ -322,14 +260,14 @@ private fun MapContainer(
             // Add event markers with clustering - only in events view
             MapEffect(isEventsView, events) { mapView ->
               mapView.mapboxMap.getStyle { style ->
-                removeExistingEventLayers(style)
+                EventMarkers.removeExistingEventLayers(style)
 
                 if (isEventsView && events.isNotEmpty()) {
-                  addEventMarkerIcon(context, style)
-                  val features = createEventFeatures(events)
-                  addEventSource(style, features)
-                  addClusterLayers(style)
-                  addIndividualMarkerLayer(style)
+                  EventMarkers.addEventMarkerIcon(context, style)
+                  val features = EventMarkers.createEventFeatures(events)
+                  EventMarkers.addEventSource(style, features)
+                  EventMarkers.addClusterLayers(style)
+                  EventMarkers.addIndividualMarkerLayer(style)
                 }
               }
             }
@@ -412,106 +350,4 @@ private fun isInAndroidTest(): Boolean {
   } catch (e: ClassNotFoundException) {
     false
   }
-}
-
-// ========================================
-// Event Marker Helper Functions
-// ========================================
-
-/**
- * Removes existing event marker layers and sources from the map style. This ensures clean state
- * before adding new markers.
- */
-private fun removeExistingEventLayers(style: com.mapbox.maps.Style) {
-  val layersToRemove =
-      listOf(
-          EventMarkerConfig.CLUSTER_COUNT_LAYER_ID,
-          EventMarkerConfig.CLUSTER_LAYER_ID,
-          EventMarkerConfig.LAYER_ID)
-
-  layersToRemove.forEach { layerId ->
-    if (style.styleLayerExists(layerId)) {
-      style.removeStyleLayer(layerId)
-    }
-  }
-
-  if (style.styleSourceExists(EventMarkerConfig.SOURCE_ID)) {
-    style.removeStyleSource(EventMarkerConfig.SOURCE_ID)
-  }
-}
-
-/** Adds the event marker icon to the map style with the configured color tint. */
-private fun addEventMarkerIcon(context: android.content.Context, style: com.mapbox.maps.Style) {
-  val markerIcon = ContextCompat.getDrawable(context, R.drawable.ic_location)
-  markerIcon?.let { drawable ->
-    drawable.setTint(android.graphics.Color.parseColor(EventMarkerConfig.COLOR))
-    if (!style.hasStyleImage(EventMarkerConfig.ICON_ID)) {
-      style.addImage(EventMarkerConfig.ICON_ID, drawable.toBitmap())
-    }
-  }
-}
-
-/**
- * Creates GeoJSON features from events that have location data. Each feature includes the event's
- * title and UID as properties.
- */
-private fun createEventFeatures(events: List<Event>): List<Feature> {
-  return events.mapNotNull { event ->
-    event.location?.let { location ->
-      Feature.fromGeometry(Point.fromLngLat(location.longitude, location.latitude)).apply {
-        addStringProperty("title", event.title)
-        addStringProperty("uid", event.uid)
-      }
-    }
-  }
-}
-
-/** Adds a GeoJSON source with clustering enabled to the map style. */
-private fun addEventSource(style: com.mapbox.maps.Style, features: List<Feature>) {
-  val featureCollection = FeatureCollection.fromFeatures(features)
-  style.addSource(
-      geoJsonSource(EventMarkerConfig.SOURCE_ID) {
-        featureCollection(featureCollection)
-        cluster(true)
-        clusterRadius(EventMarkerConfig.CLUSTER_RADIUS_PX.toLong())
-        clusterMaxZoom(EventMarkerConfig.CLUSTER_MAX_ZOOM.toLong())
-      })
-}
-
-/**
- * Adds cluster circle and count text layers to the map style. These layers display when multiple
- * events are grouped together.
- */
-private fun addClusterLayers(style: com.mapbox.maps.Style) {
-  // Add cluster circle layer
-  style.addLayer(
-      circleLayer(EventMarkerConfig.CLUSTER_LAYER_ID, EventMarkerConfig.SOURCE_ID) {
-        circleColor(EventMarkerConfig.COLOR)
-        circleRadius(EventMarkerConfig.CLUSTER_CIRCLE_RADIUS)
-        circleStrokeWidth(EventMarkerConfig.CLUSTER_STROKE_WIDTH)
-        circleStrokeColor(EventMarkerConfig.CLUSTER_STROKE_COLOR)
-        filter(has { literal("point_count") })
-      })
-
-  // Add cluster count text layer
-  style.addLayer(
-      symbolLayer(EventMarkerConfig.CLUSTER_COUNT_LAYER_ID, EventMarkerConfig.SOURCE_ID) {
-        textField(toString { get { literal("point_count") } })
-        textSize(EventMarkerConfig.CLUSTER_TEXT_SIZE)
-        textColor(EventMarkerConfig.CLUSTER_TEXT_COLOR)
-        textFont(EventMarkerConfig.CLUSTER_TEXT_FONTS)
-        filter(has { literal("point_count") })
-      })
-}
-
-/** Adds a symbol layer for individual event markers (non-clustered points). */
-private fun addIndividualMarkerLayer(style: com.mapbox.maps.Style) {
-  style.addLayer(
-      symbolLayer(EventMarkerConfig.LAYER_ID, EventMarkerConfig.SOURCE_ID) {
-        iconImage(EventMarkerConfig.ICON_ID)
-        iconAllowOverlap(true)
-        iconAnchor(IconAnchor.BOTTOM)
-        iconSize(EventMarkerConfig.ICON_SIZE)
-        filter(not { has { literal("point_count") } })
-      })
 }
