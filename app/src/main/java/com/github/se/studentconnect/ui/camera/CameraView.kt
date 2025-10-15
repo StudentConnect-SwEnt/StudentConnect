@@ -39,6 +39,7 @@ fun CameraView(
     captureButton: @Composable (() -> Unit)? = null, // null gives default button
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onImageCaptured: (Uri) -> Unit,
+    onCameraPermissionDenied: () -> Unit = {},
     onError: (Throwable) -> Unit = {},
 ) {
   val context = LocalContext.current
@@ -54,6 +55,7 @@ fun CameraView(
 
   val permissionLauncher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) onCameraPermissionDenied()
         hasCameraPermission = granted
       }
 
