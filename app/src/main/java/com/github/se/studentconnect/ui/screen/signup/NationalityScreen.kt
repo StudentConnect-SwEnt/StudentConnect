@@ -55,21 +55,30 @@ private val SelectedBorderAlpha = 0.4f
 private val FlagCircleAlpha = 0.15f
 
 private fun getCountryRowColors(isSelected: Boolean, theme: MaterialTheme): Pair<Color, Color> {
-    val background = if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBackgroundAlpha) else Color.Transparent
-    val border = if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBorderAlpha) else Color.Transparent
-    return background to border
+  val background =
+      if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBackgroundAlpha)
+      else Color.Transparent
+  val border =
+      if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBorderAlpha)
+      else Color.Transparent
+  return background to border
 }
 
 @Composable
 internal fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> Unit) {
   val (background, border) = getCountryRowColors(isSelected, MaterialTheme)
   Surface(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = CountryRowHorizontalPadding).clickable(onClick = onSelect),
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(horizontal = CountryRowHorizontalPadding)
+              .clickable(onClick = onSelect),
       color = background,
       shape = RoundedCornerShape(16.dp),
       border = BorderStroke(width = if (isSelected) 1.dp else 0.dp, color = border)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = RowHorizontalPadding, vertical = RowVerticalPadding),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = RowHorizontalPadding, vertical = RowVerticalPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(RowHorizontalPadding)) {
               Surface(
@@ -87,15 +96,17 @@ internal fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> U
               Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = country.name,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium))
+                    style =
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium))
               }
             }
       }
 }
 
 private fun filterCountries(query: String, countries: List<Country>): List<Country> {
-    val trimmed = query.trim()
-    return if (trimmed.isBlank()) countries else countries.filter { it.name.startsWith(trimmed, ignoreCase = true) }
+  val trimmed = query.trim()
+  return if (trimmed.isBlank()) countries
+  else countries.filter { it.name.startsWith(trimmed, ignoreCase = true) }
 }
 
 @Composable
