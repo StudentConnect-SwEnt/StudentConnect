@@ -113,9 +113,9 @@ fun GetStartedScreen(
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
           val items = remember {
             listOf(
-                CarouselItem(0, R.drawable.connect, "Connect"),
-                CarouselItem(1, R.drawable.discover, "Discover"),
-                CarouselItem(2, R.drawable.belong, "Belong"),
+                CarouselItem(0, R.drawable.fond, "Connect"),
+                CarouselItem(1, R.drawable.fond, "Discover"),
+                CarouselItem(2, R.drawable.fond, "Belong"),
             )
           }
 
