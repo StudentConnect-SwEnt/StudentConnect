@@ -54,6 +54,7 @@ private val SelectedBackgroundAlpha = 0.12f
 private val SelectedBorderAlpha = 0.4f
 private val FlagCircleAlpha = 0.15f
 
+@Composable
 private fun getCountryRowColors(isSelected: Boolean, theme: MaterialTheme): Pair<Color, Color> {
   val background =
       if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBackgroundAlpha)
