@@ -31,9 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -103,6 +101,7 @@ fun AddPictureScreen(
         Spacer(Modifier.height(24.dp))
 
         UploadCard(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             hasSelection = !profileUri.isNullOrBlank() && profileUri != DEFAULT_PLACEHOLDER,
             onClick = {
               onPickImage { uri ->
@@ -139,22 +138,20 @@ private fun SkipButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun UploadCard(hasSelection: Boolean, onClick: () -> Unit) {
-  val shape = RoundedCornerShape(28.dp)
+private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onClick: () -> Unit) {
   val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
   val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(18f, 16f), 0f) }
-  val cornerRadius = 28.dp
-
   val borderPadding = 12.dp
+  val frameSize = 260.dp
 
   Box(
       modifier =
-          Modifier.fillMaxWidth()
-              .height(320.dp)
-              .clip(shape)
+          modifier
+              .size(frameSize)
+              .clip(CircleShape)
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
               .clickable(onClick = onClick)
-              .drawDashedBorder(cornerRadius, borderColor, dashEffect, borderPadding),
+              .drawDashedCircleBorder(borderColor, dashEffect, borderPadding),
       contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,26 +178,24 @@ private fun UploadCard(hasSelection: Boolean, onClick: () -> Unit) {
       }
 }
 
-private fun Modifier.drawDashedBorder(
-    cornerRadius: Dp,
+private fun Modifier.drawDashedCircleBorder(
     color: Color,
     pathEffect: PathEffect,
-    padding: Dp
+    padding: Dp,
+    strokeWidth: Dp = 3.dp
 ): Modifier =
     this.then(
         Modifier.drawBehind {
-          val strokeWidth = 3.dp.toPx()
+          val strokePx = strokeWidth.toPx()
           val paddingPx = padding.toPx()
-          val corner = (cornerRadius.toPx() - paddingPx).coerceAtLeast(0f)
-          val inset = paddingPx + strokeWidth / 2
-          val width = size.width - (paddingPx * 2) - strokeWidth
-          val height = size.height - (paddingPx * 2) - strokeWidth
-          drawRoundRect(
-              color = color,
-              topLeft = Offset(inset, inset),
-              size = Size(width.coerceAtLeast(0f), height.coerceAtLeast(0f)),
-              cornerRadius = CornerRadius(corner, corner),
-              style = Stroke(width = strokeWidth, pathEffect = pathEffect))
+          val radius = (size.minDimension / 2f) - paddingPx - strokePx / 2f
+          if (radius > 0f) {
+            drawCircle(
+                color = color,
+                radius = radius,
+                center = Offset(size.width / 2f, size.height / 2f),
+                style = Stroke(width = strokePx, pathEffect = pathEffect))
+          }
         })
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
