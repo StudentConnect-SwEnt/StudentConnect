@@ -252,12 +252,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: |
-            # Run tests with sharding enabled
-            ./gradlew connectedCheck \
-              -Pandroid.testInstrumentationRunnerArguments.numShards=3 \
-              -Pandroid.testInstrumentationRunnerArguments.shardIndex=${{ matrix.shard }} \
-              --parallel --build-cache --configuration-cache --max-workers=2
+          script: ./gradlew connectedCheck -Pandroid.testInstrumentationRunnerArguments.numShards=3 -Pandroid.testInstrumentationRunnerArguments.shardIndex=${{ matrix.shard }} --parallel --build-cache --configuration-cache --max-workers=2
 
       - name: Upload instrumented test results
         if: always()
