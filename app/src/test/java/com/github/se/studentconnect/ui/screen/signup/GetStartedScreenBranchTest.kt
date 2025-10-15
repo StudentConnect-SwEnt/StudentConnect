@@ -28,20 +28,26 @@ class GetStartedScreenBranchTest {
 
   private lateinit var viewModel: GetStartedViewModel
   private lateinit var stateFlow: MutableStateFlow<AuthUIState>
+  private lateinit var controller:
+      org.robolectric.android.controller.ActivityController<ComponentActivity>
+  private val credentialManager: CredentialManager = mockk(relaxed = true)
 
   @Before
   fun setUp() {
     mockkObject(CredentialManager.Companion)
-    every { CredentialManager.create(any<Context>()) } returns mockk(relaxed = true)
+    every { CredentialManager.create(any<Context>()) } returns credentialManager
     viewModel = GetStartedViewModel(NoopAuthRepository())
     val field = GetStartedViewModel::class.java.getDeclaredField("_uiState")
     field.isAccessible = true
     @Suppress("UNCHECKED_CAST")
     stateFlow = field.get(viewModel) as MutableStateFlow<AuthUIState>
+    controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
   }
 
   @After
   fun tearDown() {
+    controller.pause().stop().destroy()
+    runOnIdle()
     unmockkAll()
   }
 
@@ -50,7 +56,6 @@ class GetStartedScreenBranchTest {
     val error = "display me"
     var reported: String? = null
 
-    val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     val activity = controller.get()
     activity.setContent {
       GetStartedScreen(
@@ -58,17 +63,15 @@ class GetStartedScreenBranchTest {
           onSignInError = { reported = it },
           viewModel = viewModel,
           context = activity,
-          credentialManager = CredentialManager.create(activity))
+          credentialManager = credentialManager)
     }
+    runOnIdle()
 
     stateFlow.value = AuthUIState(errorMsg = error)
-    Robolectric.flushForegroundThreadScheduler()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    runOnIdle()
 
     assertEquals(error, reported)
     assertNull(stateFlow.value.errorMsg)
-    controller.pause().stop().destroy()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
   @Test
@@ -76,7 +79,6 @@ class GetStartedScreenBranchTest {
     val fakeUser = mockk<FirebaseUser> { every { uid } returns "uid-42" }
     var received: String? = null
 
-    val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     val activity = controller.get()
     activity.setContent {
       GetStartedScreen(
@@ -84,15 +86,18 @@ class GetStartedScreenBranchTest {
           onSignInError = {},
           viewModel = viewModel,
           context = activity,
-          credentialManager = CredentialManager.create(activity))
+          credentialManager = credentialManager)
     }
+    runOnIdle()
 
     stateFlow.value = AuthUIState(user = fakeUser)
-    Robolectric.flushForegroundThreadScheduler()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    runOnIdle()
 
     assertEquals("uid-42", received)
-    controller.pause().stop().destroy()
+  }
+
+  private fun runOnIdle() {
+    Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 

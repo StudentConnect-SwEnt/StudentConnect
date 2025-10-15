@@ -29,9 +29,11 @@ import org.robolectric.shadows.ShadowLooper
 @Config(sdk = [34])
 class GetStartedScreenTest {
 
-  private val credentialManager: CredentialManager = mockk()
+  private val credentialManager: CredentialManager = mockk(relaxed = true)
   private val credentialResponse: GetCredentialResponse = mockk()
   private val credential: CustomCredential = mockk()
+  private lateinit var controller:
+      org.robolectric.android.controller.ActivityController<ComponentActivity>
 
   @Before
   fun setUp() {
@@ -41,76 +43,76 @@ class GetStartedScreenTest {
     every { credential.type } returns
         com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
             .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
-        credentialResponse
+    controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
   }
 
   @After
   fun tearDown() {
+    controller.pause().stop().destroy()
+    runOnIdle()
     unmockkAll()
   }
 
   @Test
   fun `successful sign-in triggers callback with uid`() {
-    // Arrange
     val firebaseUser = mockk<FirebaseUser> { every { uid } returns "uid-123" }
     val repository = RecordingAuthRepository(Result.success(firebaseUser))
     val viewModel = GetStartedViewModel(repository)
     var capturedUid: String? = null
 
-    val controller = launchController(viewModel, { capturedUid = it }, {})
-    val activity = controller.get()
+    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
+        credentialResponse
 
-    viewModel.signIn(activity, credentialManager)
-    Robolectric.flushForegroundThreadScheduler()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    val activity = controller.get()
+    activity.setContent {
+      GetStartedScreen(
+          onSignedIn = { capturedUid = it },
+          onSignInError = {},
+          viewModel = viewModel,
+          context = activity,
+          credentialManager = credentialManager)
+    }
+    runOnIdle()
+
+    viewModel.signIn(controller.get(), credentialManager)
+    runOnIdle()
 
     assertEquals("uid-123", capturedUid)
     assertEquals(credential, repository.recordedCredential)
-
-    controller.pause().stop().destroy()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
   @Test
   fun `sign-in failure surfaces error callback`() {
-    // Arrange
     val error = IllegalStateException("Network down")
     val repository = RecordingAuthRepository(Result.failure(error))
     val viewModel = GetStartedViewModel(repository)
     var reportedError: String? = null
 
-    val controller = launchController(viewModel, {}, { reportedError = it })
+    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
+        credentialResponse
+
     val activity = controller.get()
+    activity.setContent {
+      GetStartedScreen(
+          onSignedIn = {},
+          onSignInError = { reportedError = it },
+          viewModel = viewModel,
+          context = activity,
+          credentialManager = credentialManager)
+    }
+    runOnIdle()
 
-    viewModel.signIn(activity, credentialManager)
-    Robolectric.flushForegroundThreadScheduler()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+    viewModel.signIn(controller.get(), credentialManager)
+    runOnIdle()
 
-    assertEquals(error.localizedMessage, reportedError)
+    assertEquals("Network down", reportedError)
     assertEquals(credential, repository.recordedCredential)
-
-    controller.pause().stop().destroy()
-    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
   }
 
-  private fun launchController(
-      viewModel: GetStartedViewModel,
-      onSignedIn: (String) -> Unit,
-      onSignInError: (String) -> Unit
-  ) =
-      Robolectric.buildActivity(ComponentActivity::class.java).apply {
-        setup()
-        get().setContent {
-          GetStartedScreen(
-              onSignedIn = onSignedIn,
-              onSignInError = onSignInError,
-              viewModel = viewModel,
-              context = get(),
-              credentialManager = credentialManager)
-        }
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
-      }
+  private fun runOnIdle() {
+    Robolectric.flushForegroundThreadScheduler()
+    ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+  }
 
   private class RecordingAuthRepository(private val result: Result<FirebaseUser>) : AuthRepository {
     var recordedCredential: Credential? = null
