@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.ui.activities.Invitation
+import com.github.se.studentconnect.ui.screen.activities.Invitation
 
 /**
  * Repository interface for User operations.

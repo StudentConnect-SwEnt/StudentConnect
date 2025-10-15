@@ -66,7 +66,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_withCustomModifier() {
     composeTestRule.setContent {
-      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
+      AppTheme { ActivitiesScreen() }
     }
 
     composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
@@ -77,7 +77,7 @@ class ActivitiesScreenTest {
   fun activitiesScreen_modifierChaining() {
     composeTestRule.setContent {
       AppTheme {
-        ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize())
+        ActivitiesScreen()
       }
     }
 
@@ -88,7 +88,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_emptyModifier() {
     composeTestRule.setContent {
-      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier) }
+      AppTheme { ActivitiesScreen() }
     }
 
     composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
@@ -97,7 +97,7 @@ class ActivitiesScreenTest {
   @Test
   fun activitiesScreen_modifierWithPadding() {
     composeTestRule.setContent {
-      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
+      AppTheme { ActivitiesScreen() }
     }
 
     composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
@@ -108,7 +108,7 @@ class ActivitiesScreenTest {
   fun activitiesScreen_modifierWithSizeAndTestTag() {
     composeTestRule.setContent {
       AppTheme {
-        ActivitiesScreen(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp))
+        ActivitiesScreen()
       }
     }
 

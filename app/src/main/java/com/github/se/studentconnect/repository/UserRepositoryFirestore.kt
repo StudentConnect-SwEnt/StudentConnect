@@ -2,8 +2,8 @@ package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
-import com.github.se.studentconnect.ui.activities.Invitation
-import com.github.se.studentconnect.ui.activities.InvitationStatus
+import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore

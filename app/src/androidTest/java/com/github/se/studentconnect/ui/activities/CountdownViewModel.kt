@@ -5,6 +5,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
+import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
+import com.github.se.studentconnect.ui.screen.activities.Separator
+import com.github.se.studentconnect.ui.screen.activities.TimeUnitBox
 import com.google.firebase.Timestamp
 import java.time.Instant
 import java.time.temporal.ChronoUnit

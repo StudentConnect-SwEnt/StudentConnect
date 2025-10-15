@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.activities
+package com.github.se.studentconnect.ui.screen.activities
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 data class ActivitiesUiState(
     val events: List<Event> = emptyList(),
-    val selectedTab: EventTab = EventTab.JoinedEvents
+    val selectedTab: EventTab = EventTab.Upcoming
 )
 
 class ActivitiesViewModel(

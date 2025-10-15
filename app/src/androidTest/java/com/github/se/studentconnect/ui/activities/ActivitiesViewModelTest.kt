@@ -5,6 +5,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.screen.activities.ActivitiesViewModel
+import com.github.se.studentconnect.ui.screen.activities.EventTab
+import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.google.firebase.Timestamp
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
@@ -113,7 +116,7 @@ class ActivitiesViewModelTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryDummy()
     viewModel =
-        ActivitiesViewModel(eventRepository = eventRepository, userRepository = userRepository)
+      ActivitiesViewModel(eventRepository = eventRepository, userRepository = userRepository)
   }
 
   @After
@@ -139,16 +142,13 @@ class ActivitiesViewModelTest {
   fun testInitialStateIsCorrect() {
     val uiState = viewModel.uiState.value
     assertEquals(true, uiState.events.isEmpty())
-    assertEquals(EventTab.JoinedEvents, uiState.selectedTab)
+    assertEquals(EventTab.Upcoming, uiState.selectedTab)
   }
 
   @Test
   fun testTabSelectionWorks() {
-    viewModel.onTabSelected(EventTab.Invitations)
-    assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
-
-    viewModel.onTabSelected(EventTab.JoinedEvents)
-    assertEquals(EventTab.JoinedEvents, viewModel.uiState.value.selectedTab)
+    viewModel.onTabSelected(EventTab.Upcoming)
+    assertEquals(EventTab.Upcoming, viewModel.uiState.value.selectedTab)
   }
 
   @Test
@@ -216,7 +216,6 @@ class ActivitiesViewModelTest {
   @Test
   fun testRefreshEventsDoesNotAffectSelectedTab() = runTest {
     // Arrange
-    viewModel.onTabSelected(EventTab.Invitations)
 
     val testEvent = createTestEvent("e1", "Event One")
     eventRepository.addEvent(testEvent)
@@ -227,7 +226,6 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     // Assert
-    assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
     assertEquals(1, viewModel.uiState.value.events.size)
   }
 }
