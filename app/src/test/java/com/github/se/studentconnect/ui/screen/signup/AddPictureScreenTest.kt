@@ -27,6 +27,14 @@ import org.robolectric.shadows.ShadowLooper
 @Config(sdk = [34])
 class AddPictureScreenTest {
 
+  companion object {
+    private const val CONTINUE_LABEL = "Continue"
+    private const val UPLOAD_PROMPT = "Upload/Take your profile photo"
+    private const val PICKER_SUCCESS_URI = "content://photo/42"
+    private const val BACK_DESCRIPTION = "Back"
+    private const val PLACEHOLDER = "ic_user"
+  }
+
   private lateinit var controller: ActivityController<ComponentActivity>
   private lateinit var viewModel: SignUpViewModel
 
@@ -46,8 +54,8 @@ class AddPictureScreenTest {
   fun `initial render disables continue`() {
     composeScreen()
 
-    assertTextExists("Upload/Take your profile photo")
-    assertButtonDisabled("Continue")
+    assertTextExists(UPLOAD_PROMPT)
+    assertButtonDisabled(CONTINUE_LABEL)
   }
 
   @Test
@@ -58,8 +66,8 @@ class AddPictureScreenTest {
     findButtonByText("Skip").invokeClick()
 
     assertTrue(skipInvoked)
-    assertEquals("ic_user", viewModel.state.value.profilePictureUri)
-    assertButtonEnabled("Continue")
+    assertEquals(PLACEHOLDER, viewModel.state.value.profilePictureUri)
+    assertButtonEnabled(CONTINUE_LABEL)
   }
 
   @Test
@@ -74,14 +82,14 @@ class AddPictureScreenTest {
     findUploadCard().invokeClick()
 
     val callback = requireNotNull(recordedCallback) { "Upload card did not invoke picker." }
-    callback("content://photo/42")
+    callback(PICKER_SUCCESS_URI)
     runOnIdle()
 
-    assertEquals("content://photo/42", viewModel.state.value.profilePictureUri)
+    assertEquals(PICKER_SUCCESS_URI, viewModel.state.value.profilePictureUri)
     assertTextExists("Photo selected")
-    assertButtonEnabled("Continue")
+    assertButtonEnabled(CONTINUE_LABEL)
 
-    findButtonByText("Continue").invokeClick()
+    findButtonByText(CONTINUE_LABEL).invokeClick()
     assertTrue(continueCalled)
   }
 
@@ -97,7 +105,7 @@ class AddPictureScreenTest {
     runOnIdle()
 
     assertNull(viewModel.state.value.profilePictureUri)
-    assertButtonDisabled("Continue")
+    assertButtonDisabled(CONTINUE_LABEL)
   }
 
   @Test
@@ -105,7 +113,7 @@ class AddPictureScreenTest {
     var backInvoked = 0
     composeScreen(onBack = { backInvoked += 1 })
 
-    findNodeByContentDescription("Back").invokeClick()
+    findNodeByContentDescription(BACK_DESCRIPTION).invokeClick()
 
     assertEquals(1, backInvoked)
   }
@@ -116,11 +124,11 @@ class AddPictureScreenTest {
 
     viewModel.setProfilePictureUri("content://external")
     runOnIdle()
-    assertButtonEnabled("Continue")
+    assertButtonEnabled(CONTINUE_LABEL)
 
     viewModel.setProfilePictureUri(null)
     runOnIdle()
-    assertButtonDisabled("Continue")
+    assertButtonDisabled(CONTINUE_LABEL)
   }
 
   private fun composeScreen(
@@ -146,14 +154,14 @@ class AddPictureScreenTest {
     }
   }
 
-  private fun assertButtonEnabled(text: String) {
-    val node = findButtonByText(text)
-    assertTrue("Button '$text' expected to be enabled.", !node.isDisabled())
+  private fun assertButtonEnabled(label: String) {
+    val node = findButtonByText(label)
+    assertTrue("Button '$label' expected to be enabled.", !node.isDisabled())
   }
 
-  private fun assertButtonDisabled(text: String) {
-    val node = findButtonByText(text)
-    assertTrue("Button '$text' expected to be disabled.", node.isDisabled())
+  private fun assertButtonDisabled(label: String) {
+    val node = findButtonByText(label)
+    assertTrue("Button '$label' expected to be disabled.", node.isDisabled())
   }
 
   private fun findButtonByText(text: String): SemanticsNode {
@@ -166,7 +174,7 @@ class AddPictureScreenTest {
 
   private fun findUploadCard(): SemanticsNode {
     val labelNode =
-        findNode { semanticsText(it).any { entry -> entry == "Upload/Take your profile photo" } }
+        findNode { semanticsText(it).any { entry -> entry == UPLOAD_PROMPT } }
             ?: error("Upload card label not found.")
     return labelNode.clickableAncestor() ?: labelNode
   }
