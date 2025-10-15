@@ -91,8 +91,7 @@ class NationalityScreenTest {
   }
 
   private fun invokeCountryCodeToEmoji(code: String): String {
-    val clazz =
-        Class.forName("com.github.se.studentconnect.ui.screen.signup.NationalityScreenKt")
+    val clazz = Class.forName("com.github.se.studentconnect.ui.screen.signup.NationalityScreenKt")
     val method = clazz.getDeclaredMethod("countryCodeToEmoji", String::class.java)
     method.isAccessible = true
     return method.invoke(null, code) as String
