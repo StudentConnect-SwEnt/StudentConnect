@@ -127,7 +127,7 @@ fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack
         Spacer(modifier = Modifier.height(24.dp))
 
         PrimaryActionButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
