@@ -19,7 +19,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.*
 
 /** Tests for [CameraView] where CAMERA permission is explicitly granted. */
-class CameraViewPermissionGrantedTest : StudentConnectTest() {
+class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 

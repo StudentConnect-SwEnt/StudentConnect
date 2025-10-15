@@ -14,7 +14,7 @@ import junit.framework.TestCase.assertTrue
 import org.junit.*
 
 /** Tests for [CameraView] where CAMERA permission is explicitly denied. */
-class CameraViewPermissionDeniedTest : StudentConnectTest() {
+class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
