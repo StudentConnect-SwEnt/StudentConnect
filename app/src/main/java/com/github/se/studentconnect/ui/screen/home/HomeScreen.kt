@@ -79,7 +79,7 @@ fun HomeScreen(
             } else {
                 Column {
                     FilterBar(LocalContext.current)
-                    EventListScreen(navController = navController, events = uiState.events)
+                    EventListScreen(navController = navController, events = uiState.events, false)
                 }
             }
         }

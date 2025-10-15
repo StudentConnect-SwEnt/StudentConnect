@@ -39,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -54,7 +55,7 @@ import kotlin.collections.component2
  * @param events The list of events to display.
  */
 @Composable
-fun EventListScreen(navController: NavHostController, events: List<Event>) {
+fun EventListScreen(navController: NavHostController, events: List<Event>, hasJoined : Boolean) {
     val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     LazyColumn(
@@ -73,7 +74,7 @@ fun EventListScreen(navController: NavHostController, events: List<Event>) {
             items(eventsOnDate) { event ->
                 EventCard(
                     event = event,
-                    onClick = { navController.navigate("eventView/${event.uid}") })
+                    onClick = { navController.navigate(Route.eventView(event.uid, hasJoined)) })
             }
         }}
 }
@@ -242,7 +243,7 @@ fun EventListScreenPreview() {
 
     AppTheme() {
         Surface(modifier = Modifier.fillMaxSize()) {
-            EventListScreen(navController = rememberNavController(), events = mockEvents)
+            EventListScreen(navController = rememberNavController(), events = mockEvents, false)
         }
     }
 }

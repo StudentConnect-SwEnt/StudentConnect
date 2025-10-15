@@ -8,21 +8,19 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -35,11 +33,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
+import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.viewmodel.EventViewModel
 
 private val screenPadding = 25.dp
@@ -57,7 +55,7 @@ object EventViewTestTags {
     const val CHAT_BUTTON = "event_view_chat_button"
     const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
     const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
-    const val LOCATION_BUTTON = "event_view_visit_website_button"
+    const val LOCATION_BUTTON = "event_view_location_button"
     const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
     const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
     const val LOADING_INDICATOR = "event_view_loading_indicator"
@@ -67,7 +65,7 @@ object EventViewTestTags {
 @Composable
 fun EventView(
     eventUid: String,
-    joined: Boolean = false,
+    joined: Boolean,
     navController: NavHostController = NavHostController(LocalContext.current),
     eventViewModel: EventViewModel = viewModel()
 ) {
@@ -93,9 +91,7 @@ fun EventView(
                     IconButton(
                         onClick = { navController.popBackStack() },
                         modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
@@ -126,17 +122,14 @@ fun EventView(
                             .testTag(EventViewTestTags.EVENT_IMAGE),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer)
 
-                Box(modifier =
-                    Modifier.align(Alignment.BottomEnd as Alignment.Horizontal)
-                        .padding(4.dp)) {
-                    EventActionButtons(
-                        joined = joined,
-                        currentEvent = event,
-                        eventViewModel = eventViewModel,
-                        modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                        navController = navController)
+                // Action buttons are now placed at the end of the column
+                EventActionButtons(
+                    joined = joined,
+                    currentEvent = event,
+                    eventViewModel = eventViewModel,
+                    modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+                    navController = navController)
 
-                }
                 InfoEvent(
                     timeLeft = timeLeft,
                     event = event,
@@ -166,14 +159,15 @@ private fun InfoEvent(timeLeft: Long, event: Event, modifier: Modifier = Modifie
                 text = days(timeLeft) + " days left",
                 style = MaterialTheme.typography.displaySmall)
         } else {
-            Box(modifier = Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)) {
+            Box(
+                modifier =
+                    Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
+                        .align(Alignment.CenterHorizontally)) {
                 CountDownDisplay(timeLeft)
             }
         }
         Text(text = "Description", style = titleTextStyle())
-        Text(
-            text = event.description,
-            modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
+        Text(text = event.description, modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
     }
 }
 
@@ -185,9 +179,7 @@ private fun ChatButton(context: Context = LocalContext.current) {
             Modifier.fillMaxWidth()
                 .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
                 .testTag(EventViewTestTags.CHAT_BUTTON),
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -219,7 +211,7 @@ fun EventActionButtons(
     currentEvent: Event,
     eventViewModel: EventViewModel,
     modifier: Modifier = Modifier,
-    navController : NavHostController
+    navController: NavHostController
 ) {
     val context = LocalContext.current
 
@@ -230,48 +222,65 @@ fun EventActionButtons(
                 .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (joined) {
-            JoinedEventActions(
-                currentEvent = currentEvent, eventViewModel = eventViewModel, context = context,
-                navController = navController)
-        } else {
-            JoinEventAction(currentEvent = currentEvent, eventViewModel = eventViewModel)
-        }
+        JoinedEventActions(
+            currentEvent = currentEvent,
+            eventViewModel = eventViewModel,
+            context = context,
+            navController = navController,
+            joined = joined)
+
     }
 }
 
 @Composable
-private fun ButtonIcon(
-    onClick: () -> Unit,
-    id : Int,
-    modifier: Modifier
-) {
-    Box(
+private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onClick,
         modifier =
-            Modifier
-                .size(40.dp)
+            modifier
+                .size(48.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(8.dp),
-        contentAlignment = Alignment.Center) {
-        IconButton(onClick = onClick, modifier = Modifier.size(24.dp)) {
-            Icon(
-                painter = painterResource(id = id),
-                contentDescription = "View on Map",
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer)
-        }
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+        Icon(
+            painter = painterResource(id = id),
+            contentDescription = "Action button", // Generic description
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer)
     }
+
 }
 
 /** Show the actions available when the user has joined the event. */
 @Composable
-private fun JoinedEventActions(currentEvent: Event, eventViewModel: EventViewModel, context: Context,
-                               navController : NavHostController) {
-        // Website and Share buttons
+private fun JoinedEventActions(
+    currentEvent: Event,
+    eventViewModel: EventViewModel,
+    context: Context,
+    navController: NavHostController,
+    joined: Boolean
+) {
+    // This Column arranges the icon buttons and the leave button vertically.
+
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp,Alignment.End),
         ) {
+            Button(
+                onClick =
+                    {
+                        if(joined) { eventViewModel.leaveEvent(eventUid = currentEvent.uid) }
+                        else { eventViewModel.joinEvent(eventUid = currentEvent.uid) }
+                    },
+                modifier = Modifier.wrapContentSize().padding(2.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)
+            ) {
+                Icon(
+                    painter = if(joined) painterResource(id = R.drawable.ic_arrow_right) else painterResource(id = R.drawable.ic_add),
+                    contentDescription = "action icon",
+                    modifier = Modifier.size(20.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                if(joined) Text("Leave") else Text("Join")
+            }
             ButtonIcon(
                 id = R.drawable.ic_location_pin,
                 onClick = {
@@ -303,55 +312,22 @@ private fun JoinedEventActions(currentEvent: Event, eventViewModel: EventViewMod
                         }
                     }
                 },
-                modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON
-            ))
+                modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
             ButtonIcon(
                 id = R.drawable.ic_share,
                 onClick = { /* TODO: Partager l'événement */},
-                modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON
-            ))
-            // leave event button
-            OutlinedButton(
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                onClick = { eventViewModel.leaveEvent(eventUid = currentEvent.uid) },
-                modifier = Modifier.testTag(EventViewTestTags.LEAVE_EVENT_BUTTON),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_right),
-                    contentDescription = "Leave",
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Leave Event", style = MaterialTheme.typography.labelSmall)
-            }
-    }}
+                modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
 
-/** Show the button to join the event. */
-@Composable
-private fun JoinEventAction(currentEvent: Event, eventViewModel: EventViewModel) {
-    Button(
-        onClick = { eventViewModel.joinEvent(eventUid = currentEvent.uid) },
-        modifier = Modifier.fillMaxWidth()) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_add),
-            contentDescription = "Join",
-            modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("Join Event")
-    }
-}
+            }
+        }
 
 @Composable
 fun titleTextStyle(): TextStyle =
     MaterialTheme.typography.titleLarge.copy(
         color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
 
-
 @Preview(showBackground = true)
 @Composable
 fun EventViewPreview() {
-    MaterialTheme {
-        EventView(eventUid = "event-killer-concert-01", joined = true)
-    }
+    MaterialTheme { EventView(eventUid = "event-killer-concert-01", joined = false) }
 }
