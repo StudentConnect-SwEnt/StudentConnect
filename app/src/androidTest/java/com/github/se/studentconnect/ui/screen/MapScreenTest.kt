@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.screen
+package com.github.se.studentconnect.ui.screen
 
 import android.Manifest
 import androidx.compose.ui.test.assertHasClickAction
