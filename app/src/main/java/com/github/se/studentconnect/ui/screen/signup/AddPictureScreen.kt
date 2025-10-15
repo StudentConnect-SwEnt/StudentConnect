@@ -115,7 +115,7 @@ fun AddPictureScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryActionButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
