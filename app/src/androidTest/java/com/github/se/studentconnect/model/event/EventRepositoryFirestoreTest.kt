@@ -69,9 +69,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
 
   @After
   override fun tearDown() {
-      if (this::auth.isInitialized) {
-          runBlocking { auth.signOut() }
-      }
+    if (this::auth.isInitialized) {
+      runBlocking { auth.signOut() }
+    }
     super.tearDown()
   }
 
