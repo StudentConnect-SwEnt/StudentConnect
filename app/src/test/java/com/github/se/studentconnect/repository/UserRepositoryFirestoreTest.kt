@@ -1,14 +1,18 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
+import com.github.se.studentconnect.ui.activities.InvitationStatus
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -31,11 +35,9 @@ class UserRepositoryFirestoreTest {
 
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
 
-  @Mock private lateinit var mockTask: Task<Void>
+  @Mock private lateinit var mockJoinedEventsCollection: CollectionReference
 
-  @Mock private lateinit var mockDocumentTask: Task<DocumentSnapshot>
-
-  @Mock private lateinit var mockQueryTask: Task<QuerySnapshot>
+  @Mock private lateinit var mockInvitationsCollection: CollectionReference
 
   private lateinit var repository: UserRepositoryFirestore
 
@@ -60,184 +62,115 @@ class UserRepositoryFirestoreTest {
     // Default mock behavior
     whenever(mockFirestore.collection("users")).thenReturn(mockCollectionReference)
     whenever(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
+    whenever(mockDocumentReference.collection("joinedEvents"))
+        .thenReturn(mockJoinedEventsCollection)
+    whenever(mockDocumentReference.collection("invitations")).thenReturn(mockInvitationsCollection)
   }
 
   @Test
-  fun testGetUserByIdSuccess() {
+  fun testGetUserByIdSuccess() = runTest {
     // Arrange
-    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(true)
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
 
-    var resultUser: User? = null
-    var failureCalled = false
-
-    // Mock the task to immediately invoke onSuccess
-    whenever(mockDocumentTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
-      listener.onSuccess(mockDocumentSnapshot)
-      mockDocumentTask
-    }
-    whenever(mockDocumentTask.addOnFailureListener(any())).thenReturn(mockDocumentTask)
-
     // Act
-    repository.getUserById(
-        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureCalled = true })
+    val result = repository.getUserById("user123")
 
     // Assert
-    assert(resultUser != null)
-    assert(resultUser?.userId == "user123")
-    assert(resultUser?.email == "test@epfl.ch")
-    assert(!failureCalled)
+    assert(result != null)
+    assert(result?.userId == "user123")
+    assert(result?.email == "test@epfl.ch")
     verify(mockCollectionReference).document("user123")
     verify(mockDocumentReference).get()
   }
 
   @Test
-  fun testGetUserByIdNotFound() {
+  fun testGetUserByIdNotFound() = runTest {
     // Arrange
-    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(false)
-
-    var resultUser: User? = null
-    var failureCalled = false
-
-    whenever(mockDocumentTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
-      listener.onSuccess(mockDocumentSnapshot)
-      mockDocumentTask
-    }
-    whenever(mockDocumentTask.addOnFailureListener(any())).thenReturn(mockDocumentTask)
-
-    // Act
-    repository.getUserById(
-        userId = "nonexistent",
-        onSuccess = { resultUser = it },
-        onFailure = { failureCalled = true })
-
     // Assert
-    assert(resultUser == null)
-    assert(!failureCalled)
+    assertThrows(IllegalArgumentException::class.java) {
+      runBlocking { repository.getUserById("nonexistent") }
+    }
   }
 
   @Test
-  fun testGetUserByIdFailure() {
+  fun testGetUserByIdFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
-    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+    val mockTask: Task<DocumentSnapshot> = Tasks.forException(exception)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
 
-    var resultUser: User? = null
-    var failureException: Exception? = null
-
-    whenever(mockDocumentTask.addOnSuccessListener(any())).thenReturn(mockDocumentTask)
-    whenever(mockDocumentTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockDocumentTask
+    // Act & Assert
+    try {
+      repository.getUserById("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getUserById(
-        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUser == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testGetUserByEmailSuccess() {
+  fun testGetUserByEmailSuccess() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(false)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
 
-    var resultUser: User? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUserByEmail(
-        email = "test@epfl.ch",
-        onSuccess = { resultUser = it },
-        onFailure = { failureCalled = true })
+    val result = repository.getUserByEmail("test@epfl.ch")
 
     // Assert
-    assert(resultUser != null)
-    assert(resultUser?.email == "test@epfl.ch")
-    assert(!failureCalled)
+    assert(result != null)
+    assert(result?.email == "test@epfl.ch")
   }
 
   @Test
-  fun testGetUserByEmailNotFound() {
+  fun testGetUserByEmailNotFound() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))
         .thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
-
-    var resultUser: User? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
-    // Act
-    repository.getUserByEmail(
-        email = "notfound@epfl.ch",
-        onSuccess = { resultUser = it },
-        onFailure = { failureCalled = true })
-
     // Assert
-    assert(resultUser == null)
-    assert(!failureCalled)
+    assertThrows(IllegalArgumentException::class.java) {
+      runBlocking { repository.getUserByEmail("notfound@epfl.ch") }
+    }
   }
 
   @Test
-  fun testGetUserByEmailFailure() {
+  fun testGetUserByEmailFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
 
-    var resultUser: User? = null
-    var failureException: Exception? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
-    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockQueryTask
+    // Act & Assert
+    try {
+      repository.getUserByEmail("test@epfl.ch")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getUserByEmail(
-        email = "test@epfl.ch",
-        onSuccess = { resultUser = it },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUser == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testGetAllUsersSuccess() {
+  fun testGetAllUsersSuccess() = runTest {
     // Arrange
     val user2 =
         User(
@@ -253,175 +186,101 @@ class UserRepositoryFirestoreTest {
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
     whenever(mockDocSnapshot2.data).thenReturn(user2.toMap())
 
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockCollectionReference.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot, mockDocSnapshot2))
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getAllUsers(onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getAllUsers()
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.size == 2)
-    assert(resultUsers?.get(0)?.userId == "user123")
-    assert(resultUsers?.get(1)?.userId == "user456")
-    assert(!failureCalled)
+    assert(result.size == 2)
+    assert(result[0].userId == "user123")
+    assert(result[1].userId == "user456")
   }
 
   @Test
-  fun testGetAllUsersEmpty() {
+  fun testGetAllUsersEmpty() = runTest {
     // Arrange
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockCollectionReference.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getAllUsers(onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getAllUsers()
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.isEmpty() == true)
-    assert(!failureCalled)
+    assert(result.isEmpty())
   }
 
   @Test
-  fun testGetAllUsersFailure() {
+  fun testGetAllUsersFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+    whenever(mockCollectionReference.get()).thenReturn(mockTask)
 
-    var resultUsers: List<User>? = null
-    var failureException: Exception? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
-    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockQueryTask
+    // Act & Assert
+    try {
+      repository.getAllUsers()
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getAllUsers(onSuccess = { resultUsers = it }, onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUsers == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testSaveUserSuccess() {
+  fun testSaveUserSuccess() = runTest {
     // Arrange
+    val mockTask: Task<Void> = Tasks.forResult(null)
     whenever(mockDocumentReference.set(any())).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureCalled = false
-
-    whenever(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
-      listener.onSuccess(null)
-      mockTask
-    }
-    whenever(mockTask.addOnFailureListener(any())).thenReturn(mockTask)
-
     // Act
-    repository.saveUser(
-        user = testUser, onSuccess = { successCalled = true }, onFailure = { failureCalled = true })
+    repository.saveUser(testUser)
 
     // Assert
-    assert(successCalled)
-    assert(!failureCalled)
     verify(mockDocumentReference).set(testUser.toMap())
   }
 
   @Test
-  fun testSaveUserFailure() {
+  fun testSaveUserFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
+    val mockTask: Task<Void> = Tasks.forException(exception)
     whenever(mockDocumentReference.set(any())).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureException: Exception? = null
-
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
+    // Act & Assert
+    try {
+      repository.saveUser(testUser)
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.saveUser(
-        user = testUser,
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testUpdateUserSuccess() {
+  fun testUpdateUserSuccess() = runTest {
     // Arrange
     val updates = mapOf("firstName" to "Jack", "lastName" to "Brown")
+    val mockTask: Task<Void> = Tasks.forResult(null)
     whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureCalled = false
-
-    whenever(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
-      listener.onSuccess(null)
-      mockTask
-    }
-    whenever(mockTask.addOnFailureListener(any())).thenReturn(mockTask)
-
     // Act
-    repository.updateUser(
-        userId = "user123",
-        updates = updates,
-        onSuccess = { successCalled = true },
-        onFailure = { failureCalled = true })
+    repository.updateUser("user123", updates)
 
     // Assert
-    assert(successCalled)
-    assert(!failureCalled)
     verify(mockDocumentReference).update(any<Map<String, Any?>>())
   }
 
   @Test
-  fun testUpdateUserAddsTimestamp() {
+  fun testUpdateUserAddsTimestamp() = runTest {
     // Arrange
     val updates = mapOf("firstName" to "Jack")
+    val mockTask: Task<Void> = Tasks.forResult(null)
     whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
 
-    whenever(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
-      listener.onSuccess(null)
-      mockTask
-    }
-    whenever(mockTask.addOnFailureListener(any())).thenReturn(mockTask)
-
     // Act
-    repository.updateUser(userId = "user123", updates = updates, onSuccess = {}, onFailure = {})
+    repository.updateUser("user123", updates)
 
     // Assert - Verify that updatedAt was added to the updates
     val captor = argumentCaptor<Map<String, Any?>>()
@@ -432,463 +291,224 @@ class UserRepositoryFirestoreTest {
   }
 
   @Test
-  fun testUpdateUserFailure() {
+  fun testUpdateUserFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
     val updates = mapOf("firstName" to "Jack")
+    val mockTask: Task<Void> = Tasks.forException(exception)
     whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureException: Exception? = null
-
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
+    // Act & Assert
+    try {
+      repository.updateUser("user123", updates)
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.updateUser(
-        userId = "user123",
-        updates = updates,
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testDeleteUserSuccess() {
+  fun testDeleteUserSuccess() = runTest {
     // Arrange
+    val mockTask: Task<Void> = Tasks.forResult(null)
     whenever(mockDocumentReference.delete()).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureCalled = false
-
-    whenever(mockTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
-      listener.onSuccess(null)
-      mockTask
-    }
-    whenever(mockTask.addOnFailureListener(any())).thenReturn(mockTask)
-
     // Act
-    repository.deleteUser(
-        userId = "user123",
-        onSuccess = { successCalled = true },
-        onFailure = { failureCalled = true })
+    repository.deleteUser("user123")
 
     // Assert
-    assert(successCalled)
-    assert(!failureCalled)
     verify(mockDocumentReference).delete()
   }
 
   @Test
-  fun testDeleteUserFailure() {
+  fun testDeleteUserFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
+    val mockTask: Task<Void> = Tasks.forException(exception)
     whenever(mockDocumentReference.delete()).thenReturn(mockTask)
 
-    var successCalled = false
-    var failureException: Exception? = null
-
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
+    // Act & Assert
+    try {
+      repository.deleteUser("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.deleteUser(
-        userId = "user123",
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testGetUsersByUniversitySuccess() {
+  fun testGetUsersByUniversitySuccess() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUsersByUniversity(
-        university = "EPFL", onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getUsersByUniversity("EPFL")
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.size == 1)
-    assert(resultUsers?.get(0)?.university == "EPFL")
-    assert(!failureCalled)
+    assert(result.size == 1)
+    assert(result[0].university == "EPFL")
   }
 
   @Test
-  fun testGetUsersByUniversityEmpty() {
+  fun testGetUsersByUniversityEmpty() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereEqualTo("university", "ETHZ")).thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUsersByUniversity(
-        university = "ETHZ", onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getUsersByUniversity("ETHZ")
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.isEmpty() == true)
-    assert(!failureCalled)
+    assert(result.isEmpty())
   }
 
   @Test
-  fun testGetUsersByUniversityFailure() {
+  fun testGetUsersByUniversityFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
 
-    var resultUsers: List<User>? = null
-    var failureException: Exception? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
-    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockQueryTask
+    // Act & Assert
+    try {
+      repository.getUsersByUniversity("EPFL")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getUsersByUniversity(
-        university = "EPFL",
-        onSuccess = { resultUsers = it },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUsers == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testGetUsersByHobbySuccess() {
+  fun testGetUsersByHobbySuccess() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
         .thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUsersByHobby(
-        hobby = "Football", onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getUsersByHobby("Football")
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.size == 1)
-    assert(resultUsers?.get(0)?.hobbies?.contains("Football") == true)
-    assert(!failureCalled)
+    assert(result.size == 1)
+    assert(result[0].hobbies.contains("Football"))
   }
 
   @Test
-  fun testGetUsersByHobbyEmpty() {
+  fun testGetUsersByHobbyEmpty() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Swimming"))
         .thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
 
-    var resultUsers: List<User>? = null
-    var failureCalled = false
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUsersByHobby(
-        hobby = "Swimming", onSuccess = { resultUsers = it }, onFailure = { failureCalled = true })
+    val result = repository.getUsersByHobby("Swimming")
 
     // Assert
-    assert(resultUsers != null)
-    assert(resultUsers?.isEmpty() == true)
-    assert(!failureCalled)
+    assert(result.isEmpty())
   }
 
   @Test
-  fun testGetUsersByHobbyFailure() {
+  fun testGetUsersByHobbyFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
     val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
         .thenReturn(mockQuery)
-    whenever(mockQuery.get()).thenReturn(mockQueryTask)
+    whenever(mockQuery.get()).thenReturn(mockTask)
 
-    var resultUsers: List<User>? = null
-    var failureException: Exception? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
-    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockQueryTask
+    // Act & Assert
+    try {
+      repository.getUsersByHobby("Football")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getUsersByHobby(
-        hobby = "Football", onSuccess = { resultUsers = it }, onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUsers == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testGetNewuserId() {
+  fun testGetNewUid() = runTest {
     // Arrange
     whenever(mockCollectionReference.document()).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.id).thenReturn("generated_userId_123")
 
     // Act
-    val newuserId = repository.getNewUid()
+    val newUserId = repository.getNewUid()
 
     // Assert
-    assert(newuserId == "generated_userId_123")
+    assert(newUserId == "generated_userId_123")
     verify(mockCollectionReference).document()
   }
 
   @Test
-  fun testGetAllUsersWithInvalidData() {
+  fun testGetAllUsersWithInvalidData() = runTest {
     // Arrange
     val invalidDocSnapshot: DocumentSnapshot = mock()
     whenever(mockDocumentSnapshot.data).thenReturn(testUser.toMap())
     whenever(invalidDocSnapshot.data).thenReturn(mapOf("userId" to "")) // Invalid data
 
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockCollectionReference.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents)
         .thenReturn(listOf(mockDocumentSnapshot, invalidDocSnapshot))
 
-    var resultUsers: List<User>? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getAllUsers(onSuccess = { resultUsers = it }, onFailure = {})
+    val result = repository.getAllUsers()
 
     // Assert - Only valid user should be in the list
-    assert(resultUsers != null)
-    assert(resultUsers?.size == 1)
-    assert(resultUsers?.get(0)?.userId == "user123")
+    assert(result.size == 1)
+    assert(result[0].userId == "user123")
   }
 
-  // Error scenario tests
   @Test
-  fun testGetUserByIdWithMalformedDocument() {
+  fun testGetUserByIdWithMalformedDocument() = runTest {
     // Arrange
-    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
+    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(true)
     whenever(mockDocumentSnapshot.data)
         .thenReturn(
             mapOf(
                 "userId" to "user123",
-                "email" to "invalid-email", // Invalid email format
+                "email" to "invalid-email",
                 "firstName" to "John",
                 "lastName" to "Doe",
                 "university" to "EPFL",
                 "createdAt" to 1000L,
                 "updatedAt" to 1000L))
 
-    var resultUser: User? =
-        User(
-            userId = "dummy",
-            email = "dummy@test.com",
-            firstName = "dummy",
-            lastName = "dummy",
-            university = "dummy") // Set to non-null initially
-    var failureCalled = false
-
-    // Mock the task to immediately invoke onSuccess
-    whenever(mockDocumentTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
-      listener.onSuccess(mockDocumentSnapshot)
-      mockDocumentTask
-    }
-    whenever(mockDocumentTask.addOnFailureListener(any())).thenReturn(mockDocumentTask)
-
     // Act
-    repository.getUserById(
-        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureCalled = true })
+    val result = repository.getUserById("user123")
 
     // Assert - Should return null for malformed document
-    assert(resultUser == null)
-    assert(!failureCalled)
+    assert(result == null)
   }
 
   @Test
-  fun testGetUserByIdWithNetworkFailure() {
-    // Arrange
-    val exception = RuntimeException("Network error")
-    whenever(mockDocumentReference.get()).thenReturn(mockDocumentTask)
-
-    var resultUser: User? = null
-    var failureException: Exception? = null
-
-    // Mock the task to immediately invoke onFailure
-    whenever(mockDocumentTask.addOnSuccessListener(any())).thenReturn(mockDocumentTask)
-    whenever(mockDocumentTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockDocumentTask
-    }
-
-    // Act
-    repository.getUserById(
-        userId = "user123", onSuccess = { resultUser = it }, onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUser == null)
-    assert(failureException == exception)
-  }
-
-  @Test
-  fun testSaveUserWithNetworkFailure() {
-    // Arrange
-    val exception = RuntimeException("Network error")
-    whenever(mockDocumentReference.set(any())).thenReturn(mockTask)
-
-    var successCalled = false
-    var failureException: Exception? = null
-
-    // Mock the task to immediately invoke onFailure
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
-    }
-
-    // Act
-    repository.saveUser(
-        user = testUser,
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
-  }
-
-  @Test
-  fun testUpdateUserWithNetworkFailure() {
-    // Arrange
-    val exception = RuntimeException("Network error")
-    val updates = mapOf("firstName" to "UpdatedName")
-    whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
-
-    var successCalled = false
-    var failureException: Exception? = null
-
-    // Mock the task to immediately invoke onFailure
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
-    }
-
-    // Act
-    repository.updateUser(
-        userId = "user123",
-        updates = updates,
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
-  }
-
-  @Test
-  fun testDeleteUserWithNetworkFailure() {
-    // Arrange
-    val exception = RuntimeException("Network error")
-    whenever(mockDocumentReference.delete()).thenReturn(mockTask)
-
-    var successCalled = false
-    var failureException: Exception? = null
-
-    // Mock the task to immediately invoke onFailure
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
-    }
-
-    // Act
-    repository.deleteUser(
-        userId = "user123",
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
-  }
-
-  @Test
-  fun testGetUsersByHobbyWithMalformedDocuments() {
+  fun testGetUsersByHobbyWithMalformedDocuments() = runTest {
     // Arrange
     val validDocSnapshot: DocumentSnapshot = mock()
     val invalidDocSnapshot: DocumentSnapshot = mock()
@@ -898,101 +518,467 @@ class UserRepositoryFirestoreTest {
         .thenReturn(
             mapOf(
                 "userId" to "user456",
-                "email" to "invalid-email", // Invalid email
-                "firstName" to "", // Empty first name
+                "email" to "invalid-email",
+                "firstName" to "",
                 "lastName" to "Doe",
                 "university" to "EPFL",
                 "hobbies" to listOf("Football"),
                 "createdAt" to 1000L,
                 "updatedAt" to 1000L))
 
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
-        .thenReturn(mockCollectionReference)
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+        .thenReturn(mockQuery)
+    whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.documents).thenReturn(listOf(validDocSnapshot, invalidDocSnapshot))
 
-    var resultUsers: List<User>? = null
-
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
-      listener.onSuccess(mockQuerySnapshot)
-      mockQueryTask
-    }
-    whenever(mockQueryTask.addOnFailureListener(any())).thenReturn(mockQueryTask)
-
     // Act
-    repository.getUsersByHobby(hobby = "Football", onSuccess = { resultUsers = it }, onFailure = {})
+    val result = repository.getUsersByHobby("Football")
 
     // Assert - Only valid user should be returned
-    assert(resultUsers != null)
-    assert(resultUsers?.size == 1)
-    assert(resultUsers?.get(0)?.userId == "user123")
+    assert(result.size == 1)
+    assert(result[0].userId == "user123")
   }
 
   @Test
-  fun testGetUsersPaginatedWithNetworkFailure() {
+  fun testGetUsersPaginatedSuccess() = runTest {
+    // Arrange
+    val users =
+        (1..15).map { i ->
+          val mockDoc: DocumentSnapshot = mock()
+          val user = testUser.copy(userId = "user$i")
+          whenever(mockDoc.data).thenReturn(user.toMap())
+          mockDoc
+        }
+
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(11L)).thenReturn(mockQuery)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(users.take(11))
+
+    // Act
+    val (resultUsers, hasMore) = repository.getUsersPaginated(10, null)
+
+    // Assert
+    assert(resultUsers.size == 10)
+    assert(hasMore)
+  }
+
+  @Test
+  fun testGetUsersPaginatedWithLastUserId() = runTest {
+    // Arrange
+    val users =
+        (11..15).map { i ->
+          val mockDoc: DocumentSnapshot = mock()
+          val user = testUser.copy(userId = "user$i")
+          whenever(mockDoc.data).thenReturn(user.toMap())
+          mockDoc
+        }
+
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQueryAfter: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(11L)).thenReturn(mockQuery)
+    whenever(mockQuery.startAfter("user10")).thenReturn(mockQueryAfter)
+    whenever(mockQueryAfter.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(users)
+
+    // Act
+    val (resultUsers, hasMore) = repository.getUsersPaginated(10, "user10")
+
+    // Assert
+    assert(resultUsers.size == 5)
+    assert(!hasMore)
+  }
+
+  @Test
+  fun testGetUsersPaginatedFailure() = runTest {
     // Arrange
     val exception = RuntimeException("Network timeout")
-    whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockCollectionReference)
-    whenever(mockCollectionReference.limit(11L)).thenReturn(mockCollectionReference)
-    whenever(mockCollectionReference.get()).thenReturn(mockQueryTask)
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
 
-    var resultUsers: List<User>? = null
-    var hasMore: Boolean? = null
-    var failureException: Exception? = null
+    whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(11L)).thenReturn(mockQuery)
+    whenever(mockQuery.get()).thenReturn(mockTask)
 
-    // Mock the task to immediately invoke onFailure
-    whenever(mockQueryTask.addOnSuccessListener(any())).thenReturn(mockQueryTask)
-    whenever(mockQueryTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockQueryTask
+    // Act & Assert
+    try {
+      repository.getUsersPaginated(10, null)
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
     }
-
-    // Act
-    repository.getUsersPaginated(
-        limit = 10,
-        lastUserId = null,
-        onSuccess = { users, more ->
-          resultUsers = users
-          hasMore = more
-        },
-        onFailure = { failureException = it })
-
-    // Assert
-    assert(resultUsers == null)
-    assert(hasMore == null)
-    assert(failureException == exception)
   }
 
   @Test
-  fun testConcurrentModificationScenario() {
-    // Arrange - Simulate concurrent modification by having update fail
-    val exception = RuntimeException("Document was modified")
-    val updates = mapOf("firstName" to "UpdatedName")
-    whenever(mockDocumentReference.update(any<Map<String, Any?>>())).thenReturn(mockTask)
+  fun testJoinEventSuccess() = runTest {
+    // Arrange
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
 
-    var successCalled = false
-    var failureException: Exception? = null
-
-    // Mock the task to immediately invoke onFailure (simulating concurrent modification)
-    whenever(mockTask.addOnSuccessListener(any())).thenReturn(mockTask)
-    whenever(mockTask.addOnFailureListener(any())).thenAnswer { invocation ->
-      val listener = invocation.getArgument<OnFailureListener>(0)
-      listener.onFailure(exception)
-      mockTask
-    }
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
 
     // Act
-    repository.updateUser(
-        userId = "user123",
-        updates = updates,
-        onSuccess = { successCalled = true },
-        onFailure = { failureException = it })
+    repository.joinEvent("event123", "user123")
 
     // Assert
-    assert(!successCalled)
-    assert(failureException == exception)
-    assert(failureException?.message == "Document was modified")
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).set(mapOf("eventId" to "event123"))
+  }
+
+  @Test
+  fun testJoinEventFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.joinEvent("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetJoinedEventsSuccess() = runTest {
+    // Arrange
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+    val mockDoc3: DocumentSnapshot = mock()
+
+    whenever(mockDoc1.getString("eventId")).thenReturn("event1")
+    whenever(mockDoc2.getString("eventId")).thenReturn("event2")
+    whenever(mockDoc3.getString("eventId")).thenReturn("event3")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2, mockDoc3))
+
+    // Act
+    val result = repository.getJoinedEvents("user123")
+
+    // Assert
+    assert(result.size == 3)
+    assert(result == listOf("event1", "event2", "event3"))
+  }
+
+  @Test
+  fun testGetJoinedEventsEmpty() = runTest {
+    // Arrange
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
+
+    // Act
+    val result = repository.getJoinedEvents("user123")
+
+    // Assert
+    assert(result.isEmpty())
+  }
+
+  @Test
+  fun testAddEventToUserSuccess() = runTest {
+    // Arrange
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act
+    repository.addEventToUser("event123", "user123")
+
+    // Assert
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).set(mapOf("eventId" to "event123"))
+  }
+
+  @Test
+  fun testAddInvitationToUserSuccess() = runTest {
+    // Arrange
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.set(any())).thenReturn(mockTask)
+
+    // Act
+    repository.addInvitationToUser("event123", "user123", "user456")
+
+    // Assert
+    verify(mockInvitationsCollection).document("event123")
+    val captor = argumentCaptor<Map<String, Any?>>()
+    verify(mockInvitationDoc).set(captor.capture())
+    val invitationData = captor.firstValue
+    assert(invitationData["from"] == "user456")
+    assert(invitationData["eventId"] == "event123")
+    assert(invitationData.containsKey("timestamp"))
+  }
+
+  @Test
+  fun testGetInvitationsSuccess() = runTest {
+    // Arrange
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+    val timestamp = Timestamp.now()
+
+    whenever(mockDoc1.getString("eventId")).thenReturn("event1")
+    whenever(mockDoc1.getString("from")).thenReturn("user456")
+    whenever(mockDoc1.getString("status")).thenReturn(InvitationStatus.Pending.name)
+    whenever(mockDoc1.getTimestamp("timestamp")).thenReturn(timestamp)
+    whenever(mockDoc1.id).thenReturn("event1")
+
+    whenever(mockDoc2.getString("eventId")).thenReturn("event2")
+    whenever(mockDoc2.getString("from")).thenReturn("user789")
+    whenever(mockDoc2.getString("status")).thenReturn(null)
+    whenever(mockDoc2.getTimestamp("timestamp")).thenReturn(timestamp)
+    whenever(mockDoc2.id).thenReturn("event2")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockInvitationsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
+
+    // Act
+    val result = repository.getInvitations("user123")
+
+    // Assert
+    assert(result.size == 2)
+    assert(result[0].eventId == "event1")
+    assert(result[0].from == "user456")
+    assert(result[0].status == InvitationStatus.Pending)
+    assert(result[1].eventId == "event2")
+    assert(result[1].from == "user789")
+    assert(result[1].status == InvitationStatus.Pending) // Default value
+  }
+
+  @Test
+  fun testGetInvitationsEmpty() = runTest {
+    // Arrange
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockInvitationsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
+
+    // Act
+    val result = repository.getInvitations("user123")
+
+    // Assert
+    assert(result.isEmpty())
+  }
+
+  @Test
+  fun testAcceptInvitationSuccess() = runTest {
+    // Arrange
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockJoinedDoc: DocumentReference = mock()
+    val mockGetTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    val mockSetTask: Task<Void> = Tasks.forResult(null)
+    val mockDeleteTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockJoinedDoc)
+    whenever(mockInvitationDoc.get()).thenReturn(mockGetTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockJoinedDoc.set(any())).thenReturn(mockSetTask)
+    whenever(mockInvitationDoc.delete()).thenReturn(mockDeleteTask)
+
+    // Act
+    repository.acceptInvitation("event123", "user123")
+
+    // Assert
+    verify(mockInvitationDoc).get()
+    verify(mockJoinedDoc).set(any())
+    verify(mockInvitationDoc).delete()
+  }
+  // Add these tests to the existing UserRepositoryFirestoreTest class
+
+  @Test
+  fun testGetUserByIdThrowsException() = runTest {
+    // Arrange
+    val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+    whenever(mockDocumentReference.get()).thenReturn(mockTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(false)
+
+    // Act & Assert
+    try {
+      repository.getUserById("nonexistent")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("No user found with ID"))
+    }
+  }
+
+  @Test
+  fun testGetUserByEmailThrowsException() = runTest {
+    // Arrange
+    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))
+        .thenReturn(mockQuery)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
+
+    // Act & Assert
+    try {
+      repository.getUserByEmail("notfound@epfl.ch")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("No user found with email"))
+    }
+  }
+
+  @Test
+  fun testLeaveEventSuccess() = runTest {
+    // Arrange
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act
+    repository.leaveEvent("event123", "user123")
+
+    // Assert
+    verify(mockJoinedEventsCollection).document("event123")
+    verify(mockEventDoc).delete()
+  }
+
+  @Test
+  fun testLeaveEventFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.leaveEvent("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testSendInvitationSuccess() = runTest {
+    // Arrange
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockEventSnapshot: DocumentSnapshot = mock()
+    val mockInvitedUserDoc: DocumentReference = mock()
+    val mockInvitationsCollection: CollectionReference = mock()
+    val mockInvitationDoc: DocumentReference = mock()
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(Tasks.forResult(mockEventSnapshot))
+    whenever(mockEventSnapshot.getString("ownerId")).thenReturn("user123")
+
+    whenever(mockCollectionReference.document("user456")).thenReturn(mockInvitedUserDoc)
+    whenever(mockInvitedUserDoc.collection("invitations")).thenReturn(mockInvitationsCollection)
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.set(any())).thenReturn(Tasks.forResult(null))
+
+    // Act
+    repository.sendInvitation("event123", "user123", "user456")
+
+    // Assert
+    verify(mockInvitationDoc).set(any())
+  }
+
+  @Test
+  fun testSendInvitationNotOwner() = runTest {
+    // Arrange
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockEventSnapshot: DocumentSnapshot = mock()
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(Tasks.forResult(mockEventSnapshot))
+    whenever(mockEventSnapshot.getString("ownerId")).thenReturn("owner123")
+
+    // Act & Assert
+    try {
+      repository.sendInvitation("event123", "user456", "user789")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("not the owner"))
+    }
+  }
+
+  @Test
+  fun testSendInvitationFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<DocumentSnapshot> = Tasks.forException(exception)
+
+    whenever(mockFirestore.collection("events")).thenReturn(mockEventsCollection)
+    whenever(mockEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.sendInvitation("event123", "user123", "user456")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetJoinedEventsFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+    whenever(mockJoinedEventsCollection.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.getJoinedEvents("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testAddEventToUserFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.addEventToUser("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
   }
 }
