@@ -46,17 +46,64 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.Locale
 
+private val RowHorizontalPadding = 16.dp
+private val RowVerticalPadding = 12.dp
+private val CountryRowHorizontalPadding = 12.dp
+private val CountryFlagSize = 40.dp
+private val SelectedBackgroundAlpha = 0.12f
+private val SelectedBorderAlpha = 0.4f
+private val FlagCircleAlpha = 0.15f
+
+private fun getCountryRowColors(isSelected: Boolean, theme: MaterialTheme): Pair<Color, Color> {
+    val background = if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBackgroundAlpha) else Color.Transparent
+    val border = if (isSelected) theme.colorScheme.primary.copy(alpha = SelectedBorderAlpha) else Color.Transparent
+    return background to border
+}
+
+@Composable
+internal fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> Unit) {
+  val (background, border) = getCountryRowColors(isSelected, MaterialTheme)
+  Surface(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = CountryRowHorizontalPadding).clickable(onClick = onSelect),
+      color = background,
+      shape = RoundedCornerShape(16.dp),
+      border = BorderStroke(width = if (isSelected) 1.dp else 0.dp, color = border)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = RowHorizontalPadding, vertical = RowVerticalPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(RowHorizontalPadding)) {
+              Surface(
+                  shape = CircleShape,
+                  color = MaterialTheme.colorScheme.primary.copy(alpha = FlagCircleAlpha),
+                  modifier = Modifier.size(CountryFlagSize)) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                      Text(
+                          text = country.flag,
+                          style = MaterialTheme.typography.headlineSmall,
+                          maxLines = 1)
+                    }
+                  }
+
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = country.name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium))
+              }
+            }
+      }
+}
+
+private fun filterCountries(query: String, countries: List<Country>): List<Country> {
+    val trimmed = query.trim()
+    return if (trimmed.isBlank()) countries else countries.filter { it.name.startsWith(trimmed, ignoreCase = true) }
+}
+
 @Composable
 fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: () -> Unit) {
   val signUpState by viewModel.state
   var query by rememberSaveable { mutableStateOf("") }
   val countries = remember { loadCountries() }
-  val filteredCountries =
-      remember(query, countries) {
-        val trimmed = query.trim()
-        if (trimmed.isBlank()) countries
-        else countries.filter { it.name.startsWith(trimmed, ignoreCase = true) }
-      }
+  val filteredCountries = remember(query, countries) { filterCountries(query, countries) }
 
   var selectedCode by remember { mutableStateOf(signUpState.nationality) }
 
@@ -132,44 +179,6 @@ fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
             enabled = !selectedCode.isNullOrBlank())
-      }
-}
-
-@VisibleForTesting
-@Composable
-internal fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> Unit) {
-  val background =
-      if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
-  val border =
-      if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else Color.Transparent
-  Surface(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).clickable(onClick = onSelect),
-      color = background,
-      shape = RoundedCornerShape(16.dp),
-      border = BorderStroke(width = if (isSelected) 1.dp else 0.dp, color = border)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-              Surface(
-                  shape = CircleShape,
-                  color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                  modifier = Modifier.size(40.dp)) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                      Text(
-                          text = country.flag,
-                          style = MaterialTheme.typography.headlineSmall,
-                          maxLines = 1)
-                    }
-                  }
-
-              Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = country.name,
-                    style =
-                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium))
-              }
-            }
       }
 }
 
