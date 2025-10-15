@@ -2,6 +2,8 @@ package com.github.se.studentconnect.ui.screen.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.map.LocationConfig
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
@@ -21,7 +23,8 @@ data class MapUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val targetLocation: Point? = null,
-    val shouldAnimateToLocation: Boolean = false
+    val shouldAnimateToLocation: Boolean = false,
+    val events: List<Event> = emptyList()
 )
 
 object MapConfiguration {
@@ -71,6 +74,21 @@ class MapViewModel(private val locationRepository: LocationRepository) : ViewMod
 
   private val _uiState = MutableStateFlow(MapUiState())
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+
+  init {
+    loadEvents()
+  }
+
+  private fun loadEvents() {
+    viewModelScope.launch {
+      try {
+        val events = EventRepositoryProvider.repository.getAllVisibleEvents()
+        _uiState.value = _uiState.value.copy(events = events)
+      } catch (e: Exception) {
+        _uiState.value = _uiState.value.copy(errorMessage = "Failed to load events: ${e.message}")
+      }
+    }
+  }
 
   fun onEvent(event: MapViewEvent) {
     when (event) {
