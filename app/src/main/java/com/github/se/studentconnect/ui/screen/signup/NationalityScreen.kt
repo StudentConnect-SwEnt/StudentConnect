@@ -135,8 +135,9 @@ fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack
       }
 }
 
+@VisibleForTesting
 @Composable
-private fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> Unit) {
+internal fun CountryRow(country: Country, isSelected: Boolean, onSelect: () -> Unit) {
   val background =
       if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
   val border =

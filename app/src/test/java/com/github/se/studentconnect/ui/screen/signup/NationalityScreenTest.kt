@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -81,6 +82,25 @@ class NationalityScreenTest {
   fun `countryCodeToEmoji falls back for invalid input`() {
     assertEquals("🌐", invokeCountryCodeToEmoji("invalid"))
     assertEquals("🌐", invokeCountryCodeToEmoji("Z"))
+  }
+
+  @Test
+  fun `country row renders both states and propagates clicks`() {
+    var clickCount = 0
+    val country = Country(code = "ZZ", name = "Zedland", flag = "\uD83C\uDDFF\uD83C\uDDFF")
+
+    val onSelect = { clickCount += 1 }
+
+    controller.get().setContent {
+      AppTheme {
+        CountryRow(country = country, isSelected = false, onSelect = onSelect)
+        CountryRow(country = country, isSelected = true, onSelect = onSelect)
+      }
+    }
+
+    runOnIdle()
+    onSelect()
+    assertEquals(1, clickCount)
   }
 
   private fun composeNationalityScreen() {
