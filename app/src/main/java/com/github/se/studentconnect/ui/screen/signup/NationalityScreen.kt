@@ -54,6 +54,70 @@ private val SelectedBackgroundAlpha = 0.12f
 private val SelectedBorderAlpha = 0.4f
 private val FlagCircleAlpha = 0.15f
 
+// Common spacing values
+private val SmallSpacing = 4.dp
+private val MediumSpacing = 16.dp
+private val LargeSpacing = 24.dp
+
+// Common text styles
+@Composable
+private fun TitleText(text: String) {
+  Text(
+      text = text,
+      style =
+          MaterialTheme.typography.headlineMedium.copy(
+              fontFamily = FontFamily.SansSerif,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.primary))
+}
+
+@Composable
+private fun SubtitleText(text: String) {
+  Text(
+      text = text,
+      style =
+          MaterialTheme.typography.bodyMedium.copy(
+              fontFamily = FontFamily.SansSerif,
+              fontWeight = FontWeight.Normal,
+              color = MaterialTheme.colorScheme.onSurfaceVariant),
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis)
+}
+
+// Common spacers
+@Composable private fun SmallSpacer() = Spacer(Modifier.height(SmallSpacing))
+
+@Composable private fun MediumSpacer() = Spacer(Modifier.height(MediumSpacing))
+
+@Composable private fun LargeSpacer() = Spacer(Modifier.height(LargeSpacing))
+
+@Composable
+private fun CountryListSurface(
+    modifier: Modifier = Modifier,
+    filteredCountries: List<Country>,
+    selectedCode: String?,
+    onCountrySelect: (Country) -> Unit
+) {
+  Surface(
+      shape = RoundedCornerShape(24.dp),
+      color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+      border =
+          BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+      modifier = modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              items(filteredCountries) { country ->
+                CountryRow(
+                    country = country,
+                    isSelected = selectedCode == country.code,
+                    onSelect = { onCountrySelect(country) })
+              }
+            }
+      }
+}
+
 @Composable
 private fun getCountryRowColors(isSelected: Boolean, theme: MaterialTheme): Pair<Color, Color> {
   val background =
@@ -128,27 +192,13 @@ fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack
           Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
-        Spacer(Modifier.height(16.dp))
+        MediumSpacer()
 
-        Text(
-            text = "Where are you from ?",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Helps us connect you with other students and events",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
+        TitleText("Where are you from ?")
+        SmallSpacer()
+        SubtitleText("Helps us connect you with other students and events")
 
-        Spacer(Modifier.height(24.dp))
+        LargeSpacer()
 
         OutlinedTextField(
             value = query,
@@ -158,32 +208,18 @@ fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack
             singleLine = true,
             trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
 
-        Spacer(Modifier.height(16.dp))
+        MediumSpacer()
 
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-            border =
-                BorderStroke(
-                    width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-            modifier = Modifier.fillMaxWidth().weight(1f)) {
-              LazyColumn(
-                  modifier = Modifier.fillMaxWidth(),
-                  contentPadding = PaddingValues(vertical = 8.dp),
-                  verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(filteredCountries) { country ->
-                      CountryRow(
-                          country = country,
-                          isSelected = selectedCode == country.code,
-                          onSelect = {
-                            selectedCode = country.code
-                            viewModel.setNationality(country.code)
-                          })
-                    }
-                  }
-            }
+        CountryListSurface(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            filteredCountries = filteredCountries,
+            selectedCode = selectedCode,
+            onCountrySelect = { country ->
+              selectedCode = country.code
+              viewModel.setNationality(country.code)
+            })
 
-        Spacer(modifier = Modifier.height(24.dp))
+        LargeSpacer()
 
         PrimaryActionButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
