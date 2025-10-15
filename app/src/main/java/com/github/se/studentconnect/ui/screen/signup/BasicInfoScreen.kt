@@ -72,48 +72,48 @@ fun BasicInfoScreen(
     datePickerState: DatePickerState? = null,
     showDateDialogState: MutableState<Boolean>? = null
 ) {
-    val signUpState by viewModel.state
-    val dateFormatter = remember {
-        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
+  val signUpState by viewModel.state
+  val dateFormatter = remember {
+    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
+  }
+
+  val selectedMillis = signUpState.birthdateMillis
+  val pickerState =
+      datePickerState
+          ?: rememberDatePickerState(
+              initialDisplayMode = DisplayMode.Picker, initialSelectedDateMillis = selectedMillis)
+  val dialogState = showDateDialogState ?: rememberSaveable { mutableStateOf(false) }
+
+  var birthdayText by rememberSaveable { mutableStateOf("") }
+  var isBirthdateValid by remember { mutableStateOf(signUpState.birthdateMillis != null) }
+
+  LaunchedEffect(signUpState.birthdateMillis) {
+    val storedDate = signUpState.birthdateMillis
+    if (storedDate == null) {
+      birthdayText = ""
+      isBirthdateValid = false
+    } else {
+      val formatted = dateFormatter.format(Date(storedDate))
+      birthdayText = formatted
+      isBirthdateValid = true
+      if (pickerState.selectedDateMillis != storedDate) {
+        pickerState.selectedDateMillis = storedDate
+      }
     }
+  }
 
-    val selectedMillis = signUpState.birthdateMillis
-    val pickerState =
-        datePickerState
-            ?: rememberDatePickerState(
-                initialDisplayMode = DisplayMode.Picker, initialSelectedDateMillis = selectedMillis)
-    val dialogState = showDateDialogState ?: rememberSaveable { mutableStateOf(false) }
+  val firstNameText = signUpState.firstName
+  val lastNameText = signUpState.lastName
+  val isFirstNameValid = firstNameText.isNotBlank()
+  val isLastNameValid = lastNameText.isNotBlank()
+  val isContinueEnabled = isFirstNameValid && isLastNameValid && isBirthdateValid
+  LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
 
-    var birthdayText by rememberSaveable { mutableStateOf("") }
-    var isBirthdateValid by remember { mutableStateOf(signUpState.birthdateMillis != null) }
-
-    LaunchedEffect(signUpState.birthdateMillis) {
-        val storedDate = signUpState.birthdateMillis
-        if (storedDate == null) {
-            birthdayText = ""
-            isBirthdateValid = false
-        } else {
-            val formatted = dateFormatter.format(Date(storedDate))
-            birthdayText = formatted
-            isBirthdateValid = true
-            if (pickerState.selectedDateMillis != storedDate) {
-                pickerState.selectedDateMillis = storedDate
-            }
-        }
-    }
-
-    val firstNameText = signUpState.firstName
-    val lastNameText = signUpState.lastName
-    val isFirstNameValid = firstNameText.isNotBlank()
-    val isLastNameValid = lastNameText.isNotBlank()
-    val isContinueEnabled = isFirstNameValid && isLastNameValid && isBirthdateValid
-    LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.Start) {
+  Column(
+      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      horizontalAlignment = Alignment.Start) {
         IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
         Spacer(Modifier.height(16.dp))
@@ -169,7 +169,7 @@ fun BasicInfoScreen(
                 ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+              Column(modifier = Modifier.fillMaxWidth()) {
                 Text("Birthday", style = MaterialTheme.typography.labelSmall)
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -179,31 +179,31 @@ fun BasicInfoScreen(
                         if (birthdayText.isEmpty())
                             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         else MaterialTheme.colorScheme.onSurfaceVariant)
+              }
             }
-        }
 
         if (dialogState.value) {
-            DatePickerDialog(
-                onDismissRequest = { dialogState.value = false },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            val millis = pickerState.selectedDateMillis
-                            if (millis != null) {
-                                birthdayText = dateFormatter.format(Date(millis))
-                                isBirthdateValid = true
-                                viewModel.setBirthdate(millis)
-                            }
-                            dialogState.value = false
-                        }) {
-                        Text("OK")
+          DatePickerDialog(
+              onDismissRequest = { dialogState.value = false },
+              confirmButton = {
+                Button(
+                    onClick = {
+                      val millis = pickerState.selectedDateMillis
+                      if (millis != null) {
+                        birthdayText = dateFormatter.format(Date(millis))
+                        isBirthdateValid = true
+                        viewModel.setBirthdate(millis)
+                      }
+                      dialogState.value = false
+                    }) {
+                      Text("OK")
                     }
-                },
-                dismissButton = {
-                    Button(onClick = { dialogState.value = false }) { Text("Cancel") }
-                }) {
+              },
+              dismissButton = {
+                Button(onClick = { dialogState.value = false }) { Text("Cancel") }
+              }) {
                 DatePicker(state = pickerState)
-            }
+              }
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -214,54 +214,52 @@ fun BasicInfoScreen(
             onClick = onContinue,
             enabled = isContinueEnabled,
             modifier = Modifier.align(Alignment.CenterHorizontally))
-    }
+      }
 }
 
 @Composable
 private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
-    val primary = MaterialTheme.colorScheme.primary
-    val borderColor =
-        remember(primary) {
-            Color(ColorUtils.blendARGB(primary.toArgb(), Color.White.toArgb(), 0.55f))
-        }
-    val backgroundColor =
-        remember(primary) {
-            Color(ColorUtils.blendARGB(primary.toArgb(), Color.White.toArgb(), 0.15f))
-        }
+  val primary = MaterialTheme.colorScheme.primary
+  val borderColor =
+      remember(primary) {
+        Color(ColorUtils.blendARGB(primary.toArgb(), Color.White.toArgb(), 0.55f))
+      }
+  val backgroundColor =
+      remember(primary) {
+        Color(ColorUtils.blendARGB(primary.toArgb(), Color.White.toArgb(), 0.15f))
+      }
 
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(width = 6.dp, color = borderColor),
-        modifier = modifier.fillMaxWidth(),
-        color = backgroundColor) {
+  Surface(
+      shape = RoundedCornerShape(28.dp),
+      border = BorderStroke(width = 6.dp, color = borderColor),
+      modifier = modifier.fillMaxWidth(),
+      color = backgroundColor) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp, horizontal = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically) {
-            avatarResIds.forEach { resId -> AvatarItem(avatarResId = resId) }
-        }
-    }
+              avatarResIds.forEach { resId -> AvatarItem(avatarResId = resId) }
+            }
+      }
 }
 
 @Composable
 private fun AvatarItem(@DrawableRes avatarResId: Int) {
-    Surface(
-        modifier = Modifier.size(82.dp),
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.onPrimary,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp) {
+  Surface(
+      modifier = Modifier.size(82.dp),
+      shape = CircleShape,
+      color = MaterialTheme.colorScheme.onPrimary,
+      tonalElevation = 0.dp,
+      shadowElevation = 0.dp) {
         Image(
             painter = painterResource(id = avatarResId),
             contentDescription = "Avatar",
             modifier = Modifier.fillMaxSize().clip(CircleShape),
             contentScale = ContentScale.Crop)
-    }
+      }
 }
 
-/**
- * Branded primary call-to-action that centers text and optionally shows a trailing icon.
- */
+/** Branded primary call-to-action that centers text and optionally shows a trailing icon. */
 @Composable
 fun PrimaryActionButton(
     text: String,
@@ -270,37 +268,37 @@ fun PrimaryActionButton(
     enabled: Boolean = true,
     @DrawableRes iconRes: Int? = null
 ) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.height(56.dp),
-        shape = RoundedCornerShape(40.dp),
-        contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)),
-        elevation =
-            ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)) {
+  Button(
+      onClick = onClick,
+      enabled = enabled,
+      modifier = modifier.height(56.dp),
+      shape = RoundedCornerShape(40.dp),
+      contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+              contentColor = MaterialTheme.colorScheme.onPrimary,
+              disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+              disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)),
+      elevation =
+          ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center) {
-            Text(
-                text = text,
-                style =
-                    MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-            if (iconRes != null) {
+              Text(
+                  text = text,
+                  style =
+                      MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+              if (iconRes != null) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                     tint = MaterialTheme.colorScheme.onPrimary)
+              }
             }
-        }
-    }
+      }
 }
 
 // @OptIn(ExperimentalMaterial3Api::class)
