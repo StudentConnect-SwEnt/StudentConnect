@@ -1,9 +1,16 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isEventOwner(eventResource) {
-      return request.auth.uid == eventResource.data.ownerId;
+    // Fonction pour vérifier si l'utilisateur est propriétaire (utilise les données de la ressource existante)
+    function isResourceOwner() {
+      return request.auth.uid == resource.data.ownerId;
+    }
+
+    // Fonction pour vérifier si l'utilisateur est propriétaire (utilise les nouvelles données)
+    function isRequestOwner() {
+      return request.auth.uid == request.resource.data.ownerId;
     }
 
     function isParticipant(eventId) {
@@ -15,48 +22,64 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
-      // Allow read access to public events, or if the user is the owner, a participant, or is invited to a private event.
+      // Allow read access to:
+      // - Public events (anyone authenticated)
+      // - Private events if user is owner, participant, or invited
       allow get: if request.auth != null &&
                    (resource.data.type == "public" ||
-                    isEventOwner(resource) ||
+                    isResourceOwner() ||
                     isParticipant(eventId) ||
                     isInvited(eventId));
 
-      // Allow listing of public events, or private events the user is a part of.
+      // Allow listing of all events for authenticated users
+      // (filtering happens in the application layer)
       allow list: if request.auth != null;
 
-      // Allow authenticated users to create events, ensuring the ownerId is their own UID.
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      // Allow authenticated users to create events, ensuring the ownerId is their own UID
+      allow create: if request.auth != null && isRequestOwner();
 
-      // Allow updates and deletes only by the event owner.
-      allow update, delete: if request.auth != null && isEventOwner(resource);
+      // Allow updates only by the event owner, and prevent changing ownership
+      allow update: if request.auth != null &&
+                       isResourceOwner() &&
+                       isRequestOwner();
+
+      // Allow deletes only by the event owner
+      allow delete: if request.auth != null && isResourceOwner();
 
       // Rules for the 'participants' subcollection
       match /participants/{userId} {
-        // Allow reads if the user can view the parent event.
+        // Allow reads if the user can view the parent event
         allow get, list: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.type == "public" ||
-                          isEventOwner(get(/databases/$(database)/documents/events/$(eventId))) ||
+                          get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           isParticipant(eventId) ||
                           isInvited(eventId));
 
-        // Allow a user to add themselves as a participant.
-        allow create: if request.auth != null && request.auth.uid == userId;
+        // Allow a user to add themselves as a participant
+        allow create: if request.auth != null &&
+                         request.auth.uid == userId &&
+                         request.resource.data.uid == userId;
 
-        // Allow a user to remove themselves as a participant.
-        allow delete: if request.auth != null && request.auth.uid == userId;
+        // Allow a user to remove themselves as a participant
+        allow delete: if request.auth != null &&
+                         request.auth.uid == userId;
       }
 
       // Rules for the 'invitations' subcollection
       match /invitations/{userId} {
-          // Allow the event owner or the invited user to read the invitation.
-          allow get: if request.auth != null &&
-                      (isEventOwner(get(/databases/$(database)/documents/events/$(eventId))) ||
+        // Allow the event owner or the invited user to read the invitation
+        allow get: if request.auth != null &&
+                      (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                        request.auth.uid == userId);
 
-          // Only the event owner can create an invitation.
-          allow create: if request.auth != null &&
-                         isEventOwner(get(/databases/$(database)/documents/events/$(eventId)));
+        // Only the event owner can create an invitation
+        allow create: if request.auth != null &&
+                         get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
+
+        // Allow the invited user or event owner to update invitation status
+        allow update: if request.auth != null &&
+                         (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                          request.auth.uid == userId);
       }
     }
   }

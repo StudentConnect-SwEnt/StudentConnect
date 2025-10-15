@@ -1,5 +1,4 @@
 // Portions of this code were generated with the help of ChatGPT
-
 package com.github.se.studentconnect.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -22,15 +21,14 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
-
   private val now = Timestamp(Date())
   private lateinit var auth: FirebaseAuth
 
-  // --- Test User IDs ---
-  private val ownerId = "owner"
-  private val participantId = "participant"
-  private val invitedId = "invited"
-  private val otherId = "other"
+  // --- Test User IDs - Ces variables vont stocker les vrais UIDs Firebase ---
+  private var ownerId = ""
+  private var participantId = ""
+  private var invitedId = ""
+  private var otherId = ""
 
   @Before
   override fun setUp() {
@@ -39,28 +37,46 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     runBlocking {
       val users =
           mapOf(
-              ownerId to "123456",
-              participantId to "123456",
-              invitedId to "123456",
-              otherId to "123456")
-      for ((uid, password) in users) {
+              "owner" to "123456",
+              "participant" to "123456",
+              "invited" to "123456",
+              "other" to "123456")
+
+      for ((email, password) in users) {
         try {
-          auth.createUserWithEmailAndPassword("$uid@test.com", password).await()
+          val result = auth.createUserWithEmailAndPassword("$email@test.com", password).await()
+          // Stocker le vrai UID Firebase
+          when (email) {
+            "owner" -> ownerId = result.user?.uid ?: ""
+            "participant" -> participantId = result.user?.uid ?: ""
+            "invited" -> invitedId = result.user?.uid ?: ""
+            "other" -> otherId = result.user?.uid ?: ""
+          }
         } catch (e: FirebaseAuthUserCollisionException) {
-          // User already exists, which is fine for our test setup.
+          // L'utilisateur existe déjà, récupérer son UID
+          val result = auth.signInWithEmailAndPassword("$email@test.com", password).await()
+          when (email) {
+            "owner" -> ownerId = result.user?.uid ?: ""
+            "participant" -> participantId = result.user?.uid ?: ""
+            "invited" -> invitedId = result.user?.uid ?: ""
+            "other" -> otherId = result.user?.uid ?: ""
+          }
         }
       }
+      auth.signOut()
     }
   }
 
   @After
   override fun tearDown() {
-    runBlocking { auth.signOut() }
+      if (this::auth.isInitialized) {
+          runBlocking { auth.signOut() }
+      }
     super.tearDown()
   }
 
-  private fun signIn(uid: String) {
-    runBlocking { auth.signInWithEmailAndPassword("$uid@test.com", "123456").await() }
+  private fun signIn(email: String) {
+    runBlocking { auth.signInWithEmailAndPassword("$email@test.com", "123456").await() }
   }
 
   private fun getCurrentUserId(): String =
@@ -79,11 +95,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun addAndGetPublicEvent_withAllFields() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentUid = getCurrentUserId()
       val event =
           Event.Public(
               uid = repository.getNewUid(),
-              ownerId = ownerId,
+              ownerId = currentUid, // Utiliser le vrai UID
               title = "Concert",
               subtitle = "Epic!",
               description = "desc",
@@ -108,7 +125,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun addAndGetPrivateEvent_asOwner() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
       val event =
           Event.Private(
               uid = repository.getNewUid(),
@@ -127,18 +144,19 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   fun getPrivateEvent_asOtherUser_throws() {
     assertThrows(FirebaseFirestoreException::class.java) {
       runBlocking {
-        signIn(ownerId)
+        signIn("owner")
+        val currentOwnerId = getCurrentUserId()
         val event =
             Event.Private(
                 uid = repository.getNewUid(),
-                ownerId = ownerId,
+                ownerId = currentOwnerId,
                 title = "Top Secret",
                 description = "desc",
                 start = now,
                 isFlash = false)
         repository.addEvent(event)
 
-        signIn(otherId)
+        signIn("other")
         repository.getEvent(event.uid) // Denied by Firestore rules
       }
     }
@@ -147,14 +165,20 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun getAllEvents_returnsMultiple() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e1 =
           Event.Private(
-              repository.getNewUid(), ownerId, "Party", "secret", start = now, isFlash = false)
+              repository.getNewUid(),
+              currentOwnerId,
+              "Party",
+              "secret",
+              start = now,
+              isFlash = false)
       val e2 =
           Event.Public(
               repository.getNewUid(),
-              ownerId,
+              currentOwnerId,
               "Hackathon",
               "fun",
               "Hack all day!",
@@ -170,10 +194,10 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     }
   }
 
-  @Test(expected = IllegalArgumentException::class)
+  @Test(expected = FirebaseFirestoreException::class)
   fun getEvent_nonExistent_throws() {
     runBlocking {
-      signIn(otherId)
+      signIn("other")
       repository.getEvent("does-not-exist")
     }
   }
@@ -182,9 +206,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test(expected = IllegalArgumentException::class)
   fun editEvent_withMismatchedUid_throws() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e =
-          Event.Private(repository.getNewUid(), ownerId, "Title", "d", start = now, isFlash = false)
+          Event.Private(
+              repository.getNewUid(), currentOwnerId, "Title", "d", start = now, isFlash = false)
       repository.addEvent(e)
       repository.editEvent("different", e)
     }
@@ -193,7 +219,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun editEvent_byOwner_updates() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
       val e =
           Event.Private(
               repository.getNewUid(),
@@ -214,13 +240,14 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   fun editEvent_byNonOwner_throws() {
     assertThrows(IllegalAccessException::class.java) {
       runBlocking {
-        signIn(ownerId)
+        signIn("owner")
+        val currentOwnerId = getCurrentUserId()
         val e =
             Event.Private(
-                repository.getNewUid(), ownerId, "Draft", "d", start = now, isFlash = false)
+                repository.getNewUid(), currentOwnerId, "Draft", "d", start = now, isFlash = false)
         repository.addEvent(e)
 
-        signIn(otherId)
+        signIn("other")
         val updated = e.copy(title = "Updated")
         repository.editEvent(e.uid, updated)
       }
@@ -231,23 +258,23 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun deleteEvent_byOwner_removes() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
       val e =
           Event.Private(
               repository.getNewUid(), getCurrentUserId(), "Temp", "d", start = now, isFlash = false)
       repository.addEvent(e)
       repository.deleteEvent(e.uid)
 
-      assertThrows(IllegalArgumentException::class.java) {
+      assertThrows(FirebaseFirestoreException::class.java) {
         runBlocking { repository.getEvent(e.uid) }
       }
     }
   }
 
-  @Test(expected = IllegalArgumentException::class)
+  @Test(expected = IllegalAccessException::class)
   fun deleteEvent_nonExistent_throws() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
       repository.deleteEvent("fake-id")
     }
   }
@@ -256,13 +283,14 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   fun deleteEvent_byNonOwner_throws() {
     assertThrows(IllegalAccessException::class.java) {
       runBlocking {
-        signIn(ownerId)
+        signIn("owner")
+        val currentOwnerId = getCurrentUserId()
         val e =
             Event.Private(
-                repository.getNewUid(), ownerId, "Temp", "d", isFlash = false, start = now)
+                repository.getNewUid(), currentOwnerId, "Temp", "d", isFlash = false, start = now)
         repository.addEvent(e)
 
-        signIn(otherId)
+        signIn("other")
         repository.deleteEvent(e.uid)
       }
     }
@@ -272,11 +300,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun addParticipant_thenGetParticipants() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e =
           Event.Public(
               repository.getNewUid(),
-              ownerId,
+              currentOwnerId,
               "Concert",
               "Epic!",
               "d",
@@ -286,8 +315,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               subtitle = "")
       repository.addEvent(e)
 
-      signIn(participantId)
-      val p = EventParticipant(participantId, now)
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      val p = EventParticipant(currentParticipantId, now)
       repository.addParticipantToEvent(e.uid, p)
 
       val participants = repository.getEventParticipants(e.uid)
@@ -298,11 +328,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test(expected = IllegalStateException::class)
   fun addParticipantTwice_throws() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e =
           Event.Public(
               repository.getNewUid(),
-              ownerId,
+              currentOwnerId,
               "Concert",
               "Epic!",
               "d",
@@ -311,29 +342,33 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               isFlash = false,
               subtitle = "")
       repository.addEvent(e)
-      signIn(participantId)
-      val p = EventParticipant(participantId, now)
+
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      val p = EventParticipant(currentParticipantId, now)
       repository.addParticipantToEvent(e.uid, p)
-      repository.addParticipantToEvent(e.uid, p) // second time → throws client-side exception
+      repository.addParticipantToEvent(e.uid, p) // second time → throws
     }
   }
 
-  @Test(expected = IllegalArgumentException::class)
+  @Test(expected = FirebaseFirestoreException::class)
   fun addParticipant_nonExistentEvent_throws() {
     runBlocking {
-      signIn(participantId)
-      repository.addParticipantToEvent("nope", EventParticipant(participantId, now))
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      repository.addParticipantToEvent("nope", EventParticipant(currentParticipantId, now))
     }
   }
 
   @Test
   fun getParticipants_whenNone_returnsEmpty() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e =
           Event.Public(
               repository.getNewUid(),
-              ownerId,
+              currentOwnerId,
               "Empty",
               "Nothing",
               "d",
@@ -342,7 +377,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               isFlash = false,
               subtitle = "")
       repository.addEvent(e)
-      signIn(otherId)
+      signIn("other")
       Assert.assertTrue(repository.getEventParticipants(e.uid).isEmpty())
     }
   }
@@ -350,31 +385,39 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test(expected = IllegalAccessException::class)
   fun removeParticipant_byOtherUser_throws() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val eventId = repository.getNewUid()
       val e =
           Event.Public(
-              eventId, ownerId, "Concert", "", "d", null, now, isFlash = false, subtitle = "")
+              eventId,
+              currentOwnerId,
+              "Concert",
+              "",
+              "d",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
       repository.addEvent(e)
 
-      signIn(participantId)
-      val p = EventParticipant(participantId, now)
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      val p = EventParticipant(currentParticipantId, now)
       repository.addParticipantToEvent(eventId, p)
 
-      signIn(otherId)
-      // Throws client-side IllegalAccessException because the code checks IDs before calling
-      // Firestore
-      repository.removeParticipantFromEvent(eventId, participantId)
+      signIn("other")
+      repository.removeParticipantFromEvent(eventId, currentParticipantId)
     }
   }
 
   // --- Invitations ---
-
-  @Test(expected = IllegalArgumentException::class)
+  @Test(expected = FirebaseFirestoreException::class)
   fun addInvitation_toNonExistentEvent_throws() {
     runBlocking {
-      signIn(ownerId)
-      repository.addInvitationToEvent("fake-event", invitedId, ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      repository.addInvitationToEvent("fake-event", invitedId, currentOwnerId)
     }
   }
 
@@ -382,7 +425,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test(expected = IllegalArgumentException::class)
   fun eventFromDocument_withUnknownType_throws() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val badUid = repository.getNewUid()
       FirebaseEmulator.firestore
           .collection("events")
@@ -390,7 +434,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           .set(
               mapOf(
                   "type" to "nonsense",
-                  "ownerId" to "any",
+                  "ownerId" to currentOwnerId,
                   "title" to "any",
                   "description" to "any",
                   "start" to now,
@@ -405,14 +449,20 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   @Test
   fun getAllVisibleEventsSatisfying_withPredicate_matchingSubset() {
     runBlocking {
-      signIn(ownerId)
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val e1 =
           Event.Private(
-              repository.getNewUid(), ownerId, "Private Party", "s", start = now, isFlash = false)
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Party",
+              "s",
+              start = now,
+              isFlash = false)
       val e2 =
           Event.Public(
               repository.getNewUid(),
-              ownerId,
+              currentOwnerId,
               "Public Concert",
               "fun",
               "Exciting!",

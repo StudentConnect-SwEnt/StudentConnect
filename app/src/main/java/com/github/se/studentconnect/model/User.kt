@@ -24,7 +24,7 @@ data class User(
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 ) {
   init {
     require(userId.isNotBlank()) { "User ID cannot be blank" }
