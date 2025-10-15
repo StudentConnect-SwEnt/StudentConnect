@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.map
 
+import android.location.Location
 import com.github.se.studentconnect.model.map.LocationConfig
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
@@ -124,7 +125,7 @@ class MapViewModelTest {
   @Test
   fun locateUser_success_setsTargetLocationAndStopsLoading() = runTest {
     val mockLocation =
-        mockk<android.location.Location> {
+        mockk<Location> {
           every { latitude } returns 46.5089
           every { longitude } returns 6.6283
         }

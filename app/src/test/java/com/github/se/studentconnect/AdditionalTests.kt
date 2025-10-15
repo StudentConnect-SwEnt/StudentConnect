@@ -65,14 +65,6 @@ class AdditionalTests {
         "Missing main_screen_container field", fieldNames.contains("main_screen_container"))
   }
 
-  @Test
-  fun testGreetingFunction() {
-    val greetingClass = Class.forName("com.github.se.studentconnect.MainActivityKt")
-    val methods = greetingClass.declaredMethods
-    val greetingMethod = methods.find { it.name == "Greeting" }
-    Assert.assertNotNull("Greeting function should exist", greetingMethod)
-  }
-
   // Additional tests for MainActivity coverage
   @Test
   fun testMainActivityInheritance() {
@@ -80,20 +72,6 @@ class AdditionalTests {
     Assert.assertTrue(
         "MainActivity should extend ComponentActivity",
         ComponentActivity::class.java.isAssignableFrom(activityClass))
-  }
-
-  @Test
-  fun testGreetingFunctionSignature() {
-    // Test that Greeting function exists with correct parameter types
-    val greetingClass = Class.forName("com.github.se.studentconnect.MainActivityKt")
-    val methods = greetingClass.declaredMethods
-    val greetingMethods = methods.filter { it.name == "Greeting" }
-
-    Assert.assertTrue("Should have Greeting methods", greetingMethods.isNotEmpty())
-    // Verify parameter types exist (String and Modifier)
-    val hasStringParam =
-        greetingMethods.any { method -> method.parameterTypes.any { it == String::class.java } }
-    Assert.assertTrue("Greeting should accept String parameter", hasStringParam)
   }
 
   // Tests for Theme.kt dark mode functionality

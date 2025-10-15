@@ -18,75 +18,81 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-// Implémentation factice (dummy) pour satisfaire la dépendance du ViewModel
 class UserRepositoryDummy : UserRepository {
-  override fun leaveEvent(eventId: String, userId: String) {
+  private val joinedEventsByUser = mutableMapOf<String, MutableList<String>>()
+
+  override suspend fun getJoinedEvents(userId: String): List<String> {
+    return joinedEventsByUser[userId] ?: emptyList()
+  }
+
+  override suspend fun addEventToUser(eventId: String, userId: String) {
+    joinedEventsByUser.getOrPut(userId) { mutableListOf() }.add(eventId)
+  }
+
+  override suspend fun leaveEvent(eventId: String, userId: String) {
+    joinedEventsByUser[userId]?.remove(eventId)
+  }
+
+  override suspend fun getUserById(userId: String): User? {
     TODO("Not yet implemented")
   }
 
-  override fun getUserById(
-      userId: String,
-      onSuccess: (User?) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  override suspend fun getUserByEmail(email: String): User? {
     TODO("Not yet implemented")
   }
 
-  override fun getUserByEmail(
-      email: String,
-      onSuccess: (User?) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  override suspend fun getAllUsers(): List<User> {
     TODO("Not yet implemented")
   }
 
-  override fun getAllUsers(onSuccess: (List<User>) -> Unit, onFailure: (Exception) -> Unit) {
-    TODO("Not yet implemented")
-  }
-
-  override fun getUsersPaginated(
+  override suspend fun getUsersPaginated(
       limit: Int,
-      lastUserId: String?,
-      onSuccess: (List<User>, Boolean) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+      lastUserId: String?
+  ): Pair<List<User>, Boolean> {
     TODO("Not yet implemented")
   }
 
-  override fun saveUser(user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+  override suspend fun saveUser(user: User) {
     TODO("Not yet implemented")
   }
 
-  override fun updateUser(
-      userId: String,
-      updates: Map<String, Any?>,
-      onSuccess: () -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
     TODO("Not yet implemented")
   }
 
-  override fun deleteUser(userId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+  override suspend fun deleteUser(userId: String) {
     TODO("Not yet implemented")
   }
 
-  override fun getUsersByUniversity(
-      university: String,
-      onSuccess: (List<User>) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  override suspend fun getUsersByUniversity(university: String): List<User> {
     TODO("Not yet implemented")
   }
 
-  override fun getUsersByHobby(
-      hobby: String,
-      onSuccess: (List<User>) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
+  override suspend fun getUsersByHobby(hobby: String): List<User> {
     TODO("Not yet implemented")
   }
 
-  override fun getNewUid(): String {
+  override suspend fun getNewUid(): String {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getInvitations(userId: String): List<Invitation> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun acceptInvitation(eventId: String, userId: String) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun joinEvent(eventId: String, userId: String) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
     TODO("Not yet implemented")
   }
 }
@@ -98,6 +104,8 @@ class ActivitiesViewModelTest {
   private lateinit var viewModel: ActivitiesViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepository
+
+  private val testUserId = "testUser"
 
   @Before
   fun setup() {
@@ -148,10 +156,11 @@ class ActivitiesViewModelTest {
     // Arrange
     val testEvent = createTestEvent("e1", "Event One")
     eventRepository.addEvent(testEvent)
+    (userRepository as UserRepositoryDummy).addEventToUser(testEvent.uid, testUserId)
 
     // Act
-    viewModel.refreshEvents("testUser")
-    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle() // wait for all coroutines to finish
 
     // Assert
     val uiState = viewModel.uiState.value
@@ -160,20 +169,22 @@ class ActivitiesViewModelTest {
   }
 
   @Test
-  fun testRefreshEventsWithNoEventsClearsList() = runTest {
-    // Arrange: Start with one event in the state
+  fun testRefreshEventsWithNoJoinedEventsClearsList() = runTest {
     val testEvent = createTestEvent("e1", "Initial Event")
     eventRepository.addEvent(testEvent)
-    viewModel.refreshEvents("testUser")
-    testDispatcher.scheduler.advanceUntilIdle()
-    assertEquals(1, viewModel.uiState.value.events.size)
+    (userRepository as UserRepositoryDummy).addEventToUser(testEvent.uid, testUserId)
 
-    // Act: Remove the event from the repo and refresh again
-    eventRepository.deleteEvent("e1")
-    viewModel.refreshEvents("testUser")
-    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
+    assertEquals(
+        "Setup failed: event should be present initially", 1, viewModel.uiState.value.events.size)
 
-    // Assert: The list in the state should now be empty
+    // Act
+    (userRepository as UserRepositoryDummy).leaveEvent(testEvent.uid, testUserId)
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
+
+    // Assert
     assertEquals(true, viewModel.uiState.value.events.isEmpty())
   }
 
@@ -187,26 +198,33 @@ class ActivitiesViewModelTest {
     eventRepository.addEvent(event1)
     eventRepository.addEvent(event2)
     eventRepository.addEvent(event3)
+    (userRepository as UserRepositoryDummy).addEventToUser(event1.uid, testUserId)
+    (userRepository as UserRepositoryDummy).addEventToUser(event2.uid, testUserId)
+    (userRepository as UserRepositoryDummy).addEventToUser(event3.uid, testUserId)
 
     // Act
-    viewModel.refreshEvents("testUser")
-    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
 
     // Assert
     val uiState = viewModel.uiState.value
     assertEquals(3, uiState.events.size)
+    val titles = uiState.events.map { it.title }.toSet()
+    assertEquals(setOf("Event One", "Event Two", "Event Three"), titles)
   }
 
   @Test
   fun testRefreshEventsDoesNotAffectSelectedTab() = runTest {
     // Arrange
     viewModel.onTabSelected(EventTab.Invitations)
+
     val testEvent = createTestEvent("e1", "Event One")
     eventRepository.addEvent(testEvent)
+    (userRepository as UserRepositoryDummy).addEventToUser(testEvent.uid, testUserId)
 
     // Act
-    viewModel.refreshEvents("testUser")
-    testDispatcher.scheduler.advanceUntilIdle()
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
 
     // Assert
     assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)

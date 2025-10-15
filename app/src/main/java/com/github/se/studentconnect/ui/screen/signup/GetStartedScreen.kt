@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+// import androidx.compose.ui.tooling.preview.Preview
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -42,7 +43,6 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 
-// import androidx.compose.ui.tooling.preview.Preview
 // import com.github.se.studentconnect.model.authentication.AuthRepository
 // import com.github.se.studentconnect.ui.theme.AppTheme
 
@@ -113,9 +113,9 @@ fun GetStartedScreen(
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
           val items = remember {
             listOf(
-                CarouselItem(0, R.drawable.connect, "Connect"),
-                CarouselItem(1, R.drawable.discover, "Discover"),
-                CarouselItem(2, R.drawable.belong, "Belong"),
+                CarouselItem(0, R.drawable.fond, "Connect"),
+                CarouselItem(1, R.drawable.fond, "Discover"),
+                CarouselItem(2, R.drawable.fond, "Belong"),
             )
           }
 
