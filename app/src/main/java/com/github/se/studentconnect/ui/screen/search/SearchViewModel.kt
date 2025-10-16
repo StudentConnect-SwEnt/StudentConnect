@@ -36,6 +36,19 @@ class SearchViewModel(
   suspend fun init() {
     setAllEvents(getAllEvents())
     setAllUsers(getAllUsers())
+    setQuery("")
+  }
+
+  /**
+   * Initializes the ViewModel with test data by populating the repositories with sample users and
+   * events. This function is intended for testing purposes only.
+   */
+  suspend fun initTest() {
+    if (userRepository.getAllUsers().isEmpty()) initUsers()
+    if (eventRepository.getAllVisibleEvents().isEmpty()) initEvents()
+    setAllEvents(getAllEvents())
+    setAllUsers(getAllUsers())
+    setQuery("")
   }
 
   private suspend fun getAllEvents() = eventRepository.getAllVisibleEvents()
@@ -87,5 +100,54 @@ class SearchViewModel(
   /** Checks if there are any users to show. */
   fun hasUsers() = state.value.shownUsers.isNotEmpty()
 
-  fun reset() = update { SearchState() }
+  /** Resets the search query to an empty string. */
+  fun reset() = setQuery("")
+
+  private suspend fun initEvents() {
+    for (i in 1..10) {
+      val uid = "e$i"
+      val own = i % 3
+      val ownerId = "user$own"
+      val title = "Sample Event $i"
+      val description = "Description for event $i"
+      val start = com.google.firebase.Timestamp.now()
+      val isFlash = i % 2 == 0
+      val subtitle = "Subtitle for event $i"
+      eventRepository.addEvent(
+          Event.Public(
+              uid,
+              ownerId,
+              title,
+              description,
+              start = start,
+              isFlash = isFlash,
+              subtitle = subtitle,
+          )
+      )
+    }
+  }
+
+  private suspend fun initUsers() {
+    for (i in 1..10) {
+      val uid = "user$i"
+      val email = "user$i@epfl.ch"
+      val firstName = "FirstName$i"
+      val lastName = "LastName$i"
+      val university = "EPFL"
+      val createdAt = System.currentTimeMillis() - i * 100000L
+      val updatedAt = System.currentTimeMillis() - i * 50000L
+
+      userRepository.saveUser(
+          User(
+              uid,
+              email,
+              firstName,
+              lastName,
+              university,
+              createdAt = createdAt,
+              updatedAt = updatedAt,
+          )
+      )
+    }
+  }
 }

@@ -3,9 +3,6 @@ package com.github.se.studentconnect.ui.screen.search
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.ScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,16 +33,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.resources.C
 
 /**
  * The Search screen of the app, allowing users to search for people and events.
@@ -51,18 +52,20 @@ import com.github.se.studentconnect.ui.navigation.Route
  * @param navController The navigation controller for navigating between screens.
  * @param viewModel The ViewModel managing the state of the search screen.
  */
-@Preview
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    viewModel: SearchViewModel = SearchViewModel(),
+    viewModel: SearchViewModel = viewModel(),
 ) {
-  LaunchedEffect(Unit) { viewModel.init() }
 
   Scaffold(
       topBar = { SearchTopBar(viewModel, navController) },
-      modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface),
+      modifier =
+          modifier
+              .fillMaxSize()
+              .background(MaterialTheme.colorScheme.surface)
+              .testTag(C.Tag.search_screen),
   ) { innerPadding ->
     Column(
         modifier = modifier.padding(innerPadding),
@@ -84,7 +87,10 @@ private fun SearchTopBar(
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
         IconButton(
-            onClick = { navController.navigate(Route.HOME) },
+            onClick = {
+              navController.popBackStack()
+              viewModel.reset()
+            },
             content = {
               Icon(
                   painterResource(R.drawable.ic_placeholder),
@@ -92,6 +98,7 @@ private fun SearchTopBar(
                   tint = MaterialTheme.colorScheme.onSurface,
               )
             },
+            modifier = Modifier.testTag(C.Tag.back_button),
         )
       },
       windowInsets =
@@ -108,6 +115,7 @@ private fun SearchTopBar(
 @Composable
 private fun SBar(
     viewModel: SearchViewModel,
+    modifier: Modifier = Modifier,
 ) {
   SearchBar(
       inputField = {
@@ -121,14 +129,12 @@ private fun SBar(
               )
             },
             query = viewModel.state.value.query,
-            onQueryChange = {
-              ImeAction.Search
-              viewModel.setQuery(it)
-            },
+            onQueryChange = { viewModel.setQuery(it) },
             placeholder = { Text("Search") },
             onSearch = {},
             expanded = false,
             onExpandedChange = {},
+            modifier = Modifier.testTag(C.Tag.search_input_field),
         )
       },
       expanded = false,
@@ -148,25 +154,29 @@ private fun People(viewModel: SearchViewModel) {
       Column {
         Text(
             "People",
-            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-            fontStyle = MaterialTheme.typography.titleMedium.fontStyle,
-        )
-        Row(
+            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+            fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
             modifier =
-                Modifier.scrollable(
-                    state = ScrollableState { f -> f },
-                    orientation = Orientation.Horizontal,
-                ),
-        ) {
-          for (user in viewModel.state.value.shownUsers) {
+                Modifier.padding(
+                        LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                        0.dp,
+                        0.dp,
+                        0.dp,
+                    )
+                    .testTag(C.Tag.user_search_result_title),
+        )
+        LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
+          items(viewModel.state.value.shownUsers) { user ->
+            Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f))
             UserCard(user)
           }
+          item { Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f)) }
         }
       }
 }
 
 @Composable
-private fun UserCard(user: User) {
+private fun UserCard(user: User, modifier: Modifier = Modifier) {
   Box(
       modifier =
           Modifier.clickable(onClick = {})
@@ -196,23 +206,38 @@ private fun Events(viewModel: SearchViewModel) {
   if (viewModel.hasEvents())
       Text(
           "Events",
-          fontSize = MaterialTheme.typography.titleMedium.fontSize,
-          fontStyle = MaterialTheme.typography.titleMedium.fontStyle,
+          fontSize = MaterialTheme.typography.headlineSmall.fontSize,
+          fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
+          modifier =
+              Modifier.padding(
+                      LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                      0.dp,
+                      0.dp,
+                      0.dp,
+                  )
+                  .testTag(C.Tag.event_search_result_title),
       )
-  Column(
+  LazyColumn(
       modifier =
-          Modifier.scrollable(
-              state = ScrollableState { f -> f },
-              orientation = Orientation.Vertical,
-          )) {
-        for (event in viewModel.state.value.shownEvents) {
-          EventCard(event)
-        }
-      }
+          Modifier.padding(
+                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                  0.dp,
+                  0.dp,
+                  0.dp,
+              )
+              .testTag(C.Tag.event_search_result),
+  ) {
+    items(viewModel.state.value.shownEvents.size) { index ->
+      EventCard(
+          viewModel.state.value.shownEvents[index],
+      )
+      Spacer(Modifier.size(8.dp))
+    }
+  }
 }
 
 @Composable
-private fun EventCard(event: Event) {
+private fun EventCard(event: Event, modifier: Modifier = Modifier) {
   Row(modifier = Modifier.clickable(onClick = {}), verticalAlignment = Alignment.CenterVertically) {
     Image(
         painterResource(R.drawable.ic_ticket),
@@ -246,4 +271,12 @@ private fun EventCard(event: Event) {
       Icon(painterResource(R.drawable.ic_users), contentDescription = null)
     }
   }
+}
+
+@Preview
+@Composable
+fun TestSearchScreen() {
+  val viewModel = SearchViewModel()
+  LaunchedEffect(Unit) { viewModel.initTest() }
+  SearchScreen(viewModel = viewModel)
 }
