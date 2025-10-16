@@ -122,8 +122,7 @@ class SearchViewModel(
               start = start,
               isFlash = isFlash,
               subtitle = subtitle,
-          )
-      )
+          ))
     }
   }
 
@@ -146,8 +145,7 @@ class SearchViewModel(
               university,
               createdAt = createdAt,
               updatedAt = updatedAt,
-          )
-      )
+          ))
     }
   }
 }
