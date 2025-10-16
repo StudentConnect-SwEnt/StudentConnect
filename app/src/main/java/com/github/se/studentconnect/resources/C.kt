@@ -49,5 +49,19 @@ object C {
           is Tab.Activities -> activities_tab
           is Tab.Profile -> profile_tab
         }
+
+    const val visitor_profile_screen = "visitor_profile_screen"
+    const val visitor_profile_top_bar = "visitor_profile_top_bar"
+    const val visitor_profile_back = "visitor_profile_back"
+    const val visitor_profile_user_card = "visitor_profile_user_card"
+    const val visitor_profile_user_id = "visitor_profile_user_id"
+    const val visitor_profile_user_name = "visitor_profile_user_name"
+    const val visitor_profile_bio = "visitor_profile_bio"
+    const val visitor_profile_pinned_section = "visitor_profile_pinned_section"
+    const val visitor_profile_empty_state = "visitor_profile_empty_state"
+    const val visitor_profile_avatar = "visitor_profile_avatar"
+    const val visitor_profile_add_friend = "visitor_profile_add_friend"
+    const val visitor_profile_loading = "visitor_profile_loading"
+    const val visitor_profile_error = "visitor_profile_error"
   }
 }
