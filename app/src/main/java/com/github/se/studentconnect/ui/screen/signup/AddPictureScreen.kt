@@ -50,14 +50,14 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
 
 /**
  * Screen for adding a profile picture during the signup flow.
- * 
- * This composable allows users to upload or take a profile picture, skip the step,
- * or continue with a placeholder. It integrates with the SignUpViewModel to manage
- * the profile picture state and provides callbacks for navigation actions.
- * 
+ *
+ * This composable allows users to upload or take a profile picture, skip the step, or continue with
+ * a placeholder. It integrates with the SignUpViewModel to manage the profile picture state and
+ * provides callbacks for navigation actions.
+ *
  * @param viewModel The SignUpViewModel that manages the signup flow state
- * @param onPickImage Callback function that handles image picking. Receives a result
- *        callback that should be called with the selected image URI (or null if cancelled)
+ * @param onPickImage Callback function that handles image picking. Receives a result callback that
+ *   should be called with the selected image URI (or null if cancelled)
  * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
  * @param onContinue Callback invoked when the user wants to proceed to the next step
  * @param onBack Callback invoked when the user wants to go back to the previous step
