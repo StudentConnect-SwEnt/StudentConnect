@@ -174,6 +174,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     // Use Guava Android variant for ListenableFuture support
     implementation(libs.guava)
+    implementation(libs.mlkit.barcode.scanning)
 
     // QR Code generation
     implementation(libs.compose.qr.code)
@@ -254,4 +255,3 @@ configurations.forEach { configuration ->
     // This fixes a fatal exception for tests interacting with Cloud Firestore
     configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
-

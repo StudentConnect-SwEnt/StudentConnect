@@ -12,8 +12,6 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -168,14 +166,14 @@ class VisitorProfileScreenTest {
   }
 
   @Test
-  fun visitorProfileShowsInitialsFromUserIdWhenNamesBlank() {
+  fun visitorProfileShowsInitialsFromSingleLetterNames() {
     val user =
-        mockk<User>(relaxed = true) {
-          every { userId } returns "xy123"
-          every { firstName } returns ""
-          every { lastName } returns ""
-          every { getFullName() } returns ""
-        }
+        User(
+            userId = "xy123",
+            email = "xy@studentconnect.ch",
+            firstName = "X",
+            lastName = "Y",
+            university = "Uni")
 
     composeTestRule.setContent {
       AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
