@@ -189,36 +189,41 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
     val friendData = mapOf("timestamp" to timestamp)
 
     try {
-      // Add to recipient's friends list (current user can write to their own data)
-      db.collection(USERS_COLLECTION)
-          .document(userId)
-          .collection(FRIENDS_SUBCOLLECTION)
-          .document(fromUserId)
-          .set(friendData)
-          .await()
+      // Use Firestore transaction to ensure all operations complete atomically
+      // This prevents one-sided friendships if network fails mid-way
+      db.runTransaction { transaction ->
+            // Add to recipient's friends list (current user can write to their own data)
+            val recipientFriendRef =
+                db.collection(USERS_COLLECTION)
+                    .document(userId)
+                    .collection(FRIENDS_SUBCOLLECTION)
+                    .document(fromUserId)
+            transaction.set(recipientFriendRef, friendData)
 
-      // Remove from recipient's pending requests (current user can delete their own data)
-      db.collection(USERS_COLLECTION)
-          .document(userId)
-          .collection(FRIEND_REQUESTS_SUBCOLLECTION)
-          .document(fromUserId)
-          .delete()
-          .await()
+            // Remove from recipient's pending requests (current user can delete their own data)
+            val recipientRequestRef =
+                db.collection(USERS_COLLECTION)
+                    .document(userId)
+                    .collection(FRIEND_REQUESTS_SUBCOLLECTION)
+                    .document(fromUserId)
+            transaction.delete(recipientRequestRef)
 
-      // Add to sender's friends list (Firestore rules should allow this write)
-      db.collection(USERS_COLLECTION)
-          .document(fromUserId)
-          .collection(FRIENDS_SUBCOLLECTION)
-          .document(userId)
-          .set(friendData)
-          .await()
+            // Add to sender's friends list (Firestore rules should allow this write)
+            val senderFriendRef =
+                db.collection(USERS_COLLECTION)
+                    .document(fromUserId)
+                    .collection(FRIENDS_SUBCOLLECTION)
+                    .document(userId)
+            transaction.set(senderFriendRef, friendData)
 
-      // Remove from sender's sent requests (Firestore rules should allow this delete)
-      db.collection(USERS_COLLECTION)
-          .document(fromUserId)
-          .collection(SENT_REQUESTS_SUBCOLLECTION)
-          .document(userId)
-          .delete()
+            // Remove from sender's sent requests (Firestore rules should allow this delete)
+            val senderRequestRef =
+                db.collection(USERS_COLLECTION)
+                    .document(fromUserId)
+                    .collection(SENT_REQUESTS_SUBCOLLECTION)
+                    .document(userId)
+            transaction.delete(senderRequestRef)
+          }
           .await()
     } catch (e: FirebaseFirestoreException) {
       if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
