@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.Locale
@@ -175,7 +176,11 @@ private fun filterCountries(query: String, countries: List<Country>): List<Count
 }
 
 @Composable
-fun NationalityScreen(viewModel: SignUpViewModel, onContinue: () -> Unit, onBack: () -> Unit) {
+fun NationalityScreen(
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    viewModel: SignUpViewModel = viewModel()
+) {
   val signUpState by viewModel.state
   var query by rememberSaveable { mutableStateOf("") }
   val countries = remember { loadCountries() }
@@ -254,5 +259,5 @@ internal data class Country(val code: String, val name: String, val flag: String
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 private fun NationalityScreenPreview() {
-  AppTheme { NationalityScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
+  AppTheme { NationalityScreen(onContinue = {}, onBack = {}) }
 }
