@@ -52,10 +52,10 @@ constructor(
   }
 
   /**
-   * Shows or hides the calendar modal.
+   * Shows the calendar modal.
    */
-  fun toggleCalendar() {
-    _uiState.update { it.copy(isCalendarVisible = !it.isCalendarVisible) }
+  fun showCalendar() {
+    _uiState.update { it.copy(isCalendarVisible = true) }
   }
 
   /**

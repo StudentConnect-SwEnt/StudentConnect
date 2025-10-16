@@ -180,7 +180,7 @@ fun HomeScreen(
               Column {
                 FilterBar(
                   context = LocalContext.current,
-                  onCalendarClick = { viewModel.toggleCalendar() }
+                  onCalendarClick = { viewModel.showCalendar() }
                 )
                 EventListScreen(navController = navController, events = uiState.events, false)
               }
