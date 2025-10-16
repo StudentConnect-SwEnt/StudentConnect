@@ -18,18 +18,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.MockUserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
-import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
+import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
+import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
 
@@ -75,10 +79,12 @@ fun MainContent() {
                 restoreState = true
               }
             },
-            onCenterButtonClick = {
-              // Handle center button click - placeholder for now
+            onCreatePublicEvent = {
+              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
             },
-        )
+            onCreatePrivateEvent = {
+              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+            })
       }) { paddingValues ->
         NavHost(
             navController = navController,
@@ -87,8 +93,34 @@ fun MainContent() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-          composable(Route.HOME) { HomeScreen() }
+          composable(Route.HOME) { HomeScreen(navController) }
           composable(Route.MAP) { MapScreen() }
+          composable(
+              Route.MAP_WITH_LOCATION,
+              arguments =
+                  listOf(
+                      navArgument("latitude") { type = NavType.StringType },
+                      navArgument("longitude") { type = NavType.StringType },
+                      navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
+                val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
+                val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
+                val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
+                MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
+              }
+          composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
+          // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
+          // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
+          composable(
+              route = "eventView/{eventUid}/{hasJoined}",
+              arguments =
+                  listOf(
+                      navArgument("eventUid") { type = NavType.StringType },
+                      navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
+                requireNotNull(eventUid) { "Event UID is required." }
+                EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+              }
           composable(Route.ACTIVITIES) { ActivitiesScreen() }
           composable(Route.PROFILE) {
             val mockRepository = remember { MockUserRepository() }

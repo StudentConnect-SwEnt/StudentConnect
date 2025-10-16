@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.activities
+package com.github.se.studentconnect.ui.screen.activities
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ServerTimestamp

@@ -1,5 +1,5 @@
 // To debug : added the countDownJob cancellation by chatGpt
-package com.github.se.studentconnect.ui.activities
+package com.github.se.studentconnect.ui.screen.activities
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

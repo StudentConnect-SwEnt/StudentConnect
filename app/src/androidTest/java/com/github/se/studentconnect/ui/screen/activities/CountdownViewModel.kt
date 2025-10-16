@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.activities
+package com.github.se.studentconnect.ui.screen.activities
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule

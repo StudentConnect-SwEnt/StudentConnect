@@ -4,8 +4,8 @@ package com.github.se.studentconnect.model.event
 
 import android.util.Log
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.activities.Invitation
-import com.github.se.studentconnect.ui.activities.InvitationStatus
+import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
