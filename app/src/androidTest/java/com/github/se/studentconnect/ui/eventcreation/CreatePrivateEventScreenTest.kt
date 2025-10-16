@@ -14,7 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalTestApi::class)
-class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
+class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
