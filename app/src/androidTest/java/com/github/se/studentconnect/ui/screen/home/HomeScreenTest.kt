@@ -1,14 +1,9 @@
-package com.github.se.studentconnect.ui.screen.home
+package com.github.se.studentconnect.ui.screens
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.unit.dp
-import com.github.se.studentconnect.ui.screens.HomeScreen
-import com.github.se.studentconnect.ui.theme.AppTheme
+import androidx.navigation.compose.rememberNavController
+import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import org.junit.Rule
 import org.junit.Test
 
@@ -17,96 +12,35 @@ class HomeScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Test
-  fun homeScreen_displaysCorrectly() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
+  fun homeScreen_displaysAllComponentsCorrectly() {
+    composeTestRule.setContent { HomeScreen(navController = rememberNavController()) }
 
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+    // Vérifier que l'écran principal est affiché
+    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
+
+    // Vérifier que la barre de recherche est présente
+    composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
+
+    // Vérifier que l'icône de notifications est présente
+    composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
   }
 
   @Test
-  fun homeScreen_textStyle_isHeadlineMedium() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
+  fun notificationIcon_togglesDropdownMenu() {
+    composeTestRule.setContent { HomeScreen(navController = rememberNavController()) }
 
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
-  }
+    // Le menu déroulant ne doit pas être visible initialement
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER).assertDoesNotExist()
 
-  @Test
-  fun homeScreen_columnLayout_isConfiguredCorrectly() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
+    // Cliquer sur l'icône de notifications pour afficher le menu
+    composeTestRule.onNodeWithContentDescription("Notifications").performClick()
 
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-  }
+    // Vérifier que le menu déroulant est maintenant visible
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER).assertIsDisplayed()
 
-  @Test
-  fun homeScreen_textContent_isNotEmpty() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
-
-    val homeText = "Home"
-    assert(homeText.isNotEmpty())
-    composeTestRule.onNodeWithText(homeText).assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_testTag_exists() {
-    val expectedTag = "home_screen"
-    assert(expectedTag.isNotEmpty())
-
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
-    composeTestRule.onNodeWithTag(expectedTag).assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_modifier_defaultValue() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_withCustomModifier() {
-    composeTestRule.setContent {
-      AppTheme { HomeScreen() }
-    }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_modifierChaining() {
-    composeTestRule.setContent {
-      AppTheme { HomeScreen() }
-    }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_emptyModifier() {
-    composeTestRule.setContent { AppTheme { HomeScreen() } }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_modifierWithPadding() {
-    composeTestRule.setContent {
-      AppTheme { HomeScreen() }
-    }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_modifierWithSizeAndTestTag() {
-    composeTestRule.setContent {
-      AppTheme { HomeScreen() }
-    }
-
-    composeTestRule.onNodeWithTag("home_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
+    // Cliquer à nouveau (simule la fermeture, bien que le onDismiss soit plus complexe)
+    // Pour un test simple, on peut vérifier l'état après une interaction
+    composeTestRule.onNodeWithContentDescription("Notifications").performClick()
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER).assertDoesNotExist()
   }
 }

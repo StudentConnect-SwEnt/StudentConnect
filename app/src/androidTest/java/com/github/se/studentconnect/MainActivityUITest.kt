@@ -5,8 +5,10 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,7 +46,8 @@ class MainActivityUITest {
   @Test
   fun mainActivity_centerButtonClickDoesNotCrash() {
     composeTestRule.onNodeWithTag("center_add_button").performClick()
-    composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
+    // The bottom sheet should be displayed
+    composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
   }
 
   /**
@@ -52,7 +55,13 @@ class MainActivityUITest {
    */
   @Test
   fun mainActivity_centerButtonMultipleClicks() {
-    repeat(3) { composeTestRule.onNodeWithTag("center_add_button").performClick() }
+    repeat(3) {
+      composeTestRule.onNodeWithTag("center_add_button").performClick()
+      // In a real scenario, a bottom sheet might open and need to be closed to be clicked again.
+      // Assuming clicking again closes it or does nothing.
+      composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
+      pressBack() // Close the bottom sheet to be able to click the button again
+    }
     composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
   }
 
@@ -89,5 +98,22 @@ class MainActivityUITest {
   fun mainActivity_scaffoldStructureIsCorrect() {
     composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
+  }
+
+  @Test
+  fun fullNavigationJourney_throughAllTabs() {
+    // Starts on Home
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
+
+    // To Activities
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN).assertIsDisplayed()
+
+    // Back to Home
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
+    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
   }
 }
