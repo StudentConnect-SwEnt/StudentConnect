@@ -8,11 +8,12 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.gms)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinComposeCompiler)
 }
 
 android {
     namespace = "com.github.se.studentconnect"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.github.se.studentconnect"
@@ -52,7 +53,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.6.8"
     }
     packaging {
         resources {

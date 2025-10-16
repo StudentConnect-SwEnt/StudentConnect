@@ -1,8 +1,8 @@
 [versions]
 # Plugins
-agp = "8.4.2"
+agp = "8.13.0"
 json = "20240303"
-kotlin = "1.9.0"
+kotlin = "2.2.20"
 gms = "4.4.2"
 ktfmt = "0.17.0"
 sonar = "6.3.1.5724"
@@ -18,8 +18,8 @@ uiTestManifest = "1.6.8"
 uiTooling = "1.6.8"
 composeBom = "2024.08.00"
 constraintlayout = "2.1.4"
-material = "1.6.8"
-material3 = "1.3.2"
+material = "1.9.3"
+material3 = "1.4.0"
 materialVersion = "1.12.0"
 materialIconsExtended = "1.6.8"
 
@@ -143,6 +143,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinComposeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 gms = { id = "com.google.gms.google-services", version.ref = "gms" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
