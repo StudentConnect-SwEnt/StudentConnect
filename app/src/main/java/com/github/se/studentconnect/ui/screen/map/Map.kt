@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +38,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
 import com.github.se.studentconnect.model.map.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
@@ -55,26 +55,19 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
 
-object Padding {
-  val CONTENT: Dp = 16.dp
-  val VERTICAL_SPACING: Dp = 8.dp
-}
-
-object Size {
-  val FAB: Dp = 56.dp
-  val ICON: Dp = 24.dp
-  val LARGE_ICON: Dp = 32.dp
-}
-
-object Corner {
-  val RADIUS: Dp = 12.dp
-  val MAP_RADIUS: Dp = 16.dp
-}
-
-object Elevation {
-  val DEFAULT: Dp = 0.dp
-}
-
+/**
+ * Main map screen composable that displays an interactive map with event markers.
+ *
+ * Features:
+ * - Toggle between Events and Friends view
+ * - Search locations
+ * - Event marker clustering for clean visualization
+ * - User location tracking (with permission)
+ *
+ * @param targetLatitude Optional latitude to animate the map to on load
+ * @param targetLongitude Optional longitude to animate the map to on load
+ * @param targetZoom Zoom level for the target location (default: MapConfiguration.Zoom.TARGET)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -161,6 +154,7 @@ fun MapScreen(
           mapViewportState = mapViewportState,
           hasLocationPermission = uiState.hasLocationPermission,
           isEventsView = uiState.isEventsView,
+          events = uiState.events,
           onToggleView = { actualViewModel.onEvent(MapViewEvent.ToggleView) },
           onLocateUser = { actualViewModel.onEvent(MapViewEvent.LocateUser) },
           modifier =
@@ -177,6 +171,13 @@ fun MapScreen(
   }
 }
 
+/**
+ * Search bar composable for location search functionality.
+ *
+ * @param searchText Current search text value
+ * @param onSearchTextChange Callback invoked when search text changes
+ * @param modifier Modifier to be applied to the search bar
+ */
 @Composable
 private fun SearchBar(
     searchText: String,
@@ -208,15 +209,38 @@ private fun SearchBar(
               unfocusedTextColor = MaterialTheme.colorScheme.onSurface))
 }
 
+/**
+ * Container for the Mapbox map with event markers and action buttons.
+ *
+ * Handles:
+ * - Map rendering with Mapbox SDK
+ * - Event marker display with clustering
+ * - User location puck
+ * - Dynamic layer management based on view state
+ *
+ * @param mapViewportState Viewport state for camera control
+ * @param hasLocationPermission Whether location permission is granted
+ * @param isEventsView Whether currently in events view (vs friends view)
+ * @param events List of events to display as markers
+ * @param onToggleView Callback to toggle between views
+ * @param onLocateUser Callback to center map on user location
+ * @param modifier Modifier to be applied to the container
+ */
 @Composable
 private fun MapContainer(
     mapViewportState: MapViewportState,
     hasLocationPermission: Boolean,
     isEventsView: Boolean,
+    events: List<Event>,
     onToggleView: () -> Unit,
     onLocateUser: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  // Track previous state to avoid unnecessary updates
+  val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
+  val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
+
   Box(modifier = modifier.clip(RoundedCornerShape(Corner.MAP_RADIUS))) {
     if (BuildConfig.USE_MOCK_MAP || isInAndroidTest()) {
       TestMapboxMap()
@@ -236,6 +260,30 @@ private fun MapContainer(
                 pulsingEnabled = true
               }
             }
+
+            // Add event markers with clustering - only in events view
+            // Check if state actually changed before updating
+            MapEffect(isEventsView, events) { mapView ->
+              val hasChanged =
+                  previousEventsView.value != isEventsView || previousEvents.value != events
+
+              if (hasChanged) {
+                previousEventsView.value = isEventsView
+                previousEvents.value = events
+
+                mapView.mapboxMap.getStyle { style ->
+                  EventMarkers.removeExistingEventLayers(style)
+
+                  if (isEventsView && events.isNotEmpty()) {
+                    EventMarkers.addEventMarkerIcon(context, style)
+                    val features = EventMarkers.createEventFeatures(events)
+                    EventMarkers.addEventSource(style, features)
+                    EventMarkers.addClusterLayers(style)
+                    EventMarkers.addIndividualMarkerLayer(style)
+                  }
+                }
+              }
+            }
           }
     }
 
@@ -247,6 +295,18 @@ private fun MapContainer(
   }
 }
 
+/**
+ * Floating action buttons overlaid on the map for user interactions.
+ *
+ * Displays:
+ * - "Locate Me" button (if location permission granted)
+ * - "Toggle View" button (Events/Friends)
+ *
+ * @param hasLocationPermission Whether to show the location button
+ * @param isEventsView Current view state for button icon
+ * @param onLocateUser Callback to center map on user
+ * @param onToggleView Callback to toggle view
+ */
 @Composable
 private fun BoxScope.MapActionButtons(
     hasLocationPermission: Boolean,
