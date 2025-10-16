@@ -116,7 +116,7 @@ fun LocationTextField(
     if (isLoadingLocationSuggestions) return@LaunchedEffect
 
     val location =
-        if (locationString.isBlank() || locationSuggestions.isEmpty()) null
+        if (locationString.isBlank() || locationSuggestions.size != 1) null
         else locationSuggestions[0]
 
     onLocationChange(location)
@@ -156,6 +156,9 @@ fun LocationTextField(
         },
         label = label,
         placeholder = placeholder,
-    )
+        errorText =
+            if (!locationDropdownMenuIsExpanded && locationSuggestions.size > 1)
+                "The location is invalid"
+            else null)
   }
 }
