@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,9 +84,11 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
                       // Hide the front when it's rotated more than 90 degrees
                       alpha = if (rotation > 90f) 0f else 1f
                     }
-                    .shadow(elevation = 24.dp, shape = RoundedCornerShape(16.dp)),
+                    .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
               UserCardFront(user = user)
             }
@@ -100,9 +103,12 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
                       // Hide the back when it's rotated less than 90 degrees
                       alpha = if (rotation > 90f) 1f else 0f
                     }
-                    .shadow(elevation = 24.dp, shape = RoundedCornerShape(16.dp)),
+                    .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp)),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
               UserCardBack(user = user)
             }
@@ -124,22 +130,17 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                                 colors =
                                     listOf(
                                         MaterialTheme.colorScheme.surface,
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f))),
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))),
                         shape = RoundedCornerShape(16.dp))
                     .border(
                         width = 3.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(16.dp))) {
               // App Logo (Top Right)
               Box(
                   modifier =
                       Modifier.align(Alignment.TopEnd)
-                          .padding(16.dp)
-                          .size(70.dp, 28.dp)
-                          .background(
-                              color = MaterialTheme.colorScheme.surface,
-                              shape = RoundedCornerShape(6.dp)),
+                          .padding(16.dp),
                   contentAlignment = Alignment.Center) {
                     Icon(
                         painter = painterResource(id = R.drawable.studnet_logo),
@@ -157,7 +158,11 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                         modifier =
                             Modifier.size(80.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)) {
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                .border(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(12.dp))) {
                           if (user.hasProfilePicture()) {
                             // TODO: Add image loading when Coil is available
                             Icon(
@@ -225,12 +230,11 @@ private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
                                 colors =
                                     listOf(
                                         MaterialTheme.colorScheme.surface,
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f))),
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))),
                         shape = RoundedCornerShape(16.dp))
                     .border(
                         width = 3.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(16.dp))) {
               Column(
                   modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -331,7 +335,9 @@ fun UserCardFlippedPreview() {
                       }
                       .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
               shape = RoundedCornerShape(16.dp),
-              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+              colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
               elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                 UserCardFront(
                     user =
@@ -358,7 +364,9 @@ fun UserCardFlippedPreview() {
                       }
                       .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
               shape = RoundedCornerShape(16.dp),
-              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+              colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
               elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
                 UserCardBack(
                     user =
