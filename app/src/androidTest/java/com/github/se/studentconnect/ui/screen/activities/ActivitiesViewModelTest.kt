@@ -3,7 +3,7 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.repository.AuthentificationProvider
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.EventCarouselItem
 import com.github.se.studentconnect.ui.screen.activities.EventTab
@@ -60,8 +60,8 @@ class ActivitiesViewModelTest {
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
 
-    mockkObject(AuthentificationProvider)
-    every { AuthentificationProvider.currentUser } returns mockUser
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns mockUser
 
     viewModel = ActivitiesViewModel(eventRepository, userRepository)
   }

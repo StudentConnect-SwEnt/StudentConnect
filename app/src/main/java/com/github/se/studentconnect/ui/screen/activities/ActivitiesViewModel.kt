@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.repository.AuthentificationProvider
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.ui.screen.activities.CarouselDisplayItem
@@ -37,12 +37,12 @@ class ActivitiesViewModel(
 
   fun onTabSelected(tab: EventTab) {
     _uiState.update { it.copy(selectedTab = tab) }
-    refreshEvents(AuthentificationProvider.currentUser)
+    refreshEvents(AuthenticationProvider.currentUser)
   }
 
   fun acceptInvitation(invitation: Invitation) {
     viewModelScope.launch {
-      val currentUserUid = AuthentificationProvider.currentUser
+      val currentUserUid = AuthenticationProvider.currentUser
       userRepository.acceptInvitation(invitation.eventId, currentUserUid)
       eventRepository.addParticipantToEvent(invitation.eventId, EventParticipant(currentUserUid))
 
@@ -58,7 +58,7 @@ class ActivitiesViewModel(
 
   fun declineInvitation(invitation: Invitation) {
     viewModelScope.launch {
-      val currentUserUid = AuthentificationProvider.currentUser
+      val currentUserUid = AuthenticationProvider.currentUser
       userRepository.declineInvitation(invitation.eventId, currentUserUid)
 
       _uiState.update { currentState ->

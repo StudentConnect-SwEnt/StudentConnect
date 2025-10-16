@@ -3,7 +3,7 @@ package com.github.se.studentconnect.repository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
-object AuthentificationProvider {
+object AuthenticationProvider {
   const val local = true
   var currentUser: String =
       if (local) {

@@ -66,7 +66,7 @@ object UserRepositoryProvider {
   private suspend fun linkUsersToEvents() {
     val eventIds = EventRepositoryProvider.createFakeEvents().map { it.uid }
     if (eventIds.size < 4) return
-    val currentUser = AuthentificationProvider.currentUser
+    val currentUser = AuthenticationProvider.currentUser
     localRepository.joinEvent(eventId = "event-balelec-03", userId = currentUser)
     localRepository.joinEvent(eventId = "event-rlc-study-04", userId = currentUser)
 

@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.repository.AuthentificationProvider
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.google.firebase.Timestamp
@@ -104,7 +104,7 @@ fun ActivitiesScreen(
   val isLoading = uiState.isLoading
 
   LaunchedEffect(selectedTab) {
-    activitiesViewModel.refreshEvents(AuthentificationProvider.currentUser)
+    activitiesViewModel.refreshEvents(AuthenticationProvider.currentUser)
   }
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   val mainItemWidth = screenWidth * 0.85f
@@ -296,7 +296,7 @@ private fun Carousel(
 
         when (item) {
           is EventCarouselItem -> {
-            val isOwner = item.event.ownerId == AuthentificationProvider.currentUser
+            val isOwner = item.event.ownerId == AuthenticationProvider.currentUser
             CarouselCard(
                 item = item.event,
                 isOwner = isOwner,

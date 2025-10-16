@@ -6,7 +6,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.repository.AuthentificationProvider
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +38,7 @@ class EventViewModel(
   }
 
   fun leaveEvent(eventUid: String) {
-    val currentUserUid = AuthentificationProvider.currentUser
+    val currentUserUid = AuthenticationProvider.currentUser
     if (currentUserUid != null) {
       viewModelScope.launch {
         userRepository.leaveEvent(eventUid, currentUserUid)
@@ -49,7 +49,7 @@ class EventViewModel(
   }
 
   fun joinEvent(eventUid: String) {
-    val currentUserUid = AuthentificationProvider.currentUser
+    val currentUserUid = AuthenticationProvider.currentUser
     if (currentUserUid != null) {
       viewModelScope.launch {
         userRepository.joinEvent(eventUid, currentUserUid)
