@@ -50,6 +50,40 @@ import com.github.se.studentconnect.ui.userqr.UserQRCode
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// Common styling constants
+private val CARD_SHAPE = RoundedCornerShape(16.dp)
+private val CARD_ELEVATION = 16.dp
+private val CARD_BORDER_WIDTH = 3.dp
+private val CARD_BORDER_ALPHA = 0.3f
+private val GRADIENT_ALPHA = 0.5f
+
+// Reusable card styling modifier
+@Composable
+private fun Modifier.cardStyling(): Modifier =
+    this.background(
+            brush =
+                Brush.verticalGradient(
+                    colors =
+                        listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = GRADIENT_ALPHA))),
+            shape = CARD_SHAPE)
+        .border(
+            width = CARD_BORDER_WIDTH,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = CARD_BORDER_ALPHA),
+            shape = CARD_SHAPE)
+
+// Reusable card container
+@Composable
+private fun CardContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+  Surface(
+      modifier = modifier.fillMaxSize(),
+      color = MaterialTheme.colorScheme.surface,
+      shape = CARD_SHAPE) {
+        Box(modifier = Modifier.fillMaxSize().cardStyling()) { content() }
+      }
+}
+
 @Composable
 fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
   var isFlipped by remember { mutableStateOf(false) }
@@ -83,8 +117,8 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
                       // Hide the front when it's rotated more than 90 degrees
                       alpha = if (rotation > 90f) 0f else 1f
                     }
-                    .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
+                    .shadow(elevation = CARD_ELEVATION, shape = CARD_SHAPE),
+            shape = CARD_SHAPE,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
               UserCardFront(user = user)
@@ -100,8 +134,8 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
                       // Hide the back when it's rotated less than 90 degrees
                       alpha = if (rotation > 90f) 1f else 0f
                     }
-                    .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
+                    .shadow(elevation = CARD_ELEVATION, shape = CARD_SHAPE),
+            shape = CARD_SHAPE,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
               UserCardBack(user = user)
@@ -111,155 +145,106 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
 
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
-  Surface(
-      modifier = modifier.fillMaxSize(),
-      color = MaterialTheme.colorScheme.surface,
-      shape = RoundedCornerShape(16.dp)) {
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .background(
-                        brush =
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        MaterialTheme.colorScheme.surface,
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f))),
-                        shape = RoundedCornerShape(16.dp))
-                    .border(
-                        width = 3.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(16.dp))) {
-              // App Logo (Top Right)
-              Box(
-                  modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-                  contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.studnet_logo),
-                        contentDescription = "Student Connect Logo",
-                        modifier = Modifier.size(64.dp, 22.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-                  }
+  CardContainer(modifier = modifier) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      // App Logo (Top Right)
+      Box(
+          modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+          contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = R.drawable.studnet_logo),
+                contentDescription = "Student Connect Logo",
+                modifier = Modifier.size(64.dp, 22.dp),
+                tint = MaterialTheme.colorScheme.primary)
+          }
 
-              // Main Content Row
-              Row(
-                  modifier = Modifier.fillMaxSize().padding(16.dp),
-                  verticalAlignment = Alignment.CenterVertically) {
-                    // Profile Picture (Left Side)
-                    Box(
-                        modifier =
-                            Modifier.size(80.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                .border(
-                                    width = 2.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                    shape = RoundedCornerShape(12.dp))) {
-                          if (user.hasProfilePicture()) {
-                            // TODO: Add image loading when Coil is available
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier.fillMaxSize().padding(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                          } else {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier.fillMaxSize().padding(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                          }
-                        }
+      // Main Content Row
+      Row(
+          modifier = Modifier.fillMaxSize().padding(16.dp),
+          verticalAlignment = Alignment.CenterVertically) {
+            // Profile Picture (Left Side)
+            Box(
+                modifier =
+                    Modifier.size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                        .border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(12.dp))) {
+                  // Profile picture placeholder (TODO: Add image loading when Coil is available)
+                  Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = "Profile Picture",
+                      modifier = Modifier.fillMaxSize().padding(16.dp),
+                      tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-                    // User Information (Right Side)
-                    Column(
-                        modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                          Text(
-                              text = user.firstName,
-                              style = MaterialTheme.typography.headlineSmall,
-                              fontWeight = FontWeight.Bold,
-                              color = MaterialTheme.colorScheme.onSurface)
+            // User Information (Right Side)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+              Text(
+                  text = user.firstName,
+                  style = MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface)
 
-                          Spacer(modifier = Modifier.height(4.dp))
+              Spacer(modifier = Modifier.height(4.dp))
 
-                          Text(
-                              text = user.lastName,
-                              style = MaterialTheme.typography.headlineSmall,
-                              fontWeight = FontWeight.Bold,
-                              color = MaterialTheme.colorScheme.onSurface)
+              Text(
+                  text = user.lastName,
+                  style = MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface)
 
-                          Spacer(modifier = Modifier.height(8.dp))
+              Spacer(modifier = Modifier.height(8.dp))
 
-                          Text(
-                              text =
-                                  user.birthdate?.let {
-                                    val dateFormat =
-                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                    dateFormat.format(it.toDate())
-                                  } ?: "Birthday not provided",
-                              style = MaterialTheme.typography.bodyMedium,
-                              color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                  }
+              Text(
+                  text =
+                      user.birthdate?.let {
+                        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        dateFormat.format(it.toDate())
+                      } ?: "Birthday not provided",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-      }
+          }
+    }
+  }
 }
 
 @Composable
 private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
-  Surface(
-      modifier = modifier.fillMaxSize(),
-      color = MaterialTheme.colorScheme.surface,
-      shape = RoundedCornerShape(16.dp)) {
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .background(
-                        brush =
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        MaterialTheme.colorScheme.surface,
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f))),
-                        shape = RoundedCornerShape(16.dp))
-                    .border(
-                        width = 3.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(16.dp))) {
-              Column(
-                  modifier = Modifier.fillMaxSize().padding(16.dp),
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.Center) {
-                    Text(
-                        text = "Scan QR code to connect!",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center)
+  CardContainer(modifier = modifier) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+          Text(
+              text = "Scan QR code to connect!",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.primary,
+              textAlign = TextAlign.Center)
 
-                    Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(16.dp))
 
-                    // QR Code (even smaller size)
-                    Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-                      UserQRCode(userId = user.userId)
-                    }
+          // QR Code (even smaller size)
+          Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+            UserQRCode(userId = user.userId)
+          }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+          Spacer(modifier = Modifier.height(12.dp))
 
-                    Text(
-                        text = "Scan QR to connect!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center)
-                  }
-            }
-      }
+          Text(
+              text = "Scan QR to connect!",
+              style = MaterialTheme.typography.bodyMedium,
+              fontWeight = FontWeight.Medium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              textAlign = TextAlign.Center)
+        }
+  }
 }
 
 // @Preview(showBackground = true)
