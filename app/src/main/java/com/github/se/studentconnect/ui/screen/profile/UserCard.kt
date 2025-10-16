@@ -1,5 +1,9 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+// import androidx.compose.ui.tooling.preview.Preview
+// import com.github.se.studentconnect.ui.theme.AppTheme
+// import com.google.firebase.Timestamp
+// import java.util.Date
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -39,15 +43,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.userqr.UserQRCode
-import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -262,117 +262,119 @@ private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
       }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun UserCardPreview() {
-  AppTheme {
-    UserCard(
-        user =
-            User(
-                userId = "user123456789",
-                email = "rita.naimi@example.com",
-                firstName = "Rita",
-                lastName = "Naimi",
-                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
-                university = "ETH Zurich",
-                hobbies = listOf("Programming", "Photography"),
-                profilePictureUrl = null,
-                bio = "Computer Science student"))
-  }
-}
-
-@Preview(showBackground = true, name = "With Profile Picture")
-@Composable
-fun UserCardWithPicturePreview() {
-  AppTheme {
-    UserCard(
-        user =
-            User(
-                userId = "user987654321",
-                email = "rita.naimi@example.com",
-                firstName = "Rita",
-                lastName = "Naimi",
-                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
-                university = "University of Zurich",
-                hobbies = listOf("Music", "Sports"),
-                profilePictureUrl = "https://via.placeholder.com/150",
-                bio = "Business student"))
-  }
-}
-
-@Preview(showBackground = true, name = "Flipped Card")
-@Composable
-fun UserCardFlippedPreview() {
-  AppTheme {
-    var isFlipped by remember { mutableStateOf(true) }
-
-    val rotation by
-        animateFloatAsState(
-            targetValue = if (isFlipped) 180f else 0f,
-            animationSpec = tween(durationMillis = 600),
-            label = "card_rotation")
-
-    val cardWidth = 320.dp
-    val cardHeight = 200.dp
-
-    Box(
-        modifier =
-            Modifier.size(width = cardWidth, height = cardHeight).clickable {
-              isFlipped = !isFlipped
-            }) {
-          // Front of the card
-          Card(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .graphicsLayer {
-                        rotationY = rotation
-                        cameraDistance = 12f * density
-                      }
-                      .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
-              shape = RoundedCornerShape(16.dp),
-              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-              elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
-                UserCardFront(
-                    user =
-                        User(
-                            userId = "user123456789",
-                            email = "rita.naimi@example.com",
-                            firstName = "Rita",
-                            lastName = "Naimi",
-                            birthdate =
-                                Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
-                            university = "ETH Zurich",
-                            hobbies = listOf("Programming", "Photography"),
-                            profilePictureUrl = null,
-                            bio = "Computer Science student"))
-              }
-
-          // Back of the card
-          Card(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .graphicsLayer {
-                        rotationY = rotation + 180f
-                        cameraDistance = 12f * density
-                      }
-                      .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
-              shape = RoundedCornerShape(16.dp),
-              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-              elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
-                UserCardBack(
-                    user =
-                        User(
-                            userId = "user123456789",
-                            email = "rita.naimi@example.com",
-                            firstName = "Rita",
-                            lastName = "Naimi",
-                            birthdate =
-                                Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
-                            university = "ETH Zurich",
-                            hobbies = listOf("Programming", "Photography"),
-                            profilePictureUrl = null,
-                            bio = "Computer Science student"))
-              }
-        }
-  }
-}
+// @Preview(showBackground = true)
+// @Composable
+// fun UserCardPreview() {
+//  AppTheme {
+//    UserCard(
+//        user =
+//            User(
+//                userId = "user123456789",
+//                email = "rita.naimi@example.com",
+//                firstName = "Rita",
+//                lastName = "Naimi",
+//                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
+//                university = "ETH Zurich",
+//                hobbies = listOf("Programming", "Photography"),
+//                profilePictureUrl = null,
+//                bio = "Computer Science student"))
+//  }
+// }
+//
+// @Preview(showBackground = true, name = "With Profile Picture")
+// @Composable
+// fun UserCardWithPicturePreview() {
+//  AppTheme {
+//    UserCard(
+//        user =
+//            User(
+//                userId = "user987654321",
+//                email = "rita.naimi@example.com",
+//                firstName = "Rita",
+//                lastName = "Naimi",
+//                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
+//                university = "University of Zurich",
+//                hobbies = listOf("Music", "Sports"),
+//                profilePictureUrl = "https://via.placeholder.com/150",
+//                bio = "Business student"))
+//  }
+// }
+//
+// @Preview(showBackground = true, name = "Flipped Card")
+// @Composable
+// fun UserCardFlippedPreview() {
+//  AppTheme {
+//    var isFlipped by remember { mutableStateOf(true) }
+//
+//    val rotation by
+//        animateFloatAsState(
+//            targetValue = if (isFlipped) 180f else 0f,
+//            animationSpec = tween(durationMillis = 600),
+//            label = "card_rotation")
+//
+//    val cardWidth = 320.dp
+//    val cardHeight = 200.dp
+//
+//    Box(
+//        modifier =
+//            Modifier.size(width = cardWidth, height = cardHeight).clickable {
+//              isFlipped = !isFlipped
+//            }) {
+//          // Front of the card
+//          Card(
+//              modifier =
+//                  Modifier.fillMaxSize()
+//                      .graphicsLayer {
+//                        rotationY = rotation
+//                        cameraDistance = 12f * density
+//                      }
+//                      .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
+//              shape = RoundedCornerShape(16.dp),
+//              colors = CardDefaults.cardColors(containerColor =
+// MaterialTheme.colorScheme.surface),
+//              elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+//                UserCardFront(
+//                    user =
+//                        User(
+//                            userId = "user123456789",
+//                            email = "rita.naimi@example.com",
+//                            firstName = "Rita",
+//                            lastName = "Naimi",
+//                            birthdate =
+//                                Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
+//                            university = "ETH Zurich",
+//                            hobbies = listOf("Programming", "Photography"),
+//                            profilePictureUrl = null,
+//                            bio = "Computer Science student"))
+//              }
+//
+//          // Back of the card
+//          Card(
+//              modifier =
+//                  Modifier.fillMaxSize()
+//                      .graphicsLayer {
+//                        rotationY = rotation + 180f
+//                        cameraDistance = 12f * density
+//                      }
+//                      .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)),
+//              shape = RoundedCornerShape(16.dp),
+//              colors = CardDefaults.cardColors(containerColor =
+// MaterialTheme.colorScheme.surface),
+//              elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+//                UserCardBack(
+//                    user =
+//                        User(
+//                            userId = "user123456789",
+//                            email = "rita.naimi@example.com",
+//                            firstName = "Rita",
+//                            lastName = "Naimi",
+//                            birthdate =
+//                                Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
+//                            university = "ETH Zurich",
+//                            hobbies = listOf("Programming", "Photography"),
+//                            profilePictureUrl = null,
+//                            bio = "Computer Science student"))
+//              }
+//        }
+//  }
+// }
