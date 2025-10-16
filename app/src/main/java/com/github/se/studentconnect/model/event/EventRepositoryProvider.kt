@@ -47,7 +47,7 @@ object EventRepositoryProvider {
         // Event 2
         Event.Public(
             uid = "event-sql-workshop-02",
-            ownerId = "ownerId2",
+            ownerId = "user-charlie-03",
             title = "SQL Workshop",
             description = "...",
             location = Location(46.5204, 6.5654, "SwissTech Convention Center"),
@@ -57,7 +57,7 @@ object EventRepositoryProvider {
         // Event 3
         Event.Public(
             uid = "event-balelec-03",
-            ownerId = "user-charlie-03",
+            ownerId = "user-charlie-02",
             title = "Balélec Festival 2025",
             description = "...",
             location = Location(46.5191, 6.5668, "EPFL, Lausanne"),
@@ -72,6 +72,16 @@ object EventRepositoryProvider {
             description = "...",
             location = Location(46.5186, 6.5681, "Rolex Learning Center"),
             start = date(604_800),
+            isFlash = false,
+            subtitle = "Live at EPFL!"),
+        // Event 5
+        Event.Public(
+            uid = "event-to-join",
+            ownerId = "ownerId4",
+            title = "event-to-join",
+            description = "...",
+            location = Location(46.5186, 6.5681, "Rolex Learning Center"),
+            start = date(8000),
             isFlash = false,
             subtitle = "Live at EPFL!"),
     )

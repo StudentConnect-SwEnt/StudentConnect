@@ -170,6 +170,13 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     invitationRef.delete().await()
   }
 
+  override suspend fun declineInvitation(eventId: String, userId: String) {
+    val invitationRef =
+        db.collection(COLLECTION_NAME).document(userId).collection(INVITATIONS).document(eventId)
+
+    invitationRef.update("status", InvitationStatus.Declined.name).await()
+  }
+
   override suspend fun leaveEvent(eventId: String, userId: String) {
     db.collection(COLLECTION_NAME)
         .document(userId)

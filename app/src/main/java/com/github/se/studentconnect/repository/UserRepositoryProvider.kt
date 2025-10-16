@@ -70,11 +70,11 @@ object UserRepositoryProvider {
     localRepository.joinEvent(eventId = "event-balelec-03", userId = currentUser)
     localRepository.joinEvent(eventId = "event-rlc-study-04", userId = currentUser)
 
-    localRepository.joinEvent(eventId = "event-sql-workshop-02", userId = currentUser)
-    localRepository.joinEvent(eventId = "event-killer-concert-01", userId = "user-bob-02")
+    localRepository.joinEvent(eventId = "event-sql-workshop-02", userId = "user-bob-02")
+    localRepository.joinEvent(eventId = "event-killer-concert-01", userId = currentUser)
 
     localRepository.joinEvent(eventId = "event-balelec-03", userId = "user-charlie-03")
-    // localRepository.addInvitationToUser(eventId = "event-sql-workshop-02", userId =
-    // "user-alice-01")
+    localRepository.addInvitationToUser(
+        eventId = "event-sql-workshop-02", userId = currentUser, fromUserId = "user-bob-02")
   }
 }
