@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,6 +39,7 @@ import java.util.Locale
  * @param navController The navigation controller used for navigating to the event detail view.
  * @param events The list of events to display.
  * @param hasJoined Indicates if the user has joined the events.
+ * @param listState The LazyListState for controlling scroll position.
  * @param favoriteEventIds A set of event IDs that are marked as favorites by the user
  * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
  */
@@ -45,8 +48,9 @@ fun EventListScreen(
     navController: NavHostController,
     events: List<Event>,
     hasJoined: Boolean,
-    favoriteEventIds: Set<String>,
-    onFavoriteToggle: (String) -> Unit
+    listState: LazyListState = rememberLazyListState(),
+    favoriteEventIds: Set<String> = emptySet(),
+    onFavoriteToggle: (String) -> Unit = {}
 ) {
   if (events.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -59,6 +63,7 @@ fun EventListScreen(
   val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
 
   LazyColumn(
+      state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
@@ -219,7 +224,45 @@ fun formatDateHeader(timestamp: Timestamp): String {
         eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
+<<<<<<< HEAD
     else ->
         SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(timestamp.toDate()).uppercase()
+=======
+    else -> SimpleDateFormat("EEEE d MMMM", Locale.FRENCH).format(timestamp.toDate()).uppercase()
+  }
+}
+
+/** A preview function to display the EventListScreen in a dark theme. */
+@Preview(showBackground = true)
+@Composable
+fun EventListScreenPreview() {
+  val calendar =
+      Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 23)
+        set(Calendar.MINUTE, 59)
+      }
+  val eventTimestamp = Timestamp(calendar.time)
+
+  val mockEvents =
+      listOf(
+          Event.Public(
+              uid = "event-get-in-step-01",
+              ownerId = "Balelec",
+              title = "Get In Step",
+              description = "An unforgettable night on campus with top DJs!",
+              location = Location(0.0, 0.0, "EPFL"),
+              start = eventTimestamp,
+              participationFee = 31u,
+              isFlash = false,
+              subtitle = "Lausanne's biggest night!",
+              tags = listOf("Tag 1", "Tag 2 "),
+              imageUrl = null,
+          ))
+
+  AppTheme() {
+    Surface(modifier = Modifier.fillMaxSize()) {
+      EventListScreen(navController = rememberNavController(), events = mockEvents, hasJoined = false)
+    }
+>>>>>>> 6e4b6ba (feat(home-calendar): add scroll-to-date and fix modal state sync)
   }
 }

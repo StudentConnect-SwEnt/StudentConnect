@@ -183,6 +183,7 @@ fun HomeScreen(
       }
     }
   }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -228,6 +229,7 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
 }
 
 /**
+<<<<<<< HEAD
  * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
  * smoothly.
  */
@@ -259,5 +261,30 @@ private suspend fun scrollToDate(
   } catch (e: Exception) {
     listState.animateScrollToItem(0)
   }
+}
+
+/**
+ * Formats a date header for comparison with grouped events.
+ * This should match the format used in ListOfEvents.kt
+ */
+private fun formatDateHeader(timestamp: com.google.firebase.Timestamp): String {
+  val eventCalendar = Calendar.getInstance().apply { time = timestamp.toDate() }
+  val today = Calendar.getInstance()
+  val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+
+  return when {
+    eventCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+        eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
+    eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
+        eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
+    else -> java.text.SimpleDateFormat("EEEE d MMMM", java.util.Locale.FRENCH).format(timestamp.toDate()).uppercase()
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomePagePreview() {
+  AppTheme { HomeScreen() }
+>>>>>>> 6e4b6ba (feat(home-calendar): add scroll-to-date and fix modal state sync)
 }
 
