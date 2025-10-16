@@ -67,9 +67,7 @@ fun HomeScreen(
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
 
-  LaunchedEffect(Unit) {
-    viewModel.refresh()
-  }
+  LaunchedEffect(Unit) { viewModel.refresh() }
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -129,11 +127,7 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(
-    showNotifications: Boolean,
-    onNotificationClick: () -> Unit,
-    onDismiss: () -> Unit
-) {
+fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDismiss: () -> Unit) {
   TopAppBar(
       title = {
         TextField(
