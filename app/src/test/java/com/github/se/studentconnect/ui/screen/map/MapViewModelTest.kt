@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.map
 
 import android.location.Location
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.map.LocationConfig
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationResult
@@ -19,6 +20,7 @@ import org.junit.Test
 class MapViewModelTest {
 
   private lateinit var locationRepository: LocationRepository
+  private lateinit var eventRepository: EventRepository
   private lateinit var viewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -26,7 +28,9 @@ class MapViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     locationRepository = mockk()
-    viewModel = MapViewModel(locationRepository)
+    eventRepository = mockk()
+    coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
+    viewModel = MapViewModel(locationRepository, eventRepository)
   }
 
   @After
@@ -45,6 +49,7 @@ class MapViewModelTest {
     assertFalse(state.isLoading)
     assertNull(state.errorMessage)
     assertNull(state.targetLocation)
+    // Events may be empty initially, will be loaded asynchronously
   }
 
   @Test
@@ -286,11 +291,24 @@ class MapUiStateTest {
     assertFalse(state.isLoading)
     assertNull(state.errorMessage)
     assertNull(state.targetLocation)
+    assertTrue("Events should be empty by default", state.events.isEmpty())
   }
 
   @Test
   fun mapUiState_customValues() {
     val targetLocation = Point.fromLngLat(6.6283, 46.5089)
+    val testEvent =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "test1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            location =
+                com.github.se.studentconnect.model.location.Location(46.5089, 6.6283, "EPFL"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test")
+
     val state =
         MapUiState(
             searchText = "EPFL",
@@ -298,7 +316,8 @@ class MapUiStateTest {
             hasLocationPermission = true,
             isLoading = true,
             errorMessage = "Test error",
-            targetLocation = targetLocation)
+            targetLocation = targetLocation,
+            events = listOf(testEvent))
 
     assertEquals("EPFL", state.searchText)
     assertFalse(state.isEventsView)
@@ -306,6 +325,8 @@ class MapUiStateTest {
     assertTrue(state.isLoading)
     assertEquals("Test error", state.errorMessage)
     assertEquals(targetLocation, state.targetLocation)
+    assertEquals(1, state.events.size)
+    assertEquals("Test Event", state.events[0].title)
   }
 }
 
