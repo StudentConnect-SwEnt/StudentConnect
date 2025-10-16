@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model
 
+import com.google.firebase.Timestamp
+
 /**
  * Represents a User in the StudentConnect application.
  *
@@ -21,6 +23,7 @@ data class User(
     val email: String,
     val firstName: String,
     val lastName: String,
+    val birthdate: Timestamp? = null,
     val university: String,
     val hobbies: List<String> = emptyList(),
     val profilePictureUrl: String? = null, // optional
@@ -157,6 +160,7 @@ data class User(
         "email" to email,
         "firstName" to firstName,
         "lastName" to lastName,
+        "birthdate" to birthdate,
         "university" to university,
         "hobbies" to hobbies,
         "profilePictureUrl" to profilePictureUrl,
@@ -192,6 +196,7 @@ data class User(
             email = map["email"] as? String ?: return null,
             firstName = map["firstName"] as? String ?: return null,
             lastName = map["lastName"] as? String ?: return null,
+            birthdate = map["birthdate"] as? Timestamp,
             university = map["university"] as? String ?: return null,
             hobbies = (map["hobbies"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             profilePictureUrl = map["profilePictureUrl"] as? String,

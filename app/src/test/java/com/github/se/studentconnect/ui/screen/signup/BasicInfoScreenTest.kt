@@ -9,6 +9,8 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.google.firebase.Timestamp
+import java.util.Date
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -58,7 +60,7 @@ class BasicInfoScreenTest {
     runOnIdle()
     assertEquals(listOf(false), enabledStates)
 
-    viewModel.setBirthdate(1_000L)
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
     runOnIdle()
     assertEquals(listOf(false, true), enabledStates)
 
@@ -72,7 +74,7 @@ class BasicInfoScreenTest {
   fun `prepopulated state starts enabled`() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(1_000L)
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
 
     composeScreen()
 
@@ -86,7 +88,7 @@ class BasicInfoScreenTest {
 
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(2_000L)
+    viewModel.setBirthdate(Timestamp(Date(2_000L)))
     runOnIdle()
     assertEquals(listOf(false, true), enabledStates)
 
@@ -102,7 +104,7 @@ class BasicInfoScreenTest {
 
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(3_000L)
+    viewModel.setBirthdate(Timestamp(Date(3_000L)))
     runOnIdle()
     assertEquals(listOf(false, true), enabledStates)
 
@@ -124,7 +126,7 @@ class BasicInfoScreenTest {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
     val jan2000 = 946684800000L
-    viewModel.setBirthdate(jan2000)
+    viewModel.setBirthdate(Timestamp(Date(jan2000)))
 
     var providedState: DatePickerState? = null
     composeScreen(
@@ -163,7 +165,7 @@ class BasicInfoScreenTest {
     providedState?.selectedDateMillis = selected
     runOnIdle()
 
-    viewModel.setBirthdate(selected)
+    viewModel.setBirthdate(Timestamp(Date(selected)))
     runOnIdle()
 
     assertEquals(true, lastEnabled)
@@ -187,7 +189,7 @@ class BasicInfoScreenTest {
 
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(6_000L)
+    viewModel.setBirthdate(Timestamp(Date(6_000L)))
     runOnIdle()
     val initialStates = enabledStates.toList()
 
