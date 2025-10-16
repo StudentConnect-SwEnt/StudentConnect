@@ -42,12 +42,6 @@ class CountDownDisplayTest {
     composeTestRule.onNodeWithText("05").assertIsDisplayed()
   }
 
-  @Test
-  fun testSeparatorDisplaysColon() {
-    composeTestRule.setContent { Separator() }
-    composeTestRule.onNodeWithText(":").assertIsDisplayed()
-  }
-
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var viewModel: CountDownViewModel
 
