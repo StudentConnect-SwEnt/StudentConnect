@@ -37,11 +37,11 @@ class SearchScreenTest {
 
       UserRepositoryProvider.repository.saveUser(
           User(
-              uid,
-              email,
-              firstName,
-              lastName,
-              university,
+              userId = uid,
+              email = email,
+              firstName = firstName,
+              lastName = lastName,
+              university = university,
               createdAt = createdAt,
               updatedAt = updatedAt,
           ))
@@ -62,10 +62,10 @@ class SearchScreenTest {
       val subtitle = "Subtitle for event $i"
       EventRepositoryProvider.repository.addEvent(
           Event.Public(
-              uid,
-              ownerId,
-              title,
-              description,
+              uid = uid,
+              ownerId = ownerId,
+              title = title,
+              description = description,
               start = start,
               isFlash = isFlash,
               subtitle = subtitle,
