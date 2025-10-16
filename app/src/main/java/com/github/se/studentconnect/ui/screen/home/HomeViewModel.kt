@@ -19,30 +19,30 @@ data class HomePageUiState(
     val isLoading: Boolean = true,
 )
 
-class HomePageViewModel @Inject constructor(
+class HomePageViewModel
+@Inject
+constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     // maybe will be used after for recommendations
     private val userRepositoryLocal: UserRepository = UserRepositoryProvider.repository
+) : ViewModel() {
 
-    ) :
-    ViewModel() {
+  private val _uiState = MutableStateFlow(HomePageUiState())
+  val uiState: StateFlow<HomePageUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(HomePageUiState())
-    val uiState: StateFlow<HomePageUiState> = _uiState.asStateFlow()
+  init {
+    loadAllEvents()
+  }
 
-    init {
-        loadAllEvents()
+  private fun loadAllEvents() {
+    viewModelScope.launch {
+      _uiState.update { it.copy(isLoading = true) }
+      val allEvents = eventRepository.getAllVisibleEvents()
+      _uiState.update { it.copy(events = allEvents, isLoading = false) }
     }
+  }
 
-    private fun loadAllEvents() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val allEvents = eventRepository.getAllVisibleEvents()
-            _uiState.update { it.copy(events = allEvents, isLoading = false) }
-        }
-    }
-
-    fun refresh() {
-        loadAllEvents()
-    }
+  fun refresh() {
+    loadAllEvents()
+  }
 }

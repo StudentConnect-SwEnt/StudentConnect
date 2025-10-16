@@ -1,5 +1,6 @@
 package com.github.se.studentconnect
 
+// Import the EventView screen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,7 +25,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
-// Import the EventView screen
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
@@ -42,49 +42,49 @@ import okhttp3.OkHttpClient
  * Property `client` is mutable for testing purposes.
  */
 object HttpClientProvider {
-    var client: OkHttpClient = OkHttpClient()
+  var client: OkHttpClient = OkHttpClient()
 }
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            AppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    MainContent()
-                }
-            }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(
+            modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
+            color = MaterialTheme.colorScheme.background,
+        ) {
+          MainContent()
         }
+      }
     }
+  }
 }
 
 @Composable
 fun MainContent() {
-    val navController = rememberNavController()
-    var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
+  val navController = rememberNavController()
+  var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
 
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(
-                selectedTab = selectedTab,
-                onTabSelected = { tab: Tab ->
-                    selectedTab = tab
-                    navController.navigate(tab.destination.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                onCreatePublicEvent = {
-                    navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-                },
-                onCreatePrivateEvent = {
-                    navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-                })
-        }) { paddingValues ->
+  Scaffold(
+      bottomBar = {
+        BottomNavigationBar(
+            selectedTab = selectedTab,
+            onTabSelected = { tab: Tab ->
+              selectedTab = tab
+              navController.navigate(tab.destination.route) {
+                launchSingleTop = true
+                restoreState = true
+              }
+            },
+            onCreatePublicEvent = {
+              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+            },
+            onCreatePrivateEvent = {
+              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+            })
+      }) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = Route.HOME,
@@ -92,38 +92,35 @@ fun MainContent() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-            composable(Route.HOME) { HomeScreen(navController) }
-            composable(Route.MAP) { MapScreen() }
-            composable(
-                Route.MAP_WITH_LOCATION,
-                arguments =
-                    listOf(
-                        navArgument("latitude") { type = NavType.StringType },
-                        navArgument("longitude") { type = NavType.StringType },
-                        navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
+          composable(Route.HOME) { HomeScreen(navController) }
+          composable(Route.MAP) { MapScreen() }
+          composable(
+              Route.MAP_WITH_LOCATION,
+              arguments =
+                  listOf(
+                      navArgument("latitude") { type = NavType.StringType },
+                      navArgument("longitude") { type = NavType.StringType },
+                      navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
                 val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
-                val longitude =
-                    backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
+                val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
                 val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
-                MapScreen(
-                    targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
-            }
-            composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
-            composable(Route.PROFILE) { ProfileScreen() }
-            //composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
-            //composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
-            composable(
-                route = "eventView/{eventUid}/{hasJoined}",
-                arguments = listOf(navArgument("eventUid") { type = NavType.StringType },
-                    navArgument("hasJoined") {
-                        type = NavType.BoolType
-                    })
-            ) { backStackEntry ->
+                MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
+              }
+          composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
+          composable(Route.PROFILE) { ProfileScreen() }
+          // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
+          // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
+          composable(
+              route = "eventView/{eventUid}/{hasJoined}",
+              arguments =
+                  listOf(
+                      navArgument("eventUid") { type = NavType.StringType },
+                      navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
                 val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
                 requireNotNull(eventUid) { "Event UID is required." }
-                EventView(eventUid = eventUid, navController = navController, joined = hasJoined)
-            }
+                EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+              }
         }
-    }
+      }
 }
