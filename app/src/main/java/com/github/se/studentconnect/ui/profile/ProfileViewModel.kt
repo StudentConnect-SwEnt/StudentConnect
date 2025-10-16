@@ -76,8 +76,9 @@ class ProfileViewModel(
 
   /** Cancels editing the current field. */
   fun cancelEditing() {
+    val currentField = _editingField.value
+    _fieldErrors.value = _fieldErrors.value - currentField
     _editingField.value = EditingField.None
-    _fieldErrors.value = _fieldErrors.value - _editingField.value
   }
 
   /** Updates the user's name (firstName and lastName). */
@@ -222,7 +223,7 @@ class ProfileViewModel(
   /** Validates date format (DD/MM/YYYY). */
   private fun isValidDateFormat(date: String): Boolean {
     return try {
-      val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+      val format = SimpleDateFormat("dd/MM/yyyy", Locale.UK)
       format.isLenient = false
       format.parse(date)
       true

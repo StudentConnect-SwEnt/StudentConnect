@@ -68,7 +68,6 @@ fun ProfileScreen(
       viewModel.clearSuccessMessage()
     }
   }
-  LaunchedEffect(Unit) { viewModel.loadUserProfile() }
 
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = modifier) { paddingValues
     ->
