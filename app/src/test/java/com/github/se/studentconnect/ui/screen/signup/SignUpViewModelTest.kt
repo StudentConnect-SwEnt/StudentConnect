@@ -1,8 +1,10 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import com.google.firebase.Timestamp
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.util.Date
 
 class SignUpViewModelTest {
 
@@ -42,7 +44,7 @@ class SignUpViewModelTest {
     // Arrange
     val firstName = "Ada"
     val lastName = "Lovelace"
-    val birthdate = 42L
+    val birthdate = Timestamp(Date(42L))
     val nationality = "ch"
     val profileUri = "content://avatar"
     val bio = "Hello world"
@@ -59,7 +61,7 @@ class SignUpViewModelTest {
     val state = viewModel.state.value
     assertEquals(firstName, state.firstName)
     assertEquals(lastName, state.lastName)
-    assertEquals(birthdate, state.birthdateMillis)
+    assertEquals(birthdate, state.birthdate)
     assertEquals("CH", state.nationality)
     assertEquals(profileUri, state.profilePictureUri)
     assertEquals(bio, state.bio)
@@ -176,10 +178,10 @@ class SignUpViewModelTest {
 
   @Test
   fun `setBirthdate handles null`() {
-    viewModel.setBirthdate(1234L)
+    viewModel.setBirthdate(Timestamp(Date(1234L)))
     viewModel.setBirthdate(null)
 
-    assertNull(viewModel.state.value.birthdateMillis)
+    assertNull(viewModel.state.value.birthdate)
   }
 
   @Test
