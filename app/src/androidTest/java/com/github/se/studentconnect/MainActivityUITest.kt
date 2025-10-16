@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,8 +44,16 @@ class MainActivityUITest {
   @Test
   fun mainActivity_centerButtonClickDoesNotCrash() {
     composeTestRule.onNodeWithTag("center_add_button").performClick()
-    // The bottom sheet should be displayed
-    composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
+  }
+
+  /**
+   * Test to verify that navigation to the center button doesn't crash the app on multiple clicks.
+   */
+  @Test
+  fun mainActivity_centerButtonMultipleClicks() {
+    repeat(3) { composeTestRule.onNodeWithTag("center_add_button").performClick() }
+    composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
   }
 
   /** Test to verify that all tabs in the bottom navigation bar are displayed correctly. */
@@ -82,22 +89,5 @@ class MainActivityUITest {
   fun mainActivity_scaffoldStructureIsCorrect() {
     composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
-  }
-
-  @Test
-  fun fullNavigationJourney_throughAllTabs() {
-    // Starts on Home
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-
-    // To Activities
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).performClick()
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN).assertIsDisplayed()
-
-    // Back to Home
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).performClick()
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
   }
 }

@@ -31,7 +31,6 @@ import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.MockUserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
-import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screens.HomeScreen
@@ -109,7 +108,6 @@ fun MainContent() {
                 MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
-          composable(Route.PROFILE) { ProfileScreen() }
           // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
           // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
           composable(

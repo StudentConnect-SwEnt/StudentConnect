@@ -2,62 +2,41 @@ package com.github.se.studentconnect.ui.navigation
 
 import com.github.se.studentconnect.R
 
+/** List of possible routes in the navigation bar * */
 object Route {
   const val AUTH = "auth"
   const val HOME = "home"
   const val MAP = "map"
-  const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}"
   const val ACTIVITIES = "activities"
   const val PROFILE = "profile"
-  const val CREATE_PUBLIC_EVENT = "create_public_event"
-  const val CREATE_PRIVATE_EVENT = "create_private_event"
-
-  // Added route for the event view, with eventUid as an argument
-  const val EVENT_VIEW = "eventView/{eventUid}"
-
-  fun mapWithLocation(latitude: Double, longitude: Double, zoom: Double = 15.0): String {
-    return "map/$latitude/$longitude/$zoom"
-  }
-
-  fun eventView(eventUid: String, hasJoined: Boolean): String {
-    return "eventView/$eventUid/$hasJoined"
-  }
 }
 
+/** Represents different screens in the app with their routes and top level destination status. */
 sealed class Screen(
-    val route: String,
     val name: String,
+    val route: String,
     val isTopLevelDestination: Boolean = false,
 ) {
-  object Auth : Screen(route = Route.AUTH, name = "Authentication")
+  object Auth : Screen("Authentication", route = Route.AUTH)
 
-  object Home : Screen(route = Route.HOME, name = "Home", isTopLevelDestination = true)
+  object Home : Screen("Home", route = Route.HOME, isTopLevelDestination = true)
 
-  object Map : Screen(route = Route.MAP, name = "Map", isTopLevelDestination = true)
+  object Map : Screen("Map", route = Route.MAP, isTopLevelDestination = true)
 
-  object Activities :
-      Screen(route = Route.ACTIVITIES, name = "Activities", isTopLevelDestination = true)
+  object Activities : Screen("Activities", route = Route.ACTIVITIES, isTopLevelDestination = true)
 
-  object Profile : Screen(route = Route.PROFILE, name = "Profile", isTopLevelDestination = true)
-
-  object CreatePublicEvent :
-      Screen(route = Route.CREATE_PUBLIC_EVENT, name = "Create Public Event")
-
-  object CreatePrivateEvent :
-      Screen(route = Route.CREATE_PRIVATE_EVENT, name = "Create Private Event")
-
-  // Added screen for the event view
-  object EventView : Screen(route = Route.EVENT_VIEW, name = "Event Details")
+  object Profile : Screen("Profile", route = Route.PROFILE, isTopLevelDestination = true)
 }
 
-sealed class Tab(val name: String, val icon: Int, val destination: Screen) {
-  object Home : Tab("Home", R.drawable.ic_home, Screen.Home)
+/** Represents a tab in the bottom navigation bar with their icon and destination screen. */
+sealed class Tab(val icon: Int, val destination: Screen) {
+  object Home : Tab(R.drawable.ic_home, Screen.Home)
 
-  object Map : Tab("Map", R.drawable.ic_vector, Screen.Map)
+  object Map : Tab(R.drawable.ic_vector, Screen.Map)
 
-  object Activities : Tab("Activities", R.drawable.ic_ticket, Screen.Activities)
+  object Activities : Tab(R.drawable.ic_ticket, Screen.Activities)
 
-  object Profile : Tab("Profile", R.drawable.ic_user, Screen.Profile)
+  object Profile : Tab(R.drawable.ic_user, Screen.Profile)
 }
 
 val bottomNavigationTabs = listOf(Tab.Home, Tab.Map, Tab.Activities, Tab.Profile)

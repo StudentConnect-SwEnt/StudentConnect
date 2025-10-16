@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.activities
+package com.github.se.studentconnect.ui.activities
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.github.se.studentconnect.ui.activities.titleTextStyle
 
 @Composable
 fun CountDownDisplay(timeLeft: Long) {
@@ -31,7 +30,7 @@ fun CountDownDisplay(timeLeft: Long) {
 
 @Composable
 fun Separator() {
-  Text(text = ":", style = titleTextStyle())
+  Text(text = ":", style = TitleTextStyle())
 }
 
 @Composable

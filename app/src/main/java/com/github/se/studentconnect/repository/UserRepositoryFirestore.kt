@@ -2,8 +2,8 @@ package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
+import com.github.se.studentconnect.ui.activities.Invitation
+import com.github.se.studentconnect.ui.activities.InvitationStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -168,13 +168,6 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
             "No invitation " + "found to event with ID : ${eventId} for user ID: $userId")
     joinedRef.set(mapOf("eventId" to eventId, "timestamp" to FieldValue.serverTimestamp())).await()
     invitationRef.delete().await()
-  }
-
-  override suspend fun declineInvitation(eventId: String, userId: String) {
-    val invitationRef =
-        db.collection(COLLECTION_NAME).document(userId).collection(INVITATIONS).document(eventId)
-
-    invitationRef.update("status", InvitationStatus.Declined.name).await()
   }
 
   override suspend fun leaveEvent(eventId: String, userId: String) {

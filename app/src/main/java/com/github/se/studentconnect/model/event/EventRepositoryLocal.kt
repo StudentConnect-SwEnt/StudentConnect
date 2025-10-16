@@ -1,8 +1,6 @@
 // Portions of this code were generated with the help of Gemini
 package com.github.se.studentconnect.model.event
 
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import java.util.UUID
 
 /**
@@ -12,8 +10,6 @@ import java.util.UUID
 class EventRepositoryLocal : EventRepository {
   private val events = mutableListOf<Event>()
   private val participantsByEvent = mutableMapOf<String, MutableList<EventParticipant>>()
-  // Data structure to hold invitations. Key is the invited user's UID.
-  private val invitationsByUser = mutableMapOf<String, MutableList<Invitation>>()
 
   override fun getNewUid(): String {
     return UUID.randomUUID().toString()
@@ -78,32 +74,10 @@ class EventRepositoryLocal : EventRepository {
 
   override suspend fun addInvitationToEvent(
       eventUid: String,
-      invitedUserUid: String,
+      invitedUser: String,
       currentUserId: String
   ) {
-    if (events.none { it.uid == eventUid }) {
-      throw NoSuchElementException(
-          "Cannot invite to a non-existent event. Event with UID $eventUid not found.")
-    }
-    val participants = participantsByEvent[eventUid] ?: emptyList()
-    if (participants.any { it.uid == invitedUserUid }) {
-      throw IllegalStateException(
-          "User $invitedUserUid is already a participant in event $eventUid.")
-    }
-
-    val userInvitations = invitationsByUser.getOrPut(invitedUserUid) { mutableListOf() }
-    if (userInvitations.any { it.eventId == eventUid }) {
-      throw IllegalStateException(
-          "An invitation for event $eventUid has already been sent to user $invitedUserUid.")
-    }
-
-    val newInvitation =
-        Invitation(
-            eventId = eventUid,
-            from = currentUserId,
-            status = InvitationStatus.Pending,
-            timestamp = null)
-    userInvitations.add(newInvitation)
+    TODO("Not yet implemented")
   }
 
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {
