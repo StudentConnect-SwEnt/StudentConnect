@@ -1,6 +1,5 @@
 // carousel idea inspired by :
 // https://proandroiddev.com/swipeable-image-carousel-with-smooth-animations-in-jetpack-compose-76eacdc89bfb
-
 package com.github.se.studentconnect.ui.screen.activities
 
 import androidx.compose.foundation.background
@@ -9,9 +8,13 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,9 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,7 +40,27 @@ import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.repository.AuthentificationProvider
-import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
+import com.google.firebase.Timestamp
+
+sealed interface CarouselDisplayItem {
+  val uid: String
+}
+
+data class EventCarouselItem(val event: Event) : CarouselDisplayItem {
+  override val uid: String
+    get() = event.uid
+}
+
+data class InvitationCarouselItem(
+    val invitation: Invitation,
+    val event: Event,
+    val invitedBy: String
+) : CarouselDisplayItem {
+  override val uid: String
+    get() = invitation.eventId
+}
 
 /** Test tags for the Activities screen and its components. */
 object ActivitiesScreenTestTags {
@@ -49,22 +74,23 @@ object ActivitiesScreenTestTags {
   const val ACTIVITIES_MAIN_COLUMN = "activities_main_column"
   const val EMPTY_STATE_COLUMN = "empty_state_column"
   const val INVITATIONS_POPOVER = "invitations_popover"
+  const val CAROUSEL_SKELETON = "carousel_skeleton"
 
   fun carouselCardTag(eventUid: String) = "carousel_card_$eventUid"
 
   fun tab(title: String) = "tab_$title"
 }
-
 /**
- * Event tabs for the Activities screen. - Upcoming: Shows upcoming events the user has joined. -
- * MyEvents: Shows events created by the user. - Past: Shows past events the user has attended.
+ * Event tabs for the Activities screen.
+ * - Upcoming: Shows upcoming events the user has joined.
+ * - MyEvents: Shows events created by the user.
+ * - Past: Shows past events the user has attended.
  */
 enum class EventTab {
   Upcoming,
-  MyEvents,
+  Invitations,
   Past
 }
-
 /** Activities screen displaying joined events in a large carousel. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,43 +100,23 @@ fun ActivitiesScreen(
 ) {
   val uiState by activitiesViewModel.uiState.collectAsState()
   val selectedTab = uiState.selectedTab
-  val carouselItems = uiState.events
-  LaunchedEffect(Unit) { activitiesViewModel.refreshEvents(AuthentificationProvider.currentUser) }
+  val carouselItems = uiState.items
+  val isLoading = uiState.isLoading
 
+  LaunchedEffect(selectedTab) {
+    activitiesViewModel.refreshEvents(AuthentificationProvider.currentUser)
+  }
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   val mainItemWidth = screenWidth * 0.85f
   val sidePeekWidth = (screenWidth - mainItemWidth) / 2
   val pagerState = rememberPagerState { carouselItems.size }
-  var showInvitations by remember { mutableStateOf(false) }
-
   Scaffold(
       modifier = Modifier.testTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN),
       topBar = {
         CenterAlignedTopAppBar(
             title = { Text("MyActivities") },
             modifier = Modifier.fillMaxWidth().testTag(ActivitiesScreenTestTags.TOP_APP_BAR),
-            actions = {
-              Box {
-                IconButton(
-                    onClick = { showInvitations = true },
-                    modifier = Modifier.testTag(ActivitiesScreenTestTags.BUTTON_INVITATIONS)) {
-                      Icon(
-                          painter = painterResource(id = R.drawable.ic_invitation),
-                          contentDescription = "invitations",
-                          modifier = Modifier.size(24.dp),
-                          tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
-                DropdownMenu(
-                    expanded = showInvitations,
-                    onDismissRequest = { showInvitations = false },
-                    modifier =
-                        Modifier.background(Color.Transparent)
-                            .shadow(0.dp)
-                            .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
-                      Panel<Invitation>(title = "Invitations")
-                    }
-              }
-            })
+        )
       },
   ) { paddingValues ->
     Column(
@@ -122,21 +128,70 @@ fun ActivitiesScreen(
         horizontalAlignment = Alignment.CenterHorizontally) {
           ActivitiesTab(
               selectedTab = selectedTab, onTabSelected = { activitiesViewModel.onTabSelected(it) })
-
           Spacer(modifier = Modifier.height(25.dp))
 
-          if (carouselItems.isEmpty()) {
-            EmptyState(selectedTab = selectedTab, onNavigate = { /* TODO */})
+          if (isLoading) {
+            val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+            CarouselSkeleton(
+                modifier =
+                    Modifier.width(mainItemWidth)
+                        .height(screenHeight * 0.65f)
+                        .testTag(ActivitiesScreenTestTags.CAROUSEL_SKELETON))
+          } else if (carouselItems.isEmpty()) {
+            EmptyState(
+                selectedTab = selectedTab, onNavigate = { navController.navigate(Route.HOME) })
           } else {
             Carousel(
                 pagerState = pagerState,
                 sidePeekWidth = sidePeekWidth,
                 carouselItems = carouselItems,
                 mainItemWidth = mainItemWidth,
-                onEventClick = { eventId -> navController.navigate("eventView/$eventId") })
+                viewModel = activitiesViewModel,
+                onEventClick = { eventId, isJoined ->
+                  navController.navigate(Route.eventView(eventId, isJoined))
+                })
           }
         }
   }
+}
+
+/** Composable for the loading skeleton */
+@Composable
+private fun CarouselSkeleton(modifier: Modifier = Modifier) {
+  val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+  Card(
+      modifier = modifier.height(screenHeight * 0.65f),
+      shape = RoundedCornerShape(20.dp),
+      colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f))) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.Start) {
+              // Image placeholder
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f)
+                          .clip(RoundedCornerShape(16.dp))
+                          .background(Color.Gray.copy(alpha = 0.5f)))
+              Spacer(modifier = Modifier.height(16.dp))
+
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth(0.8f)
+                          .height(30.dp)
+                          .clip(RoundedCornerShape(8.dp))
+                          .background(Color.Gray.copy(alpha = 0.5f)))
+              Spacer(modifier = Modifier.height(8.dp))
+
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth(0.5f)
+                          .height(20.dp)
+                          .clip(RoundedCornerShape(8.dp))
+                          .background(Color.Gray.copy(alpha = 0.5f)))
+            }
+      }
 }
 
 /** Composable for displaying a customized empty state message based on the selected tab. */
@@ -159,10 +214,10 @@ private fun EmptyState(selectedTab: EventTab, onNavigate: () -> Unit) {
             description = "You haven't joined any events yet. Explore to find some!"
             buttonText = "Explore"
           }
-          EventTab.MyEvents -> {
-            title = "No events created"
-            description = "Create your first event and invite your friends to join you."
-            buttonText = "Create an event"
+          EventTab.Invitations -> {
+            title = "No new invitations"
+            description = "You have no new event invitations at the moment."
+            buttonText = "Explore"
           }
           EventTab.Past -> {
             title = "No past events"
@@ -186,17 +241,15 @@ private fun EmptyState(selectedTab: EventTab, onNavigate: () -> Unit) {
         Button(onClick = onNavigate) { Text(buttonText) }
       }
 }
-
 /** Tab row for switching between event categories. */
 @Composable
 private fun ActivitiesTab(selectedTab: EventTab, onTabSelected: (EventTab) -> Unit) {
   val tabs =
       mapOf(
           EventTab.Upcoming to "Upcoming",
-          EventTab.MyEvents to "My events",
+          EventTab.Invitations to "Invitations",
           EventTab.Past to "Archived")
   val selectedIndex = tabs.keys.indexOf(selectedTab)
-
   TabRow(
       selectedTabIndex = selectedIndex,
       modifier = Modifier.fillMaxWidth().testTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW)) {
@@ -214,76 +267,229 @@ private fun ActivitiesTab(selectedTab: EventTab, onTabSelected: (EventTab) -> Un
 private fun Carousel(
     pagerState: PagerState,
     sidePeekWidth: Dp,
-    carouselItems: List<Event>,
+    carouselItems: List<CarouselDisplayItem>,
     mainItemWidth: Dp,
-    onEventClick: (String) -> Unit
+    viewModel: ActivitiesViewModel,
+    onEventClick: (String, Boolean) -> Unit
 ) {
   HorizontalPager(
       state = pagerState,
       modifier = Modifier.fillMaxWidth().testTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL),
       pageSpacing = 16.dp,
       contentPadding = PaddingValues(horizontal = sidePeekWidth)) { page ->
-        val event = carouselItems[page]
-        CarouselCard(
-            item = event,
-            modifier =
-                Modifier.width(mainItemWidth)
-                    .testTag(ActivitiesScreenTestTags.carouselCardTag(event.uid))
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = RoundedCornerShape(size = 20.dp),
-                        spotColor = MaterialTheme.colorScheme.primary,
-                        ambientColor = MaterialTheme.colorScheme.primary)
-                    .background(
-                        brush =
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        MaterialTheme.colorScheme.primary))),
-            onEventClick = { onEventClick(event.uid) })
+        val item = carouselItems.getOrNull(page) ?: return@HorizontalPager
+        val cardModifier =
+            Modifier.width(mainItemWidth)
+                .testTag(ActivitiesScreenTestTags.carouselCardTag(item.uid))
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(size = 20.dp),
+                    spotColor = MaterialTheme.colorScheme.primary,
+                    ambientColor = MaterialTheme.colorScheme.primary)
+                .background(
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.primary)))
+
+        when (item) {
+          is EventCarouselItem -> {
+            val isOwner = item.event.ownerId == AuthentificationProvider.currentUser
+            CarouselCard(
+                item = item.event,
+                isOwner = isOwner,
+                modifier = cardModifier,
+                onEventClick = { onEventClick(item.event.uid, true) })
+          }
+          is InvitationCarouselItem -> {
+            InvitationCarouselCard(
+                item = item,
+                modifier = cardModifier,
+                onCardClick = { onEventClick(item.event.uid, false) },
+                onAcceptClick = { viewModel.acceptInvitation(item.invitation) },
+                onDeclineClick = { viewModel.declineInvitation(item.invitation) })
+          }
+        }
       }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarouselCard(item: Event, modifier: Modifier = Modifier, onEventClick: () -> Unit) {
+fun CarouselCard(
+    item: Event,
+    isOwner: Boolean,
+    modifier: Modifier = Modifier,
+    onEventClick: () -> Unit
+) {
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+  val isLive = Timestamp.now() >= item.start
+
   Card(
       onClick = onEventClick,
       modifier = modifier.height(screenHeight * 0.65f),
       colors = CardDefaults.cardColors(containerColor = Color.Transparent),
       shape = RoundedCornerShape(20.dp)) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.Start) {
-              Icon(
-                  imageVector = Icons.Default.Image,
-                  contentDescription = "Event Image",
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .weight(1f)
-                          .clip(RoundedCornerShape(16.dp))
-                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                  tint = MaterialTheme.colorScheme.onPrimary)
+        Box(modifier = Modifier.fillMaxSize()) {
+          Column(
+              modifier = Modifier.fillMaxSize().padding(24.dp),
+              verticalArrangement = Arrangement.Bottom,
+              horizontalAlignment = Alignment.Start) {
+                Icon(
+                    imageVector = Icons.Default.Image,
+                    contentDescription = "Event Image",
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                    tint = MaterialTheme.colorScheme.onPrimary)
 
-              Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-              Text(
-                  text = item.title,
-                  style = MaterialTheme.typography.headlineSmall,
-                  color = MaterialTheme.colorScheme.onPrimary,
-                  maxLines = 2,
-                  overflow = TextOverflow.Ellipsis)
-              Text(
-                  text = (item as? Event.Public)?.subtitle ?: "",
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onPrimary,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis)
-            }
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = (item as? Event.Public)?.subtitle ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
+              }
+          if (isOwner) {
+            Icon(
+                painter = painterResource(R.drawable.ic_crown),
+                contentDescription = "Owner",
+                tint = Color.Yellow,
+                modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).size(32.dp))
+          }
+
+          if (isLive) {
+            Row(
+                modifier =
+                    Modifier.align(Alignment.TopStart)
+                        .padding(16.dp)
+                        .background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector = Icons.Filled.Circle,
+                      contentDescription = "Live Icon",
+                      tint = Color.White,
+                      modifier = Modifier.size(8.dp))
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text(
+                      text = "LIVE",
+                      color = Color.White,
+                      style = MaterialTheme.typography.labelMedium,
+                      fontWeight = FontWeight.Bold)
+                }
+          }
+        }
       }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InvitationCarouselCard(
+    item: InvitationCarouselItem,
+    modifier: Modifier = Modifier,
+    onCardClick: () -> Unit,
+    onAcceptClick: () -> Unit,
+    onDeclineClick: () -> Unit
+) {
+  val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+  var acceptState by remember { mutableStateOf(false) }
+  var declineState by remember { mutableStateOf(false) }
+
+  val isDeclined = item.invitation.status == InvitationStatus.Declined || declineState
+  val cardAlpha = if (isDeclined) 0.7f else 1.0f
+
+  Card(
+      onClick = onCardClick,
+      modifier = modifier.height(screenHeight * 0.65f).graphicsLayer(alpha = cardAlpha),
+      colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+      shape = RoundedCornerShape(20.dp),
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      Column(
+          modifier = Modifier.fillMaxSize().padding(24.dp),
+          verticalArrangement = Arrangement.Bottom,
+          horizontalAlignment = Alignment.Start) {
+            Icon(
+                imageVector = Icons.Default.Image,
+                contentDescription = "Event Image",
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                tint = MaterialTheme.colorScheme.onPrimary)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                  Text(
+                      text = item.event.title,
+                      style = MaterialTheme.typography.headlineSmall,
+                      color = MaterialTheme.colorScheme.onPrimary,
+                      maxLines = 2,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.weight(1f, fill = false))
+                  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = {
+                          acceptState = !acceptState
+                          declineState = false
+                          onAcceptClick()
+                        }) {
+                          Icon(
+                              imageVector = Icons.Default.Check,
+                              contentDescription = "Accept",
+                              tint =
+                                  if (acceptState) Color.Green.copy(alpha = 0.8f)
+                                  else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
+                        }
+                    IconButton(
+                        onClick = {
+                          declineState = !declineState
+                          acceptState = false
+                          onDeclineClick()
+                        }) {
+                          Icon(
+                              imageVector = Icons.Default.Close,
+                              contentDescription = "Decline",
+                              tint =
+                                  if (isDeclined) Color.Red.copy(alpha = 0.9f)
+                                  else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
+                        }
+                  }
+                }
+            Text(
+                text = (item.event as? Event.Public)?.subtitle ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Invited by: ${item.invitedBy}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
+          }
+    }
+  }
 }
 
 @Preview(showBackground = true)
