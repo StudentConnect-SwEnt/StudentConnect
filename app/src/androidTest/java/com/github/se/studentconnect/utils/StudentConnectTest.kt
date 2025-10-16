@@ -20,13 +20,8 @@ import org.junit.Before
 
 const val UI_WAIT_TIMEOUT = 5_000L
 
-/**
- * Base class for all StudentConnect tests, providing common setup and utility functions.
- *
- * @param useTestScreen Whether or not to setup the screen in a scrollable container using
- *   TestScreen()
- */
-abstract class StudentConnectTest(val useTestScreen: Boolean = false) {
+/** Base class for all StudentConnect tests, providing common setup and utility functions. */
+abstract class StudentConnectTest() {
 
   abstract fun createInitializedRepository(): EventRepository
 
