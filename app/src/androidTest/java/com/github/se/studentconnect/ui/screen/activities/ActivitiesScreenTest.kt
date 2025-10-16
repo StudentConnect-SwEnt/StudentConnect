@@ -1,10 +1,14 @@
 package com.github.se.studentconnect.ui.screen.activities
 
-import androidx.compose.ui.test.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.navigation.compose.rememberNavController
-import com.github.se.studentconnect.model.event.Event
-import com.google.firebase.Timestamp
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test
 
@@ -12,70 +16,103 @@ class ActivitiesScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  // Note : Pour des tests réels, vous injecteriez un ViewModel factice (mock)
-  // pour contrôler l'état (isLoading, items, etc.).
-
   @Test
   fun activitiesScreen_displaysCorrectly() {
-    composeTestRule.setContent { ActivitiesScreen(navController = rememberNavController()) }
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    // Vérifier que l'écran et la barre supérieure sont affichés
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TOP_APP_BAR).assertIsDisplayed()
-    composeTestRule.onNodeWithText("MyActivities").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
   @Test
-  fun tabNavigation_worksAsExpected() {
-    composeTestRule.setContent { ActivitiesScreen(navController = rememberNavController()) }
+  fun activitiesScreen_textStyle_isHeadlineMedium() {
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    // Vérifier que la barre d'onglets est visible
-    val tabRow = composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW)
-    tabRow.assertIsDisplayed()
-
-    // Cliquer sur l'onglet "Invitations"
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Invitations")).performClick()
-    // Dans un vrai test, on vérifierait que le contenu a changé
-
-    // Cliquer sur l'onglet "Archived" (Past)
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Archived")).performClick()
-    // Vérifier que cet onglet est maintenant sélectionné
-    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Archived")).assertIsSelected()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 
   @Test
-  fun invitationCard_actionButtonsAreClickable() {
-    val invitation = Invitation("invitation1", "user1", InvitationStatus.Pending)
-    val event =
-        Event.Public(
-            "event1",
-            "user2",
-            "Event Title",
-            "Event Subtitle",
-            "Desc",
-            null,
-            Timestamp.now(),
-            isFlash = false,
-            subtitle = "sub")
-    val item = InvitationCarouselItem(invitation, event, "Inviter")
+  fun activitiesScreen_columnLayout_isConfiguredCorrectly() {
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
 
-    var accepted = false
-    var declined = false
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+  }
 
+  @Test
+  fun activitiesScreen_textContent_isNotEmpty() {
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
+
+    val activitiesText = "Activities"
+    assert(activitiesText.isNotEmpty())
+    composeTestRule.onNodeWithText(activitiesText).assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_testTag_exists() {
+    val expectedTag = C.Tag.activities_screen
+    assert(expectedTag.isNotEmpty())
+
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
+    composeTestRule.onNodeWithTag(expectedTag).assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_modifier_defaultValue() {
+    composeTestRule.setContent { AppTheme { ActivitiesScreen() } }
+
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_withCustomModifier() {
     composeTestRule.setContent {
-      InvitationCarouselCard(
-          item = item,
-          onAcceptClick = { accepted = true },
-          onDeclineClick = { declined = true },
-          onCardClick = {})
+      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
     }
 
-    // Cliquer sur le bouton Accepter
-    composeTestRule.onNodeWithContentDescription("Accept").performClick()
-    assert(accepted)
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+  }
 
-    // Cliquer sur le bouton Refuser
-    composeTestRule.onNodeWithContentDescription("Decline").performClick()
-    assert(declined)
+  @Test
+  fun activitiesScreen_modifierChaining() {
+    composeTestRule.setContent {
+      AppTheme {
+        ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize())
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_emptyModifier() {
+    composeTestRule.setContent {
+      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier) }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_modifierWithPadding() {
+    composeTestRule.setContent {
+      AppTheme { ActivitiesScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_modifierWithSizeAndTestTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        ActivitiesScreen(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp))
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.activities_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
   }
 }

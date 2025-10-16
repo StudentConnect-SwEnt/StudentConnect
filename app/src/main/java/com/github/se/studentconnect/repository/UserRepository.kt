@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.repository
 
 import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.activities.Invitation
 
 /**
  * Repository interface for User operations.
@@ -116,14 +116,6 @@ interface UserRepository {
    * @param userId The unique identifier of the user accepting the invitation.
    */
   suspend fun acceptInvitation(eventId: String, userId: String)
-
-  /**
-   * Declines an event invitation for a user, removing the invitation from their list.
-   *
-   * @param eventId The unique identifier of the event being declined.
-   * @param userId The unique identifier of the user declining the invitation.
-   */
-  suspend fun declineInvitation(eventId: String, userId: String)
 
   /**
    * join an event (adds the event to the user's joined events and removes any invitation)à
