@@ -1,5 +1,6 @@
 package com.github.se.studentconnect
 
+// Import the EventView screen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,22 +19,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.MockUserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
+import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
-import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
-import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
 
