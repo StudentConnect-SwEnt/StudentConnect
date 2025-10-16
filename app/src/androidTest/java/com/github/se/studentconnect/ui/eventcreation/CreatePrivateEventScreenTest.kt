@@ -16,8 +16,7 @@ import org.junit.Test
 @OptIn(ExperimentalTestApi::class)
 class CreatePrivateEventScreenTest : StudentConnectTest(useTestScreen = true) {
 
-  @get:Rule
-  val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   override fun createInitializedRepository() = EventRepositoryLocal()
 
