@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +62,8 @@ import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import kotlinx.coroutines.launch
 import java.util.Date
+import java.util.Calendar
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -78,6 +82,7 @@ fun HomeScreen(
     initialValue = ModalBottomSheetValue.Hidden,
     skipHalfExpanded = true
   )
+  val listState = rememberLazyListState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -138,8 +143,8 @@ fun HomeScreen(
 
   // Handle scroll to date functionality
   LaunchedEffect(uiState.scrollToDate) {
-    uiState.scrollToDate?.let { _ ->
-      // TODO: Implement scroll to date in EventListScreen
+    uiState.scrollToDate?.let { targetDate ->
+      scrollToDate(listState, uiState.events, targetDate)
       viewModel.clearScrollTarget()
     }
   }
@@ -150,6 +155,14 @@ fun HomeScreen(
       sheetState.show()
     } else {
       sheetState.hide()
+    }
+  }
+
+  // Handle modal dismissal (when user taps outside or swipes down)
+  LaunchedEffect(sheetState.isVisible) {
+    if (!sheetState.isVisible && uiState.isCalendarVisible) {
+      // Modal was dismissed by user interaction, update ViewModel state
+      viewModel.hideCalendar()
     }
   }
 
@@ -182,7 +195,12 @@ fun HomeScreen(
                   context = LocalContext.current,
                   onCalendarClick = { viewModel.showCalendar() }
                 )
-                EventListScreen(navController = navController, events = uiState.events, false)
+                EventListScreen(
+                  navController = navController,
+                  events = uiState.events,
+                  hasJoined = false,
+                  listState = listState
+                )
               }
             }
           }
@@ -230,6 +248,57 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
               }
         }
       })
+}
+
+/**
+ * Scrolls to the specified date in the event list.
+ * Finds the date header and scrolls to it smoothly.
+ */
+private suspend fun scrollToDate(
+  listState: LazyListState,
+  events: List<com.github.se.studentconnect.model.event.Event>,
+  targetDate: Date
+) {
+  // Group events by date header to find the target section
+  val groupedEvents = events.groupBy { event ->
+    formatDateHeader(event.start)
+  }
+
+  // Find the target date header
+  val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+
+  // Calculate the index to scroll to
+  var currentIndex = 0
+  for ((dateHeader, eventsOnDate) in groupedEvents) {
+    if (dateHeader == targetDateHeader) {
+      // Found the target date, scroll to it
+      listState.animateScrollToItem(currentIndex)
+      return
+    }
+    // Move to next section (header + events)
+    currentIndex += 1 + eventsOnDate.size
+  }
+
+  // If date not found, scroll to top
+  listState.animateScrollToItem(0)
+}
+
+/**
+ * Formats a date header for comparison with grouped events.
+ * This should match the format used in ListOfEvents.kt
+ */
+private fun formatDateHeader(timestamp: com.google.firebase.Timestamp): String {
+  val eventCalendar = Calendar.getInstance().apply { time = timestamp.toDate() }
+  val today = Calendar.getInstance()
+  val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+
+  return when {
+    eventCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+        eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
+    eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
+        eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
+    else -> java.text.SimpleDateFormat("EEEE d MMMM", java.util.Locale.FRENCH).format(timestamp.toDate()).uppercase()
+  }
 }
 
 @Preview(showBackground = true)
