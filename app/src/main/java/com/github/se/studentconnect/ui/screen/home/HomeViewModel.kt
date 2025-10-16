@@ -29,7 +29,7 @@ import java.util.Date
 data class HomePageUiState(
     val events: List<Event> = emptyList(),
     val isLoading: Boolean = true,
-    val isCalendarView: Boolean = false,
+    val isCalendarVisible: Boolean = false,
     val selectedDate: Date? = null,
     val scrollToDate: Date? = null,
 )
@@ -206,36 +206,29 @@ constructor(
   }
 
   /**
-   * Toggles between calendar view and list view.
+   * Shows or hides the calendar modal.
    */
-  fun toggleView() {
-    _uiState.update { it.copy(isCalendarView = !it.isCalendarView) }
+  fun toggleCalendar() {
+    _uiState.update { it.copy(isCalendarVisible = !it.isCalendarVisible) }
   }
 
   /**
-   * Switches to calendar view.
+   * Hides the calendar modal.
    */
-  fun showCalendarView() {
-    _uiState.update { it.copy(isCalendarView = true) }
-  }
-
-  /**
-   * Switches to list view.
-   */
-  fun showListView() {
-    _uiState.update { it.copy(isCalendarView = false) }
+  fun hideCalendar() {
+    _uiState.update { it.copy(isCalendarVisible = false) }
   }
 
   /**
    * Handles date selection from the calendar.
-   * Switches back to list view and sets the scroll target date.
+   * Closes the calendar and sets the scroll target date.
    */
   fun onDateSelected(date: Date) {
     _uiState.update { 
       it.copy(
         selectedDate = date,
         scrollToDate = date,
-        isCalendarView = false
+        isCalendarVisible = false
       ) 
     }
   }
