@@ -142,6 +142,8 @@ fun EventView(
       }
 }
 
+private const val DAY_IN_SECONDS = 86400
+
 @Composable
 private fun InfoEvent(timeLeft: Long, event: Event, modifier: Modifier = Modifier) {
   Column(
@@ -150,7 +152,7 @@ private fun InfoEvent(timeLeft: Long, event: Event, modifier: Modifier = Modifie
           modifier
               .fillMaxWidth()
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
-        if (timeLeft > 86400) {
+        if (timeLeft > DAY_IN_SECONDS) {
           Text(
               modifier =
                   Modifier.align(Alignment.CenterHorizontally)
