@@ -1,7 +1,7 @@
-import com.github.se.studentconnect.ui.activities.days
-import com.github.se.studentconnect.ui.activities.hours
-import com.github.se.studentconnect.ui.activities.mins
-import com.github.se.studentconnect.ui.activities.secs
+import com.github.se.studentconnect.ui.screen.activities.days
+import com.github.se.studentconnect.ui.screen.activities.hours
+import com.github.se.studentconnect.ui.screen.activities.mins
+import com.github.se.studentconnect.ui.screen.activities.secs
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

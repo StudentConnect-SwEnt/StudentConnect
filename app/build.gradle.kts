@@ -184,6 +184,9 @@ dependencies {
     // Use Guava Android variant for ListenableFuture support
     implementation(libs.guava)
 
+    // QR Code generation
+    implementation(libs.compose.qr.code)
+
     // Testing Unit
     testImplementation(libs.junit)
     androidTestImplementation(libs.mockk)

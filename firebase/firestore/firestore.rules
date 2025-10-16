@@ -82,5 +82,85 @@ service cloud.firestore {
                           request.auth.uid == userId);
       }
     }
+
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Allow users to read their own profile and other users' profiles (for friend discovery)
+      allow get, list: if request.auth != null;
+
+      // Allow users to create their own profile
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow users to update only their own profile
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Allow users to delete only their own profile
+      allow delete: if request.auth != null && request.auth.uid == userId;
+
+      // Rules for the 'friends' subcollection
+      match /friends/{friendId} {
+        // Allow users to read their own friends list and others' friends lists
+        allow get, list: if request.auth != null;
+
+        // Allow users to add friends to their own list OR when someone is accepting their request
+        // (friendId must be the current user when adding to someone else's list)
+        allow create: if request.auth != null &&
+                         (request.auth.uid == userId || request.auth.uid == friendId);
+
+        // Allow users to remove friends from their own list OR when the friend removes the friendship
+        allow delete: if request.auth != null &&
+                         (request.auth.uid == userId || request.auth.uid == friendId);
+      }
+
+      // Rules for the 'friendRequests' subcollection (incoming requests)
+      match /friendRequests/{requesterId} {
+        // Allow users to read their own friend requests
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+
+        // Allow anyone to create a friend request (the sender creates it)
+        allow create: if request.auth != null;
+
+        // Allow the recipient to delete/update their friend requests, OR the sender to cancel
+        allow delete, update: if request.auth != null &&
+                                 (request.auth.uid == userId || request.auth.uid == requesterId);
+      }
+
+      // Rules for the 'sentRequests' subcollection (outgoing requests)
+      match /sentRequests/{recipientId} {
+        // Allow users to read their own sent requests
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+
+        // Allow users to create their own sent requests
+        allow create: if request.auth != null && request.auth.uid == userId;
+
+        // Allow users to delete/update their own sent requests, OR the recipient when accepting/rejecting
+        allow delete, update: if request.auth != null &&
+                                 (request.auth.uid == userId || request.auth.uid == recipientId);
+      }
+
+      // Rules for the 'joinedEvents' subcollection
+      match /joinedEvents/{eventId} {
+        // Allow users to read their own joined events
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+
+        // Allow users to add events to their own list
+        allow create: if request.auth != null && request.auth.uid == userId;
+
+        // Allow users to remove events from their own list
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Rules for the 'invitations' subcollection (event invitations)
+      match /invitations/{eventId} {
+        // Allow users to read their own invitations
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+
+        // Allow anyone to create invitations (event owners create them)
+        allow create: if request.auth != null;
+
+        // Allow the recipient to delete/update their invitations
+        allow delete, update: if request.auth != null && request.auth.uid == userId;
+      }
+    }
   }
 }

@@ -1,160 +1,93 @@
-package com.github.se.studentconnect.ui.screen.navigation
+package com.github.se.studentconnect.ui.navigation
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotSelected
-import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
-import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.theme.AppTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
-class NavigationBarTest {
+class BottomNavigationBarTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  /** Test to verify that all components of the BottomNavigationBar are displayed correctly. */
   @Test
-  fun bottomNavigationBar_displaysAllComponents() {
-    composeTestRule.setContent {
-      AppTheme {
-        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
-      }
-    }
+  fun allNavigationTabsAreDisplayed() {
+    // Arrange
+    composeTestRule.setContent { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
 
-    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsDisplayed()
+    // Assert
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home)).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map)).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Activities))
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Profile)).assertIsDisplayed()
     composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Add").assertIsDisplayed()
   }
 
-  /** Test to verify that the BottomNavigationBar displays the correct labels for each tab. */
   @Test
-  fun bottomNavigationBar_showsCorrectLabels() {
+  fun clickingOnTab_triggersOnTabSelectedCallback() {
+    // Arrange
+    var selectedTab: Tab = Tab.Home
     composeTestRule.setContent {
-      AppTheme {
-        BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}, onCenterButtonClick = {})
-      }
+      BottomNavigationBar(
+          selectedTab = selectedTab, onTabSelected = { newTab -> selectedTab = newTab })
     }
 
-    composeTestRule.onNodeWithText("Home").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Map").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Activities").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
+    // Act
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Activities)).performClick()
+
+    // Assert
+    assertEquals(Tab.Activities, selectedTab)
   }
 
-  /** Test to verify that tab selection updates the selected state correctly. */
   @Test
-  fun bottomNavigationBar_tabSelectionWorks() {
-    composeTestRule.setContent {
-      AppTheme {
-        var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
-        BottomNavigationBar(
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it },
-            onCenterButtonClick = {},
-        )
-      }
-    }
+  fun eventCreationBottomSheet_displaysCorrectContent() {
+    // Arrange
+    composeTestRule.setContent { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
 
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
-
-    composeTestRule.onNodeWithTag(C.Tag.map_tab).performClick()
-    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsNotSelected()
-
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).performClick()
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsNotSelected()
-
-    composeTestRule.onNodeWithTag(C.Tag.profile_tab).performClick()
-    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsNotSelected()
-  }
-
-  /** Test to verify that clicking the center button triggers the provided callback. */
-  @Test
-  fun bottomNavigationBar_centerButtonClickWorks() {
-    var clickCount = 0
-
-    composeTestRule.setContent {
-      AppTheme {
-        BottomNavigationBar(
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            onCenterButtonClick = { clickCount++ },
-        )
-      }
-    }
-
+    // Act
     composeTestRule.onNodeWithTag("center_add_button").performClick()
-    assert(clickCount == 1)
 
-    repeat(2) { composeTestRule.onNodeWithTag("center_add_button").performClick() }
-    composeTestRule.runOnIdle { assert(clickCount == 3) }
+    // Assert
+    composeTestRule.onNodeWithTag("bottom_sheet_title").assertTextContains("Create New Event")
+    // Option Publique
+    composeTestRule.onNodeWithTag("create_public_event_option").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Create Public Event").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Visible to everyone").assertIsDisplayed()
+    // Option Privée
+    composeTestRule.onNodeWithTag("create_private_event_option").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Create Private Event").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invite only").assertIsDisplayed()
   }
 
-  /** Test to verify that the BottomNavigationBar handles default parameters correctly. */
   @Test
-  fun bottomNavigationBar_handlesDefaultParameters() {
+  fun selectingEventCreationOption_triggersCallbackAndClosesSheet() {
+    // Arrange
+    var createPublicCalled = false
+    var createPrivateCalled = false
     composeTestRule.setContent {
-      AppTheme { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
+      BottomNavigationBar(
+          selectedTab = Tab.Home,
+          onTabSelected = {},
+          onCreatePublicEvent = { createPublicCalled = true },
+          onCreatePrivateEvent = { createPrivateCalled = true })
     }
 
+    // Act: Option Publique
     composeTestRule.onNodeWithTag("center_add_button").performClick()
-    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
-  }
+    composeTestRule.onNodeWithTag("create_public_event_option").performClick()
 
-  /** Test to verify that a custom modifier is applied correctly to the BottomNavigationBar. */
-  @Test
-  fun bottomNavigationBar_supportsCustomModifier() {
-    composeTestRule.setContent {
-      AppTheme {
-        BottomNavigationBar(
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            onCenterButtonClick = {},
-            modifier = Modifier.testTag("custom_navigation"),
-        )
-      }
-    }
+    // Assert: Option Publique
+    assert(createPublicCalled)
+    composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertDoesNotExist()
 
-    composeTestRule.onNodeWithTag("custom_navigation").assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.bottom_navigation_menu).assertIsDisplayed()
-  }
+    // Act: Option Privée
+    composeTestRule.onNodeWithTag("center_add_button").performClick()
+    composeTestRule.onNodeWithTag("create_private_event_option").performClick()
 
-  /**
-   * Test to verify that the BottomNavigationBar maintains selection state across recompositions.
-   */
-  @Test
-  fun bottomNavigationBar_maintainsSelectionState() {
-    composeTestRule.setContent {
-      AppTheme {
-        BottomNavigationBar(selectedTab = Tab.Map, onTabSelected = {}, onCenterButtonClick = {})
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.map_tab).assertIsSelected()
-    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsNotSelected()
-    composeTestRule.onNodeWithTag(C.Tag.activities_tab).assertIsNotSelected()
-    composeTestRule.onNodeWithTag(C.Tag.profile_tab).assertIsNotSelected()
+    // Assert: Option Privée
+    assert(createPrivateCalled)
+    composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertDoesNotExist()
   }
 }

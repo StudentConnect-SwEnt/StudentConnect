@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model
 
+import com.google.firebase.Timestamp
+
 /**
  * Represents a User in the StudentConnect application.
  *
@@ -11,6 +13,8 @@ package com.github.se.studentconnect.model
  * @property hobbies A list of the user's interests and hobbies.
  * @property profilePictureUrl URL to the user's profile picture (optional).
  * @property bio A short biography or description about the user (optional).
+ * @property country The user's country (optional).
+ * @property birthday The user's birthday in DD/MM/YYYY format (optional).
  * @property createdAt Timestamp when the user profile was created (in milliseconds).
  * @property updatedAt Timestamp when the user profile was last updated (in milliseconds).
  */
@@ -19,10 +23,13 @@ data class User(
     val email: String,
     val firstName: String,
     val lastName: String,
+    val birthdate: Timestamp? = null,
     val university: String,
     val hobbies: List<String> = emptyList(),
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
+    val country: String? = null, // optional
+    val birthday: String? = null, // optional - format: "31/12/1980"
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -76,6 +83,10 @@ data class User(
    *   UpdateValue.NoChange to keep current).
    * @param bio The new bio (use UpdateValue.SetValue to change, UpdateValue.NoChange to keep
    *   current).
+   * @param country The new country (use UpdateValue.SetValue to change, UpdateValue.NoChange to
+   *   keep current).
+   * @param birthday The new birthday (use UpdateValue.SetValue to change, UpdateValue.NoChange to
+   *   keep current).
    * @return A new User instance with the updated fields.
    */
   fun update(
@@ -85,6 +96,8 @@ data class User(
       university: UpdateValue<String> = UpdateValue.NoChange(),
       hobbies: UpdateValue<List<String>> = UpdateValue.NoChange(),
       profilePictureUrl: UpdateValue<String?> = UpdateValue.NoChange(),
+      country: UpdateValue<String?> = UpdateValue.NoChange(),
+      birthday: UpdateValue<String?> = UpdateValue.NoChange(),
       bio: UpdateValue<String?> = UpdateValue.NoChange()
   ): User {
     return copy(
@@ -118,6 +131,16 @@ data class User(
               is UpdateValue.SetValue -> profilePictureUrl.value
               else -> this.profilePictureUrl
             },
+        country =
+            when (country) {
+              is UpdateValue.SetValue -> country.value
+              else -> this.country
+            },
+        birthday =
+            when (birthday) {
+              is UpdateValue.SetValue -> birthday.value
+              else -> this.birthday
+            },
         bio =
             when (bio) {
               is UpdateValue.SetValue -> bio.value
@@ -137,9 +160,12 @@ data class User(
         "email" to email,
         "firstName" to firstName,
         "lastName" to lastName,
+        "birthdate" to birthdate,
         "university" to university,
         "hobbies" to hobbies,
         "profilePictureUrl" to profilePictureUrl,
+        "country" to country,
+        "birthday" to birthday,
         "bio" to bio,
         "createdAt" to createdAt,
         "updatedAt" to updatedAt)
@@ -170,9 +196,12 @@ data class User(
             email = map["email"] as? String ?: return null,
             firstName = map["firstName"] as? String ?: return null,
             lastName = map["lastName"] as? String ?: return null,
+            birthdate = map["birthdate"] as? Timestamp,
             university = map["university"] as? String ?: return null,
             hobbies = (map["hobbies"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             profilePictureUrl = map["profilePictureUrl"] as? String,
+            country = map["country"] as? String,
+            birthday = map["birthday"] as? String,
             bio = map["bio"] as? String,
             createdAt = createdAt,
             updatedAt = updatedAt)
