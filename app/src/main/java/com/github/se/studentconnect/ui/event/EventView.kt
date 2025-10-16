@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -44,72 +43,75 @@ private val screenPadding = 25.dp
 
 /** Test tags for the EventView screen and its components. */
 object EventViewTestTags {
-    const val EVENT_VIEW_SCREEN = "event_view_screen"
-    const val TOP_APP_BAR = "event_view_top_app_bar"
-    const val BACK_BUTTON = "event_view_back_button"
-    const val EVENT_IMAGE = "event_view_image"
-    const val INFO_SECTION = "event_view_info_section"
-    const val COUNTDOWN_TIMER = "event_view_countdown_timer"
-    const val COUNTDOWN_DAYS = "event_view_countdown_days"
-    const val DESCRIPTION_TEXT = "event_view_description_text"
-    const val CHAT_BUTTON = "event_view_chat_button"
-    const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
-    const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
-    const val LOCATION_BUTTON = "event_view_location_button"
-    const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
-    const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
-    const val LOADING_INDICATOR = "event_view_loading_indicator"
+  const val EVENT_VIEW_SCREEN = "event_view_screen"
+  const val TOP_APP_BAR = "event_view_top_app_bar"
+  const val BACK_BUTTON = "event_view_back_button"
+  const val EVENT_IMAGE = "event_view_image"
+  const val INFO_SECTION = "event_view_info_section"
+  const val COUNTDOWN_TIMER = "event_view_countdown_timer"
+  const val COUNTDOWN_DAYS = "event_view_countdown_days"
+  const val DESCRIPTION_TEXT = "event_view_description_text"
+  const val CHAT_BUTTON = "event_view_chat_button"
+  const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
+  const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
+  const val LOCATION_BUTTON = "event_view_location_button"
+  const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
+  const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
+  const val LOADING_INDICATOR = "event_view_loading_indicator"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(
     eventUid: String,
-    joined: Boolean,
     navController: NavHostController = NavHostController(LocalContext.current),
-    eventViewModel: EventViewModel = viewModel()
+    eventViewModel: EventViewModel = viewModel(),
+    hasJoined: Boolean,
 ) {
-    val uiState by eventViewModel.uiState.collectAsState()
-    val event = uiState.event
-    val isLoading = uiState.isLoading
+  val uiState by eventViewModel.uiState.collectAsState()
+  val event = uiState.event
+  val isLoading = uiState.isLoading
+  val isJoined = uiState.isJoined
 
-    val countDownViewModel: CountDownViewModel = viewModel()
-    val timeLeft by countDownViewModel.timeLeft.collectAsState()
+  val countDownViewModel: CountDownViewModel = viewModel()
+  val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
-    LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
+  LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid, hasJoined) }
 
-    LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
+  LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
-    Scaffold(
-        modifier = Modifier.testTag(EventViewTestTags.EVENT_VIEW_SCREEN),
-        topBar = {
-            TopAppBar(
-                title = {
-                    event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
-        }) { paddingValues ->
+  Scaffold(
+      modifier = Modifier.testTag(EventViewTestTags.EVENT_VIEW_SCREEN),
+      topBar = {
+        TopAppBar(
+            title = {
+              event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            },
+            navigationIcon = {
+              IconButton(
+                  onClick = { navController.popBackStack() },
+                  modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back")
+                  }
+            },
+            modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
+      }) { paddingValues ->
         if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
-                contentAlignment = Alignment.Center) {
+          Box(
+              modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
+              contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
-            }
+              }
         } else if (event != null) {
-            Column(
-                modifier =
-                    Modifier.fillMaxSize()
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
+          Column(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(paddingValues)
+                      .verticalScroll(rememberScrollState()),
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
                 Icon(
                     imageVector = Icons.Default.Image,
                     contentDescription = "Event Image",
@@ -122,9 +124,8 @@ fun EventView(
                             .testTag(EventViewTestTags.EVENT_IMAGE),
                     tint = MaterialTheme.colorScheme.onSecondaryContainer)
 
-                // Action buttons are now placed at the end of the column
                 EventActionButtons(
-                    joined = joined,
+                    joined = isJoined,
                     currentEvent = event,
                     eventViewModel = eventViewModel,
                     modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
@@ -136,73 +137,77 @@ fun EventView(
                     modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
 
                 ChatButton()
-            }
+              }
         }
-    }
+      }
 }
 
 @Composable
 private fun InfoEvent(timeLeft: Long, event: Event, modifier: Modifier = Modifier) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
+  Column(
+      verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
         if (timeLeft > 86400) {
-            Text(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .fillMaxHeight()
-                        .testTag(EventViewTestTags.COUNTDOWN_DAYS),
-                color = MaterialTheme.colorScheme.primary,
-                text = days(timeLeft) + " days left",
-                style = MaterialTheme.typography.displaySmall)
+          Text(
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally)
+                      .fillMaxHeight()
+                      .testTag(EventViewTestTags.COUNTDOWN_DAYS),
+              color = MaterialTheme.colorScheme.primary,
+              text = days(timeLeft) + " days left",
+              style = MaterialTheme.typography.displaySmall)
         } else {
-            Box(
-                modifier =
-                    Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
-                        .align(Alignment.CenterHorizontally)) {
+          Box(
+              modifier =
+                  Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
+                      .align(Alignment.CenterHorizontally)) {
                 CountDownDisplay(timeLeft)
-            }
+              }
         }
         Text(text = "Description", style = titleTextStyle())
-        Text(text = event.description, modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
-    }
+        Text(
+            text = event.description,
+            modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
+      }
 }
 
 @Composable
 private fun ChatButton(context: Context = LocalContext.current) {
-    Button(
-        onClick = { DialogNotImplemented(context) },
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
-                .testTag(EventViewTestTags.CHAT_BUTTON),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+  Button(
+      onClick = { DialogNotImplemented(context) },
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
+              .testTag(EventViewTestTags.CHAT_BUTTON),
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.secondaryContainer),
+  ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.wrapContentHeight()) {
-                Text(
-                    text = "Event chat",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer)
-                Text(
-                    text = "Get The Latest News About The Event",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
-            Icon(
-                painter = painterResource(id = R.drawable.ic_chat_bubble),
-                contentDescription = "Home",
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer)
-        }
+      Column(horizontalAlignment = Alignment.Start, modifier = Modifier.wrapContentHeight()) {
+        Text(
+            text = "Event chat",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer)
+        Text(
+            text = "Get The Latest News About The Event",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer)
+      }
+      Icon(
+          painter = painterResource(id = R.drawable.ic_chat_bubble),
+          contentDescription = "Home",
+          modifier = Modifier.size(24.dp),
+          tint = MaterialTheme.colorScheme.onSecondaryContainer)
     }
+  }
 }
 
 @Composable
@@ -213,41 +218,39 @@ fun EventActionButtons(
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
-    val context = LocalContext.current
+  val context = LocalContext.current
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        JoinedEventActions(
-            currentEvent = currentEvent,
-            eventViewModel = eventViewModel,
-            context = context,
-            navController = navController,
-            joined = joined)
-
-    }
+  Column(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    JoinedEventActions(
+        currentEvent = currentEvent,
+        eventViewModel = eventViewModel,
+        context = context,
+        navController = navController,
+        joined = joined)
+  }
 }
 
 @Composable
 private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifier) {
-    IconButton(
-        onClick = onClick,
-        modifier =
-            modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+  IconButton(
+      onClick = onClick,
+      modifier =
+          modifier
+              .size(48.dp)
+              .clip(CircleShape)
+              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
         Icon(
             painter = painterResource(id = id),
             contentDescription = "Action button", // Generic description
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer)
-    }
-
+      }
 }
 
 /** Show the actions available when the user has joined the event. */
@@ -259,67 +262,70 @@ private fun JoinedEventActions(
     navController: NavHostController,
     joined: Boolean
 ) {
-    // This Column arranges the icon buttons and the leave button vertically.
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp,Alignment.End),
-        ) {
-            Button(
-                onClick =
-                    {
-                        if(joined) { eventViewModel.leaveEvent(eventUid = currentEvent.uid) }
-                        else { eventViewModel.joinEvent(eventUid = currentEvent.uid) }
-                    },
-                modifier = Modifier.wrapContentSize().padding(2.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)
-            ) {
-                Icon(
-                    painter = if(joined) painterResource(id = R.drawable.ic_arrow_right) else painterResource(id = R.drawable.ic_add),
-                    contentDescription = "action icon",
-                    modifier = Modifier.size(20.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                if(joined) Text("Leave") else Text("Join")
-            }
-            ButtonIcon(
-                id = R.drawable.ic_location_pin,
-                onClick = {
-                    currentEvent.location?.let { location ->
-                        val route = Route.mapWithLocation(location.latitude, location.longitude)
-                        navController.navigate(route)
-                    }
-                },
-                modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-            ButtonIcon(
-                id = R.drawable.ic_web,
-                onClick = {
-                    (currentEvent as? Event.Public)?.website?.let { website ->
-                        if (website.isNotEmpty()) {
-                            val fixedUrl =
-                                if (!website.startsWith("http://") && !website.startsWith("https://")) {
-                                    "https://$website"
-                                } else website
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
-                                context.startActivity(intent)
-                            } catch (e: ActivityNotFoundException) {
-                                Toast.makeText(
-                                    context,
-                                    "No application can handle this request. Please install a web browser.",
-                                    Toast.LENGTH_LONG)
-                                    .show()
-                            }
-                        }
-                    }
-                },
-                modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-            ButtonIcon(
-                id = R.drawable.ic_share,
-                onClick = { /* TODO: Partager l'événement */},
-                modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-
-            }
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+  ) {
+    Button(
+        onClick = {
+          if (joined) {
+            eventViewModel.leaveEvent(eventUid = currentEvent.uid)
+          } else {
+            eventViewModel.joinEvent(eventUid = currentEvent.uid)
+          }
+        },
+        modifier =
+            Modifier.wrapContentSize()
+                .padding(2.dp)
+                .padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)) {
+          Icon(
+              painter =
+                  if (joined) painterResource(id = R.drawable.ic_arrow_right)
+                  else painterResource(id = R.drawable.ic_add),
+              contentDescription = "action icon",
+              modifier =
+                  Modifier.size(20.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp))
+          Spacer(modifier = Modifier.width(2.dp))
+          if (joined) Text("Leave") else Text("Join")
         }
+    ButtonIcon(
+        id = R.drawable.ic_location_pin,
+        onClick = {
+          currentEvent.location?.let { location ->
+            val route = Route.mapWithLocation(location.latitude, location.longitude)
+            navController.navigate(route)
+          }
+        },
+        modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+    ButtonIcon(
+        id = R.drawable.ic_web,
+        onClick = {
+          (currentEvent as? Event.Public)?.website?.let { website ->
+            if (website.isNotEmpty()) {
+              val fixedUrl =
+                  if (!website.startsWith("http://") && !website.startsWith("https://")) {
+                    "https://$website"
+                  } else website
+              try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
+                context.startActivity(intent)
+              } catch (e: ActivityNotFoundException) {
+                Toast.makeText(
+                        context,
+                        "No application can handle this request. Please install a web browser.",
+                        Toast.LENGTH_LONG)
+                    .show()
+              }
+            }
+          }
+        },
+        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+    ButtonIcon(
+        id = R.drawable.ic_share,
+        onClick = { DialogNotImplemented(context) },
+        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+  }
+}
 
 @Composable
 fun titleTextStyle(): TextStyle =
@@ -329,5 +335,5 @@ fun titleTextStyle(): TextStyle =
 @Preview(showBackground = true)
 @Composable
 fun EventViewPreview() {
-    MaterialTheme { EventView(eventUid = "event-killer-concert-01", joined = false) }
+  MaterialTheme { EventView(eventUid = "event-killer-concert-01", hasJoined = false) }
 }

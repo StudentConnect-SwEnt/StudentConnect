@@ -27,36 +27,27 @@ fun <T> Panel(
     title: String,
     itemContent: @Composable (item: T) -> Unit = {},
 ) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-    Card(
-        modifier = Modifier
-            .width(screenWidth * 0.8f)
-            .heightIn(max = screenHeight * 0.7f),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
+  Card(
+      modifier = Modifier.width(screenWidth * 0.8f).heightIn(max = screenHeight * 0.7f),
+      shape = RoundedCornerShape(16.dp),
+      elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+          Text(
+              text = title,
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.Bold)
+          Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items.forEach { item ->
-                    itemContent(item)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+          Column(
+              modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+              verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items.forEach { item -> itemContent(item) }
+              }
+          Spacer(modifier = Modifier.height(16.dp))
         }
-    }
+      }
 }
