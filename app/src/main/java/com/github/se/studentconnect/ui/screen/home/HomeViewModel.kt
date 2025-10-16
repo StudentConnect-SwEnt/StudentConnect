@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -23,10 +23,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
 
 data class HomePageUiState(
     val events: List<Event> = emptyList(),
     val isLoading: Boolean = true,
+    val isCalendarView: Boolean = false,
+    val selectedDate: Date? = null,
+    val scrollToDate: Date? = null,
 )
 
 class HomePageViewModel
@@ -198,5 +203,64 @@ constructor(
   fun refresh() {
     loadAllEvents()
     loadFavoriteEvents()
+  }
+
+  /**
+   * Toggles between calendar view and list view.
+   */
+  fun toggleView() {
+    _uiState.update { it.copy(isCalendarView = !it.isCalendarView) }
+  }
+
+  /**
+   * Switches to calendar view.
+   */
+  fun showCalendarView() {
+    _uiState.update { it.copy(isCalendarView = true) }
+  }
+
+  /**
+   * Switches to list view.
+   */
+  fun showListView() {
+    _uiState.update { it.copy(isCalendarView = false) }
+  }
+
+  /**
+   * Handles date selection from the calendar.
+   * Switches back to list view and sets the scroll target date.
+   */
+  fun onDateSelected(date: Date) {
+    _uiState.update { 
+      it.copy(
+        selectedDate = date,
+        scrollToDate = date,
+        isCalendarView = false
+      ) 
+    }
+  }
+
+  /**
+   * Clears the scroll target date after scrolling is complete.
+   */
+  fun clearScrollTarget() {
+    _uiState.update { it.copy(scrollToDate = null) }
+  }
+
+  /**
+   * Gets events for a specific date.
+   */
+  fun getEventsForDate(date: Date): List<Event> {
+    val calendar = Calendar.getInstance()
+    calendar.time = date
+    
+    return _uiState.value.events.filter { event ->
+      val eventCalendar = Calendar.getInstance()
+      eventCalendar.time = event.start.toDate()
+      
+      eventCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+      eventCalendar.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
+      eventCalendar.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)
+    }
   }
 }
