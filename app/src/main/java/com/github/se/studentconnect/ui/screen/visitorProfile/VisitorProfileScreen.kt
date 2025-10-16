@@ -27,24 +27,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.Locale
 
 @Composable
 fun VisitorProfileScreen(
+    modifier: Modifier = Modifier.Companion,
     user: User,
     onBackClick: () -> Unit,
-    onAddFriendClick: () -> Unit,
-    modifier: Modifier = Modifier.Companion
+    onAddFriendClick: () -> Unit
 ) {
   VisitorProfileContent(
       user = user,
@@ -66,10 +65,10 @@ internal fun VisitorProfileContent(
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
         modifier =
-            Modifier.Companion.fillMaxSize()
+            Modifier.Companion.testTag(C.Tag.visitor_profile_screen)
+                .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp, vertical = 32.dp)
-                .semantics { testTag = C.Tag.visitor_profile_screen },
+                .padding(horizontal = 24.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)) {
           VisitorProfileTopBar(user.userId, onBackClick = onBackClick)
 
@@ -126,7 +125,7 @@ internal fun VisitorProfileInfoCard(user: User, onAddFriendClick: () -> Unit) {
                       .mapNotNull { it.firstOrNull()?.toString() }
                       .joinToString("")
                       .ifBlank { user.userId.take(2) }
-                      .uppercase(Locale.getDefault())
+                      .uppercase(Locale.ROOT)
 
               Surface(
                   modifier =
@@ -251,22 +250,4 @@ internal fun VisitorProfileEventSection(title: String) {
                   }
             }
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun VisitorProfileScreenPreview() {
-  AppTheme {
-    VisitorProfileScreen(
-        user =
-            User(
-                userId = "user-123",
-                email = "sample@studentconnect.ch",
-                firstName = "Alex",
-                lastName = "Martin",
-                university = "EPFL",
-                bio = "Curious learner, exploring new connections."),
-        onBackClick = {},
-        onAddFriendClick = {})
-  }
 }
