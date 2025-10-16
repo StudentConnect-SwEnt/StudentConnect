@@ -28,14 +28,12 @@ import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -83,7 +81,7 @@ private fun SearchTopBar(
     navController: NavHostController,
 ) {
   CenterAlignedTopAppBar(
-      title = { SBar(viewModel) },
+      title = { TopSearchBar(viewModel) },
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
         IconButton(
@@ -113,9 +111,8 @@ private fun SearchTopBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SBar(
+private fun TopSearchBar(
     viewModel: SearchViewModel,
-    modifier: Modifier = Modifier,
 ) {
   SearchBar(
       inputField = {
@@ -176,7 +173,7 @@ private fun People(viewModel: SearchViewModel) {
 }
 
 @Composable
-private fun UserCard(user: User, modifier: Modifier = Modifier) {
+private fun UserCard(user: User) {
   Box(
       modifier =
           Modifier.clickable(onClick = {})
@@ -237,7 +234,7 @@ private fun Events(viewModel: SearchViewModel) {
 }
 
 @Composable
-private fun EventCard(event: Event, modifier: Modifier = Modifier) {
+private fun EventCard(event: Event) {
   Row(modifier = Modifier.clickable(onClick = {}), verticalAlignment = Alignment.CenterVertically) {
     Image(
         painterResource(R.drawable.ic_ticket),
@@ -271,12 +268,4 @@ private fun EventCard(event: Event, modifier: Modifier = Modifier) {
       Icon(painterResource(R.drawable.ic_users), contentDescription = null)
     }
   }
-}
-
-@Preview
-@Composable
-fun TestSearchScreen() {
-  val viewModel = SearchViewModel()
-  LaunchedEffect(Unit) { viewModel.initTest() }
-  SearchScreen(viewModel = viewModel)
 }
