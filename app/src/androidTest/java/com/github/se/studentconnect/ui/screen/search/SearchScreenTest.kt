@@ -28,7 +28,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchUserDisplayed() {
-    composeTestRule.setContent { AppTheme { TestSearchScreen()} }
+    composeTestRule.setContent { AppTheme { TestSearchScreen() } }
 
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("user")
 
