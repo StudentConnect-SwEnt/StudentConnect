@@ -48,6 +48,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.userqr.UserQRCode
+import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -239,9 +240,9 @@ private fun UserCardFront(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = user.birthdateMillis?.let {
+                        text = user.birthdate?.let {
                             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            dateFormat.format(Date(it))
+                            dateFormat.format(it.toDate())
                         } ?: "Birthday not provided",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -329,7 +330,7 @@ fun UserCardPreview() {
                 email = "rita.naimi@example.com",
                 firstName = "Rita",
                 lastName = "Naimi",
-                birthdateMillis = 1114819200000L, // 30/04/2005 in milliseconds
+                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
                 university = "ETH Zurich",
                 hobbies = listOf("Programming", "Photography"),
                 profilePictureUrl = null,
@@ -349,7 +350,7 @@ fun UserCardWithPicturePreview() {
                 email = "rita.naimi@example.com",
                 firstName = "Rita",
                 lastName = "Naimi",
-                birthdateMillis = 1114819200000L, // 30/04/2005 in milliseconds
+                birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
                 university = "University of Zurich",
                 hobbies = listOf("Music", "Sports"),
                 profilePictureUrl = "https://via.placeholder.com/150",
@@ -403,7 +404,7 @@ fun UserCardFlippedPreview() {
                         email = "rita.naimi@example.com",
                         firstName = "Rita",
                         lastName = "Naimi",
-                        birthdateMillis = 1114819200000L, // 30/04/2005 in milliseconds
+                        birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
                         university = "ETH Zurich",
                         hobbies = listOf("Programming", "Photography"),
                         profilePictureUrl = null,
@@ -436,7 +437,7 @@ fun UserCardFlippedPreview() {
                         email = "rita.naimi@example.com",
                         firstName = "Rita",
                         lastName = "Naimi",
-                        birthdateMillis = 1114819200000L, // 30/04/2005 in milliseconds
+                        birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
                         university = "ETH Zurich",
                         hobbies = listOf("Programming", "Photography"),
                         profilePictureUrl = null,

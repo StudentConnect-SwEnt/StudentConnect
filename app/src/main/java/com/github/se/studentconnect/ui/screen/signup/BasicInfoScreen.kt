@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
+import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,7 +78,7 @@ fun BasicInfoScreen(
     SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
   }
 
-  val selectedMillis = signUpState.birthdateMillis
+  val selectedMillis = signUpState.birthdate?.toDate()?.time
   val pickerState =
       datePickerState
           ?: rememberDatePickerState(
@@ -85,19 +86,20 @@ fun BasicInfoScreen(
   val dialogState = showDateDialogState ?: rememberSaveable { mutableStateOf(false) }
 
   var birthdayText by rememberSaveable { mutableStateOf("") }
-  var isBirthdateValid by remember { mutableStateOf(signUpState.birthdateMillis != null) }
+  var isBirthdateValid by remember { mutableStateOf(signUpState.birthdate != null) }
 
-  LaunchedEffect(signUpState.birthdateMillis) {
-    val storedDate = signUpState.birthdateMillis
+  LaunchedEffect(signUpState.birthdate) {
+    val storedDate = signUpState.birthdate
     if (storedDate == null) {
       birthdayText = ""
       isBirthdateValid = false
     } else {
-      val formatted = dateFormatter.format(Date(storedDate))
+      val formatted = dateFormatter.format(storedDate.toDate())
       birthdayText = formatted
       isBirthdateValid = true
-      if (pickerState.selectedDateMillis != storedDate) {
-        pickerState.selectedDateMillis = storedDate
+      val millis = storedDate.toDate().time
+      if (pickerState.selectedDateMillis != millis) {
+        pickerState.selectedDateMillis = millis
       }
     }
   }
@@ -192,7 +194,7 @@ fun BasicInfoScreen(
                       if (millis != null) {
                         birthdayText = dateFormatter.format(Date(millis))
                         isBirthdateValid = true
-                        viewModel.setBirthdate(millis)
+                        viewModel.setBirthdate(Timestamp(Date(millis)))
                       }
                       dialogState.value = false
                     }) {

@@ -16,7 +16,9 @@ import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
 import com.github.se.studentconnect.model.User
+import com.google.firebase.Timestamp
 import java.time.LocalDate
+import java.util.Date
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -42,7 +44,7 @@ class UserCardTest {
             email = TEST_EMAIL,
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
-            birthdateMillis = 1114819200000L, // 30/04/2005 in milliseconds
+            birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
             university = TEST_UNIVERSITY,
             hobbies = listOf("Programming", "Photography"),
             profilePictureUrl = null,
