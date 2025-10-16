@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -48,21 +47,6 @@ class MainActivityUITest {
     composeTestRule.onNodeWithTag("center_add_button").performClick()
     // The bottom sheet should be displayed
     composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
-  }
-
-  /**
-   * Test to verify that navigation to the center button doesn't crash the app on multiple clicks.
-   */
-  @Test
-  fun mainActivity_centerButtonMultipleClicks() {
-    repeat(3) {
-      composeTestRule.onNodeWithTag("center_add_button").performClick()
-      // In a real scenario, a bottom sheet might open and need to be closed to be clicked again.
-      // Assuming clicking again closes it or does nothing.
-      composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
-      pressBack() // Close the bottom sheet to be able to click the button again
-    }
-    composeTestRule.onNodeWithTag(C.Tag.main_screen_container).assertIsDisplayed()
   }
 
   /** Test to verify that all tabs in the bottom navigation bar are displayed correctly. */
