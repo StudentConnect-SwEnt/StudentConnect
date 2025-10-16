@@ -46,4 +46,8 @@ object EventMarkerConfig {
   const val CLUSTER_TEXT_COLOR = "#FFFFFF"
 
   val CLUSTER_TEXT_FONTS = listOf("DIN Offc Pro Bold", "Arial Unicode MS Bold")
+
+  // GeoJSON property keys
+  const val PROP_TITLE = "title"
+  const val PROP_UID = "uid"
 }

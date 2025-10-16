@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.map
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.github.se.studentconnect.R
@@ -56,7 +57,13 @@ object EventMarkers {
   fun addEventMarkerIcon(context: Context, style: Style) {
     val markerIcon = ContextCompat.getDrawable(context, R.drawable.ic_location)
     markerIcon?.let { drawable ->
-      drawable.setTint(android.graphics.Color.parseColor(EventMarkerConfig.COLOR))
+      runCatching { android.graphics.Color.parseColor(EventMarkerConfig.COLOR) }
+          .onSuccess { color -> drawable.setTint(color) }
+          .onFailure { exception ->
+            Log.w("EventMarkers", "Invalid color: ${EventMarkerConfig.COLOR}", exception)
+            // Use a fallback color (red) if parsing fails
+            drawable.setTint(android.graphics.Color.RED)
+          }
       if (!style.hasStyleImage(EventMarkerConfig.ICON_ID)) {
         style.addImage(EventMarkerConfig.ICON_ID, drawable.toBitmap())
       }
@@ -71,8 +78,8 @@ object EventMarkers {
     return events.mapNotNull { event ->
       event.location?.let { location ->
         Feature.fromGeometry(Point.fromLngLat(location.longitude, location.latitude)).apply {
-          addStringProperty("title", event.title)
-          addStringProperty("uid", event.uid)
+          addStringProperty(EventMarkerConfig.PROP_TITLE, event.title)
+          addStringProperty(EventMarkerConfig.PROP_UID, event.uid)
         }
       }
     }

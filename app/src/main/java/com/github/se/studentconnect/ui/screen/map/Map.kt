@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -236,6 +237,9 @@ private fun MapContainer(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
+  // Track previous state to avoid unnecessary updates
+  val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
+  val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
 
   Box(modifier = modifier.clip(RoundedCornerShape(Corner.MAP_RADIUS))) {
     if (BuildConfig.USE_MOCK_MAP || isInAndroidTest()) {
@@ -258,16 +262,25 @@ private fun MapContainer(
             }
 
             // Add event markers with clustering - only in events view
+            // Check if state actually changed before updating
             MapEffect(isEventsView, events) { mapView ->
-              mapView.mapboxMap.getStyle { style ->
-                EventMarkers.removeExistingEventLayers(style)
+              val hasChanged =
+                  previousEventsView.value != isEventsView || previousEvents.value != events
 
-                if (isEventsView && events.isNotEmpty()) {
-                  EventMarkers.addEventMarkerIcon(context, style)
-                  val features = EventMarkers.createEventFeatures(events)
-                  EventMarkers.addEventSource(style, features)
-                  EventMarkers.addClusterLayers(style)
-                  EventMarkers.addIndividualMarkerLayer(style)
+              if (hasChanged) {
+                previousEventsView.value = isEventsView
+                previousEvents.value = events
+
+                mapView.mapboxMap.getStyle { style ->
+                  EventMarkers.removeExistingEventLayers(style)
+
+                  if (isEventsView && events.isNotEmpty()) {
+                    EventMarkers.addEventMarkerIcon(context, style)
+                    val features = EventMarkers.createEventFeatures(events)
+                    EventMarkers.addEventSource(style, features)
+                    EventMarkers.addClusterLayers(style)
+                    EventMarkers.addIndividualMarkerLayer(style)
+                  }
                 }
               }
             }

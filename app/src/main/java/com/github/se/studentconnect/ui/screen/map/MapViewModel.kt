@@ -80,7 +80,10 @@ class MapViewModel(
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
   init {
-    loadEvents()
+    // Only load events if the current state has no events
+    if (_uiState.value.events.isEmpty()) {
+      loadEvents()
+    }
   }
 
   private fun loadEvents() {
