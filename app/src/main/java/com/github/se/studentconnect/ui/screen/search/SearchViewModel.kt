@@ -21,8 +21,8 @@ data class SearchState(
 
 /** ViewModel for managing the state of the search screen. */
 class SearchViewModel(
-    private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repositoryTest,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repositoryTest,
 ) : ViewModel() {
 
   private val _state = mutableStateOf(SearchState())

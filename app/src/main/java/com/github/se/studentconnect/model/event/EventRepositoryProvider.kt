@@ -90,5 +90,7 @@ object EventRepositoryProvider {
   fun date(seconds: Long): Timestamp =
       Timestamp(
           Date.from(
-              LocalDateTime.now().plusSeconds(seconds).atZone(ZoneId.systemDefault()).toInstant()))
+              LocalDateTime.now().plusSeconds(seconds).atZone(ZoneId.systemDefault()).toInstant()
+          )
+      )
 }
