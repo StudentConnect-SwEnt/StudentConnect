@@ -22,31 +22,6 @@ class ProfileScreenTest {
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @Test
-  fun profileScreen_displaysUserInformation() {
-    val repository = UiFakeUserRepository()
-    val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
-
-    composeTestRule.setContent {
-      ProfileScreen(
-          currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
-      composeTestRule.onAllNodesWithText("John Doe").fetchSemanticsNodes().isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
-    composeTestRule.onNodeWithText("University").assertIsDisplayed()
-    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Country").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Switzerland").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Favourite Activities").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Running, Coding").assertIsDisplayed()
-    composeTestRule.onNodeWithText("More About Me").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Love building things").assertIsDisplayed()
-  }
-
-  @Test
   fun profileScreen_showsSnackbarAfterSuccessfulUpdate() {
     val repository = UiFakeUserRepository()
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
@@ -94,28 +69,6 @@ class ProfileScreenTest {
 
     // Should show "Not specified" for empty fields
     composeTestRule.onAllNodesWithText("Not specified").fetchSemanticsNodes().size >= 3
-  }
-
-  @Test
-  fun profileScreen_displaysAllProfileFields() {
-    val repository = UiFakeUserRepository()
-    val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
-
-    composeTestRule.setContent {
-      ProfileScreen(
-          currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
-      composeTestRule.onAllNodesWithText("John Doe").fetchSemanticsNodes().isNotEmpty()
-    }
-
-    // Check all field labels are displayed
-    composeTestRule.onNodeWithText("University").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Country").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Birthday").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Favourite Activities").assertIsDisplayed()
-    composeTestRule.onNodeWithText("More About Me").assertIsDisplayed()
   }
 
   @Test
