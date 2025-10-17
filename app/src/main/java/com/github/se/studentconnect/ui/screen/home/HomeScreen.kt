@@ -183,7 +183,6 @@ fun HomeScreen(
       }
     }
   }
-  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -239,26 +238,58 @@ private suspend fun scrollToDate(
     targetDate: Date
 ) {
   try {
+<<<<<<< HEAD
+=======
+    // Handle empty events list
+>>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
     if (events.isEmpty()) {
       return
     }
 
+<<<<<<< HEAD
     val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
     var currentIndex = 0
     for ((dateHeader, eventsOnDate) in groupedEvents) {
       if (dateHeader == targetDateHeader) {
+=======
+    // Group events by date header to find the target section
+    val groupedEvents = events.groupBy { event ->
+      formatDateHeader(event.start)
+    }
+
+    // Find the target date header
+    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+
+    // Calculate the index to scroll to
+    var currentIndex = 0
+    for ((dateHeader, eventsOnDate) in groupedEvents) {
+      if (dateHeader == targetDateHeader) {
+        // Found the target date, scroll to it with bounds checking
+>>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
         val maxIndex = listState.layoutInfo.totalItemsCount - 1
         val scrollIndex = minOf(currentIndex, maxIndex)
         listState.animateScrollToItem(scrollIndex)
         return
       }
+<<<<<<< HEAD
       currentIndex += 1 + eventsOnDate.size
     }
 
     listState.animateScrollToItem(0)
   } catch (e: Exception) {
+=======
+      // Move to next section (header + events)
+      currentIndex += 1 + eventsOnDate.size
+    }
+
+    // If date not found, scroll to top
+    listState.animateScrollToItem(0)
+  } catch (e: Exception) {
+    // Handle any unexpected errors gracefully
+    // In production, you might want to log this error
+>>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
     listState.animateScrollToItem(0)
   }
 }
