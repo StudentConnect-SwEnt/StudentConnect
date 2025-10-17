@@ -56,6 +56,8 @@ abstract class StudentConnectTest() {
     if (FirebaseEmulator.isRunning) {
       FirebaseEmulator.auth.signOut()
       FirebaseEmulator.clearAuthEmulator()
+      FirebaseEmulator.clearFirestoreEmulator()
+      FirebaseEmulator.clearStorageEmulator()
     }
   }
 

@@ -144,7 +144,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.firebase.firestore.ktx)
     implementation(libs.play.services.location)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
@@ -167,10 +166,9 @@ dependencies {
     implementation(libs.play.services.auth)
 
     // Firebase
-    implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.storage)
 
     // Credential Manager (for Google Sign-In)
     implementation(libs.credentials)
