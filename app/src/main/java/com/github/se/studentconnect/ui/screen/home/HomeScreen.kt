@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screens
+package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -7,9 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,17 +48,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.events.EventListScreen
+import com.github.se.studentconnect.ui.events.formatDateHeader
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
-import com.github.se.studentconnect.ui.screen.filters.FilterBar
+import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
+import java.util.Date
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
@@ -61,10 +74,14 @@ fun HomeScreen(
     onQRScannerClosed: () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
+  val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
   var showNotifications by remember { mutableStateOf(false) }
+  val sheetState =
+      rememberModalBottomSheetState(
+          initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
-  val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
+  val listState = rememberLazyListState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -75,59 +92,96 @@ fun HomeScreen(
     }
   }
 
-  Scaffold(
-      modifier = Modifier.fillMaxSize().testTag("HomePage"),
-      topBar = {
-        if (pagerState.currentPage == 1) {
-          HomeTopBar(
-              showNotifications = showNotifications,
-              onNotificationClick = { showNotifications = !showNotifications },
-              onDismiss = { showNotifications = false })
-        }
-      }) { paddingValues ->
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            userScrollEnabled = true) { page ->
-              when (page) {
-                0 -> {
-                  // QR Scanner page
-                  QrScannerScreen(
-                      onBackClick = {
-                        onQRScannerClosed()
-                        coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                      },
-                      onProfileDetected = { userId ->
-                        // Navigate to visitor profile and return to home page
-                        onQRScannerClosed()
-                        navController.navigate(Route.visitorProfile(userId))
-                        coroutineScope.launch { pagerState.scrollToPage(1) }
-                      },
-                      isActive = pagerState.currentPage == 0)
-                }
-                1 -> {
-                  // Home content page
-                  Box(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.isLoading) {
-                      CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    } else {
-                      Column {
-                        FilterBar(
-                            context = LocalContext.current,
-                            onApplyFilters = viewModel::applyFilters)
-                        EventListScreen(
-                            navController = navController,
-                            events = uiState.events,
-                            hasJoined = false,
-                            favoriteEventIds = favoriteEventIds,
-                            onFavoriteToggle = viewModel::toggleFavorite)
+  ModalBottomSheetLayout(
+      modifier = Modifier.testTag("calendar_modal"),
+      sheetState = sheetState,
+      sheetContent = {
+          EventCalendar(
+              events = uiState.events,
+              selectedDate = uiState.selectedDate,
+              onDateSelected = { date -> viewModel.onDateSelected(date) })
+      }) {
+      Scaffold(
+          modifier = Modifier.fillMaxSize().testTag("HomePage"),
+          topBar = {
+            if (pagerState.currentPage == 1) {
+              HomeTopBar(
+                  showNotifications = showNotifications,
+                  onNotificationClick = { showNotifications = !showNotifications },
+                  onDismiss = { showNotifications = false })
+            }
+          }) { paddingValues ->
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                userScrollEnabled = true) { page ->
+                  when (page) {
+                    0 -> {
+                      // QR Scanner page
+                      QrScannerScreen(
+                          onBackClick = {
+                            onQRScannerClosed()
+                            coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                          },
+                          onProfileDetected = { userId ->
+                            // Navigate to visitor profile and return to home page
+                            onQRScannerClosed()
+                            navController.navigate(Route.visitorProfile(userId))
+                            coroutineScope.launch { pagerState.scrollToPage(1) }
+                          },
+                          isActive = pagerState.currentPage == 0)
+                    }
+                    1 -> {
+                      // Home content page
+                      Box(modifier = Modifier.fillMaxSize()) {
+                        if (uiState.isLoading) {
+                          CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        } else {
+                          Column {
+                            FilterBar(
+                                context = LocalContext.current,
+                                onCalendarClick = { viewModel.showCalendar() },
+                                onApplyFilters = viewModel::applyFilters)
+                            EventListScreen(
+                                navController = navController,
+                                events = uiState.events,
+                                hasJoined = false,
+                                listState = listState,
+                                favoriteEventIds = favoriteEventIds,
+                                onFavoriteToggle = viewModel::toggleFavorite)
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
-            }
+          }
+
+      // Handle scroll to date functionality
+      LaunchedEffect(uiState.scrollToDate) {
+        uiState.scrollToDate?.let { targetDate ->
+          scrollToDate(listState, uiState.events, targetDate)
+          viewModel.clearScrollTarget()
+        }
       }
+
+      // Handle modal visibility
+      LaunchedEffect(uiState.isCalendarVisible) {
+        if (uiState.isCalendarVisible) {
+          sheetState.show()
+        } else {
+          sheetState.hide()
+        }
+      }
+
+      // Handle modal dismissal (when user taps outside or swipes down)
+      LaunchedEffect(sheetState.isVisible) {
+        if (!sheetState.isVisible && uiState.isCalendarVisible) {
+          // Modal was dismissed by user interaction, update ViewModel state
+          viewModel.hideCalendar()
+        }
+      }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,3 +225,38 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
         }
       })
 }
+
+/**
+ * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
+ * smoothly.
+ */
+private suspend fun scrollToDate(
+    listState: LazyListState,
+    events: List<com.github.se.studentconnect.model.event.Event>,
+    targetDate: Date
+) {
+  try {
+    if (events.isEmpty()) {
+      return
+    }
+
+    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
+    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+
+    var currentIndex = 0
+    for ((dateHeader, eventsOnDate) in groupedEvents) {
+      if (dateHeader == targetDateHeader) {
+        val maxIndex = listState.layoutInfo.totalItemsCount - 1
+        val scrollIndex = minOf(currentIndex, maxIndex)
+        listState.animateScrollToItem(scrollIndex)
+        return
+      }
+      currentIndex += 1 + eventsOnDate.size
+    }
+
+    listState.animateScrollToItem(0)
+  } catch (e: Exception) {
+    listState.animateScrollToItem(0)
+  }
+}
+

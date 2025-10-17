@@ -10,7 +10,7 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
-import com.github.se.studentconnect.ui.screen.filters.FilterData
+import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import javax.inject.Inject
 import kotlin.math.atan2

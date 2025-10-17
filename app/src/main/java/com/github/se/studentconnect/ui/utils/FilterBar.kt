@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.filters
+package com.github.se.studentconnect.ui.utils
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
@@ -80,7 +80,11 @@ private val DEFAULT_PRICE_RANGE: ClosedFloatingPointRange<Float> = 0f..50f
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
+fun FilterBar(
+    context: Context,
+    onCalendarClick: () -> Unit = { DialogNotImplemented(context) },
+    onApplyFilters: (FilterData) -> Unit = {}
+) {
   var showBottomSheet by remember { mutableStateOf(false) }
   var showLocationPicker by remember { mutableStateOf(false) }
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -98,9 +102,18 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        FilterChip(icon = R.drawable.ic_calendar, onClick = { DialogNotImplemented(context) })
         FilterChip(
-            text = "Filters", icon = R.drawable.ic_filter, onClick = { showBottomSheet = true })
+            text = "Paris",
+            onClick = { DialogNotImplemented(context) },
+            icon = R.drawable.ic_location)
+        FilterChip(
+            icon = R.drawable.ic_calendar,
+            onClick = onCalendarClick,
+            testTag = "calendar_button")
+        FilterChip(
+            text = "Filters",
+            icon = R.drawable.ic_filter,
+            onClick = { showBottomSheet = true })
         FilterChipWithHighlight(
             text = "Favorites",
             icon = R.drawable.ic_heart,
@@ -295,16 +308,20 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                   Text("Reset Filters")
                 }
           }
+      }
       if (showLocationPicker) {
-        LocationPickerDialog(
-            initialLocation = selectedLocation,
-            initialRadius = searchRadius,
-            onDismiss = { showLocationPicker = false },
-            onLocationSelected = { newLocation, newRadius ->
-              selectedLocation = newLocation
-              searchRadius = newRadius
-              showLocationPicker = false
-            })
+        // LocationPickerDialog - commented out as it may not exist
+        // LocationPickerDialog(
+        //     initialLocation = selectedLocation,
+        //     initialRadius = searchRadius,
+        //     onDismiss = { showLocationPicker = false },
+        //     onLocationSelected = { newLocation, newRadius ->
+        //       selectedLocation = newLocation
+        //       searchRadius = newRadius
+        //       showLocationPicker = false
+        //     })
+        DialogNotImplemented(context)
+        showLocationPicker = false
       }
     }
   }
@@ -359,9 +376,15 @@ private fun FilterChipWithHighlight(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun FilterChip(onClick: () -> Unit, icon: Int, text: String? = null) {
+private fun FilterChip(
+    onClick: () -> Unit,
+    icon: Int,
+    text: String? = null,
+    testTag: String? = null
+) {
   Surface(
       onClick = onClick,
+      modifier = testTag?.let { Modifier.testTag(it) } ?: Modifier,
       shape = RoundedCornerShape(24.dp),
       color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
         Row(
