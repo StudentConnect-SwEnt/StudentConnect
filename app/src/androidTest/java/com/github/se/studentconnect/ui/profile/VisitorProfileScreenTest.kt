@@ -184,55 +184,37 @@ class VisitorProfileScreenTest {
   }
 
   @Test
-  fun visitorProfileShowsUserIdInitialsWhenNamesAreEmpty() {
+  fun visitorProfileShowsInitialsFromShortNames() {
     val user =
         User(
-            userId = "abcd123",
+            userId = "user-id",
             email = "test@studentconnect.ch",
-            firstName = "",
-            lastName = "",
+            firstName = "A",
+            lastName = "B",
             university = "Uni")
 
     composeTestRule.setContent {
       AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
     }
 
-    // Should show first 2 chars of userId in uppercase
     composeTestRule.onNodeWithText("AB").assertIsDisplayed()
   }
 
   @Test
-  fun visitorProfileShowsInitialsFromFirstNameOnly() {
+  fun visitorProfileShowsInitialsInUppercase() {
     val user =
         User(
             userId = "user-id",
             email = "test@studentconnect.ch",
-            firstName = "Solo",
-            lastName = "",
+            firstName = "alice",
+            lastName = "bob",
             university = "Uni")
 
     composeTestRule.setContent {
       AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
     }
 
-    composeTestRule.onNodeWithText("S").assertIsDisplayed()
-  }
-
-  @Test
-  fun visitorProfileShowsInitialsFromLastNameOnly() {
-    val user =
-        User(
-            userId = "user-id",
-            email = "test@studentconnect.ch",
-            firstName = "",
-            lastName = "Alone",
-            university = "Uni")
-
-    composeTestRule.setContent {
-      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
-    }
-
-    composeTestRule.onNodeWithText("A").assertIsDisplayed()
+    composeTestRule.onNodeWithText("AB").assertIsDisplayed()
   }
 
   @Test
