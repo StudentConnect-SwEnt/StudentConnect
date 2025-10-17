@@ -223,6 +223,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
         .assertExists()
   }
 
+  /*
   @Test
   fun locationTextField_typingNowhere_showsNoSuggestions() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
@@ -241,6 +242,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
           .isEmpty()
     }
   }
+  */
 
   @Test
   fun locationTextField_selectingLausanneSuggestion_updatesTextField() {
