@@ -25,6 +25,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventView
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
@@ -115,8 +117,8 @@ fun MainContent() {
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
           composable(Route.PROFILE) { ProfileScreen() }
-          // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
-          // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
+          composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
+          composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
           composable(
               Route.VISITOR_PROFILE,
               arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
