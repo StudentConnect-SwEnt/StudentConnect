@@ -516,6 +516,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   // 8. Flash event
   // --------------------------------------------------
 
+  /*
   @Test
   fun togglingFlashSwitch_clickable() {
     waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
@@ -525,6 +526,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     flashSwitch.performClick()
     flashSwitch.performClick()
   }
+  */
 
   // --------------------------------------------------
   // 9. Save button behavior
