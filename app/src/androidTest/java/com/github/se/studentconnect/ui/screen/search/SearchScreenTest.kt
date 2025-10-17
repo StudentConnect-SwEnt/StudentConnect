@@ -75,9 +75,7 @@ class SearchScreenTest {
 
   @Composable
   private fun TestSearchScreen() {
-    val viewModel = SearchViewModel()
-    LaunchedEffect(Unit) { viewModel.init() }
-    SearchScreen(viewModel = viewModel)
+    SearchScreen()
   }
 
   @get:Rule val composeTestRule = createComposeRule()
