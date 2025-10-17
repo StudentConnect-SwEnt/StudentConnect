@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -176,6 +177,51 @@ class VisitorProfileRouteTest {
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_back).performClick()
 
     assertTrue(backInvoked.get())
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun visitorProfileRoute_showsScanAgainButtonWhenProvidedAndError() {
+    val repository =
+        object : EmptyUserRepository() {
+          override suspend fun getUserById(userId: String): User? = null
+        }
+    UserRepositoryProvider.repository = repository
+
+    val scanAgainInvoked = AtomicBoolean(false)
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileRoute(
+            userId = "user-5",
+            onBackClick = {},
+            onScanAgain = { scanAgainInvoked.set(true) })
+      }
+    }
+
+    composeTestRule.waitUntilAtLeastOneExists(hasTestTag(C.Tag.visitor_profile_error))
+    composeTestRule.onNodeWithTag("scan_again_button").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("scan_again_button").performClick()
+
+    assertTrue(scanAgainInvoked.get())
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun visitorProfileRoute_showsTryAgainButtonWhenNoScanAgainCallbackAndError() {
+    val repository =
+        object : EmptyUserRepository() {
+          override suspend fun getUserById(userId: String): User? = null
+        }
+    UserRepositoryProvider.repository = repository
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileRoute(userId = "user-6", onBackClick = {}, onScanAgain = null) }
+    }
+
+    composeTestRule.waitUntilAtLeastOneExists(hasTestTag(C.Tag.visitor_profile_error))
+    composeTestRule.onNodeWithText("Try again").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Scan Again").assertDoesNotExist()
   }
 }
 

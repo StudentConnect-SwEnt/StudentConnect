@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.visitorProfile.FriendRequestStatus
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
@@ -180,5 +181,383 @@ class VisitorProfileScreenTest {
     }
 
     composeTestRule.onNodeWithText("XY").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsUserIdInitialsWhenNamesAreEmpty() {
+    val user =
+        User(
+            userId = "abcd123",
+            email = "test@studentconnect.ch",
+            firstName = "",
+            lastName = "",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
+    }
+
+    // Should show first 2 chars of userId in uppercase
+    composeTestRule.onNodeWithText("AB").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsInitialsFromFirstNameOnly() {
+    val user =
+        User(
+            userId = "user-id",
+            email = "test@studentconnect.ch",
+            firstName = "Solo",
+            lastName = "",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
+    }
+
+    composeTestRule.onNodeWithText("S").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsInitialsFromLastNameOnly() {
+    val user =
+        User(
+            userId = "user-id",
+            email = "test@studentconnect.ch",
+            firstName = "",
+            lastName = "Alone",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
+    }
+
+    composeTestRule.onNodeWithText("A").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileHandlesBlankBio() {
+    val user =
+        User(
+            userId = "user-blank-bio",
+            email = "test@studentconnect.ch",
+            firstName = "Test",
+            lastName = "User",
+            university = "Uni",
+            bio = "   ")
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
+    }
+
+    composeTestRule
+        .onNodeWithTag(C.Tag.visitor_profile_bio)
+        .assertTextEquals("No biography available yet.")
+  }
+
+  @Test
+  fun visitorProfileShowsBlankBioInDifferentColor() {
+    val user =
+        User(
+            userId = "user-no-bio",
+            email = "test@studentconnect.ch",
+            firstName = "No",
+            lastName = "Bio",
+            university = "Uni",
+            bio = "")
+
+    composeTestRule.setContent {
+      AppTheme { VisitorProfileScreen(user = user, onBackClick = {}, onAddFriendClick = {}) }
+    }
+
+    // The placeholder text should be displayed
+    composeTestRule
+        .onNodeWithTag(C.Tag.visitor_profile_bio)
+        .assertTextEquals("No biography available yet.")
+  }
+
+  @Test
+  fun visitorProfileShowsAddFriendButtonWhenIdle() {
+    val user =
+        User(
+            userId = "user-idle",
+            email = "test@studentconnect.ch",
+            firstName = "Idle",
+            lastName = "User",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = {},
+            friendRequestStatus = FriendRequestStatus.IDLE)
+      }
+    }
+
+    composeTestRule.onNodeWithText("Add Friend").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsSendingWhenSending() {
+    val user =
+        User(
+            userId = "user-sending",
+            email = "test@studentconnect.ch",
+            firstName = "Sending",
+            lastName = "User",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = {},
+            friendRequestStatus = FriendRequestStatus.SENDING)
+      }
+    }
+
+    composeTestRule.onNodeWithText("Sending...").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsRequestSentWhenSent() {
+    val user =
+        User(
+            userId = "user-sent",
+            email = "test@studentconnect.ch",
+            firstName = "Sent",
+            lastName = "User",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = {},
+            friendRequestStatus = FriendRequestStatus.SENT)
+      }
+    }
+
+    composeTestRule.onNodeWithText("Request Sent").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsAlreadyFriendsWhenFriends() {
+    val user =
+        User(
+            userId = "user-friend",
+            email = "test@studentconnect.ch",
+            firstName = "Friend",
+            lastName = "User",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = {},
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    composeTestRule.onNodeWithText("Already Friends").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileShowsRequestPendingWhenAlreadySent() {
+    val user =
+        User(
+            userId = "user-pending",
+            email = "test@studentconnect.ch",
+            firstName = "Pending",
+            lastName = "User",
+            university = "Uni")
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = {},
+            friendRequestStatus = FriendRequestStatus.ALREADY_SENT)
+      }
+    }
+
+    composeTestRule.onNodeWithText("Request Pending").assertIsDisplayed()
+  }
+
+  @Test
+  fun visitorProfileButtonDisabledWhenSending() {
+    val user =
+        User(
+            userId = "user-disabled",
+            email = "test@studentconnect.ch",
+            firstName = "Disabled",
+            lastName = "User",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.SENDING)
+      }
+    }
+
+    // Button should be disabled, so clicking should not trigger callback
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+
+    // Give time for any potential callback
+    composeTestRule.waitForIdle()
+
+    // Clicks should remain 0 because button is disabled
+    assertEquals(0, addFriendClicks)
+  }
+
+  @Test
+  fun visitorProfileButtonDisabledWhenSent() {
+    val user =
+        User(
+            userId = "user-sent-disabled",
+            email = "test@studentconnect.ch",
+            firstName = "Sent",
+            lastName = "Disabled",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.SENT)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+    composeTestRule.waitForIdle()
+
+    assertEquals(0, addFriendClicks)
+  }
+
+  @Test
+  fun visitorProfileButtonDisabledWhenAlreadyFriends() {
+    val user =
+        User(
+            userId = "user-already-friends",
+            email = "test@studentconnect.ch",
+            firstName = "Already",
+            lastName = "Friends",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+    composeTestRule.waitForIdle()
+
+    assertEquals(0, addFriendClicks)
+  }
+
+  @Test
+  fun visitorProfileButtonDisabledWhenAlreadySent() {
+    val user =
+        User(
+            userId = "user-already-sent",
+            email = "test@studentconnect.ch",
+            firstName = "Already",
+            lastName = "Sent",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.ALREADY_SENT)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+    composeTestRule.waitForIdle()
+
+    assertEquals(0, addFriendClicks)
+  }
+
+  @Test
+  fun visitorProfileButtonEnabledWhenError() {
+    val user =
+        User(
+            userId = "user-error",
+            email = "test@studentconnect.ch",
+            firstName = "Error",
+            lastName = "User",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.ERROR)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+
+    composeTestRule.runOnIdle { assertEquals(1, addFriendClicks) }
+  }
+
+  @Test
+  fun visitorProfileButtonEnabledWhenIdle() {
+    val user =
+        User(
+            userId = "user-idle-enabled",
+            email = "test@studentconnect.ch",
+            firstName = "Idle",
+            lastName = "Enabled",
+            university = "Uni")
+
+    var addFriendClicks = 0
+
+    composeTestRule.setContent {
+      AppTheme {
+        VisitorProfileScreen(
+            user = user,
+            onBackClick = {},
+            onAddFriendClick = { addFriendClicks++ },
+            friendRequestStatus = FriendRequestStatus.IDLE)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).performClick()
+
+    composeTestRule.runOnIdle { assertEquals(1, addFriendClicks) }
   }
 }
