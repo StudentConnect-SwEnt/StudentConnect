@@ -16,22 +16,22 @@ interface MediaRepository {
    * @param uri The local Uri of the file to upload.
    * @param path Optional destination path (e.g., "users/{uid}/profile.jpg"). If null, the
    *   implementation generates a unique path.
-   * @return The unique ID or URL of the uploaded file.
+   * @return The unique ID of the uploaded file.
    */
   suspend fun upload(uri: Uri, path: String? = null): String
 
   /**
-   * Download a file by its unique ID or path.
+   * Download a file by its unique ID.
    *
-   * @param id The unique ID or path of the file.
+   * @param id The unique ID of the file.
    * @return The local Uri of the downloaded file.
    */
   suspend fun download(id: String): Uri
 
   /**
-   * Delete a file by its unique ID or path.
+   * Delete a file by its unique ID.
    *
-   * @param id The unique ID or path of the file.
+   * @param id The unique ID of the file.
    */
   suspend fun delete(id: String)
 }
