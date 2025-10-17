@@ -199,8 +199,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @Test
   fun locationTextField_typingEpfl_showsFakeEpflSuggestion() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("EPFL")
 
@@ -208,7 +208,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule.waitUntil(7000) {
       composeTestRule
           .onAllNodes(
-              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              hasText("Fake EPFL") and !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -217,15 +217,15 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     // Verify suggestion exists
     composeTestRule
         .onNode(
-            hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            hasText("Fake EPFL") and !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
             useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
   fun locationTextField_typingNowhere_showsNoSuggestions() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Nowhere")
 
@@ -233,7 +233,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule.waitUntil(7000) {
       composeTestRule
           .onAllNodes(
-              hasText("Fake") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              hasText("Fake") and !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isEmpty()
@@ -242,8 +242,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @Test
   fun locationTextField_selectingLausanneSuggestion_updatesTextField() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Lausanne")
 
@@ -252,7 +252,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
       composeTestRule
           .onAllNodes(
               hasText("Fake Lausanne") and
-                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -262,7 +262,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule
         .onNode(
             hasText("Fake Lausanne") and
-                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
             useUnmergedTree = true)
         .performClick()
 
@@ -272,8 +272,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @Test
   fun locationTextField_typingEverywhere_showsMultipleSuggestions() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Everywhere")
 
@@ -282,7 +282,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
       composeTestRule
           .onAllNodes(
               hasText("Somewhere", substring = true) and
-                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -293,7 +293,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
         composeTestRule
             .onAllNodes(
                 hasText("Somewhere", substring = true) and
-                    !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                    !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
                 useUnmergedTree = true)
             .fetchSemanticsNodes(false)
             .size
@@ -302,8 +302,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @Test
   fun locationTextField_typingTooLong_showsTruncatedOrWrappedText() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Too long")
 
@@ -312,7 +312,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
       composeTestRule
           .onAllNodes(
               hasText("This is a very long location name", substring = true) and
-                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -322,15 +322,15 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule
         .onNode(
             hasText("This is a very long location name", substring = true) and
-                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
             useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
   fun locationTextField_clearingInput_hidesSuggestions() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("EPFL")
 
@@ -338,7 +338,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule.waitUntil(7000) {
       composeTestRule
           .onAllNodes(
-              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              hasText("Fake EPFL") and !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -351,7 +351,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule.waitUntil(7000) {
       composeTestRule
           .onAllNodes(
-              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              hasText("Fake EPFL") and !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isEmpty()
@@ -360,8 +360,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @Test
   fun locationTextField_dropdownClosesAfterSelection() {
-    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Lausanne")
 
@@ -370,7 +370,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
       composeTestRule
           .onAllNodes(
               hasText("Fake Lausanne") and
-                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isNotEmpty()
@@ -380,7 +380,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     composeTestRule
         .onNode(
             hasText("Fake Lausanne") and
-                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
             useUnmergedTree = true)
         .performClick()
 
@@ -389,7 +389,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
       composeTestRule
           .onAllNodes(
               hasText("Fake Lausanne") and
-                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
               useUnmergedTree = true)
           .fetchSemanticsNodes(false)
           .isEmpty()
