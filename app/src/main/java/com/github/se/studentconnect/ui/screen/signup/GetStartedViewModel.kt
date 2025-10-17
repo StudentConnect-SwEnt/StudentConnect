@@ -33,7 +33,22 @@ data class AuthUIState(
 )
 
 /**
- * ViewModel for the Sign-In view.
+ * ViewModel for the Sign-In view (GetStartedScreen).
+ *
+ * This ViewModel handles Google authentication via Firebase. It only handles the authentication
+ * step - determining whether to show onboarding or the main app is handled by MainActivity based on
+ * whether a user profile exists in Firestore.
+ *
+ * **Authentication Flow:**
+ * 1. User clicks sign in button on GetStartedScreen
+ * 2. Google Credential Manager shows account picker
+ * 3. User selects account and authenticates
+ * 4. Firebase Auth creates/updates the authenticated user session
+ * 5. uiState.user is updated with the FirebaseUser
+ * 6. MainActivity's LaunchedEffect detects the authenticated user
+ * 7. MainActivity checks if user profile exists in Firestore:
+ *     - If profile exists: Show main app (returning user)
+ *     - If profile doesn't exist: Show SignUpOrchestrator (first-time user)
  *
  * @property repository The repository used to perform authentication operations.
  */
@@ -93,24 +108,28 @@ class GetStartedViewModel(private val repository: AuthRepository = AuthRepositor
         }
       } catch (e: GetCredentialCancellationException) {
         // User cancelled the sign-in flow
+        android.util.Log.e("GetStartedViewModel", "Sign-in cancelled by user", e)
         _uiState.update {
           it.copy(isLoading = false, errorMsg = "Sign-in cancelled", signedOut = true, user = null)
         }
       } catch (e: androidx.credentials.exceptions.GetCredentialException) {
-        // Other credential errors
+        // Other credential errors - usually SHA-1 fingerprint not registered
+        android.util.Log.e("GetStartedViewModel", "Credential error: ${e.javaClass.simpleName}", e)
         _uiState.update {
           it.copy(
               isLoading = false,
-              errorMsg = "Failed to get credentials: ${e.localizedMessage}",
+              errorMsg =
+                  "Authentication failed. Check that your app's SHA-1 fingerprint is registered in Firebase Console.\n\nError: ${e.javaClass.simpleName}",
               signedOut = true,
               user = null)
         }
       } catch (e: Exception) {
         // Unexpected errors
+        android.util.Log.e("GetStartedViewModel", "Unexpected error during sign-in", e)
         _uiState.update {
           it.copy(
               isLoading = false,
-              errorMsg = "Unexpected error: ${e.localizedMessage}",
+              errorMsg = "Unexpected error: ${e.localizedMessage ?: e.javaClass.simpleName}",
               signedOut = true,
               user = null)
         }
