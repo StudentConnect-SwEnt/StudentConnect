@@ -91,7 +91,16 @@ fun HomeScreen(
     }
   }
 
-  Scaffold(
+    ModalBottomSheetLayout(
+        modifier = Modifier.testTag("calendar_modal"),
+        sheetState = sheetState,
+        sheetContent = {
+            EventCalendar(
+                events = uiState.events,
+                selectedDate = uiState.selectedDate,
+                onDateSelected = { date -> viewModel.onDateSelected(date) })
+        }) {
+      Scaffold(
       modifier = Modifier.fillMaxSize().testTag("HomePage"),
       topBar = {
         if (pagerState.currentPage == 1) {
@@ -128,9 +137,14 @@ fun HomeScreen(
                       CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     } else {
                       Column {
-                        FilterBar(LocalContext.current)
-                        EventListScreen(
-                            navController = navController, events = uiState.events, false)
+                        FilterBar(
+                            context = LocalContext.current,
+                            onCalendarClick = { viewModel.showCalendar() })
+                          EventListScreen(
+                              navController = navController,
+                              events = uiState.events,
+                              hasJoined = false,
+                              listState = listState)
                       }
                     }
                   }
@@ -138,6 +152,7 @@ fun HomeScreen(
               }
             }
       }
+    }
 
   // Handle scroll to date functionality
   LaunchedEffect(uiState.scrollToDate) {
@@ -164,41 +179,7 @@ fun HomeScreen(
     }
   }
 
-  ModalBottomSheetLayout(
-      modifier = Modifier.testTag("calendar_modal"),
-      sheetState = sheetState,
-      sheetContent = {
-        EventCalendar(
-            events = uiState.events,
-            selectedDate = uiState.selectedDate,
-            onDateSelected = { date -> viewModel.onDateSelected(date) })
-      }) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize().testTag("HomePage"),
-            topBar = {
-              HomeTopBar(
-                  showNotifications,
-                  onNotificationClick = { showNotifications = !showNotifications },
-                  onDismiss = { showNotifications = false })
-            }) { paddingValues ->
-              Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                if (uiState.isLoading) {
-                  CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                } else {
-                  Column {
-                    FilterBar(
-                        context = LocalContext.current,
-                        onCalendarClick = { viewModel.showCalendar() })
-                    EventListScreen(
-                        navController = navController,
-                        events = uiState.events,
-                        hasJoined = false,
-                        listState = listState)
-                  }
-                }
-              }
-            }
-      }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
