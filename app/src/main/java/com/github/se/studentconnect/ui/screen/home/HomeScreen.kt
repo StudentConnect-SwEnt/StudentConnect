@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.home
 
-import FilterBar
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -59,14 +58,14 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
-import com.github.se.studentconnect.viewmodel.HomePageViewModel
-import kotlinx.coroutines.launch
-import java.util.Date
 import java.util.Calendar
 import java.util.Date
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
@@ -81,14 +80,9 @@ fun HomeScreen(
           initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
-  val sheetState = rememberModalBottomSheetState(
-    initialValue = ModalBottomSheetValue.Hidden,
-    skipHalfExpanded = true
-  )
   val listState = rememberLazyListState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
-
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -205,45 +199,6 @@ fun HomeScreen(
               }
             }
       }
-    sheetState = sheetState,
-    sheetContent = {
-      EventCalendar(
-        events = uiState.events,
-        selectedDate = uiState.selectedDate,
-        onDateSelected = { date ->
-          viewModel.onDateSelected(date)
-        }
-      )
-    }
-  ) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize().testTag("HomePage"),
-        topBar = {
-          HomeTopBar(
-              showNotifications,
-              onNotificationClick = { showNotifications = !showNotifications },
-              onDismiss = { showNotifications = false })
-        }) { paddingValues ->
-          Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoading) {
-              CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else {
-              Column {
-                FilterBar(
-                  context = LocalContext.current,
-                  onCalendarClick = { viewModel.showCalendar() }
-                )
-                EventListScreen(
-                  navController = navController,
-                  events = uiState.events,
-                  hasJoined = false,
-                  listState = listState
-                )
-              }
-            }
-          }
-        }
-  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -289,8 +244,8 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
 }
 
 /**
- * Scrolls to the specified date in the event list.
- * Finds the date header and scrolls to it smoothly.
+ * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
+ * smoothly.
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
