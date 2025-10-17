@@ -24,94 +24,21 @@ class ProfileScreenTest {
   }
 
   @Test
-  fun profileScreen_textStyle_isHeadlineMedium() {
-    composeTestRule.setContent { AppTheme { ProfileScreen() } }
-
-    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_columnLayout_isConfiguredCorrectly() {
-    composeTestRule.setContent { AppTheme { ProfileScreen() } }
-
-    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_textContent_isNotEmpty() {
-    composeTestRule.setContent { AppTheme { ProfileScreen() } }
-
-    val profileText = "Profile"
-    assert(profileText.isNotEmpty())
-    composeTestRule.onNodeWithText(profileText).assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_testTag_exists() {
-    val expectedTag = "profile_screen"
-    assert(expectedTag.isNotEmpty())
-
-    composeTestRule.setContent { AppTheme { ProfileScreen() } }
-    composeTestRule.onNodeWithTag(expectedTag).assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_modifier_defaultValue() {
-    composeTestRule.setContent { AppTheme { ProfileScreen() } }
-
-    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-  }
-
-  @Test
   fun profileScreen_withCustomModifier() {
     composeTestRule.setContent {
       AppTheme { ProfileScreen(modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
     }
-
     composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
     composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
   }
 
   @Test
-  fun profileScreen_modifierChaining() {
+  fun profileScreen_withChainedModifier() {
     composeTestRule.setContent {
       AppTheme {
         ProfileScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize())
       }
     }
-
     composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_emptyModifier() {
-    composeTestRule.setContent {
-      AppTheme { ProfileScreen(modifier = androidx.compose.ui.Modifier) }
-    }
-
-    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_modifierWithPadding() {
-    composeTestRule.setContent {
-      AppTheme { ProfileScreen(modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
-    }
-
-    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_modifierWithSizeAndTestTag() {
-    composeTestRule.setContent {
-      AppTheme {
-        ProfileScreen(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp))
-      }
-    }
-
-    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
   }
 }

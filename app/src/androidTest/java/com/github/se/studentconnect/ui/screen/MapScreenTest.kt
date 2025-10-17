@@ -29,7 +29,7 @@ class MapScreenTest : TestCase() {
           Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
   @Test
-  fun mapScreen_displaysAllComponents() = run {
+  fun mapScreen_displaysAllComponentsAndInteractions() = run {
     step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
 
     step("Verify all main components are displayed") {
@@ -38,51 +38,22 @@ class MapScreenTest : TestCase() {
       composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
       composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
       composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
-    }
-
-    step("Verify location FAB is displayed when permission is granted") {
-      composeTestRule.waitUntil(timeoutMillis = 5000) {
-        composeTestRule
-            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
-            .fetchSemanticsNodes()
-            .isNotEmpty()
-      }
-      composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab).assertIsDisplayed()
-    }
-  }
-
-  @Test
-  fun mapScreen_topAppBar_displaysCorrectTitle() = run {
-    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
-
-    step("Verify top app bar displays correct title") {
       composeTestRule.onNodeWithText("Map").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Search locations...").assertIsDisplayed()
     }
-  }
 
-  @Test
-  fun mapScreen_searchBar_isInteractive() = run {
-    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
-
-    step("Verify search bar is displayed and interactive") {
+    step("Verify search bar is interactive") {
       val searchField = composeTestRule.onNodeWithTag(C.Tag.map_search_field)
-      searchField.assertIsDisplayed()
       searchField.performTextInput("Test location")
     }
-  }
-
-  @Test
-  fun mapScreen_floatingActionButtons_areClickable() = run {
-    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
 
     step("Verify toggle view FAB is clickable") {
       val toggleViewFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
-      toggleViewFab.assertIsDisplayed()
       toggleViewFab.assertHasClickAction()
       toggleViewFab.performClick()
     }
 
-    step("Verify location FAB is clickable when permission is granted") {
+    step("Verify location FAB is displayed and clickable when permission is granted") {
       composeTestRule.waitUntil(timeoutMillis = 5000) {
         composeTestRule
             .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
@@ -115,47 +86,6 @@ class MapScreenTest : TestCase() {
       composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
       composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
       composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
-    }
-  }
-
-  @Test
-  fun mapScreen_withoutTargetLocation_showsDefaultView() = run {
-    step("Display MapScreen without target location") { composeTestRule.setContent { MapScreen() } }
-
-    step("Verify map displays with default settings") {
-      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
-      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
-    }
-  }
-
-  @Test
-  fun mapScreen_searchPlaceholder_isDisplayed() = run {
-    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
-
-    step("Verify search placeholder text is displayed") {
-      composeTestRule.onNodeWithText("Search locations...").assertIsDisplayed()
-    }
-  }
-
-  @Test
-  fun mapScreen_withLocationPermission_showsLocationFab() = run {
-    step("Display MapScreen with location permission granted") {
-      composeTestRule.setContent { MapScreen() }
-    }
-
-    step("Wait for permission processing and verify location FAB appears") {
-      composeTestRule.waitUntil(timeoutMillis = 5000) {
-        composeTestRule
-            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
-            .fetchSemanticsNodes()
-            .isNotEmpty()
-      }
-      composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab).assertIsDisplayed()
-    }
-
-    step("Verify location FAB has proper functionality") {
-      val locateUserFab = composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab)
-      locateUserFab.assertHasClickAction()
     }
   }
 }

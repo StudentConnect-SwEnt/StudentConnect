@@ -10,6 +10,11 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+// Configure JaCoCo version to support Java 24
+jacoco {
+    toolVersion = "0.8.12"
+}
+
 android {
     namespace = "com.github.se.studentconnect"
     compileSdk = 34
@@ -23,6 +28,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        // Configure test sharding from gradle properties
+        val shardIndex = project.findProperty("testShardIndex")?.toString()?.toIntOrNull()
+        val numShards = project.findProperty("testNumShards")?.toString()?.toIntOrNull()
+
+        if (shardIndex != null && numShards != null) {
+            testInstrumentationRunnerArguments["numShards"] = numShards.toString()
+            testInstrumentationRunnerArguments["shardIndex"] = shardIndex.toString()
         }
     }
 

@@ -11,11 +11,9 @@ class BottomNavigationBarTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Test
-  fun allNavigationTabsAreDisplayed() {
-    // Arrange
+  fun bottomNavigationBar_displaysAllTabs() {
     composeTestRule.setContent { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
 
-    // Assert
     composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home)).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map)).assertIsDisplayed()
     composeTestRule
@@ -27,35 +25,24 @@ class BottomNavigationBarTest {
 
   @Test
   fun clickingOnTab_triggersOnTabSelectedCallback() {
-    // Arrange
     var selectedTab: Tab = Tab.Home
     composeTestRule.setContent {
       BottomNavigationBar(
           selectedTab = selectedTab, onTabSelected = { newTab -> selectedTab = newTab })
     }
-
-    // Act
     composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Activities)).performClick()
-
-    // Assert
     assertEquals(Tab.Activities, selectedTab)
   }
 
   @Test
   fun eventCreationBottomSheet_displaysCorrectContent() {
-    // Arrange
     composeTestRule.setContent { BottomNavigationBar(selectedTab = Tab.Home, onTabSelected = {}) }
-
-    // Act
     composeTestRule.onNodeWithTag("center_add_button").performClick()
 
-    // Assert
     composeTestRule.onNodeWithTag("bottom_sheet_title").assertTextContains("Create New Event")
-    // Option Publique
     composeTestRule.onNodeWithTag("create_public_event_option").assertIsDisplayed()
     composeTestRule.onNodeWithText("Create Public Event").assertIsDisplayed()
     composeTestRule.onNodeWithText("Visible to everyone").assertIsDisplayed()
-    // Option Privée
     composeTestRule.onNodeWithTag("create_private_event_option").assertIsDisplayed()
     composeTestRule.onNodeWithText("Create Private Event").assertIsDisplayed()
     composeTestRule.onNodeWithText("Invite only").assertIsDisplayed()
