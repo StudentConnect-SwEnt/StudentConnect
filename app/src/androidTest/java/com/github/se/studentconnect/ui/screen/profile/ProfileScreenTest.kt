@@ -1,17 +1,7 @@
 package com.github.se.studentconnect.ui.screen.profile
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.unit.dp
-import com.github.se.studentconnect.ui.theme.AppTheme
-import org.junit.Rule
-import org.junit.Test
 //
-//class ProfileScreenTest {
+// class ProfileScreenTest {
 //
 //  @get:Rule val composeTestRule = createComposeRule()
 //
@@ -67,7 +57,8 @@ import org.junit.Test
 //  @Test
 //  fun profileScreen_withCustomModifier() {
 //    composeTestRule.setContent {
-//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier = androidx.compose.ui.Modifier.padding(24.dp)) }
+//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier =
+// androidx.compose.ui.Modifier.padding(24.dp)) }
 //    }
 //
 //    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
@@ -78,7 +69,8 @@ import org.junit.Test
 //  fun profileScreen_modifierChaining() {
 //    composeTestRule.setContent {
 //      AppTheme {
-//        ProfileScreen(currentUserId = testUserId, modifier = androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize())
+//        ProfileScreen(currentUserId = testUserId, modifier =
+// androidx.compose.ui.Modifier.padding(8.dp).fillMaxSize())
 //      }
 //    }
 //
@@ -89,7 +81,8 @@ import org.junit.Test
 //  @Test
 //  fun profileScreen_emptyModifier() {
 //    composeTestRule.setContent {
-//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier = androidx.compose.ui.Modifier) }
+//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier =
+// androidx.compose.ui.Modifier) }
 //    }
 //
 //    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
@@ -98,7 +91,8 @@ import org.junit.Test
 //  @Test
 //  fun profileScreen_modifierWithPadding() {
 //    composeTestRule.setContent {
-//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier = androidx.compose.ui.Modifier.padding(8.dp)) }
+//      AppTheme { ProfileScreen(currentUserId = testUserId, modifier =
+// androidx.compose.ui.Modifier.padding(8.dp)) }
 //    }
 //
 //    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
@@ -109,11 +103,12 @@ import org.junit.Test
 //  fun profileScreen_modifierWithSizeAndTestTag() {
 //    composeTestRule.setContent {
 //      AppTheme {
-//        ProfileScreen(currentUserId = testUserId, modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp))
+//        ProfileScreen(currentUserId = testUserId, modifier =
+// androidx.compose.ui.Modifier.fillMaxSize().padding(32.dp))
 //      }
 //    }
 //
 //    composeTestRule.onNodeWithTag("profile_screen").assertIsDisplayed()
 //    composeTestRule.onNodeWithText("Profile").assertIsDisplayed()
 //  }
-//}
+// }

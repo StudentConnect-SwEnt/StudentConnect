@@ -1,19 +1,19 @@
-//package com.github.se.studentconnect
+// package com.github.se.studentconnect
 //
-//import androidx.compose.ui.test.assertIsDisplayed
-//import androidx.compose.ui.test.assertIsSelected
-//import androidx.compose.ui.test.junit4.createAndroidComposeRule
-//import androidx.compose.ui.test.onNodeWithTag
-//import androidx.compose.ui.test.performClick
-//import androidx.test.ext.junit.runners.AndroidJUnit4
-//import com.github.se.studentconnect.resources.C
-//import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
-//import org.junit.Rule
-//import org.junit.Test
-//import org.junit.runner.RunWith
+// import androidx.compose.ui.test.assertIsDisplayed
+// import androidx.compose.ui.test.assertIsSelected
+// import androidx.compose.ui.test.junit4.createAndroidComposeRule
+// import androidx.compose.ui.test.onNodeWithTag
+// import androidx.compose.ui.test.performClick
+// import androidx.test.ext.junit.runners.AndroidJUnit4
+// import com.github.se.studentconnect.resources.C
+// import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
+// import org.junit.Rule
+// import org.junit.Test
+// import org.junit.runner.RunWith
 //
-//@RunWith(AndroidJUnit4::class)
-//class MainActivityUITest {
+// @RunWith(AndroidJUnit4::class)
+// class MainActivityUITest {
 //
 //  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 //
@@ -100,4 +100,4 @@
 //    composeTestRule.onNodeWithTag(C.Tag.home_tab).assertIsSelected()
 //    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
 //  }
-//}
+// }

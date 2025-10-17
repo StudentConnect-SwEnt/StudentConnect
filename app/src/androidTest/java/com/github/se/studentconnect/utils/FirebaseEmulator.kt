@@ -22,9 +22,8 @@ import org.json.JSONObject
  * This object will automatically use the emulators if they are running when the tests start.
  */
 object FirebaseEmulator {
-  @Volatile
-  private var emulatorConfigured = false
-  
+  @Volatile private var emulatorConfigured = false
+
   private fun isInAndroidEmulator(): Boolean {
     val fingerprint = Build.FINGERPRINT.lowercase()
     val model = Build.MODEL.lowercase()
@@ -78,7 +77,7 @@ object FirebaseEmulator {
   init {
     configureEmulators()
   }
-  
+
   @Synchronized
   private fun configureEmulators() {
     if (!emulatorConfigured && isRunning) {
@@ -106,7 +105,7 @@ object FirebaseEmulator {
 
   val storage
     get() = Firebase.storage
-  
+
   private val storageEndpoint by lazy {
     "http://${HOST}:$STORAGE_PORT/v0/b/${storage.app.options.storageBucket}/o"
   }
