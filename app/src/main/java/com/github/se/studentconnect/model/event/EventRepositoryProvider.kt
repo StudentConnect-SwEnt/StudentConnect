@@ -13,6 +13,10 @@ import kotlinx.coroutines.runBlocking
 /**
  * Provides instances of EventRepository. Allows switching between Firestore and a local, in-memory
  * repository for testing.
+ *
+ * The repository mode is controlled by `AuthenticationProvider.local`:
+ * - local = true: Uses in-memory repository for testing
+ * - local = false: Uses Firestore for production
  */
 object EventRepositoryProvider {
   private val firestoreRepository: EventRepository = EventRepositoryFirestore(Firebase.firestore)
@@ -20,15 +24,12 @@ object EventRepositoryProvider {
 
   val fakeEvents: List<Event> = createFakeEvents()
 
-  /**
-   * The currently active repository. Change the value of `useLocal` to switch between
-   * implementations.
-   */
+  /** The currently active repository. Automatically syncs with AuthenticationProvider.local */
   var repository: EventRepository
 
   init {
     runBlocking { fakeEvents.forEach { event -> localRepository.addEvent(event) } }
-    val useLocal = true
+    val useLocal = com.github.se.studentconnect.repository.AuthenticationProvider.local
     repository = if (useLocal) localRepository else firestoreRepository
   }
 

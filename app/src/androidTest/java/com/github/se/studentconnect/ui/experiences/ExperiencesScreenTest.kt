@@ -21,6 +21,12 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.signup.ExperienceFilterChip
+import com.github.se.studentconnect.ui.screen.signup.ExperiencesContent
+import com.github.se.studentconnect.ui.screen.signup.ExperiencesScreen
+import com.github.se.studentconnect.ui.screen.signup.PrimaryCtaButton
+import com.github.se.studentconnect.ui.screen.signup.TopicChip
+import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule

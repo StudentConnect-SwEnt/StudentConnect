@@ -51,7 +51,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
           Location(
               latitude = it["latitude"] as Double,
               longitude = it["longitude"] as Double,
-              name = it["name"] as String)
+              name = it["name"] as? String)
         }
 
     val start = checkNotNull(documentSnapshot.getTimestamp("start"))
@@ -87,7 +87,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
           Location(
               latitude = it["latitude"] as Double,
               longitude = it["longitude"] as Double,
-              name = it["name"] as String)
+              name = it["name"] as? String)
         }
 
     val start = checkNotNull(documentSnapshot.getTimestamp("start"))
@@ -172,12 +172,25 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     // TODO: filter based on if the currently logged in user can see the event or not; for now, gets
     //  all events
     val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
+    Log.d(
+        "EventRepositoryFirestore",
+        "Fetched ${querySnapshot.documents.size} event documents from Firestore")
+
     return querySnapshot.documents.mapNotNull { doc ->
       try {
-        eventFromDocumentSnapshot(doc)
+        val event = eventFromDocumentSnapshot(doc)
+        Log.d(
+            "EventRepositoryFirestore",
+            "Successfully parsed event: ${event.uid} - ${event.title} - Location: ${event.location}")
+        event
       } catch (e: FirebaseFirestoreException) {
+        Log.e(
+            "EventRepositoryFirestore",
+            "FirebaseFirestoreException parsing event ${doc.id}: ${e.message}",
+            e)
         null
       } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Exception parsing event ${doc.id}: ${e.message}", e)
         null
       }
     }

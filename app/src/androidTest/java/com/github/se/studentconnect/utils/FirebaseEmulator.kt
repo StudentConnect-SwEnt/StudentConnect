@@ -22,14 +22,7 @@ import org.json.JSONObject
  * This object will automatically use the emulators if they are running when the tests start.
  */
 object FirebaseEmulator {
-  val auth
-    get() = Firebase.auth
-
-  val firestore
-    get() = Firebase.firestore
-
-  val storage
-    get() = Firebase.storage
+  @Volatile private var emulatorConfigured = false
 
   private fun isInAndroidEmulator(): Boolean {
     val fingerprint = Build.FINGERPRINT.lowercase()
@@ -69,10 +62,6 @@ object FirebaseEmulator {
     "http://${HOST}:$AUTH_PORT/emulator/v1/projects/$projectID/accounts"
   }
 
-  private val storageEndpoint by lazy {
-    "http://${HOST}:$STORAGE_PORT/v0/b/${storage.app.options.storageBucket}/o"
-  }
-
   private val emulatorsEndpoint = "http://$HOST:$EMULATORS_PORT/emulators"
 
   private fun areEmulatorsRunning(): Boolean =
@@ -86,14 +75,39 @@ object FirebaseEmulator {
   val isRunning = areEmulatorsRunning()
 
   init {
-    if (isRunning) {
-      auth.useEmulator(HOST, AUTH_PORT)
-      firestore.useEmulator(HOST, FIRESTORE_PORT)
-      storage.useEmulator(HOST, STORAGE_PORT)
-      assert(Firebase.firestore.firestoreSettings.host.contains(HOST)) {
-        "Failed to connect to Firebase Firestore Emulator."
+    configureEmulators()
+  }
+
+  @Synchronized
+  private fun configureEmulators() {
+    if (!emulatorConfigured && isRunning) {
+      try {
+        Firebase.auth.useEmulator(HOST, AUTH_PORT)
+        Firebase.firestore.useEmulator(HOST, FIRESTORE_PORT)
+        Firebase.storage.useEmulator(HOST, STORAGE_PORT)
+        emulatorConfigured = true
+        assert(Firebase.firestore.firestoreSettings.host.contains(HOST)) {
+          "Failed to connect to Firebase Firestore Emulator."
+        }
+      } catch (e: IllegalStateException) {
+        // Emulator already configured, log and continue
+        Log.w("FirebaseEmulator", "Emulator already configured: ${e.message}")
+        emulatorConfigured = true
       }
     }
+  }
+
+  val auth
+    get() = Firebase.auth
+
+  val firestore
+    get() = Firebase.firestore
+
+  val storage
+    get() = Firebase.storage
+
+  private val storageEndpoint by lazy {
+    "http://${HOST}:$STORAGE_PORT/v0/b/${storage.app.options.storageBucket}/o"
   }
 
   private fun clearEmulator(endpoint: String) {

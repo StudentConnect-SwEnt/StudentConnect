@@ -75,14 +75,27 @@ object EventMarkers {
    * title and UID as properties.
    */
   fun createEventFeatures(events: List<Event>): List<Feature> {
-    return events.mapNotNull { event ->
-      event.location?.let { location ->
-        Feature.fromGeometry(Point.fromLngLat(location.longitude, location.latitude)).apply {
-          addStringProperty(EventMarkerConfig.PROP_TITLE, event.title)
-          addStringProperty(EventMarkerConfig.PROP_UID, event.uid)
+    Log.d("EventMarkers", "Creating features for ${events.size} events")
+    val features =
+        events.mapNotNull { event ->
+          event.location?.let { location ->
+            Log.d(
+                "EventMarkers",
+                "Creating marker for event: ${event.title} at (${location.latitude}, ${location.longitude})")
+            Feature.fromGeometry(Point.fromLngLat(location.longitude, location.latitude)).apply {
+              addStringProperty(EventMarkerConfig.PROP_TITLE, event.title)
+              addStringProperty(EventMarkerConfig.PROP_UID, event.uid)
+            }
+          }
+              ?: run {
+                Log.w(
+                    "EventMarkers",
+                    "Event ${event.title} (${event.uid}) has no location, skipping marker")
+                null
+              }
         }
-      }
-    }
+    Log.d("EventMarkers", "Created ${features.size} features from ${events.size} events")
+    return features
   }
 
   /** Adds a GeoJSON source with clustering enabled to the map style. */

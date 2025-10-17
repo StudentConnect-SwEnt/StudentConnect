@@ -101,11 +101,11 @@ class SignUpViewModelTest {
     assertEquals(SignUpStep.BasicInfo, viewModel.state.value.currentStep)
 
     // Act again
-    viewModel.goTo(SignUpStep.Interests)
+    viewModel.goTo(SignUpStep.Experiences)
     viewModel.prevStep()
 
     // Assert
-    assertEquals(SignUpStep.Bio, viewModel.state.value.currentStep)
+    assertEquals(SignUpStep.Description, viewModel.state.value.currentStep)
   }
 
   @Test
@@ -134,7 +134,7 @@ class SignUpViewModelTest {
     // Arrange
     viewModel.setFirstName("Test")
     viewModel.setUserId("id")
-    viewModel.goTo(SignUpStep.Welcome)
+    viewModel.goTo(SignUpStep.Experiences)
 
     // Act
     viewModel.reset()
@@ -145,15 +145,15 @@ class SignUpViewModelTest {
   }
 
   @Test
-  fun `nextStep remains on welcome once reached`() {
+  fun `nextStep remains on experiences once reached`() {
     // Arrange
-    viewModel.goTo(SignUpStep.Welcome)
+    viewModel.goTo(SignUpStep.Experiences)
 
     // Act
     viewModel.nextStep()
 
     // Assert
-    assertEquals(SignUpStep.Welcome, viewModel.state.value.currentStep)
+    assertEquals(SignUpStep.Experiences, viewModel.state.value.currentStep)
   }
 
   @Test
@@ -192,9 +192,8 @@ class SignUpViewModelTest {
             SignUpStep.BasicInfo,
             SignUpStep.Nationality,
             SignUpStep.AddPicture,
-            SignUpStep.Bio,
-            SignUpStep.Interests,
-            SignUpStep.Welcome)
+            SignUpStep.Description,
+            SignUpStep.Experiences)
 
     expectedOrder.drop(1).forEach { expected ->
       viewModel.nextStep()
@@ -206,15 +205,14 @@ class SignUpViewModelTest {
   fun `prevStep walks backwards correctly`() {
     val sequence =
         listOf(
-            SignUpStep.Welcome,
-            SignUpStep.Interests,
-            SignUpStep.Bio,
+            SignUpStep.Experiences,
+            SignUpStep.Description,
             SignUpStep.AddPicture,
             SignUpStep.Nationality,
             SignUpStep.BasicInfo,
             SignUpStep.GettingStarted)
 
-    viewModel.goTo(SignUpStep.Welcome)
+    viewModel.goTo(SignUpStep.Experiences)
     sequence.drop(1).forEach { expected ->
       viewModel.prevStep()
       assertEquals(expected, viewModel.state.value.currentStep)
