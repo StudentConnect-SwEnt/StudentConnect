@@ -200,7 +200,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_typingEpfl_showsFakeEpflSuggestion() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("EPFL")
 
@@ -225,7 +226,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_typingNowhere_showsNoSuggestions() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Nowhere")
 
@@ -243,7 +245,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_selectingLausanneSuggestion_updatesTextField() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Lausanne")
 
@@ -273,7 +276,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_typingEverywhere_showsMultipleSuggestions() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Everywhere")
 
@@ -303,7 +307,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_typingTooLong_showsTruncatedOrWrappedText() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Too long")
 
@@ -330,7 +335,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_clearingInput_hidesSuggestions() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("EPFL")
 
@@ -361,7 +367,8 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Test
   fun locationTextField_dropdownClosesAfterSelection() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
+    val locationNode =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     locationNode.performScrollTo()
     locationNode.performTextInput("Lausanne")
 
