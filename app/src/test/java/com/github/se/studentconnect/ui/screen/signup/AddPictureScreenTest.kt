@@ -302,7 +302,7 @@ class AddPictureScreenTest {
   ) {
     controller.get().setContent {
       AddPictureScreen(
-          viewModel = viewModel,
+          signUpViewModel = viewModel,
           onPickImage = onPickImage,
           onSkip = onSkip,
           onContinue = onContinue,
