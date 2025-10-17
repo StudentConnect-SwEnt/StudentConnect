@@ -2,9 +2,9 @@
 package com.github.se.studentconnect.model.event
 
 import com.github.se.studentconnect.model.location.Location
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.firestore
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
