@@ -63,5 +63,13 @@ object C {
     const val visitor_profile_add_friend = "visitor_profile_add_friend"
     const val visitor_profile_loading = "visitor_profile_loading"
     const val visitor_profile_error = "visitor_profile_error"
+
+    const val qr_scanner_screen = "qr_scanner_screen"
+    const val qr_scanner_back = "qr_scanner_back"
+    const val qr_scanner_instructions = "qr_scanner_instructions"
+    const val qr_scanner_focus = "qr_scanner_focus"
+    const val qr_scanner_error = "qr_scanner_error"
+    const val qr_scanner_permission = "qr_scanner_permission"
+    const val qr_scanner_placeholder = "qr_scanner_placeholder"
   }
 }

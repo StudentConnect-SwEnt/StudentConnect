@@ -27,28 +27,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.Locale
 
 @Composable
 fun VisitorProfileScreen(
-    modifier: Modifier = Modifier.Companion,
     user: User,
     onBackClick: () -> Unit,
-    onAddFriendClick: () -> Unit
+    onAddFriendClick: () -> Unit,
+    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
+    modifier: Modifier = Modifier.Companion
 ) {
   VisitorProfileContent(
       user = user,
       onBackClick = onBackClick,
       onAddFriendClick = onAddFriendClick,
+      friendRequestStatus = friendRequestStatus,
       modifier = modifier)
 }
 
@@ -58,6 +61,7 @@ internal fun VisitorProfileContent(
     user: User,
     onBackClick: () -> Unit,
     onAddFriendClick: () -> Unit,
+    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
     modifier: Modifier = Modifier.Companion
 ) {
   val scrollState = rememberScrollState()
@@ -65,14 +69,17 @@ internal fun VisitorProfileContent(
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
         modifier =
-            Modifier.Companion.testTag(C.Tag.visitor_profile_screen)
-                .fillMaxSize()
+            Modifier.Companion.fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .semantics { testTag = C.Tag.visitor_profile_screen },
         verticalArrangement = Arrangement.spacedBy(24.dp)) {
           VisitorProfileTopBar(user.userId, onBackClick = onBackClick)
 
-          VisitorProfileInfoCard(user = user, onAddFriendClick = onAddFriendClick)
+          VisitorProfileInfoCard(
+              user = user,
+              onAddFriendClick = onAddFriendClick,
+              friendRequestStatus = friendRequestStatus)
 
           VisitorProfileEventSection(title = "Pinned Events")
         }
@@ -111,7 +118,11 @@ internal fun VisitorProfileTopBar(userId: String, onBackClick: () -> Unit) {
 
 @VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
 @Composable
-internal fun VisitorProfileInfoCard(user: User, onAddFriendClick: () -> Unit) {
+internal fun VisitorProfileInfoCard(
+    user: User,
+    onAddFriendClick: () -> Unit,
+    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
+) {
 
   Column(
       modifier = Modifier.Companion.fillMaxWidth(),
@@ -125,7 +136,7 @@ internal fun VisitorProfileInfoCard(user: User, onAddFriendClick: () -> Unit) {
                       .mapNotNull { it.firstOrNull()?.toString() }
                       .joinToString("")
                       .ifBlank { user.userId.take(2) }
-                      .uppercase(Locale.ROOT)
+                      .uppercase(Locale.getDefault())
 
               Surface(
                   modifier =
@@ -194,8 +205,22 @@ internal fun VisitorProfileInfoCard(user: User, onAddFriendClick: () -> Unit) {
                   })
 
           Box(modifier = Modifier.Companion.padding(horizontal = 8.dp)) {
+            val buttonText =
+                when (friendRequestStatus) {
+                  FriendRequestStatus.SENDING -> "Sending..."
+                  FriendRequestStatus.SENT -> "Request Sent"
+                  FriendRequestStatus.ALREADY_FRIENDS -> "Already Friends"
+                  FriendRequestStatus.ALREADY_SENT -> "Request Pending"
+                  else -> "Add Friend"
+                }
+
+            val buttonEnabled =
+                friendRequestStatus == FriendRequestStatus.IDLE ||
+                    friendRequestStatus == FriendRequestStatus.ERROR
+
             Button(
                 onClick = onAddFriendClick,
+                enabled = buttonEnabled,
                 modifier =
                     Modifier.Companion.fillMaxWidth().semantics {
                       testTag = C.Tag.visitor_profile_add_friend
@@ -206,7 +231,7 @@ internal fun VisitorProfileInfoCard(user: User, onAddFriendClick: () -> Unit) {
                         contentColor = MaterialTheme.colorScheme.onPrimary),
                 shape = RoundedCornerShape(10.dp)) {
                   Text(
-                      text = "Add Friend",
+                      text = buttonText,
                       style = MaterialTheme.typography.labelLarge,
                       color = MaterialTheme.colorScheme.onPrimary)
                 }
@@ -250,4 +275,22 @@ internal fun VisitorProfileEventSection(title: String) {
                   }
             }
       }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun VisitorProfileScreenPreview() {
+  AppTheme {
+    VisitorProfileScreen(
+        user =
+            User(
+                userId = "user-123",
+                email = "sample@studentconnect.ch",
+                firstName = "Alex",
+                lastName = "Martin",
+                university = "EPFL",
+                bio = "Curious learner, exploring new connections."),
+        onBackClick = {},
+        onAddFriendClick = {})
+  }
 }

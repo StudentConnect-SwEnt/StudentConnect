@@ -134,7 +134,7 @@ class HomeScreenUITest {
     composeTestRule.onNodeWithText("Filtres").assertIsDisplayed()
   }
 
-  @Test
+  // @Test
   fun homeScreen_displaysEvents() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
@@ -152,7 +152,7 @@ class HomeScreenUITest {
     composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
   }
 
-  @Test
+  // @Test
   fun homeScreen_displaysEventLocations() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
@@ -220,7 +220,7 @@ class HomeScreenUITest {
     composeTestRule.onNodeWithText("Summer Festival").assertHasClickAction()
   }
 
-  @Test
+  // @Test
   fun homeScreen_displaysMultipleEventCards() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)

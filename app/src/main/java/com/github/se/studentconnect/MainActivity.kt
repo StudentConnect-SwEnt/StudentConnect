@@ -28,8 +28,7 @@ import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.profile.MockUserRepository
-import com.github.se.studentconnect.ui.profile.ProfileScreen
+import com.github.se.studentconnect.ui.profile.VisitorProfileRoute
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
@@ -67,6 +66,7 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
   val navController = rememberNavController()
   var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
+  var shouldOpenQRScanner by remember { mutableStateOf(false) }
 
   Scaffold(
       bottomBar = {
@@ -74,6 +74,7 @@ fun MainContent() {
             selectedTab = selectedTab,
             onTabSelected = { tab: Tab ->
               selectedTab = tab
+              shouldOpenQRScanner = false
               navController.navigate(tab.destination.route) {
                 launchSingleTop = true
                 restoreState = true
@@ -93,7 +94,12 @@ fun MainContent() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-          composable(Route.HOME) { HomeScreen(navController) }
+          composable(Route.HOME) {
+            HomeScreen(
+                navController = navController,
+                shouldOpenQRScanner = shouldOpenQRScanner,
+                onQRScannerClosed = { shouldOpenQRScanner = false })
+          }
           composable(Route.MAP) { MapScreen() }
           composable(
               Route.MAP_WITH_LOCATION,
@@ -108,8 +114,23 @@ fun MainContent() {
                 MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
+          composable(Route.PROFILE) { ProfileScreen() }
           // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
           // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
+          composable(
+              Route.VISITOR_PROFILE,
+              arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG)
+                requireNotNull(userId) { "User ID is required." }
+                VisitorProfileRoute(
+                    userId = userId,
+                    onBackClick = { navController.popBackStack() },
+                    onScanAgain = {
+                      shouldOpenQRScanner = true
+                      navController.popBackStack()
+                    })
+              }
           composable(
               route = "eventView/{eventUid}/{hasJoined}",
               arguments =
@@ -121,11 +142,6 @@ fun MainContent() {
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
               }
-          composable(Route.ACTIVITIES) { ActivitiesScreen() }
-          composable(Route.PROFILE) {
-            val mockRepository = remember { MockUserRepository() }
-            ProfileScreen(currentUserId = "mock_user_123", userRepository = mockRepository)
-          }
         }
       }
 }

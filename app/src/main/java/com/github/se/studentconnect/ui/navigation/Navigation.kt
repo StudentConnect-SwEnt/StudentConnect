@@ -9,6 +9,13 @@ object Route {
   const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}"
   const val ACTIVITIES = "activities"
   const val PROFILE = "profile"
+
+  const val VISITOR_PROFILE = "visitorProfile/{userId}"
+
+  const val USER_ID_ARG = "userId"
+
+  fun visitorProfile(userId: String): String = "visitorProfile/$userId"
+
   const val CREATE_PUBLIC_EVENT = "create_public_event"
   const val CREATE_PRIVATE_EVENT = "create_private_event"
 

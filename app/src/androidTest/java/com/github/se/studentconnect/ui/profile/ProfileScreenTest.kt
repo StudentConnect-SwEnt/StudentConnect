@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.activities.Invitation
+import com.github.se.studentconnect.ui.screen.activities.Invitation
 import kotlinx.coroutines.delay
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -210,6 +210,8 @@ class ProfileScreenTest {
     override suspend fun getInvitations(userId: String): List<Invitation> = unsupported()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = unsupported()
+
+    override suspend fun declineInvitation(eventId: String, userId: String) = unsupported()
 
     override suspend fun joinEvent(eventId: String, userId: String) = unsupported()
 

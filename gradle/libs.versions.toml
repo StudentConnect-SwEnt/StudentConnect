@@ -75,6 +75,7 @@ playServicesLocation = "21.3.0"
 cameraX = "1.4.2"
 lifecycle = "2.8.7"
 guava = "33.5.0-android"
+mlkitBarcode = "17.3.0"
 
 # QR code
 composeQrCode = "1.0.1"
@@ -122,6 +123,7 @@ junit = { module = "junit:junit", version.ref = "junit" }
 kaspresso = { module = "com.kaspersky.android-components:kaspresso", version.ref = "kaspresso" }
 kaspresso-allure-support = { module = "com.kaspersky.android-components:kaspresso-allure-support", version.ref = "kaspressoAllureSupport" }
 kaspresso-compose-support = { module = "com.kaspersky.android-components:kaspresso-compose-support", version.ref = "kaspressoComposeSupport" }
+mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcode" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
@@ -149,4 +151,3 @@ ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 gms = { id = "com.google.gms.google-services", version.ref = "gms" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sonar = { id = "org.sonarqube", version.ref = "sonar" }
-
