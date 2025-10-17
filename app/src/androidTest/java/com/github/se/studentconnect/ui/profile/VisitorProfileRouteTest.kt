@@ -193,9 +193,7 @@ class VisitorProfileRouteTest {
     composeTestRule.setContent {
       AppTheme {
         VisitorProfileRoute(
-            userId = "user-5",
-            onBackClick = {},
-            onScanAgain = { scanAgainInvoked.set(true) })
+            userId = "user-5", onBackClick = {}, onScanAgain = { scanAgainInvoked.set(true) })
       }
     }
 
