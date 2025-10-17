@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.utils
 
-import FilterBar
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule

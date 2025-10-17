@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,12 +48,20 @@ import kotlin.collections.component2
  *
  * @param navController The navigation controller used for navigating to the event detail view.
  * @param events The list of events to display.
+ * @param hasJoined Whether the user has joined the events.
+ * @param listState The LazyListState for controlling scroll position.
  */
 @Composable
-fun EventListScreen(navController: NavHostController, events: List<Event>, hasJoined: Boolean) {
+fun EventListScreen(
+    navController: NavHostController,
+    events: List<Event>,
+    hasJoined: Boolean,
+    listState: LazyListState = rememberLazyListState()
+) {
   val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
   LazyColumn(
+      state = listState,
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp)) {
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
@@ -237,7 +247,8 @@ fun EventListScreenPreview() {
 
   AppTheme() {
     Surface(modifier = Modifier.fillMaxSize()) {
-      EventListScreen(navController = rememberNavController(), events = mockEvents, false)
+      EventListScreen(
+          navController = rememberNavController(), events = mockEvents, hasJoined = false)
     }
   }
 }

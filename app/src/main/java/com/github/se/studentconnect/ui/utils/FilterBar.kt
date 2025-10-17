@@ -1,3 +1,5 @@
+package com.github.se.studentconnect.ui.utils
+
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -13,14 +15,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 
 @Composable
-fun FilterBar(context: Context) {
+fun FilterBar(context: Context, onCalendarClick: () -> Unit = { DialogNotImplemented(context) }) {
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -29,7 +31,8 @@ fun FilterBar(context: Context) {
             text = "Paris",
             onClick = { DialogNotImplemented(context) },
             icon = R.drawable.ic_location)
-        FilterChip(icon = R.drawable.ic_calendar, onClick = { DialogNotImplemented(context) })
+        FilterChip(
+            icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
             text = "Filtres",
             icon = R.drawable.ic_filter,
@@ -43,9 +46,15 @@ fun FilterBar(context: Context) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun FilterChip(onClick: () -> Unit, icon: Int, text: String? = null) {
+private fun FilterChip(
+    onClick: () -> Unit,
+    icon: Int,
+    text: String? = null,
+    testTag: String? = null
+) {
   Surface(
       onClick = onClick,
+      modifier = testTag?.let { Modifier.testTag(it) } ?: Modifier,
       shape = RoundedCornerShape(24.dp),
       color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
         Row(

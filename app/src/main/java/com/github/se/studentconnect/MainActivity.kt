@@ -1,5 +1,6 @@
 package com.github.se.studentconnect
 
+// import com.github.se.studentconnect.ui.profile.MockUserRepository
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,9 +31,9 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.VisitorProfileRoute
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
+import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
-import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
 
@@ -142,6 +143,11 @@ fun MainContent() {
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
               }
+          composable(Route.ACTIVITIES) { ActivitiesScreen() }
+          composable(Route.PROFILE) {
+            // val mockRepository = remember { MockUserRepository() }
+            // ProfileScreen(currentUserId = "mock_user_123", userRepository = mockRepository)
+          }
         }
       }
 }
