@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screens
+package com.github.se.studentconnect.ui.screen.home
 
 import FilterBar
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -23,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,17 +48,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.events.EventListScreen
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import kotlinx.coroutines.launch
+import java.util.Date
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
@@ -66,6 +74,10 @@ fun HomeScreen(
   var showNotifications by remember { mutableStateOf(false) }
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
+  val sheetState = rememberModalBottomSheetState(
+    initialValue = ModalBottomSheetValue.Hidden,
+    skipHalfExpanded = true
+  )
 
   LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -123,6 +135,59 @@ fun HomeScreen(
               }
             }
       }
+
+  // Handle scroll to date functionality
+  LaunchedEffect(uiState.scrollToDate) {
+    uiState.scrollToDate?.let { _ ->
+      // TODO: Implement scroll to date in EventListScreen
+      viewModel.clearScrollTarget()
+    }
+  }
+
+  // Handle modal visibility
+  LaunchedEffect(uiState.isCalendarVisible) {
+    if (uiState.isCalendarVisible) {
+      sheetState.show()
+    } else {
+      sheetState.hide()
+    }
+  }
+
+  ModalBottomSheetLayout(
+    sheetState = sheetState,
+    sheetContent = {
+      EventCalendar(
+        events = uiState.events,
+        selectedDate = uiState.selectedDate,
+        onDateSelected = { date ->
+          viewModel.onDateSelected(date)
+        }
+      )
+    }
+  ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize().testTag("HomePage"),
+        topBar = {
+          HomeTopBar(
+              showNotifications,
+              onNotificationClick = { showNotifications = !showNotifications },
+              onDismiss = { showNotifications = false })
+        }) { paddingValues ->
+          Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (uiState.isLoading) {
+              CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+              Column {
+                FilterBar(
+                  context = LocalContext.current,
+                  onCalendarClick = { viewModel.toggleCalendar() }
+                )
+                EventListScreen(navController = navController, events = uiState.events, false)
+              }
+            }
+          }
+        }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

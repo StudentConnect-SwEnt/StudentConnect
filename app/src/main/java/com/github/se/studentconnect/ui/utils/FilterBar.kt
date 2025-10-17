@@ -1,3 +1,5 @@
+package com.github.se.studentconnect.ui.utils
+
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -20,7 +22,10 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 
 @Composable
-fun FilterBar(context: Context) {
+fun FilterBar(
+  context: Context,
+  onCalendarClick: () -> Unit = { DialogNotImplemented(context) }
+) {
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -29,7 +34,7 @@ fun FilterBar(context: Context) {
             text = "Paris",
             onClick = { DialogNotImplemented(context) },
             icon = R.drawable.ic_location)
-        FilterChip(icon = R.drawable.ic_calendar, onClick = { DialogNotImplemented(context) })
+        FilterChip(icon = R.drawable.ic_calendar, onClick = onCalendarClick)
         FilterChip(
             text = "Filtres",
             icon = R.drawable.ic_filter,
