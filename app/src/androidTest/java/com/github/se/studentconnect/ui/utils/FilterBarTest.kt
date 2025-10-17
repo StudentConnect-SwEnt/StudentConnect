@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.github.se.studentconnect.ui.screen.filters.FilterBar
+import com.github.se.studentconnect.ui.utils.FilterBar
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
