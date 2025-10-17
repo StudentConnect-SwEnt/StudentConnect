@@ -12,9 +12,11 @@ import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
+import com.google.firebase.Timestamp
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.Date
 
 @OptIn(ExperimentalTestApi::class, ExperimentalMaterial3Api::class)
 class BasicInfoScreenTest : StudentConnectTest() {
@@ -72,7 +74,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun prepopulated_fields_enableContinue() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(1_000L)
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
     waitForIdle()
     assert(enabledStates.last())
   }
@@ -91,7 +93,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
     waitForIdle()
     assert(enabledStates.last() == false)
 
-    viewModel.setBirthdate(1_000L)
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
     waitForIdle()
     assert(enabledStates.last())
 
@@ -104,7 +106,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun clearing_lastName_disables_continue() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(2_000L)
+    viewModel.setBirthdate(Timestamp(Date(2_000L)))
     waitForIdle()
     assert(enabledStates.last())
 
@@ -117,7 +119,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun reset_clears_enabled_state() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(3_000L)
+    viewModel.setBirthdate(Timestamp(Date(3_000L)))
     waitForIdle()
     assert(enabledStates.last())
 
@@ -132,13 +134,14 @@ class BasicInfoScreenTest : StudentConnectTest() {
 
   @Test
   fun external_datePicker_retains_selection() {
-    val jan2000 = 946684800000L
+    val jan2000Millis = 946684800000L
+    val jan2000Timestamp = Timestamp(Date(jan2000Millis))
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(jan2000)
+    viewModel.setBirthdate(jan2000Timestamp)
     waitForIdle()
 
-    assert(datePickerState?.selectedDateMillis == jan2000)
+    assert(datePickerState?.selectedDateMillis == jan2000Millis)
   }
 
   @Test
@@ -147,9 +150,10 @@ class BasicInfoScreenTest : StudentConnectTest() {
     viewModel.setLastName("Lovelace")
     waitForIdle()
 
-    val selected = 946684800000L
-    datePickerState?.selectedDateMillis = selected
-    viewModel.setBirthdate(selected)
+    val selectedMillis = 946684800000L
+    val selectedTimestamp = Timestamp(Date(selectedMillis))
+    datePickerState?.selectedDateMillis = selectedMillis
+    viewModel.setBirthdate(selectedTimestamp)
     waitForIdle()
 
     assert(enabledStates.last())
@@ -174,7 +178,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun rapid_dialog_toggles_preserve_enabled_state() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    viewModel.setBirthdate(6_000L)
+    viewModel.setBirthdate(Timestamp(Date(6_000L)))
     waitForIdle()
     val initialStates = enabledStates.toList()
 
