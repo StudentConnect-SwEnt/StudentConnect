@@ -20,12 +20,12 @@ object EventCalendarTestTags {
 
 /**
  * Simple date picker for selecting dates and navigating to events.
- * 
+ *
  * Features:
  * - Material 3 Expressive DatePicker component
  * - Date selection for navigating to events
  * - Clean, simple interface
- * 
+ *
  * @param events List of events (not used for visualization, just for compatibility)
  * @param selectedDate Currently selected date (optional)
  * @param onDateSelected Callback when a date is selected
@@ -34,60 +34,39 @@ object EventCalendarTestTags {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventCalendar(
-  modifier: Modifier = Modifier,
-  events: List<Event>,
-  selectedDate: Date? = null,
-  onDateSelected: (Date) -> Unit
+    modifier: Modifier = Modifier,
+    events: List<Event>,
+    selectedDate: Date? = null,
+    onDateSelected: (Date) -> Unit
 ) {
-  val datePickerState = rememberDatePickerState(
-    initialSelectedDateMillis = selectedDate?.time
-  )
-  
+  val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate?.time)
+
   LaunchedEffect(datePickerState.selectedDateMillis) {
-    datePickerState.selectedDateMillis?.let { dateMillis ->
-      onDateSelected(Date(dateMillis))
-    }
+    datePickerState.selectedDateMillis?.let { dateMillis -> onDateSelected(Date(dateMillis)) }
   }
-  
+
   Card(
-    modifier = modifier
-      .fillMaxWidth()
-      .testTag(EventCalendarTestTags.CALENDAR_CONTAINER),
-    shape = RoundedCornerShape(16.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.surfaceContainer
-    ),
-    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp)
-    ) {
-      Text(
-        text = "Select a date to view events",
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(bottom = 16.dp)
-      )
-      
-      DatePicker(
-        modifier = Modifier.testTag(EventCalendarTestTags.DATE_PICKER),
-        state = datePickerState
-      )
-    }
-  }
+      modifier = modifier.fillMaxWidth().testTag(EventCalendarTestTags.CALENDAR_CONTAINER),
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+          Text(
+              text = "Select a date to view events",
+              style = MaterialTheme.typography.titleMedium,
+              color = MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier.padding(bottom = 16.dp))
+
+          DatePicker(
+              modifier = Modifier.testTag(EventCalendarTestTags.DATE_PICKER),
+              state = datePickerState)
+        }
+      }
 }
 
-/**
- * Preview function for the EventCalendar component.
- */
+/** Preview function for the EventCalendar component. */
 @Preview(showBackground = true)
 @Composable
 fun EventCalendarPreview() {
-  AppTheme {
-    EventCalendar(
-      events = emptyList(),
-      selectedDate = Date(),
-      onDateSelected = {}
-    )
-  }
+  AppTheme { EventCalendar(events = emptyList(), selectedDate = Date(), onDateSelected = {}) }
 }
