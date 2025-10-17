@@ -27,7 +27,7 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
+      ProfileSettingsScreen(
           currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
@@ -57,10 +57,8 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, userWithEmptyFields.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
-          currentUserId = userWithEmptyFields.userId,
-          userRepository = repository,
-          viewModel = viewModel)
+      ProfileSettingsScreen(
+          currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -77,7 +75,7 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
+      ProfileSettingsScreen(
           currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
@@ -103,7 +101,7 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
+      ProfileSettingsScreen(
           currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
@@ -132,7 +130,7 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
+      ProfileSettingsScreen(
           currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
@@ -158,7 +156,7 @@ class ProfileScreenTest {
     val viewModel = ProfileViewModel(repository, SAMPLE_USER.userId)
 
     composeTestRule.setContent {
-      ProfileScreen(
+      ProfileSettingsScreen(
           currentUserId = SAMPLE_USER.userId, userRepository = repository, viewModel = viewModel)
     }
 
