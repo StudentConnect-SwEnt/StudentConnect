@@ -91,68 +91,68 @@ fun HomeScreen(
     }
   }
 
-    ModalBottomSheetLayout(
-        modifier = Modifier.testTag("calendar_modal"),
-        sheetState = sheetState,
-        sheetContent = {
-            EventCalendar(
-                events = uiState.events,
-                selectedDate = uiState.selectedDate,
-                onDateSelected = { date -> viewModel.onDateSelected(date) })
-        }) {
-      Scaffold(
-      modifier = Modifier.fillMaxSize().testTag("HomePage"),
-      topBar = {
-        if (pagerState.currentPage == 1) {
-          HomeTopBar(
-              showNotifications = showNotifications,
-              onNotificationClick = { showNotifications = !showNotifications },
-              onDismiss = { showNotifications = false })
-        }
-      }) { paddingValues ->
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            userScrollEnabled = true) { page ->
-              when (page) {
-                0 -> {
-                  // QR Scanner page
-                  QrScannerScreen(
-                      onBackClick = {
-                        onQRScannerClosed()
-                        coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                      },
-                      onProfileDetected = { userId ->
-                        // Navigate to visitor profile and return to home page
-                        onQRScannerClosed()
-                        navController.navigate(Route.visitorProfile(userId))
-                        coroutineScope.launch { pagerState.scrollToPage(1) }
-                      },
-                      isActive = pagerState.currentPage == 0)
-                }
-                1 -> {
-                  // Home content page
-                  Box(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.isLoading) {
-                      CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    } else {
-                      Column {
-                        FilterBar(
-                            context = LocalContext.current,
-                            onCalendarClick = { viewModel.showCalendar() })
-                          EventListScreen(
-                              navController = navController,
-                              events = uiState.events,
-                              hasJoined = false,
-                              listState = listState)
+  ModalBottomSheetLayout(
+      modifier = Modifier.testTag("calendar_modal"),
+      sheetState = sheetState,
+      sheetContent = {
+        EventCalendar(
+            events = uiState.events,
+            selectedDate = uiState.selectedDate,
+            onDateSelected = { date -> viewModel.onDateSelected(date) })
+      }) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize().testTag("HomePage"),
+            topBar = {
+              if (pagerState.currentPage == 1) {
+                HomeTopBar(
+                    showNotifications = showNotifications,
+                    onNotificationClick = { showNotifications = !showNotifications },
+                    onDismiss = { showNotifications = false })
+              }
+            }) { paddingValues ->
+              HorizontalPager(
+                  state = pagerState,
+                  modifier = Modifier.fillMaxSize().padding(paddingValues),
+                  userScrollEnabled = true) { page ->
+                    when (page) {
+                      0 -> {
+                        // QR Scanner page
+                        QrScannerScreen(
+                            onBackClick = {
+                              onQRScannerClosed()
+                              coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                            },
+                            onProfileDetected = { userId ->
+                              // Navigate to visitor profile and return to home page
+                              onQRScannerClosed()
+                              navController.navigate(Route.visitorProfile(userId))
+                              coroutineScope.launch { pagerState.scrollToPage(1) }
+                            },
+                            isActive = pagerState.currentPage == 0)
+                      }
+                      1 -> {
+                        // Home content page
+                        Box(modifier = Modifier.fillMaxSize()) {
+                          if (uiState.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                          } else {
+                            Column {
+                              FilterBar(
+                                  context = LocalContext.current,
+                                  onCalendarClick = { viewModel.showCalendar() })
+                              EventListScreen(
+                                  navController = navController,
+                                  events = uiState.events,
+                                  hasJoined = false,
+                                  listState = listState)
+                            }
+                          }
+                        }
                       }
                     }
                   }
-                }
-              }
             }
       }
-    }
 
   // Handle scroll to date functionality
   LaunchedEffect(uiState.scrollToDate) {
@@ -178,8 +178,6 @@ fun HomeScreen(
       viewModel.hideCalendar()
     }
   }
-
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
