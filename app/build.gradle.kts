@@ -10,6 +10,11 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+// Configure JaCoCo version to support Java 24
+jacoco {
+    toolVersion = "0.8.12"
+}
+
 android {
     namespace = "com.github.se.studentconnect"
     compileSdk = 34

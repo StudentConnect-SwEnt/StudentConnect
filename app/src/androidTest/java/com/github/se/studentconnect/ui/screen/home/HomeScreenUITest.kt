@@ -72,52 +72,7 @@ class HomeScreenUITest {
   }
 
   @Test
-  fun homeScreen_isDisplayed() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_searchBar_isDisplayed() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_searchIcon_isDisplayed() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithContentDescription("Search Icon").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_notificationButton_isDisplayed() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_notificationButton_hasClickAction() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithContentDescription("Notifications").assertHasClickAction()
-  }
-
-  @Test
-  fun homeScreen_filterBar_isDisplayed() {
+  fun homeScreen_displaysAllBasicComponents() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
@@ -130,12 +85,20 @@ class HomeScreenUITest {
           .isNotEmpty()
     }
 
+    // Verify all basic UI elements are displayed
+    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Search Icon").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Notifications").assertHasClickAction()
+
+    // Verify filter bar elements
     composeTestRule.onNodeWithText("Paris").assertIsDisplayed()
     composeTestRule.onNodeWithText("Filtres").assertIsDisplayed()
   }
 
-  // @Test
-  fun homeScreen_displaysEvents() {
+  @Test
+  fun homeScreen_displaysEventsAndLocations() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
@@ -148,26 +111,39 @@ class HomeScreenUITest {
           .isNotEmpty()
     }
 
+    // Verify both events are displayed
     composeTestRule.onNodeWithText("Summer Festival").assertIsDisplayed()
     composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
+
+    // Verify event locations are displayed
+    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
+    composeTestRule.onNodeWithText("SwissTech").assertIsDisplayed()
+
+    // Verify event cards have click actions
+    composeTestRule.onNodeWithText("Summer Festival").assertHasClickAction()
   }
 
-  // @Test
-  fun homeScreen_displaysEventLocations() {
+  @Test
+  fun homeScreen_filterChipsInteraction() {
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
-    // Wait for events to load
+    // Wait for content to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("EPFL"))
+          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeTestRule.onNodeWithText("SwissTech").assertIsDisplayed()
+    // Verify filter chips have click actions
+    composeTestRule.onNodeWithText("Paris").assertHasClickAction()
+    composeTestRule.onNodeWithText("Filtres").assertHasClickAction()
+    composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
+
+    // Click filter chip - should not crash
+    composeTestRule.onNodeWithText("Paris").performClick()
   }
 
   @Test
@@ -201,78 +177,5 @@ class HomeScreenUITest {
     // Initially loading indicator should be displayed
     composeTestRule.waitForIdle()
     // After loading, no events should be displayed
-  }
-
-  @Test
-  fun homeScreen_eventCard_hasClickAction() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    // Wait for events to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Summer Festival"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithText("Summer Festival").assertHasClickAction()
-  }
-
-  // @Test
-  fun homeScreen_displaysMultipleEventCards() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    // Wait for events to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Summer Festival"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // Both events should be displayed
-    composeTestRule.onNodeWithText("Summer Festival").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
-  }
-
-  @Test
-  fun homeScreen_filterChips_haveClickActions() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    // Wait for content to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithText("Paris").assertHasClickAction()
-    composeTestRule.onNodeWithText("Filtres").assertHasClickAction()
-    composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
-  }
-
-  @Test
-  fun homeScreen_clickFilterChip_doesNotCrash() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    // Wait for content to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithText("Paris").performClick()
-    // Should show "Not yet implemented" toast
   }
 }

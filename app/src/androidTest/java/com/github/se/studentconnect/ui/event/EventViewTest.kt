@@ -55,7 +55,7 @@ class EventViewTest {
   }
 
   @Test
-  fun eventView_mainScreen_isDisplayed() {
+  fun eventView_displaysAllComponentsWhenNotJoined() {
     composeTestRule.setContent {
       EventView(
           eventUid = testEvent.uid,
@@ -64,6 +64,7 @@ class EventViewTest {
           hasJoined = false)
     }
 
+    // Wait for event to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule
           .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.EVENT_VIEW_SCREEN))
@@ -71,347 +72,38 @@ class EventViewTest {
           .isNotEmpty()
     }
 
+    // Verify main screen components
     composeTestRule.onNodeWithTag(EventViewTestTags.EVENT_VIEW_SCREEN).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_topAppBar_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.TOP_APP_BAR))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.TOP_APP_BAR).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_backButton_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.BACK_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_backButton_hasClickAction() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.BACK_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).assertHasClickAction()
-  }
 
-  @Test
-  fun eventView_eventTitle_isDisplayedInTopBar() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText(testEvent.title))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
+    // Verify event content
     composeTestRule.onNodeWithText(testEvent.title).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_eventImage_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.EVENT_IMAGE))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.EVENT_IMAGE).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_descriptionText_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.DESCRIPTION_TEXT))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.DESCRIPTION_TEXT).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_descriptionContent_isCorrect() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText(testEvent.description))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithText(testEvent.description).assertIsDisplayed()
-  }
+    composeTestRule.onNodeWithText("Description").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventViewTestTags.INFO_SECTION).assertIsDisplayed()
 
-  @Test
-  fun eventView_chatButton_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.CHAT_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
+    // Verify chat button
     composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_chatButton_hasCorrectText() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Event chat"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithText("Event chat").assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_chatButton_hasClickAction() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.CHAT_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).assertHasClickAction()
-  }
 
-  @Test
-  fun eventView_actionButtonsSection_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.ACTION_BUTTONS_SECTION))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
+    // Verify action buttons
     composeTestRule.onNodeWithTag(EventViewTestTags.ACTION_BUTTONS_SECTION).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_visitWebsiteButton_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_locationButton_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.LOCATION_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_shareButton_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithTag(EventViewTestTags.SHARE_EVENT_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_locationButton_hasClickAction() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.LOCATION_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
     composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertHasClickAction()
-  }
-
-  @Test
-  fun eventView_shareButton_hasClickAction() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
+    composeTestRule.onNodeWithTag(EventViewTestTags.SHARE_EVENT_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventViewTestTags.SHARE_EVENT_BUTTON).assertHasClickAction()
-  }
 
-  @Test
-  fun eventView_whenNotJoined_displaysJoinButton() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Join"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
+    // Verify join button
     composeTestRule.onNodeWithText("Join").assertIsDisplayed()
+
+    // Verify back button works
+    composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
   }
 
   @Test
@@ -432,66 +124,5 @@ class EventViewTest {
     }
 
     composeTestRule.onNodeWithText("Leave").assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_infoSection_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.INFO_SECTION))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithTag(EventViewTestTags.INFO_SECTION).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_descriptionLabel_isDisplayed() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Description"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithText("Description").assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_backButtonClick_doesNotCrash() {
-    composeTestRule.setContent {
-      EventView(
-          eventUid = testEvent.uid,
-          navController = rememberNavController(),
-          eventViewModel = viewModel,
-          hasJoined = false)
-    }
-
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.BACK_BUTTON))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
-    // Should not crash
   }
 }

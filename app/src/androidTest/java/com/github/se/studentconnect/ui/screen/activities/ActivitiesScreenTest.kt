@@ -16,30 +16,21 @@ class ActivitiesScreenTest {
   // pour contrôler l'état (isLoading, items, etc.).
 
   @Test
-  fun activitiesScreen_displaysCorrectly() {
+  fun activitiesScreen_displaysCorrectlyWithTabNavigation() {
     composeTestRule.setContent { ActivitiesScreen(navController = rememberNavController()) }
 
-    // Vérifier que l'écran et la barre supérieure sont affichés
+    // Verify screen and top bar are displayed
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.TOP_APP_BAR).assertIsDisplayed()
     composeTestRule.onNodeWithText("MyActivities").assertIsDisplayed()
-  }
 
-  @Test
-  fun tabNavigation_worksAsExpected() {
-    composeTestRule.setContent { ActivitiesScreen(navController = rememberNavController()) }
-
-    // Vérifier que la barre d'onglets est visible
+    // Verify tab row is visible
     val tabRow = composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_TAB_ROW)
     tabRow.assertIsDisplayed()
 
-    // Cliquer sur l'onglet "Invitations"
+    // Test tab navigation
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Invitations")).performClick()
-    // Dans un vrai test, on vérifierait que le contenu a changé
-
-    // Cliquer sur l'onglet "Archived" (Past)
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Archived")).performClick()
-    // Vérifier que cet onglet est maintenant sélectionné
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.tab("Archived")).assertIsSelected()
   }
 
