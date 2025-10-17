@@ -13,10 +13,10 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp
+import java.util.Date
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.Date
 
 @OptIn(ExperimentalTestApi::class, ExperimentalMaterial3Api::class)
 class BasicInfoScreenTest : StudentConnectTest() {
