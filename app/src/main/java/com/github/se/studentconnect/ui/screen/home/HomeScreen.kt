@@ -259,28 +259,41 @@ private suspend fun scrollToDate(
   events: List<com.github.se.studentconnect.model.event.Event>,
   targetDate: Date
 ) {
-  // Group events by date header to find the target section
-  val groupedEvents = events.groupBy { event ->
-    formatDateHeader(event.start)
-  }
-
-  // Find the target date header
-  val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
-
-  // Calculate the index to scroll to
-  var currentIndex = 0
-  for ((dateHeader, eventsOnDate) in groupedEvents) {
-    if (dateHeader == targetDateHeader) {
-      // Found the target date, scroll to it
-      listState.animateScrollToItem(currentIndex)
+  try {
+    // Handle empty events list
+    if (events.isEmpty()) {
       return
     }
-    // Move to next section (header + events)
-    currentIndex += 1 + eventsOnDate.size
-  }
 
-  // If date not found, scroll to top
-  listState.animateScrollToItem(0)
+    // Group events by date header to find the target section
+    val groupedEvents = events.groupBy { event ->
+      formatDateHeader(event.start)
+    }
+
+    // Find the target date header
+    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+
+    // Calculate the index to scroll to
+    var currentIndex = 0
+    for ((dateHeader, eventsOnDate) in groupedEvents) {
+      if (dateHeader == targetDateHeader) {
+        // Found the target date, scroll to it with bounds checking
+        val maxIndex = listState.layoutInfo.totalItemsCount - 1
+        val scrollIndex = minOf(currentIndex, maxIndex)
+        listState.animateScrollToItem(scrollIndex)
+        return
+      }
+      // Move to next section (header + events)
+      currentIndex += 1 + eventsOnDate.size
+    }
+
+    // If date not found, scroll to top
+    listState.animateScrollToItem(0)
+  } catch (e: Exception) {
+    // Handle any unexpected errors gracefully
+    // In production, you might want to log this error
+    listState.animateScrollToItem(0)
+  }
 }
 
 /**

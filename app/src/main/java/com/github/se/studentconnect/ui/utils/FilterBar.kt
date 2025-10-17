@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +35,11 @@ fun FilterBar(
             text = "Paris",
             onClick = { DialogNotImplemented(context) },
             icon = R.drawable.ic_location)
-        FilterChip(icon = R.drawable.ic_calendar, onClick = onCalendarClick)
+        FilterChip(
+          icon = R.drawable.ic_calendar, 
+          onClick = onCalendarClick,
+          testTag = "calendar_button"
+        )
         FilterChip(
             text = "Filtres",
             icon = R.drawable.ic_filter,
@@ -48,9 +53,15 @@ fun FilterBar(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun FilterChip(onClick: () -> Unit, icon: Int, text: String? = null) {
+private fun FilterChip(
+  onClick: () -> Unit, 
+  icon: Int, 
+  text: String? = null,
+  testTag: String? = null
+) {
   Surface(
       onClick = onClick,
+      modifier = testTag?.let { Modifier.testTag(it) } ?: Modifier,
       shape = RoundedCornerShape(24.dp),
       color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) {
         Row(
