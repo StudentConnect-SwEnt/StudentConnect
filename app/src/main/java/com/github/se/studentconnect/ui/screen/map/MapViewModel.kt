@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.model.map.LocationConfig
-import com.github.se.studentconnect.model.map.LocationRepository
-import com.github.se.studentconnect.model.map.LocationResult
+import com.github.se.studentconnect.repository.LocationConfig
+import com.github.se.studentconnect.repository.LocationRepository
+import com.github.se.studentconnect.repository.LocationResult
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -90,8 +90,13 @@ class MapViewModel(
     viewModelScope.launch {
       try {
         val events = eventRepository.getAllVisibleEvents()
+        val eventsWithLocation = events.filter { it.location != null }
+        android.util.Log.d(
+            "MapViewModel",
+            "Loaded ${events.size} events, ${eventsWithLocation.size} have locations")
         _uiState.value = _uiState.value.copy(events = events)
       } catch (e: Exception) {
+        android.util.Log.e("MapViewModel", "Failed to load events", e)
         _uiState.value = _uiState.value.copy(errorMessage = "Failed to load events: ${e.message}")
       }
     }

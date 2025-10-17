@@ -135,7 +135,6 @@ fun MainContent() {
         android.util.Log.d("MainActivity", "Found authenticated user: ${firebaseUser.uid}")
         currentUserId = firebaseUser.uid
         currentUserEmail = firebaseUser.email ?: ""
-        AuthenticationProvider.currentUser = firebaseUser.uid
 
         val existingUser = userRepository.getUserById(firebaseUser.uid)
         if (existingUser != null) {
@@ -187,7 +186,6 @@ fun MainContent() {
             val firebaseUser = Firebase.auth.currentUser
             currentUserId = uid
             currentUserEmail = firebaseUser?.email ?: ""
-            AuthenticationProvider.currentUser = uid
           })
     }
     AppState.ONBOARDING -> {
@@ -199,9 +197,6 @@ fun MainContent() {
             userRepository = userRepository,
             onSignUpComplete = { user ->
               android.util.Log.d("MainActivity", "Onboarding complete: ${user.userId}")
-              if (AuthenticationProvider.local) {
-                AuthenticationProvider.currentUser = user.userId
-              }
               appState = AppState.MAIN_APP
             })
       }

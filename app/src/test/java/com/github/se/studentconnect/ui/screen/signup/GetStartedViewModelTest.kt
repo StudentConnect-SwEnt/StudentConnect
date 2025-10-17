@@ -192,7 +192,7 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertTrue(state.errorMsg!!.startsWith("Failed to get credentials"))
+        assertTrue(state.errorMsg!!.startsWith("Authentication failed"))
         assertTrue(state.signedOut)
         assertNull(state.user)
       }

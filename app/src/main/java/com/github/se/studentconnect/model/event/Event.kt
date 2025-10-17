@@ -24,7 +24,10 @@ sealed class Event {
           "title" to title,
           "description" to description,
           "imageUrl" to imageUrl,
-          "location" to location,
+          "location" to
+              location?.let {
+                mapOf("latitude" to it.latitude, "longitude" to it.longitude, "name" to it.name)
+              },
           "start" to start,
           "end" to end,
           "maxCapacity" to maxCapacity?.toLong(),
