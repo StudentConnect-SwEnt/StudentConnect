@@ -27,9 +27,3 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
     )
   }
 }
-//
-// @Preview
-// @Composable
-// private fun ProfileScreenPreview() {
-//    ProfileScreen()
-// }
