@@ -9,6 +9,7 @@ object Route {
   const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}"
   const val ACTIVITIES = "activities"
   const val PROFILE = "profile"
+  const val SEARCH = "search"
 
   const val VISITOR_PROFILE = "visitorProfile/{userId}"
 
@@ -55,6 +56,8 @@ sealed class Screen(
 
   // Added screen for the event view
   object EventView : Screen(route = Route.EVENT_VIEW, name = "Event Details")
+
+  object Search : Screen(route = Route.SEARCH, name = "Search")
 }
 
 sealed class Tab(val name: String, val icon: Int, val destination: Screen) {
