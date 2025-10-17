@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -14,12 +13,12 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
+import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 
 @RunWith(AndroidJUnit4::class)
 class HomeScreenCalendarIntegrationTest {
@@ -35,22 +34,22 @@ class HomeScreenCalendarIntegrationTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
-    
+
     // Add test events
     runBlocking {
-      val testEvent = Event.Public(
-        uid = "test-event-calendar",
-        ownerId = "test-owner",
-        title = "Calendar Test Event",
-        description = "Test event for calendar functionality",
-        location = Location(0.0, 0.0, "Test Location"),
-        start = Timestamp(Date()),
-        participationFee = 15u,
-        isFlash = false,
-        subtitle = "Test Subtitle",
-        tags = listOf("test", "calendar"),
-        imageUrl = null
-      )
+      val testEvent =
+          Event.Public(
+              uid = "test-event-calendar",
+              ownerId = "test-owner",
+              title = "Calendar Test Event",
+              description = "Test event for calendar functionality",
+              location = Location(0.0, 0.0, "Test Location"),
+              start = Timestamp(Date()),
+              participationFee = 15u,
+              isFlash = false,
+              subtitle = "Test Subtitle",
+              tags = listOf("test", "calendar"),
+              imageUrl = null)
       eventRepository.addEvent(testEvent)
     }
   }
@@ -58,80 +57,52 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_calendarButton_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme {
-        HomeScreen(
-          navController = rememberNavController(),
-          viewModel = viewModel
-        )
-      }
+      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
     }
 
     // Verify calendar button is displayed
-    composeTestRule.onNodeWithTag("calendar_button")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("calendar_button").assertIsDisplayed()
   }
 
   @Test
   fun homeScreen_calendarButton_opensModal() {
     composeTestRule.setContent {
-      AppTheme {
-        HomeScreen(
-          navController = rememberNavController(),
-          viewModel = viewModel
-        )
-      }
+      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
     }
 
     // Click calendar button
-    composeTestRule.onNodeWithTag("calendar_button")
-      .performClick()
+    composeTestRule.onNodeWithTag("calendar_button").performClick()
 
     // Calendar modal should now be visible
-    composeTestRule.onNodeWithTag("calendar_modal")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("calendar_modal").assertIsDisplayed()
 
     // Calendar instruction text should be visible
-    composeTestRule.onNodeWithText("Select a date to view events")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Select a date to view events").assertIsDisplayed()
   }
 
   @Test
   fun homeScreen_calendarModal_containsDatePicker() {
     composeTestRule.setContent {
-      AppTheme {
-        HomeScreen(
-          navController = rememberNavController(),
-          viewModel = viewModel
-        )
-      }
+      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
     }
 
     // Open calendar modal
-    composeTestRule.onNodeWithTag("calendar_button")
-      .performClick()
+    composeTestRule.onNodeWithTag("calendar_button").performClick()
 
     // Verify date picker is displayed in modal
-    composeTestRule.onNodeWithTag("date_picker")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("date_picker").assertIsDisplayed()
   }
 
   @Test
   fun homeScreen_calendarModal_calendarContainer_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme {
-        HomeScreen(
-          navController = rememberNavController(),
-          viewModel = viewModel
-        )
-      }
+      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
     }
 
     // Open calendar modal
-    composeTestRule.onNodeWithTag("calendar_button")
-      .performClick()
+    composeTestRule.onNodeWithTag("calendar_button").performClick()
 
     // Verify calendar container is displayed
-    composeTestRule.onNodeWithTag("calendar_container")
-      .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("calendar_container").assertIsDisplayed()
   }
 }

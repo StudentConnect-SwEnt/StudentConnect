@@ -1,11 +1,9 @@
 package com.github.se.studentconnect.viewmodel
 
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
-import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
-import com.google.firebase.Timestamp
+import java.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,7 +14,6 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomePageViewModelCalendarTest {
@@ -67,7 +64,7 @@ class HomePageViewModelCalendarTest {
   @Test
   fun onDateSelected_setsSelectedDateAndScrollTarget() = runTest {
     val testDate = Date()
-    
+
     // Initially no date should be selected
     assertNull(viewModel.uiState.value.selectedDate)
     assertNull(viewModel.uiState.value.scrollToDate)
@@ -78,7 +75,7 @@ class HomePageViewModelCalendarTest {
     // Selected date and scroll target should be set
     assertEquals(testDate, viewModel.uiState.value.selectedDate)
     assertEquals(testDate, viewModel.uiState.value.scrollToDate)
-    
+
     // Calendar should be hidden after selection
     assertFalse(viewModel.uiState.value.isCalendarVisible)
   }
@@ -86,7 +83,7 @@ class HomePageViewModelCalendarTest {
   @Test
   fun clearScrollTarget_clearsScrollToDate() = runTest {
     val testDate = Date()
-    
+
     // Set a scroll target
     viewModel.onDateSelected(testDate)
     assertEquals(testDate, viewModel.uiState.value.scrollToDate)
@@ -101,7 +98,7 @@ class HomePageViewModelCalendarTest {
   @Test
   fun getEventsForDate_withNoEvents_returnsEmptyList() = runTest {
     val testDate = Date()
-    
+
     // Get events for a date with no events
     val eventsForDate = viewModel.getEventsForDate(testDate)
 
@@ -112,7 +109,7 @@ class HomePageViewModelCalendarTest {
   @Test
   fun calendarStateManagement_worksCorrectly() = runTest {
     val testDate = Date()
-    
+
     // Test complete calendar workflow
     assertFalse(viewModel.uiState.value.isCalendarVisible)
     assertNull(viewModel.uiState.value.selectedDate)

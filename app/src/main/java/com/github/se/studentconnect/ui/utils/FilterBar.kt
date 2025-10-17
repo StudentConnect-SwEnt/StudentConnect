@@ -20,13 +20,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 
 @Composable
-fun FilterBar(
-  context: Context,
-  onCalendarClick: () -> Unit = { DialogNotImplemented(context) }
-) {
+fun FilterBar(context: Context, onCalendarClick: () -> Unit = { DialogNotImplemented(context) }) {
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -36,10 +32,7 @@ fun FilterBar(
             onClick = { DialogNotImplemented(context) },
             icon = R.drawable.ic_location)
         FilterChip(
-          icon = R.drawable.ic_calendar, 
-          onClick = onCalendarClick,
-          testTag = "calendar_button"
-        )
+            icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
             text = "Filtres",
             icon = R.drawable.ic_filter,
@@ -54,10 +47,10 @@ fun FilterBar(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun FilterChip(
-  onClick: () -> Unit, 
-  icon: Int, 
-  text: String? = null,
-  testTag: String? = null
+    onClick: () -> Unit,
+    icon: Int,
+    text: String? = null,
+    testTag: String? = null
 ) {
   Surface(
       onClick = onClick,

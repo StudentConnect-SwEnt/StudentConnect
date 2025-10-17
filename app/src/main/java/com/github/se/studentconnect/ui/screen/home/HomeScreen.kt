@@ -13,12 +13,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -26,9 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,7 +63,7 @@ import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Calendar
-import kotlinx.coroutines.delay
+import java.util.Date
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -76,6 +76,9 @@ fun HomeScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   var showNotifications by remember { mutableStateOf(false) }
+  val sheetState =
+      rememberModalBottomSheetState(
+          initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
   val sheetState = rememberModalBottomSheetState(
@@ -85,6 +88,7 @@ fun HomeScreen(
   val listState = rememberLazyListState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
+
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -167,6 +171,40 @@ fun HomeScreen(
   }
 
   ModalBottomSheetLayout(
+      modifier = Modifier.testTag("calendar_modal"),
+      sheetState = sheetState,
+      sheetContent = {
+        EventCalendar(
+            events = uiState.events,
+            selectedDate = uiState.selectedDate,
+            onDateSelected = { date -> viewModel.onDateSelected(date) })
+      }) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize().testTag("HomePage"),
+            topBar = {
+              HomeTopBar(
+                  showNotifications,
+                  onNotificationClick = { showNotifications = !showNotifications },
+                  onDismiss = { showNotifications = false })
+            }) { paddingValues ->
+              Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                if (uiState.isLoading) {
+                  CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else {
+                  Column {
+                    FilterBar(
+                        context = LocalContext.current,
+                        onCalendarClick = { viewModel.showCalendar() })
+                    EventListScreen(
+                        navController = navController,
+                        events = uiState.events,
+                        hasJoined = false,
+                        listState = listState)
+                  }
+                }
+              }
+            }
+      }
     sheetState = sheetState,
     sheetContent = {
       EventCalendar(
@@ -255,9 +293,9 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
  * Finds the date header and scrolls to it smoothly.
  */
 private suspend fun scrollToDate(
-  listState: LazyListState,
-  events: List<com.github.se.studentconnect.model.event.Event>,
-  targetDate: Date
+    listState: LazyListState,
+    events: List<com.github.se.studentconnect.model.event.Event>,
+    targetDate: Date
 ) {
   try {
     // Handle empty events list
@@ -266,9 +304,7 @@ private suspend fun scrollToDate(
     }
 
     // Group events by date header to find the target section
-    val groupedEvents = events.groupBy { event ->
-      formatDateHeader(event.start)
-    }
+    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
@@ -297,8 +333,8 @@ private suspend fun scrollToDate(
 }
 
 /**
- * Formats a date header for comparison with grouped events.
- * This should match the format used in ListOfEvents.kt
+ * Formats a date header for comparison with grouped events. This should match the format used in
+ * ListOfEvents.kt
  */
 private fun formatDateHeader(timestamp: com.google.firebase.Timestamp): String {
   val eventCalendar = Calendar.getInstance().apply { time = timestamp.toDate() }
@@ -310,7 +346,11 @@ private fun formatDateHeader(timestamp: com.google.firebase.Timestamp): String {
         eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
-    else -> java.text.SimpleDateFormat("EEEE d MMMM", java.util.Locale.FRENCH).format(timestamp.toDate()).uppercase()
+    else ->
+        java.text
+            .SimpleDateFormat("EEEE d MMMM", java.util.Locale.FRENCH)
+            .format(timestamp.toDate())
+            .uppercase()
   }
 }
 

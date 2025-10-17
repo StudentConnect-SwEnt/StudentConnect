@@ -53,10 +53,10 @@ import kotlin.collections.component2
  */
 @Composable
 fun EventListScreen(
-  navController: NavHostController, 
-  events: List<Event>, 
-  hasJoined: Boolean,
-  listState: LazyListState = rememberLazyListState()
+    navController: NavHostController,
+    events: List<Event>,
+    hasJoined: Boolean,
+    listState: LazyListState = rememberLazyListState()
 ) {
   val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
@@ -247,7 +247,8 @@ fun EventListScreenPreview() {
 
   AppTheme() {
     Surface(modifier = Modifier.fillMaxSize()) {
-      EventListScreen(navController = rememberNavController(), events = mockEvents, hasJoined = false)
+      EventListScreen(
+          navController = rememberNavController(), events = mockEvents, hasJoined = false)
     }
   }
 }
