@@ -1,12 +1,15 @@
 package com.github.se.studentconnect.ui.screens
 
 import FilterBar
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -26,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,40 +45,83 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.events.EventListScreen
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
-    viewModel: HomePageViewModel = viewModel()
+    viewModel: HomePageViewModel = viewModel(),
+    shouldOpenQRScanner: Boolean = false,
+    onQRScannerClosed: () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
   var showNotifications by remember { mutableStateOf(false) }
+  val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
+  val coroutineScope = rememberCoroutineScope()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
+
+  // Automatically open QR scanner if requested
+  LaunchedEffect(shouldOpenQRScanner) {
+    if (shouldOpenQRScanner && pagerState.currentPage != 0) {
+      pagerState.animateScrollToPage(0)
+    }
+  }
+
   Scaffold(
       modifier = Modifier.fillMaxSize().testTag("HomePage"),
       topBar = {
-        HomeTopBar(
-            showNotifications,
-            onNotificationClick = { showNotifications = !showNotifications },
-            onDismiss = { showNotifications = false })
-      }) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-          if (uiState.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-          } else {
-            Column {
-              FilterBar(LocalContext.current)
-              EventListScreen(navController = navController, events = uiState.events, false)
-            }
-          }
+        if (pagerState.currentPage == 1) {
+          HomeTopBar(
+              showNotifications = showNotifications,
+              onNotificationClick = { showNotifications = !showNotifications },
+              onDismiss = { showNotifications = false })
         }
+      }) { paddingValues ->
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            userScrollEnabled = true) { page ->
+              when (page) {
+                0 -> {
+                  // QR Scanner page
+                  QrScannerScreen(
+                      onBackClick = {
+                        onQRScannerClosed()
+                        coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                      },
+                      onProfileDetected = { userId ->
+                        // Navigate to visitor profile and return to home page
+                        onQRScannerClosed()
+                        navController.navigate(Route.visitorProfile(userId))
+                        coroutineScope.launch { pagerState.scrollToPage(1) }
+                      },
+                      isActive = pagerState.currentPage == 0)
+                }
+                1 -> {
+                  // Home content page
+                  Box(modifier = Modifier.fillMaxSize()) {
+                    if (uiState.isLoading) {
+                      CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    } else {
+                      Column {
+                        FilterBar(LocalContext.current)
+                        EventListScreen(
+                            navController = navController, events = uiState.events, false)
+                      }
+                    }
+                  }
+                }
+              }
+            }
       }
 }
 

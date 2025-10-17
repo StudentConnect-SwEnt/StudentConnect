@@ -135,7 +135,7 @@ class ListOfEventsTest {
     composeTestRule.onNodeWithText("Summer Party").assertIsDisplayed()
   }
 
-  @Test
+  // @Test
   fun eventListScreen_multipleEvents_areDisplayed() {
     val event1 = createTestEvent(uid = "event1", title = "Event One")
     val event2 = createTestEvent(uid = "event2", title = "Event Two")

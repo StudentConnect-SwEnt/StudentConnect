@@ -38,7 +38,10 @@ fun CameraView(
     noPermission: @Composable () -> Unit = {},
     captureButton: @Composable (() -> Unit)? = null, // null gives default button
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-    onImageCaptured: (Uri) -> Unit,
+    enableImageCapture: Boolean = true,
+    imageAnalyzer: ImageAnalysis.Analyzer? = null,
+    imageAnalysisConfig: (ImageAnalysis.Builder.() -> Unit)? = null,
+    onImageCaptured: (Uri) -> Unit = {},
     onCameraPermissionDenied: () -> Unit = {},
     onError: (Throwable) -> Unit = {},
 ) {
@@ -73,19 +76,71 @@ fun CameraView(
   }
 
   val previewView = remember { PreviewView(context) }
-  val imageCapture = remember { ImageCapture.Builder().build() }
+  val imageCapture =
+      remember(enableImageCapture) {
+        if (enableImageCapture) {
+          ImageCapture.Builder().build()
+        } else {
+          null
+        }
+      }
+  val cameraProviderState = remember { mutableStateOf<ProcessCameraProvider?>(null) }
+  val boundUseCases = remember { mutableStateListOf<UseCase>() }
+  val analysisExecutor =
+      remember(imageAnalyzer) {
+        if (imageAnalyzer != null) {
+          java.util.concurrent.Executors.newSingleThreadExecutor()
+        } else {
+          null
+        }
+      }
+  val imageAnalysis =
+      remember(imageAnalyzer, analysisExecutor, imageAnalysisConfig) {
+        if (imageAnalyzer != null && analysisExecutor != null) {
+          ImageAnalysis.Builder()
+              .apply { imageAnalysisConfig?.invoke(this) }
+              .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+              .build()
+              .apply { setAnalyzer(analysisExecutor, imageAnalyzer) }
+        } else {
+          null
+        }
+      }
+
+  DisposableEffect(imageAnalyzer) { onDispose { analysisExecutor?.shutdown() } }
 
   // Bind camera when Composable appears
-  LaunchedEffect(cameraSelector) {
+  LaunchedEffect(cameraSelector, imageAnalysis, imageCapture) {
     val cameraProvider = context.getCameraProvider()
+    cameraProviderState.value = cameraProvider
     val preview = Preview.Builder().build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
 
     try {
       cameraProvider.unbindAll()
-      cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageCapture)
+      val useCases = mutableListOf<UseCase>()
+      useCases += preview
+      imageCapture?.let { useCases += it }
+      imageAnalysis?.let { useCases += it }
+
+      cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, *useCases.toTypedArray())
+      boundUseCases.clear()
+      boundUseCases.addAll(useCases)
     } catch (e: Exception) {
       onError(e)
+    }
+  }
+
+  DisposableEffect(cameraProviderState.value) {
+    val providerAtStart = cameraProviderState.value
+    val useCasesAtStart = boundUseCases.toList()
+    onDispose {
+      if (providerAtStart != null && useCasesAtStart.isNotEmpty()) {
+        providerAtStart.unbind(*useCasesAtStart.toTypedArray())
+        if (providerAtStart == cameraProviderState.value) {
+          boundUseCases.removeAll(useCasesAtStart)
+        }
+      }
     }
   }
 
@@ -94,32 +149,34 @@ fun CameraView(
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 
     // Capture button overlay
-    Box(
-        modifier =
-            Modifier.align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .size(72.dp)
-                .background(Color.White, CircleShape)
-                .clickable {
-                  coroutineScope.launch {
-                    try {
-                      val uri = capturePhoto(context, imageCapture)
-                      uri?.let(onImageCaptured)
-                    } catch (e: Exception) {
-                      onError(e)
+    if (enableImageCapture && imageCapture != null) {
+      Box(
+          modifier =
+              Modifier.align(Alignment.BottomCenter)
+                  .padding(16.dp)
+                  .size(72.dp)
+                  .background(Color.White, CircleShape)
+                  .clickable {
+                    coroutineScope.launch {
+                      try {
+                        val uri = capturePhoto(context, imageCapture)
+                        uri?.let(onImageCaptured)
+                      } catch (e: Exception) {
+                        onError(e)
+                      }
                     }
-                  }
-                },
-        contentAlignment = Alignment.Center) {
-          if (captureButton != null) {
-            captureButton()
-          } else {
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Capture",
-                tint = Color.Black)
+                  },
+          contentAlignment = Alignment.Center) {
+            if (captureButton != null) {
+              captureButton()
+            } else {
+              Icon(
+                  imageVector = Icons.Default.CameraAlt,
+                  contentDescription = "Capture",
+                  tint = Color.Black)
+            }
           }
-        }
+    }
   }
 }
 

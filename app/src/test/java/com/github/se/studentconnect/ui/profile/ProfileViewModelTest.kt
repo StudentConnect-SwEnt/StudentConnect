@@ -2,7 +2,7 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.activities.Invitation
+import com.github.se.studentconnect.ui.screen.activities.Invitation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -412,6 +412,8 @@ class ProfileViewModelTest {
     override suspend fun getInvitations(userId: String): List<Invitation> = unsupported()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = unsupported()
+
+    override suspend fun declineInvitation(eventId: String, userId: String) = unsupported()
 
     override suspend fun joinEvent(eventId: String, userId: String) = unsupported()
 
