@@ -120,7 +120,7 @@ object FirebaseEmulator {
     val listRequest = Request.Builder().url(endpoint).get().build()
     val listResponse = client.newCall(listRequest).execute()
     if (!listResponse.isSuccessful) {
-      println("⚠️  Failed to list storage objects: ${listResponse.code}")
+      println("Failed to list storage objects: ${listResponse.code}")
       return
     }
 
