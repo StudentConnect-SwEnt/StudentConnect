@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.experiences
+package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.animateColorAsState

@@ -28,7 +28,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     return if (document.exists()) {
       User.fromMap(document.data ?: emptyMap())
     } else {
-      throw IllegalArgumentException("No user found with ID: $userId")
+      null // Return null for non-existent users (e.g., first-time users during onboarding)
     }
   }
 
@@ -39,7 +39,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
       val document = querySnapshot.documents.first()
       User.fromMap(document.data ?: emptyMap())
     } else {
-      throw IllegalArgumentException("No user found with email: $email")
+      null // Return null for non-existent users
     }
   }
 

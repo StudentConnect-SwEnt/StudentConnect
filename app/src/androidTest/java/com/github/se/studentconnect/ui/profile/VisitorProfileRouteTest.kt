@@ -13,6 +13,7 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.profile.VisitorProfileRoute
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CompletableDeferred
