@@ -10,7 +10,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.launch
 
 /**
@@ -48,7 +51,8 @@ import kotlinx.coroutines.launch
 fun SignUpOrchestrator(
     firebaseUserId: String,
     email: String,
-    userRepository: UserRepository,
+    userRepository: UserRepository = UserRepositoryProvider.repository,
+    mediaRepository: MediaRepository = MediaRepositoryProvider.repository,
     onSignUpComplete: (User) -> Unit,
     signUpViewModel: SignUpViewModel = viewModel()
 ) {
@@ -91,7 +95,7 @@ fun SignUpOrchestrator(
     }
     SignUpStep.AddPicture -> {
       AddPictureScreen(
-          viewModel = signUpViewModel,
+          signUpViewModel = signUpViewModel,
           onSkip = { signUpViewModel.nextStep() },
           onContinue = { signUpViewModel.nextStep() },
           onBack = { signUpViewModel.prevStep() })
@@ -128,6 +132,13 @@ fun SignUpOrchestrator(
                 android.util.Log.d(
                     "SignUpOrchestrator", "Creating user profile for: $firebaseUserId")
 
+                // upload profile picture to firebase storage
+                val profilePictureUrl =
+                    if (signUpState.profilePictureUri != null)
+                        mediaRepository.upload(
+                            signUpState.profilePictureUri!!, "/users/profile/{firebaseUserId}")
+                    else null
+
                 val user =
                     User(
                         userId = firebaseUserId,
@@ -137,7 +148,7 @@ fun SignUpOrchestrator(
                         birthdate = signUpState.birthdate,
                         university = "EPFL", // TODO: Add university selection
                         hobbies = selectedExperienceTopics.toList(),
-                        profilePictureUrl = signUpState.profilePictureUri,
+                        profilePictureUrl = profilePictureUrl,
                         bio = signUpState.bio,
                         country = signUpState.nationality)
 

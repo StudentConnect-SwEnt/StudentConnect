@@ -1,6 +1,9 @@
+// Portions of this code were generated with the help of ChatGPT
+
 package com.github.se.studentconnect.ui.screen.signup
 
 // import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,11 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.camera.CameraView
 
 // import com.github.se.studentconnect.ui.theme.AppTheme
-
-private const val DEFAULT_PLACEHOLDER = "ic_user"
 
 /**
  * Screen for adding a profile picture during the signup flow.
@@ -55,87 +57,109 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
  * a placeholder. It integrates with the SignUpViewModel to manage the profile picture state and
  * provides callbacks for navigation actions.
  *
- * @param viewModel The SignUpViewModel that manages the signup flow state
- * @param onPickImage Callback function that handles image picking. Receives a result callback that
- *   should be called with the selected image URI (or null if cancelled)
+ * @param signUpViewModel The SignUpViewModel that manages the signup flow state
  * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
  * @param onContinue Callback invoked when the user wants to proceed to the next step
  * @param onBack Callback invoked when the user wants to go back to the previous step
  */
 @Composable
 fun AddPictureScreen(
-    viewModel: SignUpViewModel,
-    onPickImage: (onResult: (String?) -> Unit) -> Unit = {},
+    signUpViewModel: SignUpViewModel = viewModel(),
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit
 ) {
-  val signUpState by viewModel.state
-  var profileUri by remember { mutableStateOf(signUpState.profilePictureUri) }
+  val signUpState by signUpViewModel.state
 
-  LaunchedEffect(signUpState.profilePictureUri) { profileUri = signUpState.profilePictureUri }
+  var showCamera by remember { mutableStateOf(false) }
 
-  val canContinue = !profileUri.isNullOrBlank()
+  val canContinue = signUpState.profilePictureUri != null
 
-  Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
-      horizontalAlignment = Alignment.Start) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-          IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.Start) {
+          Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+              Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Spacer(Modifier.weight(1f))
+            SkipButton(
+                onClick = {
+                  signUpViewModel.setProfilePictureUri(null)
+                  onSkip()
+                })
           }
-          Spacer(Modifier.weight(1f))
-          SkipButton(
-              onClick = {
-                viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-                profileUri = DEFAULT_PLACEHOLDER
-                onSkip()
-              })
+
+          Spacer(Modifier.height(16.dp))
+
+          Text(
+              text = "Add a profile picture",
+              style =
+                  MaterialTheme.typography.headlineMedium.copy(
+                      fontFamily = FontFamily.SansSerif,
+                      fontWeight = FontWeight.Bold,
+                      color = MaterialTheme.colorScheme.primary))
+          Spacer(Modifier.height(4.dp))
+          Text(
+              text = "Let others know what you look like !",
+              style =
+                  MaterialTheme.typography.bodyMedium.copy(
+                      fontFamily = FontFamily.SansSerif,
+                      fontWeight = FontWeight.Normal,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant),
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis)
+
+          Spacer(Modifier.height(24.dp))
+
+          UploadCard(
+              modifier = Modifier.align(Alignment.CenterHorizontally),
+              hasSelection = signUpState.profilePictureUri != null,
+              onClick = { showCamera = true })
+
+          Spacer(modifier = Modifier.weight(1f))
+
+          PrimaryActionButton(
+              modifier = Modifier.align(Alignment.CenterHorizontally),
+              text = "Continue",
+              iconRes = R.drawable.ic_arrow_forward,
+              onClick = onContinue,
+              enabled = canContinue)
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            text = "Add a profile picture",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Let others know what you look like !",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
-
-        Spacer(Modifier.height(24.dp))
-
-        UploadCard(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            hasSelection = !profileUri.isNullOrBlank() && profileUri != DEFAULT_PLACEHOLDER,
-            onClick = {
-              onPickImage { uri ->
-                if (!uri.isNullOrBlank()) {
-                  viewModel.setProfilePictureUri(uri)
-                  profileUri = uri
-                }
+    // Fullscreen Camera Overlay
+    if (showCamera) {
+      Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        CameraView(
+            modifier = Modifier.fillMaxSize(),
+            onImageCaptured = { uri ->
+              signUpViewModel.setProfilePictureUri(uri)
+              showCamera = false // close camera after capture
+            },
+            onCameraPermissionDenied = { showCamera = false },
+            onError = { showCamera = false },
+            noPermission = {
+              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Camera permission denied", color = Color.White)
               }
             })
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        PrimaryActionButton(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            text = "Continue",
-            iconRes = R.drawable.ic_arrow_forward,
-            onClick = onContinue,
-            enabled = canContinue)
+        // Optional back button overlay while camera is open
+        IconButton(
+            onClick = { showCamera = false },
+            modifier =
+                Modifier.align(Alignment.TopStart)
+                    .padding(16.dp)
+                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)) {
+              Icon(
+                  Icons.AutoMirrored.Filled.ArrowBack,
+                  contentDescription = "Close camera",
+                  tint = Color.White)
+            }
       }
+    }
+  }
 }
 
 @Composable
