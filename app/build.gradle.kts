@@ -13,7 +13,7 @@ plugins {
 
 android {
     namespace = "com.github.se.studentconnect"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.github.se.studentconnect"
