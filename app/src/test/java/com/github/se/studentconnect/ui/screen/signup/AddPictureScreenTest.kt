@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import org.junit.After
@@ -25,8 +26,8 @@ class AddPictureScreenTest {
     private const val UPLOAD_PROMPT = "Upload/Take your profile photo"
     private const val PICKER_SUCCESS_URI = "content://photo/42"
     private const val BACK_DESCRIPTION = "Back"
-    private const val PLACEHOLDER = "ic_user"
-    private const val DEFAULT_PLACEHOLDER = "ic_user"
+    private val PLACEHOLDER = Uri.parse("ic_user")
+    private val DEFAULT_PLACEHOLDER = Uri.parse("ic_user")
   }
 
   private lateinit var controller: ActivityController<ComponentActivity>
@@ -62,7 +63,7 @@ class AddPictureScreenTest {
     // Simulate skip action by calling the callback directly
     // In a real test, this would be triggered by clicking the Skip button
     // For now, we test the ViewModel behavior
-    viewModel.setProfilePictureUri(PLACEHOLDER)
+    viewModel.setProfilePictureUri(Uri.parse(PLACEHOLDER))
 
     assertEquals("Placeholder should be set", PLACEHOLDER, viewModel.state.value.profilePictureUri)
     // Note: skipInvoked would be true if the Skip button was actually clicked
