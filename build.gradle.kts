@@ -21,3 +21,11 @@ sonar {
         property("sonar.coverage.jacoco.xmlReportPaths", "${project(":app").layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
     }
 }
+
+// Override Sonar's outdated bouncycastle version
+buildscript {
+    dependencies {
+        classpath(libs.bouncycastle)
+    }
+}
+
