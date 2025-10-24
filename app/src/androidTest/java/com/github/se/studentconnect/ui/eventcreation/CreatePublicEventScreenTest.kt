@@ -4,8 +4,7 @@ package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import com.github.se.studentconnect.MainActivity
+import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
@@ -16,13 +15,13 @@ import org.junit.Test
 @OptIn(ExperimentalTestApi::class)
 class CreatePublicEventScreenTest : StudentConnectTest() {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule val composeTestRule = createComposeRule()
 
   override fun createInitializedRepository() = EventRepositoryLocal()
 
   @Before
   fun setUpContent() {
-    composeTestRule.activity.setContent { AppTheme { CreatePublicEventScreen() } }
+    composeTestRule.setContent { AppTheme { CreatePublicEventScreen() } }
   }
 
   private fun waitForTag(tag: String) {
