@@ -3,12 +3,14 @@ package com.github.se.studentconnect.ui.screen.search
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
+import kotlinx.coroutines.launch
 
 /** Represents the state of the search screen. */
 data class SearchState(
@@ -28,6 +30,10 @@ class SearchViewModel(
   private val _state = mutableStateOf(SearchState())
   /** The current state of the search screen. */
   val state: State<SearchState> = _state
+
+  init {
+    viewModelScope.launch { init() }
+  }
 
   /**
    * Initializes the ViewModel by fetching all events and users from the repositories. This function

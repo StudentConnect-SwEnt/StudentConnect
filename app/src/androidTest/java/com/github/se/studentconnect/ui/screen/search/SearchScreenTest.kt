@@ -1,10 +1,10 @@
 package com.github.se.studentconnect.ui.screen.search
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextInput
 import com.github.se.studentconnect.model.User
@@ -22,6 +22,8 @@ import org.junit.Rule
 import org.junit.Test
 
 class SearchScreenTest {
+
+  @get:Rule val composeTestRule = createComposeRule()
 
   private suspend fun initUserRepository() {
     UserRepositoryProvider.repository = UserRepositoryLocal()
@@ -75,25 +77,37 @@ class SearchScreenTest {
 
   @Composable
   private fun TestSearchScreen() {
-    val viewModel = SearchViewModel()
-    LaunchedEffect(Unit) { viewModel.init() }
-    SearchScreen(viewModel = viewModel)
+    SearchScreen()
   }
-
-  @get:Rule val composeTestRule = createComposeRule()
 
   @Before
   fun setup() = runTest {
     initUserRepository()
     initEventRepository()
     composeTestRule.setContent { AppTheme { TestSearchScreen() } }
+    composeTestRule.waitForIdle() // wait for first composition
   }
 
   @Test
   fun testSearchPageDisplayed() {
+    composeTestRule.waitForIdle()
+
     composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
+
+    // Wait until users/events have been loaded and UI updated
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.user_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.event_search_result)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+    }
+
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsDisplayed()
@@ -103,6 +117,11 @@ class SearchScreenTest {
   @Test
   fun testSearchUserDisplayed() {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("user")
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule.onAllNodesWithTag(C.Tag.user_search_result).fetchSemanticsNodes().isNotEmpty()
+    }
 
     composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
@@ -116,6 +135,14 @@ class SearchScreenTest {
   @Test
   fun testSearchEventDisplayed() {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("sample")
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.event_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
 
     composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
@@ -129,6 +156,14 @@ class SearchScreenTest {
   @Test
   fun testSearchEventDisplayedWhenNotStart() {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("event")
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.event_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
 
     composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
@@ -142,6 +177,10 @@ class SearchScreenTest {
   @Test
   fun testSearchNothingDisplayed() {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("nothing")
+    composeTestRule.waitForIdle()
+
+    // Wait to ensure recomposition finished even if no results
+    composeTestRule.waitUntil(timeoutMillis = 5_000) { true }
 
     composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()

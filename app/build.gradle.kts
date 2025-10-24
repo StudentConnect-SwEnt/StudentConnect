@@ -8,11 +8,12 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.gms)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinComposeCompiler)
 }
 
 android {
     namespace = "com.github.se.studentconnect"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.github.se.studentconnect"
@@ -50,9 +51,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -123,6 +121,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // Jetpack Compose UI
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.ui.graphics)
@@ -186,11 +185,11 @@ dependencies {
     testImplementation(libs.json)
 
     // Test UI
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.android)
