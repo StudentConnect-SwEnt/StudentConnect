@@ -41,9 +41,10 @@ object EventRepositoryProvider {
             ownerId = "ownerId1",
             title = "The Killers Concert",
             description = "...",
-            location = Location(46.5191, 6.5668, "EPFL"),
+            location = Location(46.5191, 2.33333, "EPFL"),
             start = date(300),
             isFlash = false,
+            participationFee = 12u,
             subtitle = "Live at EPFL!"),
         // Event 2
         Event.Public(
@@ -54,6 +55,7 @@ object EventRepositoryProvider {
             location = Location(46.5204, 6.5654, "SwissTech Convention Center"),
             start = date(86400),
             isFlash = false,
+            participationFee = 12u,
             subtitle = "Live at EPFL!"),
         // Event 3
         Event.Public(
