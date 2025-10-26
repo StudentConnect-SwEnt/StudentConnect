@@ -31,9 +31,7 @@ fun TestMapboxMap(modifier: Modifier = Modifier, content: @Composable () -> Unit
       }
 }
 
-/**
- * Test version of the location picker map that simulates map clicks without using real Mapbox
- */
+/** Test version of the location picker map that simulates map clicks without using real Mapbox */
 @Composable
 fun TestLocationPickerMap(
     modifier: Modifier = Modifier,
@@ -53,7 +51,8 @@ fun TestLocationPickerMap(
               },
       contentAlignment = Alignment.Center) {
         Text(
-            text = "Test Location Picker Map\n${selectedPoint?.let { "Selected: ${String.format("%.4f", it.latitude())}, ${String.format("%.4f", it.longitude())}" } ?: "Tap to select"}",
+            text =
+                "Test Location Picker Map\n${selectedPoint?.let { "Selected: ${String.format("%.4f", it.latitude())}, ${String.format("%.4f", it.longitude())}" } ?: "Tap to select"}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag("map_status_text"))

@@ -29,8 +29,8 @@ import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
 
 /**
- * Composable for the map component in LocationPickerDialog.
- * This can be replaced with a test version during testing.
+ * Composable for the map component in LocationPickerDialog. This can be replaced with a test
+ * version during testing.
  */
 @Composable
 fun LocationPickerMapComponent(
@@ -41,26 +41,30 @@ fun LocationPickerMapComponent(
 ) {
   MapboxMap(
       modifier = modifier,
-      mapViewportState = rememberMapViewportState {
-        setCameraOptions {
-          center(selectedPoint ?: Point.fromLngLat(
-              MapConfiguration.Coordinates.EPFL_LONGITUDE,
-              MapConfiguration.Coordinates.EPFL_LATITUDE))
-          zoom(MapConfiguration.Zoom.DEFAULT)
-        }
-      },
+      mapViewportState =
+          rememberMapViewportState {
+            setCameraOptions {
+              center(
+                  selectedPoint
+                      ?: Point.fromLngLat(
+                          MapConfiguration.Coordinates.EPFL_LONGITUDE,
+                          MapConfiguration.Coordinates.EPFL_LATITUDE))
+              zoom(MapConfiguration.Zoom.DEFAULT)
+            }
+          },
       scaleBar = {},
       logo = {},
       attribution = {},
       compass = {},
-      onMapClickListener = OnMapClickListener { point ->
-        onMapClick(point)
-        true
-      }) {
-    if (selectedPoint != null) {
-      PointAnnotation(point = selectedPoint)
-    }
-  }
+      onMapClickListener =
+          OnMapClickListener { point ->
+            onMapClick(point)
+            true
+          }) {
+        if (selectedPoint != null) {
+          PointAnnotation(point = selectedPoint)
+        }
+      }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -129,8 +133,7 @@ fun LocationPickerDialog(
             modifier =
                 Modifier.fillMaxSize()
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    .wrapContentSize(Alignment.Center)
-            ) {
+                    .wrapContentSize(Alignment.Center)) {
               Card(
                   modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.7f),
                   shape = RoundedCornerShape(16.dp),
