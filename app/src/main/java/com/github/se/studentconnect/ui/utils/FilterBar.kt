@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
@@ -43,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -106,161 +109,168 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
     ModalBottomSheet(
         onDismissRequest = { showBottomSheet = false },
         sheetState = sheetState,
-        // dragHandle = { ModalBottomSheetDefaults.DragHandle() }
     ) {
-      Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-              Text("Filter Events", style = MaterialTheme.typography.headlineSmall)
-              Icon(
-                  imageVector = Icons.Default.Close,
-                  contentDescription = "Close Filters",
-                  modifier =
-                      Modifier.size(24.dp).clickable {
-                        scope
-                            .launch { sheetState.hide() }
-                            .invokeOnCompletion {
-                              if (!sheetState.isVisible) {
-                                showBottomSheet = false
-                              }
-                            }
-                      })
-            }
-        Spacer(modifier = Modifier.height(24.dp))
+      val scrollState = rememberScrollState()
+      Column(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .height(LocalConfiguration.current.screenHeightDp.dp * 0.75f)
+                  .padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically) {
+                  Text("Filter Events", style = MaterialTheme.typography.headlineSmall)
+                  Icon(
+                      imageVector = Icons.Default.Close,
+                      contentDescription = "Close Filters",
+                      modifier =
+                          Modifier.size(24.dp).clickable {
+                            scope
+                                .launch { sheetState.hide() }
+                                .invokeOnCompletion {
+                                  if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                  }
+                                }
+                          })
+                }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              availableCategories.forEach { category ->
-                Column {
-                  val isCategorySelected = category in selectedFilters
-                  SelectableChip(
-                      text = category,
-                      isSelected = isCategorySelected,
-                      onClick = {
-                        if (isCategorySelected) {
-                          selectedFilters.remove(category)
-                          experienceTopics[category]?.forEach { topic ->
-                            selectedFilters.remove(topic)
-                          }
-                        } else {
-                          selectedFilters.add(category)
-                        }
-                      })
-                  AnimatedVisibility(
-                      visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
-                        val topics = experienceTopics[category] ?: emptyList()
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                              topics.take(8).forEach { topic ->
-                                TopicMiniChip(
-                                    text = topic,
-                                    isSelected = topic in selectedFilters,
-                                    onClick = {
-                                      if (topic in selectedFilters) {
-                                        selectedFilters.remove(topic)
-                                      } else {
-                                        selectedFilters.add(topic)
-                                      }
-                                    })
+            Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState)) {
+              Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
+              Spacer(modifier = Modifier.height(8.dp))
+              FlowRow(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+                  verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    availableCategories.forEach { category ->
+                      Column {
+                        val isCategorySelected = category in selectedFilters
+                        SelectableChip(
+                            text = category,
+                            isSelected = isCategorySelected,
+                            onClick = {
+                              if (isCategorySelected) {
+                                selectedFilters.remove(category)
+                                experienceTopics[category]?.forEach { topic ->
+                                  selectedFilters.remove(topic)
+                                }
+                              } else {
+                                selectedFilters.add(category)
                               }
+                            })
+                        AnimatedVisibility(
+                            visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
+                              val topics = experienceTopics[category] ?: emptyList()
+                              FlowRow(
+                                  modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                  horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                  verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    topics.take(8).forEach { topic ->
+                                      TopicMiniChip(
+                                          text = topic,
+                                          isSelected = topic in selectedFilters,
+                                          onClick = {
+                                            if (topic in selectedFilters) {
+                                              selectedFilters.remove(topic)
+                                            } else {
+                                              selectedFilters.add(topic)
+                                            }
+                                          })
+                                    }
+                                  }
                             }
                       }
-                }
-              }
-            }
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text("Location", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-          Icon(
-              imageVector = Icons.Default.LocationOn,
-              contentDescription = "Location",
-              modifier = Modifier.size(24.dp))
-          Spacer(modifier = Modifier.width(8.dp))
-          Button(
-              onClick = {
-                showLocationPicker = true
-                // scope.launch { sheetState.hide() }
-              }) {
-                Text(selectedLocation?.name ?: "Select Location")
-              }
-        }
-        Text(
-            "Radius: ${searchRadius.toInt()} km",
-            modifier = Modifier.padding(top = 8.dp),
-            color =
-                if (selectedLocation == null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                else MaterialTheme.colorScheme.onSurface)
-        Slider(
-            value = searchRadius,
-            onValueChange = { searchRadius = it },
-            valueRange = 1f..100f,
-            steps = 99,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = selectedLocation != null)
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text("Price (€)", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        RangeSlider(
-            value = priceRange,
-            onValueChange = { priceRange = it },
-            valueRange = 0f..200f,
-            steps = 199,
-            onValueChangeFinished = {},
-            modifier = Modifier.fillMaxWidth())
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-          Text("Min: ${priceRange.start.toInt()}€")
-          Text("Max: ${priceRange.endInclusive.toInt()}€")
-        }
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-              val filters =
-                  FilterData(
-                      categories = selectedFilters.toList(),
-                      location = selectedLocation,
-                      radiusKm = searchRadius,
-                      priceRange = priceRange,
-                      showOnlyFavorites = showOnlyFavorites)
-              onApplyFilters(filters)
-              scope
-                  .launch { sheetState.hide() }
-                  .invokeOnCompletion {
-                    if (!sheetState.isVisible) {
-                      showBottomSheet = false
                     }
                   }
-            },
-            modifier = Modifier.fillMaxWidth()) {
-              Text("Apply Filters")
+              Spacer(modifier = Modifier.height(24.dp))
+
+              Text("Location", style = MaterialTheme.typography.titleMedium)
+              Spacer(modifier = Modifier.height(8.dp))
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  modifier = Modifier.fillMaxWidth()) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { showLocationPicker = true }) {
+                      Text(selectedLocation?.name ?: "Select Location")
+                    }
+                  }
+              Text(
+                  "Radius: ${searchRadius.toInt()} km",
+                  modifier = Modifier.padding(top = 8.dp),
+                  color =
+                      if (selectedLocation == null)
+                          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                      else MaterialTheme.colorScheme.onSurface)
+              Slider(
+                  value = searchRadius,
+                  onValueChange = { searchRadius = it },
+                  valueRange = 1f..100f,
+                  steps = 99,
+                  modifier = Modifier.fillMaxWidth(),
+                  enabled = selectedLocation != null)
+              Spacer(modifier = Modifier.height(24.dp))
+
+              Text("Price (€)", style = MaterialTheme.typography.titleMedium)
+              Spacer(modifier = Modifier.height(8.dp))
+              RangeSlider(
+                  value = priceRange,
+                  onValueChange = { priceRange = it },
+                  valueRange = 0f..200f,
+                  steps = 199,
+                  onValueChangeFinished = {},
+                  modifier = Modifier.fillMaxWidth())
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Min: ${priceRange.start.toInt()}€")
+                    Text("Max: ${priceRange.endInclusive.toInt()}€")
+                  }
+              Spacer(modifier = Modifier.height(16.dp))
             }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                  val filters =
+                      FilterData(
+                          categories = selectedFilters.toList(),
+                          location = selectedLocation,
+                          radiusKm = searchRadius,
+                          priceRange = priceRange,
+                          showOnlyFavorites = showOnlyFavorites)
+                  onApplyFilters(filters)
+                  scope
+                      .launch { sheetState.hide() }
+                      .invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                          showBottomSheet = false
+                        }
+                      }
+                },
+                modifier = Modifier.fillMaxWidth()) {
+                  Text("Apply Filters")
+                }
 
-        Button(
-            onClick = {
-              selectedFilters.clear()
-              selectedLocation = null
-              searchRadius = 10f
-              priceRange = 0f..50f
-              onApplyFilters(FilterData(emptyList(), null, 10f, 0f..50f, showOnlyFavorites))
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors()) {
-              Text("Reset Filters")
-            }
-      }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                  selectedFilters.clear()
+                  selectedLocation = null
+                  searchRadius = 10f
+                  priceRange = 0f..50f
+                  onApplyFilters(FilterData(emptyList(), null, 10f, 0f..50f, showOnlyFavorites))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors()) {
+                  Text("Reset Filters")
+                }
+          }
       if (showLocationPicker) {
         LocationPickerDialog(
             initialLocation = selectedLocation,
