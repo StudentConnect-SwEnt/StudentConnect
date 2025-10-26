@@ -138,102 +138,107 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                 }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState).testTag("filter_bottom_sheet_scroll")) {
-              Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
-              Spacer(modifier = Modifier.height(8.dp))
-              FlowRow(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-                  verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    availableCategories.forEach { category ->
-                      Column {
-                        val isCategorySelected = category in selectedFilters
-                        SelectableChip(
-                            text = category,
-                            isSelected = isCategorySelected,
-                            onClick = {
-                              if (isCategorySelected) {
-                                selectedFilters.remove(category)
-                                experienceTopics[category]?.forEach { topic ->
-                                  selectedFilters.remove(topic)
-                                }
-                              } else {
-                                selectedFilters.add(category)
-                              }
-                            })
-                        AnimatedVisibility(
-                            visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
-                              val topics = experienceTopics[category] ?: emptyList()
-                              FlowRow(
-                                  modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                  horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                  verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    topics.take(8).forEach { topic ->
-                                      TopicMiniChip(
-                                          text = topic,
-                                          isSelected = topic in selectedFilters,
-                                          onClick = {
-                                            if (topic in selectedFilters) {
-                                              selectedFilters.remove(topic)
-                                            } else {
-                                              selectedFilters.add(topic)
-                                            }
-                                          })
+            Column(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(scrollState)
+                        .testTag("filter_bottom_sheet_scroll")) {
+                  Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
+                  Spacer(modifier = Modifier.height(8.dp))
+                  FlowRow(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.spacedBy(8.dp),
+                      verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        availableCategories.forEach { category ->
+                          Column {
+                            val isCategorySelected = category in selectedFilters
+                            SelectableChip(
+                                text = category,
+                                isSelected = isCategorySelected,
+                                onClick = {
+                                  if (isCategorySelected) {
+                                    selectedFilters.remove(category)
+                                    experienceTopics[category]?.forEach { topic ->
+                                      selectedFilters.remove(topic)
                                     }
+                                  } else {
+                                    selectedFilters.add(category)
                                   }
-                            }
+                                })
+                            AnimatedVisibility(
+                                visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
+                                  val topics = experienceTopics[category] ?: emptyList()
+                                  FlowRow(
+                                      modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                      horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                      verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        topics.take(8).forEach { topic ->
+                                          TopicMiniChip(
+                                              text = topic,
+                                              isSelected = topic in selectedFilters,
+                                              onClick = {
+                                                if (topic in selectedFilters) {
+                                                  selectedFilters.remove(topic)
+                                                } else {
+                                                  selectedFilters.add(topic)
+                                                }
+                                              })
+                                        }
+                                      }
+                                }
+                          }
+                        }
                       }
-                    }
-                  }
-              Spacer(modifier = Modifier.height(24.dp))
+                  Spacer(modifier = Modifier.height(24.dp))
 
-              Text("Location", style = MaterialTheme.typography.titleMedium)
-              Spacer(modifier = Modifier.height(8.dp))
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Location",
-                        modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { showLocationPicker = true }) {
-                      Text(selectedLocation?.name ?: "Select Location")
-                    }
-                  }
-              Text(
-                  "Radius: ${searchRadius.toInt()} km",
-                  modifier = Modifier.padding(top = 8.dp),
-                  color =
-                      if (selectedLocation == null)
-                          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                      else MaterialTheme.colorScheme.onSurface)
-              Slider(
-                  value = searchRadius,
-                  onValueChange = { searchRadius = it },
-                  valueRange = 1f..100f,
-                  steps = 99,
-                  modifier = Modifier.fillMaxWidth(),
-                  enabled = selectedLocation != null)
-              Spacer(modifier = Modifier.height(24.dp))
+                  Text("Location", style = MaterialTheme.typography.titleMedium)
+                  Spacer(modifier = Modifier.height(8.dp))
+                  Row(
+                      verticalAlignment = Alignment.CenterVertically,
+                      modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { showLocationPicker = true }) {
+                          Text(selectedLocation?.name ?: "Select Location")
+                        }
+                      }
+                  Text(
+                      "Radius: ${searchRadius.toInt()} km",
+                      modifier = Modifier.padding(top = 8.dp),
+                      color =
+                          if (selectedLocation == null)
+                              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                          else MaterialTheme.colorScheme.onSurface)
+                  Slider(
+                      value = searchRadius,
+                      onValueChange = { searchRadius = it },
+                      valueRange = 1f..100f,
+                      steps = 99,
+                      modifier = Modifier.fillMaxWidth(),
+                      enabled = selectedLocation != null)
+                  Spacer(modifier = Modifier.height(24.dp))
 
-              Text("Price (€)", style = MaterialTheme.typography.titleMedium)
-              Spacer(modifier = Modifier.height(8.dp))
-              RangeSlider(
-                  value = priceRange,
-                  onValueChange = { priceRange = it },
-                  valueRange = 0f..200f,
-                  steps = 199,
-                  onValueChangeFinished = {},
-                  modifier = Modifier.fillMaxWidth())
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Min: ${priceRange.start.toInt()}€")
-                    Text("Max: ${priceRange.endInclusive.toInt()}€")
-                  }
-              Spacer(modifier = Modifier.height(16.dp))
-            }
+                  Text("Price (€)", style = MaterialTheme.typography.titleMedium)
+                  Spacer(modifier = Modifier.height(8.dp))
+                  RangeSlider(
+                      value = priceRange,
+                      onValueChange = { priceRange = it },
+                      valueRange = 0f..200f,
+                      steps = 199,
+                      onValueChangeFinished = {},
+                      modifier = Modifier.fillMaxWidth())
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Min: ${priceRange.start.toInt()}€")
+                        Text("Max: ${priceRange.endInclusive.toInt()}€")
+                      }
+                  Spacer(modifier = Modifier.height(16.dp))
+                }
 
             Button(
                 onClick = {
