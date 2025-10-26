@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,14 +54,6 @@ object HttpClientProvider {
   var client: OkHttpClient = OkHttpClient()
 }
 
-/** App state machine with clear states for managing authentication and onboarding flow. */
-private enum class AppState {
-  LOADING, // Checking auth status on app start
-  AUTHENTICATION, // Show GetStartedScreen (not authenticated)
-  ONBOARDING, // Show SignUpOrchestrator (authenticated but no profile)
-  MAIN_APP // Show main app with navigation (authenticated with profile)
-}
-
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -78,7 +72,11 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Main content composable that manages the entire app flow using a state machine.
+ * Main content composable that manages the entire app flow using a ViewModel and state machine.
+ *
+ * This composable delegates all authentication and user profile checking logic to MainViewModel,
+ * following MVVM principles. The ViewModel manages the AppState and provides clean separation
+ * between UI and business logic.
  *
  * **State Machine Flow:**
  *
@@ -93,16 +91,16 @@ class MainActivity : ComponentActivity() {
  * ```
  *
  * **First-Time User Flow:**
- * 1. App starts → LOADING state
+ * 1. App starts → ViewModel checks auth state
  * 2. No Firebase user found → AUTHENTICATION state (GetStartedScreen)
- * 3. User signs in with Google → currentUserId updated
- * 4. LaunchedEffect checks profile → no profile exists → ONBOARDING state
+ * 3. User signs in with Google → ViewModel's onUserSignedIn() called
+ * 4. ViewModel checks profile → no profile exists → ONBOARDING state
  * 5. User completes onboarding → profile saved to Firestore
- * 6. onSignUpComplete callback → MAIN_APP state
+ * 6. ViewModel's onUserProfileCreated() called → MAIN_APP state
  *
  * **Returning User Flow:**
- * 1. App starts → LOADING state
- * 2. Firebase user found → checks Firestore for profile
+ * 1. App starts → ViewModel checks auth state
+ * 2. Firebase user found → ViewModel checks Firestore for profile
  * 3. Profile exists → directly to MAIN_APP state
  *
  * The key distinction: User profiles are only created in Firestore during onboarding. Firebase Auth
@@ -114,66 +112,15 @@ fun MainContent() {
   var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
   var shouldOpenQRScanner by remember { mutableStateOf(false) }
 
-  var appState by remember { mutableStateOf(AppState.LOADING) }
-  var currentUserId by remember { mutableStateOf<String?>(null) }
-  var currentUserEmail by remember { mutableStateOf<String?>(null) }
-
   val userRepository = UserRepositoryProvider.repository
+  val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(userRepository))
+  val uiState by viewModel.uiState.collectAsState()
 
   // Initial auth check on app start
-  LaunchedEffect(Unit) {
-    if (!AuthenticationProvider.local) {
-      // Production mode: Check Firebase Auth state
-      val firebaseUser = Firebase.auth.currentUser
+  LaunchedEffect(Unit) { viewModel.checkInitialAuthState() }
 
-      if (firebaseUser == null) {
-        // No Firebase user - needs authentication
-        android.util.Log.d("MainActivity", "No authenticated user - showing GetStarted")
-        appState = AppState.AUTHENTICATION
-      } else {
-        // Firebase user exists - check if profile exists in Firestore
-        android.util.Log.d("MainActivity", "Found authenticated user: ${firebaseUser.uid}")
-        currentUserId = firebaseUser.uid
-        currentUserEmail = firebaseUser.email ?: ""
-
-        val existingUser = userRepository.getUserById(firebaseUser.uid)
-        if (existingUser != null) {
-          android.util.Log.d("MainActivity", "User profile found - showing main app")
-          appState = AppState.MAIN_APP
-        } else {
-          android.util.Log.d("MainActivity", "No user profile - showing onboarding")
-          appState = AppState.ONBOARDING
-        }
-      }
-    } else {
-      // Local testing mode
-      android.util.Log.d("MainActivity", "Local testing mode")
-      currentUserId = AuthenticationProvider.currentUser
-      currentUserEmail = "test@epfl.ch"
-
-      val existingUser = userRepository.getUserById(AuthenticationProvider.currentUser)
-      appState = if (existingUser == null) AppState.ONBOARDING else AppState.MAIN_APP
-    }
-  }
-
-  // Handle post-authentication check
-  LaunchedEffect(currentUserId) {
-    if (currentUserId != null && appState == AppState.AUTHENTICATION) {
-      android.util.Log.d(
-          "MainActivity", "Checking profile for newly authenticated user: $currentUserId")
-      val existingUser = userRepository.getUserById(currentUserId!!)
-      if (existingUser != null) {
-        android.util.Log.d("MainActivity", "Returning user - showing main app")
-        appState = AppState.MAIN_APP
-      } else {
-        android.util.Log.d("MainActivity", "First-time user - showing onboarding")
-        appState = AppState.ONBOARDING
-      }
-    }
-  }
-
-  // Render based on app state
-  when (appState) {
+  // Render based on app state from ViewModel
+  when (uiState.appState) {
     AppState.LOADING -> {
       Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         // Loading screen
@@ -182,22 +129,20 @@ fun MainContent() {
     AppState.AUTHENTICATION -> {
       GetStartedScreen(
           onSignedIn = { uid ->
-            android.util.Log.d("MainActivity", "User signed in: $uid")
             val firebaseUser = Firebase.auth.currentUser
-            currentUserId = uid
-            currentUserEmail = firebaseUser?.email ?: ""
+            viewModel.onUserSignedIn(uid, firebaseUser?.email ?: "")
           })
     }
     AppState.ONBOARDING -> {
-      if (currentUserId != null && currentUserEmail != null) {
-        android.util.Log.d("MainActivity", "Showing onboarding for: $currentUserId")
+      if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
+        android.util.Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
         SignUpOrchestrator(
-            firebaseUserId = currentUserId!!,
-            email = currentUserEmail!!,
+            firebaseUserId = uiState.currentUserId!!,
+            email = uiState.currentUserEmail!!,
             userRepository = userRepository,
             onSignUpComplete = { user ->
               android.util.Log.d("MainActivity", "Onboarding complete: ${user.userId}")
-              appState = AppState.MAIN_APP
+              viewModel.onUserProfileCreated()
             })
       }
     }
