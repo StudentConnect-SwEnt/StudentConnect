@@ -221,7 +221,10 @@ class ListOfEventsComprehensiveTest {
 
     composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Event 2").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Event 3").performScrollTo()
+
+    // Scroll within the LazyColumn to find Event 3
+    composeTestRule.onNodeWithTag("event_list").performScrollToNode(hasText("Event 3"))
+
     composeTestRule.onNodeWithText("Event 3").assertIsDisplayed()
   }
 

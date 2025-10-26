@@ -172,6 +172,9 @@ class FilterBarComprehensiveTest {
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
 
+    // Scroll to make Price section visible
+    composeTestRule.onNodeWithText("Price (€)").performScrollTo()
+
     composeTestRule.onNodeWithText("Price (€)").assertIsDisplayed()
     composeTestRule.onNodeWithText("Min: 0€").assertIsDisplayed()
     composeTestRule.onNodeWithText("Max: 50€").assertIsDisplayed()
