@@ -28,6 +28,41 @@ import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportS
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
 
+/**
+ * Composable for the map component in LocationPickerDialog.
+ * This can be replaced with a test version during testing.
+ */
+@Composable
+fun LocationPickerMapComponent(
+    modifier: Modifier = Modifier,
+    selectedPoint: Point?,
+    mapViewportState: androidx.compose.ui.unit.Dp? = null,
+    onMapClick: (Point) -> Unit
+) {
+  MapboxMap(
+      modifier = modifier,
+      mapViewportState = rememberMapViewportState {
+        setCameraOptions {
+          center(selectedPoint ?: Point.fromLngLat(
+              MapConfiguration.Coordinates.EPFL_LONGITUDE,
+              MapConfiguration.Coordinates.EPFL_LATITUDE))
+          zoom(MapConfiguration.Zoom.DEFAULT)
+        }
+      },
+      scaleBar = {},
+      logo = {},
+      attribution = {},
+      compass = {},
+      onMapClickListener = OnMapClickListener { point ->
+        onMapClick(point)
+        true
+      }) {
+    if (selectedPoint != null) {
+      PointAnnotation(point = selectedPoint)
+    }
+  }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerDialog(
@@ -35,6 +70,7 @@ fun LocationPickerDialog(
     initialRadius: Float,
     onDismiss: () -> Unit,
     onLocationSelected: (Location, Float) -> Unit,
+    useTestMap: Boolean = false // Add parameter to switch to test map
 ) {
   val context = LocalContext.current
 
@@ -75,24 +111,25 @@ fun LocationPickerDialog(
       selectedPoint = point
       selectedLocation =
           Location(latitude = point.latitude(), longitude = point.longitude(), name = "My position")
-      mapViewportState.setCameraOptions {
-        center(point)
-        zoom(MapConfiguration.Zoom.TARGET)
+      if (!useTestMap) {
+        mapViewportState.setCameraOptions {
+          center(point)
+          zoom(MapConfiguration.Zoom.TARGET)
+        }
       }
     }
   }
 
   Popup(
       alignment = Alignment.Center,
-      offset = IntOffset(0, 0), // No offset needed for centering
+      offset = IntOffset(0, 0),
       onDismissRequest = onDismiss,
       properties = PopupProperties(focusable = true)) {
         Box(
             modifier =
-                Modifier.fillMaxSize() // Cover the whole screen for background dimming
-                    .background(
-                        MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)) // Dim background
-                    .wrapContentSize(Alignment.Center) // Center the Card within the Box
+                Modifier.fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+                    .wrapContentSize(Alignment.Center)
             ) {
               Card(
                   modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.7f),
@@ -100,32 +137,53 @@ fun LocationPickerDialog(
                   elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)) {
                     Column(modifier = Modifier.fillMaxSize()) {
                       Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                        MapboxMap(
-                            modifier = Modifier.fillMaxSize(),
-                            mapViewportState = mapViewportState,
-                            scaleBar = {},
-                            logo = {},
-                            attribution = {},
-                            compass = {},
-                            onMapClickListener =
-                                OnMapClickListener { point ->
-                                  selectedPoint = point
-                                  selectedLocation =
-                                      Location(
-                                          latitude = point.latitude(),
-                                          longitude = point.longitude(),
-                                          name = "")
-                                  mapViewModel.onEvent(
-                                      MapViewEvent.SetTargetLocation(
-                                          point.latitude(),
-                                          point.longitude(),
-                                          MapConfiguration.Zoom.TARGET))
-                                  true
-                                }) {
-                              if (selectedPoint != null) {
-                                PointAnnotation(point = selectedPoint!!)
+                        if (useTestMap) {
+                          // Use test map component
+                          com.github.se.studentconnect.ui.screen.map.TestLocationPickerMap(
+                              modifier = Modifier.fillMaxSize(),
+                              selectedPoint = selectedPoint,
+                              onMapClick = { point ->
+                                selectedPoint = point
+                                selectedLocation =
+                                    Location(
+                                        latitude = point.latitude(),
+                                        longitude = point.longitude(),
+                                        name = "Selected Location")
+                                mapViewModel.onEvent(
+                                    MapViewEvent.SetTargetLocation(
+                                        point.latitude(),
+                                        point.longitude(),
+                                        MapConfiguration.Zoom.TARGET))
+                              })
+                        } else {
+                          // Use real Mapbox map
+                          MapboxMap(
+                              modifier = Modifier.fillMaxSize(),
+                              mapViewportState = mapViewportState,
+                              scaleBar = {},
+                              logo = {},
+                              attribution = {},
+                              compass = {},
+                              onMapClickListener =
+                                  OnMapClickListener { point ->
+                                    selectedPoint = point
+                                    selectedLocation =
+                                        Location(
+                                            latitude = point.latitude(),
+                                            longitude = point.longitude(),
+                                            name = "")
+                                    mapViewModel.onEvent(
+                                        MapViewEvent.SetTargetLocation(
+                                            point.latitude(),
+                                            point.longitude(),
+                                            MapConfiguration.Zoom.TARGET))
+                                    true
+                                  }) {
+                                if (selectedPoint != null) {
+                                  PointAnnotation(point = selectedPoint!!)
+                                }
                               }
-                            }
+                        }
                       }
 
                       Column(modifier = Modifier.padding(16.dp)) {
