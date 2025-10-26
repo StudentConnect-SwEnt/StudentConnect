@@ -422,7 +422,19 @@ class ProfileViewModelTest {
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
         unsupported()
 
-    private fun unsupported(): Nothing =
+      override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+          TODO("Not yet implemented")
+      }
+
+      override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+          TODO("Not yet implemented")
+      }
+
+      override suspend fun getFavoriteEvents(userId: String): List<String> {
+          TODO("Not yet implemented")
+      }
+
+      private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
   }
 
