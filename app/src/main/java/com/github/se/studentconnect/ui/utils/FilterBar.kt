@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -137,7 +138,7 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                 }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState)) {
+            Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState).testTag("filter_bottom_sheet_scroll")) {
               Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
               Spacer(modifier = Modifier.height(8.dp))
               FlowRow(

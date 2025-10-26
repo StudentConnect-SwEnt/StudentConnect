@@ -221,6 +221,7 @@ class ListOfEventsComprehensiveTest {
 
     composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Event 2").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event 3").performScrollTo()
     composeTestRule.onNodeWithText("Event 3").assertIsDisplayed()
   }
 

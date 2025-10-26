@@ -70,6 +70,7 @@ class FilterBarComprehensiveTest {
     composeTestRule.onNodeWithText("Music").performClick()
     composeTestRule.waitForIdle()
 
+    composeTestRule.onNodeWithText("Piano").performScrollTo()
     composeTestRule.onNodeWithText("Football").assertIsDisplayed()
     composeTestRule.onNodeWithText("Piano").assertIsDisplayed()
   }
