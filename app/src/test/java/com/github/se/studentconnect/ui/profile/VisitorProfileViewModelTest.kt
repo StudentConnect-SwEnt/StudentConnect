@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.visitorProfile.FriendRequestStatus
@@ -10,16 +11,30 @@ import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VisitorProfileViewModelTest {
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
+
+  @Before
+  fun setup() {
+    // Set test user ID to avoid Firebase initialization in tests
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
+
+  @After
+  fun teardown() {
+    // Clean up test user ID
+    AuthenticationProvider.testUserId = null
+  }
 
   @Test
   fun loadProfile_success_updatesUiState() = runTest {

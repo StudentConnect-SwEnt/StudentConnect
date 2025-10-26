@@ -42,8 +42,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.map.LocationRepositoryImpl
-import com.github.se.studentconnect.model.map.RequestLocationPermission
+import com.github.se.studentconnect.repository.LocationRepositoryImpl
+import com.github.se.studentconnect.repository.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
@@ -268,6 +268,9 @@ private fun MapContainer(
                   previousEventsView.value != isEventsView || previousEvents.value != events
 
               if (hasChanged) {
+                android.util.Log.d(
+                    "MapContainer",
+                    "Map state changed - isEventsView: $isEventsView, events count: ${events.size}")
                 previousEventsView.value = isEventsView
                 previousEvents.value = events
 
@@ -275,11 +278,21 @@ private fun MapContainer(
                   EventMarkers.removeExistingEventLayers(style)
 
                   if (isEventsView && events.isNotEmpty()) {
+                    android.util.Log.d("MapContainer", "Adding event markers to map")
                     EventMarkers.addEventMarkerIcon(context, style)
                     val features = EventMarkers.createEventFeatures(events)
+                    if (features.isEmpty()) {
+                      android.util.Log.w(
+                          "MapContainer",
+                          "No features created from ${events.size} events - they may be missing location data")
+                    }
                     EventMarkers.addEventSource(style, features)
                     EventMarkers.addClusterLayers(style)
                     EventMarkers.addIndividualMarkerLayer(style)
+                  } else {
+                    android.util.Log.d(
+                        "MapContainer",
+                        "Not showing markers - isEventsView: $isEventsView, events.isEmpty(): ${events.isEmpty()}")
                   }
                 }
               }

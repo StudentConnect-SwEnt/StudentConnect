@@ -9,44 +9,43 @@ import kotlinx.coroutines.runBlocking
 /**
  * Provides instances of UserRepository. Allows switching between Firestore and a local, in-memory
  * repository for testing.
+ *
+ * The repository mode is controlled by `AuthenticationProvider.local`:
+ * - local = true: Uses in-memory repository for testing
+ * - local = false: Uses Firestore for production
  */
 object UserRepositoryProvider {
   private val firestoreRepository: UserRepository = UserRepositoryFirestore(Firebase.firestore)
   private val localRepository: UserRepository = UserRepositoryLocal()
 
-  /**
-   * The currently active repository. Change the value of `useLocal` to switch between
-   * implementations.
-   */
+  /** The currently active repository. Automatically syncs with AuthenticationProvider.local */
   var repository: UserRepository
 
   init {
     EventRepositoryProvider
-    runBlocking { populateLocalRepositoryWithFakeData() }
-    val useLocal = true
+    val useLocal = AuthenticationProvider.local
 
     repository = if (useLocal) localRepository else firestoreRepository
+
+    // Only populate fake data if needed for testing other users
+    // The current user will go through signup flow
+    if (useLocal) {
+      runBlocking { populateLocalRepositoryWithOtherUsers() }
+    }
   }
 
   /**
-   * Populates the local user repository with predefined users and links them to events from the
-   * EventRepositoryProvider.
+   * Populates the local user repository with other test users (NOT the current user). The current
+   * user should go through the signup flow.
    */
-  private suspend fun populateLocalRepositoryWithFakeData() {
-    val fakeUsers = createFakeUsers()
-    fakeUsers.forEach { user -> localRepository.saveUser(user) }
-
-    linkUsersToEvents()
+  private suspend fun populateLocalRepositoryWithOtherUsers() {
+    val otherUsers = createOtherTestUsers()
+    otherUsers.forEach { user -> localRepository.saveUser(user) }
   }
 
-  private fun createFakeUsers(): List<User> {
+  private fun createOtherTestUsers(): List<User> {
+    // Create other users for testing, but NOT the current user (user-charlie-02)
     return listOf(
-        User(
-            userId = "user-charlie-02",
-            email = "alice@example.com",
-            firstName = "Alice",
-            lastName = "Smith",
-            university = "EPFL"),
         User(
             userId = "user-bob-02",
             email = "bob@example.com",
@@ -61,20 +60,5 @@ object UserRepositoryProvider {
             lastName = "Brown",
             university = "UNIL",
             hobbies = listOf("Sailing", "Reading")))
-  }
-
-  private suspend fun linkUsersToEvents() {
-    val eventIds = EventRepositoryProvider.createFakeEvents().map { it.uid }
-    if (eventIds.size < 4) return
-    val currentUser = AuthenticationProvider.currentUser
-    localRepository.joinEvent(eventId = "event-balelec-03", userId = currentUser)
-    localRepository.joinEvent(eventId = "event-rlc-study-04", userId = currentUser)
-
-    localRepository.joinEvent(eventId = "event-sql-workshop-02", userId = "user-bob-02")
-    localRepository.joinEvent(eventId = "event-killer-concert-01", userId = currentUser)
-
-    localRepository.joinEvent(eventId = "event-balelec-03", userId = "user-charlie-03")
-    localRepository.addInvitationToUser(
-        eventId = "event-sql-workshop-02", userId = currentUser, fromUserId = "user-bob-02")
   }
 }
