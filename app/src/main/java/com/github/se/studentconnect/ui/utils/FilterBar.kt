@@ -53,8 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.experiences.experienceTopics
-import com.github.se.studentconnect.ui.experiences.filterOptions
+import com.github.se.studentconnect.ui.screen.signup.experienceTopics
+import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import kotlinx.coroutines.launch
 

@@ -18,7 +18,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.model.map.LocationRepositoryImpl
+import com.github.se.studentconnect.repository.LocationRepositoryImpl
 import com.github.se.studentconnect.ui.screen.map.MapConfiguration
 import com.github.se.studentconnect.ui.screen.map.MapViewEvent
 import com.github.se.studentconnect.ui.screen.map.MapViewModel
