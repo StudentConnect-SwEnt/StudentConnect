@@ -10,8 +10,8 @@ import java.util.UUID
  * and offline development.
  */
 class UserRepositoryLocal : UserRepository {
-
   private val users = mutableListOf<User>()
+
   private val joinedEvents = mutableMapOf<String, MutableList<String>>()
   private val invitations = mutableMapOf<String, MutableList<Invitation>>()
 
