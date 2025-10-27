@@ -2,253 +2,411 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import kotlinx.coroutines.Dispatchers
+import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
 class ProfileViewModelTest {
 
-  private val dispatcher = StandardTestDispatcher()
-  private val scope = TestScope(dispatcher)
+  @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
-  private lateinit var repository: FakeUserRepository
+  private lateinit var repository: TestUserRepository
   private lateinit var viewModel: ProfileViewModel
+  private val testUser =
+      User(
+          userId = "test_user",
+          firstName = "John",
+          lastName = "Doe",
+          email = "john.doe@example.com",
+          university = "EPFL",
+          country = "Switzerland",
+          birthday = "01/01/2000",
+          hobbies = listOf("Reading", "Hiking"),
+          bio = "Test bio",
+          profilePictureUrl = null)
 
   @Before
   fun setUp() {
-    Dispatchers.setMain(dispatcher)
-    repository = FakeUserRepository()
-    viewModel = ProfileViewModel(repository, DEFAULT_USER.userId)
-  }
-
-  @After
-  fun tearDown() {
-    Dispatchers.resetMain()
+    repository = TestUserRepository(testUser)
+    viewModel = ProfileViewModel(repository, testUser.userId)
   }
 
   @Test
-  fun `loadUserProfile populates state with repository user`() =
-      scope.runTest {
-        advanceUntilIdle()
+  fun `initial load populates user data`() = runTest {
+    // Wait for initial load to complete
+    Thread.sleep(100)
 
-        assertSame(DEFAULT_USER, viewModel.user.value)
-        assertEquals(EditingField.None, viewModel.editingField.value)
-        assertTrue(viewModel.loadingFields.value.isEmpty())
-        assertTrue(viewModel.fieldErrors.value.isEmpty())
-        assertNull(viewModel.successMessage.value)
-      }
-
-  @Test
-  fun `loadUserProfile failure exposes error`() =
-      scope.runTest {
-        val failure = IllegalStateException("User not found")
-        repository.shouldThrowOnGet = failure
-
-        viewModel.loadUserProfile()
-        advanceUntilIdle()
-
-        val errors = viewModel.fieldErrors.value
-        assertEquals("User not found", errors[EditingField.None])
-      }
+    val user = viewModel.user.value
+    assertEquals(testUser, user)
+    assertNull(viewModel.successMessage.value)
+    assertTrue(viewModel.fieldErrors.value.isEmpty())
+    assertTrue(viewModel.loadingFields.value.isEmpty())
+  }
 
   @Test
-  fun `startEditing updates editing field and clears existing error`() =
-      scope.runTest {
-        val failureMessage = "Invalid university"
-        repository.shouldThrowOnSave = IllegalStateException(failureMessage)
+  fun `loadUserProfile handles user not found`() = runTest {
+    repository = TestUserRepository(null)
+    val vm = ProfileViewModel(repository, "non_existent_user")
 
-        viewModel.startEditing(EditingField.University)
-        viewModel.updateUniversity("EPFL")
-        advanceUntilIdle()
-        assertEquals(failureMessage, viewModel.fieldErrors.value[EditingField.University])
+    // Wait for initial load to complete
+    Thread.sleep(100)
 
-        viewModel.startEditing(EditingField.University)
-        assertFalse(viewModel.fieldErrors.value.containsKey(EditingField.University))
-        assertEquals(EditingField.University, viewModel.editingField.value)
-      }
+    assertNull(vm.user.value)
+    assertTrue(vm.fieldErrors.value.containsKey(EditingField.None))
+  }
 
   @Test
-  fun `cancelEditing clears editing state`() =
-      scope.runTest {
-        viewModel.startEditing(EditingField.Country)
-        viewModel.cancelEditing()
+  fun `loadUserProfile handles repository error`() = runTest {
+    repository.shouldThrowOnGet = RuntimeException("Network error")
+    viewModel.loadUserProfile()
 
-        assertEquals(EditingField.None, viewModel.editingField.value)
-      }
+    // Wait for load to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `updateName validates input`() =
-      scope.runTest {
-        viewModel.updateName("", "Doe")
-        assertEquals(
-            "First name and last name cannot be empty",
-            viewModel.fieldErrors.value[EditingField.Name])
-        assertTrue(repository.savedUsers.isEmpty())
-      }
+    assertNull(viewModel.user.value)
+    assertEquals("Network error", viewModel.fieldErrors.value[EditingField.None])
+  }
 
   @Test
-  fun `updateName persists trimmed data and emits success`() =
-      scope.runTest {
-        viewModel.updateName("  Alice ", " Smith ")
-        assertTrue(viewModel.loadingFields.value.contains(EditingField.Name))
+  fun `startEditing sets editing field and clears its error`() = runTest {
+    // Simulate an error for a field
+    viewModel.updateName("", "")
 
-        advanceUntilIdle()
+    // Wait for validation to complete
+    Thread.sleep(100)
 
-        assertFalse(viewModel.loadingFields.value.contains(EditingField.Name))
-        val savedUser = repository.savedUsers.single()
-        assertEquals("Alice", savedUser.firstName)
-        assertEquals("Smith", savedUser.lastName)
-        assertEquals("Name updated successfully", viewModel.successMessage.value)
-        assertEquals(EditingField.None, viewModel.editingField.value)
-      }
+    assertTrue(viewModel.fieldErrors.value.containsKey(EditingField.Name))
 
-  @Test
-  fun `updateUniversity rejects blank value`() =
-      scope.runTest {
-        viewModel.updateUniversity("   ")
-        assertEquals(
-            "University cannot be empty", viewModel.fieldErrors.value[EditingField.University])
-        assertTrue(repository.savedUsers.isEmpty())
-      }
+    viewModel.startEditing(EditingField.Name)
+    assertFalse(viewModel.fieldErrors.value.containsKey(EditingField.Name))
+    assertEquals(EditingField.Name, viewModel.editingField.value)
+  }
 
   @Test
-  fun `updateUniversity saves trimmed input`() =
-      scope.runTest {
-        viewModel.updateUniversity(" University of Geneva  ")
-        advanceUntilIdle()
+  fun `cancelEditing clears editing field`() = runTest {
+    viewModel.startEditing(EditingField.Bio)
+    assertEquals(EditingField.Bio, viewModel.editingField.value)
 
-        val savedUser = repository.savedUsers.single()
-        assertEquals("University of Geneva", savedUser.university)
-        assertEquals("University updated successfully", viewModel.successMessage.value)
-      }
+    viewModel.cancelEditing()
+    assertEquals(EditingField.None, viewModel.editingField.value)
+  }
 
   @Test
-  fun `updateCountry allows nullable value`() =
-      scope.runTest {
-        viewModel.updateCountry("  Switzerland ")
-        advanceUntilIdle()
+  fun `updateName validates empty names`() = runTest {
+    viewModel.updateName("", "")
 
-        assertEquals("Switzerland", repository.savedUsers.last().country)
+    // Wait for validation to complete
+    Thread.sleep(100)
 
-        viewModel.updateCountry("   ")
-        advanceUntilIdle()
-
-        assertNull(repository.savedUsers.last().country)
-      }
+    assertEquals(ProfileConstants.ERROR_NAME_EMPTY, viewModel.fieldErrors.value[EditingField.Name])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
 
   @Test
-  fun `updateBirthday rejects invalid format`() =
-      scope.runTest {
-        viewModel.updateBirthday("13-01-2020")
-        assertEquals(
-            "Please use DD/MM/YYYY format", viewModel.fieldErrors.value[EditingField.Birthday])
-        assertEquals(0, repository.savedUsers.size)
-      }
+  fun `updateName validates whitespace only names`() = runTest {
+    viewModel.updateName("   ", "   ")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(ProfileConstants.ERROR_NAME_EMPTY, viewModel.fieldErrors.value[EditingField.Name])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
 
   @Test
-  fun `updateBirthday accepts valid date`() =
-      scope.runTest {
-        viewModel.updateBirthday("13/01/2020")
-        advanceUntilIdle()
+  fun `updateName saves valid names and sets success message`() = runTest {
+    viewModel.updateName("Alice", "Smith")
 
-        assertEquals("13/01/2020", repository.savedUsers.last().birthday)
-        assertEquals("Birthday updated successfully", viewModel.successMessage.value)
-      }
+    // Wait for save to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `updateActivities normalizes comma separated list`() =
-      scope.runTest {
-        viewModel.updateActivities(" running, hiking , ,coding ")
-        advanceUntilIdle()
-
-        val hobbies = repository.savedUsers.last().hobbies
-        assertEquals(listOf("running", "hiking", "coding"), hobbies)
-        assertEquals("Activities updated successfully", viewModel.successMessage.value)
-      }
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("Alice", updatedUser["firstName"])
+    assertEquals("Smith", updatedUser["lastName"])
+    assertEquals(ProfileConstants.SUCCESS_NAME_UPDATED, viewModel.successMessage.value)
+    assertEquals(EditingField.None, viewModel.editingField.value)
+  }
 
   @Test
-  fun `updateBio trims and allows clearing`() =
-      scope.runTest {
-        viewModel.updateBio("  Enthusiastic student ")
-        advanceUntilIdle()
-        assertEquals("Enthusiastic student", repository.savedUsers.last().bio)
+  fun `updateName trims whitespace from names`() = runTest {
+    viewModel.updateName("  Bob ", "  Johnson  ")
 
-        viewModel.updateBio("  ")
-        advanceUntilIdle()
-        assertNull(repository.savedUsers.last().bio)
-        assertEquals("Bio updated successfully", viewModel.successMessage.value)
-      }
+    // Wait for save to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `updateProfilePicture forwards nullable value`() =
-      scope.runTest {
-        viewModel.updateProfilePicture("https://example.com/avatar.png")
-        advanceUntilIdle()
-        assertEquals(
-            "https://example.com/avatar.png", repository.savedUsers.last().profilePictureUrl)
-
-        viewModel.updateProfilePicture(null)
-        advanceUntilIdle()
-        assertNull(repository.savedUsers.last().profilePictureUrl)
-        assertEquals("Profile picture updated successfully", viewModel.successMessage.value)
-      }
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("Bob", updatedUser["firstName"])
+    assertEquals("Johnson", updatedUser["lastName"])
+  }
 
   @Test
-  fun `clearSuccessMessage resets value`() =
-      scope.runTest {
-        viewModel.updateCountry("France")
-        advanceUntilIdle()
-        assertTrue(viewModel.successMessage.value?.isNotBlank() == true)
+  fun `updateUniversity validates empty university`() = runTest {
+    viewModel.updateUniversity("")
 
-        viewModel.clearSuccessMessage()
-        assertNull(viewModel.successMessage.value)
-      }
+    // Wait for validation to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `clearFieldErrors removes all errors`() =
-      scope.runTest {
-        viewModel.updateName("", "")
-        assertFalse(viewModel.fieldErrors.value.isEmpty())
-
-        viewModel.clearFieldErrors()
-        assertTrue(viewModel.fieldErrors.value.isEmpty())
-      }
+    assertEquals(
+        ProfileConstants.ERROR_UNIVERSITY_EMPTY,
+        viewModel.fieldErrors.value[EditingField.University])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
 
   @Test
-  fun `update failure surfaces field error and clears loading`() =
-      scope.runTest {
-        val failure = IllegalStateException("Firestore down")
-        repository.shouldThrowOnSave = failure
+  fun `updateUniversity validates whitespace only university`() = runTest {
+    viewModel.updateUniversity("   ")
 
-        viewModel.updateCountry("France")
-        assertTrue(viewModel.loadingFields.value.contains(EditingField.Country))
+    // Wait for validation to complete
+    Thread.sleep(100)
 
-        advanceUntilIdle()
+    assertEquals(
+        ProfileConstants.ERROR_UNIVERSITY_EMPTY,
+        viewModel.fieldErrors.value[EditingField.University])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
 
-        assertFalse(viewModel.loadingFields.value.contains(EditingField.Country))
-        assertEquals("Firestore down", viewModel.fieldErrors.value[EditingField.Country])
-        assertTrue(repository.savedUsers.isEmpty())
-      }
+  @Test
+  fun `updateUniversity saves valid university and sets success message`() = runTest {
+    viewModel.updateUniversity("ETHZ")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("ETHZ", updatedUser["university"])
+    assertEquals(ProfileConstants.SUCCESS_UNIVERSITY_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateCountry saves valid country and sets success message`() = runTest {
+    viewModel.updateCountry("France")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("France", updatedUser["country"])
+    assertEquals(ProfileConstants.SUCCESS_COUNTRY_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateCountry allows clearing country`() = runTest {
+    viewModel.updateCountry("")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertNull(updatedUser["country"])
+    assertEquals(ProfileConstants.SUCCESS_COUNTRY_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateBirthday validates invalid format`() = runTest {
+    viewModel.updateBirthday("01-01-2000")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
+
+  @Test
+  fun `updateBirthday validates invalid date with wrong separator`() = runTest {
+    viewModel.updateBirthday("13.01.2020")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
+
+  @Test
+  fun `updateBirthday validates invalid day`() = runTest {
+    viewModel.updateBirthday("32/01/2020")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
+
+  @Test
+  fun `updateBirthday validates invalid month`() = runTest {
+    viewModel.updateBirthday("15/13/2020")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
+
+  @Test
+  fun `updateBirthday validates invalid year`() = runTest {
+    viewModel.updateBirthday("15/01/1800")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+    assertTrue(repository.updatedUsers.isEmpty())
+  }
+
+  @Test
+  fun `updateBirthday accepts valid date and sets success message`() = runTest {
+    viewModel.updateBirthday("15/03/1998")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("15/03/1998", updatedUser["birthday"])
+    assertEquals(ProfileConstants.SUCCESS_BIRTHDAY_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateBirthday allows clearing birthday`() = runTest {
+    viewModel.updateBirthday("")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertNull(updatedUser["birthday"])
+    assertEquals(ProfileConstants.SUCCESS_BIRTHDAY_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateActivities normalizes and saves hobbies`() = runTest {
+    viewModel.updateActivities("  running, hiking , coding  ")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals(listOf("running", "hiking", "coding"), updatedUser["hobbies"])
+    assertEquals(ProfileConstants.SUCCESS_ACTIVITIES_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateActivities handles empty activities`() = runTest {
+    viewModel.updateActivities("")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertTrue((updatedUser["hobbies"] as? List<*>)?.isEmpty() == true)
+    assertEquals(ProfileConstants.SUCCESS_ACTIVITIES_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateActivities handles activities with extra spaces`() = runTest {
+    viewModel.updateActivities("  ,  , running , , hiking  ")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals(listOf("running", "hiking"), updatedUser["hobbies"])
+  }
+
+  @Test
+  fun `updateBio saves valid bio and sets success message`() = runTest {
+    viewModel.updateBio("New bio content.")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("New bio content.", updatedUser["bio"])
+    assertEquals(ProfileConstants.SUCCESS_BIO_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `updateBio allows clearing bio`() = runTest {
+    viewModel.updateBio("")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertNull(updatedUser["bio"])
+    assertEquals(ProfileConstants.SUCCESS_BIO_UPDATED, viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `clearSuccessMessage resets success message`() = runTest {
+    viewModel.updateName("A", "B")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    assertTrue(viewModel.successMessage.value != null)
+
+    viewModel.clearSuccessMessage()
+    assertNull(viewModel.successMessage.value)
+  }
+
+  @Test
+  fun `clearFieldErrors resets all field errors`() = runTest {
+    viewModel.updateName("", "")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertFalse(viewModel.fieldErrors.value.isEmpty())
+
+    viewModel.clearFieldErrors()
+    assertTrue(viewModel.fieldErrors.value.isEmpty())
+  }
+
+  @Test
+  fun `update failure surfaces field error and clears loading`() = runTest {
+    repository.shouldThrowOnUpdate = RuntimeException("Update failed")
+    viewModel.updateCountry("Germany")
+
+    // Wait for update to complete
+    Thread.sleep(100)
+
+    assertTrue(viewModel.fieldErrors.value.containsKey(EditingField.Country))
+    assertEquals("Update failed", viewModel.fieldErrors.value[EditingField.Country])
+    assertFalse(viewModel.loadingFields.value.contains(EditingField.Country))
+  }
+
+  @Test
+  fun `multiple field updates preserve independent loading states`() = runTest {
+    viewModel.updateCountry("France")
+    viewModel.updateBio("New bio")
+
+    assertTrue(viewModel.loadingFields.value.contains(EditingField.Country))
+    assertTrue(viewModel.loadingFields.value.contains(EditingField.Bio))
+
+    // Wait for updates to complete
+    Thread.sleep(100)
+
+    assertFalse(viewModel.loadingFields.value.contains(EditingField.Country))
+    assertFalse(viewModel.loadingFields.value.contains(EditingField.Bio))
+    assertEquals("France", repository.updatedUsers[0]["country"])
+    assertEquals("New bio", repository.updatedUsers[1]["bio"])
+  }
 
   @Test
   fun `editingField displayName returns correct values`() {
@@ -258,186 +416,159 @@ class ProfileViewModelTest {
     assertEquals("Birthday", EditingField.Birthday.displayName)
     assertEquals("Activities", EditingField.Activities.displayName)
     assertEquals("Bio", EditingField.Bio.displayName)
-    assertEquals("Profile Picture", EditingField.ProfilePicture.displayName)
     assertEquals("Profile", EditingField.None.displayName)
   }
 
   @Test
-  fun `updateBirthday accepts empty string`() =
-      scope.runTest {
-        viewModel.updateBirthday("")
-        advanceUntilIdle()
+  fun `updateName with special characters`() = runTest {
+    viewModel.updateName("José-María", "O'Connor-Smith")
 
-        assertNull(repository.savedUsers.last().birthday)
-        assertEquals("Birthday updated successfully", viewModel.successMessage.value)
-      }
+    // Wait for save to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `updateCountry accepts empty string`() =
-      scope.runTest {
-        viewModel.updateCountry("")
-        advanceUntilIdle()
-
-        assertNull(repository.savedUsers.last().country)
-        assertEquals("Country updated successfully", viewModel.successMessage.value)
-      }
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("José-María", updatedUser["firstName"])
+    assertEquals("O'Connor-Smith", updatedUser["lastName"])
+  }
 
   @Test
-  fun `updateName rejects both blank names`() =
-      scope.runTest {
-        viewModel.updateName("   ", "   ")
-        assertEquals(
-            "First name and last name cannot be empty",
-            viewModel.fieldErrors.value[EditingField.Name])
-        assertTrue(repository.savedUsers.isEmpty())
-      }
+  fun `updateUniversity with special characters`() = runTest {
+    viewModel.updateUniversity("École Polytechnique Fédérale de Lausanne")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("École Polytechnique Fédérale de Lausanne", updatedUser["university"])
+  }
 
   @Test
-  fun `loadUserProfile is called in init`() =
-      scope.runTest {
-        advanceUntilIdle()
+  fun `updateCountry with special characters`() = runTest {
+    viewModel.updateCountry("Côte d'Ivoire")
 
-        // User should be loaded in init
-        assertSame(DEFAULT_USER, viewModel.user.value)
-      }
+    // Wait for save to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `multiple field updates preserve independent loading states`() =
-      scope.runTest {
-        // Start updating multiple fields
-        viewModel.updateCountry("France")
-        viewModel.updateBio("New bio")
-
-        assertTrue(viewModel.loadingFields.value.contains(EditingField.Country))
-        assertTrue(viewModel.loadingFields.value.contains(EditingField.Bio))
-
-        advanceUntilIdle()
-
-        // Both should complete
-        assertFalse(viewModel.loadingFields.value.contains(EditingField.Country))
-        assertFalse(viewModel.loadingFields.value.contains(EditingField.Bio))
-        assertEquals("France", repository.savedUsers[0].country)
-        assertEquals("New bio", repository.savedUsers[1].bio)
-      }
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("Côte d'Ivoire", updatedUser["country"])
+  }
 
   @Test
-  fun `updateActivities handles single item`() =
-      scope.runTest {
-        viewModel.updateActivities("running")
-        advanceUntilIdle()
+  fun `updateBirthday with leap year`() = runTest {
+    viewModel.updateBirthday("29/02/2020")
 
-        val hobbies = repository.savedUsers.last().hobbies
-        assertEquals(listOf("running"), hobbies)
-      }
+    // Wait for save to complete
+    Thread.sleep(100)
 
-  @Test
-  fun `updateActivities handles empty string`() =
-      scope.runTest {
-        viewModel.updateActivities("")
-        advanceUntilIdle()
-
-        val hobbies = repository.savedUsers.last().hobbies
-        assertTrue(hobbies.isEmpty())
-      }
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals("29/02/2020", updatedUser["birthday"])
+  }
 
   @Test
-  fun `updateBirthday rejects invalid date with wrong separator`() =
-      scope.runTest {
-        viewModel.updateBirthday("13.01.2020")
-        assertEquals(
-            "Please use DD/MM/YYYY format", viewModel.fieldErrors.value[EditingField.Birthday])
-        assertEquals(0, repository.savedUsers.size)
-      }
+  fun `updateBirthday with non-leap year February 29`() = runTest {
+    viewModel.updateBirthday("29/02/2021")
+
+    // Wait for validation to complete
+    Thread.sleep(100)
+
+    assertEquals(
+        ProfileConstants.ERROR_DATE_FORMAT, viewModel.fieldErrors.value[EditingField.Birthday])
+  }
 
   @Test
-  fun `updateBirthday rejects invalid day`() =
-      scope.runTest {
-        viewModel.updateBirthday("32/01/2020")
-        assertEquals(
-            "Please use DD/MM/YYYY format", viewModel.fieldErrors.value[EditingField.Birthday])
-        assertEquals(0, repository.savedUsers.size)
-      }
+  fun `updateActivities with unicode characters`() = runTest {
+    viewModel.updateActivities("Café, Théâtre, Cinéma")
+
+    // Wait for save to complete
+    Thread.sleep(100)
+
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals(listOf("Café", "Théâtre", "Cinéma"), updatedUser["hobbies"])
+  }
 
   @Test
-  fun `updateBirthday rejects invalid month`() =
-      scope.runTest {
-        viewModel.updateBirthday("15/13/2020")
-        assertEquals(
-            "Please use DD/MM/YYYY format", viewModel.fieldErrors.value[EditingField.Birthday])
-        assertEquals(0, repository.savedUsers.size)
-      }
+  fun `updateBio with unicode characters`() = runTest {
+    val unicodeBio = "Bio with unicode: αβγδε, 中文, العربية, русский"
+    viewModel.updateBio(unicodeBio)
 
-  private class FakeUserRepository(var user: User = DEFAULT_USER) : UserRepository {
+    // Wait for save to complete
+    Thread.sleep(100)
 
-    var shouldThrowOnGet: Throwable? = null
-    var shouldThrowOnSave: Throwable? = null
-    val savedUsers = mutableListOf<User>()
+    val updatedUser = repository.updatedUsers.last()
+    assertEquals(unicodeBio, updatedUser["bio"])
+  }
+
+  private class TestUserRepository(
+      private var user: User? = null,
+      var shouldThrowOnGet: Throwable? = null,
+      var shouldThrowOnUpdate: Throwable? = null
+  ) : UserRepository {
+    val updatedUsers = mutableListOf<Map<String, Any?>>()
 
     override suspend fun getUserById(userId: String): User? {
       shouldThrowOnGet?.let { throw it }
-      return user
+      return if (userId == user?.userId) user else null
     }
 
-    override suspend fun saveUser(user: User) {
-      shouldThrowOnSave?.let { throw it }
-      savedUsers += user
-      this.user = user
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+      shouldThrowOnUpdate?.let { throw it }
+      if (userId == user?.userId) {
+        updatedUsers.add(updates)
+        user =
+            user?.copy(
+                firstName = updates["firstName"] as? String ?: user?.firstName ?: "",
+                lastName = updates["lastName"] as? String ?: user?.lastName ?: "",
+                university = updates["university"] as? String ?: user?.university ?: "",
+                country = updates["country"] as? String? ?: user?.country,
+                birthday = updates["birthday"] as? String? ?: user?.birthday,
+                hobbies =
+                    (updates["hobbies"] as? List<*>)?.filterIsInstance<String>()
+                        ?: user?.hobbies
+                        ?: emptyList(),
+                bio = updates["bio"] as? String? ?: user?.bio,
+                profilePictureUrl =
+                    updates["profilePictureUrl"] as? String? ?: user?.profilePictureUrl)
+      } else {
+        throw NoSuchElementException("User not found")
+      }
     }
 
-    override suspend fun leaveEvent(eventId: String, userId: String) = unsupported()
+    override suspend fun saveUser(user: User) = Unit
 
-    override suspend fun getUserByEmail(email: String) = unsupported()
+    override suspend fun leaveEvent(eventId: String, userId: String) = Unit
 
-    override suspend fun getAllUsers(): List<User> = unsupported()
+    override suspend fun getUserByEmail(email: String) = null
 
-    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) = unsupported()
+    override suspend fun getAllUsers() = emptyList<User>()
 
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) = unsupported()
+    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
+        emptyList<User>() to false
 
-    override suspend fun deleteUser(userId: String) = unsupported()
+    override suspend fun deleteUser(userId: String) = Unit
 
-    override suspend fun getUsersByUniversity(university: String): List<User> = unsupported()
+    override suspend fun getUsersByUniversity(university: String) = emptyList<User>()
 
-    override suspend fun getUsersByHobby(hobby: String): List<User> = unsupported()
+    override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
 
-    override suspend fun getNewUid(): String = unsupported()
+    override suspend fun getNewUid() = "new_uid"
 
-    override suspend fun getJoinedEvents(userId: String): List<String> = unsupported()
+    override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
 
-    override suspend fun addEventToUser(eventId: String, userId: String) = unsupported()
+    override suspend fun addEventToUser(eventId: String, userId: String) = Unit
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
-        unsupported()
+        Unit
 
-    override suspend fun getInvitations(userId: String): List<Invitation> = unsupported()
+    override suspend fun getInvitations(userId: String) =
+        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
 
-    override suspend fun acceptInvitation(eventId: String, userId: String) = unsupported()
+    override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
 
-    override suspend fun declineInvitation(eventId: String, userId: String) = unsupported()
+    override suspend fun declineInvitation(eventId: String, userId: String) = Unit
 
-    override suspend fun joinEvent(eventId: String, userId: String) = unsupported()
+    override suspend fun joinEvent(eventId: String, userId: String) = Unit
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        unsupported()
-
-    private fun unsupported(): Nothing =
-        throw UnsupportedOperationException("Not required for test")
-  }
-
-  companion object {
-    private val DEFAULT_USER =
-        User(
-            userId = "user-123",
-            email = "john.doe@epfl.ch",
-            firstName = "John",
-            lastName = "Doe",
-            university = "EPFL",
-            hobbies = listOf("running"),
-            profilePictureUrl = "https://example.com/profile.png",
-            bio = "Student at EPFL",
-            country = "Switzerland",
-            birthday = "01/01/2000",
-            createdAt = 1_000L,
-            updatedAt = 2_000L)
+        Unit
   }
 }

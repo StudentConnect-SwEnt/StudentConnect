@@ -24,14 +24,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.profile.VisitorProfileRoute
+import com.github.se.studentconnect.ui.profile.MockUserRepository
+import com.github.se.studentconnect.ui.profile.ProfileRoutes
+import com.github.se.studentconnect.ui.profile.ProfileSettingsScreen
+import com.github.se.studentconnect.ui.profile.edit.EditNameScreen
+import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
-import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import okhttp3.OkHttpClient
@@ -66,7 +68,6 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
   val navController = rememberNavController()
   var selectedTab by remember { mutableStateOf<Tab>(Tab.Home) }
-  var shouldOpenQRScanner by remember { mutableStateOf(false) }
 
   Scaffold(
       bottomBar = {
@@ -74,19 +75,16 @@ fun MainContent() {
             selectedTab = selectedTab,
             onTabSelected = { tab: Tab ->
               selectedTab = tab
-              shouldOpenQRScanner = false
               navController.navigate(tab.destination.route) {
                 launchSingleTop = true
                 restoreState = true
               }
             },
-            onCreatePublicEvent = {
-              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-            },
-            onCreatePrivateEvent = {
-              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-            })
+        )
       }) { paddingValues ->
+        // Shared mock repository for all profile screens (for demo purposes)
+        val sharedMockRepository = remember { MockUserRepository() }
+
         NavHost(
             navController = navController,
             startDestination = Route.HOME,
@@ -94,53 +92,60 @@ fun MainContent() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-          composable(Route.HOME) {
-            HomeScreen(
-                navController = navController,
-                shouldOpenQRScanner = shouldOpenQRScanner,
-                onQRScannerClosed = { shouldOpenQRScanner = false })
-          }
+          composable(Route.HOME) { HomeScreen() }
           composable(Route.MAP) { MapScreen() }
+          composable(Route.ACTIVITIES) { ActivitiesScreen() }
+
+          // Profile Settings Screen (Main Profile View)
+          composable(Route.PROFILE) {
+            ProfileSettingsScreen(
+                currentUserId = "mock_user_123",
+                userRepository = sharedMockRepository,
+                onNavigateToEditPicture = { userId ->
+                  navController.navigate(ProfileRoutes.editPicture(userId))
+                },
+                onNavigateToEditName = { userId ->
+                  navController.navigate(ProfileRoutes.editName(userId))
+                },
+                onNavigateToEditBio = { userId ->
+                  navController.navigate(ProfileRoutes.editBio(userId))
+                },
+                onNavigateToEditActivities = { userId ->
+                  navController.navigate(ProfileRoutes.editActivities(userId))
+                },
+                onNavigateToEditBirthday = { userId ->
+                  navController.navigate(ProfileRoutes.editBirthday(userId))
+                },
+                onNavigateToEditNationality = { userId ->
+                  navController.navigate(ProfileRoutes.editNationality(userId))
+                },
+                onNavigateBack = {
+                  // No back navigation needed since this is the main profile view
+                })
+          }
+
+          // Edit Profile Picture Screen
           composable(
-              Route.MAP_WITH_LOCATION,
-              arguments =
-                  listOf(
-                      navArgument("latitude") { type = NavType.StringType },
-                      navArgument("longitude") { type = NavType.StringType },
-                      navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
-                val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
-                val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
-                val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
-                MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
-              }
-          composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
-          composable(Route.PROFILE) { ProfileScreen() }
-          // composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
-          // composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
-          composable(
-              Route.VISITOR_PROFILE,
-              arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
+              route = ProfileRoutes.EDIT_PICTURE,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
-                val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG)
-                requireNotNull(userId) { "User ID is required." }
-                VisitorProfileRoute(
+                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                EditProfilePictureScreen(
                     userId = userId,
-                    onBackClick = { navController.popBackStack() },
-                    onScanAgain = {
-                      shouldOpenQRScanner = true
-                      navController.popBackStack()
-                    })
+                    userRepository = sharedMockRepository,
+                    onNavigateBack = { navController.popBackStack() })
               }
+
+          // Edit Name Screen
           composable(
-              route = "eventView/{eventUid}/{hasJoined}",
-              arguments =
-                  listOf(
-                      navArgument("eventUid") { type = NavType.StringType },
-                      navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
-                requireNotNull(eventUid) { "Event UID is required." }
-                EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+              route = ProfileRoutes.EDIT_NAME,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                EditNameScreen(
+                    userId = userId,
+                    userRepository = sharedMockRepository,
+                    onNavigateBack = { navController.popBackStack() })
               }
         }
       }
