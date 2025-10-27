@@ -6,24 +6,19 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.collections.filter
-import kotlin.collections.map
-import kotlin.collections.minus
-import kotlin.collections.plus
-import kotlin.takeIf
-import kotlin.text.isBlank
-import kotlin.text.isNotBlank
-import kotlin.text.split
-import kotlin.text.trim
-import kotlin.to
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel for the Profile screen with inline editing functionality. Manages user profile data and
- * handles individual field updates.
+ * ViewModel for the Profile Settings screen with inline editing functionality.
+ *
+ * Manages user profile data and handles individual field updates with proper state management,
+ * validation, and error handling.
+ *
+ * @param userRepository Repository for user data operations
+ * @param currentUserId The ID of the current user
  */
 class ProfileViewModel(
     private val userRepository: UserRepository,
@@ -54,38 +49,45 @@ class ProfileViewModel(
     loadUserProfile()
   }
 
-  /** Loads the current user's profile from Firebase. */
-  public fun loadUserProfile() {
+  /** Loads the current user's profile from the repository. */
+  fun loadUserProfile() {
     viewModelScope.launch {
       try {
         val loadedUser = userRepository.getUserById(currentUserId)
         _user.value = loadedUser
       } catch (exception: Exception) {
-        // Handle error - could show a snackbar or error state
         _fieldErrors.value =
             mapOf(EditingField.None to (exception.message ?: "Failed to load profile"))
       }
     }
   }
 
-  /** Starts editing a specific field. */
+  /**
+   * Starts editing a specific field.
+   *
+   * @param field The field to start editing
+   */
   fun startEditing(field: EditingField) {
     _editingField.value = field
-    _fieldErrors.value = _fieldErrors.value - field // Clear any previous error for this field
+    _fieldErrors.value = _fieldErrors.value - field
   }
 
   /** Cancels editing the current field. */
   fun cancelEditing() {
-    val currentField = _editingField.value
-    _fieldErrors.value = _fieldErrors.value - currentField
     _editingField.value = EditingField.None
+    _fieldErrors.value = _fieldErrors.value - _editingField.value
   }
 
-  /** Updates the user's name (firstName and lastName). */
+  /**
+   * Updates the user's name (firstName and lastName).
+   *
+   * @param firstName The new first name
+   * @param lastName The new last name
+   */
   fun updateName(firstName: String, lastName: String) {
     if (firstName.isBlank() || lastName.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Name to "First name and last name cannot be empty")
+          _fieldErrors.value + (EditingField.Name to ProfileConstants.ERROR_NAME_EMPTY)
       return
     }
 
@@ -100,7 +102,11 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.Name)
   }
 
-  /** Updates the user's university. */
+  /**
+   * Updates the user's university.
+   *
+   * @param university The new university name
+   */
   fun updateUniversity(university: String) {
     if (university.isBlank()) {
       _fieldErrors.value =
@@ -116,7 +122,11 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.University)
   }
 
-  /** Updates the user's country. */
+  /**
+   * Updates the user's country.
+   *
+   * @param country The new country name
+   */
   fun updateCountry(country: String) {
     val currentUser = _user.value ?: return
     setFieldLoading(EditingField.Country, true)
@@ -128,9 +138,12 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.Country)
   }
 
-  /** Updates the user's birthday. */
+  /**
+   * Updates the user's birthday.
+   *
+   * @param birthday The new birthday in DD/MM/YYYY format
+   */
   fun updateBirthday(birthday: String) {
-    // Validate date format (DD/MM/YYYY)
     if (birthday.isNotBlank() && !isValidDateFormat(birthday)) {
       _fieldErrors.value =
           _fieldErrors.value + (EditingField.Birthday to "Please use DD/MM/YYYY format")
@@ -147,12 +160,15 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.Birthday)
   }
 
-  /** Updates the user's hobbies/activities. */
+  /**
+   * Updates the user's hobbies/activities.
+   *
+   * @param activities Comma-separated string of activities
+   */
   fun updateActivities(activities: String) {
     val currentUser = _user.value ?: return
     setFieldLoading(EditingField.Activities, true)
 
-    // Convert comma-separated string to list
     val hobbiesList = activities.split(",").map { it.trim() }.filter { it.isNotBlank() }
 
     val updatedUser = currentUser.update(hobbies = User.UpdateValue.SetValue(hobbiesList))
@@ -160,7 +176,11 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.Activities)
   }
 
-  /** Updates the user's bio. */
+  /**
+   * Updates the user's bio.
+   *
+   * @param bio The new bio text
+   */
   fun updateBio(bio: String) {
     val currentUser = _user.value ?: return
     setFieldLoading(EditingField.Bio, true)
@@ -171,28 +191,22 @@ class ProfileViewModel(
     updateUserInFirebase(updatedUser, EditingField.Bio)
   }
 
-  /** Updates the user's profile picture URL. */
-  fun updateProfilePicture(profilePictureUrl: String?) {
-    val currentUser = _user.value ?: return
-    setFieldLoading(EditingField.ProfilePicture, true)
-
-    val updatedUser =
-        currentUser.update(profilePictureUrl = User.UpdateValue.SetValue(profilePictureUrl))
-
-    updateUserInFirebase(updatedUser, EditingField.ProfilePicture)
-  }
-
   /** Clears the success message. */
   fun clearSuccessMessage() {
     _successMessage.value = null
   }
 
-  /** Clears field errors. */
+  /** Clears all field errors. */
   fun clearFieldErrors() {
     _fieldErrors.value = emptyMap()
   }
 
-  /** Helper method to update user in Firebase. */
+  /**
+   * Helper method to update user in the repository.
+   *
+   * @param updatedUser The updated user object
+   * @param field The field being updated
+   */
   private fun updateUserInFirebase(updatedUser: User, field: EditingField) {
     viewModelScope.launch {
       try {
@@ -210,7 +224,12 @@ class ProfileViewModel(
     }
   }
 
-  /** Helper method to set loading state for a field. */
+  /**
+   * Helper method to set loading state for a field.
+   *
+   * @param field The field to set loading state for
+   * @param isLoading Whether the field is loading
+   */
   private fun setFieldLoading(field: EditingField, isLoading: Boolean) {
     _loadingFields.value =
         if (isLoading) {
@@ -220,10 +239,15 @@ class ProfileViewModel(
         }
   }
 
-  /** Validates date format (DD/MM/YYYY). */
+  /**
+   * Validates date format (DD/MM/YYYY).
+   *
+   * @param date The date string to validate
+   * @return true if the date format is valid, false otherwise
+   */
   private fun isValidDateFormat(date: String): Boolean {
     return try {
-      val format = SimpleDateFormat("dd/MM/yyyy", Locale.UK)
+      val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
       format.isLenient = false
       format.parse(date)
       true
@@ -232,7 +256,12 @@ class ProfileViewModel(
     }
   }
 
-  /** Gets success message for a field update. */
+  /**
+   * Gets success message for a field update.
+   *
+   * @param field The field that was updated
+   * @return The success message for the field
+   */
   private fun getSuccessMessage(field: EditingField): String {
     return when (field) {
       EditingField.Name -> "Name updated successfully"
@@ -241,13 +270,17 @@ class ProfileViewModel(
       EditingField.Birthday -> "Birthday updated successfully"
       EditingField.Activities -> "Activities updated successfully"
       EditingField.Bio -> "Bio updated successfully"
-      EditingField.ProfilePicture -> "Profile picture updated successfully"
       EditingField.None -> "Profile updated successfully"
     }
   }
 }
 
-/** Represents which field is currently being edited. */
+/**
+ * Represents which field is currently being edited.
+ *
+ * This sealed class defines all the editable fields in the user profile, allowing for type-safe
+ * field management and UI state handling.
+ */
 sealed class EditingField {
   object Name : EditingField()
 
@@ -261,11 +294,13 @@ sealed class EditingField {
 
   object Bio : EditingField()
 
-  object ProfilePicture : EditingField()
-
   object None : EditingField()
 
-  /** Returns the display name for the field. */
+  /**
+   * Returns the display name for the field.
+   *
+   * @return The human-readable name of the field
+   */
   val displayName: String
     get() =
         when (this) {
@@ -275,7 +310,6 @@ sealed class EditingField {
           is Birthday -> "Birthday"
           is Activities -> "Activities"
           is Bio -> "Bio"
-          is ProfilePicture -> "Profile Picture"
           is None -> "Profile"
         }
 }

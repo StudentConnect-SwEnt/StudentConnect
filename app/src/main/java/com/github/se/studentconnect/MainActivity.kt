@@ -136,6 +136,8 @@ fun MainContent() {
                     onNavigateBack = { navController.popBackStack() })
               }
 
+
+
           // Edit Name Screen
           composable(
               route = ProfileRoutes.EDIT_NAME,
@@ -147,6 +149,7 @@ fun MainContent() {
                     userRepository = sharedMockRepository,
                     onNavigateBack = { navController.popBackStack() })
               }
+
         }
       }
 }
