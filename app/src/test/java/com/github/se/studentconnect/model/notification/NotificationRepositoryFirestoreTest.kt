@@ -14,11 +14,11 @@ import com.google.firebase.firestore.WriteBatch
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
 class NotificationRepositoryFirestoreTest {
@@ -191,7 +191,8 @@ class NotificationRepositoryFirestoreTest {
 
     var successCalled = false
 
-    repository.createNotification(notification, onSuccess = { successCalled = true }, onFailure = {})
+    repository.createNotification(
+        notification, onSuccess = { successCalled = true }, onFailure = {})
 
     assert(successCalled) { "Success callback was not called" }
     verify(mockDocumentReference).set(any())
@@ -225,7 +226,8 @@ class NotificationRepositoryFirestoreTest {
 
     var successCalled = false
 
-    repository.createNotification(notification, onSuccess = { successCalled = true }, onFailure = {})
+    repository.createNotification(
+        notification, onSuccess = { successCalled = true }, onFailure = {})
 
     assert(successCalled) { "Success callback was not called" }
   }
@@ -257,7 +259,8 @@ class NotificationRepositoryFirestoreTest {
 
     var successCalled = false
 
-    repository.createNotification(notification, onSuccess = { successCalled = true }, onFailure = {})
+    repository.createNotification(
+        notification, onSuccess = { successCalled = true }, onFailure = {})
 
     assert(successCalled) { "Success callback was not called" }
     verify(mockDocumentReference).set(any())
@@ -308,8 +311,7 @@ class NotificationRepositoryFirestoreTest {
 
     var failureCalled = false
 
-    repository.markAsRead(
-        notificationId, onSuccess = {}, onFailure = { failureCalled = true })
+    repository.markAsRead(notificationId, onSuccess = {}, onFailure = { failureCalled = true })
 
     assert(failureCalled) { "Failure callback was not called" }
   }
