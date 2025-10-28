@@ -21,6 +21,10 @@ class MapScreenIntegrationTest {
 
   private lateinit var mockLocationRepository: LocationRepository
   private lateinit var mockEventRepository: EventRepository
+  private lateinit var mockFriendsRepository:
+      com.github.se.studentconnect.model.friends.FriendsRepository
+  private lateinit var mockFriendsLocationRepository:
+      com.github.se.studentconnect.model.friends.FriendsLocationRepository
   private lateinit var mockContext: Context
   private lateinit var mapViewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
@@ -32,6 +36,12 @@ class MapScreenIntegrationTest {
     // Mock event repository to avoid Firebase initialization
     mockEventRepository = mockk()
     coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+
+    mockFriendsRepository = mockk()
+    coEvery { mockFriendsRepository.getFriends(any()) } returns emptyList()
+
+    mockFriendsLocationRepository = mockk()
+    every { mockFriendsLocationRepository.stopListening() } just Runs
 
     mockLocationRepository = mockk()
     mockContext = mockk(relaxed = true)
@@ -47,7 +57,12 @@ class MapScreenIntegrationTest {
     every { mockLocationRepository.getLocationUpdates() } returns flowOf()
 
     // Inject mock repositories into MapViewModel
-    mapViewModel = MapViewModel(mockLocationRepository, mockEventRepository)
+    mapViewModel =
+        MapViewModel(
+            mockLocationRepository,
+            mockEventRepository,
+            mockFriendsRepository,
+            mockFriendsLocationRepository)
   }
 
   @After

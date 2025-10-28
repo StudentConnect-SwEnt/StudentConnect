@@ -167,6 +167,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.database)
 
     // Credential Manager (for Google Sign-In)
     implementation(libs.credentials)

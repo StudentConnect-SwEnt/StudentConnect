@@ -20,6 +20,7 @@ materialVersion = "1.12.0"
 firebaseAuth = "23.0.0"
 firebaseFirestore = "25.1.0"
 firebaseStorage = "22.0.1"
+firebaseDatabase = "21.0.0"
 
 # Credential Manager
 credentials = "1.3.0"
@@ -106,6 +107,7 @@ credentials-play-services-auth = { module = "androidx.credentials:credentials-pl
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebaseStorage" }
+firebase-database = { module = "com.google.firebase:firebase-database", version.ref = "firebaseDatabase" }
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 json = { module = "org.json:json", version.ref = "json" }
