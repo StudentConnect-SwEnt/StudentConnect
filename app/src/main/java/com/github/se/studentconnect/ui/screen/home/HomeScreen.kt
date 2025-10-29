@@ -2,14 +2,22 @@ package com.github.se.studentconnect.ui.screens
 
 import FilterBar
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -33,9 +41,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,7 +70,7 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: HomePageViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
-    onQRScannerClosed: () -> Unit = {}
+    onQRScannerClosed: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
   var showNotifications by remember { mutableStateOf(false) }
@@ -83,46 +93,50 @@ fun HomeScreen(
           HomeTopBar(
               showNotifications = showNotifications,
               onNotificationClick = { showNotifications = !showNotifications },
-              onDismiss = { showNotifications = false })
+              onDismiss = { showNotifications = false },
+          )
         }
-      }) { paddingValues ->
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            userScrollEnabled = true) { page ->
-              when (page) {
-                0 -> {
-                  // QR Scanner page
-                  QrScannerScreen(
-                      onBackClick = {
-                        onQRScannerClosed()
-                        coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                      },
-                      onProfileDetected = { userId ->
-                        // Navigate to visitor profile and return to home page
-                        onQRScannerClosed()
-                        navController.navigate(Route.visitorProfile(userId))
-                        coroutineScope.launch { pagerState.scrollToPage(1) }
-                      },
-                      isActive = pagerState.currentPage == 0)
-                }
-                1 -> {
-                  // Home content page
-                  Box(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.isLoading) {
-                      CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    } else {
-                      Column {
-                        FilterBar(LocalContext.current)
-                        EventListScreen(
-                            navController = navController, events = uiState.events, false)
-                      }
-                    }
-                  }
-                }
+      },
+  ) { paddingValues ->
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
+        userScrollEnabled = true,
+    ) { page ->
+      when (page) {
+        0 -> {
+          // QR Scanner page
+          QrScannerScreen(
+              onBackClick = {
+                onQRScannerClosed()
+                coroutineScope.launch { pagerState.animateScrollToPage(1) }
+              },
+              onProfileDetected = { userId ->
+                // Navigate to visitor profile and return to home page
+                onQRScannerClosed()
+                navController.navigate(Route.visitorProfile(userId))
+                coroutineScope.launch { pagerState.scrollToPage(1) }
+              },
+              isActive = pagerState.currentPage == 0,
+          )
+        }
+        1 -> {
+          // Home content page
+          Box(modifier = Modifier.fillMaxSize()) {
+            if (uiState.isLoading) {
+              CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+              Column {
+                StoriesRaw(viewModel)
+                FilterBar(LocalContext.current)
+                EventListScreen(navController = navController, events = uiState.events, false)
               }
             }
+          }
+        }
       }
+    }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,7 +152,8 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
             leadingIcon = {
               Icon(
                   painter = painterResource(id = R.drawable.ic_search),
-                  contentDescription = "Search Icon")
+                  contentDescription = "Search Icon",
+              )
             },
             singleLine = true,
             shape = RoundedCornerShape(24.dp),
@@ -146,7 +161,9 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
                 TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent))
+                    disabledIndicatorColor = Color.Transparent,
+                ),
+        )
       },
       actions = {
         Box {
@@ -160,11 +177,42 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
               modifier =
                   Modifier.background(Color.Transparent)
                       .shadow(0.dp)
-                      .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
-                Panel<Invitation>(title = "Notifications")
-              }
+                      .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER),
+          ) {
+            Panel<Invitation>(title = "Notifications")
+          }
         }
-      })
+      },
+  )
+}
+
+@Composable
+fun StoryItem(seen: Boolean = false) {
+  val borderColor = remember { if (seen) Color.Gray else Color.Magenta }
+  Image(
+      painter = painterResource(R.drawable.avatar_12),
+      contentDescription = null,
+      modifier =
+          Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.15f)
+              .clip(CircleShape)
+              .border(
+                  width = LocalWindowInfo.current.containerSize.width.dp * 0.004f,
+                  color = borderColor,
+                  shape = CircleShape,
+              )
+              .clickable(onClick = {}),
+  )
+}
+
+@Composable
+fun StoriesRaw(viewModel: HomePageViewModel) {
+  LazyRow() {
+    val stories = viewModel.uiState.value.subscribedEventsStories
+    items(stories.entries.toList()) { story ->
+      Spacer(Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.03f))
+      StoryItem(story.value.second == story.value.first)
+    }
+  }
 }
 
 @Preview(showBackground = true)
