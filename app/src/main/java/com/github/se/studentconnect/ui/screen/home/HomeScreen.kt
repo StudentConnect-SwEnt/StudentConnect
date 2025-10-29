@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screens
 import FilterBar
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,7 +84,8 @@ fun HomeScreen(
           HomeTopBar(
               showNotifications = showNotifications,
               onNotificationClick = { showNotifications = !showNotifications },
-              onDismiss = { showNotifications = false })
+              onDismiss = { showNotifications = false },
+              navController = navController)
         }
       }) { paddingValues ->
         HorizontalPager(
@@ -127,13 +129,22 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDismiss: () -> Unit) {
+fun HomeTopBar(
+    showNotifications: Boolean,
+    onNotificationClick: () -> Unit,
+    onDismiss: () -> Unit,
+    navController: NavHostController = rememberNavController()
+) {
   TopAppBar(
       title = {
         TextField(
             value = "",
             onValueChange = {},
-            modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(end = 8.dp)
+                    .clickable(onClick = { navController.navigate(Route.SEARCH) }),
+            enabled = false,
             placeholder = { Text("Search for events...") },
             leadingIcon = {
               Icon(
