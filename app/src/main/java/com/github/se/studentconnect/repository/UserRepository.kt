@@ -141,4 +141,28 @@ interface UserRepository {
    * @param toUserId The unique identifier of the user receiving the invitation.
    */
   suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String)
+
+  /**
+   * Adds an event to the user's list of favorite events.
+   *
+   * @param userId The unique identifier of the user.
+   * @param eventId The unique identifier of the event to add to favorites.
+   */
+  suspend fun addFavoriteEvent(userId: String, eventId: String)
+
+  /**
+   * Removes an event from the user's list of favorite events.
+   *
+   * @param userId The unique identifier of the user.
+   * @param eventId The unique identifier of the event to remove from favorites.
+   */
+  suspend fun removeFavoriteEvent(userId: String, eventId: String)
+
+  /**
+   * Retrieves all favorite events for a given user.
+   *
+   * @param userId The unique identifier of the user.
+   * @return A list of event IDs that are marked as favorite by the user.
+   */
+  suspend fun getFavoriteEvents(userId: String): List<String>
 }
