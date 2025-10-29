@@ -20,6 +20,12 @@ class ListOfEventsComprehensiveTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  companion object {
+    private const val NO_EVENTS_TEXT = "No events found matching your criteria."
+    private const val FREE_TEXT = "Free"
+    private const val CURRENCY_TEXT_15 = "15 €"
+  }
+
   private fun createTestEvent(
       uid: String = "event1",
       ownerId: String = "owner1",
@@ -89,7 +95,7 @@ class ListOfEventsComprehensiveTest {
           event = event, isFavorite = false, onFavoriteToggle = { _: String -> }, onClick = {})
     }
 
-    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+    composeTestRule.onNodeWithText(FREE_TEXT).assertIsDisplayed()
   }
 
   @Test
@@ -101,7 +107,7 @@ class ListOfEventsComprehensiveTest {
           event = event, isFavorite = false, onFavoriteToggle = { _: String -> }, onClick = {})
     }
 
-    composeTestRule.onNodeWithText("15 €").assertIsDisplayed()
+    composeTestRule.onNodeWithText(CURRENCY_TEXT_15).assertIsDisplayed()
   }
 
   @Test
@@ -113,7 +119,7 @@ class ListOfEventsComprehensiveTest {
           event = event, isFavorite = false, onFavoriteToggle = { _: String -> }, onClick = {})
     }
 
-    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+    composeTestRule.onNodeWithText(FREE_TEXT).assertIsDisplayed()
   }
 
   @Test
@@ -198,7 +204,7 @@ class ListOfEventsComprehensiveTest {
           onFavoriteToggle = { _: String -> })
     }
 
-    composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
+    composeTestRule.onNodeWithText(NO_EVENTS_TEXT).assertIsDisplayed()
   }
 
   @Test
@@ -395,5 +401,8 @@ class ListOfEventsComprehensiveTest {
     }
 
     composeTestRule.onNodeWithText("Private Event").assertIsDisplayed()
+
+    // Explicitly assert that tag texts are not present for private events
+    composeTestRule.onAllNodes(hasText("SPORTS") or hasText("MUSIC")).assertCountEquals(0)
   }
 }

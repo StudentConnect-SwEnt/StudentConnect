@@ -22,6 +22,8 @@ object EventRepositoryProvider {
   private val firestoreRepository: EventRepository = EventRepositoryFirestore(Firebase.firestore)
   private val localRepository: EventRepository = EventRepositoryLocal()
 
+  private val ROLEX_LOCATION = Location(46.5186, 6.5681, "Rolex Learning Center")
+
   val fakeEvents: List<Event> = createFakeEvents()
 
   /** The currently active repository. Automatically syncs with AuthenticationProvider.local */
@@ -41,7 +43,7 @@ object EventRepositoryProvider {
             ownerId = "ownerId1",
             title = "The Killers Concert",
             description = "...",
-            location = Location(46.5191, 2.33333, "EPFL"),
+            location = Location(46.5191, 2.33333, "somewhere"),
             start = date(300),
             isFlash = false,
             participationFee = 12u,
@@ -73,7 +75,7 @@ object EventRepositoryProvider {
             ownerId = "ownerId4",
             title = "RLC Study Jam",
             description = "...",
-            location = Location(46.5186, 6.5681, "Rolex Learning Center"),
+            location = ROLEX_LOCATION,
             start = date(604_800),
             isFlash = false,
             subtitle = "Live at EPFL!"),
@@ -83,7 +85,7 @@ object EventRepositoryProvider {
             ownerId = "ownerId4",
             title = "event-to-join",
             description = "...",
-            location = Location(46.5186, 6.5681, "Rolex Learning Center"),
+            location = ROLEX_LOCATION,
             start = date(8000),
             isFlash = false,
             subtitle = "Live at EPFL!"),

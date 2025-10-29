@@ -95,22 +95,28 @@ constructor(
   fun toggleFavorite(eventId: String) {
     currentUserId.let { uid ->
       viewModelScope.launch {
-        try {
-          val currentFavorites = _favoriteEventIds.value
-          val isCurrentlyFavorite = eventId in currentFavorites
-
-          if (isCurrentlyFavorite) {
-            userRepository.removeFavoriteEvent(uid, eventId)
-            _favoriteEventIds.update { it - eventId }
+        var didAdd = false
+        _favoriteEventIds.update { current ->
+          return@update if (current.contains(eventId)) {
+            didAdd = false
+            current - eventId
           } else {
-            userRepository.addFavoriteEvent(uid, eventId)
-            _favoriteEventIds.update { it + eventId }
+            didAdd = true
+            current + eventId
           }
+        }
+
+        try {
+          if (didAdd) userRepository.addFavoriteEvent(uid, eventId)
+          else userRepository.removeFavoriteEvent(uid, eventId)
 
           if (currentFilters.showOnlyFavorites) {
             applyFilters(currentFilters, allFetchedEvents)
           }
         } catch (e: Exception) {
+          _favoriteEventIds.update { current ->
+            return@update if (didAdd) current - eventId else current + eventId
+          }
           Log.e("HomePageViewModel", "Error toggling favorite status for event $eventId", e)
         }
       }
@@ -167,7 +173,7 @@ constructor(
                 filters.radiusKm >= 100f
               } else {
                 if (filters.location == null) return@filter true
-                val distance = calculateHaversiteDistance(event.location!!, filters.location)
+                val distance = calculateHaversineDistance(event.location!!, filters.location)
                 distance <= filters.radiusKm
               }
 
@@ -176,7 +182,7 @@ constructor(
     _uiState.update { it.copy(events = filtered, isLoading = false) }
   }
 
-  private fun calculateHaversiteDistance(loc1: Location, loc2: Location): Double {
+  private fun calculateHaversineDistance(loc1: Location, loc2: Location): Double {
     val earthRadiusKm = 6371.0
     val dLat = Math.toRadians(loc2.latitude - loc1.latitude)
     val dLon = Math.toRadians(loc2.longitude - loc1.longitude)

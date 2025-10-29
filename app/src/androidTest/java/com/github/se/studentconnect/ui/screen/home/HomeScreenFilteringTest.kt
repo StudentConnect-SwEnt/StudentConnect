@@ -6,11 +6,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.screen.filters.FilterData
 import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -20,6 +22,10 @@ import org.junit.runner.RunWith
 class HomeScreenFilteringTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  companion object {
+    private const val NO_EVENTS_TEXT = "No events found matching your criteria."
+  }
 
   private fun createTestEvent(
       uid: String,
@@ -43,20 +49,84 @@ class HomeScreenFilteringTest {
         website = null)
   }
 
-  private fun createMockRepository(events: List<Event>): EventRepository {
-    return object : EventRepository {
-      override fun getNewUid(): String = "newUid"
+  private suspend fun setupRepository(events: List<Event>): EventRepositoryLocal {
+    val repository = EventRepositoryLocal()
+    events.forEach { repository.addEvent(it) }
+    return repository
+  }
 
-      override suspend fun getAllVisibleEvents(): List<Event> = events
+  private suspend fun setupDelayedRepository(
+      events: List<Event>,
+      delayMs: Long = 1000
+  ): EventRepository {
+    val local = EventRepositoryLocal()
+    events.forEach { local.addEvent(it) }
+    return object : EventRepository {
+      override fun getNewUid(): String = local.getNewUid()
+
+      override suspend fun getAllVisibleEvents(): List<Event> {
+        delay(delayMs)
+        return local.getAllVisibleEvents()
+      }
 
       override suspend fun getAllVisibleEventsSatisfying(
           predicate: (Event) -> Boolean
-      ): List<Event> = events.filter(predicate)
+      ): List<Event> {
+        delay(delayMs)
+        return local.getAllVisibleEventsSatisfying(predicate)
+      }
 
-      override suspend fun getEvent(eventUid: String): Event =
-          events.find { it.uid == eventUid } ?: throw NoSuchElementException()
+      override suspend fun getEvent(eventUid: String): Event {
+        delay(delayMs)
+        return local.getEvent(eventUid)
+      }
 
-      override suspend fun getEventParticipants(eventUid: String) = emptyList<Nothing>()
+      override suspend fun getEventParticipants(eventUid: String) =
+          local.getEventParticipants(eventUid)
+
+      override suspend fun addEvent(event: Event) = local.addEvent(event)
+
+      override suspend fun editEvent(eventUid: String, newEvent: Event) =
+          local.editEvent(eventUid, newEvent)
+
+      override suspend fun deleteEvent(eventUid: String) = local.deleteEvent(eventUid)
+
+      override suspend fun addParticipantToEvent(
+          eventUid: String,
+          participant: com.github.se.studentconnect.model.event.EventParticipant
+      ) = local.addParticipantToEvent(eventUid, participant)
+
+      override suspend fun addInvitationToEvent(
+          eventUid: String,
+          invitedUser: String,
+          currentUserId: String
+      ) = local.addInvitationToEvent(eventUid, invitedUser, currentUserId)
+
+      override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) =
+          local.removeParticipantFromEvent(eventUid, participantUid)
+    }
+  }
+
+  private fun setupErrorRepository(errorMessage: String = "Network error"): EventRepository {
+    return object : EventRepository {
+      override fun getNewUid(): String = "newUid"
+
+      override suspend fun getAllVisibleEvents(): List<Event> {
+        throw Exception(errorMessage)
+      }
+
+      override suspend fun getAllVisibleEventsSatisfying(
+          predicate: (Event) -> Boolean
+      ): List<Event> {
+        throw Exception(errorMessage)
+      }
+
+      override suspend fun getEvent(eventUid: String): Event {
+        throw Exception(errorMessage)
+      }
+
+      override suspend fun getEventParticipants(eventUid: String) =
+          emptyList<com.github.se.studentconnect.model.event.EventParticipant>()
 
       override suspend fun addEvent(event: Event) {}
 
@@ -80,13 +150,12 @@ class HomeScreenFilteringTest {
   }
 
   @Test
-  fun homeScreen_filterBar_isDisplayed() {
-    val repository = createMockRepository(emptyList())
+  fun homeScreen_filterBar_isDisplayed() = runTest {
+    val repository = setupRepository(emptyList())
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitForIdle()
@@ -101,12 +170,11 @@ class HomeScreenFilteringTest {
             createTestEvent("2", "Piano Concert", listOf("Music")),
             createTestEvent("3", "Tennis Tournament", listOf("Sports")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -137,12 +205,11 @@ class HomeScreenFilteringTest {
             createTestEvent("1", "Event 1", listOf("Sports")),
             createTestEvent("2", "Event 2", listOf("Music")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -181,12 +248,11 @@ class HomeScreenFilteringTest {
   fun homeScreen_emptyResults_displaysMessage() = runTest {
     val events = listOf(createTestEvent("1", "Music Event", listOf("Music")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -202,36 +268,31 @@ class HomeScreenFilteringTest {
             showOnlyFavorites = false))
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodesWithText("No events found matching your criteria.")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
+      composeTestRule.onAllNodesWithText(NO_EVENTS_TEXT).fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
+    composeTestRule.onNodeWithText(NO_EVENTS_TEXT).assertIsDisplayed()
   }
 
   @Test
-  fun homeScreen_loading_displaysProgressIndicator() {
-    val repository = createMockRepository(emptyList())
+  fun homeScreen_loading_displaysProgressIndicator() = runTest {
+    val repository = setupRepository(emptyList())
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.onNode(hasTestTag("HomePage")).assertIsDisplayed()
   }
 
   @Test
-  fun homeScreen_topBar_hasSearchField() {
-    val repository = createMockRepository(emptyList())
+  fun homeScreen_topBar_hasSearchField() = runTest {
+    val repository = setupRepository(emptyList())
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -245,12 +306,11 @@ class HomeScreenFilteringTest {
   fun homeScreen_favoriteToggle_worksCorrectly() = runTest {
     val events = listOf(createTestEvent("fav1", "Favorite Event", listOf("Sports")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -266,12 +326,11 @@ class HomeScreenFilteringTest {
   fun homeScreen_clickEvent_navigatesToDetail() = runTest {
     val events = listOf(createTestEvent("1", "Clickable Event", listOf("Sports")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -290,12 +349,11 @@ class HomeScreenFilteringTest {
             createTestEvent("2", "Tennis Event", listOf("Sports", "Tennis")),
             createTestEvent("3", "Music Event", listOf("Music")))
 
-    val repository = createMockRepository(events)
+    val repository = setupRepository(events)
     val viewModel = HomePageViewModel(repository)
 
     composeTestRule.setContent {
-      val navController = rememberNavController()
-      HomeScreen(navController = navController, viewModel = viewModel)
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -317,5 +375,25 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Football Event").assertIsDisplayed()
     composeTestRule.onNodeWithText("Tennis Event").assertIsDisplayed()
     composeTestRule.onNodeWithText("Music Event").assertDoesNotExist()
+  }
+
+  @Test
+  fun homeScreen_delayedLoading_displaysEventsAfterDelay() = runTest {
+    val events = listOf(createTestEvent("1", "Delayed Event", listOf("Sports")))
+
+    val repository = setupDelayedRepository(events, 2000)
+    val viewModel = HomePageViewModel(repository)
+
+    composeTestRule.setContent {
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+    }
+
+    composeTestRule.onNodeWithText("Delayed Event").assertDoesNotExist()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("Delayed Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("Delayed Event").assertIsDisplayed()
   }
 }

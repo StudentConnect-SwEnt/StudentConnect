@@ -66,6 +66,18 @@ data class FilterData(
     val showOnlyFavorites: Boolean
 )
 
+// Constants for filter sliders to keep ranges consistent and maintainable
+private const val MIN_RADIUS = 1f
+private const val MAX_RADIUS = 100f
+private const val RADIUS_STEPS = 99
+
+private const val MIN_PRICE = 0f
+private const val MAX_PRICE = 200f
+private const val PRICE_STEPS = 199
+
+private const val DEFAULT_RADIUS = 10f
+private val DEFAULT_PRICE_RANGE: ClosedFloatingPointRange<Float> = 0f..50f
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
@@ -77,8 +89,8 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
   val availableCategories = remember { filterOptions }
   val selectedFilters = remember { mutableStateListOf<String>() }
   var selectedLocation by remember { mutableStateOf<Location?>(null) }
-  var searchRadius by remember { mutableFloatStateOf(10f) }
-  var priceRange by remember { mutableStateOf(0f..50f) }
+  var searchRadius by remember { mutableFloatStateOf(DEFAULT_RADIUS) }
+  var priceRange by remember { mutableStateOf(DEFAULT_PRICE_RANGE) }
 
   var showOnlyFavorites by remember { mutableStateOf(false) }
 
@@ -216,8 +228,8 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                   Slider(
                       value = searchRadius,
                       onValueChange = { searchRadius = it },
-                      valueRange = 1f..100f,
-                      steps = 99,
+                      valueRange = MIN_RADIUS..MAX_RADIUS,
+                      steps = RADIUS_STEPS,
                       modifier = Modifier.fillMaxWidth(),
                       enabled = selectedLocation != null)
                   Spacer(modifier = Modifier.height(24.dp))
@@ -227,8 +239,8 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                   RangeSlider(
                       value = priceRange,
                       onValueChange = { priceRange = it },
-                      valueRange = 0f..200f,
-                      steps = 199,
+                      valueRange = MIN_PRICE..MAX_PRICE,
+                      steps = PRICE_STEPS,
                       onValueChangeFinished = {},
                       modifier = Modifier.fillMaxWidth())
                   Row(
@@ -268,9 +280,15 @@ fun FilterBar(context: Context, onApplyFilters: (FilterData) -> Unit = {}) {
                 onClick = {
                   selectedFilters.clear()
                   selectedLocation = null
-                  searchRadius = 10f
-                  priceRange = 0f..50f
-                  onApplyFilters(FilterData(emptyList(), null, 10f, 0f..50f, showOnlyFavorites))
+                  searchRadius = DEFAULT_RADIUS
+                  priceRange = DEFAULT_PRICE_RANGE
+                  onApplyFilters(
+                      FilterData(
+                          emptyList(),
+                          null,
+                          DEFAULT_RADIUS,
+                          DEFAULT_PRICE_RANGE,
+                          showOnlyFavorites))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors()) {

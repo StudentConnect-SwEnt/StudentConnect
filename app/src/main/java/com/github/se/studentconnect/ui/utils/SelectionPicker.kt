@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.filters
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -7,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +29,7 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import kotlinx.coroutines.launch
 
 /**
  * Composable for the map component in LocationPickerDialog. This can be replaced with a test
@@ -78,20 +81,24 @@ fun LocationPickerDialog(
 ) {
   val context = LocalContext.current
 
-  val mapViewModel: MapViewModel =
-      viewModel(
-          factory =
-              object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                  if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
-                    @Suppress("UNCHECKED_CAST")
-                    return MapViewModel(LocationRepositoryImpl(context)) as T
-                  }
-                  throw IllegalArgumentException("Unknown ViewModel class")
-                }
-              })
+  val mapViewModelFactory =
+      remember(context) {
+        object : ViewModelProvider.Factory {
+          override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+              @Suppress("UNCHECKED_CAST") return MapViewModel(LocationRepositoryImpl(context)) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+          }
+        }
+      }
+
+  val mapViewModel: MapViewModel = viewModel(factory = mapViewModelFactory)
 
   val uiState by mapViewModel.uiState.collectAsState()
+
+  // use a remembered coroutine scope to call the selection callback without blocking UI
+  val coroutineScope = rememberCoroutineScope()
 
   var currentRadius by remember { mutableFloatStateOf(initialRadius) }
   var selectedPoint by remember {
@@ -163,10 +170,6 @@ fun LocationPickerDialog(
                           MapboxMap(
                               modifier = Modifier.fillMaxSize(),
                               mapViewportState = mapViewportState,
-                              scaleBar = {},
-                              logo = {},
-                              attribution = {},
-                              compass = {},
                               onMapClickListener =
                                   OnMapClickListener { point ->
                                     selectedPoint = point
@@ -222,9 +225,18 @@ fun LocationPickerDialog(
                               Button(
                                   onClick = {
                                     selectedLocation?.let { loc ->
-                                      onLocationSelected(loc, currentRadius)
+                                      coroutineScope.launch {
+                                        try {
+                                          onLocationSelected(loc, currentRadius)
+                                          onDismiss()
+                                        } catch (e: Exception) {
+                                          Log.e(
+                                              "LocationPickerDialog",
+                                              "onLocationSelected failed",
+                                              e)
+                                        }
+                                      }
                                     }
-                                    onDismiss()
                                   },
                                   enabled = selectedLocation != null,
                                   contentPadding = PaddingValues(horizontal = 16.dp)) {
