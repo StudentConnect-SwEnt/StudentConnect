@@ -7,7 +7,6 @@ import androidx.work.WorkerParameters
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.google.firebase.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -31,7 +30,6 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
 
     try {
       val eventRepository = EventRepositoryProvider.repository
-      val userRepository = UserRepositoryProvider.repository
       val notificationRepository = NotificationRepositoryProvider.repository
 
       // Get all visible events

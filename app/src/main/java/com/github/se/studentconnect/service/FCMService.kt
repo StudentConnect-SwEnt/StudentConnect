@@ -15,6 +15,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import java.util.Date
 
 /**
  * Firebase Cloud Messaging service for handling push notifications
@@ -26,7 +27,6 @@ class FCMService : FirebaseMessagingService() {
 
   companion object {
     private const val TAG = "FCMService"
-    private const val NOTIFICATION_ID_BASE = 1000
   }
 
   /**
@@ -52,13 +52,7 @@ class FCMService : FirebaseMessagingService() {
     // Extract notification data
     val data = remoteMessage.data
     val type = data["type"] ?: return
-    val userId = data["userId"] ?: Firebase.auth.currentUser?.uid ?: return
-
-    // Only process if the notification is for the current user
-    if (userId != Firebase.auth.currentUser?.uid) {
-      Log.w(TAG, "Notification not for current user, ignoring")
-      return
-    }
+    val userId = Firebase.auth.currentUser?.uid ?: return
 
     when (type) {
       NotificationType.FRIEND_REQUEST.name -> handleFriendRequestNotification(data, userId)
@@ -109,6 +103,7 @@ class FCMService : FirebaseMessagingService() {
     val eventId = data["eventId"] ?: return
     val eventTitle = data["eventTitle"] ?: "Event"
     val notificationId = data["notificationId"] ?: ""
+    val eventStartMillis = data["eventStart"]?.toLongOrNull() ?: return
 
     // Create notification object
     val notification =
@@ -117,7 +112,7 @@ class FCMService : FirebaseMessagingService() {
             userId = userId,
             eventId = eventId,
             eventTitle = eventTitle,
-            eventStart = Timestamp.now(),
+            eventStart = Timestamp(Date(eventStartMillis)),
             timestamp = Timestamp.now(),
             isRead = false)
 
