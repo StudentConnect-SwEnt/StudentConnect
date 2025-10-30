@@ -1,6 +1,7 @@
 package com.github.se.studentconnect
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,11 +35,11 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.MockUserRepository
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
-import com.github.se.studentconnect.ui.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
+import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
 import com.github.se.studentconnect.ui.screens.HomeScreen
@@ -136,13 +138,13 @@ fun MainContent() {
     }
     AppState.ONBOARDING -> {
       if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
-        android.util.Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
+        Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
         SignUpOrchestrator(
             firebaseUserId = uiState.currentUserId!!,
             email = uiState.currentUserEmail!!,
             userRepository = userRepository,
             onSignUpComplete = { user ->
-              android.util.Log.d("MainActivity", "Onboarding complete: ${user.userId}")
+              Log.d("MainActivity", "Onboarding complete: ${user.userId}")
               viewModel.onUserProfileCreated()
             })
       }
@@ -160,7 +162,7 @@ fun MainContent() {
 
 @Composable
 private fun MainAppContent(
-    navController: androidx.navigation.NavHostController,
+    navController: NavHostController,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
     shouldOpenQRScanner: Boolean,
@@ -246,11 +248,8 @@ private fun MainAppContent(
                 val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
                 EditProfilePictureScreen(
                     userId = userId,
-                    onBackClick = { navController.popBackStack() },
-                    onScanAgain = {
-                      onQRScannerStateChange(true)
-                      navController.popBackStack()
-                    })
+                    onNavigateBack = { navController.popBackStack() },
+                    userRepository = sharedMockRepository)
               }
 
           // Edit Name Screen
