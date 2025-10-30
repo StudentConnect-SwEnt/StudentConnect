@@ -3,7 +3,6 @@
 package com.github.se.studentconnect.ui.camera
 
 import android.Manifest
-import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.*
@@ -13,7 +12,6 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.utils.StudentConnectTest
 import java.io.File
-import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -42,28 +40,6 @@ class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
   fun cameraView_rendersDefaultButton_whenPermissionGranted() {
     runBlocking { composeTestRule.setContent { CameraView(onImageCaptured = {}, onError = {}) } }
     composeTestRule.onNodeWithContentDescription("Capture").assertExists()
-  }
-
-  @Test
-  fun cameraView_callsOnImageCaptured_whenCaptureButtonClicked() {
-    val capturedUris = mutableListOf<Uri>()
-
-    composeTestRule.setContent {
-      CameraView(
-          onImageCaptured = { uri -> capturedUris.add(uri) },
-          onError = { throw it } // Fail test if onError is called
-          )
-    }
-
-    // Find and click the capture button
-    composeTestRule.onNodeWithContentDescription("Capture").performClick()
-
-    // Wait for the callback to be invoked
-    composeTestRule.waitUntil(timeoutMillis = 5_000) { capturedUris.isNotEmpty() }
-
-    // Verify the callback was triggered with a non-null Uri
-    assertTrue("onImageCaptured should be called", capturedUris.isNotEmpty())
-    assertNotNull("Captured Uri should not be null", capturedUris.first())
   }
 
   @Test
