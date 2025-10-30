@@ -168,6 +168,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
+    implementation(libs.firebase.messaging)
 
     // Credential Manager (for Google Sign-In)
     implementation(libs.credentials)
@@ -189,6 +190,9 @@ dependencies {
 
     // QR Code generation
     implementation(libs.compose.qr.code)
+
+    // WorkManager for background tasks
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Testing Unit
     testImplementation(libs.junit)
