@@ -71,7 +71,7 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
             }
 
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-              // Not used for this implementation
+              // Not relevant for location updates, but required by ChildEventListener
             }
 
             override fun onCancelled(error: DatabaseError) {

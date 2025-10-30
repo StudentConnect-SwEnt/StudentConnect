@@ -5,7 +5,6 @@ import com.google.firebase.database.*
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -116,10 +115,20 @@ class FriendsLocationRepositoryFirebaseTest {
     val mockParentRef = mockk<DatabaseReference>(relaxed = true)
     val mockSnapshot = mockk<DataSnapshot>(relaxed = true)
     val mockParentSnapshot = mockk<DataSnapshot>(relaxed = true)
+    val mockTask = mockk<com.google.android.gms.tasks.Task<DataSnapshot>>(relaxed = true)
 
     every { mockLocationsRef.child(friendId) } returns mockFriendRef
     every { mockSnapshot.ref.parent } returns mockParentRef
-    every { mockParentRef.get() } returns Tasks.forResult(mockParentSnapshot)
+
+    // Mock the Task to immediately call the success listener
+    every { mockParentRef.get() } returns mockTask
+    every { mockTask.addOnSuccessListener(any()) } answers
+        {
+          val listener = firstArg<com.google.android.gms.tasks.OnSuccessListener<DataSnapshot>>()
+          listener.onSuccess(mockParentSnapshot)
+          mockTask
+        }
+
     every { mockParentSnapshot.child("latitude").getValue(Double::class.java) } returns 46.5191
     every { mockParentSnapshot.child("longitude").getValue(Double::class.java) } returns 6.5668
     every { mockParentSnapshot.child("timestamp").getValue(Long::class.java) } returns
@@ -132,15 +141,22 @@ class FriendsLocationRepositoryFirebaseTest {
         }
 
     val flow = repository.observeFriendLocations("user", listOf(friendId))
-    val job = launch {
-      val locations = flow.first()
-      assertTrue(locations.containsKey(friendId))
-      assertEquals(46.5191, locations[friendId]?.latitude ?: 0.0, 0.0001)
-    }
+
+    // Use a mutable list to collect emitted values
+    val emittedLocations = mutableListOf<Map<String, FriendLocation>>()
+    val job = launch { flow.collect { locations -> emittedLocations.add(locations) } }
 
     advanceUntilIdle()
+    // Trigger the listener which will call updateLocationFromSnapshot
     listenerSlot.captured.onChildAdded(mockSnapshot, null)
     advanceUntilIdle()
+
+    // Verify that the fresh location was emitted through trySend
+    assertTrue("Expected at least one emission", emittedLocations.isNotEmpty())
+    val lastEmission = emittedLocations.last()
+    assertTrue("Expected location for $friendId", lastEmission.containsKey(friendId))
+    assertEquals(46.5191, lastEmission[friendId]?.latitude ?: 0.0, 0.0001)
+    assertEquals(6.5668, lastEmission[friendId]?.longitude ?: 0.0, 0.0001)
 
     job.cancel()
   }
@@ -152,10 +168,20 @@ class FriendsLocationRepositoryFirebaseTest {
     val mockParentRef = mockk<DatabaseReference>(relaxed = true)
     val mockSnapshot = mockk<DataSnapshot>(relaxed = true)
     val mockParentSnapshot = mockk<DataSnapshot>(relaxed = true)
+    val mockTask = mockk<com.google.android.gms.tasks.Task<DataSnapshot>>(relaxed = true)
 
     every { mockLocationsRef.child(friendId) } returns mockFriendRef
     every { mockSnapshot.ref.parent } returns mockParentRef
-    every { mockParentRef.get() } returns Tasks.forResult(mockParentSnapshot)
+
+    // Mock the Task to immediately call the success listener
+    every { mockParentRef.get() } returns mockTask
+    every { mockTask.addOnSuccessListener(any()) } answers
+        {
+          val listener = firstArg<com.google.android.gms.tasks.OnSuccessListener<DataSnapshot>>()
+          listener.onSuccess(mockParentSnapshot)
+          mockTask
+        }
+
     every { mockParentSnapshot.child("latitude").getValue(Double::class.java) } returns 47.0
     every { mockParentSnapshot.child("longitude").getValue(Double::class.java) } returns 7.0
     every { mockParentSnapshot.child("timestamp").getValue(Long::class.java) } returns
@@ -168,14 +194,22 @@ class FriendsLocationRepositoryFirebaseTest {
         }
 
     val flow = repository.observeFriendLocations("user", listOf(friendId))
-    val job = launch {
-      val locations = flow.first()
-      assertTrue(locations.containsKey(friendId))
-    }
+
+    // Use a mutable list to collect emitted values
+    val emittedLocations = mutableListOf<Map<String, FriendLocation>>()
+    val job = launch { flow.collect { locations -> emittedLocations.add(locations) } }
 
     advanceUntilIdle()
+    // Trigger the listener which will call updateLocationFromSnapshot
     listenerSlot.captured.onChildChanged(mockSnapshot, null)
     advanceUntilIdle()
+
+    // Verify that the fresh location was emitted through trySend
+    assertTrue("Expected at least one emission", emittedLocations.isNotEmpty())
+    val lastEmission = emittedLocations.last()
+    assertTrue("Expected location for $friendId", lastEmission.containsKey(friendId))
+    assertEquals(47.0, lastEmission[friendId]?.latitude ?: 0.0, 0.0001)
+    assertEquals(7.0, lastEmission[friendId]?.longitude ?: 0.0, 0.0001)
 
     job.cancel()
   }
@@ -236,10 +270,20 @@ class FriendsLocationRepositoryFirebaseTest {
     val mockParentRef = mockk<DatabaseReference>(relaxed = true)
     val mockSnapshot = mockk<DataSnapshot>(relaxed = true)
     val mockParentSnapshot = mockk<DataSnapshot>(relaxed = true)
+    val mockTask = mockk<com.google.android.gms.tasks.Task<DataSnapshot>>(relaxed = true)
 
     every { mockLocationsRef.child(friendId) } returns mockFriendRef
     every { mockSnapshot.ref.parent } returns mockParentRef
-    every { mockParentRef.get() } returns Tasks.forResult(mockParentSnapshot)
+
+    // Mock the Task to immediately call the success listener
+    every { mockParentRef.get() } returns mockTask
+    every { mockTask.addOnSuccessListener(any()) } answers
+        {
+          val listener = firstArg<com.google.android.gms.tasks.OnSuccessListener<DataSnapshot>>()
+          listener.onSuccess(mockParentSnapshot)
+          mockTask
+        }
+
     every { mockParentSnapshot.child("latitude").getValue(Double::class.java) } returns 46.5191
     every { mockParentSnapshot.child("longitude").getValue(Double::class.java) } returns 6.5668
     // Stale timestamp (more than 5 minutes old)
@@ -253,11 +297,21 @@ class FriendsLocationRepositoryFirebaseTest {
         }
 
     val flow = repository.observeFriendLocations("user", listOf(friendId))
-    val job = launch { flow.collect {} }
+
+    // Use a mutable list to collect emitted values
+    val emittedLocations = mutableListOf<Map<String, FriendLocation>>()
+    val job = launch { flow.collect { emittedLocations.add(it) } }
 
     advanceUntilIdle()
     listenerSlot.captured.onChildAdded(mockSnapshot, null)
     advanceUntilIdle()
+
+    // Verify that stale location was NOT added to the emitted locations
+    // Either no emissions or the friend is not in the locations map
+    if (emittedLocations.isNotEmpty()) {
+      val lastEmission = emittedLocations.last()
+      assertFalse("Stale location should not be added", lastEmission.containsKey(friendId))
+    }
 
     job.cancel()
   }
@@ -269,10 +323,20 @@ class FriendsLocationRepositoryFirebaseTest {
     val mockParentRef = mockk<DatabaseReference>(relaxed = true)
     val mockSnapshot = mockk<DataSnapshot>(relaxed = true)
     val mockParentSnapshot = mockk<DataSnapshot>(relaxed = true)
+    val mockTask = mockk<com.google.android.gms.tasks.Task<DataSnapshot>>(relaxed = true)
 
     every { mockLocationsRef.child(friendId) } returns mockFriendRef
     every { mockSnapshot.ref.parent } returns mockParentRef
-    every { mockParentRef.get() } returns Tasks.forResult(mockParentSnapshot)
+
+    // Mock the Task to immediately call the success listener
+    every { mockParentRef.get() } returns mockTask
+    every { mockTask.addOnSuccessListener(any()) } answers
+        {
+          val listener = firstArg<com.google.android.gms.tasks.OnSuccessListener<DataSnapshot>>()
+          listener.onSuccess(mockParentSnapshot)
+          mockTask
+        }
+
     every { mockParentSnapshot.child("latitude").getValue(Double::class.java) } returns null
     every { mockParentSnapshot.child("longitude").getValue(Double::class.java) } returns null
     every { mockParentSnapshot.child("timestamp").getValue(Long::class.java) } returns null
@@ -284,11 +348,20 @@ class FriendsLocationRepositoryFirebaseTest {
         }
 
     val flow = repository.observeFriendLocations("user", listOf(friendId))
-    val job = launch { flow.collect {} }
+
+    // Use a mutable list to collect emitted values
+    val emittedLocations = mutableListOf<Map<String, FriendLocation>>()
+    val job = launch { flow.collect { emittedLocations.add(it) } }
 
     advanceUntilIdle()
     listenerSlot.captured.onChildAdded(mockSnapshot, null)
     advanceUntilIdle()
+
+    // Verify that null location data was NOT added
+    if (emittedLocations.isNotEmpty()) {
+      val lastEmission = emittedLocations.last()
+      assertFalse("Null location should not be added", lastEmission.containsKey(friendId))
+    }
 
     job.cancel()
   }
