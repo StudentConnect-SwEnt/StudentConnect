@@ -86,6 +86,7 @@ jobs:
           path: |
             app/build/test-results/**/*.xml
             app/build/reports/tests/**
+            app/build/outputs/unit_test_code_coverage/**/*.exec
 
 
   instrumented-tests:
@@ -202,6 +203,7 @@ jobs:
           path: |
             app/build/outputs/androidTest-results/**/*.xml
             app/build/reports/androidTests/**
+            app/build/outputs/code_coverage/**/*.ec
 
 
   sonarcloud:
@@ -240,41 +242,41 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-results
-          path: app/build/test-results/
+          path: app/build/
 
       - name: Download instrumented test results (shard 0)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-0
-          path: app/build/outputs/androidTest-results/shard-0/
+          path: app/build/
         continue-on-error: true
 
       - name: Download instrumented test results (shard 1)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-1
-          path: app/build/outputs/androidTest-results/shard-1/
+          path: app/build/
         continue-on-error: true
 
       - name: Download instrumented test results (shard 2)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-2
-          path: app/build/outputs/androidTest-results/shard-2/
+          path: app/build/
         continue-on-error: true
 
       - name: Download instrumented test results (shard 3)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-3
-          path: app/build/outputs/androidTest-results/shard-3/
+          path: app/build/
         continue-on-error: true
 
       - name: Download instrumented test results (shard 4)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-4
-          path: app/build/outputs/androidTest-results/shard-4/
+          path: app/build/
         continue-on-error: true
 
       - name: Generate Coverage Report
