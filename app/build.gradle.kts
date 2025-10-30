@@ -25,28 +25,16 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
-        // Configure test sharding from gradle properties
-        val shardIndex = project.findProperty("testShardIndex")?.toString()?.toIntOrNull()
-        val numShards = project.findProperty("testNumShards")?.toString()?.toIntOrNull()
-
-        if (shardIndex != null && numShards != null) {
-            testInstrumentationRunnerArguments["numShards"] = numShards.toString()
-            testInstrumentationRunnerArguments["shardIndex"] = shardIndex.toString()
-        }
     }
 
     signingConfigs {
         create("release") {
             // Use debug keystore for CI builds to maintain consistent SHA-1 fingerprint
             // This allows the APK to work with Firebase without additional configuration
-            val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = "android"
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
-            }
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
@@ -57,11 +45,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
-            // Sign with debug keystore for consistent fingerprints across environments (if available)
-            val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            // Sign with debug keystore for consistent fingerprints across environments
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             enableUnitTestCoverage = true
