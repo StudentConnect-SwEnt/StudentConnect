@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.profile
+package com.github.se.studentconnect.ui.screen.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

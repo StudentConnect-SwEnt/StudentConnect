@@ -2,9 +2,9 @@
 package com.github.se.studentconnect.model.event
 
 import com.github.se.studentconnect.model.location.Location
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.firestore
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
@@ -13,22 +13,25 @@ import kotlinx.coroutines.runBlocking
 /**
  * Provides instances of EventRepository. Allows switching between Firestore and a local, in-memory
  * repository for testing.
+ *
+ * The repository mode is controlled by `AuthenticationProvider.local`:
+ * - local = true: Uses in-memory repository for testing
+ * - local = false: Uses Firestore for production
  */
 object EventRepositoryProvider {
   private val firestoreRepository: EventRepository = EventRepositoryFirestore(Firebase.firestore)
   private val localRepository: EventRepository = EventRepositoryLocal()
 
+  private val ROLEX_LOCATION = Location(46.5186, 6.5681, "Rolex Learning Center")
+
   val fakeEvents: List<Event> = createFakeEvents()
 
-  /**
-   * The currently active repository. Change the value of `useLocal` to switch between
-   * implementations.
-   */
+  /** The currently active repository. Automatically syncs with AuthenticationProvider.local */
   var repository: EventRepository
 
   init {
     runBlocking { fakeEvents.forEach { event -> localRepository.addEvent(event) } }
-    val useLocal = true
+    val useLocal = com.github.se.studentconnect.repository.AuthenticationProvider.local
     repository = if (useLocal) localRepository else firestoreRepository
   }
 
@@ -40,9 +43,10 @@ object EventRepositoryProvider {
             ownerId = "ownerId1",
             title = "The Killers Concert",
             description = "...",
-            location = Location(46.5191, 6.5668, "EPFL"),
+            location = Location(46.5191, 2.33333, "somewhere"),
             start = date(300),
             isFlash = false,
+            participationFee = 12u,
             subtitle = "Live at EPFL!"),
         // Event 2
         Event.Public(
@@ -53,6 +57,7 @@ object EventRepositoryProvider {
             location = Location(46.5204, 6.5654, "SwissTech Convention Center"),
             start = date(86400),
             isFlash = false,
+            participationFee = 12u,
             subtitle = "Live at EPFL!"),
         // Event 3
         Event.Public(
@@ -70,7 +75,7 @@ object EventRepositoryProvider {
             ownerId = "ownerId4",
             title = "RLC Study Jam",
             description = "...",
-            location = Location(46.5186, 6.5681, "Rolex Learning Center"),
+            location = ROLEX_LOCATION,
             start = date(604_800),
             isFlash = false,
             subtitle = "Live at EPFL!"),
@@ -80,7 +85,7 @@ object EventRepositoryProvider {
             ownerId = "ownerId4",
             title = "event-to-join",
             description = "...",
-            location = Location(46.5186, 6.5681, "Rolex Learning Center"),
+            location = ROLEX_LOCATION,
             start = date(8000),
             isFlash = false,
             subtitle = "Live at EPFL!"),

@@ -2,7 +2,10 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.util.MainDispatcherRule
+import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.profile.EditingField
+import com.github.se.studentconnect.ui.screen.profile.ProfileViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -308,6 +311,38 @@ class ProfileViewModelTest {
     override suspend fun joinEvent(eventId: String, userId: String) = Unit
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        Unit
+        unsupported()
+
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
+
+    private fun unsupported(): Nothing =
+        throw UnsupportedOperationException("Not required for test")
+  }
+
+  companion object {
+    private val DEFAULT_USER =
+        User(
+            userId = "user-123",
+            email = "john.doe@epfl.ch",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL",
+            hobbies = listOf("running"),
+            profilePictureUrl = "https://example.com/profile.png",
+            bio = "Student at EPFL",
+            country = "Switzerland",
+            birthday = "01/01/2000",
+            createdAt = 1_000L,
+            updatedAt = 2_000L)
   }
 }

@@ -15,9 +15,8 @@ enum class SignUpStep {
   BasicInfo,
   Nationality,
   AddPicture,
-  Bio,
-  Interests,
-  Welcome
+  Description,
+  Experiences
 }
 
 /** Immutable data class holding all information entered by the user throughout the signup flow. */
@@ -101,10 +100,9 @@ private fun SignUpStep.next(): SignUpStep =
       SignUpStep.GettingStarted -> SignUpStep.BasicInfo
       SignUpStep.BasicInfo -> SignUpStep.Nationality
       SignUpStep.Nationality -> SignUpStep.AddPicture
-      SignUpStep.AddPicture -> SignUpStep.Bio
-      SignUpStep.Bio -> SignUpStep.Interests
-      SignUpStep.Interests -> SignUpStep.Welcome
-      SignUpStep.Welcome -> SignUpStep.Welcome
+      SignUpStep.AddPicture -> SignUpStep.Description
+      SignUpStep.Description -> SignUpStep.Experiences
+      SignUpStep.Experiences -> SignUpStep.Experiences
     }
 
 /** Returns the previous step in the signup sequence. */
@@ -114,7 +112,6 @@ private fun SignUpStep.prev(): SignUpStep =
       SignUpStep.BasicInfo -> SignUpStep.GettingStarted
       SignUpStep.Nationality -> SignUpStep.BasicInfo
       SignUpStep.AddPicture -> SignUpStep.Nationality
-      SignUpStep.Bio -> SignUpStep.AddPicture
-      SignUpStep.Interests -> SignUpStep.Bio
-      SignUpStep.Welcome -> SignUpStep.Interests
+      SignUpStep.Description -> SignUpStep.AddPicture
+      SignUpStep.Experiences -> SignUpStep.Description
     }

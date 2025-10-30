@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.utils
 
-import FilterBar
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -9,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.ui.screen.filters.FilterBar
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,8 +25,7 @@ class FilterBarTest {
     composeTestRule.setContent { FilterBar(context) }
 
     // Verify the filter chips are displayed
-    composeTestRule.onNodeWithText("Paris").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Filtres").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Filters").assertIsDisplayed()
     composeTestRule.onNodeWithText("Favorites").assertIsDisplayed()
   }
 
@@ -34,8 +33,7 @@ class FilterBarTest {
   fun filterBar_allChipsHaveClickAction() {
     composeTestRule.setContent { FilterBar(context) }
 
-    composeTestRule.onNodeWithText("Paris").assertHasClickAction()
-    composeTestRule.onNodeWithText("Filtres").assertHasClickAction()
+    composeTestRule.onNodeWithText("Filters").assertHasClickAction()
     composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
   }
 
@@ -43,25 +41,16 @@ class FilterBarTest {
   fun filterBar_iconsAreDisplayed() {
     composeTestRule.setContent { FilterBar(context) }
 
-    // Verify icons have content descriptions matching the text
-    composeTestRule.onNodeWithContentDescription("Paris").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Filtres").assertIsDisplayed()
+    // Verify icons have content descriptions matching the text where applicable
+    composeTestRule.onNodeWithContentDescription("Filters").assertIsDisplayed()
     composeTestRule.onNodeWithContentDescription("Favorites").assertIsDisplayed()
-  }
-
-  @Test
-  fun filterBar_clickOnParisChip_doesNotCrash() {
-    composeTestRule.setContent { FilterBar(context) }
-
-    composeTestRule.onNodeWithText("Paris").performClick()
-    // Should show "Not yet implemented" toast, but won't crash
   }
 
   @Test
   fun filterBar_clickOnFiltresChip_doesNotCrash() {
     composeTestRule.setContent { FilterBar(context) }
 
-    composeTestRule.onNodeWithText("Filtres").performClick()
+    composeTestRule.onNodeWithText("Filters").performClick()
   }
 
   @Test
@@ -75,10 +64,8 @@ class FilterBarTest {
   fun filterBar_hasCorrectNumberOfChips() {
     composeTestRule.setContent { FilterBar(context) }
 
-    // Should have 4 chips (Paris, Calendar icon-only, Filtres, Favorites)
-    composeTestRule.onNodeWithText("Paris").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Filtres").assertIsDisplayed()
+    // Verify visible chips
+    composeTestRule.onNodeWithText("Filters").assertIsDisplayed()
     composeTestRule.onNodeWithText("Favorites").assertIsDisplayed()
-    // Calendar chip has no text, so we just verify the others
   }
 }

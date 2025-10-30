@@ -42,6 +42,15 @@ object C {
     const val activities_tab = "activities_tab"
     const val profile_tab = "profile_tab"
 
+    // Search test tags
+    const val search_screen = "search_screen"
+    const val search_input_field = "search_input_field"
+    const val back_button = "back_button"
+    const val user_search_result = "user_search_result"
+    const val user_search_result_title = "user_search_result_title"
+    const val event_search_result = "event_search_result"
+    const val event_search_result_title = "event_search_result_title"
+
     fun getTabTestTag(tab: Tab): String =
         when (tab) {
           is Tab.Home -> home_tab
