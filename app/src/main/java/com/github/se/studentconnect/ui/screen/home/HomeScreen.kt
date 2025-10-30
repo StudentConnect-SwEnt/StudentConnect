@@ -6,9 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.events.EventListScreen
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -62,6 +63,7 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
+import kotlin.math.min
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -127,7 +129,7 @@ fun HomeScreen(
               CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
               Column {
-                StoriesRaw(viewModel)
+                StoriesRow(viewModel)
                 FilterBar(LocalContext.current)
                 EventListScreen(navController = navController, events = uiState.events, false)
               }
@@ -187,11 +189,11 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
 }
 
 @Composable
-fun StoryItem(seen: Boolean = false) {
-  val borderColor = remember { if (seen) Color.Gray else Color.Magenta }
+fun StoryItem(viewModel: HomePageViewModel, event: Event, stories: Pair<Int, Int>) {
+  val borderColor = remember { if (stories.first == stories.second) Color.Gray else Color.Magenta }
   Image(
       painter = painterResource(R.drawable.avatar_12),
-      contentDescription = null,
+      contentDescription = "Event Story",
       modifier =
           Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.15f)
               .clip(CircleShape)
@@ -200,17 +202,25 @@ fun StoryItem(seen: Boolean = false) {
                   color = borderColor,
                   shape = CircleShape,
               )
-              .clickable(onClick = {}),
+              .clickable(
+                  onClick = {
+                    viewModel.updateSeenStories(event, min(stories.second + 1, stories.first))
+                  }),
   )
 }
 
 @Composable
-fun StoriesRaw(viewModel: HomePageViewModel) {
-  LazyRow() {
-    val stories = viewModel.uiState.value.subscribedEventsStories
-    items(stories.entries.toList()) { story ->
-      Spacer(Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.03f))
-      StoryItem(story.value.second == story.value.first)
+fun StoriesRow(viewModel: HomePageViewModel) {
+  LazyRow(
+      horizontalArrangement =
+          Arrangement.spacedBy(LocalWindowInfo.current.containerSize.width.dp * 0.03f),
+  ) {
+    val stories = viewModel.uiState.value.subscribedEventsStories.filter { it.value.first != 0 }
+    items(stories.entries.toList().filter { it.value.second < it.value.first }) { story ->
+      StoryItem(viewModel, story.key, story.value)
+    }
+    items(stories.entries.toList().filter { it.value.second == it.value.first }) { story ->
+      StoryItem(viewModel, story.key, story.value)
     }
   }
 }

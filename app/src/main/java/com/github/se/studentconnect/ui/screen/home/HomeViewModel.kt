@@ -8,7 +8,6 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import javax.inject.Inject
-import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,9 +48,10 @@ constructor(
           }
 
       val allSubscribedEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+      var i = 0
       for (e in allSubscribedEvents) {
-        val i = Random.nextInt(5)
         allSubscribedEventsStory.put(e, Pair(i, 0))
+        i++
       }
 
       _uiState.update {
@@ -71,11 +71,11 @@ constructor(
   fun updateSeenStories(event: Event, seenIndex: Int) {
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true) }
-      val stories = uiState.value.subscribedEventsStories
+      val stories = _uiState.value.subscribedEventsStories
 
-      stories.get(event)?.first?.let { i ->
+      stories[event]?.first?.let { i ->
         if (i >= seenIndex) {
-          stories.get(event)?.second?.let { j ->
+          stories[event]?.second?.let { j ->
             if (j < seenIndex) {
               val subscribedEventsStoryUpdate = stories.toMutableMap()
               subscribedEventsStoryUpdate.replace(event, Pair(i, j))

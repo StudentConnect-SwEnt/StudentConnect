@@ -9,7 +9,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
@@ -43,7 +45,8 @@ class HomeScreenUITest {
           website = "https://example.com",
           ownerId = "owner1",
           isFlash = false,
-          tags = listOf("music", "outdoor"))
+          tags = listOf("music", "outdoor"),
+      )
 
   private val testEvent2 =
       Event.Public(
@@ -57,17 +60,30 @@ class HomeScreenUITest {
           website = "https://example.com",
           ownerId = "owner2",
           isFlash = false,
-          tags = listOf("tech", "networking"))
+          tags = listOf("tech", "networking"),
+      )
+
+  private val testUser =
+      User(
+          userId = "user",
+          email = "a@a.ch",
+          firstName = "John",
+          lastName = "Doe",
+          university = "EPFL",
+      )
 
   @Before
   fun setup() {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel = HomePageViewModel(eventRepository, userRepository, "user")
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
       eventRepository.addEvent(testEvent2)
+      userRepository.saveUser(testUser)
+      eventRepository.addParticipantToEvent("event-1", EventParticipant("user"))
+      eventRepository.addParticipantToEvent("event-2", EventParticipant("user"))
     }
   }
 
@@ -105,6 +121,15 @@ class HomeScreenUITest {
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_eventsStories_isDisplayed() {
+    composeTestRule.setContent {
+      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+    }
+
+    composeTestRule.onNodeWithContentDescription("Event Story")
   }
 
   @Test
@@ -192,7 +217,7 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_emptyState_displaysLoading() {
     val emptyRepository = EventRepositoryLocal()
-    val emptyViewModel = HomePageViewModel(emptyRepository, userRepository)
+    val emptyViewModel = HomePageViewModel(emptyRepository, userRepository, "user")
 
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = emptyViewModel)
