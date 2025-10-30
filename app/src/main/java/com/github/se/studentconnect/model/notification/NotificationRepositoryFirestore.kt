@@ -208,7 +208,8 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
             .addSnapshotListener { snapshot, error ->
               if (error != null) {
                 // Log error for debugging while gracefully handling by returning empty list
-                android.util.Log.e("NotificationRepository", "Error listening to notifications", error)
+                android.util.Log.e(
+                    "NotificationRepository", "Error listening to notifications", error)
                 onNotificationsChanged(emptyList())
                 return@addSnapshotListener
               }
