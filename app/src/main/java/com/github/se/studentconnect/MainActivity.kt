@@ -26,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
@@ -39,8 +38,6 @@ import com.github.se.studentconnect.ui.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
-import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
-import com.github.se.studentconnect.ui.screen.profile.VisitorProfileRoute
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
 import com.github.se.studentconnect.ui.screens.HomeScreen

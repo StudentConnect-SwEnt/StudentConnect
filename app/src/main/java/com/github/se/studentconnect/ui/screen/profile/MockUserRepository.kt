@@ -135,19 +135,19 @@ class MockUserRepository : UserRepository {
     // Mock send invitation - just simulate success
   }
 
-    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
-        TODO("Not yet implemented")
-    }
+  override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+    TODO("Not yet implemented")
+  }
 
-    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
-        TODO("Not yet implemented")
-    }
+  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+    TODO("Not yet implemented")
+  }
 
-    override suspend fun getFavoriteEvents(userId: String): List<String> {
-        TODO("Not yet implemented")
-    }
+  override suspend fun getFavoriteEvents(userId: String): List<String> {
+    TODO("Not yet implemented")
+  }
 
-    override suspend fun leaveEvent(eventId: String, userId: String) {
+  override suspend fun leaveEvent(eventId: String, userId: String) {
     delay(500)
     // Mock leave event - just simulate success
   }

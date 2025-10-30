@@ -5,7 +5,6 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.profile.EditingField
 import com.github.se.studentconnect.ui.screen.profile.ProfileViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
