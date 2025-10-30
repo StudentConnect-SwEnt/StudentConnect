@@ -242,42 +242,50 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-results
-          path: app/build/
+          path: .
 
       - name: Download instrumented test results (shard 0)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-0
-          path: app/build/
+          path: .
         continue-on-error: true
 
       - name: Download instrumented test results (shard 1)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-1
-          path: app/build/
+          path: .
         continue-on-error: true
 
       - name: Download instrumented test results (shard 2)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-2
-          path: app/build/
+          path: .
         continue-on-error: true
 
       - name: Download instrumented test results (shard 3)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-3
-          path: app/build/
+          path: .
         continue-on-error: true
 
       - name: Download instrumented test results (shard 4)
         uses: actions/download-artifact@v4
         with:
           name: instrumented-test-results-shard-4
-          path: app/build/
+          path: .
         continue-on-error: true
+
+      - name: List downloaded coverage files
+        run: |
+          echo "Unit test coverage files:"
+          find app/build/outputs/unit_test_code_coverage -name "*.exec" 2>/dev/null || echo "No .exec files found"
+          echo ""
+          echo "Instrumented test coverage files:"
+          find app/build/outputs/code_coverage -name "*.ec" 2>/dev/null || echo "No .ec files found"
 
       - name: Generate Coverage Report
         run: ./gradlew jacocoTestReport --configuration-cache --max-workers=2
