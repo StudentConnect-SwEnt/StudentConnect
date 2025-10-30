@@ -6,7 +6,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -116,7 +118,7 @@ class CreatePublicEventViewModel(
     val event =
         Event.Public(
             uid = eventRepository.getNewUid(),
-            ownerId = "", // TODO: empty for now
+            ownerId = Firebase.auth.currentUser?.uid!!,
             title = uiState.value.title,
             description = uiState.value.description,
             imageUrl = null,

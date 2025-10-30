@@ -2,11 +2,16 @@ package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.authentication.AuthRepository
+import com.github.se.studentconnect.model.authentication.AuthRepositoryFirebase
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -17,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CreatePrivateEventViewModel(
+    private val authRepository: AuthRepository = AuthRepositoryFirebase(),
     private val eventRepository: EventRepository = EventRepositoryProvider.repository
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Private())
@@ -104,7 +110,7 @@ class CreatePrivateEventViewModel(
     val event =
         Event.Private(
             uid = eventRepository.getNewUid(),
-            ownerId = "", // TODO: empty for now
+            ownerId = Firebase.auth.currentUser?.uid!!,
             title = uiState.value.title,
             description = uiState.value.description,
             imageUrl = null,
