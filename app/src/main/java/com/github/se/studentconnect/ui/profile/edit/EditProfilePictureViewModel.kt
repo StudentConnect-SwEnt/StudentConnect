@@ -1,2 +1,1 @@
-package com.github.se.studentconnect.ui.profile.edit 
-
+package com.github.se.studentconnect.ui.profile.edit
