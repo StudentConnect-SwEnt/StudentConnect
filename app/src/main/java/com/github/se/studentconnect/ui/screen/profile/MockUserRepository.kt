@@ -22,8 +22,7 @@ class MockUserRepository : UserRepository {
           country = "Switzerland",
           birthday = "15/03/1998",
           hobbies = listOf("Football", "Photography", "Cooking", "Reading"),
-          bio =
-              "I'm a computer science student at EPFL. I love technology, sports, and meeting new people!",
+          bio = "I'm a CS student at EPFL. I love technology, sports, and meeting new people!",
           profilePictureUrl = null)
 
   override suspend fun getUserById(userId: String): User? {
@@ -51,7 +50,7 @@ class MockUserRepository : UserRepository {
 
   override suspend fun saveUser(user: User) {
     delay(500)
-    // Mock save - actually update the mock user
+    // Update the mock user
     mockUser = user
   }
 
