@@ -25,6 +25,8 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
   }
 
   /** Gets the currently authenticated user ID */
+  /* This function will be used in the future to get the current user ID in testing */
+  // TODO: Implement this function
   private fun getCurrentUserId(): String? {
     return Firebase.auth.currentUser?.uid
   }
@@ -120,12 +122,29 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
         .whereEqualTo("isRead", false)
         .get()
         .addOnSuccessListener { snapshot ->
-          val batch = db.batch()
-          snapshot.documents.forEach { doc -> batch.update(doc.reference, "isRead", true) }
-          batch
-              .commit()
-              .addOnSuccessListener { onSuccess() }
-              .addOnFailureListener { exception -> onFailure(exception) }
+          val documents = snapshot.documents
+          if (documents.isEmpty()) {
+            onSuccess()
+            return@addOnSuccessListener
+          }
+
+          // Firestore batch limit is 500 operations, so chunk the documents
+          val chunks = documents.chunked(500)
+          var completedChunks = 0
+
+          chunks.forEach { chunk ->
+            val batch = db.batch()
+            chunk.forEach { doc -> batch.update(doc.reference, "isRead", true) }
+            batch
+                .commit()
+                .addOnSuccessListener {
+                  completedChunks++
+                  if (completedChunks == chunks.size) {
+                    onSuccess()
+                  }
+                }
+                .addOnFailureListener { exception -> onFailure(exception) }
+          }
         }
         .addOnFailureListener { exception -> onFailure(exception) }
   }
@@ -151,12 +170,29 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
         .whereEqualTo("userId", userId)
         .get()
         .addOnSuccessListener { snapshot ->
-          val batch = db.batch()
-          snapshot.documents.forEach { doc -> batch.delete(doc.reference) }
-          batch
-              .commit()
-              .addOnSuccessListener { onSuccess() }
-              .addOnFailureListener { exception -> onFailure(exception) }
+          val documents = snapshot.documents
+          if (documents.isEmpty()) {
+            onSuccess()
+            return@addOnSuccessListener
+          }
+
+          // Firestore batch limit is 500 operations, so chunk the documents
+          val chunks = documents.chunked(500)
+          var completedChunks = 0
+
+          chunks.forEach { chunk ->
+            val batch = db.batch()
+            chunk.forEach { doc -> batch.delete(doc.reference) }
+            batch
+                .commit()
+                .addOnSuccessListener {
+                  completedChunks++
+                  if (completedChunks == chunks.size) {
+                    onSuccess()
+                  }
+                }
+                .addOnFailureListener { exception -> onFailure(exception) }
+          }
         }
         .addOnFailureListener { exception -> onFailure(exception) }
   }
@@ -171,7 +207,8 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
               if (error != null) {
-                // In case of error, return empty list
+                // Log error for debugging while gracefully handling by returning empty list
+                android.util.Log.e("NotificationRepository", "Error listening to notifications", error)
                 onNotificationsChanged(emptyList())
                 return@addSnapshotListener
               }
