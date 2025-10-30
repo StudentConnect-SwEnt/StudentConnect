@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
@@ -328,5 +329,17 @@ class ProfileSettingsScreenTest {
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
         Unit
+
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
   }
 }
