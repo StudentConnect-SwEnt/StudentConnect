@@ -270,5 +270,17 @@ class BaseEditViewModelTest {
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
         Unit
+
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
   }
 }
