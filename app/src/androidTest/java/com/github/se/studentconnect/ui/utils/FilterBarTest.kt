@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.ui.screen.filters.FilterBar
 import org.junit.Rule
 import org.junit.Test
@@ -17,6 +18,10 @@ import org.junit.runner.RunWith
 class FilterBarTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
