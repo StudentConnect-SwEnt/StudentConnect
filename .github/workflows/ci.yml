@@ -63,7 +63,7 @@ jobs:
         run: ./gradlew ktfmtCheck --configuration-cache
 
       - name: Assemble and Lint
-        run: ./gradlew assembleDebug assembleDebugAndroidTest lint --parallel --build-cache --configuration-cache --max-workers=2
+        run: ./gradlew assembleDebug assembleDebugAndroidTest assembleRelease lint --parallel --build-cache --configuration-cache --max-workers=2
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
@@ -72,6 +72,7 @@ jobs:
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/androidTest/debug/*.apk
+            app/build/outputs/apk/release/*.apk
 
 
   unit-tests:
@@ -237,29 +238,6 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
-
-      # Check formatting
-      - name: KTFmt Check
-        run: |
-          ./gradlew ktfmtCheck
-
-      # This step runs gradle commands to build the application
-      - name: Assemble
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew assembleDebug lint --parallel --build-cache
-
-      # Assemble APK
-      - name: Assemble APK
-        run: |
-          ./gradlew assembleRelease --parallel --build-cache
-
-      # Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: app/build/outputs/apk/release/*.apk
 
       # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
