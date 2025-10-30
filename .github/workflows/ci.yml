@@ -24,37 +24,14 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
       - name: Decode secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -86,37 +63,14 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
       - name: Decode secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -155,20 +109,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
       - name: AVD cache
         uses: actions/cache@v4
@@ -207,21 +149,10 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Decode secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Grant execute permission for gradlew
         run: |
@@ -286,20 +217,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -309,21 +228,10 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Decode secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
