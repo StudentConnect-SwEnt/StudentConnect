@@ -4,11 +4,19 @@ import com.github.se.studentconnect.R
 
 object Route {
   const val AUTH = "auth"
+  const val GET_STARTED = "get_started"
+  const val BASIC_INFO = "basic_info"
+  const val NATIONALITY = "nationality"
+  const val ADD_PICTURE = "add_picture"
+  const val DESCRIPTION = "description"
+  const val EXPERIENCES = "experiences"
+
   const val HOME = "home"
   const val MAP = "map"
   const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}"
   const val ACTIVITIES = "activities"
   const val PROFILE = "profile"
+  const val SEARCH = "search"
 
   const val VISITOR_PROFILE = "visitorProfile/{userId}"
 
@@ -55,6 +63,8 @@ sealed class Screen(
 
   // Added screen for the event view
   object EventView : Screen(route = Route.EVENT_VIEW, name = "Event Details")
+
+  object Search : Screen(route = Route.SEARCH, name = "Search")
 }
 
 sealed class Tab(val name: String, val icon: Int, val destination: Screen) {

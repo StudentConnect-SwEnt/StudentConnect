@@ -23,6 +23,11 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.signup.ContinueButton
+import com.github.se.studentconnect.ui.screen.signup.DescriptionContent
+import com.github.se.studentconnect.ui.screen.signup.DescriptionPrompt
+import com.github.se.studentconnect.ui.screen.signup.DescriptionScreen
+import com.github.se.studentconnect.ui.screen.signup.DescriptionTopBar
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule

@@ -1,3 +1,5 @@
+// Portions of this code were generated with the help of ChatGPT
+
 package com.github.se.studentconnect.utils
 
 import android.os.Build
@@ -6,6 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import io.mockk.InternalPlatformDsl.toArray
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -19,11 +22,7 @@ import org.json.JSONObject
  * This object will automatically use the emulators if they are running when the tests start.
  */
 object FirebaseEmulator {
-  val auth
-    get() = Firebase.auth
-
-  val firestore
-    get() = Firebase.firestore
+  @Volatile private var emulatorConfigured = false
 
   private fun isInAndroidEmulator(): Boolean {
     val fingerprint = Build.FINGERPRINT.lowercase()
@@ -50,6 +49,7 @@ object FirebaseEmulator {
   const val EMULATORS_PORT = 4400
   const val FIRESTORE_PORT = 8080
   const val AUTH_PORT = 9099
+  const val STORAGE_PORT = 9199
 
   val projectID by lazy { FirebaseApp.getInstance().options.projectId }
 
@@ -75,13 +75,39 @@ object FirebaseEmulator {
   val isRunning = areEmulatorsRunning()
 
   init {
-    if (isRunning) {
-      auth.useEmulator(HOST, AUTH_PORT)
-      firestore.useEmulator(HOST, FIRESTORE_PORT)
-      assert(Firebase.firestore.firestoreSettings.host.contains(HOST)) {
-        "Failed to connect to Firebase Firestore Emulator."
+    configureEmulators()
+  }
+
+  @Synchronized
+  private fun configureEmulators() {
+    if (!emulatorConfigured && isRunning) {
+      try {
+        Firebase.auth.useEmulator(HOST, AUTH_PORT)
+        Firebase.firestore.useEmulator(HOST, FIRESTORE_PORT)
+        Firebase.storage.useEmulator(HOST, STORAGE_PORT)
+        emulatorConfigured = true
+        assert(Firebase.firestore.firestoreSettings.host.contains(HOST)) {
+          "Failed to connect to Firebase Firestore Emulator."
+        }
+      } catch (e: IllegalStateException) {
+        // Emulator already configured, log and continue
+        Log.w("FirebaseEmulator", "Emulator already configured: ${e.message}")
+        emulatorConfigured = true
       }
     }
+  }
+
+  val auth
+    get() = Firebase.auth
+
+  val firestore
+    get() = Firebase.firestore
+
+  val storage
+    get() = Firebase.storage
+
+  private val storageEndpoint by lazy {
+    "http://${HOST}:$STORAGE_PORT/v0/b/${storage.app.options.storageBucket}/o"
   }
 
   private fun clearEmulator(endpoint: String) {
@@ -98,6 +124,36 @@ object FirebaseEmulator {
 
   fun clearFirestoreEmulator() {
     clearEmulator(firestoreEndpoint)
+  }
+
+  fun clearStorageEmulator() {
+    val endpoint = storageEndpoint
+    val client = httpClient
+
+    // List all objects
+    val listRequest = Request.Builder().url(endpoint).get().build()
+    val listResponse = client.newCall(listRequest).execute()
+    if (!listResponse.isSuccessful) {
+      println("Failed to list storage objects: ${listResponse.code}")
+      return
+    }
+
+    val body = listResponse.body?.string() ?: return
+    val json = org.json.JSONObject(body)
+    val items = json.optJSONArray("items") ?: return
+
+    // Delete each object one by one
+    for (i in 0 until items.length()) {
+      val name = items.getJSONObject(i).getString("name")
+      val encodedName = java.net.URLEncoder.encode(name, "UTF-8")
+      val deleteUrl = "$endpoint/$encodedName"
+
+      val deleteRequest = Request.Builder().url(deleteUrl).delete().build()
+      val deleteResponse = client.newCall(deleteRequest).execute()
+      assert(deleteResponse.isSuccessful) {
+        "Failed to clear file '$name' at $deleteUrl (code: ${deleteResponse.code})"
+      }
+    }
   }
 
   /**

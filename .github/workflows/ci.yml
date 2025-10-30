@@ -223,14 +223,52 @@ jobs:
           fi
 
       - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+        run: |
+          chmod +x ./gradlew
 
+      # Generate debug keystore for signing release APK
+      # This ensures consistent SHA-1 fingerprints across all builds
+      - name: Generate debug keystore
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      # Check formatting
+      - name: KTFmt Check
+        run: |
+          ./gradlew ktfmtCheck
+
+      # This step runs gradle commands to build the application
+      - name: Assemble
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew assembleDebug lint --parallel --build-cache
+
+      # Assemble APK
+      - name: Assemble APK
+        run: |
+          ./gradlew assembleRelease --parallel --build-cache
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/release/*.apk
+
+      # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             echo "Starting Firebase emulators for instrumentation tests..."
-            firebase emulators:start --only auth,firestore --project demo-project &
-            npx wait-on tcp:8080 tcp:9099
+            firebase emulators:start --only auth,firestore,storage --project demo-project &
+            # wait until emulators are ready
+            npx wait-on tcp:8080 tcp:9099 tcp:9199
             echo "Firebase emulators started"
           else
             echo "Firebase emulators not configured, skipping emulator startup..."

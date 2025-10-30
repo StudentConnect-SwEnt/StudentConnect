@@ -14,6 +14,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.ui.screen.profile.EditableProfileField
+import com.github.se.studentconnect.ui.screen.profile.EditableProfileFieldMultiline
+import com.github.se.studentconnect.ui.screen.profile.EditableProfileFieldNumeric
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule

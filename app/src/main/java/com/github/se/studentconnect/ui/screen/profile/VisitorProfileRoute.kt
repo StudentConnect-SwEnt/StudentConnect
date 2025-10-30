@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.profile
+package com.github.se.studentconnect.ui.screen.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

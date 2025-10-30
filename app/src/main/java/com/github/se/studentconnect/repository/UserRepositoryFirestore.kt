@@ -20,6 +20,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val COLLECTION_NAME = "users"
     private const val JOINED_EVENT = "joinedEvents"
     private const val INVITATIONS = "invitations"
+    private const val FAVORITE_EVENTS = "favoriteEvents"
   }
 
   override suspend fun getUserById(userId: String): User? {
@@ -28,7 +29,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     return if (document.exists()) {
       User.fromMap(document.data ?: emptyMap())
     } else {
-      throw IllegalArgumentException("No user found with ID: $userId")
+      null // Return null for non-existent users (e.g., first-time users during onboarding)
     }
   }
 
@@ -39,7 +40,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
       val document = querySnapshot.documents.first()
       User.fromMap(document.data ?: emptyMap())
     } else {
-      throw IllegalArgumentException("No user found with email: $email")
+      null // Return null for non-existent users
     }
   }
 
@@ -199,5 +200,29 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         .document(eventId)
         .set(invitationData)
         .await()
+  }
+
+  override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FAVORITE_EVENTS)
+        .document(eventId)
+        .set(mapOf("eventId" to eventId, "addedAt" to FieldValue.serverTimestamp()))
+        .await()
+  }
+
+  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FAVORITE_EVENTS)
+        .document(eventId)
+        .delete()
+        .await()
+  }
+
+  override suspend fun getFavoriteEvents(userId: String): List<String> {
+    val document =
+        db.collection(COLLECTION_NAME).document(userId).collection(FAVORITE_EVENTS).get().await()
+    return document.documents.map { it.getString("eventId")!! }
   }
 }

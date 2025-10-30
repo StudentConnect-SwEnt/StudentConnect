@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screens
 
-import FilterBar
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -49,7 +47,7 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
-import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.ui.screen.filters.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import kotlinx.coroutines.launch
@@ -66,6 +64,7 @@ fun HomeScreen(
   var showNotifications by remember { mutableStateOf(false) }
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
+  val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
 
@@ -113,9 +112,15 @@ fun HomeScreen(
                       CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     } else {
                       Column {
-                        FilterBar(LocalContext.current)
+                        FilterBar(
+                            context = LocalContext.current,
+                            onApplyFilters = viewModel::applyFilters)
                         EventListScreen(
-                            navController = navController, events = uiState.events, false)
+                            navController = navController,
+                            events = uiState.events,
+                            hasJoined = false,
+                            favoriteEventIds = favoriteEventIds,
+                            onFavoriteToggle = viewModel::toggleFavorite)
                       }
                     }
                   }
@@ -165,10 +170,4 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
               }
         }
       })
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePagePreview() {
-  AppTheme { HomeScreen() }
 }

@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.model.friends
 
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 
 /**
  * Provides a single instance of the FriendsRepository in the app. `repository` is mutable for

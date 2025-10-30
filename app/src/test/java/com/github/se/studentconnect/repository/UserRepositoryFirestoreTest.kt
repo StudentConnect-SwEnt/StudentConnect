@@ -10,9 +10,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -92,10 +90,12 @@ class UserRepositoryFirestoreTest {
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(false)
-    // Assert
-    assertThrows(IllegalArgumentException::class.java) {
-      runBlocking { repository.getUserById("nonexistent") }
-    }
+
+    // Act
+    val result = repository.getUserById("nonexistent")
+
+    // Assert - Should return null for non-existent users (e.g., first-time users)
+    assert(result == null)
   }
 
   @Test
@@ -144,10 +144,12 @@ class UserRepositoryFirestoreTest {
         .thenReturn(mockQuery)
     whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
-    // Assert
-    assertThrows(IllegalArgumentException::class.java) {
-      runBlocking { repository.getUserByEmail("notfound@epfl.ch") }
-    }
+
+    // Act
+    val result = repository.getUserByEmail("notfound@epfl.ch")
+
+    // Assert - Should return null for non-existent users
+    assert(result == null)
   }
 
   @Test
@@ -807,23 +809,21 @@ class UserRepositoryFirestoreTest {
   // Add these tests to the existing UserRepositoryFirestoreTest class
 
   @Test
-  fun testGetUserByIdThrowsException() = runTest {
+  fun testGetUserByIdReturnsNullForNonExistent() = runTest {
     // Arrange
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
     whenever(mockDocumentSnapshot.exists()).thenReturn(false)
 
-    // Act & Assert
-    try {
-      repository.getUserById("nonexistent")
-      assert(false) { "Should have thrown exception" }
-    } catch (e: IllegalArgumentException) {
-      assert(e.message!!.contains("No user found with ID"))
-    }
+    // Act
+    val result = repository.getUserById("nonexistent")
+
+    // Assert - Should return null for non-existent users
+    assert(result == null)
   }
 
   @Test
-  fun testGetUserByEmailThrowsException() = runTest {
+  fun testGetUserByEmailReturnsNullForNonExistent() = runTest {
     // Arrange
     val mockQuery: com.google.firebase.firestore.Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
@@ -833,13 +833,11 @@ class UserRepositoryFirestoreTest {
     whenever(mockQuery.get()).thenReturn(mockTask)
     whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
 
-    // Act & Assert
-    try {
-      repository.getUserByEmail("notfound@epfl.ch")
-      assert(false) { "Should have thrown exception" }
-    } catch (e: IllegalArgumentException) {
-      assert(e.message!!.contains("No user found with email"))
-    }
+    // Act
+    val result = repository.getUserByEmail("notfound@epfl.ch")
+
+    // Assert - Should return null for non-existent users
+    assert(result == null)
   }
 
   @Test

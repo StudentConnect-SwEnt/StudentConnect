@@ -60,8 +60,8 @@ class ActivitiesViewModelTest {
     eventRepository = mockk(relaxed = true)
     userRepository = mockk(relaxed = true)
 
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns mockUser
+    // Set test user ID for AuthenticationProvider
+    AuthenticationProvider.testUserId = mockUser
 
     viewModel = ActivitiesViewModel(eventRepository, userRepository)
   }
@@ -69,7 +69,7 @@ class ActivitiesViewModelTest {
   @After
   fun teardown() {
     Dispatchers.resetMain()
-    unmockkAll()
+    AuthenticationProvider.testUserId = null
   }
 
   @Test

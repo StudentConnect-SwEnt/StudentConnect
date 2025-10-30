@@ -8,11 +8,12 @@ plugins {
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.gms)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinComposeCompiler)
 }
 
 android {
     namespace = "com.github.se.studentconnect"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.github.se.studentconnect"
@@ -35,6 +36,17 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            // Use debug keystore for CI builds to maintain consistent SHA-1 fingerprint
+            // This allows the APK to work with Firebase without additional configuration
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,6 +54,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            // Sign with debug keystore for consistent fingerprints across environments
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             enableUnitTestCoverage = true
@@ -59,9 +73,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -132,6 +143,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // Jetpack Compose UI
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.ui.graphics)
@@ -139,7 +151,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.firebase.firestore.ktx)
     implementation(libs.play.services.location)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
@@ -162,10 +173,10 @@ dependencies {
     implementation(libs.play.services.auth)
 
     // Firebase
-    implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.messaging)
 
     // Credential Manager (for Google Sign-In)
     implementation(libs.credentials)
@@ -188,6 +199,9 @@ dependencies {
     // QR Code generation
     implementation(libs.compose.qr.code)
 
+    // WorkManager for background tasks
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Testing Unit
     testImplementation(libs.junit)
     androidTestImplementation(libs.mockk)
@@ -197,11 +211,11 @@ dependencies {
     testImplementation(libs.json)
 
     // Test UI
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.android)

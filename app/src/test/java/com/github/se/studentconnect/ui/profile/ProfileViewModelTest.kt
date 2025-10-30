@@ -3,6 +3,8 @@ package com.github.se.studentconnect.ui.profile
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.ui.screen.profile.EditingField
+import com.github.se.studentconnect.ui.screen.profile.ProfileViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -419,6 +421,18 @@ class ProfileViewModelTest {
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
         unsupported()
+
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
 
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
