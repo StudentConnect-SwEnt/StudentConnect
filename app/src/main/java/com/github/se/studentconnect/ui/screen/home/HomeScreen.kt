@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,6 +57,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.events.EventListScreen
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -62,11 +65,11 @@ import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.viewmodel.HomePageUiState
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
-import kotlin.math.min
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
@@ -75,11 +78,30 @@ fun HomeScreen(
     onQRScannerClosed: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
+
+  LaunchedEffect(Unit) { viewModel.refresh() }
+
+  HomeScreen(
+      navController,
+      shouldOpenQRScanner,
+      onQRScannerClosed,
+      { e, i -> viewModel.updateSeenStories(e, i) },
+      uiState,
+  )
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    navController: NavHostController = rememberNavController(),
+    shouldOpenQRScanner: Boolean = false,
+    onQRScannerClosed: () -> Unit = {},
+    onClickStory: (Event, Int) -> Unit = { e, i -> },
+    uiState: HomePageUiState = HomePageUiState(),
+) {
   var showNotifications by remember { mutableStateOf(false) }
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
   val coroutineScope = rememberCoroutineScope()
-
-  LaunchedEffect(Unit) { viewModel.refresh() }
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -129,7 +151,10 @@ fun HomeScreen(
               CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
               Column {
-                StoriesRow(viewModel)
+                StoriesRow(
+                    onClick = onClickStory,
+                    uiState.subscribedEventsStories,
+                )
                 FilterBar(LocalContext.current)
                 EventListScreen(navController = navController, events = uiState.events, false)
               }
@@ -189,38 +214,47 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
 }
 
 @Composable
-fun StoryItem(viewModel: HomePageViewModel, event: Event, stories: Pair<Int, Int>) {
-  val borderColor = remember { if (stories.first == stories.second) Color.Gray else Color.Magenta }
+fun StoryItem(onClick: () -> Unit, viewed: Boolean) {
+  val borderColor = remember { if (viewed) Color.Gray else Color.Magenta }
   Image(
       painter = painterResource(R.drawable.avatar_12),
       contentDescription = "Event Story",
       modifier =
-          Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.15f)
+          Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.08f)
               .clip(CircleShape)
               .border(
                   width = LocalWindowInfo.current.containerSize.width.dp * 0.004f,
                   color = borderColor,
                   shape = CircleShape,
               )
-              .clickable(
-                  onClick = {
-                    viewModel.updateSeenStories(event, min(stories.second + 1, stories.first))
-                  }),
+              .clickable(onClick = onClick),
   )
 }
 
 @Composable
-fun StoriesRow(viewModel: HomePageViewModel) {
+fun StoriesRow(onClick: (e: Event, i: Int) -> Unit, stories: Map<Event, Pair<Int, Int>>) {
   LazyRow(
       horizontalArrangement =
-          Arrangement.spacedBy(LocalWindowInfo.current.containerSize.width.dp * 0.03f),
-  ) {
-    val stories = viewModel.uiState.value.subscribedEventsStories.filter { it.value.first != 0 }
-    items(stories.entries.toList().filter { it.value.second < it.value.first }) { story ->
-      StoryItem(viewModel, story.key, story.value)
-    }
-    items(stories.entries.toList().filter { it.value.second == it.value.first }) { story ->
-      StoryItem(viewModel, story.key, story.value)
+          Arrangement.spacedBy(LocalWindowInfo.current.containerSize.width.dp * 0.01f),
+      contentPadding = PaddingValues(LocalWindowInfo.current.containerSize.width.dp * 0.01f)) {
+        val storiesFilter = stories.filter { it.value.first != 0 }
+        items(storiesFilter.entries.toList().filter { it.value.second < it.value.first }) { story ->
+          StoryItem({ onClick(story.key, story.value.second) }, false)
+        }
+        items(storiesFilter.entries.toList().filter { it.value.second == it.value.first }) { story
+          ->
+          StoryItem({ onClick(story.key, story.value.second) }, true)
+        }
+      }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StoriesPreview() {
+  AppTheme {
+    Row {
+      StoryItem({}, true)
+      StoryItem({}, false)
     }
   }
 }
@@ -228,5 +262,46 @@ fun StoriesRow(viewModel: HomePageViewModel) {
 @Preview(showBackground = true)
 @Composable
 fun HomePagePreview() {
-  AppTheme { HomeScreen() }
+  val testEvent1 =
+      Event.Public(
+          uid = "event-1",
+          title = "Summer Festival",
+          subtitle = "Best summer event",
+          description = "Join us for an amazing summer festival.",
+          start = Timestamp.now(),
+          end = Timestamp.now(),
+          location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
+          website = "https://example.com",
+          ownerId = "owner1",
+          isFlash = false,
+          tags = listOf("music", "outdoor"),
+      )
+
+  val testEvent2 =
+      Event.Public(
+          uid = "event-2",
+          title = "Tech Conference",
+          subtitle = "Latest in tech",
+          description = "Explore the latest technology trends.",
+          start = Timestamp.now(),
+          end = Timestamp.now(),
+          location = Location(latitude = 46.52, longitude = 6.57, name = "SwissTech"),
+          website = "https://example.com",
+          ownerId = "owner2",
+          isFlash = false,
+          tags = listOf("tech", "networking"),
+      )
+  AppTheme {
+    HomeScreen(
+        onClickStory = { e, i -> },
+        uiState =
+            HomePageUiState(
+                isLoading = false,
+                events = listOf(testEvent1, testEvent2),
+                subscribedEventsStories =
+                    mapOf(
+                        pairs =
+                            arrayOf(Pair(testEvent1, Pair(1, 1)), Pair(testEvent2, Pair(2, 1))))),
+    )
+  }
 }
