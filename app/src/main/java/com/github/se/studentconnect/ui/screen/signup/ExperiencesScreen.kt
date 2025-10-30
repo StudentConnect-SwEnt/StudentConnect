@@ -328,9 +328,9 @@ internal fun PrimaryCtaButton(
 
 private val topicChipWidth = 100.dp
 
-internal val filterOptions = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
+val filterOptions = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
 
-internal val experienceTopics =
+val experienceTopics =
     mapOf(
         "Sports" to
             listOf(

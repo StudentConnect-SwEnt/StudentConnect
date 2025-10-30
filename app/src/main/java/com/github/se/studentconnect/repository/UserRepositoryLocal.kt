@@ -14,6 +14,7 @@ class UserRepositoryLocal : UserRepository {
 
   private val joinedEvents = mutableMapOf<String, MutableList<String>>()
   private val invitations = mutableMapOf<String, MutableList<Invitation>>()
+  private val favoriteEvents = mutableMapOf<String, MutableList<String>>()
 
   override suspend fun getUserById(userId: String): User? {
     return users.find { it.userId == userId }
@@ -68,6 +69,7 @@ class UserRepositoryLocal : UserRepository {
     users.removeAll { it.userId == userId }
     joinedEvents.remove(userId)
     invitations.remove(userId)
+    favoriteEvents.remove(userId)
   }
 
   override suspend fun getUsersByUniversity(university: String): List<User> {
@@ -136,5 +138,20 @@ class UserRepositoryLocal : UserRepository {
 
   override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
     addInvitationToUser(eventId, toUserId, fromUserId)
+  }
+
+  override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+    val userFavorites = favoriteEvents.getOrPut(userId) { mutableListOf() }
+    if (!userFavorites.contains(eventId)) {
+      userFavorites.add(eventId)
+    }
+  }
+
+  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+    favoriteEvents[userId]?.remove(eventId)
+  }
+
+  override suspend fun getFavoriteEvents(userId: String): List<String> {
+    return favoriteEvents[userId] ?: emptyList()
   }
 }

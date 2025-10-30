@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "1014128431937",
+    "firebase_url": "https://studentconnect-d2dd9-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "studentconnect-d2dd9",
     "storage_bucket": "studentconnect-d2dd9.firebasestorage.app"
   },
@@ -13,6 +14,30 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "1014128431937-euibmsdithqvojgvku163u5gpm34q7l3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "08fe0e5abb129ec8122543e99c82826a70de20be"
+          }
+        },
+        {
+          "client_id": "1014128431937-ogt9sdl5binfsi2tdc51olmkmv73vmm4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "75e242b85fe06b5a68a2a4e20ffd5481a87ef613"
+          }
+        },
+        {
+          "client_id": "1014128431937-svq7e7un09n3kur6vm5tt05l464bb98u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "5495798f4b23be0fd58b8bb5b10a42702b758702"
+          }
+        },
         {
           "client_id": "1014128431937-vvd4dpdm53geq4mmc15kr5fpj32dk7v2.apps.googleusercontent.com",
           "client_type": 1,
