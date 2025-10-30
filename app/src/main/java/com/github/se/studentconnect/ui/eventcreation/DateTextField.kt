@@ -26,6 +26,8 @@ fun DateTextField(
   val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
   dateFormat.isLenient = false // strict parsing
 
+  LaunchedEffect(initialValue) { dateString = initialValue }
+
   val date =
       // make sure the format is matched exactly
       if (!Regex("""^\d{2}/\d{2}/\d{4}$""").matches(dateString)) null

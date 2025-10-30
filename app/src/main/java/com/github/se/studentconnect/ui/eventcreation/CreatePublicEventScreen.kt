@@ -22,13 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.theme.AppTheme
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object CreatePublicEventScreenTestTags {
   const val TITLE_INPUT = "titleInput"
@@ -50,9 +54,43 @@ object CreatePublicEventScreenTestTags {
 @Composable
 fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
+    existingEvent: Event.Public? = null,
     // TODO: pass NavController here
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
+  val eventId = existingEvent?.uid
+
+  LaunchedEffect(eventId) { existingEvent?.let { createPublicEventViewModel.prefill(it) } }
+
+  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+
+  val startDateInitial =
+      remember(eventId) {
+        existingEvent
+            ?.start
+            ?.toDate()
+            ?.toInstant()
+            ?.atZone(ZoneId.systemDefault())
+            ?.toLocalDate()
+            ?.format(dateFormatter) ?: ""
+      }
+
+  val endDateInitial =
+      remember(eventId) {
+        val endTimestamp = existingEvent?.end ?: existingEvent?.start
+        endTimestamp
+            ?.toDate()
+            ?.toInstant()
+            ?.atZone(ZoneId.systemDefault())
+            ?.toLocalDate()
+            ?.format(dateFormatter) ?: ""
+      }
+
+  val locationInitial =
+      remember(eventId) {
+        existingEvent?.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
+      }
+
   val createPublicEventUiState by createPublicEventViewModel.uiState.collectAsState()
 
   val canSave =
@@ -128,7 +166,7 @@ fun CreatePublicEventScreen(
         modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
-        initialValue = "",
+        initialValue = locationInitial,
         onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
     Row(
@@ -141,7 +179,7 @@ fun CreatePublicEventScreen(
               Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = startDateInitial,
           onDateChange = { createPublicEventViewModel.updateStartDate(it) },
       )
 
@@ -160,7 +198,7 @@ fun CreatePublicEventScreen(
           modifier = Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
           label = "End of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = endDateInitial,
           onDateChange = { createPublicEventViewModel.updateEndDate(it) },
       )
 

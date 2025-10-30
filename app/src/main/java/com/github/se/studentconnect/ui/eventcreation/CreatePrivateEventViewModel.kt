@@ -10,7 +10,6 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -70,6 +69,29 @@ class CreatePrivateEventViewModel(
 
   fun updateIsFlash(newIsFlash: Boolean) {
     _uiState.value = uiState.value.copy(isFlash = newIsFlash)
+  }
+
+  fun prefill(event: Event.Private) {
+    val startDateTime =
+        event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val endTimestamp = event.end ?: event.start
+    val endDateTime =
+        endTimestamp.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    _uiState.value =
+        CreateEventUiState.Private(
+            title = event.title,
+            description = event.description,
+            location = event.location,
+            startDate = startDateTime.toLocalDate(),
+            startTime = startDateTime.toLocalTime(),
+            endDate = endDateTime.toLocalDate(),
+            endTime = endDateTime.toLocalTime(),
+            numberOfParticipantsString = event.maxCapacity?.toString() ?: "",
+            hasParticipationFee = event.participationFee != null,
+            participationFeeString = event.participationFee?.toString() ?: "",
+            isFlash = event.isFlash,
+        )
   }
 
   fun saveEvent() {

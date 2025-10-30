@@ -22,13 +22,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.theme.AppTheme
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object CreatePrivateEventScreenTestTags {
   const val TITLE_INPUT = "titleInput"
@@ -48,9 +52,43 @@ object CreatePrivateEventScreenTestTags {
 @Composable
 fun CreatePrivateEventScreen(
     modifier: Modifier = Modifier,
+    existingEvent: Event.Private? = null,
     // TODO: pass NavController here
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
+  val eventId = existingEvent?.uid
+
+  LaunchedEffect(eventId) { existingEvent?.let { createPrivateEventViewModel.prefill(it) } }
+
+  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+
+  val startDateInitial =
+      remember(eventId) {
+        existingEvent
+            ?.start
+            ?.toDate()
+            ?.toInstant()
+            ?.atZone(ZoneId.systemDefault())
+            ?.toLocalDate()
+            ?.format(dateFormatter) ?: ""
+      }
+
+  val endDateInitial =
+      remember(eventId) {
+        val endTimestamp = existingEvent?.end ?: existingEvent?.start
+        endTimestamp
+            ?.toDate()
+            ?.toInstant()
+            ?.atZone(ZoneId.systemDefault())
+            ?.toLocalDate()
+            ?.format(dateFormatter) ?: ""
+      }
+
+  val locationInitial =
+      remember(eventId) {
+        existingEvent?.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
+      }
+
   val createPrivateEventUiState by createPrivateEventViewModel.uiState.collectAsState()
 
   val canSave =
@@ -92,7 +130,7 @@ fun CreatePrivateEventScreen(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
-        initialValue = "",
+        initialValue = locationInitial,
         onLocationChange = { createPrivateEventViewModel.updateLocation(it) })
 
     Row(
@@ -105,7 +143,7 @@ fun CreatePrivateEventScreen(
               Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = startDateInitial,
           onDateChange = { createPrivateEventViewModel.updateStartDate(it) },
       )
 
@@ -124,7 +162,7 @@ fun CreatePrivateEventScreen(
           modifier = Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT),
           label = "End of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = endDateInitial,
           onDateChange = { createPrivateEventViewModel.updateEndDate(it) },
       )
 

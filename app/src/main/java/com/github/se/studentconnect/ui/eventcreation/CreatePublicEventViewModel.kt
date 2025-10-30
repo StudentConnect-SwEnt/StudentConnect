@@ -80,6 +80,32 @@ class CreatePublicEventViewModel(
     _uiState.value = uiState.value.copy(tags = newTags)
   }
 
+  fun prefill(event: Event.Public) {
+    val startDateTime =
+        event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val endTimestamp = event.end ?: event.start
+    val endDateTime =
+        endTimestamp.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    _uiState.value =
+        CreateEventUiState.Public(
+            title = event.title,
+            description = event.description,
+            location = event.location,
+            startDate = startDateTime.toLocalDate(),
+            startTime = startDateTime.toLocalTime(),
+            endDate = endDateTime.toLocalDate(),
+            endTime = endDateTime.toLocalTime(),
+            numberOfParticipantsString = event.maxCapacity?.toString() ?: "",
+            hasParticipationFee = event.participationFee != null,
+            participationFeeString = event.participationFee?.toString() ?: "",
+            isFlash = event.isFlash,
+            subtitle = event.subtitle,
+            website = event.website.orEmpty(),
+            tags = event.tags,
+        )
+  }
+
   fun saveEvent() {
     val canSave =
         uiState.value.title.isNotBlank() &&
