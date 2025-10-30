@@ -64,47 +64,15 @@ class BaseEditViewModelTest {
   @Test
   fun `executeWithErrorHandling executes operation successfully`() = runTest {
     var operationExecuted = false
-    var successCallbackExecuted = false
+    var onSuccessCalled = false
 
     viewModel.testExecuteWithErrorHandling(
-        operation = { operationExecuted = true }, onSuccess = { successCallbackExecuted = true })
+        operation = { operationExecuted = true }, onSuccess = { onSuccessCalled = true })
 
-    // Wait for coroutines to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(operationExecuted)
-    assertTrue(successCallbackExecuted)
-    assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Success)
-  }
-
-  @Test
-  fun `executeWithErrorHandling handles exceptions`() = runTest {
-    val errorMessage = "Test error"
-    var errorCallbackExecuted = false
-
-    viewModel.testExecuteWithErrorHandling(
-        operation = { throw RuntimeException(errorMessage) },
-        onError = { errorCallbackExecuted = true })
-
-    // Wait for coroutines to complete
-    Thread.sleep(100)
-
-    assertTrue(errorCallbackExecuted)
-    assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Error)
-    assertEquals(errorMessage, (viewModel.uiState.value as BaseEditViewModel.UiState.Error).message)
-  }
-
-  @Test
-  fun `executeWithErrorHandling handles exceptions with null message`() = runTest {
-    viewModel.testExecuteWithErrorHandling(operation = { throw RuntimeException() })
-
-    // Wait for coroutines to complete
-    Thread.sleep(100)
-
-    assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Error)
-    assertEquals(
-        "An unexpected error occurred",
-        (viewModel.uiState.value as BaseEditViewModel.UiState.Error).message)
+    assertTrue(onSuccessCalled)
   }
 
   @Test
@@ -113,13 +81,136 @@ class BaseEditViewModelTest {
 
     viewModel.testExecuteWithErrorHandling(
         operation = {
+          kotlinx.coroutines.delay(100)
           loadingStateObserved = viewModel.uiState.value is BaseEditViewModel.UiState.Loading
         })
 
-    // Wait for coroutines to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(300)
 
     assertTrue(loadingStateObserved)
+  }
+
+  @Test
+  fun `executeWithErrorHandling handles exceptions and calls onError`() = runTest {
+    var onErrorCalled = false
+    var errorMessage: String? = null
+
+    viewModel.testExecuteWithErrorHandling(
+        operation = { throw IllegalStateException("Test error") },
+        onError = { message ->
+          onErrorCalled = true
+          errorMessage = message
+        })
+
+    kotlinx.coroutines.delay(200)
+
+    assertTrue(onErrorCalled)
+    assertEquals("Test error", errorMessage)
+  }
+
+  @Test
+  fun `executeWithErrorHandling handles exceptions with null message`() = runTest {
+    var errorMessage: String? = null
+
+    viewModel.testExecuteWithErrorHandling(
+        operation = { throw RuntimeException(null as String?) },
+        onError = { message -> errorMessage = message })
+
+    kotlinx.coroutines.delay(200)
+
+    assertEquals("An unexpected error occurred", errorMessage)
+  }
+
+  @Test
+  fun `executeWithErrorHandling uses default onError when not provided`() = runTest {
+    viewModel.testExecuteWithErrorHandling(
+        operation = { throw IllegalStateException("Default error handling") })
+
+    kotlinx.coroutines.delay(200)
+
+    val state = viewModel.uiState.value
+    assertTrue(state is BaseEditViewModel.UiState.Error)
+    assertEquals("Default error handling", (state as BaseEditViewModel.UiState.Error).message)
+  }
+
+  @Test
+  fun `state transitions from Idle to Loading to Success`() = runTest {
+    assertEquals(BaseEditViewModel.UiState.Idle, viewModel.uiState.value)
+
+    viewModel.testExecuteWithErrorHandling(
+        operation = { kotlinx.coroutines.delay(50) },
+        onSuccess = { viewModel.testSetSuccess("Operation completed") })
+
+    kotlinx.coroutines.delay(30)
+    assertEquals(BaseEditViewModel.UiState.Loading, viewModel.uiState.value)
+
+    kotlinx.coroutines.delay(100)
+    val state = viewModel.uiState.value
+    assertTrue(state is BaseEditViewModel.UiState.Success)
+  }
+
+  @Test
+  fun `state transitions from Idle to Loading to Error`() = runTest {
+    assertEquals(BaseEditViewModel.UiState.Idle, viewModel.uiState.value)
+
+    viewModel.testExecuteWithErrorHandling(
+        operation = {
+          kotlinx.coroutines.delay(50)
+          throw RuntimeException("Operation failed")
+        })
+
+    kotlinx.coroutines.delay(30)
+    assertEquals(BaseEditViewModel.UiState.Loading, viewModel.uiState.value)
+
+    kotlinx.coroutines.delay(100)
+    val state = viewModel.uiState.value
+    assertTrue(state is BaseEditViewModel.UiState.Error)
+  }
+
+  @Test
+  fun `resetState can reset from success state`() {
+    viewModel.testSetSuccess("Success message")
+    assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Success)
+
+    viewModel.resetState()
+    assertEquals(BaseEditViewModel.UiState.Idle, viewModel.uiState.value)
+  }
+
+  @Test
+  fun `resetState can reset from error state`() {
+    viewModel.testSetError("Error message")
+    assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Error)
+
+    viewModel.resetState()
+    assertEquals(BaseEditViewModel.UiState.Idle, viewModel.uiState.value)
+  }
+
+  @Test
+  fun `multiple operations can be executed sequentially`() = runTest {
+    var firstOperationCount = 0
+    var secondOperationCount = 0
+
+    viewModel.testExecuteWithErrorHandling(operation = { firstOperationCount++ })
+
+    kotlinx.coroutines.delay(200)
+
+    viewModel.testExecuteWithErrorHandling(operation = { secondOperationCount++ })
+
+    kotlinx.coroutines.delay(200)
+
+    assertEquals(1, firstOperationCount)
+    assertEquals(1, secondOperationCount)
+  }
+
+  @Test
+  fun `executeWithErrorHandling without onSuccess callback`() = runTest {
+    var operationExecuted = false
+
+    viewModel.testExecuteWithErrorHandling(operation = { operationExecuted = true })
+
+    kotlinx.coroutines.delay(200)
+
+    assertTrue(operationExecuted)
   }
 
   private class TestBaseEditViewModel(userRepository: UserRepository, userId: String) :

@@ -41,7 +41,7 @@ class EditNameViewModelTest {
   @Test
   fun `initial state loads user names correctly`() = runTest {
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertEquals("John", viewModel.firstName.value)
     assertEquals("Doe", viewModel.lastName.value)
@@ -55,7 +55,7 @@ class EditNameViewModelTest {
     val errorViewModel = EditNameViewModel(repository, "non_existent_user")
 
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertEquals("", errorViewModel.firstName.value)
     assertEquals("", errorViewModel.lastName.value)
@@ -82,7 +82,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for validation to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
     assertNull(viewModel.lastNameError.value)
@@ -96,7 +96,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for validation to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertNull(viewModel.firstNameError.value)
     assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
@@ -110,7 +110,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for validation to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
     assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
@@ -124,7 +124,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for validation to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
     assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
@@ -141,7 +141,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -161,7 +161,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -179,7 +179,7 @@ class EditNameViewModelTest {
     errorViewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(errorViewModel.uiState.value is BaseEditViewModel.UiState.Error)
   }
@@ -193,7 +193,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(viewModel.uiState.value is BaseEditViewModel.UiState.Error)
   }
@@ -223,7 +223,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -241,7 +241,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -257,7 +257,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for first save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(300)
 
     // Second save
     viewModel.updateFirstName("Bob")
@@ -265,7 +265,7 @@ class EditNameViewModelTest {
     viewModel.saveName()
 
     // Wait for second save to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(300)
 
     assertEquals(2, repository.savedUsers.size)
     assertEquals("Bob", repository.savedUsers.last().firstName)

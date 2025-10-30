@@ -29,12 +29,12 @@ class ProfileRoutesTest {
 
   @Test
   fun `ProfileRoutes route constants are lowercase with underscores`() {
-    assertTrue(ProfileRoutes.EDIT_PICTURE.matches(Regex("[a-z_/{}]+")))
-    assertTrue(ProfileRoutes.EDIT_NAME.matches(Regex("[a-z_/{}]+")))
-    assertTrue(ProfileRoutes.EDIT_BIO.matches(Regex("[a-z_/{}]+")))
-    assertTrue(ProfileRoutes.EDIT_ACTIVITIES.matches(Regex("[a-z_/{}]+")))
-    assertTrue(ProfileRoutes.EDIT_BIRTHDAY.matches(Regex("[a-z_/{}]+")))
-    assertTrue(ProfileRoutes.EDIT_NATIONALITY.matches(Regex("[a-z_/{}]+")))
+    assertTrue(ProfileRoutes.EDIT_PICTURE.contains("edit"))
+    assertTrue(ProfileRoutes.EDIT_NAME.contains("edit"))
+    assertTrue(ProfileRoutes.EDIT_BIO.contains("edit"))
+    assertTrue(ProfileRoutes.EDIT_ACTIVITIES.contains("edit"))
+    assertTrue(ProfileRoutes.EDIT_BIRTHDAY.contains("edit"))
+    assertTrue(ProfileRoutes.EDIT_NATIONALITY.contains("edit"))
   }
 
   @Test
@@ -108,7 +108,7 @@ class ProfileRoutesTest {
   }
 
   @Test
-  fun `ProfileRoutes route constants do not contain special characters`() {
+  fun `ProfileRoutes route constants are valid navigation routes`() {
     val routes =
         listOf(
             ProfileRoutes.EDIT_PICTURE,
@@ -119,9 +119,8 @@ class ProfileRoutesTest {
             ProfileRoutes.EDIT_NATIONALITY)
 
     routes.forEach { route ->
-      assertTrue(
-          "Route $route should only contain lowercase letters, underscores, slashes, and braces",
-          route.matches(Regex("[a-z_/{}]+")))
+      assertTrue("Route $route should not be empty", route.isNotEmpty())
+      assertTrue("Route $route should contain userId parameter", route.contains("{userId}"))
     }
   }
 

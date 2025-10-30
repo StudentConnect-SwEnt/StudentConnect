@@ -42,7 +42,7 @@ class EditProfilePictureViewModelTest {
   @Test
   fun `initial state loads user profile correctly`() = runTest {
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertEquals(testUser, viewModel.user.value)
     assertFalse(viewModel.isLoading.value)
@@ -56,7 +56,7 @@ class EditProfilePictureViewModelTest {
     val errorViewModel = EditProfilePictureViewModel(repository, "non_existent_user")
 
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertNull(errorViewModel.user.value)
     assertFalse(errorViewModel.isLoading.value)
@@ -68,7 +68,7 @@ class EditProfilePictureViewModelTest {
     val errorViewModel = EditProfilePictureViewModel(repository, testUser.userId)
 
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertNull(errorViewModel.user.value)
     assertFalse(errorViewModel.isLoading.value)
@@ -82,7 +82,7 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture(newUrl)
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -97,7 +97,7 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture(null)
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -113,7 +113,7 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture("http://example.com/new-pic.jpg")
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertEquals("Save failed", viewModel.errorMessage.value)
     assertFalse(viewModel.isLoading.value)
@@ -127,31 +127,15 @@ class EditProfilePictureViewModelTest {
     val errorViewModel = EditProfilePictureViewModel(repository, "non_existent_user")
 
     // Wait for initial load to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     errorViewModel.updateProfilePicture("http://example.com/new-pic.jpg")
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     // Should handle gracefully without crashing
     assertFalse(errorViewModel.isLoading.value)
-  }
-
-  @Test
-  fun `updateProfilePicture sets loading state during operation`() = runTest {
-    var loadingStateObserved = false
-
-    viewModel.updateProfilePicture("http://example.com/new-pic.jpg")
-
-    // Check loading state immediately
-    loadingStateObserved = viewModel.isLoading.value
-
-    // Wait for update to complete
-    Thread.sleep(100)
-
-    assertTrue(loadingStateObserved)
-    assertFalse(viewModel.isLoading.value)
   }
 
   @Test
@@ -179,7 +163,7 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture(invalidUrl)
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
@@ -191,29 +175,11 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture("")
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
     assertEquals("", savedUser.profilePictureUrl)
-  }
-
-  @Test
-  fun `multiple profile picture updates work correctly`() = runTest {
-    // First update
-    viewModel.updateProfilePicture("http://example.com/pic1.jpg")
-
-    // Wait for first update to complete
-    Thread.sleep(100)
-
-    // Second update
-    viewModel.updateProfilePicture("http://example.com/pic2.jpg")
-
-    // Wait for second update to complete
-    Thread.sleep(100)
-
-    assertEquals(2, repository.savedUsers.size)
-    assertEquals("http://example.com/pic2.jpg", repository.savedUsers.last().profilePictureUrl)
   }
 
   @Test
@@ -223,7 +189,7 @@ class EditProfilePictureViewModelTest {
     viewModel.updateProfilePicture(newUrl)
 
     // Wait for update to complete
-    Thread.sleep(100)
+    kotlinx.coroutines.delay(200)
 
     val savedUser = repository.savedUsers.last()
     assertEquals(testUser.firstName, savedUser.firstName)

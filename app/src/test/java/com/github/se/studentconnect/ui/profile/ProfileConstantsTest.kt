@@ -23,9 +23,9 @@ class ProfileConstantsTest {
   fun `ProfileConstants contains all required error messages`() {
     assertEquals("First name cannot be empty", ProfileConstants.ERROR_FIRST_NAME_EMPTY)
     assertEquals("Last name cannot be empty", ProfileConstants.ERROR_LAST_NAME_EMPTY)
-    assertEquals("Name cannot be empty", ProfileConstants.ERROR_NAME_EMPTY)
+    assertEquals("First name and last name cannot be empty", ProfileConstants.ERROR_NAME_EMPTY)
     assertEquals("University cannot be empty", ProfileConstants.ERROR_UNIVERSITY_EMPTY)
-    assertEquals("Invalid date format. Please use DD/MM/YYYY", ProfileConstants.ERROR_DATE_FORMAT)
+    assertEquals("Please use DD/MM/YYYY format", ProfileConstants.ERROR_DATE_FORMAT)
     assertEquals("Profile not found", ProfileConstants.ERROR_PROFILE_NOT_FOUND)
   }
 
@@ -87,7 +87,7 @@ class ProfileConstantsTest {
     assertTrue(ProfileConstants.ERROR_DATE_FORMAT.contains("DD/MM/YYYY"))
     assertTrue(ProfileConstants.ERROR_FIRST_NAME_EMPTY.contains("First name"))
     assertTrue(ProfileConstants.ERROR_LAST_NAME_EMPTY.contains("Last name"))
-    assertTrue(ProfileConstants.ERROR_NAME_EMPTY.contains("Name"))
+    assertTrue(ProfileConstants.ERROR_NAME_EMPTY.contains("First name and last name"))
     assertTrue(ProfileConstants.ERROR_UNIVERSITY_EMPTY.contains("University"))
   }
 
