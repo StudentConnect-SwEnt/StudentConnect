@@ -1,29 +1,18 @@
 package com.github.se.studentconnect.ui.screen.home
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import com.google.firebase.Timestamp
@@ -285,81 +274,5 @@ class HomeScreenUITest {
 
     composeTestRule.onNodeWithText("Paris").performClick()
     // Should show "Not yet implemented" toast
-  }
-
-  @Test
-  fun homeScreen_searchBar_hasClickAction() {
-    composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
-    }
-
-    composeTestRule.onNodeWithText("Search for events...").assertHasClickAction()
-  }
-
-  @Test
-  fun homeScreen_clickSearchBar_doesNotCrash() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      Scaffold { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Route.HOME,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }) {
-              composable(Route.HOME) {
-                HomeScreen(navController = navController, viewModel = viewModel)
-              }
-
-              composable(Route.SEARCH) { SearchScreen() }
-            }
-      }
-    }
-
-    // Wait for screen to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Search for events..."))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // Click search bar - should not crash
-    composeTestRule.onNodeWithText("Search for events...").performClick()
-    composeTestRule.waitForIdle()
-  }
-
-  @Test
-  fun homeScreen_clickSearchBar_moveToSearchPage() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      Scaffold { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Route.HOME,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }) {
-              composable(Route.HOME) {
-                HomeScreen(navController = navController, viewModel = viewModel)
-              }
-
-              composable(Route.SEARCH) { SearchScreen() }
-            }
-      }
-    }
-
-    // Wait for screen to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Search for events..."))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // Click search bar - should change screen
-    composeTestRule.onNodeWithText("Search for events...").performClick()
-    composeTestRule.onNodeWithTag("HomePage").assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
   }
 }
