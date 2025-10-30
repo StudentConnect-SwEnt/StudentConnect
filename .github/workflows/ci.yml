@@ -13,45 +13,106 @@ on:
       - reopened
 
 jobs:
-  ci:
-    name: CI
-    # Execute the CI on the course's runners
+  build-and-lint:
+    name: Build and Lint
     runs-on: ubuntu-latest
 
     steps:
-      # First step : Checkout the repository on the runner
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis (if we use Sonar Later)
+          fetch-depth: 0
+
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
+
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: KTFmt Check
+        run: ./gradlew ktfmtCheck --configuration-cache
+
+      - name: Assemble and Lint
+        run: ./gradlew assembleDebug assembleDebugAndroidTest assembleRelease lint --parallel --build-cache --configuration-cache --max-workers=2
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/androidTest/debug/*.apk
+            app/build/outputs/apk/release/*.apk
 
 
-      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
+
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --parallel --build-cache --configuration-cache --max-workers=2
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            app/build/test-results/**/*.xml
+            app/build/reports/tests/**
+            app/build/outputs/unit_test_code_coverage/**/*.exec
+
+
+  instrumented-tests:
+    name: Instrumented Tests - Shard ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
-      # Caching is a very useful part of a CI, as a workflow is executed in a clean environment every time,
-      # this means that one would need to re-download and re-process gradle files for every run. Which is very time consuming.
-      #
-      # To avoid that, we cache the the gradle folder to reuse it later.
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      # Cache the Emulator, if the cache does not hit, create the emulator
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -73,33 +134,26 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      # Install NodeJS
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # Install Firebase CLI
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # Load google-services.json and local.properties from the secrets
       - name: Decode secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Grant execute permission for gradlew
         run: |
@@ -117,29 +171,6 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-      # Check formatting
-      - name: KTFmt Check
-        run: |
-          ./gradlew ktfmtCheck
-
-      # This step runs gradle commands to build the application
-      - name: Assemble
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew assembleDebug lint --parallel --build-cache
-
-      # Assemble APK
-      - name: Assemble APK
-        run: |
-          ./gradlew assembleRelease --parallel --build-cache
-
-      # Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: app/build/outputs/apk/release/*.apk
-
       # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
         run: |
@@ -153,14 +184,7 @@ jobs:
             echo "Firebase emulators not configured, skipping emulator startup..."
           fi
 
-      # Run Unit tests
-      - name: Run unit tests
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew check --parallel --build-cache
-
-      # Run connected tests on the emulator
-      - name: Run connected tests
+      - name: Run connected tests with sharding
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -169,18 +193,34 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedCheck --parallel --build-cache
+          script: ./gradlew connectedCheck -PtestShardIndex=${{ matrix.shard }} -PtestNumShards=5 --parallel --build-cache --max-workers=2
 
-      # This step generates the coverage report which will be uploaded to sonar
-      - name: Generate Coverage Report
-        run: |
-          ./gradlew jacocoTestReport
-
-      - name: Upload coverage
+      - name: Upload instrumented test results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Coverage report
-          path: app/build/reports/jacoco/jacocoTestReport
+          name: instrumented-test-results-shard-${{ matrix.shard }}
+          path: |
+            app/build/outputs/androidTest-results/**/*.xml
+            app/build/reports/androidTests/**
+            app/build/outputs/code_coverage/**/*.ec
+
+
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [build-and-lint, unit-tests, instrumented-tests]
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -189,10 +229,68 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # Upload the various reports to sonar
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google-services: ${{ secrets.GOOGLE_SERVICES }}
+          local-properties: ${{ secrets.LOCAL_PROPERTIES }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Download unit test results
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/
+
+      - name: Download instrumented test results (shard 0)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-0
+          path: app/build/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 1)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-1
+          path: app/build/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 2)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-2
+          path: app/build/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 3)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-3
+          path: app/build/
+        continue-on-error: true
+
+      - name: Download instrumented test results (shard 4)
+        uses: actions/download-artifact@v4
+        with:
+          name: instrumented-test-results-shard-4
+          path: app/build/
+        continue-on-error: true
+
+      - name: Generate Coverage Report
+        run: ./gradlew jacocoTestReport --configuration-cache --max-workers=2
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: app/build/reports/jacoco/jacocoTestReport
+
       - name: Upload report to SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar --parallel --build-cache --stacktrace --info
+        run: ./gradlew sonar --parallel --build-cache --configuration-cache --max-workers=2 --stacktrace --info
 
