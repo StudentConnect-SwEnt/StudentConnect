@@ -91,5 +91,6 @@ constructor(
 
   fun refresh() {
     loadAllEvents()
+    loadAllSubscribedEventsStories()
   }
 }
