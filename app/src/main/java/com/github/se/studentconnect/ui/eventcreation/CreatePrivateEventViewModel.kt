@@ -94,6 +94,13 @@ class CreatePrivateEventViewModel(
         )
   }
 
+  fun loadEvent(eventUid: String) {
+    viewModelScope.launch {
+      val event = eventRepository.getEvent(eventUid)
+      if (event is Event.Private) prefill(event)
+    }
+  }
+
   fun saveEvent() {
     val canSave =
         uiState.value.title.isNotBlank() &&

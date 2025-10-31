@@ -29,9 +29,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.theme.AppTheme
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object CreatePrivateEventScreenTestTags {
@@ -52,44 +50,21 @@ object CreatePrivateEventScreenTestTags {
 @Composable
 fun CreatePrivateEventScreen(
     modifier: Modifier = Modifier,
-    existingEvent: Event.Private? = null,
+    existingEventId: String? = null,
     // TODO: pass NavController here
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
-  val eventId = existingEvent?.uid
-
-  LaunchedEffect(eventId) { existingEvent?.let { createPrivateEventViewModel.prefill(it) } }
-
-  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
-
-  val startDateInitial =
-      remember(eventId) {
-        existingEvent
-            ?.start
-            ?.toDate()
-            ?.toInstant()
-            ?.atZone(ZoneId.systemDefault())
-            ?.toLocalDate()
-            ?.format(dateFormatter) ?: ""
-      }
-
-  val endDateInitial =
-      remember(eventId) {
-        val endTimestamp = existingEvent?.end ?: existingEvent?.start
-        endTimestamp
-            ?.toDate()
-            ?.toInstant()
-            ?.atZone(ZoneId.systemDefault())
-            ?.toLocalDate()
-            ?.format(dateFormatter) ?: ""
-      }
-
-  val locationInitial =
-      remember(eventId) {
-        existingEvent?.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
-      }
+  LaunchedEffect(existingEventId) {
+    existingEventId?.let { createPrivateEventViewModel.loadEvent(it) }
+  }
 
   val createPrivateEventUiState by createPrivateEventViewModel.uiState.collectAsState()
+  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+
+  val startDateInitial = createPrivateEventUiState.startDate?.format(dateFormatter) ?: ""
+  val endDateInitial = createPrivateEventUiState.endDate?.format(dateFormatter) ?: ""
+  val locationInitial =
+      createPrivateEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
 
   val canSave =
       createPrivateEventUiState.title.isNotBlank() &&
