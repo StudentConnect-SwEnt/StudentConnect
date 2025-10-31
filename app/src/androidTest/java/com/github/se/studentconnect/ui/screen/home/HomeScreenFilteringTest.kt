@@ -8,7 +8,6 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.utils.FilterData
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
