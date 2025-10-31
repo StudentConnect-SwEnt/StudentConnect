@@ -23,6 +23,7 @@ class CreatePublicEventViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Public())
   val uiState: StateFlow<CreateEventUiState.Public> = _uiState.asStateFlow()
+  private var editingEventUid: String? = null
 
   fun updateTitle(newTitle: String) {
     _uiState.value = uiState.value.copy(title = newTitle)
@@ -85,6 +86,7 @@ class CreatePublicEventViewModel(
   }
 
   fun prefill(event: Event.Public) {
+    editingEventUid = event.uid
     val startDateTime =
         event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
     val endTimestamp = event.end ?: event.start
@@ -111,6 +113,7 @@ class CreatePublicEventViewModel(
   }
 
   fun loadEvent(eventUid: String) {
+    editingEventUid = eventUid
     viewModelScope.launch {
       val event = eventRepository.getEvent(eventUid)
       if (event is Event.Public) prefill(event)
@@ -153,10 +156,12 @@ class CreatePublicEventViewModel(
           null
         }
 
+    val currentUserId = Firebase.auth.currentUser?.uid!!
+    val eventUid = editingEventUid ?: eventRepository.getNewUid()
     val event =
         Event.Public(
-            uid = eventRepository.getNewUid(),
-            ownerId = Firebase.auth.currentUser?.uid!!,
+            uid = eventUid,
+            ownerId = currentUserId,
             title = uiState.value.title,
             description = uiState.value.description,
             imageUrl = null,
@@ -172,7 +177,11 @@ class CreatePublicEventViewModel(
 
     viewModelScope.launch {
       try {
-        eventRepository.addEvent(event)
+        if (editingEventUid != null) {
+          eventRepository.editEvent(eventUid, event)
+        } else {
+          eventRepository.addEvent(event)
+        }
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = true)
       } catch (_: Exception) {
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)

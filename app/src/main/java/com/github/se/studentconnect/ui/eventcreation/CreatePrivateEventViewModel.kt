@@ -26,6 +26,7 @@ class CreatePrivateEventViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Private())
   val uiState: StateFlow<CreateEventUiState.Private> = _uiState.asStateFlow()
+  private var editingEventUid: String? = null
 
   fun updateTitle(newTitle: String) {
     _uiState.value = uiState.value.copy(title = newTitle)
@@ -76,6 +77,7 @@ class CreatePrivateEventViewModel(
   }
 
   fun prefill(event: Event.Private) {
+    editingEventUid = event.uid
     val startDateTime =
         event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
     val endTimestamp = event.end ?: event.start
@@ -99,6 +101,7 @@ class CreatePrivateEventViewModel(
   }
 
   fun loadEvent(eventUid: String) {
+    editingEventUid = eventUid
     viewModelScope.launch {
       val event = eventRepository.getEvent(eventUid)
       if (event is Event.Private) prefill(event)
@@ -141,10 +144,12 @@ class CreatePrivateEventViewModel(
           null
         }
 
+    val currentUserId = Firebase.auth.currentUser?.uid!!
+    val eventUid = editingEventUid ?: eventRepository.getNewUid()
     val event =
         Event.Private(
-            uid = eventRepository.getNewUid(),
-            ownerId = Firebase.auth.currentUser?.uid!!,
+            uid = eventUid,
+            ownerId = currentUserId,
             title = uiState.value.title,
             description = uiState.value.description,
             imageUrl = null,
@@ -157,7 +162,11 @@ class CreatePrivateEventViewModel(
 
     viewModelScope.launch {
       try {
-        eventRepository.addEvent(event)
+        if (editingEventUid != null) {
+          eventRepository.editEvent(eventUid, event)
+        } else {
+          eventRepository.addEvent(event)
+        }
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = true)
       } catch (_: Exception) {
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)
