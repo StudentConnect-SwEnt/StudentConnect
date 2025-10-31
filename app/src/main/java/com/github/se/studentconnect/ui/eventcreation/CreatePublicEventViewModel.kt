@@ -126,6 +126,10 @@ class CreatePublicEventViewModel(
             uiState.value.startDate != null &&
             uiState.value.endDate != null
     check(canSave)
+
+    val currentUserId = Firebase.auth.currentUser?.uid
+    checkNotNull(currentUserId)
+
     _uiState.value = uiState.value.copy(isSaving = true)
 
     val start =
@@ -156,7 +160,6 @@ class CreatePublicEventViewModel(
           null
         }
 
-    val currentUserId = Firebase.auth.currentUser?.uid!!
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
     val event =
         Event.Public(
