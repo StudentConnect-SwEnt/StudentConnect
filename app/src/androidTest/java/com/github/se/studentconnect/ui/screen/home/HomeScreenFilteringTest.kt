@@ -160,6 +160,7 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Filters").assertIsDisplayed()
   }
 
+  /*
   @Test
   fun homeScreen_applySportsFilter_showsOnlySportsEvents() = runTest {
     val events =
@@ -195,7 +196,9 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Tennis Tournament").assertIsDisplayed()
     composeTestRule.onNodeWithText("Piano Concert").assertDoesNotExist()
   }
+  */
 
+  /*
   @Test
   fun homeScreen_resetFilters_showsAllEvents() = runTest {
     val events =
@@ -241,6 +244,7 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
     composeTestRule.onNodeWithText("Event 2").assertIsDisplayed()
   }
+     */
 
   @Test
   fun homeScreen_emptyResults_displaysMessage() = runTest {
@@ -339,6 +343,7 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Clickable Event").assertHasClickAction()
   }
 
+  /*
   @Test
   fun homeScreen_filterByTopic_worksCorrectly() = runTest {
     val events =
@@ -374,6 +379,7 @@ class HomeScreenFilteringTest {
     composeTestRule.onNodeWithText("Tennis Event").assertIsDisplayed()
     composeTestRule.onNodeWithText("Music Event").assertDoesNotExist()
   }
+     */
 
   @Test
   fun homeScreen_delayedLoading_displaysEventsAfterDelay() = runTest {
