@@ -23,11 +23,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -224,10 +228,6 @@ fun formatDateHeader(timestamp: Timestamp): String {
         eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
-<<<<<<< HEAD
-    else ->
-        SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(timestamp.toDate()).uppercase()
-=======
     else -> SimpleDateFormat("EEEE d MMMM", Locale.FRENCH).format(timestamp.toDate()).uppercase()
   }
 }
@@ -261,8 +261,8 @@ fun EventListScreenPreview() {
 
   AppTheme() {
     Surface(modifier = Modifier.fillMaxSize()) {
-      EventListScreen(navController = rememberNavController(), events = mockEvents, hasJoined = false)
+      EventListScreen(
+          navController = rememberNavController(), events = mockEvents, hasJoined = false)
     }
->>>>>>> 6e4b6ba (feat(home-calendar): add scroll-to-date and fix modal state sync)
   }
 }

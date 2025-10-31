@@ -15,9 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,10 +55,8 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
-import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import java.util.Date
 import kotlinx.coroutines.launch
 
@@ -96,93 +94,92 @@ fun HomeScreen(
       modifier = Modifier.testTag("calendar_modal"),
       sheetState = sheetState,
       sheetContent = {
-          EventCalendar(
-              events = uiState.events,
-              selectedDate = uiState.selectedDate,
-              onDateSelected = { date -> viewModel.onDateSelected(date) })
+        EventCalendar(
+            events = uiState.events,
+            selectedDate = uiState.selectedDate,
+            onDateSelected = { date -> viewModel.onDateSelected(date) })
       }) {
-      Scaffold(
-          modifier = Modifier.fillMaxSize().testTag("HomePage"),
-          topBar = {
-            if (pagerState.currentPage == 1) {
-              HomeTopBar(
-                  showNotifications = showNotifications,
-                  onNotificationClick = { showNotifications = !showNotifications },
-                  onDismiss = { showNotifications = false })
-            }
-          }) { paddingValues ->
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                userScrollEnabled = true) { page ->
-                  when (page) {
-                    0 -> {
-                      // QR Scanner page
-                      QrScannerScreen(
-                          onBackClick = {
-                            onQRScannerClosed()
-                            coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                          },
-                          onProfileDetected = { userId ->
-                            // Navigate to visitor profile and return to home page
-                            onQRScannerClosed()
-                            navController.navigate(Route.visitorProfile(userId))
-                            coroutineScope.launch { pagerState.scrollToPage(1) }
-                          },
-                          isActive = pagerState.currentPage == 0)
-                    }
-                    1 -> {
-                      // Home content page
-                      Box(modifier = Modifier.fillMaxSize()) {
-                        if (uiState.isLoading) {
-                          CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                        } else {
-                          Column {
-                            FilterBar(
-                                context = LocalContext.current,
-                                onCalendarClick = { viewModel.showCalendar() },
-                                onApplyFilters = viewModel::applyFilters)
-                            EventListScreen(
-                                navController = navController,
-                                events = uiState.events,
-                                hasJoined = false,
-                                listState = listState,
-                                favoriteEventIds = favoriteEventIds,
-                                onFavoriteToggle = viewModel::toggleFavorite)
+        Scaffold(
+            modifier = Modifier.fillMaxSize().testTag("HomePage"),
+            topBar = {
+              if (pagerState.currentPage == 1) {
+                HomeTopBar(
+                    showNotifications = showNotifications,
+                    onNotificationClick = { showNotifications = !showNotifications },
+                    onDismiss = { showNotifications = false })
+              }
+            }) { paddingValues ->
+              HorizontalPager(
+                  state = pagerState,
+                  modifier = Modifier.fillMaxSize().padding(paddingValues),
+                  userScrollEnabled = true) { page ->
+                    when (page) {
+                      0 -> {
+                        // QR Scanner page
+                        QrScannerScreen(
+                            onBackClick = {
+                              onQRScannerClosed()
+                              coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                            },
+                            onProfileDetected = { userId ->
+                              // Navigate to visitor profile and return to home page
+                              onQRScannerClosed()
+                              navController.navigate(Route.visitorProfile(userId))
+                              coroutineScope.launch { pagerState.scrollToPage(1) }
+                            },
+                            isActive = pagerState.currentPage == 0)
+                      }
+                      1 -> {
+                        // Home content page
+                        Box(modifier = Modifier.fillMaxSize()) {
+                          if (uiState.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                          } else {
+                            Column {
+                              FilterBar(
+                                  context = LocalContext.current,
+                                  onCalendarClick = { viewModel.showCalendar() },
+                                  onApplyFilters = viewModel::applyFilters)
+                              EventListScreen(
+                                  navController = navController,
+                                  events = uiState.events,
+                                  hasJoined = false,
+                                  listState = listState,
+                                  favoriteEventIds = favoriteEventIds,
+                                  onFavoriteToggle = viewModel::toggleFavorite)
+                            }
                           }
                         }
                       }
                     }
                   }
-                }
+            }
+
+        // Handle scroll to date functionality
+        LaunchedEffect(uiState.scrollToDate) {
+          uiState.scrollToDate?.let { targetDate ->
+            scrollToDate(listState, uiState.events, targetDate)
+            viewModel.clearScrollTarget()
           }
+        }
 
-      // Handle scroll to date functionality
-      LaunchedEffect(uiState.scrollToDate) {
-        uiState.scrollToDate?.let { targetDate ->
-          scrollToDate(listState, uiState.events, targetDate)
-          viewModel.clearScrollTarget()
+        // Handle modal visibility
+        LaunchedEffect(uiState.isCalendarVisible) {
+          if (uiState.isCalendarVisible) {
+            sheetState.show()
+          } else {
+            sheetState.hide()
+          }
+        }
+
+        // Handle modal dismissal (when user taps outside or swipes down)
+        LaunchedEffect(sheetState.isVisible) {
+          if (!sheetState.isVisible && uiState.isCalendarVisible) {
+            // Modal was dismissed by user interaction, update ViewModel state
+            viewModel.hideCalendar()
+          }
         }
       }
-
-      // Handle modal visibility
-      LaunchedEffect(uiState.isCalendarVisible) {
-        if (uiState.isCalendarVisible) {
-          sheetState.show()
-        } else {
-          sheetState.hide()
-        }
-      }
-
-      // Handle modal dismissal (when user taps outside or swipes down)
-      LaunchedEffect(sheetState.isVisible) {
-        if (!sheetState.isVisible && uiState.isCalendarVisible) {
-          // Modal was dismissed by user interaction, update ViewModel state
-          viewModel.hideCalendar()
-        }
-      }
-    }
-  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -228,7 +225,6 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
 }
 
 /**
-<<<<<<< HEAD
  * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
  * smoothly.
  */
@@ -238,26 +234,13 @@ private suspend fun scrollToDate(
     targetDate: Date
 ) {
   try {
-<<<<<<< HEAD
-=======
     // Handle empty events list
->>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
     if (events.isEmpty()) {
       return
     }
 
-<<<<<<< HEAD
-    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
-    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
-
-    var currentIndex = 0
-    for ((dateHeader, eventsOnDate) in groupedEvents) {
-      if (dateHeader == targetDateHeader) {
-=======
     // Group events by date header to find the target section
-    val groupedEvents = events.groupBy { event ->
-      formatDateHeader(event.start)
-    }
+    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
@@ -267,19 +250,11 @@ private suspend fun scrollToDate(
     for ((dateHeader, eventsOnDate) in groupedEvents) {
       if (dateHeader == targetDateHeader) {
         // Found the target date, scroll to it with bounds checking
->>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
         val maxIndex = listState.layoutInfo.totalItemsCount - 1
         val scrollIndex = minOf(currentIndex, maxIndex)
         listState.animateScrollToItem(scrollIndex)
         return
       }
-<<<<<<< HEAD
-      currentIndex += 1 + eventsOnDate.size
-    }
-
-    listState.animateScrollToItem(0)
-  } catch (e: Exception) {
-=======
       // Move to next section (header + events)
       currentIndex += 1 + eventsOnDate.size
     }
@@ -289,33 +264,6 @@ private suspend fun scrollToDate(
   } catch (e: Exception) {
     // Handle any unexpected errors gracefully
     // In production, you might want to log this error
->>>>>>> 68d6fca (fix(home-calendar): resolve modal state synchronization issues)
     listState.animateScrollToItem(0)
   }
 }
-
-/**
- * Formats a date header for comparison with grouped events.
- * This should match the format used in ListOfEvents.kt
- */
-private fun formatDateHeader(timestamp: com.google.firebase.Timestamp): String {
-  val eventCalendar = Calendar.getInstance().apply { time = timestamp.toDate() }
-  val today = Calendar.getInstance()
-  val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
-
-  return when {
-    eventCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-        eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
-    eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
-        eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
-    else -> java.text.SimpleDateFormat("EEEE d MMMM", java.util.Locale.FRENCH).format(timestamp.toDate()).uppercase()
-  }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePagePreview() {
-  AppTheme { HomeScreen() }
->>>>>>> 6e4b6ba (feat(home-calendar): add scroll-to-date and fix modal state sync)
-}
-

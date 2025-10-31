@@ -55,7 +55,6 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.screen.signup.experienceTopics
 import com.github.se.studentconnect.ui.screen.signup.filterOptions
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import kotlinx.coroutines.launch
 
 data class FilterData(
@@ -107,13 +106,9 @@ fun FilterBar(
             onClick = { DialogNotImplemented(context) },
             icon = R.drawable.ic_location)
         FilterChip(
-            icon = R.drawable.ic_calendar,
-            onClick = onCalendarClick,
-            testTag = "calendar_button")
+            icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
-            text = "Filters",
-            icon = R.drawable.ic_filter,
-            onClick = { showBottomSheet = true })
+            text = "Filters", icon = R.drawable.ic_filter, onClick = { showBottomSheet = true })
         FilterChipWithHighlight(
             text = "Favorites",
             icon = R.drawable.ic_heart,
@@ -308,21 +303,20 @@ fun FilterBar(
                   Text("Reset Filters")
                 }
           }
-      }
-      if (showLocationPicker) {
-        // LocationPickerDialog - commented out as it may not exist
-        // LocationPickerDialog(
-        //     initialLocation = selectedLocation,
-        //     initialRadius = searchRadius,
-        //     onDismiss = { showLocationPicker = false },
-        //     onLocationSelected = { newLocation, newRadius ->
-        //       selectedLocation = newLocation
-        //       searchRadius = newRadius
-        //       showLocationPicker = false
-        //     })
-        DialogNotImplemented(context)
-        showLocationPicker = false
-      }
+    }
+    if (showLocationPicker) {
+      // LocationPickerDialog - commented out as it may not exist
+      // LocationPickerDialog(
+      //     initialLocation = selectedLocation,
+      //     initialRadius = searchRadius,
+      //     onDismiss = { showLocationPicker = false },
+      //     onLocationSelected = { newLocation, newRadius ->
+      //       selectedLocation = newLocation
+      //       searchRadius = newRadius
+      //       showLocationPicker = false
+      //     })
+      DialogNotImplemented(context)
+      showLocationPicker = false
     }
   }
 }
