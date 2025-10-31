@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
@@ -52,6 +53,7 @@ object CreatePublicEventScreenTestTags {
 @Composable
 fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
+    navController: NavHostController? = null,
     existingEventId: String? = null,
     // TODO: pass NavController here
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
@@ -70,11 +72,13 @@ fun CreatePublicEventScreen(
   val canSave =
       createPublicEventUiState.title.isNotBlank() &&
           createPublicEventUiState.startDate != null &&
-          createPublicEventUiState.endDate != null
+          createPublicEventUiState.endDate != null &&
+          !createPublicEventUiState.isSaving
 
   LaunchedEffect(createPublicEventUiState.finishedSaving) {
     if (createPublicEventUiState.finishedSaving) {
-      // TODO: navigate out of this page
+      navController?.popBackStack()
+      createPublicEventViewModel.resetFinishedSaving()
     }
   }
 

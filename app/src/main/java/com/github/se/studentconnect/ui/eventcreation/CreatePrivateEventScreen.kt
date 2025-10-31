@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
@@ -50,6 +51,7 @@ object CreatePrivateEventScreenTestTags {
 @Composable
 fun CreatePrivateEventScreen(
     modifier: Modifier = Modifier,
+    navController: NavHostController? = null,
     existingEventId: String? = null,
     // TODO: pass NavController here
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
@@ -69,11 +71,13 @@ fun CreatePrivateEventScreen(
   val canSave =
       createPrivateEventUiState.title.isNotBlank() &&
           createPrivateEventUiState.startDate != null &&
-          createPrivateEventUiState.endDate != null
+          createPrivateEventUiState.endDate != null &&
+          !createPrivateEventUiState.isSaving
 
   LaunchedEffect(createPrivateEventUiState.finishedSaving) {
     if (createPrivateEventUiState.finishedSaving) {
-      // TODO: navigate out of this page
+      navController?.popBackStack()
+      createPrivateEventViewModel.resetFinishedSaving()
     }
   }
 

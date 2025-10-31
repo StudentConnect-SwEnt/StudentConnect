@@ -80,6 +80,10 @@ class CreatePublicEventViewModel(
     _uiState.value = uiState.value.copy(tags = newTags)
   }
 
+  fun resetFinishedSaving() {
+    _uiState.value = uiState.value.copy(finishedSaving = false, isSaving = false)
+  }
+
   fun prefill(event: Event.Public) {
     val startDateTime =
         event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
@@ -119,6 +123,7 @@ class CreatePublicEventViewModel(
             uiState.value.startDate != null &&
             uiState.value.endDate != null
     check(canSave)
+    _uiState.value = uiState.value.copy(isSaving = true)
 
     val start =
         LocalDateTime.of(uiState.value.startDate, uiState.value.startTime).let {
@@ -168,9 +173,9 @@ class CreatePublicEventViewModel(
     viewModelScope.launch {
       try {
         eventRepository.addEvent(event)
-        _uiState.value = uiState.value.copy(finishedSaving = true)
+        _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = true)
       } catch (_: Exception) {
-        _uiState.value = uiState.value.copy(finishedSaving = false)
+        _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)
       }
     }
   }

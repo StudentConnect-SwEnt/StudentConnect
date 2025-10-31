@@ -241,15 +241,19 @@ private fun MainAppContent(
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
               }
-          composable(Route.CREATE_PRIVATE_EVENT) { CreatePrivateEventScreen() }
-          composable(Route.CREATE_PUBLIC_EVENT) { CreatePublicEventScreen() }
+          composable(Route.CREATE_PRIVATE_EVENT) {
+            CreatePrivateEventScreen(navController = navController)
+          }
+          composable(Route.CREATE_PUBLIC_EVENT) {
+            CreatePublicEventScreen(navController = navController)
+          }
           composable(
               Route.EDIT_PRIVATE_EVENT,
               arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
                   backStackEntry ->
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
                 requireNotNull(eventUid) { "Event UID is required to edit a private event." }
-                CreatePrivateEventScreen(existingEventId = eventUid)
+                CreatePrivateEventScreen(navController = navController, existingEventId = eventUid)
               }
           composable(
               Route.EDIT_PUBLIC_EVENT,
@@ -257,7 +261,7 @@ private fun MainAppContent(
                   backStackEntry ->
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
                 requireNotNull(eventUid) { "Event UID is required to edit a public event." }
-                CreatePublicEventScreen(existingEventId = eventUid)
+                CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
               }
         }
       }
