@@ -31,6 +31,8 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.GregorianCalendar
 import java.util.Locale
 
 /**
@@ -206,12 +208,12 @@ private fun formatDate(timestamp: Timestamp): String {
       eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
     "Today"
   } else {
-    SimpleDateFormat("d MMM", Locale.getDefault()).format(timestamp.toDate())
+    createGregorianFormatter("d MMM").format(timestamp.toDate())
   }
 }
 
 private fun formatTime(timestamp: Timestamp): String {
-  return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+  return createGregorianFormatter("HH:mm").format(timestamp.toDate())
 }
 
 fun formatDateHeader(timestamp: Timestamp): String {
@@ -224,6 +226,18 @@ fun formatDateHeader(timestamp: Timestamp): String {
         eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
-    else -> SimpleDateFormat("EEEE d MMMM", Locale.FRENCH).format(timestamp.toDate()).uppercase()
+    else ->
+        createGregorianFormatter("EEEE d MMMM", Locale.FRENCH)
+            .format(timestamp.toDate())
+            .uppercase()
   }
 }
+
+private fun createGregorianFormatter(
+    pattern: String,
+    locale: Locale = Locale.getDefault()
+): SimpleDateFormat =
+    SimpleDateFormat(pattern, locale).apply {
+      isLenient = false
+      calendar = GregorianCalendar().apply { gregorianChange = Date(Long.MIN_VALUE) }
+    }
