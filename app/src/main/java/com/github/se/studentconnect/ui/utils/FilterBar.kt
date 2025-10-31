@@ -305,18 +305,7 @@ fun FilterBar(
           }
     }
     if (showLocationPicker) {
-      // LocationPickerDialog - commented out as it may not exist
-      // LocationPickerDialog(
-      //     initialLocation = selectedLocation,
-      //     initialRadius = searchRadius,
-      //     onDismiss = { showLocationPicker = false },
-      //     onLocationSelected = { newLocation, newRadius ->
-      //       selectedLocation = newLocation
-      //       searchRadius = newRadius
-      //       showLocationPicker = false
-      //     })
       DialogNotImplemented(context)
-      showLocationPicker = false
     }
   }
 }
