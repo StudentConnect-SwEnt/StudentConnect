@@ -55,7 +55,6 @@ fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
     existingEventId: String? = null,
-    // TODO: pass NavController here
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId) {

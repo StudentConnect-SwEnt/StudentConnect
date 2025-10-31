@@ -224,7 +224,7 @@ fun EventActionButtons(
 ) {
   val context = LocalContext.current
   val currentUserId = AuthenticationProvider.currentUser
-  val isOwner = currentUserId.isNotEmpty() && currentUserId == currentEvent.ownerId
+  val isOwner = !currentUserId.isNullOrBlank() && currentUserId == currentEvent.ownerId
   val editRoute =
       when (currentEvent) {
         is Event.Public -> Route.editPublicEvent(currentEvent.uid)

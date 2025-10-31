@@ -53,7 +53,6 @@ fun CreatePrivateEventScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
     existingEventId: String? = null,
-    // TODO: pass NavController here
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId) {
