@@ -23,15 +23,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -268,4 +264,3 @@ fun EventListScreenPreview() {
   }
 }
 */
-
