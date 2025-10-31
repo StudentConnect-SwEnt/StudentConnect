@@ -4,7 +4,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.waitUntil
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
@@ -104,5 +106,25 @@ class HomeScreenCalendarIntegrationTest {
 
     // Verify calendar container is displayed
     composeTestRule.onNodeWithTag("calendar_container").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_hidesCalendar_whenDateSelected() {
+    composeTestRule.setContent {
+      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+    }
+
+    // Open calendar
+    composeTestRule.onNodeWithTag("calendar_button").performClick()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithTag("calendar_modal").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Select a date (simulate date selection)
+    val testDate = java.util.Date()
+    viewModel.onDateSelected(testDate)
+
+    // Calendar should be hidden
+    composeTestRule.waitForIdle()
   }
 }

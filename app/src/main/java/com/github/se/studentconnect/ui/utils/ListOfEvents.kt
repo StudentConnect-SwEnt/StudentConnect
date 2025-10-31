@@ -232,6 +232,7 @@ fun formatDateHeader(timestamp: Timestamp): String {
   }
 }
 
+/*
 /** A preview function to display the EventListScreen in a dark theme. */
 @Preview(showBackground = true)
 @Composable
@@ -266,3 +267,5 @@ fun EventListScreenPreview() {
     }
   }
 }
+*/
+
