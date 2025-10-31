@@ -31,6 +31,14 @@
           }
         },
         {
+          "client_id": "1014128431937-pjsuibb6nc2bu70qfpjchk0qob7bk93k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "0d4187e5da83655b8d5a76d8a494e206ba1d62dd"
+          }
+        },
+        {
           "client_id": "1014128431937-svq7e7un09n3kur6vm5tt05l464bb98u.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

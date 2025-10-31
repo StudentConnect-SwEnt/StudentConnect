@@ -22,13 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.theme.AppTheme
+import java.time.format.DateTimeFormatter
 
 object CreatePrivateEventScreenTestTags {
   const val TITLE_INPUT = "titleInput"
@@ -48,19 +51,32 @@ object CreatePrivateEventScreenTestTags {
 @Composable
 fun CreatePrivateEventScreen(
     modifier: Modifier = Modifier,
-    // TODO: pass NavController here
+    navController: NavHostController? = null,
+    existingEventId: String? = null,
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
+  LaunchedEffect(existingEventId) {
+    existingEventId?.let { createPrivateEventViewModel.loadEvent(it) }
+  }
+
   val createPrivateEventUiState by createPrivateEventViewModel.uiState.collectAsState()
+  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+
+  val startDateInitial = createPrivateEventUiState.startDate?.format(dateFormatter) ?: ""
+  val endDateInitial = createPrivateEventUiState.endDate?.format(dateFormatter) ?: ""
+  val locationInitial =
+      createPrivateEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
 
   val canSave =
       createPrivateEventUiState.title.isNotBlank() &&
           createPrivateEventUiState.startDate != null &&
-          createPrivateEventUiState.endDate != null
+          createPrivateEventUiState.endDate != null &&
+          !createPrivateEventUiState.isSaving
 
   LaunchedEffect(createPrivateEventUiState.finishedSaving) {
     if (createPrivateEventUiState.finishedSaving) {
-      // TODO: navigate out of this page
+      navController?.popBackStack()
+      createPrivateEventViewModel.resetFinishedSaving()
     }
   }
 
@@ -92,7 +108,7 @@ fun CreatePrivateEventScreen(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
-        initialValue = "",
+        initialValue = locationInitial,
         onLocationChange = { createPrivateEventViewModel.updateLocation(it) })
 
     Row(
@@ -105,7 +121,7 @@ fun CreatePrivateEventScreen(
               Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = startDateInitial,
           onDateChange = { createPrivateEventViewModel.updateStartDate(it) },
       )
 
@@ -124,7 +140,7 @@ fun CreatePrivateEventScreen(
           modifier = Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT),
           label = "End of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = endDateInitial,
           onDateChange = { createPrivateEventViewModel.updateEndDate(it) },
       )
 

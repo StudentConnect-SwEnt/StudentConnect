@@ -30,6 +30,8 @@ import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventView
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
@@ -238,6 +240,28 @@ private fun MainAppContent(
                 val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+              }
+          composable(Route.CREATE_PRIVATE_EVENT) {
+            CreatePrivateEventScreen(navController = navController)
+          }
+          composable(Route.CREATE_PUBLIC_EVENT) {
+            CreatePublicEventScreen(navController = navController)
+          }
+          composable(
+              Route.EDIT_PRIVATE_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a private event." }
+                CreatePrivateEventScreen(navController = navController, existingEventId = eventUid)
+              }
+          composable(
+              Route.EDIT_PUBLIC_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a public event." }
+                CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
               }
         }
       }
