@@ -1,11 +1,11 @@
 package com.github.se.studentconnect.model.friends
 
 import android.util.Log
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -38,7 +38,7 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
   }
 
   private val locationsRef: DatabaseReference = database.getReference(LOCATIONS_PATH)
-  private val listeners = mutableMapOf<String, ChildEventListener>()
+  private val listeners = mutableMapOf<String, ValueEventListener>()
 
   override fun observeFriendLocations(
       userId: String,
@@ -48,79 +48,74 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
 
     Log.d(TAG, "Starting to observe ${friendIds.size} friends for user $userId")
 
-    // Create a listener for each friend
-    val childListeners = mutableMapOf<String, ChildEventListener>()
+    // Create a ValueEventListener for each friend - reads all data in one snapshot
+    val valueListeners = mutableMapOf<String, ValueEventListener>()
 
     friendIds.forEach { friendId ->
       val friendRef = locationsRef.child(friendId)
 
       val listener =
-          object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-              updateLocationFromSnapshot(friendId, snapshot)
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-              updateLocationFromSnapshot(friendId, snapshot)
-            }
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-              currentLocations.remove(friendId)
-              trySend(currentLocations.toMap())
-              Log.d(TAG, "Friend $friendId removed their location")
-            }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-              // Not relevant for location updates, but required by ChildEventListener
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-              Log.e(TAG, "Error observing friend $friendId: ${error.message}")
-            }
-
-            private fun updateLocationFromSnapshot(friendId: String, snapshot: DataSnapshot) {
+          object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
               try {
-                // Read all location data at once
-                val parentSnapshot = snapshot.ref.parent
-                parentSnapshot?.get()?.addOnSuccessListener { dataSnapshot ->
-                  val latitude = dataSnapshot.child("latitude").getValue(Double::class.java)
-                  val longitude = dataSnapshot.child("longitude").getValue(Double::class.java)
-                  val timestamp = dataSnapshot.child("timestamp").getValue(Long::class.java)
+                if (!snapshot.exists()) {
+                  // Friend removed their location
+                  currentLocations.remove(friendId)
+                  trySend(currentLocations.toMap())
+                  Log.d(TAG, "Friend $friendId removed their location")
+                  return
+                }
 
-                  if (latitude != null && longitude != null && timestamp != null) {
-                    val location =
-                        FriendLocation(
-                            userId = friendId,
-                            latitude = latitude,
-                            longitude = longitude,
-                            timestamp = timestamp)
+                // Read all fields directly from the snapshot (no extra network call)
+                val latitude = snapshot.child("latitude").getValue(Double::class.java)
+                val longitude = snapshot.child("longitude").getValue(Double::class.java)
+                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
-                    if (location.isFresh()) {
-                      currentLocations[friendId] = location
-                      trySend(currentLocations.toMap())
-                      Log.d(TAG, "Updated location for friend $friendId: ($latitude, $longitude)")
-                    } else {
-                      Log.d(TAG, "Location for friend $friendId is stale, ignoring")
-                    }
+                if (latitude != null && longitude != null && timestamp != null) {
+                  val location =
+                      FriendLocation(
+                          userId = friendId,
+                          latitude = latitude,
+                          longitude = longitude,
+                          timestamp = timestamp)
+
+                  if (location.isFresh()) {
+                    currentLocations[friendId] = location
+                    trySend(currentLocations.toMap())
+                    Log.d(TAG, "Updated location for friend $friendId: ($latitude, $longitude)")
+                  } else {
+                    Log.d(TAG, "Location for friend $friendId is stale, ignoring")
                   }
+                } else {
+                  Log.w(
+                      TAG,
+                      "Incomplete location data for friend $friendId - lat: $latitude, lon: $longitude, ts: $timestamp")
                 }
               } catch (e: Exception) {
                 Log.e(TAG, "Error parsing location for friend $friendId", e)
               }
             }
+
+            override fun onCancelled(error: DatabaseError) {
+              Log.e(TAG, "Error observing friend $friendId: ${error.message}")
+            }
           }
 
-      friendRef.addChildEventListener(listener)
-      childListeners[friendId] = listener
+      friendRef.addValueEventListener(listener)
+      valueListeners[friendId] = listener
+      // Store in class-level map for stopListening() cleanup
+      listeners[friendId] = listener
     }
 
     // Clean up listeners when the flow is closed
     awaitClose {
       Log.d(TAG, "Stopping observation of friend locations")
-      childListeners.forEach { (friendId, listener) ->
+      valueListeners.forEach { (friendId, listener) ->
         locationsRef.child(friendId).removeEventListener(listener)
+        // Also remove from class-level map
+        listeners.remove(friendId)
       }
-      childListeners.clear()
+      valueListeners.clear()
     }
   }
 
@@ -156,8 +151,10 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
   }
 
   override fun stopListening() {
-    // Clean up any remaining listeners
-    listeners.forEach { (_, listener) -> locationsRef.removeEventListener(listener) }
+    // Clean up any remaining listeners from the class-level map
+    listeners.forEach { (friendId, listener) ->
+      locationsRef.child(friendId).removeEventListener(listener)
+    }
     listeners.clear()
     Log.d(TAG, "Stopped all location listeners")
   }

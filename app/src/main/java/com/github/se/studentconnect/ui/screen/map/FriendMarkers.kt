@@ -91,6 +91,19 @@ object FriendMarkers {
         })
   }
 
+  /**
+   * Updates the friend marker source with new location data. Note: The Mapbox Style API doesn't
+   * expose a getSource() method in v11, so we must remove/re-add the source. However, the layer
+   * remains intact and automatically reconnects to the new source, avoiding layer recreation
+   * overhead.
+   */
+  fun updateFriendSource(style: Style, features: List<Feature>) {
+    if (style.styleSourceExists(FriendMarkerConfig.SOURCE_ID)) {
+      style.removeStyleSource(FriendMarkerConfig.SOURCE_ID)
+    }
+    addFriendSource(style, features)
+  }
+
   /** Adds a symbol layer for individual friend markers. */
   fun addFriendMarkerLayer(style: Style) {
     style.addLayer(

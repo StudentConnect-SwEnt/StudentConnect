@@ -320,32 +320,39 @@ private fun MapContainer(
             }
 
             // Add friend markers - only in friends view
-            // Check if state actually changed before updating
+            // Initialize layers once when entering friends view, then only update data
             MapEffect(!isEventsView, friendLocations) { mapView ->
-              val hasChanged =
-                  previousEventsView.value != isEventsView ||
-                      previousFriendLocations.value != friendLocations
+              val viewChanged = previousEventsView.value != isEventsView
+              val locationsChanged = previousFriendLocations.value != friendLocations
 
-              if (hasChanged) {
-                android.util.Log.d(
-                    "MapContainer",
-                    "Friend locations changed - isEventsView: $isEventsView, friends count: ${friendLocations.size}")
-                previousFriendLocations.value = friendLocations
+              android.util.Log.d(
+                  "MapContainer",
+                  "Friend map effect - viewChanged: $viewChanged, locationsChanged: $locationsChanged, friends: ${friendLocations.size}")
+              previousFriendLocations.value = friendLocations
 
-                mapView.mapboxMap.getStyle { style ->
-                  FriendMarkers.removeExistingFriendLayers(style)
-
-                  if (!isEventsView && friendLocations.isNotEmpty()) {
-                    android.util.Log.d("MapContainer", "Adding friend markers to map")
+              mapView.mapboxMap.getStyle { style ->
+                if (!isEventsView) {
+                  // We're in friends view
+                  if (viewChanged) {
+                    // Just switched to friends view - initialize layers once
+                    android.util.Log.d("MapContainer", "Initializing friend marker layers")
+                    FriendMarkers.removeExistingFriendLayers(style)
                     FriendMarkers.addFriendMarkerIcon(context, style)
                     val features = FriendMarkers.createFriendFeatures(friendLocations)
                     FriendMarkers.addFriendSource(style, features)
                     FriendMarkers.addFriendMarkerLayer(style)
-                  } else {
+                  } else if (locationsChanged) {
+                    // Still in friends view, just update the data (no layer recreation)
                     android.util.Log.d(
                         "MapContainer",
-                        "Not showing friend markers - isEventsView: $isEventsView, friendLocations.isEmpty(): ${friendLocations.isEmpty()}")
+                        "Updating friend locations (${friendLocations.size} friends)")
+                    val features = FriendMarkers.createFriendFeatures(friendLocations)
+                    FriendMarkers.updateFriendSource(style, features)
                   }
+                } else if (viewChanged) {
+                  // Just switched to events view - clean up friend layers
+                  android.util.Log.d("MapContainer", "Removing friend marker layers")
+                  FriendMarkers.removeExistingFriendLayers(style)
                 }
               }
             }
