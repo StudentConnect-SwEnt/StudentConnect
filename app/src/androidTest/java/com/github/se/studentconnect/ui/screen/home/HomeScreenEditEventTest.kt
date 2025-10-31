@@ -19,10 +19,8 @@ import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreenTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
-import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
-import com.github.se.studentconnect.utils.StudentConnectTest.Companion.fromDate
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
