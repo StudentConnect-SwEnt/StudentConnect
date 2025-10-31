@@ -106,7 +106,6 @@ fun LocationTextField(
 
   LaunchedEffect(initialValue) {
     locationFieldValue = TextFieldValue(initialValue, TextRange(initialValue.length))
-    locationHasBeenInteractedWith = false
   }
 
   val locationString = locationFieldValue.text
