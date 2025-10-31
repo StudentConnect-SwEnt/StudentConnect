@@ -148,6 +148,7 @@ fun LocationTextField(
                       text = locationSuggestion.name ?: "",
                       selection = TextRange(locationSuggestion.name?.length ?: 0))
               locationHasBeenInteractedWith = false // reset interaction
+              onLocationChange(locationSuggestion)
             })
       }
     }
