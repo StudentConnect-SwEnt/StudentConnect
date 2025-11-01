@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.events.EventCard
@@ -19,6 +20,10 @@ import org.junit.runner.RunWith
 class ListOfEventsComprehensiveTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   companion object {
     private const val NO_EVENTS_TEXT = "No events found matching your criteria."

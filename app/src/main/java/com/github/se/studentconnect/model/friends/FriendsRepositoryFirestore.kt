@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.model.friends
 
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -161,6 +164,30 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
           .document(toUserId)
           .set(requestData)
           .await()
+
+      // Get sender's name for the notification
+      val fromUserDoc = db.collection(USERS_COLLECTION).document(fromUserId).get().await()
+      val fromUserFirstName = fromUserDoc.getString("firstName") ?: "Someone"
+      val fromUserLastName = fromUserDoc.getString("lastName") ?: ""
+      val fromUserName = "$fromUserFirstName $fromUserLastName".trim()
+
+      // Create notification for the recipient
+      try {
+        val notificationRepository = NotificationRepositoryProvider.repository
+        val notification =
+            Notification.FriendRequest(
+                userId = toUserId,
+                fromUserId = fromUserId,
+                fromUserName = fromUserName,
+                timestamp = Timestamp.now(),
+                isRead = false)
+
+        notificationRepository.createNotification(
+            notification, onSuccess = {}, onFailure = { /* Ignore notification errors */})
+      } catch (e: Exception) {
+        // Don't fail the friend request if notification creation fails
+        android.util.Log.e("FriendsRepository", "Failed to create notification", e)
+      }
     } catch (e: FirebaseFirestoreException) {
       if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
         throw IllegalAccessException("Permission denied: Cannot send friend request")
