@@ -11,6 +11,8 @@ import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Date
+import java.util.GregorianCalendar
 import java.util.Locale
 
 @Composable
@@ -22,9 +24,19 @@ fun DateTextField(
     onDateChange: (LocalDate?) -> Unit,
 ) {
   var dateString by remember { mutableStateOf(initialValue) }
+  var hasInteractedWithField by remember { mutableStateOf(false) }
 
-  val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-  dateFormat.isLenient = false // strict parsing
+  val dateFormat = remember {
+    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+      isLenient = false // strict parsing
+      calendar = GregorianCalendar().apply { gregorianChange = Date(Long.MIN_VALUE) }
+    }
+  }
+
+  LaunchedEffect(initialValue) {
+    dateString = initialValue
+    hasInteractedWithField = false
+  }
 
   val date =
       // make sure the format is matched exactly
@@ -43,12 +55,18 @@ fun DateTextField(
             null // the date does not exist
           }
 
-  LaunchedEffect(date) { onDateChange(date) }
+  LaunchedEffect(date, hasInteractedWithField) {
+    if (!hasInteractedWithField) return@LaunchedEffect
+    onDateChange(date)
+  }
 
   FormTextField(
       modifier = modifier,
       value = dateString,
-      onValueChange = { dateString = it },
+      onValueChange = {
+        hasInteractedWithField = true
+        dateString = it
+      },
       label = label,
       placeholder = placeholder,
       errorText =

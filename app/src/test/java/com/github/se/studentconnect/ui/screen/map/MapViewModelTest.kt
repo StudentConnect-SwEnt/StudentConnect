@@ -21,6 +21,10 @@ class MapViewModelTest {
 
   private lateinit var locationRepository: LocationRepository
   private lateinit var eventRepository: EventRepository
+  private lateinit var friendsRepository:
+      com.github.se.studentconnect.model.friends.FriendsRepository
+  private lateinit var friendsLocationRepository:
+      com.github.se.studentconnect.model.friends.FriendsLocationRepository
   private lateinit var viewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -29,8 +33,14 @@ class MapViewModelTest {
     Dispatchers.setMain(testDispatcher)
     locationRepository = mockk()
     eventRepository = mockk()
+    friendsRepository = mockk()
+    friendsLocationRepository = mockk()
     coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
-    viewModel = MapViewModel(locationRepository, eventRepository)
+    coEvery { friendsRepository.getFriends(any()) } returns emptyList()
+    every { friendsLocationRepository.stopListening() } just Runs
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
   }
 
   @After
@@ -39,92 +49,82 @@ class MapViewModelTest {
     unmockkAll()
   }
 
+  private fun assertState(
+      searchText: String? = null,
+      isEventsView: Boolean? = null,
+      hasLocationPermission: Boolean? = null,
+      isLoading: Boolean? = null,
+      errorMessage: String? = null,
+      targetLocation: Point? = null
+  ) {
+    val state = viewModel.uiState.value
+    searchText?.let { assertEquals(it, state.searchText) }
+    isEventsView?.let { assertEquals(it, state.isEventsView) }
+    hasLocationPermission?.let { assertEquals(it, state.hasLocationPermission) }
+    isLoading?.let { assertEquals(it, state.isLoading) }
+    if (errorMessage != null) assertEquals(errorMessage, state.errorMessage)
+    if (targetLocation != null) assertEquals(targetLocation, state.targetLocation)
+  }
+
   @Test
   fun initialState_hasCorrectDefaults() {
-    val state = viewModel.uiState.value
-
-    assertEquals("", state.searchText)
-    assertTrue(state.isEventsView)
-    assertFalse(state.hasLocationPermission)
-    assertFalse(state.isLoading)
-    assertNull(state.errorMessage)
-    assertNull(state.targetLocation)
-    // Events may be empty initially, will be loaded asynchronously
+    assertState(
+        searchText = "",
+        isEventsView = true,
+        hasLocationPermission = false,
+        isLoading = false,
+        errorMessage = null,
+        targetLocation = null)
   }
 
   @Test
   fun toggleView_switchesEventsView() {
     viewModel.onEvent(MapViewEvent.ToggleView)
-
-    assertFalse(viewModel.uiState.value.isEventsView)
-
+    assertState(isEventsView = false)
     viewModel.onEvent(MapViewEvent.ToggleView)
-
-    assertTrue(viewModel.uiState.value.isEventsView)
+    assertState(isEventsView = true)
   }
 
   @Test
   fun updateSearchText_updatesState() {
-    val searchText = "EPFL"
-
-    viewModel.onEvent(MapViewEvent.UpdateSearchText(searchText))
-
-    assertEquals(searchText, viewModel.uiState.value.searchText)
+    viewModel.onEvent(MapViewEvent.UpdateSearchText("EPFL"))
+    assertState(searchText = "EPFL")
   }
 
   @Test
   fun setLocationPermission_granted_updatesStateAndClearsError() {
     viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
-
-    val state = viewModel.uiState.value
-    assertTrue(state.hasLocationPermission)
-    assertNull(state.errorMessage)
+    assertState(hasLocationPermission = true, errorMessage = null)
   }
 
   @Test
   fun setLocationPermission_denied_updatesStateAndSetsError() {
     viewModel.onEvent(MapViewEvent.SetLocationPermission(false))
-
-    val state = viewModel.uiState.value
-    assertFalse(state.hasLocationPermission)
-    assertEquals(LocationConfig.PERMISSION_REQUIRED, state.errorMessage)
+    assertState(hasLocationPermission = false, errorMessage = LocationConfig.PERMISSION_REQUIRED)
   }
 
   @Test
   fun clearError_removesErrorMessage() {
-    // First set an error
     viewModel.onEvent(MapViewEvent.SetLocationPermission(false))
     assertNotNull(viewModel.uiState.value.errorMessage)
-
-    // Then clear it
     viewModel.onEvent(MapViewEvent.ClearError)
-
-    assertNull(viewModel.uiState.value.errorMessage)
+    assertState(errorMessage = null)
   }
 
   @Test
   fun setTargetLocation_updatesTargetLocation() {
-    val latitude = 46.5089
-    val longitude = 6.6283
-    val zoom = 10.0
-
-    viewModel.onEvent(MapViewEvent.SetTargetLocation(latitude, longitude, zoom))
-
-    val targetLocation = viewModel.uiState.value.targetLocation
-    assertNotNull(targetLocation)
-    assertEquals(longitude, targetLocation!!.longitude(), 0.0001)
-    assertEquals(latitude, targetLocation.latitude(), 0.0001)
+    viewModel.onEvent(MapViewEvent.SetTargetLocation(46.5089, 6.6283, 10.0))
+    val target = viewModel.uiState.value.targetLocation
+    assertNotNull(target)
+    assertEquals(6.6283, target!!.longitude(), 0.0001)
+    assertEquals(46.5089, target.latitude(), 0.0001)
   }
 
   @Test
   fun locateUser_noPermission_setsError() {
     viewModel.onEvent(MapViewEvent.SetLocationPermission(false))
-
     viewModel.onEvent(MapViewEvent.LocateUser)
-
-    val state = viewModel.uiState.value
-    assertEquals(LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE, state.errorMessage)
-    assertFalse(state.isLoading)
+    assertState(errorMessage = LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE, isLoading = false)
   }
 
   @Test
@@ -135,169 +135,97 @@ class MapViewModelTest {
           every { longitude } returns 6.6283
         }
     coEvery { locationRepository.getCurrentLocation() } returns LocationResult.Success(mockLocation)
-
     viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
     viewModel.onEvent(MapViewEvent.LocateUser)
-
     advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    val targetLocation = state.targetLocation
-    assertNotNull(targetLocation)
-    assertEquals(6.6283, targetLocation!!.longitude(), 0.0001)
-    assertEquals(46.5089, targetLocation.latitude(), 0.0001)
-    assertFalse(state.isLoading)
-    assertNull(state.errorMessage)
+    val target = viewModel.uiState.value.targetLocation
+    assertNotNull(target)
+    assertEquals(6.6283, target!!.longitude(), 0.0001)
+    assertEquals(46.5089, target.latitude(), 0.0001)
+    assertState(isLoading = false, errorMessage = null)
   }
 
   @Test
-  fun locateUser_error_setsErrorMessageAndStopsLoading() = runTest {
-    val errorMessage = "GPS not available"
-    coEvery { locationRepository.getCurrentLocation() } returns LocationResult.Error(errorMessage)
+  fun locateUser_variousErrors_setCorrectErrorMessages() = runTest {
+    val testCases =
+        listOf(
+            LocationResult.Error("GPS not available") to "GPS not available",
+            LocationResult.PermissionDenied to LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE,
+            LocationResult.Timeout to LocationConfig.LOCATION_TIMEOUT,
+            LocationResult.LocationDisabled to LocationConfig.LOCATION_DISABLED)
 
-    viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
-    viewModel.onEvent(MapViewEvent.LocateUser)
-
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertEquals(errorMessage, state.errorMessage)
-    assertFalse(state.isLoading)
-    assertNull(state.targetLocation)
-  }
-
-  @Test
-  fun locateUser_permissionDenied_setsPermissionError() = runTest {
-    coEvery { locationRepository.getCurrentLocation() } returns LocationResult.PermissionDenied
-
-    viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
-    viewModel.onEvent(MapViewEvent.LocateUser)
-
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertEquals(LocationConfig.PERMISSION_REQUIRED_FOR_FEATURE, state.errorMessage)
-    assertFalse(state.isLoading)
-  }
-
-  @Test
-  fun locateUser_timeout_setsTimeoutError() = runTest {
-    coEvery { locationRepository.getCurrentLocation() } returns LocationResult.Timeout
-
-    viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
-    viewModel.onEvent(MapViewEvent.LocateUser)
-
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertEquals(LocationConfig.LOCATION_TIMEOUT, state.errorMessage)
-    assertFalse(state.isLoading)
-  }
-
-  @Test
-  fun locateUser_locationDisabled_setsLocationDisabledError() = runTest {
-    coEvery { locationRepository.getCurrentLocation() } returns LocationResult.LocationDisabled
-
-    viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
-    viewModel.onEvent(MapViewEvent.LocateUser)
-
-    advanceUntilIdle()
-
-    val state = viewModel.uiState.value
-    assertEquals(LocationConfig.LOCATION_DISABLED, state.errorMessage)
-    assertFalse(state.isLoading)
+    testCases.forEach { (result, expectedError) ->
+      coEvery { locationRepository.getCurrentLocation() } returns result
+      viewModel.onEvent(MapViewEvent.SetLocationPermission(true))
+      viewModel.onEvent(MapViewEvent.LocateUser)
+      advanceUntilIdle()
+      assertState(errorMessage = expectedError, isLoading = false)
+    }
   }
 
   @Test
   fun animateToTarget_callsMapViewportStateFlyTo() = runTest {
     val mapViewportState = mockk<MapViewportState>(relaxed = true)
-    val latitude = 46.5089
-    val longitude = 6.6283
-    val zoom = 10.0
-
     coEvery { mapViewportState.flyTo(any(), any()) } just Runs
-
-    viewModel.animateToTarget(mapViewportState, latitude, longitude, zoom)
-
+    viewModel.animateToTarget(mapViewportState, 46.5089, 6.6283, 10.0)
     coVerify { mapViewportState.flyTo(any(), any()) }
   }
 
   @Test
   fun animateToUserLocation_withTargetLocation_callsMapViewportStateFlyTo() = runTest {
     val mapViewportState = mockk<MapViewportState>(relaxed = true)
-    val targetPoint = Point.fromLngLat(6.6283, 46.5089)
-
-    // Set target location first
     viewModel.onEvent(MapViewEvent.SetTargetLocation(46.5089, 6.6283, 10.0))
-
     coEvery { mapViewportState.flyTo(any(), any()) } just Runs
-
     viewModel.animateToUserLocation(mapViewportState)
-
     coVerify { mapViewportState.flyTo(any(), any()) }
   }
 
   @Test
   fun animateToUserLocation_withoutTargetLocation_doesNotCallFlyTo() = runTest {
     val mapViewportState = mockk<MapViewportState>(relaxed = true)
-
     coEvery { mapViewportState.flyTo(any(), any()) } just Runs
-
     viewModel.animateToUserLocation(mapViewportState)
-
     coVerify(exactly = 0) { mapViewportState.flyTo(any(), any()) }
   }
 }
 
 class MapConfigurationTest {
-
   @Test
-  fun coordinates_hasCorrectEPFLValues() {
+  fun allConstants_haveCorrectValues() {
+    // Coordinates
     assertEquals(6.6283, MapConfiguration.Coordinates.EPFL_LONGITUDE, 0.0001)
     assertEquals(46.5089, MapConfiguration.Coordinates.EPFL_LATITUDE, 0.0001)
-  }
-
-  @Test
-  fun zoom_hasCorrectValues() {
+    // Zoom levels
     assertEquals(6.0, MapConfiguration.Zoom.INITIAL, 0.0001)
     assertEquals(10.0, MapConfiguration.Zoom.DEFAULT, 0.0001)
     assertEquals(10.0, MapConfiguration.Zoom.TARGET, 0.0001)
     assertEquals(10.0, MapConfiguration.Zoom.LOCATE_USER, 0.0001)
-  }
-
-  @Test
-  fun animation_hasCorrectDurationValues() {
+    // Animation durations
     assertEquals(2000L, MapConfiguration.Animation.INITIAL_DURATION_MS)
     assertEquals(2500L, MapConfiguration.Animation.TARGET_DURATION_MS)
     assertEquals(1500L, MapConfiguration.Animation.LOCATE_USER_DURATION_MS)
-  }
-
-  @Test
-  fun camera_hasCorrectValues() {
+    // Camera settings
     assertEquals(0.0, MapConfiguration.Camera.BEARING, 0.0001)
     assertEquals(0.0, MapConfiguration.Camera.PITCH, 0.0001)
   }
 }
 
 class MapUiStateTest {
-
   @Test
-  fun mapUiState_defaultValues() {
-    val state = MapUiState()
+  fun mapUiState_defaultAndCustomValues() {
+    // Test defaults
+    val defaultState = MapUiState()
+    assertEquals("", defaultState.searchText)
+    assertTrue(defaultState.isEventsView)
+    assertFalse(defaultState.hasLocationPermission)
+    assertFalse(defaultState.isLoading)
+    assertNull(defaultState.errorMessage)
+    assertNull(defaultState.targetLocation)
+    assertTrue(defaultState.events.isEmpty())
 
-    assertEquals("", state.searchText)
-    assertTrue(state.isEventsView)
-    assertFalse(state.hasLocationPermission)
-    assertFalse(state.isLoading)
-    assertNull(state.errorMessage)
-    assertNull(state.targetLocation)
-    assertTrue("Events should be empty by default", state.events.isEmpty())
-  }
-
-  @Test
-  fun mapUiState_customValues() {
-    val targetLocation = Point.fromLngLat(6.6283, 46.5089)
-    val testEvent =
+    // Test custom values
+    val targetLoc = Point.fromLngLat(6.6283, 46.5089)
+    val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "test1",
             ownerId = "owner1",
@@ -308,76 +236,51 @@ class MapUiStateTest {
             start = com.google.firebase.Timestamp.now(),
             isFlash = false,
             subtitle = "Test")
-
-    val state =
+    val customState =
         MapUiState(
             searchText = "EPFL",
             isEventsView = false,
             hasLocationPermission = true,
             isLoading = true,
             errorMessage = "Test error",
-            targetLocation = targetLocation,
-            events = listOf(testEvent))
+            targetLocation = targetLoc,
+            shouldAnimateToLocation = false,
+            events = listOf(event))
 
-    assertEquals("EPFL", state.searchText)
-    assertFalse(state.isEventsView)
-    assertTrue(state.hasLocationPermission)
-    assertTrue(state.isLoading)
-    assertEquals("Test error", state.errorMessage)
-    assertEquals(targetLocation, state.targetLocation)
-    assertEquals(1, state.events.size)
-    assertEquals("Test Event", state.events[0].title)
+    assertEquals("EPFL", customState.searchText)
+    assertFalse(customState.isEventsView)
+    assertTrue(customState.hasLocationPermission)
+    assertTrue(customState.isLoading)
+    assertEquals("Test error", customState.errorMessage)
+    assertEquals(targetLoc, customState.targetLocation)
+    assertEquals(1, customState.events.size)
+    assertEquals("Test Event", customState.events[0].title)
   }
 }
 
 class MapViewEventTest {
-
   @Test
-  fun toggleView_isCorrectType() {
-    val event = MapViewEvent.ToggleView
-    assertTrue(event is MapViewEvent.ToggleView)
-  }
+  fun allEventTypes_haveCorrectTypesAndValues() {
+    // Simple events
+    assertTrue(MapViewEvent.ToggleView is MapViewEvent.ToggleView)
+    assertTrue(MapViewEvent.LocateUser is MapViewEvent.LocateUser)
+    assertTrue(MapViewEvent.ClearError is MapViewEvent.ClearError)
 
-  @Test
-  fun locateUser_isCorrectType() {
-    val event = MapViewEvent.LocateUser
-    assertTrue(event is MapViewEvent.LocateUser)
-  }
+    // UpdateSearchText
+    val searchEvent = MapViewEvent.UpdateSearchText("Test search")
+    assertTrue(searchEvent is MapViewEvent.UpdateSearchText)
+    assertEquals("Test search", searchEvent.text)
 
-  @Test
-  fun clearError_isCorrectType() {
-    val event = MapViewEvent.ClearError
-    assertTrue(event is MapViewEvent.ClearError)
-  }
+    // SetLocationPermission
+    val permEvent = MapViewEvent.SetLocationPermission(true)
+    assertTrue(permEvent is MapViewEvent.SetLocationPermission)
+    assertEquals(true, permEvent.granted)
 
-  @Test
-  fun updateSearchText_hasCorrectValue() {
-    val text = "Test search"
-    val event = MapViewEvent.UpdateSearchText(text)
-
-    assertTrue(event is MapViewEvent.UpdateSearchText)
-    assertEquals(text, event.text)
-  }
-
-  @Test
-  fun setLocationPermission_hasCorrectValue() {
-    val granted = true
-    val event = MapViewEvent.SetLocationPermission(granted)
-
-    assertTrue(event is MapViewEvent.SetLocationPermission)
-    assertEquals(granted, event.granted)
-  }
-
-  @Test
-  fun setTargetLocation_hasCorrectValues() {
-    val latitude = 46.5089
-    val longitude = 6.6283
-    val zoom = 10.0
-    val event = MapViewEvent.SetTargetLocation(latitude, longitude, zoom)
-
-    assertTrue(event is MapViewEvent.SetTargetLocation)
-    assertEquals(latitude, event.latitude, 0.0001)
-    assertEquals(longitude, event.longitude, 0.0001)
-    assertEquals(zoom, event.zoom, 0.0001)
+    // SetTargetLocation
+    val targetEvent = MapViewEvent.SetTargetLocation(46.5089, 6.6283, 10.0)
+    assertTrue(targetEvent is MapViewEvent.SetTargetLocation)
+    assertEquals(46.5089, targetEvent.latitude, 0.0001)
+    assertEquals(6.6283, targetEvent.longitude, 0.0001)
+    assertEquals(10.0, targetEvent.zoom, 0.0001)
   }
 }
