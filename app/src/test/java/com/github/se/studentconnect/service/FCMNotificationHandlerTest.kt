@@ -215,7 +215,9 @@ class FCMNotificationHandlerTest {
   fun processEventStarting_withNoEventStart_returnsNull() {
     val data =
         mapOf(
-            "eventId" to "event-456", "eventTitle" to "Team Meeting", "notificationId" to "notif-def")
+            "eventId" to "event-456",
+            "eventTitle" to "Team Meeting",
+            "notificationId" to "notif-def")
 
     val result = handler.processEventStarting(data, testUserId)
 
@@ -241,7 +243,10 @@ class FCMNotificationHandlerTest {
   @Test
   fun processEventStarting_withNoEventTitle_usesDefault() {
     val data =
-        mapOf("eventId" to "event-456", "notificationId" to "notif-def", "eventStart" to "1704067200000")
+        mapOf(
+            "eventId" to "event-456",
+            "notificationId" to "notif-def",
+            "eventStart" to "1704067200000")
 
     val result = handler.processEventStarting(data, testUserId)
 
@@ -257,7 +262,10 @@ class FCMNotificationHandlerTest {
   @Test
   fun processEventStarting_withNoNotificationId_usesEmptyString() {
     val data =
-        mapOf("eventId" to "event-456", "eventTitle" to "Team Meeting", "eventStart" to "1704067200000")
+        mapOf(
+            "eventId" to "event-456",
+            "eventTitle" to "Team Meeting",
+            "eventStart" to "1704067200000")
 
     val result = handler.processEventStarting(data, testUserId)
 

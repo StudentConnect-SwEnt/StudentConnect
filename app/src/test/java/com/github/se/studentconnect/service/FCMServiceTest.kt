@@ -60,8 +60,7 @@ class FCMServiceTest {
     spyService.onMessageReceived(remoteMessage)
 
     verify(mockHandler, times(1)).processMessage(data)
-    verify(spyService, never())
-        .showPushNotification(any(), any(), any(), any())
+    verify(spyService, never()).showPushNotification(any(), any(), any(), any())
   }
 
   @Test
@@ -147,7 +146,8 @@ class FCMServiceTest {
 
     // Verify class has necessary methods (names may be mangled by Kotlin)
     assertTrue(methods.size > 0)
-    assertTrue(methods.any { it.name.contains("onMessageReceived") || it.name == "onMessageReceived" })
+    assertTrue(
+        methods.any { it.name.contains("onMessageReceived") || it.name == "onMessageReceived" })
     assertTrue(methods.any { it.name.contains("onNewToken") || it.name == "onNewToken" })
   }
 
