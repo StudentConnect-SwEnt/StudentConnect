@@ -30,6 +30,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.activities.EventView
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
@@ -37,11 +40,11 @@ import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
+import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
-import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -262,6 +265,28 @@ private fun MainAppContent(
                     userId = userId,
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
+              }
+          composable(Route.CREATE_PRIVATE_EVENT) {
+            CreatePrivateEventScreen(navController = navController)
+          }
+          composable(Route.CREATE_PUBLIC_EVENT) {
+            CreatePublicEventScreen(navController = navController)
+          }
+          composable(
+              Route.EDIT_PRIVATE_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a private event." }
+                CreatePrivateEventScreen(navController = navController, existingEventId = eventUid)
+              }
+          composable(
+              Route.EDIT_PUBLIC_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a public event." }
+                CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
               }
         }
       }

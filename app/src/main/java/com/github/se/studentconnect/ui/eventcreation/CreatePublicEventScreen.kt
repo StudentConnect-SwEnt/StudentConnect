@@ -22,13 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.theme.AppTheme
+import java.time.format.DateTimeFormatter
 
 object CreatePublicEventScreenTestTags {
   const val TITLE_INPUT = "titleInput"
@@ -50,19 +53,31 @@ object CreatePublicEventScreenTestTags {
 @Composable
 fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
-    // TODO: pass NavController here
+    navController: NavHostController? = null,
+    existingEventId: String? = null,
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
+  LaunchedEffect(existingEventId) {
+    existingEventId?.let { createPublicEventViewModel.loadEvent(it) }
+  }
+
   val createPublicEventUiState by createPublicEventViewModel.uiState.collectAsState()
+  val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+  val startDateInitial = createPublicEventUiState.startDate?.format(dateFormatter) ?: ""
+  val endDateInitial = createPublicEventUiState.endDate?.format(dateFormatter) ?: ""
+  val locationInitial =
+      createPublicEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
 
   val canSave =
       createPublicEventUiState.title.isNotBlank() &&
           createPublicEventUiState.startDate != null &&
-          createPublicEventUiState.endDate != null
+          createPublicEventUiState.endDate != null &&
+          !createPublicEventUiState.isSaving
 
   LaunchedEffect(createPublicEventUiState.finishedSaving) {
     if (createPublicEventUiState.finishedSaving) {
-      // TODO: navigate out of this page
+      navController?.popBackStack()
+      createPublicEventViewModel.resetFinishedSaving()
     }
   }
 
@@ -128,7 +143,7 @@ fun CreatePublicEventScreen(
         modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
-        initialValue = "",
+        initialValue = locationInitial,
         onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
     Row(
@@ -141,7 +156,7 @@ fun CreatePublicEventScreen(
               Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
           label = "Start of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = startDateInitial,
           onDateChange = { createPublicEventViewModel.updateStartDate(it) },
       )
 
@@ -160,7 +175,7 @@ fun CreatePublicEventScreen(
           modifier = Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
           label = "End of the event",
           placeholder = "DD/MM/YYYY",
-          initialValue = "",
+          initialValue = endDateInitial,
           onDateChange = { createPublicEventViewModel.updateEndDate(it) },
       )
 
