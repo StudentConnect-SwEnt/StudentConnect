@@ -26,7 +26,7 @@ class VisitorProfileViewModelTest {
 
   @Before
   fun setup() {
-    // Set test user ID to avoid Firebase initialization in tests
+    //Set test user ID to avoid Firebase initialization in tests
     AuthenticationProvider.testUserId = "test-user-id"
   }
 
