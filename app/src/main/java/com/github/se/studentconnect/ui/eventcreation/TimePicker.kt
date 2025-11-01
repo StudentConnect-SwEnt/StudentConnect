@@ -16,6 +16,11 @@ fun TimePicker(modifier: Modifier = Modifier, time: LocalTime, onTimeChange: (Lo
   val timePickerState =
       rememberTimePickerState(initialHour = time.hour, initialMinute = time.minute, is24Hour = true)
 
+  LaunchedEffect(time) {
+    timePickerState.hour = time.hour
+    timePickerState.minute = time.minute
+  }
+
   TextButton(onClick = { showDialog = true }, modifier = modifier) {
     val formattedHour = time.hour.toString().padStart(2, '0')
     val formattedMinutes = time.minute.toString().padStart(2, '0')

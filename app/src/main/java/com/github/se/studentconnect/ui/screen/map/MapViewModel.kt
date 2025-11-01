@@ -5,9 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendLocation
+import com.github.se.studentconnect.model.friends.FriendsLocationRepository
+import com.github.se.studentconnect.model.friends.FriendsLocationRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.repository.LocationConfig
 import com.github.se.studentconnect.repository.LocationRepository
 import com.github.se.studentconnect.repository.LocationResult
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -25,7 +32,8 @@ data class MapUiState(
     val errorMessage: String? = null,
     val targetLocation: Point? = null,
     val shouldAnimateToLocation: Boolean = false,
-    val events: List<Event> = emptyList()
+    val events: List<Event> = emptyList(),
+    val friendLocations: Map<String, FriendLocation> = emptyMap()
 )
 
 object MapConfiguration {
@@ -73,7 +81,10 @@ sealed class MapViewEvent {
 
 class MapViewModel(
     private val locationRepository: LocationRepository,
-    private val eventRepository: EventRepository = EventRepositoryProvider.repository
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
+    private val friendsLocationRepository: FriendsLocationRepository =
+        FriendsLocationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
@@ -84,6 +95,14 @@ class MapViewModel(
     if (_uiState.value.events.isEmpty()) {
       loadEvents()
     }
+    // Start observing friend locations
+    observeFriendLocations()
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    // Stop listening when ViewModel is cleared
+    friendsLocationRepository.stopListening()
   }
 
   private fun loadEvents() {
@@ -98,6 +117,94 @@ class MapViewModel(
       } catch (e: Exception) {
         android.util.Log.e("MapViewModel", "Failed to load events", e)
         _uiState.value = _uiState.value.copy(errorMessage = "Failed to load events: ${e.message}")
+      }
+    }
+  }
+
+  /**
+   * Observes real-time location updates for the current user's friends. This runs continuously in
+   * the background and updates the UI state whenever a friend's location changes.
+   */
+  private fun observeFriendLocations() {
+    viewModelScope.launch {
+      try {
+        val currentUserId = Firebase.auth.currentUser?.uid
+        if (currentUserId == null) {
+          android.util.Log.d("MapViewModel", "No authenticated user, skipping friend locations")
+          return@launch
+        }
+
+        // Get the list of friends
+        val friendIds = friendsRepository.getFriends(currentUserId)
+        android.util.Log.d("MapViewModel", "Observing ${friendIds.size} friends' locations")
+
+        if (friendIds.isEmpty()) {
+          return@launch
+        }
+
+        // Collect friend location updates
+        friendsLocationRepository.observeFriendLocations(currentUserId, friendIds).collect {
+            locations ->
+          _uiState.value = _uiState.value.copy(friendLocations = locations)
+          android.util.Log.d(
+              "MapViewModel", "Updated friend locations: ${locations.size} friends visible")
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("MapViewModel", "Failed to observe friend locations", e)
+      }
+    }
+  }
+
+  /**
+   * Shares the current user's location with friends. This should be called periodically when the
+   * user has the map open and wants to share their location.
+   */
+  fun shareCurrentLocation() {
+    if (!_uiState.value.hasLocationPermission) {
+      android.util.Log.d("MapViewModel", "Cannot share location without permission")
+      return
+    }
+
+    viewModelScope.launch {
+      try {
+        val currentUserId = Firebase.auth.currentUser?.uid
+        if (currentUserId == null) {
+          android.util.Log.d("MapViewModel", "No authenticated user, cannot share location")
+          return@launch
+        }
+
+        when (val result = locationRepository.getCurrentLocation()) {
+          is LocationResult.Success -> {
+            friendsLocationRepository.updateUserLocation(
+                currentUserId, result.location.latitude, result.location.longitude)
+            android.util.Log.d(
+                "MapViewModel",
+                "Shared location: (${result.location.latitude}, ${result.location.longitude})")
+          }
+          else -> {
+            android.util.Log.d("MapViewModel", "Could not get current location to share")
+          }
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("MapViewModel", "Failed to share location", e)
+      }
+    }
+  }
+
+  /**
+   * Stops sharing the current user's location with friends. This should be called when the user
+   * closes the map or explicitly stops sharing.
+   */
+  fun stopSharingLocation() {
+    viewModelScope.launch {
+      try {
+        val currentUserId = Firebase.auth.currentUser?.uid
+        if (currentUserId != null) {
+          friendsLocationRepository.removeUserLocation(currentUserId)
+          android.util.Log.d("MapViewModel", "Stopped sharing location")
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("MapViewModel", "Failed to stop sharing location", e)
       }
     }
   }

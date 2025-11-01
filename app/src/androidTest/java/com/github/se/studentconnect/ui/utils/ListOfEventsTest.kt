@@ -272,4 +272,39 @@ class ListOfEventsTest {
     composeTestRule.onNodeWithText("TAG3").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG4").assertDoesNotExist()
   }
+
+  @Test
+  fun eventListScreen_emptyList_displaysEmptyMessage() {
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = emptyList(),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
+    }
+
+    composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsZero() {
+    val event = createTestEvent().copy(participationFee = 0u)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsNull() {
+    val event = createTestEvent().copy(participationFee = null)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+  }
 }

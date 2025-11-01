@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -10,8 +10,10 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
-import com.github.se.studentconnect.ui.screen.filters.FilterData
 import com.github.se.studentconnect.ui.screen.signup.filterOptions
+import com.github.se.studentconnect.ui.utils.FilterData
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -27,6 +29,9 @@ import kotlinx.coroutines.launch
 data class HomePageUiState(
     val events: List<Event> = emptyList(),
     val isLoading: Boolean = true,
+    val isCalendarVisible: Boolean = false,
+    val selectedDate: Date? = null,
+    val scrollToDate: Date? = null,
 )
 
 class HomePageViewModel
@@ -198,5 +203,42 @@ constructor(
   fun refresh() {
     loadAllEvents()
     loadFavoriteEvents()
+  }
+
+  /** Shows the calendar modal. */
+  fun showCalendar() {
+    _uiState.update { it.copy(isCalendarVisible = true) }
+  }
+
+  /** Hides the calendar modal. */
+  fun hideCalendar() {
+    _uiState.update { it.copy(isCalendarVisible = false) }
+  }
+
+  /**
+   * Handles date selection from the calendar. Closes the calendar and sets the scroll target date.
+   */
+  fun onDateSelected(date: Date) {
+    _uiState.update { it.copy(selectedDate = date, scrollToDate = date, isCalendarVisible = false) }
+  }
+
+  /** Clears the scroll target date after scrolling is complete. */
+  fun clearScrollTarget() {
+    _uiState.update { it.copy(scrollToDate = null) }
+  }
+
+  /** Gets events for a specific date. */
+  fun getEventsForDate(date: Date): List<Event> {
+    val calendar = Calendar.getInstance()
+    calendar.time = date
+
+    return _uiState.value.events.filter { event ->
+      val eventCalendar = Calendar.getInstance()
+      eventCalendar.time = event.start.toDate()
+
+      eventCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+          eventCalendar.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
+          eventCalendar.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)
+    }
   }
 }
