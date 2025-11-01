@@ -7,15 +7,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.github.se.studentconnect.model.notification.NotificationType
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import java.util.Date
 
 /**
  * Firebase Cloud Messaging service for handling push notifications
@@ -27,6 +23,19 @@ class FCMService : FirebaseMessagingService() {
 
   companion object {
     private const val TAG = "FCMService"
+  }
+
+  // Notification handler for business logic (injected for testability)
+  internal var fcmHandler: FCMNotificationHandler? = null
+
+  internal fun getFCMHandler(): FCMNotificationHandler {
+    if (fcmHandler == null) {
+      fcmHandler =
+          FCMNotificationHandler(
+              notificationRepository = NotificationRepositoryProvider.repository,
+              getCurrentUserId = { Firebase.auth.currentUser?.uid })
+    }
+    return fcmHandler!!
   }
 
   /**
@@ -49,98 +58,12 @@ class FCMService : FirebaseMessagingService() {
     super.onMessageReceived(remoteMessage)
     Log.d(TAG, "Message received from: ${remoteMessage.from}")
 
-    // Extract notification data
-    val data = remoteMessage.data
-    val type = data["type"] ?: return
-    val userId = Firebase.auth.currentUser?.uid ?: return
+    // Process message using handler
+    val notificationInfo = getFCMHandler().processMessage(remoteMessage.data)
 
-    when (type) {
-      NotificationType.FRIEND_REQUEST.name -> handleFriendRequestNotification(data, userId)
-      NotificationType.EVENT_STARTING.name -> handleEventStartingNotification(data, userId)
-      else -> Log.w(TAG, "Unknown notification type: $type")
-    }
-  }
-
-  /**
-   * Handles friend request notifications
-   *
-   * @param data The notification data
-   * @param userId The user ID
-   */
-  private fun handleFriendRequestNotification(data: Map<String, String>, userId: String) {
-    val fromUserId = data["fromUserId"] ?: return
-    val fromUserName = data["fromUserName"] ?: "Someone"
-    val notificationId = data["notificationId"] ?: ""
-
-    // Create notification object
-    val notification =
-        Notification.FriendRequest(
-            id = notificationId,
-            userId = userId,
-            fromUserId = fromUserId,
-            fromUserName = fromUserName,
-            timestamp = Timestamp.now(),
-            isRead = false)
-
-    // Store in Firestore
-    storeNotification(notification)
-
-    // Show push notification
-    showPushNotification(
-        title = "New Friend Request",
-        message = notification.getMessage(),
-        channelId = NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID,
-        notificationId = notificationId.hashCode())
-  }
-
-  /**
-   * Handles event starting notifications
-   *
-   * @param data The notification data
-   * @param userId The user ID
-   */
-  private fun handleEventStartingNotification(data: Map<String, String>, userId: String) {
-    val eventId = data["eventId"] ?: return
-    val eventTitle = data["eventTitle"] ?: "Event"
-    val notificationId = data["notificationId"] ?: ""
-    val eventStartMillis = data["eventStart"]?.toLongOrNull() ?: return
-
-    // Create notification object
-    val notification =
-        Notification.EventStarting(
-            id = notificationId,
-            userId = userId,
-            eventId = eventId,
-            eventTitle = eventTitle,
-            eventStart = Timestamp(Date(eventStartMillis)),
-            timestamp = Timestamp.now(),
-            isRead = false)
-
-    // Store in Firestore
-    storeNotification(notification)
-
-    // Show push notification
-    showPushNotification(
-        title = "Event Starting Soon",
-        message = notification.getMessage(),
-        channelId = NotificationChannelManager.EVENT_STARTING_CHANNEL_ID,
-        notificationId = notificationId.hashCode())
-  }
-
-  /**
-   * Stores a notification in Firestore
-   *
-   * @param notification The notification to store
-   */
-  private fun storeNotification(notification: Notification) {
-    try {
-      val repository = NotificationRepositoryProvider.repository
-      repository.createNotification(
-          notification,
-          onSuccess = { Log.d(TAG, "Notification stored in Firestore") },
-          onFailure = { e -> Log.e(TAG, "Failed to store notification in Firestore", e) })
-    } catch (e: Exception) {
-      Log.e(TAG, "Failed to get notification repository", e)
+    // Show push notification if valid
+    notificationInfo?.let {
+      showPushNotification(it.title, it.message, it.channelId, it.notificationId)
     }
   }
 
@@ -152,7 +75,7 @@ class FCMService : FirebaseMessagingService() {
    * @param channelId The notification channel ID
    * @param notificationId The notification ID (for managing multiple notifications)
    */
-  private fun showPushNotification(
+  internal fun showPushNotification(
       title: String,
       message: String,
       channelId: String,

@@ -1,18 +1,125 @@
 package com.github.se.studentconnect.service
 
+import com.github.se.studentconnect.model.notification.NotificationType
+import com.google.firebase.messaging.RemoteMessage
+import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.*
 
 class FCMServiceTest {
+
+  private lateinit var fcmService: FCMService
+  private lateinit var mockHandler: FCMNotificationHandler
+
+  @Before
+  fun setUp() {
+    fcmService = FCMService()
+    mockHandler = mock()
+    fcmService.fcmHandler = mockHandler
+  }
+
+  @Test
+  fun onNewToken_logsToken() {
+    val token = "test-fcm-token-12345"
+
+    // Call the method - should complete without throwing
+    fcmService.onNewToken(token)
+
+    // Verify no crash
+    assertTrue(true)
+  }
+
+  @Test
+  fun onMessageReceived_callsHandlerProcessMessage() {
+    val remoteMessage: RemoteMessage = mock()
+    val data = mapOf("type" to NotificationType.FRIEND_REQUEST.name, "fromUserId" to "test")
+    whenever(remoteMessage.data).thenReturn(data)
+    whenever(remoteMessage.from).thenReturn("test-sender")
+
+    whenever(mockHandler.processMessage(data)).thenReturn(null)
+
+    fcmService.onMessageReceived(remoteMessage)
+
+    verify(mockHandler, times(1)).processMessage(data)
+  }
+
+  @Test
+  fun onMessageReceived_whenHandlerReturnsNull_doesNotShowNotification() {
+    val remoteMessage: RemoteMessage = mock()
+    val data = emptyMap<String, String>()
+    whenever(remoteMessage.data).thenReturn(data)
+    whenever(remoteMessage.from).thenReturn("test-sender")
+
+    whenever(mockHandler.processMessage(data)).thenReturn(null)
+
+    // Spy on fcmService to verify showPushNotification is not called
+    val spyService = spy(fcmService)
+    spyService.fcmHandler = mockHandler
+
+    spyService.onMessageReceived(remoteMessage)
+
+    verify(mockHandler, times(1)).processMessage(data)
+    verify(spyService, never())
+        .showPushNotification(any(), any(), any(), any())
+  }
+
+  @Test
+  fun onMessageReceived_whenHandlerReturnsInfo_showsNotification() {
+    val remoteMessage: RemoteMessage = mock()
+    val data =
+        mapOf(
+            "type" to NotificationType.FRIEND_REQUEST.name,
+            "fromUserId" to "sender-123",
+            "fromUserName" to "John Doe",
+            "notificationId" to "notif-abc")
+    whenever(remoteMessage.data).thenReturn(data)
+    whenever(remoteMessage.from).thenReturn("test-sender")
+
+    val notificationInfo =
+        NotificationInfo(
+            title = "Test Title",
+            message = "Test Message",
+            channelId = "test-channel",
+            notificationId = 12345)
+    whenever(mockHandler.processMessage(data)).thenReturn(notificationInfo)
+
+    val spyService = spy(fcmService)
+    spyService.fcmHandler = mockHandler
+    doNothing().whenever(spyService).showPushNotification(any(), any(), any(), any())
+
+    spyService.onMessageReceived(remoteMessage)
+
+    verify(mockHandler, times(1)).processMessage(data)
+    verify(spyService, times(1))
+        .showPushNotification("Test Title", "Test Message", "test-channel", 12345)
+  }
+
+  @Test
+  fun fcmHandler_canBeInjected() {
+    val service = FCMService()
+    val mockHandler: FCMNotificationHandler = mock()
+
+    service.fcmHandler = mockHandler
+
+    assertNotNull(service.fcmHandler)
+    assertSame(mockHandler, service.fcmHandler)
+  }
+
+  @Test
+  fun fcmHandler_isNullByDefault() {
+    val service = FCMService()
+
+    assertNull(service.fcmHandler)
+  }
 
   @Test
   fun fcmService_extendsFirebaseMessagingService() {
     val serviceClass = FCMService::class.java
     val superclass = serviceClass.superclass
 
-    assert(superclass != null) { "FCMService should have a superclass" }
-    assert(superclass?.simpleName == "FirebaseMessagingService") {
-      "FCMService should extend FirebaseMessagingService"
-    }
+    assertNotNull(superclass)
+    assertEquals("FirebaseMessagingService", superclass?.simpleName)
   }
 
   @Test
@@ -21,7 +128,7 @@ class FCMServiceTest {
     val methods = serviceClass.declaredMethods
 
     val hasOnNewToken = methods.any { it.name == "onNewToken" }
-    assert(hasOnNewToken) { "FCMService should have onNewToken method" }
+    assertTrue(hasOnNewToken)
   }
 
   @Test
@@ -30,7 +137,18 @@ class FCMServiceTest {
     val methods = serviceClass.declaredMethods
 
     val hasOnMessageReceived = methods.any { it.name == "onMessageReceived" }
-    assert(hasOnMessageReceived) { "FCMService should have onMessageReceived method" }
+    assertTrue(hasOnMessageReceived)
+  }
+
+  @Test
+  fun fcmService_hasInternalMethods() {
+    val serviceClass = FCMService::class.java
+    val methods = serviceClass.declaredMethods
+
+    // Verify class has necessary methods (names may be mangled by Kotlin)
+    assertTrue(methods.size > 0)
+    assertTrue(methods.any { it.name.contains("onMessageReceived") || it.name == "onMessageReceived" })
+    assertTrue(methods.any { it.name.contains("onNewToken") || it.name == "onNewToken" })
   }
 
   @Test
@@ -38,99 +156,23 @@ class FCMServiceTest {
     val serviceClass = FCMService::class.java
     val companionClass = serviceClass.declaredClasses.find { it.simpleName == "Companion" }
 
-    assert(companionClass != null) { "FCMService should have Companion object" }
+    assertNotNull(companionClass)
   }
 
   @Test
-  fun notificationIdBase_isPositive() {
-    // Verify the notification ID base is reasonable
-    val baseId = 1000
-    assert(baseId > 0) { "Notification ID base should be positive" }
-    assert(baseId >= 1000) { "Notification ID base should be large enough to avoid conflicts" }
+  fun notificationChannelIds_areCorrect() {
+    assertEquals("friend_requests", NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID)
+    assertEquals("event_starting", NotificationChannelManager.EVENT_STARTING_CHANNEL_ID)
   }
 
   @Test
-  fun notificationId_hashCode_isConsistent() {
-    // Test that string hash codes are consistent
-    val id1 = "notif-123"
-    val id2 = "notif-123"
-    val id3 = "notif-456"
+  fun notificationInfo_dataClass_works() {
+    // Test the NotificationInfo data class
+    val info = NotificationInfo("Title", "Message", "channel", 123)
 
-    assert(id1.hashCode() == id2.hashCode()) { "Same strings should have same hash code" }
-    assert(id1.hashCode() != id3.hashCode()) {
-      "Different strings should likely have different hash codes"
-    }
-  }
-
-  @Test
-  fun fcmService_usesCorrectChannelIds() {
-    // Verify FCM service uses the same channel IDs as NotificationChannelManager
-    val friendRequestId = NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID
-    val eventStartingId = NotificationChannelManager.EVENT_STARTING_CHANNEL_ID
-
-    assert(friendRequestId == "friend_requests") { "Friend request channel ID should match" }
-    assert(eventStartingId == "event_starting") { "Event starting channel ID should match" }
-  }
-
-  @Test
-  fun fcmService_hasPrivateMethods() {
-    val serviceClass = FCMService::class.java
-    val methods = serviceClass.declaredMethods
-
-    // Check for private handler methods
-    val hasHandleFriendRequest = methods.any { it.name == "handleFriendRequestNotification" }
-    val hasHandleEventStarting = methods.any { it.name == "handleEventStartingNotification" }
-    val hasStoreNotification = methods.any { it.name == "storeNotification" }
-    val hasShowPushNotification = methods.any { it.name == "showPushNotification" }
-
-    assert(hasHandleFriendRequest) {
-      "FCMService should have handleFriendRequestNotification method"
-    }
-    assert(hasHandleEventStarting) {
-      "FCMService should have handleEventStartingNotification method"
-    }
-    assert(hasStoreNotification) { "FCMService should have storeNotification method" }
-    assert(hasShowPushNotification) { "FCMService should have showPushNotification method" }
-  }
-
-  @Test
-  fun fcmService_tagConstant_isCorrect() {
-    // Verify the TAG constant exists via companion object
-    val serviceClass = FCMService::class.java
-    val companionClass = serviceClass.declaredClasses.find { it.simpleName == "Companion" }
-
-    assert(companionClass != null) { "FCMService should have Companion object with TAG" }
-  }
-
-  @Test
-  fun notificationTypes_areDefined() {
-    // Verify that notification types are properly handled
-    val friendRequestType = "FRIEND_REQUEST"
-    val eventStartingType = "EVENT_STARTING"
-
-    assert(friendRequestType.isNotEmpty()) { "Friend request type should be defined" }
-    assert(eventStartingType.isNotEmpty()) { "Event starting type should be defined" }
-  }
-
-  @Test
-  fun notificationId_generationLogic_isValid() {
-    // Test the notification ID generation pattern
-    val notificationId = "test-notif-123"
-    val hashCode = notificationId.hashCode()
-
-    // Hash code should be consistent
-    assert(hashCode == notificationId.hashCode()) { "Hash code should be consistent" }
-  }
-
-  @Test
-  fun defaultValues_areHandled() {
-    // Test that default values are properly defined
-    val defaultUserName = "Someone"
-    val defaultEventTitle = "Event"
-    val defaultNotificationId = ""
-
-    assert(defaultUserName == "Someone") { "Default user name should be 'Someone'" }
-    assert(defaultEventTitle == "Event") { "Default event title should be 'Event'" }
-    assert(defaultNotificationId == "") { "Default notification ID should be empty string" }
+    assertEquals("Title", info.title)
+    assertEquals("Message", info.message)
+    assertEquals("channel", info.channelId)
+    assertEquals(123, info.notificationId)
   }
 }
