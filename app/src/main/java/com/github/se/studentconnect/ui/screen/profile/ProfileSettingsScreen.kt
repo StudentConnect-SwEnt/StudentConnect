@@ -253,7 +253,7 @@ private fun ProfileHeaderSection(
                       .background(MaterialTheme.colorScheme.surface, CircleShape)) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit profile picture button",
+                    contentDescription = "Edit Profile Picture",
                     tint = MaterialTheme.colorScheme.onSurface)
               }
         }
@@ -271,7 +271,7 @@ private fun ProfileHeaderSection(
               IconButton(onClick = { onEditName?.invoke() }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit name button",
+                    contentDescription = "Edit Name",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
               }
             }

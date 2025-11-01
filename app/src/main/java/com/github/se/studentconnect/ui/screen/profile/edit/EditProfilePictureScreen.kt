@@ -82,7 +82,7 @@ fun EditProfilePictureScreen(
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Navigate back")
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
               }
             },
             colors =
@@ -117,7 +117,7 @@ fun EditProfilePictureScreen(
                               contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    contentDescription = "Default profile picture placeholder",
+                                    contentDescription = "Profile Picture",
                                     modifier = Modifier.size(60.dp),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer)
                               }
@@ -148,7 +148,7 @@ fun EditProfilePictureScreen(
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.CameraAlt,
-                                    contentDescription = "Camera icon",
+                                    contentDescription = "Take Photo",
                                     modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Text("Take Photo")
@@ -160,7 +160,7 @@ fun EditProfilePictureScreen(
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Gallery icon",
+                                    contentDescription = "Choose from Gallery",
                                     modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Text("Choose from Gallery")
