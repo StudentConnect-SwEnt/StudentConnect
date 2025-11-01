@@ -3,8 +3,6 @@ package com.github.se.studentconnect.ui.profile
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.profile.EditingField
-import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest

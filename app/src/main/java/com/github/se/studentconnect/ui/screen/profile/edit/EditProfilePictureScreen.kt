@@ -144,7 +144,7 @@ fun EditProfilePictureScreen(
 
                           // Camera Button
                           OutlinedButton(
-                              onClick = { /* Camera functionality not yet implemented */ },
+                              onClick = { /* Camera functionality not yet implemented */},
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.CameraAlt,
@@ -156,7 +156,7 @@ fun EditProfilePictureScreen(
 
                           // Gallery Button
                           OutlinedButton(
-                              onClick = { /* Gallery functionality not yet implemented */ },
+                              onClick = { /* Gallery functionality not yet implemented */},
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
@@ -170,7 +170,7 @@ fun EditProfilePictureScreen(
 
                           // Save Button
                           Button(
-                              onClick = { /* Save functionality not yet implemented */ },
+                              onClick = { /* Save functionality not yet implemented */},
                               modifier = Modifier.fillMaxWidth()) {
                                 if (isLoading) {
                                   CircularProgressIndicator(

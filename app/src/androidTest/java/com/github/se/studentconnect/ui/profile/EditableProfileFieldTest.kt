@@ -10,9 +10,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.se.studentconnect.ui.profile.EditableProfileField
-import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
-import com.github.se.studentconnect.ui.profile.EditableProfileFieldNumeric
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

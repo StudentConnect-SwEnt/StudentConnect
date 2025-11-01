@@ -68,7 +68,9 @@ fun EditNameScreen(
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Navigate back")
               }
             },
             colors =
