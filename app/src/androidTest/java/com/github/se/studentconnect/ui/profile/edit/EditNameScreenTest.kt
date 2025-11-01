@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
+import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule

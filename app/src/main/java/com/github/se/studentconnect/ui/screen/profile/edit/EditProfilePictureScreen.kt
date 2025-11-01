@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.profile.edit
+package com.github.se.studentconnect.ui.screen.profile.edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
 
 /**
  * Screen for editing profile picture. Shows current profile picture and options to change it.
@@ -58,17 +60,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun EditProfilePictureScreen(
     userId: String,
-    userRepository: com.github.se.studentconnect.repository.UserRepository,
+    userRepository: UserRepository,
     viewModel: EditProfilePictureViewModel = viewModel {
       EditProfilePictureViewModel(userRepository, userId)
     },
     onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-  val user by viewModel.user.collectAsState()
   val isLoading by viewModel.isLoading.collectAsState()
-  val errorMessage by viewModel.errorMessage.collectAsState()
-  val successMessage by viewModel.successMessage.collectAsState()
 
   val snackbarHostState = remember { SnackbarHostState() }
 
@@ -83,7 +82,7 @@ fun EditProfilePictureScreen(
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Navigate back")
               }
             },
             colors =
@@ -118,7 +117,7 @@ fun EditProfilePictureScreen(
                               contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
-                                    contentDescription = "Profile Picture",
+                                    contentDescription = "Default profile picture placeholder",
                                     modifier = Modifier.size(60.dp),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer)
                               }
@@ -145,13 +144,11 @@ fun EditProfilePictureScreen(
 
                           // Camera Button
                           OutlinedButton(
-                              onClick = {
-                                // TODO: Implement camera functionality
-                              },
+                              onClick = { /* Camera functionality not yet implemented */ },
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.CameraAlt,
-                                    contentDescription = "Take Photo",
+                                    contentDescription = "Camera icon",
                                     modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Text("Take Photo")
@@ -159,13 +156,11 @@ fun EditProfilePictureScreen(
 
                           // Gallery Button
                           OutlinedButton(
-                              onClick = {
-                                // TODO: Implement gallery functionality
-                              },
+                              onClick = { /* Gallery functionality not yet implemented */ },
                               modifier = Modifier.fillMaxWidth()) {
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "Choose from Gallery",
+                                    contentDescription = "Gallery icon",
                                     modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Text("Choose from Gallery")
@@ -175,9 +170,7 @@ fun EditProfilePictureScreen(
 
                           // Save Button
                           Button(
-                              onClick = {
-                                // TODO: Implement save functionality
-                              },
+                              onClick = { /* Save functionality not yet implemented */ },
                               modifier = Modifier.fillMaxWidth()) {
                                 if (isLoading) {
                                   CircularProgressIndicator(

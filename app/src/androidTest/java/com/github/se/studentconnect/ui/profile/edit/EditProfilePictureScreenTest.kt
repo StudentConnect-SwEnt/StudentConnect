@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule

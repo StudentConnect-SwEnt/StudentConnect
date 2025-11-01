@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.profile
+package com.github.se.studentconnect.ui.profile
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

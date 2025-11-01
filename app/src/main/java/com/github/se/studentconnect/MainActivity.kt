@@ -33,10 +33,9 @@ import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.profile.MockUserRepository
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
-import com.github.se.studentconnect.ui.profile.edit.EditNameScreen
-import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
@@ -182,8 +181,9 @@ private fun MainAppContent(
             },
         )
       }) { paddingValues ->
-        // Shared mock repository for all profile screens (for demo purposes)
-        val sharedMockRepository = remember { MockUserRepository() }
+        // Use real repository from provider
+        val userRepository = UserRepositoryProvider.repository
+        val currentUserId = Firebase.auth.currentUser?.uid ?: ""
 
         NavHost(
             navController = navController,
@@ -215,8 +215,8 @@ private fun MainAppContent(
           // Profile Settings Screen (Main Profile View)
           composable(Route.PROFILE) {
             ProfileSettingsScreen(
-                currentUserId = "mock_user_123",
-                userRepository = sharedMockRepository,
+                currentUserId = currentUserId,
+                userRepository = userRepository,
                 onNavigateToEditPicture = { userId ->
                   navController.navigate(ProfileRoutes.editPicture(userId))
                 },
@@ -245,11 +245,11 @@ private fun MainAppContent(
               route = ProfileRoutes.EDIT_PICTURE,
               arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
                 EditProfilePictureScreen(
                     userId = userId,
                     onNavigateBack = { navController.popBackStack() },
-                    userRepository = sharedMockRepository)
+                    userRepository = userRepository)
               }
 
           // Edit Name Screen
@@ -257,10 +257,10 @@ private fun MainAppContent(
               route = ProfileRoutes.EDIT_NAME,
               arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
                 EditNameScreen(
                     userId = userId,
-                    userRepository = sharedMockRepository,
+                    userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
               }
         }

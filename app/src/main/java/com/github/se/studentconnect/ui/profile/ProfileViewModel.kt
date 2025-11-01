@@ -1,10 +1,9 @@
-package com.github.se.studentconnect.ui.screen.profile
+package com.github.se.studentconnect.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.profile.ProfileConstants
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -111,7 +110,7 @@ class ProfileViewModel(
   fun updateUniversity(university: String) {
     if (university.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.University to "University cannot be empty")
+          _fieldErrors.value + (EditingField.University to ProfileConstants.ERROR_UNIVERSITY_EMPTY)
       return
     }
 
@@ -147,7 +146,7 @@ class ProfileViewModel(
   fun updateBirthday(birthday: String) {
     if (birthday.isNotBlank() && !isValidDateFormat(birthday)) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Birthday to "Please use DD/MM/YYYY format")
+          _fieldErrors.value + (EditingField.Birthday to ProfileConstants.ERROR_DATE_FORMAT)
       return
     }
 
@@ -265,13 +264,13 @@ class ProfileViewModel(
    */
   private fun getSuccessMessage(field: EditingField): String {
     return when (field) {
-      EditingField.Name -> "Name updated successfully"
-      EditingField.University -> "University updated successfully"
-      EditingField.Country -> "Country updated successfully"
-      EditingField.Birthday -> "Birthday updated successfully"
-      EditingField.Activities -> "Activities updated successfully"
-      EditingField.Bio -> "Bio updated successfully"
-      EditingField.None -> "Profile updated successfully"
+      EditingField.Name -> ProfileConstants.SUCCESS_NAME_UPDATED
+      EditingField.University -> ProfileConstants.SUCCESS_UNIVERSITY_UPDATED
+      EditingField.Country -> ProfileConstants.SUCCESS_COUNTRY_UPDATED
+      EditingField.Birthday -> ProfileConstants.SUCCESS_BIRTHDAY_UPDATED
+      EditingField.Activities -> ProfileConstants.SUCCESS_ACTIVITIES_UPDATED
+      EditingField.Bio -> ProfileConstants.SUCCESS_BIO_UPDATED
+      EditingField.None -> ProfileConstants.SUCCESS_PROFILE_UPDATED
     }
   }
 }

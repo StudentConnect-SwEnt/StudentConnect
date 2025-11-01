@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.profile.edit
+package com.github.se.studentconnect.ui.screen.profile.edit
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
+import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
+import com.github.se.studentconnect.ui.profile.edit.EditNameViewModel
 
 /**
  * Screen for editing user name (first name and last name).
@@ -66,7 +68,7 @@ fun EditNameScreen(
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
               }
             },
             colors =

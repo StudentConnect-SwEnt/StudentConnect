@@ -44,6 +44,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.ui.profile.EditableProfileField
+import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
+import com.github.se.studentconnect.ui.profile.EditingField
+import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
 import kotlin.let
@@ -249,7 +253,7 @@ private fun ProfileHeaderSection(
                       .background(MaterialTheme.colorScheme.surface, CircleShape)) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Profile Picture",
+                    contentDescription = "Edit profile picture button",
                     tint = MaterialTheme.colorScheme.onSurface)
               }
         }
@@ -267,7 +271,7 @@ private fun ProfileHeaderSection(
               IconButton(onClick = { onEditName?.invoke() }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Name",
+                    contentDescription = "Edit name button",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
               }
             }
