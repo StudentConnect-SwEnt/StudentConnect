@@ -7,7 +7,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -182,27 +181,37 @@ class FCMServiceTest {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [30], manifest = Config.NONE)
 class FCMServiceRobolectricTest {
 
-  private lateinit var fcmService: FCMService
+  private lateinit var context: android.content.Context
 
   @Before
   fun setUp() {
-    fcmService = Robolectric.setupService(FCMService::class.java)
+    context = androidx.test.core.app.ApplicationProvider.getApplicationContext()
+  }
+
+  private fun getServiceWithContext(): FCMService {
+    val service = FCMService()
+    val baseContextField = android.content.ContextWrapper::class.java.getDeclaredField("mBase")
+    baseContextField.isAccessible = true
+    baseContextField.set(service, context)
+    return service
   }
 
   @Test
   fun showPushNotification_executesWithoutException() {
-    fcmService.showPushNotification("Test Title", "Test Message", "test_channel", 42)
+    val service = getServiceWithContext()
+    service.showPushNotification("Test Title", "Test Message", "test_channel", 42)
 
     assertTrue(true)
   }
 
   @Test
   fun showPushNotification_createsIntentWithCorrectFlags() {
+    val service = getServiceWithContext()
     // This test ensures the intent creation logic is executed
-    fcmService.showPushNotification("Test Title", "Test Message", "test_channel", 123)
+    service.showPushNotification("Test Title", "Test Message", "test_channel", 123)
 
     // Verify execution completes (intent and pending intent created)
     assertTrue(true)
@@ -210,8 +219,9 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_buildsNotificationWithCorrectProperties() {
+    val service = getServiceWithContext()
     // Test with different notification parameters
-    fcmService.showPushNotification(
+    service.showPushNotification(
         "Friend Request", "John wants to be your friend", "friend_requests", 456)
 
     assertTrue(true)
@@ -219,34 +229,37 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_handlesNotificationDisplay() {
+    val service = getServiceWithContext()
     // Test the notification display logic
-    fcmService.showPushNotification(
-        "Event Starting", "Your event starts soon", "event_starting", 789)
+    service.showPushNotification("Event Starting", "Your event starts soon", "event_starting", 789)
 
     assertTrue(true)
   }
 
   @Test
   fun showPushNotification_withEmptyStrings_executesWithoutException() {
+    val service = getServiceWithContext()
     // Test edge case with empty strings
-    fcmService.showPushNotification("", "", "test_channel", 999)
+    service.showPushNotification("", "", "test_channel", 999)
 
     assertTrue(true)
   }
 
   @Test
   fun showPushNotification_withLongText_executesWithoutException() {
+    val service = getServiceWithContext()
     val longTitle = "A".repeat(100)
     val longMessage = "B".repeat(500)
 
-    fcmService.showPushNotification(longTitle, longMessage, "test_channel", 111)
+    service.showPushNotification(longTitle, longMessage, "test_channel", 111)
 
     assertTrue(true)
   }
 
   @Test
   fun showPushNotification_withSpecialCharacters_executesWithoutException() {
-    fcmService.showPushNotification(
+    val service = getServiceWithContext()
+    service.showPushNotification(
         "Test \n Title 🎉", "Message with émojis 💬 and\nlinebreaks", "test_channel", 222)
 
     assertTrue(true)
