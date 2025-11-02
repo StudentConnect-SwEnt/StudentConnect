@@ -47,10 +47,10 @@ class StudentConnectDebugApp : Application() {
   override fun onCreate() {
     super.onCreate()
 
+    val host = if (isInAndroidEmulator()) EMULATOR_LOOPBACK else LOCALHOST
+
     // use firebase emulator (in debug app only) if -PuseFirebaseEmulator=true is set
     if (BuildConfig.USE_FIREBASE_EMULATOR) {
-      val host = if (isInAndroidEmulator()) EMULATOR_LOOPBACK else LOCALHOST
-
       Firebase.auth.useEmulator(host, AUTH_PORT)
       Firebase.firestore.useEmulator(host, FIRESTORE_PORT)
       Firebase.storage.useEmulator(host, STORAGE_PORT)
