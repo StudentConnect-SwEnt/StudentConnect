@@ -33,12 +33,10 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.EventReminderWorker
 import com.github.se.studentconnect.service.NotificationChannelManager
-import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
