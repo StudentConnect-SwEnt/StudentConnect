@@ -7,6 +7,7 @@ import com.google.firebase.Timestamp
  *
  * @property userId The unique identifier for the user (from Firebase Auth).
  * @property email The user's email address.
+ * @property username The unique username for the user (alphanumeric, underscore, hyphen, period).
  * @property firstName The user's first name.
  * @property lastName The user's last name.
  * @property university The university the user is attending in Switzerland.
@@ -21,6 +22,7 @@ import com.google.firebase.Timestamp
 data class User(
     val userId: String,
     val email: String,
+    val username: String,
     val firstName: String,
     val lastName: String,
     val birthdate: Timestamp? = null,
@@ -37,6 +39,9 @@ data class User(
     require(userId.isNotBlank()) { "User ID cannot be blank" }
     require(email.isNotBlank()) { "Email cannot be blank" }
     require(isValidEmail(email)) { "Email must be valid" }
+    require(username.isNotBlank()) { "Username cannot be blank" }
+    require(username.length in 3..20) { "Username must be between 3 and 20 characters" }
+    require(isValidUsername(username)) { "Username can only contain alphanumeric characters, underscores, hyphens, and periods" }
     require(firstName.isNotBlank()) { "First name cannot be blank" }
     require(firstName.length <= 100) { "First name cannot exceed 100 characters" }
     require(lastName.isNotBlank()) { "Last name cannot be blank" }
@@ -91,6 +96,7 @@ data class User(
    */
   fun update(
       email: UpdateValue<String> = UpdateValue.NoChange(),
+      username: UpdateValue<String> = UpdateValue.NoChange(),
       firstName: UpdateValue<String> = UpdateValue.NoChange(),
       lastName: UpdateValue<String> = UpdateValue.NoChange(),
       university: UpdateValue<String> = UpdateValue.NoChange(),
@@ -105,6 +111,11 @@ data class User(
             when (email) {
               is UpdateValue.SetValue -> email.value ?: this.email
               else -> this.email
+            },
+        username =
+            when (username) {
+              is UpdateValue.SetValue -> username.value ?: this.username
+              else -> this.username
             },
         firstName =
             when (firstName) {
@@ -158,6 +169,7 @@ data class User(
     return mapOf(
         "userId" to userId,
         "email" to email,
+        "username" to username, // Stored in lowercase
         "firstName" to firstName,
         "lastName" to lastName,
         "birthdate" to birthdate,
@@ -174,6 +186,10 @@ data class User(
   companion object {
     private fun isValidEmail(email: String): Boolean {
       return email.matches(Regex("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$"))
+    }
+
+    private fun isValidUsername(username: String): Boolean {
+      return username.matches(Regex("^[a-zA-Z0-9_.-]+$"))
     }
 
     /**
@@ -194,6 +210,7 @@ data class User(
         User(
             userId = map["userId"] as? String ?: return null,
             email = map["email"] as? String ?: return null,
+            username = map["username"] as? String ?: return null,
             firstName = map["firstName"] as? String ?: return null,
             lastName = map["lastName"] as? String ?: return null,
             birthdate = map["birthdate"] as? Timestamp,
