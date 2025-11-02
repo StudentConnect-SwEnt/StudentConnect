@@ -182,7 +182,12 @@ private fun MainAppContent(
                 restoreState = true
               }
             },
-        )
+            onCreatePublicEvent = {
+              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+            },
+            onCreatePrivateEvent = {
+              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+            })
       }) { paddingValues ->
         // Use real repository from provider
         val userRepository = UserRepositoryProvider.repository
