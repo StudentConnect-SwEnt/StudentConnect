@@ -1,6 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     jacoco
     alias(libs.plugins.androidApplication)
@@ -10,6 +7,10 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.kotlinComposeCompiler)
 }
+
+val useFirebaseEmulator: Boolean =
+    (project.findProperty("useFirebaseEmulator") as? String)?.equals("true", ignoreCase = true)
+        ?: false
 
 android {
     namespace = "com.github.se.studentconnect"
@@ -57,6 +58,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", "false")
             // Sign with debug keystore for consistent fingerprints across environments (if available)
             val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
             if (keystoreFile.exists()) {
@@ -68,6 +70,8 @@ android {
             enableAndroidTestCoverage = true
             // Use real map in debug builds, mock map for android tests
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            buildConfigField(
+                "Boolean", "USE_FIREBASE_EMULATOR", useFirebaseEmulator.toString())
         }
     }
     compileOptions {
