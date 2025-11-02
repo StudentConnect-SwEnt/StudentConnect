@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.profile
+package com.github.se.studentconnect.ui.profile
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -40,9 +40,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlin.let
-import kotlin.text.ifBlank
-import kotlin.text.isBlank
 
 /**
  * A reusable composable for profile fields with inline editing functionality.
