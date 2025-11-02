@@ -181,13 +181,18 @@ class FCMServiceTest {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [28], manifest = Config.NONE)
 class FCMServiceRobolectricTest {
+
+  private lateinit var fcmService: FCMService
+
+  @Before
+  fun setUp() {
+    fcmService = FCMService()
+  }
 
   @Test
   fun showPushNotification_executesWithoutException() {
-    val fcmService = FCMService()
-
     fcmService.showPushNotification("Test Title", "Test Message", "test_channel", 42)
 
     assertTrue(true)
@@ -195,8 +200,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_createsIntentWithCorrectFlags() {
-    val fcmService = FCMService()
-
     // This test ensures the intent creation logic is executed
     fcmService.showPushNotification("Test Title", "Test Message", "test_channel", 123)
 
@@ -206,8 +209,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_buildsNotificationWithCorrectProperties() {
-    val fcmService = FCMService()
-
     // Test with different notification parameters
     fcmService.showPushNotification(
         "Friend Request", "John wants to be your friend", "friend_requests", 456)
@@ -217,8 +218,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_handlesNotificationDisplay() {
-    val fcmService = FCMService()
-
     // Test the notification display logic
     fcmService.showPushNotification(
         "Event Starting", "Your event starts soon", "event_starting", 789)
@@ -228,8 +227,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_withEmptyStrings_executesWithoutException() {
-    val fcmService = FCMService()
-
     // Test edge case with empty strings
     fcmService.showPushNotification("", "", "test_channel", 999)
 
@@ -238,8 +235,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_withLongText_executesWithoutException() {
-    val fcmService = FCMService()
-
     val longTitle = "A".repeat(100)
     val longMessage = "B".repeat(500)
 
@@ -250,8 +245,6 @@ class FCMServiceRobolectricTest {
 
   @Test
   fun showPushNotification_withSpecialCharacters_executesWithoutException() {
-    val fcmService = FCMService()
-
     fcmService.showPushNotification(
         "Test \n Title 🎉", "Message with émojis 💬 and\nlinebreaks", "test_channel", 222)
 
