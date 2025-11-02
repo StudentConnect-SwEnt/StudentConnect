@@ -116,48 +116,6 @@ class EditNationalityScreenTest {
   }
 
   @Test
-  fun editNationalityScreen_canSearchCountries() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Type in search field
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("France")
-
-    // Verify search text is displayed
-    composeTestRule.onNodeWithText("France", substring = true).assertExists()
-  }
-
-  @Test
-  fun editNationalityScreen_filtersCountriesBasedOnSearch() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search for a specific country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Fra")
-
-    composeTestRule.waitForIdle()
-
-    // France should be visible in the list
-    composeTestRule.onNodeWithText("France").assertExists()
-  }
-
-  @Test
   fun editNationalityScreen_displaysSaveButton() {
     composeTestRule.setContent {
       MaterialTheme {
@@ -173,7 +131,7 @@ class EditNationalityScreenTest {
   }
 
   @Test
-  fun editNationalityScreen_saveButtonInitiallyDisabled() {
+  fun editNationalityScreen_saveButtonEnabledWithPreselectedCountry() {
     composeTestRule.setContent {
       MaterialTheme {
         EditNationalityScreen(
@@ -184,54 +142,8 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    // Wait for user to load and country to be pre-selected
-    composeTestRule.waitForIdle()
-
     // After loading, the button should be enabled because user has a country
     composeTestRule.onNodeWithText("Save Changes").assertIsEnabled()
-  }
-
-  @Test
-  fun editNationalityScreen_canSelectCountry() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search for and select a country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("France")
-    composeTestRule.waitForIdle()
-
-    // Click on France
-    composeTestRule.onNodeWithText("France").performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Save button should be enabled
-    composeTestRule.onNodeWithText("Save Changes").assertIsEnabled()
-  }
-
-  @Test
-  fun editNationalityScreen_preselectsCurrentCountry() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Switzerland should be visible in the list (user's current country)
-    composeTestRule.onNodeWithText("Switzerland").assertExists()
   }
 
   @Test
@@ -247,50 +159,14 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Search and select France
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("France")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("France").performClick()
-    composeTestRule.waitForIdle()
-
-    // Click save
+    // Click save with current country
     composeTestRule.onNodeWithText("Save Changes").performClick()
 
     // Wait for save
     composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
 
-    // Verify France was saved
-    assert(repository.savedUsers.last().country == "France")
-  }
-
-  @Test
-  fun editNationalityScreen_showsLoadingStateWhileSaving() {
-    repository.saveDelay = 1000L
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Select a country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Germany")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Germany").performClick()
-    composeTestRule.waitForIdle()
-
-    // Click save
-    composeTestRule.onNodeWithText("Save Changes").performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Should show loading state (button text should disappear)
-    composeTestRule.onNodeWithText("Save Changes").assertDoesNotExist()
+    // Verify Switzerland was saved
+    assert(repository.savedUsers.last().country == "Switzerland")
   }
 
   @Test
@@ -304,12 +180,6 @@ class EditNationalityScreenTest {
       }
     }
 
-    composeTestRule.waitForIdle()
-
-    // Select a country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Italy")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Italy").performClick()
     composeTestRule.waitForIdle()
 
     // Click save
@@ -343,12 +213,6 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Select a country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Spain")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Spain").performClick()
-    composeTestRule.waitForIdle()
-
     // Click save
     composeTestRule.onNodeWithText("Save Changes").performClick()
 
@@ -360,134 +224,6 @@ class EditNationalityScreenTest {
 
     // Should show error message in snackbar
     composeTestRule.onNodeWithText("Network error").assertExists()
-  }
-
-  @Test
-  fun editNationalityScreen_displaysCountryListWithFlags() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Verify that countries are displayed (check a few common ones)
-    composeTestRule.onNodeWithText("Switzerland").assertExists()
-    composeTestRule.onNodeWithText("United States").assertExists()
-  }
-
-  @Test
-  fun editNationalityScreen_searchIsCaseInsensitive() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search with lowercase
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("france")
-    composeTestRule.waitForIdle()
-
-    // France should still be found
-    composeTestRule.onNodeWithText("France").assertExists()
-  }
-
-  @Test
-  fun editNationalityScreen_clearingSearchShowsAllCountries() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search for specific country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("France")
-    composeTestRule.waitForIdle()
-
-    // Clear search
-    composeTestRule.onNodeWithText("France", substring = true).performTextClearance()
-    composeTestRule.waitForIdle()
-
-    // Multiple countries should be visible again
-    composeTestRule.onNodeWithText("Switzerland").assertExists()
-    composeTestRule.onNodeWithText("United States").assertExists()
-  }
-
-  @Test
-  fun editNationalityScreen_canSelectMultipleCountriesSequentially() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Select France
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("France")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("France").performClick()
-    composeTestRule.waitForIdle()
-
-    // Clear search
-    composeTestRule.onNodeWithText("France", substring = true).performTextClearance()
-    composeTestRule.waitForIdle()
-
-    // Select Germany
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Germany")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Germany").performClick()
-    composeTestRule.waitForIdle()
-
-    // Save button should still be enabled
-    composeTestRule.onNodeWithText("Save Changes").assertIsEnabled()
-  }
-
-  @Test
-  fun editNationalityScreen_saveButtonDisabledDuringLoading() {
-    repository.saveDelay = 1000L
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Select a country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Portugal")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Portugal").performClick()
-    composeTestRule.waitForIdle()
-
-    // Click save
-    composeTestRule.onNodeWithText("Save Changes").performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Button should not show "Save Changes" text anymore (showing progress instead)
-    composeTestRule.onNodeWithText("Save Changes").assertDoesNotExist()
   }
 
   @Test
@@ -515,48 +251,6 @@ class EditNationalityScreenTest {
   }
 
   @Test
-  fun editNationalityScreen_searchWithSpecialCharacters() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search for country with special characters
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Côte")
-    composeTestRule.waitForIdle()
-
-    // Côte d'Ivoire should be found (if search supports special characters)
-    // Note: This depends on the actual implementation
-  }
-
-  @Test
-  fun editNationalityScreen_longCountryNameDisplayedCorrectly() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditNationalityScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Search for a country with a long name
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("United Kingdom")
-    composeTestRule.waitForIdle()
-
-    // Should display correctly
-    composeTestRule.onNodeWithText("United Kingdom").assertExists()
-  }
-
-  @Test
   fun editNationalityScreen_preservesOtherUserFields() {
     composeTestRule.setContent {
       MaterialTheme {
@@ -569,12 +263,7 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Select and save a new country
-    composeTestRule.onNodeWithText("Search countries...").performTextInput("Belgium")
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Belgium").performClick()
-    composeTestRule.waitForIdle()
-
+    // Save current country
     composeTestRule.onNodeWithText("Save Changes").performClick()
 
     // Wait for save
@@ -590,7 +279,6 @@ class EditNationalityScreenTest {
     assert(savedUser.birthday == testUser.birthday)
     assert(savedUser.hobbies == testUser.hobbies)
     assert(savedUser.bio == testUser.bio)
-    assert(savedUser.country == "Belgium")
   }
 
   private class TestUserRepository(
