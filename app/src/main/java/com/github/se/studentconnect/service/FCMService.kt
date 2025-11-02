@@ -46,7 +46,7 @@ class FCMService : FirebaseMessagingService() {
   override fun onNewToken(token: String) {
     super.onNewToken(token)
     Log.d(TAG, "New FCM token: $token")
-    // TODO: Send token to server if needed for targeted push notifications
+    // maybe if needed: Send token to server if needed for targeted push notifications
   }
 
   /**

@@ -44,7 +44,7 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
       // Filter events that are starting within the reminder window
       val upcomingEvents =
           allEvents.filter { event ->
-            event.start != null && event.start >= currentTime && event.start <= reminderWindowEnd
+            event.start >= currentTime && event.start <= reminderWindowEnd
           }
 
       Log.d(TAG, "Found ${upcomingEvents.size} events starting soon")
