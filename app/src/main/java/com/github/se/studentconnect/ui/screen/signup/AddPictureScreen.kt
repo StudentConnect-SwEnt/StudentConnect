@@ -1,6 +1,10 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 // import androidx.compose.ui.tooling.preview.Preview
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,11 +41,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.github.se.studentconnect.R
 
 // import com.github.se.studentconnect.ui.theme.AppTheme
 
-private const val DEFAULT_PLACEHOLDER = "ic_user"
+private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
 
 /**
  * Screen for adding a profile picture during the signup flow.
@@ -51,8 +56,6 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
  * provides callbacks for navigation actions.
  *
  * @param viewModel The SignUpViewModel that manages the signup flow state
- * @param onPickImage Callback function that handles image picking. Receives a result callback that
- *   should be called with the selected image URI (or null if cancelled)
  * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
  * @param onContinue Callback invoked when the user wants to proceed to the next step
  * @param onBack Callback invoked when the user wants to go back to the previous step
@@ -60,7 +63,6 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
 @Composable
 fun AddPictureScreen(
     viewModel: SignUpViewModel,
-    onPickImage: (onResult: (String?) -> Unit) -> Unit = {},
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit
@@ -70,7 +72,7 @@ fun AddPictureScreen(
 
   LaunchedEffect(signUpState.profilePictureUri) { profileUri = signUpState.profilePictureUri }
 
-  val canContinue = !profileUri.isNullOrBlank()
+  val canContinue = profileUri != null
 
   Column(
       modifier =
@@ -100,14 +102,10 @@ fun AddPictureScreen(
 
         UploadCard(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            hasSelection = !profileUri.isNullOrBlank() && profileUri != DEFAULT_PLACEHOLDER,
-            onClick = {
-              onPickImage { uri ->
-                if (!uri.isNullOrBlank()) {
-                  viewModel.setProfilePictureUri(uri)
-                  profileUri = uri
-                }
-              }
+            hasSelection = profileUri != null && profileUri != DEFAULT_PLACEHOLDER,
+            onPickImage = { uri ->
+              viewModel.setProfilePictureUri(uri)
+              profileUri = uri
             })
 
         Spacer(modifier = Modifier.weight(1f))
@@ -136,11 +134,19 @@ private fun SkipButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onClick: () -> Unit) {
+private fun UploadCard(
+    modifier: Modifier = Modifier,
+    hasSelection: Boolean,
+    onPickImage: (Uri) -> Unit
+) {
   val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
   val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(18f, 16f), 0f) }
   val borderPadding = 12.dp
   val frameSize = 260.dp
+  val pickMediaLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let(onPickImage)
+      }
 
   Box(
       modifier =
@@ -148,7 +154,11 @@ private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onC
               .size(frameSize)
               .clip(CircleShape)
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
-              .clickable(onClick = onClick)
+              .clickable(
+                  onClick = {
+                    pickMediaLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                  })
               .drawDashedCircleBorder(borderColor, dashEffect, borderPadding),
       contentAlignment = Alignment.Center) {
         Column(
