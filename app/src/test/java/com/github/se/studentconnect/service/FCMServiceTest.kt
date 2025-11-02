@@ -7,6 +7,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -181,14 +182,14 @@ class FCMServiceTest {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28], manifest = Config.NONE)
+@Config(sdk = [28])
 class FCMServiceRobolectricTest {
 
   private lateinit var fcmService: FCMService
 
   @Before
   fun setUp() {
-    fcmService = FCMService()
+    fcmService = Robolectric.setupService(FCMService::class.java)
   }
 
   @Test
