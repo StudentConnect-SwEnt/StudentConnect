@@ -1,8 +1,313 @@
 package com.github.se.studentconnect.service
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import androidx.work.ListenableWorker
+import androidx.work.testing.TestListenableWorkerBuilder
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.google.firebase.FirebaseApp
+import com.google.firebase.Timestamp
+import java.util.Date
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class EventReminderWorkerTest {
+
+  private lateinit var context: Context
+  private lateinit var eventRepository: EventRepository
+  private lateinit var notificationRepository: NotificationRepository
+  private lateinit var worker: EventReminderWorker
+
+  @Before
+  fun setUp() {
+    // Initialize Firebase first (before accessing EventRepositoryProvider)
+    context = ApplicationProvider.getApplicationContext()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+
+    // Mock repositories
+    eventRepository = mock(EventRepository::class.java)
+    notificationRepository = mock(NotificationRepository::class.java)
+
+    // Set up the repository providers
+    EventRepositoryProvider.repository = eventRepository
+    NotificationRepositoryProvider.setRepository(notificationRepository)
+
+    worker = TestListenableWorkerBuilder<EventReminderWorker>(context).build()
+  }
+
+  @Test
+  fun doWork_withUpcomingEvents_createsNotifications() = runBlocking {
+    // Create test data
+    val currentTime = Timestamp.now()
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000)) // 30 min from now
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test description",
+            start = eventStart,
+            end = Timestamp(Date(eventStart.toDate().time + 60 * 60 * 1000)),
+            isFlash = false)
+
+    val participant1 = EventParticipant(uid = "user1")
+    val participant2 = EventParticipant(uid = "user2")
+
+    // Mock repository responses
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+    whenever(eventRepository.getEventParticipants("event123"))
+        .thenReturn(listOf(participant1, participant2))
+
+    // Capture the notifications
+    val notificationCaptor = argumentCaptor<Notification.EventStarting>()
+    val successCaptor = argumentCaptor<() -> Unit>()
+    val failureCaptor = argumentCaptor<(Exception) -> Unit>()
+
+    doNothing()
+        .whenever(notificationRepository)
+        .createNotification(
+            notificationCaptor.capture(), successCaptor.capture(), failureCaptor.capture())
+
+    // Execute
+    val result = worker.doWork()
+
+    // Verify success result
+    assert(result == ListenableWorker.Result.success())
+
+    // Verify createNotification was called twice (once for each participant)
+    verify(notificationRepository, times(2))
+        .createNotification(any<Notification.EventStarting>(), any(), any())
+
+    // Verify notification details
+    val notifications = notificationCaptor.allValues
+    assert(notifications.size == 2)
+    assert(notifications[0].eventId == "event123")
+    assert(notifications[0].userId == "user1")
+    assert(notifications[0].eventTitle == "Test Event")
+    assert(notifications[1].userId == "user2")
+
+    // Trigger success callbacks
+    successCaptor.allValues.forEach { it.invoke() }
+  }
+
+  @Test
+  fun doWork_notificationCreationFailure_continuesProcessing() = runBlocking {
+    val currentTime = Timestamp.now()
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000))
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            start = eventStart,
+            isFlash = false)
+    val participant = EventParticipant(uid = "user1")
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+    whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
+
+    val failureCaptor = argumentCaptor<(Exception) -> Unit>()
+    doNothing()
+        .whenever(notificationRepository)
+        .createNotification(any<Notification.EventStarting>(), any(), failureCaptor.capture())
+
+    val result = worker.doWork()
+
+    assert(result == ListenableWorker.Result.success())
+
+    // Trigger failure callback
+    val exception = Exception("Notification already exists")
+    failureCaptor.firstValue.invoke(exception)
+
+    verify(notificationRepository, times(1))
+        .createNotification(any<Notification.EventStarting>(), any(), any())
+  }
+
+  @Test
+  fun doWork_participantException_handlesGracefully() = runBlocking {
+    val currentTime = Timestamp.now()
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000))
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            start = eventStart,
+            isFlash = false)
+    val participant = EventParticipant(uid = "user1")
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+    whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
+
+    // Throw exception when creating notification
+    doThrow(RuntimeException("Test exception"))
+        .whenever(notificationRepository)
+        .createNotification(any<Notification.EventStarting>(), any(), any())
+
+    val result = worker.doWork()
+
+    // Should still return success despite exception
+    assert(result == ListenableWorker.Result.success())
+  }
+
+  @Test
+  fun doWork_eventProcessingException_handlesGracefully() = runBlocking {
+    val currentTime = Timestamp.now()
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000))
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            start = eventStart,
+            isFlash = false)
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+    // Throw exception when getting participants
+    whenever(eventRepository.getEventParticipants("event123"))
+        .thenThrow(RuntimeException("Failed to get participants"))
+
+    val result = worker.doWork()
+
+    // Should still return success despite exception
+    assert(result == ListenableWorker.Result.success())
+  }
+
+  @Test
+  fun doWork_repositoryException_returnsRetry() = runBlocking {
+    // Throw exception when getting events
+    whenever(eventRepository.getAllVisibleEvents()).thenThrow(RuntimeException("Database error"))
+
+    val result = worker.doWork()
+
+    // Should return retry on repository failure
+    assert(result == ListenableWorker.Result.retry())
+  }
+
+  @Test
+  fun doWork_noUpcomingEvents_returnsSuccess() = runBlocking {
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(emptyList())
+
+    val result = worker.doWork()
+
+    assert(result == ListenableWorker.Result.success())
+    verify(notificationRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun doWork_eventOutsideWindow_doesNotCreateNotification() = runBlocking {
+    val currentTime = Timestamp.now()
+    // Event starting in 2 hours (outside 60-minute window)
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 120 * 60 * 1000))
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            start = eventStart,
+            isFlash = false)
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+
+    val result = worker.doWork()
+
+    assert(result == ListenableWorker.Result.success())
+    verify(notificationRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun doWork_multipleEvents_createsAllNotifications() = runBlocking {
+    val currentTime = Timestamp.now()
+    val eventStart1 = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000))
+    val eventStart2 = Timestamp(Date(currentTime.toDate().time + 45 * 60 * 1000))
+
+    val event1 =
+        Event.Private(
+            uid = "event1",
+            ownerId = "owner1",
+            title = "Event 1",
+            description = "Test",
+            start = eventStart1,
+            isFlash = false)
+    val event2 =
+        Event.Private(
+            uid = "event2",
+            ownerId = "owner1",
+            title = "Event 2",
+            description = "Test",
+            start = eventStart2,
+            isFlash = false)
+
+    val participant = EventParticipant(uid = "user1")
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event1, event2))
+    whenever(eventRepository.getEventParticipants("event1")).thenReturn(listOf(participant))
+    whenever(eventRepository.getEventParticipants("event2")).thenReturn(listOf(participant))
+
+    doNothing()
+        .whenever(notificationRepository)
+        .createNotification(any<Notification.EventStarting>(), any(), any())
+
+    val result = worker.doWork()
+
+    assert(result == ListenableWorker.Result.success())
+    verify(notificationRepository, times(2))
+        .createNotification(any<Notification.EventStarting>(), any(), any())
+  }
+
+  @Test
+  fun doWork_notificationIdFormat_isCorrect() = runBlocking {
+    val currentTime = Timestamp.now()
+    val eventStart = Timestamp(Date(currentTime.toDate().time + 30 * 60 * 1000))
+
+    val event =
+        Event.Private(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test",
+            start = eventStart,
+            isFlash = false)
+    val participant = EventParticipant(uid = "user456")
+
+    whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
+    whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
+
+    val notificationCaptor = argumentCaptor<Notification.EventStarting>()
+    doNothing()
+        .whenever(notificationRepository)
+        .createNotification(notificationCaptor.capture(), any(), any())
+
+    worker.doWork()
+
+    val notification = notificationCaptor.firstValue
+    assert(notification.id == "event_event123_user_user456")
+  }
 
   @Test
   fun reminderWindowMinutes_isPositive() {
