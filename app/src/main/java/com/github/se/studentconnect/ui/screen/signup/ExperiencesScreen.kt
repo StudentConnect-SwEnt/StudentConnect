@@ -23,13 +23,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -100,22 +98,17 @@ internal fun ExperiencesContent(
               modifier =
                   Modifier.fillMaxWidth()
                       .verticalScroll(scrollState)
-                      .padding(top = 32.dp, bottom = 120.dp)
-                      .padding(horizontal = 24.dp)
+                      .padding(top = SignUpScreenConstants.SCREEN_VERTICAL_PADDING, bottom = 120.dp)
+                      .padding(horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING)
                       .align(Alignment.TopCenter),
               horizontalAlignment = Alignment.CenterHorizontally) {
                 Column(
                     modifier =
                         Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_top_bar },
                     horizontalAlignment = Alignment.Start) {
-                      IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface)
-                      }
+                      SignUpBackButton(onClick = onBackClick)
 
-                      Spacer(modifier = Modifier.height(16.dp))
+                      SignUpMediumSpacer()
 
                       Text(
                           text = "For an experience beyond Expectations",
@@ -123,8 +116,8 @@ internal fun ExperiencesContent(
                               MaterialTheme.typography.headlineMedium.copy(
                                   fontWeight = FontWeight.Medium,
                                   fontSize = 32.sp,
-                                  color = MaterialTheme.colorScheme.onSurface),
-                          textAlign = TextAlign.Center,
+                                  color = MaterialTheme.colorScheme.primary),
+                          textAlign = TextAlign.Start,
                           modifier =
                               Modifier.fillMaxWidth().semantics {
                                 testTag = C.Tag.experiences_title
@@ -132,12 +125,8 @@ internal fun ExperiencesContent(
 
                       Spacer(modifier = Modifier.height(8.dp))
 
-                      Text(
+                      SignUpSubtitle(
                           text = "Discover what excites you",
-                          style =
-                              MaterialTheme.typography.bodyMedium.copy(
-                                  color = MaterialTheme.colorScheme.onSurface),
-                          textAlign = TextAlign.Center,
                           modifier =
                               Modifier.fillMaxWidth().semantics {
                                 testTag = C.Tag.experiences_subtitle
@@ -205,7 +194,7 @@ internal fun ExperiencesContent(
                 }
               }
 
-          PrimaryCtaButton(
+          SignUpPrimaryButton(
               text = "Start Now",
               onClick = onStartClick,
               enabled = !isSaving,
