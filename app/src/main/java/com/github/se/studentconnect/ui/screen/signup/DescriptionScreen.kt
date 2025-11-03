@@ -7,20 +7,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -32,9 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.resources.C
 
 @Composable
@@ -72,11 +66,15 @@ fun DescriptionContent(
             Modifier.fillMaxWidth().semantics { testTag = C.Tag.description_screen_container },
         horizontalAlignment = Alignment.CenterHorizontally) {
           Column(
-              modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(
+                          horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                          vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
               horizontalAlignment = Alignment.Start) {
                 DescriptionTopBar(onBackClick = onBackClick, onSkipClick = onSkipClick)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                SignUpLargeSpacer()
 
                 Column(
                     modifier =
@@ -139,52 +137,30 @@ internal fun DescriptionTopBar(
       horizontalAlignment = Alignment.Start) {
         Row(
             modifier =
-                Modifier.fillMaxWidth().padding(top = 25.dp).semantics {
+                Modifier.fillMaxWidth().padding(top = 8.dp).semantics {
                   testTag = C.Tag.description_app_bar
                 },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
-              IconButton(
+              SignUpBackButton(
                   onClick = onBackClick,
-                  modifier = Modifier.semantics { testTag = C.Tag.description_back }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface)
-                  }
+                  modifier = Modifier.semantics { testTag = C.Tag.description_back })
 
-              Surface(
+              SignUpSkipButton(
                   onClick = onSkipClick,
-                  modifier =
-                      Modifier.padding(end = 5.dp).semantics { testTag = C.Tag.description_skip },
-                  shape = RoundedCornerShape(24.dp),
-                  color = MaterialTheme.colorScheme.surfaceDim) {
-                    Text(
-                        text = "Skip",
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface)
-                  }
+                  modifier = Modifier.semantics { testTag = C.Tag.description_skip })
             }
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.Start) {
-              Text(
+              SignUpTitle(
                   text = "Tell us more about you",
-                  style =
-                      MaterialTheme.typography.headlineMedium.copy(
-                          fontWeight = FontWeight.Bold,
-                          fontSize = 28.sp,
-                          color = MaterialTheme.colorScheme.primary),
                   modifier = Modifier.semantics { testTag = C.Tag.description_title })
 
-              Text(
+              SignUpSubtitle(
                   text = "What should others know",
-                  style =
-                      MaterialTheme.typography.bodyLarge.copy(
-                          color = MaterialTheme.colorScheme.onSurfaceVariant),
                   modifier =
                       Modifier.padding(top = 4.dp).semantics {
                         testTag = C.Tag.description_subtitle
