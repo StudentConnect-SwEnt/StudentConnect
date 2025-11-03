@@ -12,7 +12,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -27,7 +29,9 @@ class HomeScreenUITest {
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var viewModel: HomePageViewModel
+  private lateinit var notificationViewModel: NotificationViewModel
 
   private val testEvent1 =
       Event.Public(
@@ -61,7 +65,9 @@ class HomeScreenUITest {
   fun setup() {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
+    notificationViewModel = NotificationViewModel(notificationRepository)
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
@@ -72,7 +78,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_isDisplayed() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -81,7 +90,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_searchBar_isDisplayed() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
@@ -90,7 +102,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_searchIcon_isDisplayed() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Search Icon").assertIsDisplayed()
@@ -99,7 +114,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_notificationButton_isDisplayed() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
@@ -108,7 +126,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_notificationButton_hasClickAction() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertHasClickAction()
@@ -117,7 +138,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_filterBar_isDisplayed() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load
@@ -135,7 +159,10 @@ class HomeScreenUITest {
   // @Test
   fun homeScreen_displaysEvents() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -153,7 +180,10 @@ class HomeScreenUITest {
   // @Test
   fun homeScreen_displaysEventLocations() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -171,7 +201,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_clickNotificationButton_doesNotCrash() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for screen to load
@@ -193,7 +226,10 @@ class HomeScreenUITest {
     val emptyViewModel = HomePageViewModel(emptyRepository, userRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = emptyViewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = emptyViewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Initially loading indicator should be displayed
@@ -204,7 +240,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_eventCard_hasClickAction() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -221,7 +260,10 @@ class HomeScreenUITest {
   // @Test
   fun homeScreen_displaysMultipleEventCards() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -240,7 +282,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_filterChips_haveClickActions() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load
@@ -259,7 +304,10 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_clickFilterChip_doesNotCrash() {
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load

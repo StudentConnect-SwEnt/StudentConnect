@@ -47,7 +47,7 @@ constructor(
   private val _favoriteEventIds = MutableStateFlow<Set<String>>(emptySet())
   val favoriteEventIds: StateFlow<Set<String>> = _favoriteEventIds.asStateFlow()
 
-  private val currentUserId: String = AuthenticationProvider.currentUser
+  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
 
   private var currentFilters: FilterData =
       FilterData(
@@ -79,7 +79,7 @@ constructor(
   }
 
   private fun loadFavoriteEvents() {
-    currentUserId.let { uid ->
+    currentUserId?.let { uid ->
       viewModelScope.launch {
         try {
           val favorites = userRepository.getFavoriteEvents(uid)
@@ -98,7 +98,7 @@ constructor(
   }
 
   fun toggleFavorite(eventId: String) {
-    currentUserId.let { uid ->
+    currentUserId?.let { uid ->
       viewModelScope.launch {
         var didAdd = false
         _favoriteEventIds.update { current ->

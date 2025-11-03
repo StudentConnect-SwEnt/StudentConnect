@@ -8,7 +8,10 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.utils.FilterData
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -150,10 +153,16 @@ class HomeScreenFilteringTest {
   @Test
   fun homeScreen_filterBar_isDisplayed() = runTest {
     val repository = setupRepository(emptyList())
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitForIdle()
@@ -251,10 +260,16 @@ class HomeScreenFilteringTest {
     val events = listOf(createTestEvent("1", "Music Event", listOf("Music")))
 
     val repository = setupRepository(events)
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -279,10 +294,16 @@ class HomeScreenFilteringTest {
   @Test
   fun homeScreen_loading_displaysProgressIndicator() = runTest {
     val repository = setupRepository(emptyList())
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNode(hasTestTag("HomePage")).assertIsDisplayed()
@@ -291,10 +312,16 @@ class HomeScreenFilteringTest {
   @Test
   fun homeScreen_topBar_hasSearchField() = runTest {
     val repository = setupRepository(emptyList())
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -309,10 +336,16 @@ class HomeScreenFilteringTest {
     val events = listOf(createTestEvent("fav1", "Favorite Event", listOf("Sports")))
 
     val repository = setupRepository(events)
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -329,10 +362,16 @@ class HomeScreenFilteringTest {
     val events = listOf(createTestEvent("1", "Clickable Event", listOf("Sports")))
 
     val repository = setupRepository(events)
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
@@ -381,15 +420,20 @@ class HomeScreenFilteringTest {
   }
      */
 
-  @Test
   fun homeScreen_delayedLoading_displaysEventsAfterDelay() = runTest {
     val events = listOf(createTestEvent("1", "Delayed Event", listOf("Sports")))
 
     val repository = setupDelayedRepository(events, 2000)
-    val viewModel = HomePageViewModel(repository)
+    val userRepository = UserRepositoryLocal()
+    val notificationRepository = NotificationRepositoryLocal()
+    val viewModel = HomePageViewModel(repository, userRepository)
+    val notificationViewModel = NotificationViewModel(notificationRepository)
 
     composeTestRule.setContent {
-      HomeScreen(navController = rememberNavController(), viewModel = viewModel)
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithText("Delayed Event").assertDoesNotExist()

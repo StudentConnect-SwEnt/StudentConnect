@@ -5,8 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +38,7 @@ constructor(
 
   /** Starts listening to real-time notification updates */
   private fun startListeningToNotifications() {
-    val userId = Firebase.auth.currentUser?.uid ?: return
+    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
 
     _uiState.update { it.copy(isLoading = true) }
 
@@ -73,7 +72,7 @@ constructor(
 
   /** Marks all notifications as read */
   fun markAllAsRead() {
-    val userId = Firebase.auth.currentUser?.uid ?: return
+    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
 
     viewModelScope.launch {
       repository.markAllAsRead(
@@ -107,7 +106,7 @@ constructor(
 
   /** Refreshes notifications manually */
   fun refresh() {
-    val userId = Firebase.auth.currentUser?.uid ?: return
+    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
 
     _uiState.update { it.copy(isLoading = true) }
 
