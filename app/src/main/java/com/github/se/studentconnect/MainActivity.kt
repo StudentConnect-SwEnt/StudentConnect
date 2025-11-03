@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
@@ -181,7 +182,12 @@ private fun MainAppContent(
                 restoreState = true
               }
             },
-        )
+            onCreatePublicEvent = {
+              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+            },
+            onCreatePrivateEvent = {
+              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+            })
       }) { paddingValues ->
         // Use real repository from provider
         val userRepository = UserRepositoryProvider.repository
@@ -200,6 +206,7 @@ private fun MainAppContent(
                 shouldOpenQRScanner = shouldOpenQRScanner,
                 onQRScannerClosed = { onQRScannerStateChange(false) })
           }
+          composable(Route.MAP) { MapScreen() }
           composable(
               Route.MAP_WITH_LOCATION,
               arguments =
@@ -264,6 +271,17 @@ private fun MainAppContent(
                     userId = userId,
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
+              }
+          composable(
+              route = "eventView/{eventUid}/{hasJoined}",
+              arguments =
+                  listOf(
+                      navArgument("eventUid") { type = NavType.StringType },
+                      navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
+                requireNotNull(eventUid) { "Event UID is required." }
+                EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
               }
           composable(Route.CREATE_PRIVATE_EVENT) {
             CreatePrivateEventScreen(navController = navController)
