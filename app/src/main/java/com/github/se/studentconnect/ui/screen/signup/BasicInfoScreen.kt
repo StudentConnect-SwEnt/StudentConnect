@@ -1,7 +1,5 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-// import androidx.compose.ui.tooling.preview.Preview
-// import com.github.se.studentconnect.ui.theme.AppTheme
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -18,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -28,7 +24,6 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -49,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
@@ -112,31 +106,21 @@ fun BasicInfoScreen(
   LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
-        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
+        SignUpBackButton(onClick = onBack)
 
-        Spacer(Modifier.height(16.dp))
+        SignUpMediumSpacer()
 
-        Text(
-            text = "Who are you ?",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Let others know who you are !",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant))
+        SignUpTitle(text = "Who are you ?")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Let others know who you are !")
 
-        Spacer(Modifier.height(24.dp))
+        SignUpLargeSpacer()
 
         AvatarBanner(
             avatarResIds = listOf(R.drawable.avatar_12, R.drawable.avatar_13, R.drawable.avatar_23))
@@ -210,7 +194,7 @@ fun BasicInfoScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
@@ -302,10 +286,3 @@ fun PrimaryActionButton(
             }
       }
 }
-
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Preview(showBackground = true)
-// @Composable
-// private fun BasicInfoScreenPreview() {
-//  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
-// }
