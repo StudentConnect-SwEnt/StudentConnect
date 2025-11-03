@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.notification.Notification
-import com.github.se.studentconnect.ui.screens.NotificationItem
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import org.junit.Rule
