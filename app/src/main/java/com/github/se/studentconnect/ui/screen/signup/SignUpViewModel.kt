@@ -60,7 +60,9 @@ class SignUpViewModel : ViewModel() {
     it.copy(nationality = nationality.trim().uppercase(Locale.US))
   }
 
-  fun setProfilePictureUri(uri: Uri?) = update { it.copy(profilePictureUri = uri) }
+  fun setProfilePictureUri(uri: Uri?) = update {
+    it.copy(profilePictureUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
+  }
 
   fun setBio(bio: String?) = update { it.copy(bio = bio?.ifBlank { null }) }
 

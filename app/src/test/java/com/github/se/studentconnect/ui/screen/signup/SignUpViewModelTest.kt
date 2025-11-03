@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import java.util.Date
 import org.junit.Assert.*
@@ -46,7 +47,7 @@ class SignUpViewModelTest {
     val lastName = "Lovelace"
     val birthdate = Timestamp(Date(42L))
     val nationality = "ch"
-    val profileUri = "content://avatar"
+    val profileUri = "content://avatar".toUri()
     val bio = "Hello world"
 
     // Act
@@ -70,10 +71,10 @@ class SignUpViewModelTest {
   @Test
   fun `setProfilePictureUri blanks reset the field`() {
     // Arrange
-    viewModel.setProfilePictureUri("content://photo")
+    viewModel.setProfilePictureUri("content://photo".toUri())
 
     // Act
-    viewModel.setProfilePictureUri("   ")
+    viewModel.setProfilePictureUri("   ".toUri())
 
     // Assert
     assertNull(viewModel.state.value.profilePictureUri)
