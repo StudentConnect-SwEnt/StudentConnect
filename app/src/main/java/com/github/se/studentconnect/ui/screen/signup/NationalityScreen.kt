@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -89,19 +87,21 @@ fun NationalityScreen(
   LaunchedEffect(signUpState.nationality) { selectedCode = signUpState.nationality }
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
-        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
+        SignUpBackButton(onClick = onBack)
 
-        MediumSpacer()
+        SignUpMediumSpacer()
 
-        TitleText("Where are you from ?")
-        SmallSpacer()
-        SubtitleText("Helps us connect you with other students and events")
+        SignUpTitle(text = "Where are you from ?")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Helps us connect you with other students and events")
 
-        LargeSpacer()
+        SignUpLargeSpacer()
 
         OutlinedTextField(
             value = query,
@@ -122,9 +122,9 @@ fun NationalityScreen(
               viewModel.setNationality(country.code)
             })
 
-        LargeSpacer()
+        SignUpLargeSpacer()
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
