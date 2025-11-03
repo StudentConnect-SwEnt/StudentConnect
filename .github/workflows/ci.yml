@@ -96,6 +96,11 @@ jobs:
             echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
           fi
 
+      - name: Lint
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew lint --parallel --build-cache
+
       # Generate debug keystore for signing release APK
       # This ensures consistent SHA-1 fingerprints across all builds
       - name: Generate debug keystore
@@ -111,20 +116,14 @@ jobs:
       # Assemble Release APK
       - name: Assemble APK
         run: |
-          ./gradlew assembleRelease --parallel --build-cache
+          ./gradlew assembleNormalRelease --parallel --build-cache
 
       # Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/*.apk
-
-      # This step runs gradle commands to build the application
-      - name: Assemble Debug APK
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew assembleDebug lint --parallel --build-cache
+          path: app/build/outputs/apk/normal/release/*.apk
 
       # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
@@ -153,7 +152,7 @@ jobs:
       - name: Run unit tests
         run: |
           # To run the CI with debug information, add --info
-          ./gradlew check --parallel --build-cache
+          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
 
       # Run connected tests on the emulator
       - name: Run connected tests
@@ -165,7 +164,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedCheck --parallel --build-cache
+          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache
 
       # This step generates the coverage report which will be uploaded to sonar
       - name: Generate Coverage Report
