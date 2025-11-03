@@ -14,7 +14,7 @@ sonar {
         property("sonar.organization", "studentconnect-swent")
         property("sonar.host.url", "https://sonarcloud.io")
         // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
-        property("sonar.junit.reportPaths", "${project(":app").layout.buildDirectory.get()}/test-results/testDebugUnitTest/")
+        property("sonar.junit.reportPaths", "${project(":app").layout.buildDirectory.get()}/test-results/testResOverrideDebugUnitTest/")
         // Paths to xml files with Android Lint issues. If the main flavor is changed, this file will have to be changed too.
         property("sonar.androidLint.reportPaths", "${project(":app").layout.buildDirectory.get()}/reports/lint-results-debug.xml")
         // Paths to JaCoCo XML coverage report files.
