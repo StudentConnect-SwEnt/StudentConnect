@@ -199,10 +199,10 @@ internal fun ExperiencesContent(
               text = "Start Now",
               onClick = onStartClick,
               enabled = !isSaving,
-              modifier = Modifier
-                  .align(Alignment.BottomCenter)
-                  .padding(bottom = 32.dp)
-                  .testTag(C.Tag.experiences_cta))
+              modifier =
+                  Modifier.align(Alignment.BottomCenter)
+                      .padding(bottom = 32.dp)
+                      .testTag(C.Tag.experiences_cta))
         }
   }
 }
