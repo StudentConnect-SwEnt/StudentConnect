@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
+import com.github.se.studentconnect.ui.components.Country
+import com.github.se.studentconnect.ui.components.loadCountries
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull

@@ -8,6 +8,8 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import kotlinx.coroutines.delay
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +82,7 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.onNodeWithContentDescription("Back").performClick()
-    assert(navigatedBack)
+    assertTrue("Navigation back should be called", navigatedBack)
   }
 
   @Test
@@ -166,7 +168,7 @@ class EditNationalityScreenTest {
     composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
 
     // Verify Switzerland was saved
-    assert(repository.savedUsers.last().country == "Switzerland")
+    assertEquals("Switzerland", repository.savedUsers.last().country)
   }
 
   @Test
@@ -271,14 +273,14 @@ class EditNationalityScreenTest {
 
     val savedUser = repository.savedUsers.last()
     // Verify other fields are preserved
-    assert(savedUser.userId == testUser.userId)
-    assert(savedUser.firstName == testUser.firstName)
-    assert(savedUser.lastName == testUser.lastName)
-    assert(savedUser.email == testUser.email)
-    assert(savedUser.university == testUser.university)
-    assert(savedUser.birthday == testUser.birthday)
-    assert(savedUser.hobbies == testUser.hobbies)
-    assert(savedUser.bio == testUser.bio)
+    assertEquals(testUser.userId, savedUser.userId)
+    assertEquals(testUser.firstName, savedUser.firstName)
+    assertEquals(testUser.lastName, savedUser.lastName)
+    assertEquals(testUser.email, savedUser.email)
+    assertEquals(testUser.university, savedUser.university)
+    assertEquals(testUser.birthday, savedUser.birthday)
+    assertEquals(testUser.hobbies, savedUser.hobbies)
+    assertEquals(testUser.bio, savedUser.bio)
   }
 
   private class TestUserRepository(
