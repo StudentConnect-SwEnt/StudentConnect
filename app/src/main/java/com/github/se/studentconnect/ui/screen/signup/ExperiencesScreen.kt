@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.resources.Variables
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -91,51 +92,39 @@ internal fun ExperiencesContent(
   val topics = experienceTopics[selectedFilter] ?: emptyList()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-    Box(
+    Column(
         modifier =
-            Modifier.fillMaxSize().semantics { testTag = C.Tag.experiences_screen_container },
-        contentAlignment = Alignment.Center) {
+            Modifier.fillMaxSize()
+                .padding(
+                    horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                    vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING)
+                .semantics { testTag = C.Tag.experiences_screen_container },
+        horizontalAlignment = Alignment.Start) {
+          SignUpBackButton(onClick = onBackClick)
+
+          SignUpMediumSpacer()
+
+          Text(
+              text = "For an experience beyond Expectations",
+              style =
+                  MaterialTheme.typography.headlineMedium.copy(
+                      fontWeight = FontWeight.Medium,
+                      fontSize = 32.sp,
+                      color = MaterialTheme.colorScheme.primary),
+              textAlign = TextAlign.Start,
+              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_title })
+
+          Spacer(modifier = Modifier.height(8.dp))
+
+          SignUpSubtitle(
+              text = "Discover what excites you",
+              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_subtitle })
+
+          Spacer(modifier = Modifier.height(24.dp))
+
           Column(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .verticalScroll(scrollState)
-                      .padding(top = SignUpScreenConstants.SCREEN_VERTICAL_PADDING, bottom = 120.dp)
-                      .padding(horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING)
-                      .align(Alignment.TopCenter),
+              modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState),
               horizontalAlignment = Alignment.CenterHorizontally) {
-                Column(
-                    modifier =
-                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_top_bar },
-                    horizontalAlignment = Alignment.Start) {
-                      SignUpBackButton(onClick = onBackClick)
-
-                      SignUpMediumSpacer()
-
-                      Text(
-                          text = "For an experience beyond Expectations",
-                          style =
-                              MaterialTheme.typography.headlineMedium.copy(
-                                  fontWeight = FontWeight.Medium,
-                                  fontSize = 32.sp,
-                                  color = MaterialTheme.colorScheme.primary),
-                          textAlign = TextAlign.Start,
-                          modifier =
-                              Modifier.fillMaxWidth().semantics {
-                                testTag = C.Tag.experiences_title
-                              })
-
-                      Spacer(modifier = Modifier.height(8.dp))
-
-                      SignUpSubtitle(
-                          text = "Discover what excites you",
-                          modifier =
-                              Modifier.fillMaxWidth().semantics {
-                                testTag = C.Tag.experiences_subtitle
-                              })
-                    }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
                 LazyRow(
                     modifier =
                         Modifier.fillMaxWidth().semantics {
@@ -156,9 +145,9 @@ internal fun ExperiencesContent(
 
                 Box(
                     modifier =
-                        Modifier.fillMaxWidth()
-                            .semantics { testTag = C.Tag.experiences_topic_grid }
-                            .align(Alignment.CenterHorizontally)) {
+                        Modifier.fillMaxWidth().semantics {
+                          testTag = C.Tag.experiences_topic_grid
+                        }) {
                       val columns = 3
                       val spacing = 16.dp
                       FlowRow(
@@ -195,14 +184,15 @@ internal fun ExperiencesContent(
                 }
               }
 
+          Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
+
           SignUpPrimaryButton(
               text = "Start Now",
+              iconRes = R.drawable.ic_arrow_forward,
               onClick = onStartClick,
               enabled = !isSaving,
               modifier =
-                  Modifier.align(Alignment.BottomCenter)
-                      .padding(bottom = 32.dp)
-                      .testTag(C.Tag.experiences_cta))
+                  Modifier.align(Alignment.CenterHorizontally).testTag(C.Tag.experiences_cta))
         }
   }
 }
