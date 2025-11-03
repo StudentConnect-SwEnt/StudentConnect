@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis (if we use Sonar Later)
 
-          # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
+      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -39,16 +39,22 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      # Caching is a very useful part of a CI, as a workflow is executed in a clean environment every time,
-      # this means that one would need to re-download and re-process gradle files for every run. Which is very time consuming.
-      #
-      # To avoid that, we cache the the gradle folder to reuse it later.
+      # Cache the gradle folder
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          chmod +x ./gradlew
+
+      # Check formatting
+      - name: KTFmt Check
+        run: |
+          ./gradlew ktfmtCheck
 
       # Cache the Emulator, if the cache does not hit, create the emulator
       - name: AVD cache
@@ -72,16 +78,6 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      # Install NodeJS
-      - name: Setup NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      # Install Firebase CLI
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
       # Load google-services.json and local.properties from the secrets
       - name: Decode secrets
         env:
@@ -100,10 +96,6 @@ jobs:
             echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
           fi
 
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
-
       # Generate debug keystore for signing release APK
       # This ensures consistent SHA-1 fingerprints across all builds
       - name: Generate debug keystore
@@ -116,18 +108,7 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-      # Check formatting
-      - name: KTFmt Check
-        run: |
-          ./gradlew ktfmtCheck
-
-      # This step runs gradle commands to build the application
-      - name: Assemble
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew assembleDebug lint --parallel --build-cache
-
-      # Assemble APK
+      # Assemble Release APK
       - name: Assemble APK
         run: |
           ./gradlew assembleRelease --parallel --build-cache
@@ -138,6 +119,22 @@ jobs:
         with:
           name: app-release
           path: app/build/outputs/apk/release/*.apk
+
+      # This step runs gradle commands to build the application
+      - name: Assemble Debug APK
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew assembleDebug lint --parallel --build-cache
+
+      # Install NodeJS (for Firebase CLI)
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Install Firebase CLI
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
       # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
