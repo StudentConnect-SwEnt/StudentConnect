@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -198,7 +199,10 @@ internal fun ExperiencesContent(
               text = "Start Now",
               onClick = onStartClick,
               enabled = !isSaving,
-              modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp))
+              modifier = Modifier
+                  .align(Alignment.BottomCenter)
+                  .padding(bottom = 32.dp)
+                  .testTag(C.Tag.experiences_cta))
         }
   }
 }
