@@ -51,3 +51,23 @@ object EventMarkerConfig {
   const val PROP_TITLE = "title"
   const val PROP_UID = "uid"
 }
+
+/** Configuration constants for friend markers */
+object FriendMarkerConfig {
+  const val ICON_ID = "friend_marker_icon"
+  const val SOURCE_ID = "friend_source"
+  const val LAYER_ID = "friend_layer"
+
+  const val COLOR = "#3B82F6" // Blue color for friends
+  const val ICON_SIZE = 1.5
+
+  // GeoJSON property keys
+  const val PROP_USER_ID = "userId"
+  const val PROP_TIMESTAMP = "timestamp"
+}
+
+/** Configuration constants for location sharing */
+object LocationSharingConfig {
+  /** Interval in milliseconds to update user's location for friends */
+  const val UPDATE_INTERVAL_MS = 10000L // 10 seconds
+}

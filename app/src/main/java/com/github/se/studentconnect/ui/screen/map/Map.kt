@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.repository.LocationRepositoryImpl
 import com.github.se.studentconnect.repository.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
@@ -131,6 +132,21 @@ fun MapScreen(
     }
   }
 
+  // Share location periodically when in friends view with permission
+  LaunchedEffect(uiState.hasLocationPermission, uiState.isEventsView) {
+    if (uiState.hasLocationPermission && !uiState.isEventsView) {
+      while (true) {
+        actualViewModel.shareCurrentLocation()
+        kotlinx.coroutines.delay(LocationSharingConfig.UPDATE_INTERVAL_MS)
+      }
+    }
+  }
+
+  // Stop sharing location when leaving the screen
+  androidx.compose.runtime.DisposableEffect(Unit) {
+    onDispose { actualViewModel.stopSharingLocation() }
+  }
+
   Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
     Column(modifier = Modifier.fillMaxSize()) {
       TopAppBar(
@@ -155,6 +171,7 @@ fun MapScreen(
           hasLocationPermission = uiState.hasLocationPermission,
           isEventsView = uiState.isEventsView,
           events = uiState.events,
+          friendLocations = uiState.friendLocations,
           onToggleView = { actualViewModel.onEvent(MapViewEvent.ToggleView) },
           onLocateUser = { actualViewModel.onEvent(MapViewEvent.LocateUser) },
           modifier =
@@ -210,11 +227,12 @@ private fun SearchBar(
 }
 
 /**
- * Container for the Mapbox map with event markers and action buttons.
+ * Container for the Mapbox map with event markers, friend markers, and action buttons.
  *
  * Handles:
  * - Map rendering with Mapbox SDK
  * - Event marker display with clustering
+ * - Friend location marker display (real-time)
  * - User location puck
  * - Dynamic layer management based on view state
  *
@@ -222,6 +240,7 @@ private fun SearchBar(
  * @param hasLocationPermission Whether location permission is granted
  * @param isEventsView Whether currently in events view (vs friends view)
  * @param events List of events to display as markers
+ * @param friendLocations Map of friend locations to display as markers
  * @param onToggleView Callback to toggle between views
  * @param onLocateUser Callback to center map on user location
  * @param modifier Modifier to be applied to the container
@@ -232,6 +251,7 @@ private fun MapContainer(
     hasLocationPermission: Boolean,
     isEventsView: Boolean,
     events: List<Event>,
+    friendLocations: Map<String, FriendLocation>,
     onToggleView: () -> Unit,
     onLocateUser: () -> Unit,
     modifier: Modifier = Modifier
@@ -240,6 +260,7 @@ private fun MapContainer(
   // Track previous state to avoid unnecessary updates
   val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
   val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
+  val previousFriendLocations = remember { mutableStateOf<Map<String, FriendLocation>?>(null) }
 
   Box(modifier = modifier.clip(RoundedCornerShape(Corner.MAP_RADIUS))) {
     if (BuildConfig.USE_MOCK_MAP || isInAndroidTest()) {
@@ -294,6 +315,44 @@ private fun MapContainer(
                         "MapContainer",
                         "Not showing markers - isEventsView: $isEventsView, events.isEmpty(): ${events.isEmpty()}")
                   }
+                }
+              }
+            }
+
+            // Add friend markers - only in friends view
+            // Initialize layers once when entering friends view, then only update data
+            MapEffect(!isEventsView, friendLocations) { mapView ->
+              val viewChanged = previousEventsView.value != isEventsView
+              val locationsChanged = previousFriendLocations.value != friendLocations
+
+              android.util.Log.d(
+                  "MapContainer",
+                  "Friend map effect - viewChanged: $viewChanged, locationsChanged: $locationsChanged, friends: ${friendLocations.size}")
+              previousFriendLocations.value = friendLocations
+
+              mapView.mapboxMap.getStyle { style ->
+                if (!isEventsView) {
+                  // We're in friends view
+                  if (viewChanged) {
+                    // Just switched to friends view - initialize layers once
+                    android.util.Log.d("MapContainer", "Initializing friend marker layers")
+                    FriendMarkers.removeExistingFriendLayers(style)
+                    FriendMarkers.addFriendMarkerIcon(context, style)
+                    val features = FriendMarkers.createFriendFeatures(friendLocations)
+                    FriendMarkers.addFriendSource(style, features)
+                    FriendMarkers.addFriendMarkerLayer(style)
+                  } else if (locationsChanged) {
+                    // Still in friends view, just update the data (no layer recreation)
+                    android.util.Log.d(
+                        "MapContainer",
+                        "Updating friend locations (${friendLocations.size} friends)")
+                    val features = FriendMarkers.createFriendFeatures(friendLocations)
+                    FriendMarkers.updateFriendSource(style, features)
+                  }
+                } else if (viewChanged) {
+                  // Just switched to events view - clean up friend layers
+                  android.util.Log.d("MapContainer", "Removing friend marker layers")
+                  FriendMarkers.removeExistingFriendLayers(style)
                 }
               }
             }
