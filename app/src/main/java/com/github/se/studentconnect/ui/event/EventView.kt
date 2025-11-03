@@ -404,106 +404,100 @@ private fun QrScannerDialog(
                 modifier = Modifier.fillMaxSize(),
                 isActive = validationResult == null)
 
-            // Validation result overlay
             validationResult?.let { result ->
-              Box(
-                  modifier =
-                      Modifier.fillMaxSize()
-                          .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
-                  contentAlignment = Alignment.Center) {
-                    Card(
-                        modifier = Modifier.padding(32.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    when (result) {
-                                      is TicketValidationResult.Valid ->
-                                          MaterialTheme.colorScheme.primaryContainer
-                                      is TicketValidationResult.Invalid ->
-                                          MaterialTheme.colorScheme.errorContainer
-                                    })) {
-                          Column(
-                              modifier =
-                                  Modifier.padding(24.dp)
-                                      .testTag(
-                                          when (result) {
-                                            is TicketValidationResult.Valid ->
-                                                EventViewTestTags.VALIDATION_RESULT_VALID
-                                            is TicketValidationResult.Invalid ->
-                                                EventViewTestTags.VALIDATION_RESULT_INVALID
-                                          }),
-                              horizontalAlignment = Alignment.CenterHorizontally,
-                              verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                Icon(
-                                    painter =
-                                        painterResource(
-                                            id =
-                                                when (result) {
-                                                  is TicketValidationResult.Valid ->
-                                                      R.drawable.ic_add
-                                                  is TicketValidationResult.Invalid ->
-                                                      R.drawable.ic_arrow_right
-                                                }),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
-                                    tint =
-                                        when (result) {
-                                          is TicketValidationResult.Valid ->
-                                              MaterialTheme.colorScheme.onPrimaryContainer
-                                          is TicketValidationResult.Invalid ->
-                                              MaterialTheme.colorScheme.onErrorContainer
-                                        })
-
-                                Text(
-                                    text =
-                                        when (result) {
-                                          is TicketValidationResult.Valid -> "Valid Ticket"
-                                          is TicketValidationResult.Invalid -> "Invalid Ticket"
-                                        },
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    color =
-                                        when (result) {
-                                          is TicketValidationResult.Valid ->
-                                              MaterialTheme.colorScheme.onPrimaryContainer
-                                          is TicketValidationResult.Invalid ->
-                                              MaterialTheme.colorScheme.onErrorContainer
-                                        })
-
-                                Text(
-                                    text =
-                                        when (result) {
-                                          is TicketValidationResult.Valid ->
-                                              "Participant ID: ${result.participantId}"
-                                          is TicketValidationResult.Invalid ->
-                                              "User ${result.userId} is not registered for this event"
-                                        },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color =
-                                        when (result) {
-                                          is TicketValidationResult.Valid ->
-                                              MaterialTheme.colorScheme.onPrimaryContainer
-                                          is TicketValidationResult.Invalid ->
-                                              MaterialTheme.colorScheme.onErrorContainer
-                                        })
-
-                                Button(
-                                    onClick = { eventViewModel.clearValidationResult() },
-                                    modifier = Modifier.fillMaxWidth()) {
-                                      Text("Scan Next")
-                                    }
-
-                                OutlinedButton(
-                                    onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                                      Text("Close Scanner")
-                                    }
-                              }
-                        }
-                  }
+              ValidationResultOverlay(
+                  result = result,
+                  onScanNext = { eventViewModel.clearValidationResult() },
+                  onClose = onDismiss)
             }
           }
         }
   }
 }
+
+@Composable
+private fun ValidationResultOverlay(
+    result: TicketValidationResult,
+    onScanNext: () -> Unit,
+    onClose: () -> Unit
+) {
+  val isValid = result is TicketValidationResult.Valid
+
+  Box(
+      modifier =
+          Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+      contentAlignment = Alignment.Center) {
+        Card(
+            modifier = Modifier.padding(32.dp),
+            colors =
+                CardDefaults.cardColors(containerColor = getValidationContainerColor(isValid))) {
+              Column(
+                  modifier = Modifier.padding(24.dp).testTag(getValidationTestTag(result)),
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ValidationIcon(isValid = isValid)
+                    ValidationTitle(isValid = isValid)
+                    ValidationMessage(result = result, isValid = isValid)
+
+                    Button(onClick = onScanNext, modifier = Modifier.fillMaxWidth()) {
+                      Text("Scan Next")
+                    }
+
+                    OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                      Text("Close Scanner")
+                    }
+                  }
+            }
+      }
+}
+
+@Composable
+private fun ValidationIcon(isValid: Boolean) {
+  Icon(
+      painter = painterResource(id = if (isValid) R.drawable.ic_add else R.drawable.ic_arrow_right),
+      contentDescription = null,
+      modifier = Modifier.size(64.dp),
+      tint = getValidationContentColor(isValid))
+}
+
+@Composable
+private fun ValidationTitle(isValid: Boolean) {
+  Text(
+      text = if (isValid) "Valid Ticket" else "Invalid Ticket",
+      style = MaterialTheme.typography.headlineMedium,
+      color = getValidationContentColor(isValid))
+}
+
+@Composable
+private fun ValidationMessage(result: TicketValidationResult, isValid: Boolean) {
+  val message =
+      when (result) {
+        is TicketValidationResult.Valid -> "Participant ID: ${result.participantId}"
+        is TicketValidationResult.Invalid ->
+            "User ${result.userId} is not registered for this event"
+      }
+
+  Text(
+      text = message,
+      style = MaterialTheme.typography.bodyMedium,
+      color = getValidationContentColor(isValid))
+}
+
+@Composable
+private fun getValidationContainerColor(isValid: Boolean) =
+    if (isValid) MaterialTheme.colorScheme.primaryContainer
+    else MaterialTheme.colorScheme.errorContainer
+
+@Composable
+private fun getValidationContentColor(isValid: Boolean) =
+    if (isValid) MaterialTheme.colorScheme.onPrimaryContainer
+    else MaterialTheme.colorScheme.onErrorContainer
+
+private fun getValidationTestTag(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> EventViewTestTags.VALIDATION_RESULT_VALID
+      is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
+    }
 
 @Preview(showBackground = true)
 @Composable
