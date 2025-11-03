@@ -70,6 +70,17 @@ android {
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
     }
+    flavorDimensions += "env"
+    productFlavors {
+        create("normal") {
+            dimension = "env"
+        }
+        create("resOverride") {
+            dimension = "env"
+            // Ensure we reuse dependencies and fallbacks from the normal flavor
+            matchingFallbacks += listOf("normal")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
