@@ -28,8 +28,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.service.EventReminderWorker
+import com.github.se.studentconnect.service.NotificationChannelManager
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
@@ -48,6 +55,8 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
 /**
@@ -62,6 +71,22 @@ object HttpClientProvider {
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    // Initialize notification channels
+    NotificationChannelManager.createNotificationChannels(this)
+
+    // Initialize notification repository
+    NotificationRepositoryProvider.setRepository(
+        NotificationRepositoryFirestore(FirebaseFirestore.getInstance()))
+
+    // Schedule periodic event reminder worker (runs every 15 minutes)
+    val eventReminderRequest =
+        PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
+
+    WorkManager.getInstance(this)
+        .enqueueUniquePeriodicWork(
+            "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
+
     setContent {
       AppTheme {
         // A surface container using the 'background' color from the theme
