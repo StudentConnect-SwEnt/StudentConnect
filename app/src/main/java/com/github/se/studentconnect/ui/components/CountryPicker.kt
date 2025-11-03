@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.util.Locale
 
-// Constants
+//Constants
 private val RowHorizontalPadding = 16.dp
 private val RowVerticalPadding = 12.dp
 private val CountryRowHorizontalPadding = 12.dp
