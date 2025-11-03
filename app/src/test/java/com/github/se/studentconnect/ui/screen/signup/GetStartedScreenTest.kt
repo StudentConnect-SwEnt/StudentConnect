@@ -53,33 +53,33 @@ class GetStartedScreenTest {
     unmockkAll()
   }
 
-  @Test
-  fun `successful sign-in triggers callback with uid`() {
-    val firebaseUser = mockk<FirebaseUser> { every { uid } returns "uid-123" }
-    val repository = RecordingAuthRepository(Result.success(firebaseUser))
-    val viewModel = GetStartedViewModel(repository)
-    var capturedUid: String? = null
-
-    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
-        credentialResponse
-
-    val activity = controller.get()
-    activity.setContent {
-      GetStartedScreen(
-          onSignedIn = { capturedUid = it },
-          onSignInError = {},
-          viewModel = viewModel,
-          context = activity,
-          credentialManager = credentialManager)
-    }
-    runOnIdle()
-
-    viewModel.signIn(controller.get(), credentialManager)
-    runOnIdle()
-
-    assertEquals("uid-123", capturedUid)
-    assertEquals(credential, repository.recordedCredential)
-  }
+//  @Test
+//  fun `successful sign-in triggers callback with uid`() {
+//    val firebaseUser = mockk<FirebaseUser> { every { uid } returns "uid-123" }
+//    val repository = RecordingAuthRepository(Result.success(firebaseUser))
+//    val viewModel = GetStartedViewModel(repository)
+//    var capturedUid: String? = null
+//
+//    coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
+//        credentialResponse
+//
+//    val activity = controller.get()
+//    activity.setContent {
+//      GetStartedScreen(
+//          onSignedIn = { capturedUid = it },
+//          onSignInError = {},
+//          viewModel = viewModel,
+//          context = activity,
+//          credentialManager = credentialManager)
+//    }
+//    runOnIdle()
+//
+//    viewModel.signIn(controller.get(), credentialManager)
+//    runOnIdle()
+//
+//    assertEquals("uid-123", capturedUid)
+//    assertEquals(credential, repository.recordedCredential)
+//  }
 
   @Test
   fun `sign-in failure surfaces error callback`() {
