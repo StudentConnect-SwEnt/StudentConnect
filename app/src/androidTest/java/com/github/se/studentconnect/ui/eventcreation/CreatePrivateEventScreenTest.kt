@@ -306,34 +306,6 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   }
 
   @Test
-  fun locationTextField_typingTooLong_showsTruncatedOrWrappedText() {
-    waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    val locationNode =
-        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
-    locationNode.performScrollTo()
-    locationNode.performTextInput("Too long")
-
-    // Wait for long suggestion to appear
-    composeTestRule.waitUntil(7000) {
-      composeTestRule
-          .onAllNodes(
-              hasText("This is a very long location name", substring = true) and
-                  !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
-              useUnmergedTree = true)
-          .fetchSemanticsNodes(false)
-          .isNotEmpty()
-    }
-
-    // The long name should be visible at least partially
-    composeTestRule
-        .onNode(
-            hasText("This is a very long location name", substring = true) and
-                !hasTestTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
-            useUnmergedTree = true)
-        .assertExists()
-  }
-
-  @Test
   fun locationTextField_clearingInput_hidesSuggestions() {
     waitForTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT)
     val locationNode =

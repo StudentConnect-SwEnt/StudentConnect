@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.events.EventCard
@@ -23,30 +24,40 @@ class ListOfEventsTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+
   private fun createTestEvent(
       uid: String = "event1",
+      ownerId: String = "owner1",
       title: String = "Test Event",
       description: String = "Test Description",
       locationName: String = "Test Location"
   ): Event.Public {
     return Event.Public(
         uid = uid,
+        ownerId = ownerId,
         title = title,
-        subtitle = "Test Subtitle",
         description = description,
+        imageUrl = null,
+        location = Location(latitude = 0.0, longitude = 0.0, name = locationName),
         start = Timestamp.now(),
         end = Timestamp.now(),
-        location = Location(latitude = 0.0, longitude = 0.0, name = locationName),
-        website = "https://test.com",
-        ownerId = "owner1",
+        maxCapacity = null,
+        participationFee = null,
         isFlash = false,
-        tags = listOf("tag1", "tag2", "tag3"))
+        subtitle = "Test Subtitle",
+        tags = listOf("tag1", "tag2", "tag3"),
+        website = null)
   }
 
   @Test
   fun eventCard_displaysEventTitle() {
     val event = createTestEvent(title = "Music Festival")
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("Music Festival").assertIsDisplayed()
   }
@@ -54,7 +65,9 @@ class ListOfEventsTest {
   @Test
   fun eventCard_displaysEventLocation() {
     val event = createTestEvent(locationName = "EPFL Campus")
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("EPFL Campus").assertIsDisplayed()
   }
@@ -62,9 +75,10 @@ class ListOfEventsTest {
   @Test
   fun eventCard_displaysEventTags() {
     val event = createTestEvent()
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
-    // Should display first 3 tags in uppercase
     composeTestRule.onNodeWithText("TAG1").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG2").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG3").assertIsDisplayed()
@@ -73,7 +87,9 @@ class ListOfEventsTest {
   @Test
   fun eventCard_hasClickAction() {
     val event = createTestEvent()
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("Test Event").assertHasClickAction()
   }
@@ -81,7 +97,9 @@ class ListOfEventsTest {
   @Test
   fun eventCard_favoriteButtonIsDisplayed() {
     val event = createTestEvent()
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithContentDescription("Favorite").assertIsDisplayed()
   }
@@ -89,18 +107,21 @@ class ListOfEventsTest {
   @Test
   fun eventCard_favoriteButtonIsClickable() {
     val event = createTestEvent()
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     val favoriteButton = composeTestRule.onNodeWithContentDescription("Favorite")
     favoriteButton.assertHasClickAction()
     favoriteButton.performClick()
-    // After click, the state should toggle (icon changes)
   }
 
   @Test
   fun eventCard_displaysParticipationFee() {
     val event = createTestEvent().copy(participationFee = 25u)
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("25 €", substring = true).assertIsDisplayed()
   }
@@ -108,7 +129,9 @@ class ListOfEventsTest {
   @Test
   fun eventCard_displaysImage() {
     val event = createTestEvent()
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithContentDescription("Test Event").assertIsDisplayed()
   }
@@ -117,10 +140,14 @@ class ListOfEventsTest {
   fun eventListScreen_emptyList_displaysNothing() {
     composeTestRule.setContent {
       val navController = rememberNavController()
-      EventListScreen(navController = navController, events = emptyList(), hasJoined = false)
+      EventListScreen(
+          navController = navController,
+          events = emptyList(),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
     }
 
-    // With empty list, no events should be displayed
     composeTestRule.onNodeWithText("Test Event").assertDoesNotExist()
   }
 
@@ -129,13 +156,17 @@ class ListOfEventsTest {
     val event = createTestEvent(title = "Summer Party")
     composeTestRule.setContent {
       val navController = rememberNavController()
-      EventListScreen(navController = navController, events = listOf(event), hasJoined = false)
+      EventListScreen(
+          navController = navController,
+          events = listOf(event),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
     }
 
     composeTestRule.onNodeWithText("Summer Party").assertIsDisplayed()
   }
 
-  // @Test
   fun eventListScreen_multipleEvents_areDisplayed() {
     val event1 = createTestEvent(uid = "event1", title = "Event One")
     val event2 = createTestEvent(uid = "event2", title = "Event Two")
@@ -144,7 +175,11 @@ class ListOfEventsTest {
     composeTestRule.setContent {
       val navController = rememberNavController()
       EventListScreen(
-          navController = navController, events = listOf(event1, event2, event3), hasJoined = false)
+          navController = navController,
+          events = listOf(event1, event2, event3),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
     }
 
     composeTestRule.onNodeWithText("Event One").assertIsDisplayed()
@@ -168,10 +203,11 @@ class ListOfEventsTest {
       EventListScreen(
           navController = navController,
           events = listOf(eventToday, eventTomorrow),
-          hasJoined = false)
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
     }
 
-    // Date headers should be displayed
     composeTestRule.onNodeWithText("TODAY").assertIsDisplayed()
     composeTestRule.onNodeWithText("TOMORROW").assertIsDisplayed()
   }
@@ -181,7 +217,10 @@ class ListOfEventsTest {
     val event = createTestEvent(title = "Clickable Event")
     var clickCount = 0
 
-    composeTestRule.setContent { EventCard(event = event, onClick = { clickCount++ }) }
+    composeTestRule.setContent {
+      EventCard(
+          event = event, isFavorite = false, onFavoriteToggle = {}, onClick = { clickCount++ })
+    }
 
     composeTestRule.onNodeWithText("Clickable Event").performClick()
     assert(clickCount == 1)
@@ -190,9 +229,11 @@ class ListOfEventsTest {
   @Test
   fun eventCard_withNoLocation_displaysNoLocation() {
     val event = createTestEvent().copy(location = null)
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
-    composeTestRule.onNodeWithText("No location").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Location not specified").assertIsDisplayed()
   }
 
   @Test
@@ -200,7 +241,9 @@ class ListOfEventsTest {
     val today = Calendar.getInstance()
     val event = createTestEvent().copy(start = Timestamp(today.time))
 
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("Today", substring = true).assertIsDisplayed()
   }
@@ -208,7 +251,9 @@ class ListOfEventsTest {
   @Test
   fun eventCard_withNoTags_doesNotDisplayTags() {
     val event = createTestEvent().copy(tags = emptyList())
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("TAG1").assertDoesNotExist()
     composeTestRule.onNodeWithText("TAG2").assertDoesNotExist()
@@ -218,11 +263,48 @@ class ListOfEventsTest {
   fun eventCard_withMoreThanThreeTags_displaysOnlyThree() {
     val event =
         createTestEvent().copy(tags = listOf("tag1", "tag2", "tag3", "tag4", "tag5", "tag6"))
-    composeTestRule.setContent { EventCard(event = event, onClick = {}) }
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
 
     composeTestRule.onNodeWithText("TAG1").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG2").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG3").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG4").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventListScreen_emptyList_displaysEmptyMessage() {
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = emptyList(),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
+    }
+
+    composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsZero() {
+    val event = createTestEvent().copy(participationFee = 0u)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsNull() {
+    val event = createTestEvent().copy(participationFee = null)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
   }
 }

@@ -13,8 +13,6 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screens.HomeScreen
-import com.github.se.studentconnect.viewmodel.HomePageViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -133,7 +131,7 @@ class HomeScreenUITest {
     }
 
     composeTestRule.onNodeWithText("Paris").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Filtres").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Filters").assertIsDisplayed()
   }
 
   // @Test
@@ -256,7 +254,7 @@ class HomeScreenUITest {
     }
 
     composeTestRule.onNodeWithText("Paris").assertHasClickAction()
-    composeTestRule.onNodeWithText("Filtres").assertHasClickAction()
+    composeTestRule.onNodeWithText("Filters").assertHasClickAction()
     composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
   }
 

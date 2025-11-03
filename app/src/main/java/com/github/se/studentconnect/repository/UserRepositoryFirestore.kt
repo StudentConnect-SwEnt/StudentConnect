@@ -20,6 +20,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val COLLECTION_NAME = "users"
     private const val JOINED_EVENT = "joinedEvents"
     private const val INVITATIONS = "invitations"
+    private const val FAVORITE_EVENTS = "favoriteEvents"
   }
 
   override suspend fun getUserById(userId: String): User? {
@@ -199,5 +200,29 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         .document(eventId)
         .set(invitationData)
         .await()
+  }
+
+  override suspend fun addFavoriteEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FAVORITE_EVENTS)
+        .document(eventId)
+        .set(mapOf("eventId" to eventId, "addedAt" to FieldValue.serverTimestamp()))
+        .await()
+  }
+
+  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FAVORITE_EVENTS)
+        .document(eventId)
+        .delete()
+        .await()
+  }
+
+  override suspend fun getFavoriteEvents(userId: String): List<String> {
+    val document =
+        db.collection(COLLECTION_NAME).document(userId).collection(FAVORITE_EVENTS).get().await()
+    return document.documents.map { it.getString("eventId")!! }
   }
 }

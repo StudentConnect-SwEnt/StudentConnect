@@ -1,6 +1,7 @@
 package com.github.se.studentconnect
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
@@ -21,28 +22,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.github.se.studentconnect.repository.AuthenticationProvider
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.service.EventReminderWorker
+import com.github.se.studentconnect.service.NotificationChannelManager
 import com.github.se.studentconnect.ui.activities.EventView
+import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
+import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
+import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
+import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
-import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
-import com.github.se.studentconnect.ui.screen.profile.VisitorProfileRoute
+import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
-import com.github.se.studentconnect.ui.screens.HomeScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
 /**
@@ -57,6 +71,22 @@ object HttpClientProvider {
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    // Initialize notification channels
+    NotificationChannelManager.createNotificationChannels(this)
+
+    // Initialize notification repository
+    NotificationRepositoryProvider.setRepository(
+        NotificationRepositoryFirestore(FirebaseFirestore.getInstance()))
+
+    // Schedule periodic event reminder worker (runs every 15 minutes)
+    val eventReminderRequest =
+        PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
+
+    WorkManager.getInstance(this)
+        .enqueueUniquePeriodicWork(
+            "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
+
     setContent {
       AppTheme {
         // A surface container using the 'background' color from the theme
@@ -135,13 +165,13 @@ fun MainContent() {
     }
     AppState.ONBOARDING -> {
       if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
-        android.util.Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
+        Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
         SignUpOrchestrator(
             firebaseUserId = uiState.currentUserId!!,
             email = uiState.currentUserEmail!!,
             userRepository = userRepository,
             onSignUpComplete = { user ->
-              android.util.Log.d("MainActivity", "Onboarding complete: ${user.userId}")
+              Log.d("MainActivity", "Onboarding complete: ${user.userId}")
               viewModel.onUserProfileCreated()
             })
       }
@@ -159,7 +189,7 @@ fun MainContent() {
 
 @Composable
 private fun MainAppContent(
-    navController: androidx.navigation.NavHostController,
+    navController: NavHostController,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
     shouldOpenQRScanner: Boolean,
@@ -184,6 +214,10 @@ private fun MainAppContent(
               navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
             })
       }) { paddingValues ->
+        // Use real repository from provider
+        val userRepository = UserRepositoryProvider.repository
+        val currentUserId = Firebase.auth.currentUser?.uid ?: ""
+
         NavHost(
             navController = navController,
             startDestination = Route.HOME,
@@ -211,22 +245,57 @@ private fun MainAppContent(
                 MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
+
+          // Profile Settings Screen (Main Profile View)
           composable(Route.PROFILE) {
-            ProfileScreen(currentUserId = AuthenticationProvider.currentUser)
+            ProfileSettingsScreen(
+                currentUserId = currentUserId,
+                userRepository = userRepository,
+                onNavigateToEditPicture = { userId ->
+                  navController.navigate(ProfileRoutes.editPicture(userId))
+                },
+                onNavigateToEditName = { userId ->
+                  navController.navigate(ProfileRoutes.editName(userId))
+                },
+                onNavigateToEditBio = { userId ->
+                  navController.navigate(ProfileRoutes.editBio(userId))
+                },
+                onNavigateToEditActivities = { userId ->
+                  navController.navigate(ProfileRoutes.editActivities(userId))
+                },
+                onNavigateToEditBirthday = { userId ->
+                  navController.navigate(ProfileRoutes.editBirthday(userId))
+                },
+                onNavigateToEditNationality = { userId ->
+                  navController.navigate(ProfileRoutes.editNationality(userId))
+                },
+                onNavigateBack = {
+                  // No back navigation needed since this is the main profile view
+                })
           }
+
+          // Edit Profile Picture Screen
           composable(
-              Route.VISITOR_PROFILE,
-              arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
+              route = ProfileRoutes.EDIT_PICTURE,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
-                val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG)
-                requireNotNull(userId) { "User ID is required." }
-                VisitorProfileRoute(
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditProfilePictureScreen(
                     userId = userId,
-                    onBackClick = { navController.popBackStack() },
-                    onScanAgain = {
-                      onQRScannerStateChange(true)
-                      navController.popBackStack()
-                    })
+                    onNavigateBack = { navController.popBackStack() },
+                    userRepository = userRepository)
+              }
+
+          // Edit Name Screen
+          composable(
+              route = ProfileRoutes.EDIT_NAME,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditNameScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
               }
           composable(
               route = "eventView/{eventUid}/{hasJoined}",
@@ -238,6 +307,28 @@ private fun MainAppContent(
                 val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+              }
+          composable(Route.CREATE_PRIVATE_EVENT) {
+            CreatePrivateEventScreen(navController = navController)
+          }
+          composable(Route.CREATE_PUBLIC_EVENT) {
+            CreatePublicEventScreen(navController = navController)
+          }
+          composable(
+              Route.EDIT_PRIVATE_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a private event." }
+                CreatePrivateEventScreen(navController = navController, existingEventId = eventUid)
+              }
+          composable(
+              Route.EDIT_PUBLIC_EVENT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required to edit a public event." }
+                CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
               }
         }
       }
