@@ -393,8 +393,12 @@ private fun QrScannerDialog(
 ) {
   Dialog(onDismissRequest = onDismiss) {
     Surface(
-        modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.QR_SCANNER_DIALOG),
-        color = MaterialTheme.colorScheme.surface) {
+        modifier =
+            Modifier.fillMaxWidth()
+                .fillMaxHeight(0.7f)
+                .testTag(EventViewTestTags.QR_SCANNER_DIALOG),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)) {
           Box(modifier = Modifier.fillMaxSize()) {
             QrScannerScreen(
                 onBackClick = onDismiss,
