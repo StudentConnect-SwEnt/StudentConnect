@@ -2,6 +2,7 @@ package com.github.se.studentconnect.viewmodel
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
@@ -342,14 +343,16 @@ class EventViewModelTest {
   @Test
   fun validateParticipant_withException_returnsError() = runTest {
     // Arrange - create a mock repository that throws an exception
-    val mockEventRepository =
-        object : EventRepositoryLocal() {
+    val mockEventRepository = EventRepositoryLocal()
+    mockEventRepository.addEvent(testEvent)
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
           override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
             throw RuntimeException("Network error")
           }
         }
-    val mockViewModel = EventViewModel(mockEventRepository, userRepository)
-    eventRepository.addEvent(testEvent)
+    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
 
     val userId = "user123"
 
@@ -401,14 +404,16 @@ class EventViewModelTest {
   @Test
   fun ticketValidationResult_errorType_hasCorrectMessage() = runTest {
     // Arrange - create a mock repository that throws an exception
-    val mockEventRepository =
-        object : EventRepositoryLocal() {
+    val mockEventRepository = EventRepositoryLocal()
+    mockEventRepository.addEvent(testEvent)
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
           override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
             throw RuntimeException("Connection timeout")
           }
         }
-    val mockViewModel = EventViewModel(mockEventRepository, userRepository)
-    eventRepository.addEvent(testEvent)
+    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
 
     val userId = "user123"
 
