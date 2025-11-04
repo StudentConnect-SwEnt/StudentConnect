@@ -27,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -523,9 +522,3 @@ private fun getValidationTestTag(result: TicketValidationResult) =
       is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
       is TicketValidationResult.Error -> EventViewTestTags.VALIDATION_RESULT_ERROR
     }
-
-@Preview(showBackground = true)
-@Composable
-fun EventViewPreview() {
-  MaterialTheme { EventView(eventUid = "event-killer-concert-01", hasJoined = false) }
-}
