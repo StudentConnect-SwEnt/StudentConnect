@@ -62,7 +62,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -484,44 +483,5 @@ private suspend fun scrollToDate(
     // Handle any unexpected errors gracefully
     // In production, you might want to log this error
     listState.animateScrollToItem(0)
-  }
-}
-
-@Preview(showBackground = true, widthDp = 400)
-@Composable
-fun NotificationItemsPreview() {
-  MaterialTheme {
-    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      // Friend Request Notification
-      NotificationItem(
-          notification =
-              Notification.FriendRequest(
-                  id = "1",
-                  userId = "user123",
-                  fromUserId = "friend456",
-                  fromUserName = "John Smith",
-                  timestamp = Timestamp.now(),
-                  isRead = false),
-          onRead = {},
-          onDelete = {},
-          onAccept = {},
-          onReject = {},
-          onClick = {})
-
-      // Event Starting Notification
-      NotificationItem(
-          notification =
-              Notification.EventStarting(
-                  id = "2",
-                  userId = "user123",
-                  eventId = "event789",
-                  eventTitle = "Study Group Session",
-                  eventStart = Timestamp.now(),
-                  timestamp = Timestamp.now(),
-                  isRead = true),
-          onRead = {},
-          onDelete = {},
-          onClick = {})
-    }
   }
 }
