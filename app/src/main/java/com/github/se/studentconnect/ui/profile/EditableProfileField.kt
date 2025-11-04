@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -179,12 +181,14 @@ fun EditableProfileField(
                       }
                       else -> {
                         // Edit button
-                        IconButton(onClick = onEditClick) {
-                          Icon(
-                              imageVector = Icons.Default.Edit,
-                              contentDescription = "Edit $label",
-                              tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        IconButton(
+                            onClick = onEditClick,
+                            modifier = Modifier.semantics { contentDescription = "Edit $label" }) {
+                              Icon(
+                                  imageVector = Icons.Default.Edit,
+                                  contentDescription = "Edit $label",
+                                  tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                       }
                     }
                   }
