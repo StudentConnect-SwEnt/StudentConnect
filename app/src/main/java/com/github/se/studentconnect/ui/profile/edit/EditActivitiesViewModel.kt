@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,74 +15,8 @@ class EditActivitiesViewModel(
     private val userId: String
 ) : ViewModel() {
 
-  // Available activities (placeholder - can be fetched from API later)
-  private val availableActivities =
-      listOf(
-              // Sports
-              "Football",
-              "Basketball",
-              "Tennis",
-              "Swimming",
-              "Hiking",
-              "Running",
-              "Cycling",
-              "Skiing",
-              "Snowboarding",
-              "Volleyball",
-              "Yoga",
-              "Gym",
-
-              // Arts
-              "Painting",
-              "Photography",
-              "Music",
-              "Theater",
-              "Dance",
-              "Drawing",
-              "Sculpture",
-              "Film Making",
-              "Writing",
-
-              // Technology
-              "Coding",
-              "Gaming",
-              "Robotics",
-              "AI/ML",
-              "Web Development",
-              "App Development",
-              "Data Science",
-              "Cybersecurity",
-
-              // Social
-              "Volunteering",
-              "Debate",
-              "Networking",
-              "Travel",
-              "Languages",
-              "Public Speaking",
-              "Event Planning",
-
-              // Academic
-              "Reading",
-              "Research",
-              "Mathematics",
-              "Physics",
-              "Chemistry",
-              "Biology",
-              "History",
-              "Philosophy",
-
-              // Other
-              "Cooking",
-              "Gardening",
-              "Fashion",
-              "Baking",
-              "Crafts",
-              "Board Games",
-              "Chess",
-              "Meditation",
-              "Podcasting")
-          .sorted()
+  // Available activities from central source
+  private val availableActivities = Activities.allActivities
 
   // Search query
   private val _searchQuery = MutableStateFlow("")

@@ -6,11 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
-import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import com.github.se.studentconnect.ui.utils.FilterData
 import java.util.Calendar
 import java.util.Date
@@ -198,7 +198,7 @@ constructor(
     return earthRadiusKm * c
   }
 
-  fun getAvailableFilters(): List<String> = filterOptions
+  fun getAvailableFilters(): List<String> = Activities.filterOptions
 
   fun refresh() {
     loadAllEvents()

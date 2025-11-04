@@ -26,7 +26,7 @@ import com.github.se.studentconnect.ui.screen.signup.ExperiencesContent
 import com.github.se.studentconnect.ui.screen.signup.ExperiencesScreen
 import com.github.se.studentconnect.ui.screen.signup.PrimaryCtaButton
 import com.github.se.studentconnect.ui.screen.signup.TopicChip
-import com.github.se.studentconnect.ui.screen.signup.filterOptions
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -45,7 +45,7 @@ class ExperiencesScreenTest {
 
     composeRule.setContent {
       AppTheme {
-        var selectedFilter by remember { mutableStateOf(filterOptions.first()) }
+        var selectedFilter by remember { mutableStateOf(Activities.filterOptions.first()) }
         var selectedTopics by remember { mutableStateOf(setOf<String>()) }
         ExperiencesScreen(
             selectedFilter = selectedFilter,
@@ -94,7 +94,7 @@ class ExperiencesScreenTest {
   fun topBarDisplaysSubtitleAndFilterList() {
     composeRule.setContent {
       AppTheme {
-        var selectedFilter by remember { mutableStateOf(filterOptions.first()) }
+        var selectedFilter by remember { mutableStateOf(Activities.filterOptions.first()) }
         ExperiencesScreen(
             selectedFilter = selectedFilter,
             selectedTopics = emptySet(),
@@ -127,7 +127,7 @@ class ExperiencesScreenTest {
   fun selectingDifferentFilterUpdatesTopics() {
     composeRule.setContent {
       AppTheme {
-        var selectedFilter by remember { mutableStateOf(filterOptions.first()) }
+        var selectedFilter by remember { mutableStateOf(Activities.filterOptions.first()) }
         ExperiencesScreen(
             selectedFilter = selectedFilter,
             selectedTopics = emptySet(),
@@ -266,7 +266,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         ExperiencesScreen(
-            selectedFilter = filterOptions.first(),
+            selectedFilter = Activities.filterOptions.first(),
             selectedTopics = selectedTopics.value,
             onFilterSelected = {},
             onTopicToggle = { topic ->
@@ -298,7 +298,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         ExperiencesScreen(
-            selectedFilter = filterOptions.first(),
+            selectedFilter = Activities.filterOptions.first(),
             selectedTopics = selectedTopics.value,
             onFilterSelected = {},
             onTopicToggle = { topic ->
@@ -329,7 +329,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         ExperiencesScreen(
-            selectedFilter = filterOptions.first(),
+            selectedFilter = Activities.filterOptions.first(),
             selectedTopics = emptySet(),
             onFilterSelected = {},
             onTopicToggle = {},
@@ -347,7 +347,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         ExperiencesScreen(
-            selectedFilter = filterOptions.first(),
+            selectedFilter = Activities.filterOptions.first(),
             selectedTopics = emptySet(),
             onFilterSelected = {},
             onTopicToggle = {},
@@ -365,7 +365,7 @@ class ExperiencesScreenTest {
     composeRule.setContent {
       AppTheme {
         ExperiencesScreen(
-            selectedFilter = filterOptions.first(),
+            selectedFilter = Activities.filterOptions.first(),
             selectedTopics = emptySet(),
             onFilterSelected = {},
             onTopicToggle = {},

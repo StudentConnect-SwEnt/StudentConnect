@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -82,7 +83,7 @@ fun EditActivitiesScreen(
           OutlinedTextField(
               value = searchQuery,
               onValueChange = { viewModel.updateSearchQuery(it) },
-              modifier = Modifier.fillMaxWidth().padding(16.dp),
+              modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("searchField"),
               placeholder = { Text("Search activities...") },
               leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
               singleLine = true,
@@ -100,20 +101,21 @@ fun EditActivitiesScreen(
           val isLoading = uiState is EditActivitiesViewModel.UiState.Loading
 
           LazyColumn(
-              modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+              modifier = Modifier.weight(1f).padding(horizontal = 16.dp).testTag("activitiesList"),
               verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filteredActivities) { activity ->
                   ActivityItem(
                       activity = activity,
                       isSelected = selectedActivities.contains(activity),
                       onToggle = { viewModel.toggleActivity(activity) },
-                      enabled = !isLoading)
+                      enabled = !isLoading,
+                      modifier = Modifier.testTag("activityItem_$activity"))
                 }
               }
 
           Button(
               onClick = { viewModel.saveActivities() },
-              modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+              modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp).testTag("saveButton"),
               enabled = !isLoading && selectedActivities.isNotEmpty()) {
                 if (isLoading) {
                   CircularProgressIndicator(
