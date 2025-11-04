@@ -49,6 +49,7 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
@@ -297,6 +298,19 @@ private fun MainAppContent(
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
               }
+
+          // Edit Nationality Screen
+          composable(
+              route = ProfileRoutes.EDIT_NATIONALITY,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditNationalityScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
+              }
+
           composable(
               route = "eventView/{eventUid}/{hasJoined}",
               arguments =
