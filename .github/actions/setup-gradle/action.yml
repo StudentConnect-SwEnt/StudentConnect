@@ -10,6 +10,20 @@ runs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Setup Android SDK
+      shell: bash
+      run: |
+        # Set ANDROID_HOME if not already set (for GitHub Actions runners)
+        if [ -z "$ANDROID_HOME" ]; then
+          if [ -d "$ANDROID_SDK_ROOT" ]; then
+            echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          elif [ -d "/usr/local/lib/android/sdk" ]; then
+            echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          elif [ -d "$HOME/Library/Android/sdk" ]; then
+            echo "ANDROID_HOME=$HOME/Library/Android/sdk" >> $GITHUB_ENV
+          fi
+        fi
+
     - name: Cache Gradle packages
       uses: actions/cache@v4
       with:
