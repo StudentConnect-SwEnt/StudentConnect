@@ -5,7 +5,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -23,7 +21,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -39,12 +36,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
@@ -240,49 +235,7 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
         Image(
             painter = painterResource(id = avatarResId),
             contentDescription = "Avatar",
-            modifier = Modifier.fillMaxSize().clip(CircleShape),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop)
-      }
-}
-
-/** Branded primary call-to-action that centers text and optionally shows a trailing icon. */
-@Composable
-fun PrimaryActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    @DrawableRes iconRes: Int? = null
-) {
-  Button(
-      onClick = onClick,
-      enabled = enabled,
-      modifier = modifier.height(56.dp),
-      shape = RoundedCornerShape(40.dp),
-      contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.primary,
-              contentColor = MaterialTheme.colorScheme.onPrimary,
-              disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-              disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)),
-      elevation =
-          ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center) {
-              Text(
-                  text = text,
-                  style =
-                      MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-              if (iconRes != null) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary)
-              }
-            }
       }
 }
