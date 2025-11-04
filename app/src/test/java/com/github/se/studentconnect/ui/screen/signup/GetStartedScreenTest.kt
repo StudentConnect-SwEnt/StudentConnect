@@ -15,6 +15,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import net.bytebuddy.matcher.ElementMatchers.returns
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before

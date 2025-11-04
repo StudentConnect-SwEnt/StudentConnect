@@ -23,11 +23,8 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.screen.signup.ContinueButton
 import com.github.se.studentconnect.ui.screen.signup.DescriptionContent
-import com.github.se.studentconnect.ui.screen.signup.DescriptionPrompt
 import com.github.se.studentconnect.ui.screen.signup.DescriptionScreen
-import com.github.se.studentconnect.ui.screen.signup.DescriptionTopBar
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -150,7 +147,7 @@ class DescriptionScreenTest {
   }
 
   @Test
-  fun descriptionTopBarDisplaysNavigationElements() {
+  fun descriptionScreenDisplaysNavigationElements() {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
@@ -229,24 +226,6 @@ class DescriptionScreenTest {
   }
 
   @Test
-  fun descriptionTopBarInvokesBackAndSkipCallbacks() {
-    var back = 0
-    var skip = 0
-
-    composeRule.setContent {
-      AppTheme { DescriptionTopBar(onBackClick = { back++ }, onSkipClick = { skip++ }) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_back).performClick()
-    composeRule.onNodeWithTag(C.Tag.description_skip).performClick()
-
-    composeRule.runOnIdle {
-      Assert.assertEquals(1, back)
-      Assert.assertEquals(1, skip)
-    }
-  }
-
-  @Test
   fun descriptionContentInvokesAllCallbacks() {
     var back = 0
     var skip = 0
@@ -272,46 +251,6 @@ class DescriptionScreenTest {
       Assert.assertEquals(1, skip)
       Assert.assertEquals(1, forward)
     }
-  }
-
-  @Test
-  fun descriptionPromptDisplaysPrefilledValue() {
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "Prefilled", onDescriptionChange = {}) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Prefilled")
-    composeRule.onNodeWithText("What should other students know about you?").assertDoesNotExist()
-  }
-
-  @Test
-  fun descriptionPromptPropagatesChangeCallback() {
-    val captured = mutableListOf<String>()
-
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { captured += it }) }
-    }
-
-    val newValue = "Collaborates across campuses"
-    composeRule.onNodeWithTag(C.Tag.description_input).performTextReplacement(newValue)
-
-    composeRule.runOnIdle { Assert.assertTrue(captured.contains(newValue)) }
-  }
-
-  @Test
-  fun continueButtonInvokesCallback() {
-    var invoked = false
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = { invoked = true }) } }
-
-    composeRule.onNodeWithText("Continue").performClick()
-    composeRule.runOnIdle { Assert.assertTrue(invoked) }
-  }
-
-  @Test
-  fun continueButtonDisplaysArrowIconForAccessibility() {
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
-
-    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
   }
 
   @Test
@@ -382,27 +321,6 @@ class DescriptionScreenTest {
   }
 
   @Test
-  fun descriptionTopBar_displaysCorrectTexts() {
-    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_title).assertTextEquals("Tell us more about you")
-    composeRule
-        .onNodeWithTag(C.Tag.description_subtitle)
-        .assertTextEquals("What should others know")
-    composeRule.onNodeWithText("Skip").assertIsDisplayed()
-  }
-
-  @Test
-  fun descriptionPrompt_nonEmptyDescriptionHidesPlaceholder() {
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "Test content", onDescriptionChange = {}) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Test content")
-    composeRule.onNodeWithText("What should other students know about you?").assertDoesNotExist()
-  }
-
-  @Test
   fun descriptionScreen_textClearingRestoresPlaceholder() {
     composeRule.setContent {
       AppTheme {
@@ -415,19 +333,6 @@ class DescriptionScreenTest {
     composeRule.onNodeWithTag(C.Tag.description_input).performTextClearance()
     composeRule.onNodeWithText("What should other students know about you?").assertIsDisplayed()
   }
-
-  //  @Test
-  //  fun descriptionPrompt_handlesSpecialCharacters() {
-  //    var capturedText = ""
-  //    composeRule.setContent {
-  //      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { capturedText = it
-  // }) }
-  //    }
-  //
-  //    val specialText = "Special chars: @#$%^&*()_+-=[]{}|;:,.<>?"
-  //    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput(specialText)
-  //    composeRule.runOnIdle { Assert.assertEquals(specialText, capturedText) }
-  //  }
 
   @Test
   fun descriptionScreen_multipleTextUpdates() {
@@ -456,21 +361,6 @@ class DescriptionScreenTest {
   }
 
   @Test
-  fun descriptionTopBar_backIconHasCorrectContentDescription() {
-    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
-
-    composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
-  }
-
-  @Test
-  fun continueButton_displaysCorrectIconAndText() {
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
-
-    composeRule.onNodeWithText("Continue").assertIsDisplayed()
-    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
-  }
-
-  @Test
   fun descriptionContent_allComponentsVisible() {
     composeRule.setContent {
       AppTheme {
@@ -489,18 +379,6 @@ class DescriptionScreenTest {
     composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.description_input).assertIsDisplayed()
   }
-
-  @Test
-  fun descriptionPrompt_behaviorWithComplexModifier() {
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "Complex test", onDescriptionChange = {}) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
-    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Complex test")
-  }
-
-  // === COMPREHENSIVE MODIFIER BRANCH COVERAGE TESTS ===
 
   @Test
   fun descriptionScreen_withCustomModifier() {
@@ -635,94 +513,6 @@ class DescriptionScreenTest {
   }
 
   @Test
-  fun descriptionTopBar_columnModifierLayout() {
-    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_app_bar).assertIsDisplayed()
-    composeRule.onNodeWithTag(C.Tag.description_back).assertIsDisplayed()
-    composeRule.onNodeWithTag(C.Tag.description_skip).assertIsDisplayed()
-  }
-
-  @Test
-  fun descriptionTopBar_iconButtonModifiers() {
-    var backClicked = false
-    var skipClicked = false
-
-    composeRule.setContent {
-      AppTheme {
-        DescriptionTopBar(
-            onBackClick = { backClicked = true }, onSkipClick = { skipClicked = true })
-      }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_back).performClick()
-    composeRule.onNodeWithTag(C.Tag.description_skip).performClick()
-
-    composeRule.runOnIdle {
-      Assert.assertTrue(backClicked)
-      Assert.assertTrue(skipClicked)
-    }
-  }
-
-  @Test
-  fun descriptionTopBar_surfaceModifierForSkipButton() {
-    composeRule.setContent { AppTheme { DescriptionTopBar(onBackClick = {}, onSkipClick = {}) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_skip).assertIsDisplayed()
-    composeRule.onNodeWithText("Skip").assertIsDisplayed()
-  }
-
-  @Test
-  fun continueButton_boxModifierBehavior() {
-    var clicked = false
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = { clicked = true }) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
-    composeRule.onNodeWithTag(C.Tag.description_continue).performClick()
-
-    composeRule.runOnIdle { Assert.assertTrue(clicked) }
-  }
-
-  @Test
-  fun continueButton_buttonModifierWithSemantics() {
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
-    composeRule.onNodeWithText("Continue").assertIsDisplayed()
-    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
-  }
-
-  @Test
-  fun continueButton_rowModifierWithArrangement() {
-    composeRule.setContent { AppTheme { ContinueButton(onContinueClick = {}) } }
-
-    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
-    composeRule.onNodeWithText("Continue").assertIsDisplayed()
-    composeRule.onNodeWithContentDescription("Continue").assertIsDisplayed()
-  }
-
-  @Test
-  fun descriptionPrompt_columnModifierWithSemantics() {
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "Column modifier test", onDescriptionChange = {}) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_prompt_container).assertIsDisplayed()
-    composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Column modifier test")
-  }
-
-  @Test
-  fun descriptionPrompt_outlinedTextFieldModifier() {
-    var textChanged = false
-    composeRule.setContent {
-      AppTheme { DescriptionPrompt(description = "", onDescriptionChange = { textChanged = true }) }
-    }
-
-    composeRule.onNodeWithTag(C.Tag.description_input).performTextInput("Test input")
-    composeRule.runOnIdle { Assert.assertTrue(textChanged) }
-  }
-
-  @Test
   fun descriptionScreen_allModifierCombinations() {
     composeRule.setContent {
       AppTheme {
@@ -790,5 +580,30 @@ class DescriptionScreenTest {
 
     composeRule.onNodeWithTag(C.Tag.description_screen_container).assertIsDisplayed()
     composeRule.onNodeWithTag(C.Tag.description_input).assertTextEquals("Default behavior")
+  }
+
+  @Test
+  fun descriptionScreen_backIconHasCorrectContentDescription() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(description = text, onDescriptionChange = { text = it })
+      }
+    }
+
+    composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
+  }
+
+  @Test
+  fun descriptionScreen_continueButtonDisplaysCorrectly() {
+    composeRule.setContent {
+      AppTheme {
+        var text by remember { mutableStateOf("") }
+        DescriptionScreen(description = text, onDescriptionChange = { text = it })
+      }
+    }
+
+    composeRule.onNodeWithTag(C.Tag.description_continue).assertIsDisplayed()
+    composeRule.onNodeWithText("Continue").assertIsDisplayed()
   }
 }
