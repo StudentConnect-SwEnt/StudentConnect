@@ -100,25 +100,31 @@ internal fun ExperiencesContent(
                     vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING)
                 .semantics { testTag = C.Tag.experiences_screen_container },
         horizontalAlignment = Alignment.Start) {
-          SignUpBackButton(onClick = onBackClick)
+          Column(
+              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_top_bar },
+              horizontalAlignment = Alignment.Start) {
+                SignUpBackButton(onClick = onBackClick)
 
-          SignUpMediumSpacer()
+                SignUpMediumSpacer()
 
-          Text(
-              text = "For an experience beyond Expectations",
-              style =
-                  MaterialTheme.typography.headlineMedium.copy(
-                      fontWeight = FontWeight.Medium,
-                      fontSize = 32.sp,
-                      color = MaterialTheme.colorScheme.primary),
-              textAlign = TextAlign.Start,
-              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_title })
+                Text(
+                    text = "For an experience beyond Expectations",
+                    style =
+                        MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 32.sp,
+                            color = MaterialTheme.colorScheme.primary),
+                    textAlign = TextAlign.Start,
+                    modifier =
+                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_title })
 
-          Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-          SignUpSubtitle(
-              text = "Discover what excites you",
-              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_subtitle })
+                SignUpSubtitle(
+                    text = "Discover what excites you",
+                    modifier =
+                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_subtitle })
+              }
 
           Spacer(modifier = Modifier.height(24.dp))
 
