@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,11 +62,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.events.EventListScreen
@@ -74,6 +79,8 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
 
@@ -130,6 +137,34 @@ fun HomeScreen(
                     unreadCount = notificationUiState.unreadCount,
                     onNotificationRead = { notificationViewModel.markAsRead(it) },
                     onNotificationDelete = { notificationViewModel.deleteNotification(it) },
+                    onFriendRequestAccept = { notificationId, fromUserId ->
+                      coroutineScope.launch {
+                        try {
+                          val userId = FirebaseAuth.getInstance().currentUser?.uid
+                          if (userId != null) {
+                            FriendsRepositoryProvider.repository.acceptFriendRequest(
+                                userId, fromUserId)
+                            notificationViewModel.deleteNotification(notificationId)
+                          }
+                        } catch (e: Exception) {
+                          // Handle error silently or show a message
+                        }
+                      }
+                    },
+                    onFriendRequestReject = { notificationId, fromUserId ->
+                      coroutineScope.launch {
+                        try {
+                          val userId = FirebaseAuth.getInstance().currentUser?.uid
+                          if (userId != null) {
+                            FriendsRepositoryProvider.repository.rejectFriendRequest(
+                                userId, fromUserId)
+                            notificationViewModel.deleteNotification(notificationId)
+                          }
+                        } catch (e: Exception) {
+                          // Handle error silently or show a message
+                        }
+                      }
+                    },
                     navController = navController)
               }
             }) { paddingValues ->
@@ -216,6 +251,8 @@ fun HomeTopBar(
     unreadCount: Int = 0,
     onNotificationRead: (String) -> Unit = {},
     onNotificationDelete: (String) -> Unit = {},
+    onFriendRequestAccept: (String, String) -> Unit = { _, _ -> },
+    onFriendRequestReject: (String, String) -> Unit = { _, _ -> },
     navController: NavHostController = rememberNavController()
 ) {
   TopAppBar(
@@ -269,6 +306,14 @@ fun HomeTopBar(
                           notification = notification,
                           onRead = { onNotificationRead(notification.id) },
                           onDelete = { onNotificationDelete(notification.id) },
+                          onAccept =
+                              if (notification is Notification.FriendRequest) {
+                                { onFriendRequestAccept(notification.id, notification.fromUserId) }
+                              } else null,
+                          onReject =
+                              if (notification is Notification.FriendRequest) {
+                                { onFriendRequestReject(notification.id, notification.fromUserId) }
+                              } else null,
                           onClick = {
                             when (notification) {
                               is Notification.FriendRequest -> {
@@ -297,67 +342,104 @@ fun NotificationItem(
     notification: Notification,
     onRead: () -> Unit,
     onDelete: () -> Unit,
+    onAccept: (() -> Unit)? = null,
+    onReject: (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
   Card(
-      modifier =
-          Modifier.fillMaxWidth()
-              .clickable { onClick() }
-              .testTag("NotificationItem_${notification.id}"),
+      modifier = Modifier.fillMaxWidth().testTag("NotificationItem_${notification.id}"),
       colors =
           CardDefaults.cardColors(
               containerColor =
                   if (notification.isRead) MaterialTheme.colorScheme.surface
                   else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-              Row(
-                  modifier = Modifier.weight(1f),
-                  horizontalArrangement = Arrangement.Start,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    // Icon based on notification type
-                    Icon(
-                        imageVector =
+        Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+          Row(
+              modifier = Modifier.fillMaxWidth().clickable { onClick() },
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      // Icon based on notification type
+                      Icon(
+                          imageVector =
+                              when (notification) {
+                                is Notification.FriendRequest -> Icons.Default.Person
+                                is Notification.EventStarting -> Icons.Default.Event
+                              },
+                          contentDescription = null,
+                          modifier = Modifier.size(24.dp),
+                          tint = MaterialTheme.colorScheme.primary)
+
+                      Spacer(modifier = Modifier.width(12.dp))
+
+                      // Notification message
+                      Column(modifier = Modifier.weight(1f)) {
+                        val message: String =
                             when (notification) {
-                              is Notification.FriendRequest -> Icons.Default.Person
-                              is Notification.EventStarting -> Icons.Default.Event
-                            },
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    // Notification message
-                    Column(modifier = Modifier.weight(1f)) {
-                      val message: String =
-                          when (notification) {
-                            is Notification.FriendRequest -> notification.getMessage()
-                            is Notification.EventStarting -> notification.getMessage()
-                          }
-                      Text(
-                          text = message,
-                          style = MaterialTheme.typography.bodyMedium,
-                          fontWeight =
-                              if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
-                          maxLines = 2,
-                          overflow = TextOverflow.Ellipsis)
+                              is Notification.FriendRequest -> notification.getMessage()
+                              is Notification.EventStarting -> notification.getMessage()
+                            }
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight =
+                                if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis)
+                      }
                     }
-                  }
 
-              // Delete button
-              IconButton(
-                  onClick = { onDelete() },
-                  modifier =
-                      Modifier.size(24.dp).testTag("DeleteNotificationButton_${notification.id}")) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Delete",
-                        modifier = Modifier.size(16.dp))
-                  }
-            }
+                // Delete button
+                IconButton(
+                    onClick = { onDelete() },
+                    modifier =
+                        Modifier.size(24.dp)
+                            .testTag("DeleteNotificationButton_${notification.id}")) {
+                      Icon(
+                          imageVector = Icons.Default.Close,
+                          contentDescription = "Delete",
+                          modifier = Modifier.size(16.dp))
+                    }
+              }
+
+          // Accept/Reject buttons for friend requests
+          if (notification is Notification.FriendRequest && onAccept != null && onReject != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                  Button(
+                      onClick = {
+                        onAccept()
+                        onRead()
+                      },
+                      modifier =
+                          Modifier.weight(1f)
+                              .testTag("AcceptFriendRequestButton_${notification.id}"),
+                      colors =
+                          ButtonDefaults.buttonColors(
+                              containerColor = MaterialTheme.colorScheme.primary)) {
+                        Text("Accept")
+                      }
+                  Button(
+                      onClick = {
+                        onReject()
+                        onRead()
+                      },
+                      modifier =
+                          Modifier.weight(1f)
+                              .testTag("RejectFriendRequestButton_${notification.id}"),
+                      colors =
+                          ButtonDefaults.buttonColors(
+                              containerColor = MaterialTheme.colorScheme.error)) {
+                        Text("Reject")
+                      }
+                }
+          }
+        }
       }
 }
 
@@ -402,5 +484,44 @@ private suspend fun scrollToDate(
     // Handle any unexpected errors gracefully
     // In production, you might want to log this error
     listState.animateScrollToItem(0)
+  }
+}
+
+@Preview(showBackground = true, widthDp = 400)
+@Composable
+fun NotificationItemsPreview() {
+  MaterialTheme {
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+      // Friend Request Notification
+      NotificationItem(
+          notification =
+              Notification.FriendRequest(
+                  id = "1",
+                  userId = "user123",
+                  fromUserId = "friend456",
+                  fromUserName = "John Smith",
+                  timestamp = Timestamp.now(),
+                  isRead = false),
+          onRead = {},
+          onDelete = {},
+          onAccept = {},
+          onReject = {},
+          onClick = {})
+
+      // Event Starting Notification
+      NotificationItem(
+          notification =
+              Notification.EventStarting(
+                  id = "2",
+                  userId = "user123",
+                  eventId = "event789",
+                  eventTitle = "Study Group Session",
+                  eventStart = Timestamp.now(),
+                  timestamp = Timestamp.now(),
+                  isRead = true),
+          onRead = {},
+          onDelete = {},
+          onClick = {})
+    }
   }
 }
