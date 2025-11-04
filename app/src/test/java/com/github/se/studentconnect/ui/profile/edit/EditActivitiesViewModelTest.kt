@@ -416,8 +416,7 @@ class EditActivitiesViewModelTest {
 
   @Test
   fun `load activities with special characters`() = runTest {
-    val userWithSpecialActivities =
-        testUser.copy(hobbies = listOf("AI", "Web", "Mobile"))
+    val userWithSpecialActivities = testUser.copy(hobbies = listOf("AI", "Web", "Mobile"))
     repository = TestUserRepository(userWithSpecialActivities)
     viewModel = EditActivitiesViewModel(repository, testUser.userId)
 

@@ -111,7 +111,5 @@ object Activities {
                   "ML"))
 
   /** All activities as a flat, sorted list */
-  val allActivities: List<String> by lazy {
-    experienceTopics.values.flatten().distinct().sorted()
-  }
+  val allActivities: List<String> by lazy { experienceTopics.values.flatten().distinct().sorted() }
 }

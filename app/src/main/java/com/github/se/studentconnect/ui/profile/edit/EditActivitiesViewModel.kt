@@ -74,9 +74,7 @@ class EditActivitiesViewModel(
    */
   fun toggleActivity(activity: String) {
     _selectedActivities.value =
-        _selectedActivities.value.toMutableSet().apply {
-          if (!add(activity)) remove(activity)
-        }
+        _selectedActivities.value.toMutableSet().apply { if (!add(activity)) remove(activity) }
   }
 
   /** Saves the selected activities to Firebase. */

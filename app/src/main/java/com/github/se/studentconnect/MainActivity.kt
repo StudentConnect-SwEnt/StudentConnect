@@ -312,16 +312,16 @@ private fun MainAppContent(
                     onNavigateBack = { navController.popBackStack() })
               }
 
-        composable(
-            route = ProfileRoutes.EDIT_ACTIVITIES,
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-            EditActivitiesScreen(
-                userId = userId,
-                userRepository = userRepository,
-                onNavigateBack = { navController.popBackStack() })
-            }
+          composable(
+              route = ProfileRoutes.EDIT_ACTIVITIES,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditActivitiesScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
+              }
 
           composable(
               route = "eventView/{eventUid}/{hasJoined}",
