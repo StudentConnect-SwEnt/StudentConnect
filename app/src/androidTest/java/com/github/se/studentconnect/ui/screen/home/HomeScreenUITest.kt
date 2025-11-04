@@ -12,11 +12,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,16 +66,25 @@ class HomeScreenUITest {
 
   @Before
   fun setup() {
+    // Set test user ID to match the notifications
+    AuthenticationProvider.testUserId = "user123"
+
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
-    notificationViewModel = NotificationViewModel(notificationRepository)
+    // NotificationViewModel will be created after notifications are added in individual tests
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
       eventRepository.addEvent(testEvent2)
     }
+  }
+
+  @After
+  fun tearDown() {
+    // Clean up test user ID
+    AuthenticationProvider.testUserId = null
   }
 
   @Test
@@ -81,7 +93,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -93,7 +105,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
@@ -105,7 +117,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     composeTestRule.onNodeWithContentDescription("Search Icon").assertIsDisplayed()
@@ -117,7 +129,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
@@ -129,7 +141,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertHasClickAction()
@@ -141,7 +153,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for content to load
@@ -162,7 +174,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for events to load
@@ -183,7 +195,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for events to load
@@ -204,7 +216,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for screen to load
@@ -229,7 +241,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = emptyViewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Initially loading indicator should be displayed
@@ -243,7 +255,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for events to load
@@ -263,7 +275,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for events to load
@@ -285,7 +297,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for content to load
@@ -307,7 +319,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = notificationViewModel)
+          notificationViewModel = NotificationViewModel(notificationRepository))
     }
 
     // Wait for content to load
@@ -320,5 +332,314 @@ class HomeScreenUITest {
 
     composeTestRule.onNodeWithText("Paris").performClick()
     // Should show "Not yet implemented" toast
+  }
+
+  @Test
+  fun homeScreen_notificationPanel_displaysWhenClicked() {
+    // Add a friend request notification
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    // Wait for screen to load
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Click notification button to open panel
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify notification panel is displayed
+    composeTestRule.onNodeWithText("Notifications").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_friendRequestNotification_displaysWithAcceptRejectButtons() {
+    // Add a friend request notification
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    // Wait and open notification panel
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify friend request notification content
+    composeTestRule.onNodeWithText("John Doe sent you a friend request").assertIsDisplayed()
+
+    // Verify Accept and Reject buttons are displayed
+    composeTestRule.onNodeWithText("Accept").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Reject").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_eventNotification_displaysWithoutAcceptRejectButtons() {
+    // Add an event starting notification
+    val eventNotification =
+        Notification.EventStarting(
+            id = "notif-2",
+            userId = "user123",
+            eventId = "event123",
+            eventTitle = "Study Session",
+            eventStart = Timestamp.now(),
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(eventNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    // Wait and open notification panel
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify event notification content
+    composeTestRule.onNodeWithText("Event \"Study Session\" is starting soon").assertIsDisplayed()
+
+    // Verify Accept and Reject buttons are NOT displayed
+    composeTestRule.onNodeWithText("Accept").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Reject").assertDoesNotExist()
+  }
+
+  @Test
+  fun homeScreen_acceptButton_hasClickAction() {
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify Accept button has click action
+    composeTestRule.onNodeWithText("Accept").assertHasClickAction()
+  }
+
+  @Test
+  fun homeScreen_rejectButton_hasClickAction() {
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify Reject button has click action
+    composeTestRule.onNodeWithText("Reject").assertHasClickAction()
+  }
+
+  @Test
+  fun homeScreen_notificationItem_hasDeleteButton() {
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify delete button is displayed
+    composeTestRule.onNodeWithTag("DeleteNotificationButton_notif-1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("DeleteNotificationButton_notif-1").assertHasClickAction()
+  }
+
+  @Test
+  fun homeScreen_notificationBadge_displaysUnreadCount() {
+    // Add two unread notifications
+    val notification1 =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    val notification2 =
+        Notification.EventStarting(
+            id = "notif-2",
+            userId = "user123",
+            eventId = "event123",
+            eventTitle = "Study Session",
+            eventStart = Timestamp.now(),
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking {
+      notificationRepository.createNotification(notification1, {}, {})
+      notificationRepository.createNotification(notification2, {}, {})
+    }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Verify badge shows count of 2
+    composeTestRule.onNodeWithText("2").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_multipleNotifications_displayedInPanel() {
+    // Add multiple notifications
+    val friendRequest =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    val eventNotification =
+        Notification.EventStarting(
+            id = "notif-2",
+            userId = "user123",
+            eventId = "event123",
+            eventTitle = "Math Lecture",
+            eventStart = Timestamp.now(),
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking {
+      notificationRepository.createNotification(friendRequest, {}, {})
+      notificationRepository.createNotification(eventNotification, {}, {})
+    }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify both notifications are displayed
+    composeTestRule.onNodeWithText("Alice Smith sent you a friend request").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event \"Math Lecture\" is starting soon").assertIsDisplayed()
   }
 }

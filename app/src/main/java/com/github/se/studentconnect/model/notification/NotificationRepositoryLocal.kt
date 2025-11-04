@@ -68,8 +68,8 @@ class NotificationRepositoryLocal : NotificationRepository {
       userId: String,
       onNotificationsChanged: (List<Notification>) -> Unit
   ): () -> Unit {
-    // Immediately return empty list for tests
-    onNotificationsChanged(emptyList())
+    // Immediately return current notifications for the user
+    onNotificationsChanged(notifications.filter { getNotificationUserId(it) == userId })
     // Return no-op cleanup function
     return {}
   }
