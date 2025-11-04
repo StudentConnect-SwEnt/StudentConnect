@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
@@ -873,15 +874,27 @@ class EventViewTest {
 
   @Test
   fun eventView_validationResult_error_displaysCorrectly() {
-    // Arrange
+    // Arrange - create a mock repository that throws an exception
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val mockEventRepository = EventRepositoryLocal()
+    runBlocking { mockEventRepository.addEvent(testEvent) }
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Network connection failed")
+          }
+        }
+
+    val errorViewModel = EventViewModel(errorThrowingRepo, userRepository)
 
     composeTestRule.setContent {
       EventView(
           eventUid = testEvent.uid,
           navController = rememberNavController(),
-          eventViewModel = viewModel,
+          eventViewModel = errorViewModel,
           hasJoined = false)
     }
 
@@ -892,7 +905,7 @@ class EventViewTest {
           .isNotEmpty()
     }
 
-    // Act - open scanner and trigger an error (using non-existent event)
+    // Act - open scanner and trigger an error
     composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -902,8 +915,8 @@ class EventViewTest {
           .isNotEmpty()
     }
 
-    // Simulate error through ViewModel by validating with non-existent event
-    composeTestRule.runOnIdle { viewModel.validateParticipant("non-existent-event", "userId") }
+    // Simulate validation through ViewModel - this will throw an exception
+    composeTestRule.runOnIdle { errorViewModel.validateParticipant(testEvent.uid, "userId") }
 
     // Assert - error result should be displayed
     composeTestRule.waitUntil(timeoutMillis = 5000) {
