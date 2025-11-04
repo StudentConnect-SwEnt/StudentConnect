@@ -340,7 +340,7 @@ class EventViewModelTest {
   }
 
   @Test
-  fun validateParticipant_withException_returnsInvalid() = runTest {
+  fun validateParticipant_withException_returnsError() = runTest {
     // Arrange - use an event that doesn't exist
     val nonExistentEventId = "non-existent-event"
     val userId = "user123"
@@ -352,7 +352,7 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertNotNull(uiState.ticketValidationResult)
-    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Invalid)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Error)
   }
 
   @Test
@@ -388,5 +388,22 @@ class EventViewModelTest {
     assertTrue(result is TicketValidationResult.Invalid)
     val invalidResult = result as TicketValidationResult.Invalid
     assertEquals(invalidUserId, invalidResult.userId)
+  }
+
+  @Test
+  fun ticketValidationResult_errorType_hasCorrectMessage() = runTest {
+    // Arrange - use an event that doesn't exist to trigger an error
+    val nonExistentEventId = "non-existent-event"
+    val userId = "user123"
+
+    // Act
+    viewModel.validateParticipant(nonExistentEventId, userId)
+    advanceUntilIdle()
+
+    // Assert
+    val result = viewModel.uiState.value.ticketValidationResult
+    assertTrue(result is TicketValidationResult.Error)
+    val errorResult = result as TicketValidationResult.Error
+    assertTrue(errorResult.message.isNotEmpty())
   }
 }

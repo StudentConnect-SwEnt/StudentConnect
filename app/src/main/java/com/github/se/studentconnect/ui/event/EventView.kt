@@ -68,6 +68,7 @@ object EventViewTestTags {
   const val QR_SCANNER_DIALOG = "event_view_qr_scanner_dialog"
   const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
   const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
+  const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -425,8 +426,6 @@ private fun ValidationResultOverlay(
     onScanNext: () -> Unit,
     onClose: () -> Unit
 ) {
-  val isValid = result is TicketValidationResult.Valid
-
   Box(
       modifier =
           Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
@@ -434,14 +433,14 @@ private fun ValidationResultOverlay(
         Card(
             modifier = Modifier.padding(32.dp),
             colors =
-                CardDefaults.cardColors(containerColor = getValidationContainerColor(isValid))) {
+                CardDefaults.cardColors(containerColor = getValidationContainerColor(result))) {
               Column(
                   modifier = Modifier.padding(24.dp).testTag(getValidationTestTag(result)),
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ValidationIcon(isValid = isValid)
-                    ValidationTitle(isValid = isValid)
-                    ValidationMessage(result = result, isValid = isValid)
+                    ValidationIcon(result = result)
+                    ValidationTitle(result = result)
+                    ValidationMessage(result = result)
 
                     Button(onClick = onScanNext, modifier = Modifier.fillMaxWidth()) {
                       Text("Scan Next")
@@ -456,51 +455,73 @@ private fun ValidationResultOverlay(
 }
 
 @Composable
-private fun ValidationIcon(isValid: Boolean) {
+private fun ValidationIcon(result: TicketValidationResult) {
+  val iconRes =
+      when (result) {
+        is TicketValidationResult.Valid -> R.drawable.ic_add
+        is TicketValidationResult.Invalid -> R.drawable.ic_user
+        is TicketValidationResult.Error -> R.drawable.ic_arrow_right
+      }
+
   Icon(
-      painter = painterResource(id = if (isValid) R.drawable.ic_add else R.drawable.ic_arrow_right),
+      painter = painterResource(id = iconRes),
       contentDescription = null,
       modifier = Modifier.size(64.dp),
-      tint = getValidationContentColor(isValid))
+      tint = getValidationContentColor(result))
 }
 
 @Composable
-private fun ValidationTitle(isValid: Boolean) {
+private fun ValidationTitle(result: TicketValidationResult) {
+  val title =
+      when (result) {
+        is TicketValidationResult.Valid -> "Valid Ticket"
+        is TicketValidationResult.Invalid -> "Invalid Ticket"
+        is TicketValidationResult.Error -> "Verification Error"
+      }
+
   Text(
-      text = if (isValid) "Valid Ticket" else "Invalid Ticket",
+      text = title,
       style = MaterialTheme.typography.headlineMedium,
-      color = getValidationContentColor(isValid))
+      color = getValidationContentColor(result))
 }
 
 @Composable
-private fun ValidationMessage(result: TicketValidationResult, isValid: Boolean) {
+private fun ValidationMessage(result: TicketValidationResult) {
   val message =
       when (result) {
         is TicketValidationResult.Valid -> "Participant ID: ${result.participantId}"
         is TicketValidationResult.Invalid ->
             "User ${result.userId} is not registered for this event"
+        is TicketValidationResult.Error -> result.message
       }
 
   Text(
       text = message,
       style = MaterialTheme.typography.bodyMedium,
-      color = getValidationContentColor(isValid))
+      color = getValidationContentColor(result))
 }
 
 @Composable
-private fun getValidationContainerColor(isValid: Boolean) =
-    if (isValid) MaterialTheme.colorScheme.primaryContainer
-    else MaterialTheme.colorScheme.errorContainer
+private fun getValidationContainerColor(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> MaterialTheme.colorScheme.primaryContainer
+      is TicketValidationResult.Invalid -> MaterialTheme.colorScheme.errorContainer
+      is TicketValidationResult.Error -> MaterialTheme.colorScheme.secondaryContainer
+    }
 
 @Composable
-private fun getValidationContentColor(isValid: Boolean) =
-    if (isValid) MaterialTheme.colorScheme.onPrimaryContainer
-    else MaterialTheme.colorScheme.onErrorContainer
+private fun getValidationContentColor(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> MaterialTheme.colorScheme.onPrimaryContainer
+      is TicketValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
+      is TicketValidationResult.Error -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
 
 private fun getValidationTestTag(result: TicketValidationResult) =
     when (result) {
       is TicketValidationResult.Valid -> EventViewTestTags.VALIDATION_RESULT_VALID
       is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
+      is TicketValidationResult.Error -> EventViewTestTags.VALIDATION_RESULT_ERROR
     }
 
 @Preview(showBackground = true)

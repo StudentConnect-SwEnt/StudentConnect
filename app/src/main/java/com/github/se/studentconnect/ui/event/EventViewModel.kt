@@ -27,6 +27,8 @@ sealed class TicketValidationResult {
   data class Valid(val participantId: String) : TicketValidationResult()
 
   data class Invalid(val userId: String) : TicketValidationResult()
+
+  data class Error(val message: String) : TicketValidationResult()
 }
 
 class EventViewModel(
@@ -92,7 +94,10 @@ class EventViewModel(
         _uiState.update { it.copy(ticketValidationResult = result) }
       } catch (e: Exception) {
         _uiState.update {
-          it.copy(ticketValidationResult = TicketValidationResult.Invalid(scannedUserId))
+          it.copy(
+              ticketValidationResult =
+                  TicketValidationResult.Error(
+                      e.message ?: "Unable to verify ticket. Please check your connection."))
         }
       }
     }

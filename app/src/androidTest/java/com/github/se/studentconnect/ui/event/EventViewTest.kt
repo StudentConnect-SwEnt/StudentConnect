@@ -870,4 +870,51 @@ class EventViewTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
   }
+
+  @Test
+  fun eventView_validationResult_error_displaysCorrectly() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and trigger an error (using non-existent event)
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Simulate error through ViewModel by validating with non-existent event
+    composeTestRule.runOnIdle { viewModel.validateParticipant("non-existent-event", "userId") }
+
+    // Assert - error result should be displayed
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(
+              androidx.compose.ui.test.hasTestTag(EventViewTestTags.VALIDATION_RESULT_ERROR))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_ERROR).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Verification Error").assertIsDisplayed()
+  }
 }
