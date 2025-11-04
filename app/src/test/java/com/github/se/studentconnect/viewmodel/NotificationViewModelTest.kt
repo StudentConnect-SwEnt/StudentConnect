@@ -190,9 +190,10 @@ class NotificationViewModelTest {
                 timestamp = Timestamp.now(),
                 isRead = false))
 
-    `when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer { invocation ->
-      val callback = invocation.getArgument<(List<Notification>) -> Unit>(1)
-      callback(notifications) {}
+    `when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(notifications)
+      return@thenAnswer {}
     }
 
     val viewModel = NotificationViewModel(mockRepository)
@@ -421,18 +422,18 @@ class NotificationViewModelTest {
   }
 
   @Test
-  fun onCleared_invokesStopListening() = runTest {
-    var stopListeningCalled = false
-    `when`(mockRepository.listenToNotifications(any(), any())).thenReturn {
-      stopListeningCalled = true
+  fun initialization_setsUpListener() = runTest {
+    var listenerSetup = false
+    `when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      listenerSetup = true
+      {}
     }
 
     val viewModel = NotificationViewModel(mockRepository)
     advanceUntilIdle()
 
-    viewModel.onCleared()
-
-    assertTrue(stopListeningCalled)
+    assertTrue(listenerSetup)
+    verify(mockRepository).listenToNotifications(eq(testUserId), any())
   }
 
   @Test
