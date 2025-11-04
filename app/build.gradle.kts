@@ -269,8 +269,13 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
-    val coverageFlavor = project.findProperty("coverageFlavor")?.toString() ?: "normal"
-    require(coverageFlavor == "normal" || coverageFlavor == "resOverride")
+    val coverageFlavor = (project.findProperty("coverageFlavor")?.toString() ?: "normal").let {
+        if (it !in listOf("normal", "resOverride")) {
+            logger.warn("Unknown coverage flavor '$it', defaulting to 'normal'")
+            return@let "normal"
+        }
+        return@let it
+    }
 
     val coverageFlavorCapitalized = coverageFlavor.replaceFirstChar { it.titlecase(Locale.ROOT) }
 
