@@ -278,6 +278,22 @@ class ProfileSettingsScreenTest {
     composeTestRule.onNodeWithText("More About Me").assertExists()
   }
 
+  @Test
+  fun profileSettingsScreen_universityFieldNotEditable() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        ProfileSettingsScreen(currentUserId = testUser.userId, userRepository = repository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // University field should exist but the first edit icon should be for profile picture
+    // Second for name, third for country (which is editable)
+    composeTestRule.onNodeWithText("University").assertExists()
+    composeTestRule.onNodeWithText("EPFL").assertExists()
+  }
+
   private class TestUserRepository(
       private var user: User? = null,
       var shouldThrowOnGet: Throwable? = null,

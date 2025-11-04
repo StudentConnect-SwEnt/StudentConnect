@@ -2,6 +2,9 @@ package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.github.se.studentconnect.ui.components.Country
+import com.github.se.studentconnect.ui.components.CountryRow
+import com.github.se.studentconnect.ui.components.loadCountries
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -111,7 +114,7 @@ class NationalityScreenTest {
   }
 
   private fun invokeCountryCodeToEmoji(code: String): String {
-    val clazz = Class.forName("com.github.se.studentconnect.ui.screen.signup.NationalityScreenKt")
+    val clazz = Class.forName("com.github.se.studentconnect.ui.components.CountryPickerKt")
     val method = clazz.getDeclaredMethod("countryCodeToEmoji", String::class.java)
     method.isAccessible = true
     return method.invoke(null, code) as String
