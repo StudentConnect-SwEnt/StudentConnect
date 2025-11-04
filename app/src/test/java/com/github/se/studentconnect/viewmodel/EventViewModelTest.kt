@@ -341,16 +341,24 @@ class EventViewModelTest {
 
   @Test
   fun validateParticipant_withException_returnsError() = runTest {
-    // Arrange - use an event that doesn't exist
-    val nonExistentEventId = "non-existent-event"
+    // Arrange - create a mock repository that throws an exception
+    val mockEventRepository =
+        object : EventRepositoryLocal() {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Network error")
+          }
+        }
+    val mockViewModel = EventViewModel(mockEventRepository, userRepository)
+    eventRepository.addEvent(testEvent)
+
     val userId = "user123"
 
     // Act
-    viewModel.validateParticipant(nonExistentEventId, userId)
+    mockViewModel.validateParticipant(testEvent.uid, userId)
     advanceUntilIdle()
 
     // Assert
-    val uiState = viewModel.uiState.value
+    val uiState = mockViewModel.uiState.value
     assertNotNull(uiState.ticketValidationResult)
     assertTrue(uiState.ticketValidationResult is TicketValidationResult.Error)
   }
@@ -392,18 +400,27 @@ class EventViewModelTest {
 
   @Test
   fun ticketValidationResult_errorType_hasCorrectMessage() = runTest {
-    // Arrange - use an event that doesn't exist to trigger an error
-    val nonExistentEventId = "non-existent-event"
+    // Arrange - create a mock repository that throws an exception
+    val mockEventRepository =
+        object : EventRepositoryLocal() {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Connection timeout")
+          }
+        }
+    val mockViewModel = EventViewModel(mockEventRepository, userRepository)
+    eventRepository.addEvent(testEvent)
+
     val userId = "user123"
 
     // Act
-    viewModel.validateParticipant(nonExistentEventId, userId)
+    mockViewModel.validateParticipant(testEvent.uid, userId)
     advanceUntilIdle()
 
     // Assert
-    val result = viewModel.uiState.value.ticketValidationResult
+    val result = mockViewModel.uiState.value.ticketValidationResult
     assertTrue(result is TicketValidationResult.Error)
     val errorResult = result as TicketValidationResult.Error
     assertTrue(errorResult.message.isNotEmpty())
+    assertEquals("Connection timeout", errorResult.message)
   }
 }
