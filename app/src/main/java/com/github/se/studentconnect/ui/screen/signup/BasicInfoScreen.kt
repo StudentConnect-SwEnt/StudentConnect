@@ -1,13 +1,10 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-// import androidx.compose.ui.tooling.preview.Preview
-// import com.github.se.studentconnect.ui.theme.AppTheme
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -27,8 +21,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -44,13 +36,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
@@ -112,31 +101,21 @@ fun BasicInfoScreen(
   LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
-        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
+        SignUpBackButton(onClick = onBack)
 
-        Spacer(Modifier.height(16.dp))
+        SignUpMediumSpacer()
 
-        Text(
-            text = "Who are you ?",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Let others know who you are !",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant))
+        SignUpTitle(text = "Who are you ?")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Let others know who you are !")
 
-        Spacer(Modifier.height(24.dp))
+        SignUpLargeSpacer()
 
         AvatarBanner(
             avatarResIds = listOf(R.drawable.avatar_12, R.drawable.avatar_13, R.drawable.avatar_23))
@@ -210,7 +189,7 @@ fun BasicInfoScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
@@ -256,56 +235,7 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
         Image(
             painter = painterResource(id = avatarResId),
             contentDescription = "Avatar",
-            modifier = Modifier.fillMaxSize().clip(CircleShape),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop)
       }
 }
-
-/** Branded primary call-to-action that centers text and optionally shows a trailing icon. */
-@Composable
-fun PrimaryActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    @DrawableRes iconRes: Int? = null
-) {
-  Button(
-      onClick = onClick,
-      enabled = enabled,
-      modifier = modifier.height(56.dp),
-      shape = RoundedCornerShape(40.dp),
-      contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.primary,
-              contentColor = MaterialTheme.colorScheme.onPrimary,
-              disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-              disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)),
-      elevation =
-          ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center) {
-              Text(
-                  text = text,
-                  style =
-                      MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-              if (iconRes != null) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary)
-              }
-            }
-      }
-}
-
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Preview(showBackground = true)
-// @Composable
-// private fun BasicInfoScreenPreview() {
-//  AppTheme { BasicInfoScreen(viewModel = SignUpViewModel(), onContinue = {}, onBack = {}) }
-// }

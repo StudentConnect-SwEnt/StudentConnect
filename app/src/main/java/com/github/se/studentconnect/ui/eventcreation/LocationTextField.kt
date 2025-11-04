@@ -104,6 +104,10 @@ fun LocationTextField(
     mutableStateOf(TextFieldValue(initialValue, TextRange(initialValue.length)))
   }
 
+  LaunchedEffect(initialValue) {
+    locationFieldValue = TextFieldValue(initialValue, TextRange(initialValue.length))
+  }
+
   val locationString = locationFieldValue.text
 
   // update suggestions every time the location string changes
@@ -113,7 +117,7 @@ fun LocationTextField(
 
   LaunchedEffect(locationString, locationSuggestions, isLoadingLocationSuggestions) {
     // don't update while it is loading suggestions
-    if (isLoadingLocationSuggestions) return@LaunchedEffect
+    if (isLoadingLocationSuggestions || !locationHasBeenInteractedWith) return@LaunchedEffect
 
     val location =
         if (locationString.isBlank() || locationSuggestions.size != 1) null
@@ -143,6 +147,7 @@ fun LocationTextField(
                       text = locationSuggestion.name ?: "",
                       selection = TextRange(locationSuggestion.name?.length ?: 0))
               locationHasBeenInteractedWith = false // reset interaction
+              onLocationChange(locationSuggestion)
             })
       }
     }

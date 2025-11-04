@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false" />
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <!-- Allow Mapbox domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">mapbox.com</domain>
+        <domain includeSubdomains="true">api.mapbox.com</domain>
+        <domain includeSubdomains="true">events.mapbox.com</domain>
+        <domain includeSubdomains="true">tiles.mapbox.com</domain>
+    </domain-config>
 </network-security-config>

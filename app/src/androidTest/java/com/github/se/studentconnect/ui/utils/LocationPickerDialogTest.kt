@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.utils
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.screen.filters.LocationPickerDialog
 import org.junit.Rule
@@ -13,6 +14,10 @@ import org.junit.runner.RunWith
 class LocationPickerDialogTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   @Test
   fun locationPickerDialog_displaysCorrectly() {
