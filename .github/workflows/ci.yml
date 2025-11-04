@@ -169,7 +169,7 @@ jobs:
       # This step generates the coverage report which will be uploaded to sonar
       - name: Generate Coverage Report
         run: |
-          ./gradlew jacocoTestReport
+          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4

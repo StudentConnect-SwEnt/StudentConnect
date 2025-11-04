@@ -1,4 +1,5 @@
 import java.io.FileInputStream
+import java.util.Locale
 import java.util.Properties
 
 plugins {
@@ -263,7 +264,12 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
-    mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
+    val coverageFlavor = project.findProperty("coverageFlavor")?.toString() ?: "normal"
+    require(coverageFlavor == "normal" || coverageFlavor == "resOverride")
+
+    val coverageFlavorCapitalized = coverageFlavor.replaceFirstChar { it.titlecase(Locale.ROOT) }
+
+    mustRunAfter("test${coverageFlavorCapitalized}DebugUnitTest", "connected${coverageFlavorCapitalized}DebugAndroidTest")
 
     reports {
         xml.required = true
@@ -279,7 +285,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "android/**/*.*",
         "**/sigchecks/**",
     )
-    val debugTree = fileTree("${project.layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
+    val debugTree = fileTree("${project.layout.buildDirectory.get().asFile}/tmp/kotlin-classes/${coverageFlavor}Debug") {
         exclude(fileFilter)
     }
     val mainSrc = "${project.projectDir}/src/main/java"
@@ -287,8 +293,8 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(fileTree(project.layout.buildDirectory.get().asFile) {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
+        include("outputs/unit_test_code_coverage/${coverageFlavor}DebugUnitTest/test${coverageFlavorCapitalized}DebugUnitTest.exec")
+        include("outputs/code_coverage/${coverageFlavor}DebugAndroidTest/connected/*/coverage.ec")
     })
 }
 
