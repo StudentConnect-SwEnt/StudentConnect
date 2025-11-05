@@ -18,8 +18,18 @@ import kotlinx.coroutines.launch
 data class EventUiState(
     val event: Event? = null,
     val isLoading: Boolean = true,
-    val isJoined: Boolean = false
+    val isJoined: Boolean = false,
+    val showQrScanner: Boolean = false,
+    val ticketValidationResult: TicketValidationResult? = null
 )
+
+sealed class TicketValidationResult {
+  data class Valid(val participantId: String) : TicketValidationResult()
+
+  data class Invalid(val userId: String) : TicketValidationResult()
+
+  data class Error(val message: String) : TicketValidationResult()
+}
 
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
@@ -58,5 +68,42 @@ class EventViewModel(
         _uiState.update { it.copy(isJoined = true) }
       }
     }
+  }
+
+  fun showQrScanner() {
+    _uiState.update { it.copy(showQrScanner = true, ticketValidationResult = null) }
+  }
+
+  fun hideQrScanner() {
+    _uiState.update { it.copy(showQrScanner = false, ticketValidationResult = null) }
+  }
+
+  fun validateParticipant(eventUid: String, scannedUserId: String) {
+    viewModelScope.launch {
+      try {
+        val participants = eventRepository.getEventParticipants(eventUid)
+        val isValid = participants.any { it.uid == scannedUserId }
+
+        val result =
+            if (isValid) {
+              TicketValidationResult.Valid(scannedUserId)
+            } else {
+              TicketValidationResult.Invalid(scannedUserId)
+            }
+
+        _uiState.update { it.copy(ticketValidationResult = result) }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(
+              ticketValidationResult =
+                  TicketValidationResult.Error(
+                      e.message ?: "Unable to verify ticket. Please check your connection."))
+        }
+      }
+    }
+  }
+
+  fun clearValidationResult() {
+    _uiState.update { it.copy(ticketValidationResult = null) }
   }
 }
