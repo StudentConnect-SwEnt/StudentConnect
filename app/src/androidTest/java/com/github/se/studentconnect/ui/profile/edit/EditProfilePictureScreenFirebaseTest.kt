@@ -9,8 +9,12 @@ import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
@@ -25,10 +29,12 @@ import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScr
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.StudentConnectTest
+import com.github.se.studentconnect.utils.UI_WAIT_TIMEOUT
 import java.io.File
 import java.io.FileOutputStream
 import java.util.ArrayDeque
 import java.util.UUID
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -54,6 +60,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
   private lateinit var tempImageUri: Uri
   private lateinit var testUser: User
 
+  private val uploadedIds = mutableListOf<String>()
   private var originalMediaRepository: MediaRepository? = null
 
   @Before
@@ -93,7 +100,10 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @After
   override fun tearDown() {
-    runTest { runCatching { userRepository.deleteUser(testUser.userId) } }
+    runTest {
+      uploadedIds.forEach { path -> runCatching { mediaRepository.delete(path) } }
+      runCatching { userRepository.deleteUser(testUser.userId) }
+    }
     tempImageFile.delete()
     originalMediaRepository?.let { MediaRepositoryProvider.repository = it }
     super.tearDown()
@@ -103,6 +113,50 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
   fun tappingProfilePicture_launchesPicker() {
     registryOwner.enqueueResult(tempImageUri)
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists().performClick()
+  }
+
+  @Test
+  fun saveButton_becomesClickableAfterSelectingPhoto() {
+    val saveButton = composeTestRule.onNodeWithText("Save Changes")
+    saveButton.assertExists().assertIsNotEnabled()
+
+    registryOwner.enqueueResult(tempImageUri)
+    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+
+    composeTestRule.waitForIdle()
+    saveButton.assertIsEnabled().assertHasClickAction()
+
+    saveButton.performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      val path =
+          runCatching {
+                runBlocking { userRepository.getUserById(testUser.userId)?.profilePictureUrl }
+              }
+              .getOrNull()
+      !path.isNullOrBlank()
+    }
+
+    runTest {
+      val updatedUser = userRepository.getUserById(testUser.userId)
+      val uploadedPath = requireNotNull(updatedUser?.profilePictureUrl)
+      uploadedIds += uploadedPath
+    }
+  }
+
+  @Test
+  fun removePhotoButton_clearsSelectionAndDisablesItself() {
+    val removeButton = composeTestRule.onNodeWithText("Remove Photo")
+    removeButton.assertExists().assertIsNotEnabled()
+
+    registryOwner.enqueueResult(tempImageUri)
+    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    composeTestRule.waitForIdle()
+
+    removeButton.assertIsEnabled().performClick()
+
+    removeButton.assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   private fun createTempImageFile(): File {
