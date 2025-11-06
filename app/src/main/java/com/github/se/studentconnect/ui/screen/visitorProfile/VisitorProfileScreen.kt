@@ -286,6 +286,7 @@ private fun VisitorProfileScreenPreview() {
             User(
                 userId = "user-123",
                 email = "sample@studentconnect.ch",
+                username = "alexxxxx",
                 firstName = "Alex",
                 lastName = "Martin",
                 university = "EPFL",
