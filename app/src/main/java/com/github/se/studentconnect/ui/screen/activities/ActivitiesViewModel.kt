@@ -93,7 +93,7 @@ class ActivitiesViewModel(
                   .mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                       null
                     }
                   }
@@ -103,7 +103,7 @@ class ActivitiesViewModel(
                             ?: run {
                               val cal = Calendar.getInstance()
                               cal.time = event.start.toDate()
-                              cal.add(Calendar.HOUR_OF_DAY, 5)
+                              cal.add(Calendar.HOUR_OF_DAY, 3)
                               Timestamp(cal.time)
                             }
                     endTime > now
@@ -120,22 +120,42 @@ class ActivitiesViewModel(
                       invitation = invitation,
                       event = event,
                       invitedBy = sender?.firstName ?: "Anonymous")
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                   null
                 }
               }
             }
             EventTab.Past -> {
               val joinedEvents = userRepository.getJoinedEvents(userUid)
-              joinedEvents
+
+              val allVisibleEvents = try {
+                eventRepository.getAllVisibleEvents()
+              } catch (_: Exception) {
+                emptyList()
+              }
+              val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
+
+              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
+
+              allEventIds
                   .mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                       null
                     }
                   }
-                  .filter { event -> event.start < now }
+                  .filter { event ->
+                    val endTime =
+                        event.end
+                            ?: run {
+                              val cal = Calendar.getInstance()
+                              cal.time = event.start.toDate()
+                              cal.add(Calendar.HOUR_OF_DAY, 3)
+                              Timestamp(cal.time)
+                            }
+                    endTime <= now
+                  }
                   .map { EventCarouselItem(it) }
             }
           }
