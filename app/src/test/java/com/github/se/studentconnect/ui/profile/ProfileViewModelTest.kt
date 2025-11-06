@@ -21,6 +21,7 @@ class ProfileViewModelTest {
   private val testUser =
       User(
           userId = "test_user",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           email = "john@example.com",

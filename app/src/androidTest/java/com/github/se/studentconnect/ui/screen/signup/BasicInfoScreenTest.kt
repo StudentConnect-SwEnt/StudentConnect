@@ -10,6 +10,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp
@@ -48,6 +49,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
 
         BasicInfoScreen(
             viewModel = viewModel,
+            userRepository = UserRepositoryLocal(),
             onContinue = {},
             onBack = {},
             onContinueEnabledChanged = { enabledStates += it },
@@ -58,6 +60,13 @@ class BasicInfoScreenTest : StudentConnectTest() {
   }
 
   private fun waitForIdle() = composeTestRule.waitForIdle()
+
+  private fun waitForEnabledState(expected: Boolean, timeoutMillis: Long = 2000) {
+    waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = timeoutMillis) {
+      enabledStates.isNotEmpty() && enabledStates.last() == expected
+    }
+  }
 
   // --------------------------------------------------
   // 1. Initial & Rendering
@@ -74,8 +83,9 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun prepopulated_fields_enableContinue() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setBirthdate(Timestamp(Date(1_000L)))
-    waitForIdle()
+    waitForEnabledState(expected = true)
     assert(enabledStates.last())
   }
 
@@ -93,8 +103,12 @@ class BasicInfoScreenTest : StudentConnectTest() {
     waitForIdle()
     assert(enabledStates.last() == false)
 
+    viewModel.setUsername("adalovelace")
+    waitForEnabledState(expected = false) // Still false without birthdate
+    assert(enabledStates.last() == false)
+
     viewModel.setBirthdate(Timestamp(Date(1_000L)))
-    waitForIdle()
+    waitForEnabledState(expected = true)
     assert(enabledStates.last())
 
     viewModel.setBirthdate(null)
@@ -106,8 +120,9 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun clearing_lastName_disables_continue() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setBirthdate(Timestamp(Date(2_000L)))
-    waitForIdle()
+    waitForEnabledState(expected = true)
     assert(enabledStates.last())
 
     viewModel.setLastName("")
@@ -119,8 +134,9 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun reset_clears_enabled_state() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setBirthdate(Timestamp(Date(3_000L)))
-    waitForIdle()
+    waitForEnabledState(expected = true)
     assert(enabledStates.last())
 
     viewModel.reset()
@@ -138,6 +154,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
     val jan2000Timestamp = Timestamp(Date(jan2000Millis))
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setBirthdate(jan2000Timestamp)
     waitForIdle()
 
@@ -148,13 +165,14 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun selecting_date_confirms_continue_enabled() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
-    waitForIdle()
+    viewModel.setUsername("adalovelace")
+    waitForEnabledState(expected = false) // Wait for username check, but still false without birthdate
 
     val selectedMillis = 946684800000L
     val selectedTimestamp = Timestamp(Date(selectedMillis))
     datePickerState?.selectedDateMillis = selectedMillis
     viewModel.setBirthdate(selectedTimestamp)
-    waitForIdle()
+    waitForEnabledState(expected = true)
 
     assert(enabledStates.last())
   }
@@ -178,8 +196,9 @@ class BasicInfoScreenTest : StudentConnectTest() {
   fun rapid_dialog_toggles_preserve_enabled_state() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setBirthdate(Timestamp(Date(6_000L)))
-    waitForIdle()
+    waitForEnabledState(expected = true)
     val initialStates = enabledStates.toList()
 
     repeat(5) {
@@ -199,7 +218,11 @@ class BasicInfoScreenTest : StudentConnectTest() {
     composeTestRule.activity.setContent {
       AppTheme {
         BasicInfoScreen(
-            viewModel = viewModel, onContinue = {}, onBack = {}, onContinueEnabledChanged = null)
+            viewModel = viewModel,
+            userRepository = UserRepositoryLocal(),
+            onContinue = {},
+            onBack = {},
+            onContinueEnabledChanged = null)
       }
     }
 

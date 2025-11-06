@@ -456,6 +456,7 @@ class UserTest {
         mapOf(
             "userId" to "user789",
             "email" to "test@ethz.ch",
+            "username" to "alicej",
             "firstName" to "Alice",
             "lastName" to "Johnson",
             "university" to "ETHZ",
@@ -477,6 +478,7 @@ class UserTest {
         mapOf(
             "userId" to "user123",
             "email" to "test@epfl.ch",
+            "username" to "johndoe",
             "firstName" to "John",
             "lastName" to "Doe",
             "university" to "EPFL",
@@ -581,6 +583,7 @@ class UserTest {
         mapOf(
             "userId" to "user123",
             "email" to "test@epfl.ch",
+            "username" to "johndoe",
             "firstName" to "John",
             "lastName" to "Doe",
             "university" to "EPFL",
@@ -596,6 +599,7 @@ class UserTest {
     val resultMap = user!!.toMap()
     assertEquals(originalMap["userId"], resultMap["userId"])
     assertEquals(originalMap["email"], resultMap["email"])
+    assertEquals(originalMap["username"], resultMap["username"])
     assertEquals(originalMap["firstName"], resultMap["firstName"])
     assertEquals(originalMap["lastName"], resultMap["lastName"])
     assertEquals(originalMap["university"], resultMap["university"])
