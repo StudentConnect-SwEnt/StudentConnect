@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.events.EventCard
@@ -22,6 +23,10 @@ import org.junit.runner.RunWith
 class ListOfEventsTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private fun createTestEvent(
       uid: String = "event1",
@@ -266,5 +271,40 @@ class ListOfEventsTest {
     composeTestRule.onNodeWithText("TAG2").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG3").assertIsDisplayed()
     composeTestRule.onNodeWithText("TAG4").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventListScreen_emptyList_displaysEmptyMessage() {
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = emptyList(),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
+    }
+
+    composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsZero() {
+    val event = createTestEvent().copy(participationFee = 0u)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_displaysFreeWhenFeeIsNull() {
+    val event = createTestEvent().copy(participationFee = null)
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Free").assertIsDisplayed()
   }
 }

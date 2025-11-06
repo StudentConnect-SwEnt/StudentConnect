@@ -15,11 +15,35 @@
       },
       "oauth_client": [
         {
+          "client_id": "1014128431937-a0p3kfrtom5a42qo8jdn9fdfs2687aj3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "cbc90db62862dc06ebd24d185bafe4af016c99c8"
+          }
+        },
+        {
           "client_id": "1014128431937-euibmsdithqvojgvku163u5gpm34q7l3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.github.se.studentconnect",
             "certificate_hash": "08fe0e5abb129ec8122543e99c82826a70de20be"
+          }
+        },
+        {
+          "client_id": "1014128431937-kp75m7v1mk5t77l2peg7bd625dbjo6di.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "5325a8c9ba3e30869b300ae25d30323a53dce5ba"
+          }
+        },
+        {
+          "client_id": "1014128431937-nb71ndkjl5dvfln1g86tv48nqh82kh9b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "5495798f4b23be0fd58b8bb5b10a42702b758702"
           }
         },
         {
@@ -31,11 +55,19 @@
           }
         },
         {
-          "client_id": "1014128431937-svq7e7un09n3kur6vm5tt05l464bb98u.apps.googleusercontent.com",
+          "client_id": "1014128431937-pjsuibb6nc2bu70qfpjchk0qob7bk93k.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.github.se.studentconnect",
-            "certificate_hash": "5495798f4b23be0fd58b8bb5b10a42702b758702"
+            "certificate_hash": "0d4187e5da83655b8d5a76d8a494e206ba1d62dd"
+          }
+        },
+        {
+          "client_id": "1014128431937-qu250ib1dc0chi4ug3v8rjvbs5e79ajm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.se.studentconnect",
+            "certificate_hash": "a04c41528a66377dc62110a6986cae17167aa66e"
           }
         },
         {

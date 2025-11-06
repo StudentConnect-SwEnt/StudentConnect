@@ -6,7 +6,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -21,6 +23,7 @@ class CreatePublicEventViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Public())
   val uiState: StateFlow<CreateEventUiState.Public> = _uiState.asStateFlow()
+  private var editingEventUid: String? = null
 
   fun updateTitle(newTitle: String) {
     _uiState.value = uiState.value.copy(title = newTitle)
@@ -78,12 +81,56 @@ class CreatePublicEventViewModel(
     _uiState.value = uiState.value.copy(tags = newTags)
   }
 
+  fun resetFinishedSaving() {
+    _uiState.value = uiState.value.copy(finishedSaving = false, isSaving = false)
+  }
+
+  fun prefill(event: Event.Public) {
+    editingEventUid = event.uid
+    val startDateTime =
+        event.start.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+    val endTimestamp = event.end ?: event.start
+    val endDateTime =
+        endTimestamp.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+    _uiState.value =
+        CreateEventUiState.Public(
+            title = event.title,
+            description = event.description,
+            location = event.location,
+            startDate = startDateTime.toLocalDate(),
+            startTime = startDateTime.toLocalTime(),
+            endDate = endDateTime.toLocalDate(),
+            endTime = endDateTime.toLocalTime(),
+            numberOfParticipantsString = event.maxCapacity?.toString() ?: "",
+            hasParticipationFee = event.participationFee != null,
+            participationFeeString = event.participationFee?.toString() ?: "",
+            isFlash = event.isFlash,
+            subtitle = event.subtitle,
+            website = event.website.orEmpty(),
+            tags = event.tags,
+        )
+  }
+
+  fun loadEvent(eventUid: String) {
+    editingEventUid = eventUid
+    viewModelScope.launch {
+      val event = eventRepository.getEvent(eventUid)
+      if (event is Event.Public) prefill(event)
+    }
+  }
+
   fun saveEvent() {
     val canSave =
         uiState.value.title.isNotBlank() &&
             uiState.value.startDate != null &&
             uiState.value.endDate != null
     check(canSave)
+
+    val currentUserId = Firebase.auth.currentUser?.uid
+    checkNotNull(currentUserId)
+
+    _uiState.value = uiState.value.copy(isSaving = true)
 
     val start =
         LocalDateTime.of(uiState.value.startDate, uiState.value.startTime).let {
@@ -113,10 +160,11 @@ class CreatePublicEventViewModel(
           null
         }
 
+    val eventUid = editingEventUid ?: eventRepository.getNewUid()
     val event =
         Event.Public(
-            uid = eventRepository.getNewUid(),
-            ownerId = "", // TODO: empty for now
+            uid = eventUid,
+            ownerId = currentUserId,
             title = uiState.value.title,
             description = uiState.value.description,
             imageUrl = null,
@@ -132,10 +180,14 @@ class CreatePublicEventViewModel(
 
     viewModelScope.launch {
       try {
-        eventRepository.addEvent(event)
-        _uiState.value = uiState.value.copy(finishedSaving = true)
+        if (editingEventUid != null) {
+          eventRepository.editEvent(eventUid, event)
+        } else {
+          eventRepository.addEvent(event)
+        }
+        _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = true)
       } catch (_: Exception) {
-        _uiState.value = uiState.value.copy(finishedSaving = false)
+        _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)
       }
     }
   }

@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
@@ -53,6 +54,7 @@ object EventViewTestTags {
   const val DESCRIPTION_TEXT = "event_view_description_text"
   const val CHAT_BUTTON = "event_view_chat_button"
   const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
+  const val EDIT_EVENT_BUTTON = "event_view_edit_event_button"
   const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
   const val LOCATION_BUTTON = "event_view_location_button"
   const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
@@ -221,6 +223,13 @@ fun EventActionButtons(
     navController: NavHostController
 ) {
   val context = LocalContext.current
+  val currentUserId = AuthenticationProvider.currentUser
+  val isOwner = !currentUserId.isNullOrBlank() && currentUserId == currentEvent.ownerId
+  val editRoute =
+      when (currentEvent) {
+        is Event.Public -> Route.editPublicEvent(currentEvent.uid)
+        is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
+      }
 
   Column(
       modifier =
@@ -229,6 +238,14 @@ fun EventActionButtons(
               .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
   ) {
+    if (isOwner) {
+      Button(
+          onClick = { navController.navigate(editRoute) },
+          modifier = Modifier.align(Alignment.End).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
+            Text("Edit event")
+          }
+      Spacer(modifier = Modifier.height(12.dp))
+    }
     JoinedEventActions(
         currentEvent = currentEvent,
         eventViewModel = eventViewModel,

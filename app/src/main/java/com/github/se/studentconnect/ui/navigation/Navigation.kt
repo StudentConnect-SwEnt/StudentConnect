@@ -26,6 +26,8 @@ object Route {
 
   const val CREATE_PUBLIC_EVENT = "create_public_event"
   const val CREATE_PRIVATE_EVENT = "create_private_event"
+  const val EDIT_PUBLIC_EVENT = "edit_public_event/{eventUid}"
+  const val EDIT_PRIVATE_EVENT = "edit_private_event/{eventUid}"
 
   // Added route for the event view, with eventUid as an argument
   const val EVENT_VIEW = "eventView/{eventUid}"
@@ -37,6 +39,10 @@ object Route {
   fun eventView(eventUid: String, hasJoined: Boolean): String {
     return "eventView/$eventUid/$hasJoined"
   }
+
+  fun editPublicEvent(eventUid: String): String = "edit_public_event/$eventUid"
+
+  fun editPrivateEvent(eventUid: String): String = "edit_private_event/$eventUid"
 }
 
 sealed class Screen(
@@ -60,6 +66,10 @@ sealed class Screen(
 
   object CreatePrivateEvent :
       Screen(route = Route.CREATE_PRIVATE_EVENT, name = "Create Private Event")
+
+  object EditPublicEvent : Screen(route = Route.EDIT_PUBLIC_EVENT, name = "Edit Public Event")
+
+  object EditPrivateEvent : Screen(route = Route.EDIT_PRIVATE_EVENT, name = "Edit Private Event")
 
   // Added screen for the event view
   object EventView : Screen(route = Route.EVENT_VIEW, name = "Event Details")

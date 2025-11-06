@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +31,8 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.GregorianCalendar
 import java.util.Locale
 
 /**
@@ -37,6 +41,7 @@ import java.util.Locale
  * @param navController The navigation controller used for navigating to the event detail view.
  * @param events The list of events to display.
  * @param hasJoined Indicates if the user has joined the events.
+ * @param listState The LazyListState for controlling scroll position.
  * @param favoriteEventIds A set of event IDs that are marked as favorites by the user
  * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
  */
@@ -45,8 +50,9 @@ fun EventListScreen(
     navController: NavHostController,
     events: List<Event>,
     hasJoined: Boolean,
-    favoriteEventIds: Set<String>,
-    onFavoriteToggle: (String) -> Unit
+    listState: LazyListState = rememberLazyListState(),
+    favoriteEventIds: Set<String> = emptySet(),
+    onFavoriteToggle: (String) -> Unit = {}
 ) {
   if (events.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -59,6 +65,7 @@ fun EventListScreen(
   val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
 
   LazyColumn(
+      state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
@@ -201,12 +208,12 @@ private fun formatDate(timestamp: Timestamp): String {
       eventCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
     "Today"
   } else {
-    SimpleDateFormat("d MMM", Locale.getDefault()).format(timestamp.toDate())
+    createGregorianFormatter("d MMM").format(timestamp.toDate())
   }
 }
 
 private fun formatTime(timestamp: Timestamp): String {
-  return SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp.toDate())
+  return createGregorianFormatter("HH:mm").format(timestamp.toDate())
 }
 
 fun formatDateHeader(timestamp: Timestamp): String {
@@ -220,6 +227,17 @@ fun formatDateHeader(timestamp: Timestamp): String {
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
     else ->
-        SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(timestamp.toDate()).uppercase()
+        createGregorianFormatter("EEEE d MMMM", Locale.FRENCH)
+            .format(timestamp.toDate())
+            .uppercase()
   }
 }
+
+private fun createGregorianFormatter(
+    pattern: String,
+    locale: Locale = Locale.getDefault()
+): SimpleDateFormat =
+    SimpleDateFormat(pattern, locale).apply {
+      isLenient = false
+      calendar = GregorianCalendar().apply { gregorianChange = Date(Long.MIN_VALUE) }
+    }

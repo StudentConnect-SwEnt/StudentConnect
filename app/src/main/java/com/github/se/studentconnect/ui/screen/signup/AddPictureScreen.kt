@@ -15,10 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,9 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
@@ -78,14 +73,16 @@ fun AddPictureScreen(
   val canContinue = !profileUri.isNullOrBlank()
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-          IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-          }
+          SignUpBackButton(onClick = onBack)
           Spacer(Modifier.weight(1f))
-          SkipButton(
+          SignUpSkipButton(
               onClick = {
                 viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
                 profileUri = DEFAULT_PLACEHOLDER
@@ -93,27 +90,13 @@ fun AddPictureScreen(
               })
         }
 
-        Spacer(Modifier.height(16.dp))
+        SignUpMediumSpacer()
 
-        Text(
-            text = "Add a profile picture",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Let others know what you look like !",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
+        SignUpTitle(text = "Add a profile picture")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Let others know what you look like !")
 
-        Spacer(Modifier.height(24.dp))
+        SignUpLargeSpacer()
 
         UploadCard(
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -129,7 +112,7 @@ fun AddPictureScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
