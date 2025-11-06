@@ -2,6 +2,8 @@ package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
@@ -336,11 +338,12 @@ class HomeScreenFilteringTest {
     }
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule.onAllNodesWithText("Clickable Event").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule.onAllNodesWithTag("event_card_1").fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Clickable Event").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Clickable Event").assertHasClickAction()
+    // Use onNodeWithTag to specifically target the event card, not the story
+    composeTestRule.onNodeWithTag("event_card_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("event_card_1").assertHasClickAction()
   }
 
   /*
@@ -392,12 +395,12 @@ class HomeScreenFilteringTest {
       HomeScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 
-    composeTestRule.onNodeWithText("Delayed Event").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("event_card_1").assertDoesNotExist()
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithText("Delayed Event").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule.onAllNodesWithTag("event_card_1").fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Delayed Event").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("event_card_1").assertIsDisplayed()
   }
 }
