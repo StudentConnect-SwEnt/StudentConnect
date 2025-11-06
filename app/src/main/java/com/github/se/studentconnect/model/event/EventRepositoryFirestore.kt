@@ -211,7 +211,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
       documentSnapshot: DocumentSnapshot
   ): EventParticipant {
     val uid = checkNotNull(documentSnapshot.getString("uid"))
-    val joinedAt = checkNotNull(documentSnapshot.getTimestamp("joinedAt"))
+    val joinedAt = documentSnapshot.getTimestamp("joinedAt")
 
     return EventParticipant(uid = uid, joinedAt = joinedAt)
   }
