@@ -1,5 +1,4 @@
-import java.io.FileInputStream
-import java.util.Properties
+import java.util.Locale
 
 plugins {
     jacoco
@@ -10,6 +9,10 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.kotlinComposeCompiler)
 }
+
+val useFirebaseEmulator: Boolean =
+    (project.findProperty("useFirebaseEmulator") as? String)?.equals("true", ignoreCase = true)
+        ?: false
 
 android {
     namespace = "com.github.se.studentconnect"
@@ -57,6 +60,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", "false")
             // Sign with debug keystore for consistent fingerprints across environments (if available)
             val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
             if (keystoreFile.exists()) {
@@ -68,6 +72,19 @@ android {
             enableAndroidTestCoverage = true
             // Use real map in debug builds, mock map for android tests
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            buildConfigField(
+                "Boolean", "USE_FIREBASE_EMULATOR", useFirebaseEmulator.toString())
+        }
+    }
+    flavorDimensions += "env"
+    productFlavors {
+        create("normal") {
+            dimension = "env"
+        }
+        create("resOverride") {
+            dimension = "env"
+            // Ensure we reuse dependencies and fallbacks from the normal flavor
+            matchingFallbacks += listOf("normal")
         }
     }
     compileOptions {
@@ -252,7 +269,17 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
-    mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
+    val coverageFlavor = (project.findProperty("coverageFlavor")?.toString() ?: "normal").let {
+        if (it !in listOf("normal", "resOverride")) {
+            logger.warn("Unknown coverage flavor '$it', defaulting to 'normal'")
+            return@let "normal"
+        }
+        return@let it
+    }
+
+    val coverageFlavorCapitalized = coverageFlavor.replaceFirstChar { it.titlecase(Locale.ROOT) }
+
+    mustRunAfter("test${coverageFlavorCapitalized}DebugUnitTest", "connected${coverageFlavorCapitalized}DebugAndroidTest")
 
     reports {
         xml.required = true
@@ -268,7 +295,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "android/**/*.*",
         "**/sigchecks/**",
     )
-    val debugTree = fileTree("${project.layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
+    val debugTree = fileTree("${project.layout.buildDirectory.get().asFile}/tmp/kotlin-classes/${coverageFlavor}Debug") {
         exclude(fileFilter)
     }
     val mainSrc = "${project.projectDir}/src/main/java"
@@ -276,8 +303,8 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     sourceDirectories.setFrom(files(mainSrc))
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(fileTree(project.layout.buildDirectory.get().asFile) {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        include("outputs/code_coverage/debugAndroidTest/connected/*/coverage.ec")
+        include("outputs/unit_test_code_coverage/${coverageFlavor}DebugUnitTest/test${coverageFlavorCapitalized}DebugUnitTest.exec")
+        include("outputs/code_coverage/${coverageFlavor}DebugAndroidTest/connected/*/coverage.ec")
     })
 }
 

@@ -166,7 +166,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Country,
                               isLoading = loadingFields.contains(EditingField.Country),
                               errorMessage = fieldErrors[EditingField.Country],
-                              onEditClick = { /*disabled for now*/},
+                              onEditClick = { onNavigateToEditNationality?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateCountry(newValue) },
                               onCancel = { viewModel.cancelEditing() })
 
