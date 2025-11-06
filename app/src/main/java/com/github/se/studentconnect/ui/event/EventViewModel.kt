@@ -48,7 +48,7 @@ class EventViewModel(
   }
 
   fun leaveEvent(eventUid: String) {
-    val currentUserUid = AuthenticationProvider.currentUser
+    val currentUserUid = AuthenticationProvider.currentUser ?: return
     viewModelScope.launch {
       userRepository.leaveEvent(eventUid, currentUserUid)
       eventRepository.removeParticipantFromEvent(eventUid, currentUserUid)
@@ -57,7 +57,7 @@ class EventViewModel(
   }
 
   fun joinEvent(eventUid: String) {
-    val currentUserUid = AuthenticationProvider.currentUser
+    val currentUserUid = AuthenticationProvider.currentUser ?: return
     viewModelScope.launch {
       userRepository.joinEvent(eventUid, currentUserUid)
       val eventParticipant = EventParticipant(currentUserUid)

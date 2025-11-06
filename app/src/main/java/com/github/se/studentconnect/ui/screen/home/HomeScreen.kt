@@ -82,26 +82,8 @@ private object HomeScreenConstants {
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 16
   const val SEARCH_BAR_CORNER_RADIUS_DP = 24
   const val SEARCH_BAR_END_PADDING_DP = 8
-  const val VIEWED_STORY_BORDER_COLOR = 0xFF808080 // Gray
-  const val UNVIEWED_STORY_BORDER_COLOR = 0xFFFF00FF // Magenta
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
-}
-
-// Mock data for story associations
-private object MockStoryData {
-  val ASSOCIATIONS =
-      listOf(
-          MockStory("EPFL", R.drawable.avatar_12, false),
-          MockStory("Polylan", R.drawable.avatar_12, false),
-          MockStory("AGEPoly", R.drawable.avatar_12, true),
-          MockStory("Balelec", R.drawable.avatar_12, false),
-          MockStory("Sat", R.drawable.avatar_12, false),
-          MockStory("Artiphys", R.drawable.avatar_12, true),
-          MockStory("CLIC", R.drawable.avatar_12, false),
-          MockStory("Forum", R.drawable.avatar_12, false),
-          MockStory("JapAnim", R.drawable.avatar_12, true),
-          MockStory("Skuba", R.drawable.avatar_12, false))
 }
 
 @OptIn(
@@ -318,8 +300,6 @@ fun HomeTopBar(showNotifications: Boolean, onNotificationClick: () -> Unit, onDi
   )
 }
 
-data class MockStory(val name: String, val avatarRes: Int, val viewed: Boolean)
-
 @Composable
 fun StoryItem(
     name: String,
@@ -330,8 +310,8 @@ fun StoryItem(
     testTag: String = ""
 ) {
   val borderColor =
-      if (viewed) Color(HomeScreenConstants.VIEWED_STORY_BORDER_COLOR)
-      else Color(HomeScreenConstants.UNVIEWED_STORY_BORDER_COLOR)
+      if (viewed) androidx.compose.material3.MaterialTheme.colorScheme.outline
+      else androidx.compose.material3.MaterialTheme.colorScheme.primary
   Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier =
