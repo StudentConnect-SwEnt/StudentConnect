@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import android.annotation.SuppressLint
-import androidx.compose.ui.tooling.preview.Preview
-import com.github.se.studentconnect.ui.theme.AppTheme
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -23,13 +21,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -44,21 +42,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import com.github.se.studentconnect.repository.UserRepository
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 /**
  * Collects and persists the user's core profile details (names and birthdate) while controlling
@@ -167,16 +169,13 @@ fun BasicInfoScreen(
         // Username field with real-time validation and availability check
         UsernameTextField(
             username = usernameText,
-            onUsernameChange = { newUsername ->
-                viewModel.setUsername(newUsername)
-            },
+            onUsernameChange = { newUsername -> viewModel.setUsername(newUsername) },
             userRepository = userRepository,
             onValidationStateChange = { isValid, available ->
-                isUsernameFormatValid = isValid
-                isUsernameAvailable = available
+              isUsernameFormatValid = isValid
+              isUsernameAvailable = available
             },
-            modifier = Modifier.fillMaxWidth()
-        )
+            modifier = Modifier.fillMaxWidth())
 
         Spacer(Modifier.height(16.dp))
 
@@ -236,9 +235,7 @@ fun BasicInfoScreen(
       }
 }
 
-/**
- * Text field for username input with real-time validation and availability checking.
- */
+/** Text field for username input with real-time validation and availability checking. */
 @Composable
 fun UsernameTextField(
     username: String,

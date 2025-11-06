@@ -42,6 +42,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-1",
             email = "user1@studentconnect.ch",
+            username = "user1",
             firstName = "Lia",
             lastName = "River",
             university = "Uni",
@@ -145,6 +146,10 @@ class VisitorProfileViewModelTest {
         TODO("Not yet implemented")
       }
 
+      override suspend fun checkUsernameAvailability(username: String): Boolean {
+        TODO("Not yet implemented")
+      }
+
       override suspend fun declineInvitation(eventId: String, userId: String) = Unit
     }
   }
@@ -187,6 +192,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-cache",
             email = "cache@studentconnect.ch",
+            username = "cacheuser",
             firstName = "Cache",
             lastName = "Test",
             university = "Uni",
@@ -218,6 +224,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-refresh",
             email = "refresh@studentconnect.ch",
+            username = "refreshuser",
             firstName = "Force",
             lastName = "Refresh",
             university = "Uni",
@@ -250,6 +257,7 @@ class VisitorProfileViewModelTest {
             User(
                 userId = "user-retry",
                 email = "retry@studentconnect.ch",
+                username = "retryuser",
                 firstName = "Retry",
                 lastName = "Ok",
                 university = "Uni",
@@ -289,6 +297,7 @@ class VisitorProfileViewModelTest {
               User(
                   userId = id,
                   email = "$id@studentconnect.ch",
+                  username = "user$id",
                   firstName = "A",
                   lastName = "B",
                   university = "Uni",
@@ -312,6 +321,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-1",
             email = "user1@studentconnect.ch",
+            username = "user1",
             firstName = "Test",
             lastName = "User",
             university = "Uni",
@@ -342,6 +352,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-1",
             email = "user1@studentconnect.ch",
+            username = "user1",
             firstName = "Test",
             lastName = "User",
             university = "Uni",
@@ -365,6 +376,7 @@ class VisitorProfileViewModelTest {
         User(
             userId = "user-1",
             email = "user1@studentconnect.ch",
+            username = "user1",
             firstName = "Test",
             lastName = "User",
             university = "Uni",

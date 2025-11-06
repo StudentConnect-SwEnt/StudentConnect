@@ -18,6 +18,7 @@ class UserRepositoryLocalTest {
   private val testUser1 =
       User(
           userId = "user1",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           email = "john.doe@example.com",
@@ -27,6 +28,7 @@ class UserRepositoryLocalTest {
   private val testUser2 =
       User(
           userId = "user2",
+          username = "janesmith",
           firstName = "Jane",
           lastName = "Smith",
           email = "jane.smith@example.com",
@@ -351,5 +353,43 @@ class UserRepositoryLocalTest {
     assertTrue(events.contains("event1"))
     assertTrue(events.contains("event2"))
     assertTrue(events.contains("event3"))
+  }
+
+  // Username availability tests
+  @Test
+  fun checkUsernameAvailability_returnsTrue_whenUsernameNotExists() = runTest {
+    val result = repository.checkUsernameAvailability("newuser")
+    assertTrue(result)
+  }
+
+  @Test
+  fun checkUsernameAvailability_returnsFalse_whenUsernameExists() = runTest {
+    repository.saveUser(testUser1)
+    val result = repository.checkUsernameAvailability("johndoe")
+    assertFalse(result)
+  }
+
+  @Test
+  fun checkUsernameAvailability_isCaseInsensitive() = runTest {
+    repository.saveUser(testUser1)
+    assertFalse(repository.checkUsernameAvailability("JOHNDOE"))
+    assertFalse(repository.checkUsernameAvailability("JohnDoe"))
+    assertFalse(repository.checkUsernameAvailability("jOhNdOe"))
+  }
+
+  @Test
+  fun checkUsernameAvailability_returnsTrue_forDifferentUsername() = runTest {
+    repository.saveUser(testUser1)
+    val result = repository.checkUsernameAvailability("differentuser")
+    assertTrue(result)
+  }
+
+  @Test
+  fun checkUsernameAvailability_handlesMultipleUsers() = runTest {
+    repository.saveUser(testUser1)
+    repository.saveUser(testUser2)
+    assertFalse(repository.checkUsernameAvailability("johndoe"))
+    assertFalse(repository.checkUsernameAvailability("janesmith"))
+    assertTrue(repository.checkUsernameAvailability("newuser"))
   }
 }

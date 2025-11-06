@@ -167,8 +167,7 @@ interface UserRepository {
   suspend fun getFavoriteEvents(userId: String): List<String>
 
   /**
-   * Checks if a username is available (not already taken).
-   * Performs case-insensitive check.
+   * Checks if a username is available (not already taken). Performs case-insensitive check.
    *
    * @param username The username to check (will be normalized to lowercase for comparison).
    * @return true if the username is available, false if it's already taken.

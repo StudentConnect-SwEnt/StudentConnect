@@ -323,6 +323,10 @@ class ProfileViewModelTest {
       TODO("Not yet implemented")
     }
 
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
+
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
   }
@@ -332,6 +336,7 @@ class ProfileViewModelTest {
         User(
             userId = "user-123",
             email = "john.doe@epfl.ch",
+            username = "johndoe",
             firstName = "John",
             lastName = "Doe",
             university = "EPFL",

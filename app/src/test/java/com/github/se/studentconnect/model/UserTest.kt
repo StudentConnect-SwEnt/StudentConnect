@@ -9,6 +9,7 @@ class UserTest {
       User(
           userId = "user123",
           email = "test@epfl.ch",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           university = "EPFL",
@@ -23,6 +24,7 @@ class UserTest {
     assertNotNull(validUser)
     assertEquals("user123", validUser.userId)
     assertEquals("test@epfl.ch", validUser.email)
+    assertEquals("johndoe", validUser.username)
     assertEquals("John", validUser.firstName)
     assertEquals("Doe", validUser.lastName)
     assertEquals("EPFL", validUser.university)
@@ -41,6 +43,7 @@ class UserTest {
         User(
             userId = "user456",
             email = "test@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -59,6 +62,7 @@ class UserTest {
         User(
             userId = "user789",
             email = "test@ethz.ch",
+            username = "alicej",
             firstName = "Alice",
             lastName = "Johnson",
             university = "ETHZ")
@@ -76,6 +80,7 @@ class UserTest {
     User(
         userId = "",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL")
@@ -83,7 +88,13 @@ class UserTest {
 
   @Test(expected = IllegalArgumentException::class)
   fun testUserCreationWithBlankEmail() {
-    User(userId = "user123", email = "", firstName = "John", lastName = "Doe", university = "EPFL")
+    User(
+        userId = "user123",
+        email = "",
+        username = "johndoe",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
   }
 
   @Test(expected = IllegalArgumentException::class)
@@ -91,6 +102,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "invalid-email",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL")
@@ -101,6 +113,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "",
         lastName = "Doe",
         university = "EPFL")
@@ -111,6 +124,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "",
         university = "EPFL")
@@ -121,6 +135,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "")
@@ -131,6 +146,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL",
@@ -143,6 +159,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL",
@@ -155,6 +172,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL",
@@ -175,6 +193,7 @@ class UserTest {
         User(
             userId = "user456",
             email = "test@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -187,6 +206,7 @@ class UserTest {
         User(
             userId = "user789",
             email = "test@ethz.ch",
+            username = "alicej",
             firstName = "Alice",
             lastName = "Johnson",
             university = "ETHZ",
@@ -204,6 +224,7 @@ class UserTest {
         User(
             userId = "user456",
             email = "test@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -216,6 +237,7 @@ class UserTest {
         User(
             userId = "user789",
             email = "test@ethz.ch",
+            username = "alicej",
             firstName = "Alice",
             lastName = "Johnson",
             university = "ETHZ",
@@ -328,6 +350,7 @@ class UserTest {
 
     assertEquals("user123", map["userId"])
     assertEquals("test@epfl.ch", map["email"])
+    assertEquals("johndoe", map["username"])
     assertEquals("John", map["firstName"])
     assertEquals("Doe", map["lastName"])
     assertEquals("EPFL", map["university"])
@@ -344,6 +367,7 @@ class UserTest {
         User(
             userId = "user456",
             email = "test@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -353,6 +377,7 @@ class UserTest {
 
     assertEquals("user456", map["userId"])
     assertEquals("test@unil.ch", map["email"])
+    assertEquals("janesmith", map["username"])
     assertEquals("Jane", map["firstName"])
     assertEquals("Smith", map["lastName"])
     assertEquals("UNIL", map["university"])
@@ -369,6 +394,7 @@ class UserTest {
         mapOf(
             "userId" to "user123",
             "email" to "test@epfl.ch",
+            "username" to "johndoe",
             "firstName" to "John",
             "lastName" to "Doe",
             "university" to "EPFL",
@@ -383,6 +409,7 @@ class UserTest {
     assertNotNull(user)
     assertEquals("user123", user!!.userId)
     assertEquals("test@epfl.ch", user.email)
+    assertEquals("johndoe", user.username)
     assertEquals("John", user.firstName)
     assertEquals("Doe", user.lastName)
     assertEquals("EPFL", user.university)
@@ -585,6 +612,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "johndoe",
             firstName = "John",
             lastName = "Doe",
             university = "EPFL",
@@ -595,6 +623,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "johndoe",
             firstName = "John",
             lastName = "Doe",
             university = "EPFL",
@@ -611,6 +640,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "johndoe",
             firstName = "John",
             lastName = "Doe",
             university = "EPFL",
@@ -621,6 +651,7 @@ class UserTest {
         User(
             userId = "user456",
             email = "test@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -648,6 +679,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = longName,
         lastName = "Doe",
         university = "EPFL")
@@ -659,6 +691,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = longName,
         university = "EPFL")
@@ -670,6 +703,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = longUniversity)
@@ -681,6 +715,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL",
@@ -698,6 +733,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "johndoe",
             firstName = maxFirstName,
             lastName = maxLastName,
             university = maxUniversity,
@@ -716,6 +752,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "josemaria",
             firstName = "José-María",
             lastName = "O'Connor-Smith",
             university = "École Polytechnique Fédérale de Lausanne")
@@ -731,6 +768,7 @@ class UserTest {
         User(
             userId = "user123",
             email = "test@epfl.ch",
+            username = "zhangsan",
             firstName = "张三",
             lastName = "李四",
             university = "苏黎世联邦理工学院")
@@ -746,6 +784,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@@epfl.ch",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL")
@@ -756,6 +795,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL")
@@ -766,6 +806,7 @@ class UserTest {
     User(
         userId = "user123",
         email = "test@epfl",
+        username = "johndoe",
         firstName = "John",
         lastName = "Doe",
         university = "EPFL")
@@ -785,6 +826,7 @@ class UserTest {
           User(
               userId = "user123",
               email = email,
+              username = "johndoe",
               firstName = "John",
               lastName = "Doe",
               university = "EPFL")
@@ -800,6 +842,7 @@ class UserTest {
         User(
             userId = "user1",
             email = "test1@epfl.ch",
+            username = "user1",
             firstName = "John",
             lastName = "Doe",
             university = "EPFL",
@@ -812,6 +855,7 @@ class UserTest {
         User(
             userId = "user2",
             email = "test2@epfl.ch",
+            username = "user2",
             firstName = "Jane",
             lastName = "Doe",
             university = "EPFL",
@@ -875,5 +919,159 @@ class UserTest {
 
     assertEquals(newUrl, user.profilePictureUrl)
     assertEquals(newBio, user.bio)
+  }
+
+  // Username validation tests
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithBlankUsername() {
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        username = "",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithUsernameTooShort() {
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        username = "ab",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithUsernameTooLong() {
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        username = "a".repeat(21),
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithInvalidUsernameCharacters() {
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        username = "john@doe",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun testUserCreationWithUsernameContainingSpaces() {
+    User(
+        userId = "user123",
+        email = "test@epfl.ch",
+        username = "john doe",
+        firstName = "John",
+        lastName = "Doe",
+        university = "EPFL")
+  }
+
+  @Test
+  fun testUserCreationWithValidUsernameFormats() {
+    val validUsernames =
+        listOf("abc", "user123", "john_doe", "test-user", "user.name", "a1_b2-c3.d4")
+
+    validUsernames.forEach { username ->
+      val user =
+          User(
+              userId = "user123",
+              email = "test@epfl.ch",
+              username = username,
+              firstName = "John",
+              lastName = "Doe",
+              university = "EPFL")
+      assertEquals(username, user.username)
+    }
+  }
+
+  @Test
+  fun testUserCreationWithMinLengthUsername() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            username = "abc",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL")
+    assertEquals("abc", user.username)
+  }
+
+  @Test
+  fun testUserCreationWithMaxLengthUsername() {
+    val username = "a".repeat(20)
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            username = username,
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL")
+    assertEquals(username, user.username)
+  }
+
+  @Test
+  fun testToMapIncludesUsername() {
+    val map = validUser.toMap()
+    assertEquals("johndoe", map["username"])
+  }
+
+  @Test
+  fun testFromMapWithUsername() {
+    val map =
+        mapOf(
+            "userId" to "user123",
+            "email" to "test@epfl.ch",
+            "username" to "johndoe",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL",
+            "createdAt" to 1000L,
+            "updatedAt" to 1000L)
+
+    val user = User.fromMap(map)
+    assertNotNull(user)
+    assertEquals("johndoe", user!!.username)
+  }
+
+  @Test
+  fun testFromMapWithMissingUsername() {
+    val map =
+        mapOf(
+            "userId" to "user123",
+            "email" to "test@epfl.ch",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL",
+            "createdAt" to 1000L,
+            "updatedAt" to 1000L)
+
+    val user = User.fromMap(map)
+    assertNull(user)
+  }
+
+  @Test
+  fun testUpdateUsername() {
+    val updatedUser = validUser.update(username = User.UpdateValue.SetValue("newusername"))
+    assertEquals("newusername", updatedUser.username)
+    assertEquals(validUser.firstName, updatedUser.firstName)
+  }
+
+  @Test
+  fun testUpdateUsernameNoChange() {
+    val updatedUser = validUser.update(username = User.UpdateValue.NoChange())
+    assertEquals(validUser.username, updatedUser.username)
   }
 }

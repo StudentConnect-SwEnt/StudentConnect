@@ -41,7 +41,9 @@ data class User(
     require(isValidEmail(email)) { "Email must be valid" }
     require(username.isNotBlank()) { "Username cannot be blank" }
     require(username.length in 3..20) { "Username must be between 3 and 20 characters" }
-    require(isValidUsername(username)) { "Username can only contain alphanumeric characters, underscores, hyphens, and periods" }
+    require(isValidUsername(username)) {
+      "Username can only contain alphanumeric characters, underscores, hyphens, and periods"
+    }
     require(firstName.isNotBlank()) { "First name cannot be blank" }
     require(firstName.length <= 100) { "First name cannot exceed 100 characters" }
     require(lastName.isNotBlank()) { "Last name cannot be blank" }
