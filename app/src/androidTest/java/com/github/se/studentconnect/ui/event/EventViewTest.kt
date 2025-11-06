@@ -9,14 +9,21 @@ import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.github.se.studentconnect.viewmodel.EventViewModel
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,6 +59,11 @@ class EventViewTest {
     viewModel = EventViewModel(eventRepository, userRepository)
 
     runBlocking { eventRepository.addEvent(testEvent) }
+  }
+
+  @After
+  fun tearDown() {
+    unmockkAll()
   }
 
   @Test
@@ -493,5 +505,429 @@ class EventViewTest {
 
     composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
     // Should not crash
+  }
+
+  @Test
+  fun eventView_scanQrButton_notDisplayedForNonOwner() {
+    // Arrange - set current user to someone other than the owner
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "different-user"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.EVENT_VIEW_SCREEN))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Assert - scan QR button should not be displayed
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventView_scanQrButton_displayedForOwner() {
+    // Arrange - set current user to the event owner
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Assert - scan QR button should be displayed
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_scanQrButton_hasCorrectText() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasText("Scan Ticket"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("Scan Ticket").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_scanQrButton_hasClickAction() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertHasClickAction()
+  }
+
+  @Test
+  fun eventView_scanQrButton_click_opensQrScanner() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - click the scan QR button
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    // Assert - QR scanner dialog should be displayed
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_qrScannerDialog_notDisplayedInitially() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.EVENT_VIEW_SCREEN))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Assert - QR scanner should not be displayed initially
+    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventView_validationResult_valid_displaysCorrectly() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val participantId = "participant123"
+    runBlocking {
+      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+    }
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and validate participant
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Simulate validation through ViewModel
+    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+    // Assert - valid result should be displayed
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(
+              androidx.compose.ui.test.hasTestTag(EventViewTestTags.VALIDATION_RESULT_VALID))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Valid Ticket").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_validationResult_invalid_displaysCorrectly() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val nonParticipantId = "nonparticipant123"
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and validate non-participant
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Simulate validation through ViewModel
+    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, nonParticipantId) }
+
+    // Assert - invalid result should be displayed
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(
+              androidx.compose.ui.test.hasTestTag(EventViewTestTags.VALIDATION_RESULT_INVALID))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_INVALID).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Invalid Ticket").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_validationResult_scanNextButton_clearsResult() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val participantId = "participant123"
+    runBlocking {
+      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+    }
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and validate participant
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasText("Scan Next"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Click "Scan Next" button
+    composeTestRule.onNodeWithText("Scan Next").performClick()
+
+    // Assert - validation result should be cleared
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventView_validationResult_closeScannerButton_closesDialog() {
+    // Arrange
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val participantId = "participant123"
+    runBlocking {
+      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+    }
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = viewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and validate participant
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasText("Close Scanner"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Click "Close Scanner" button
+    composeTestRule.onNodeWithText("Close Scanner").performClick()
+
+    // Assert - dialog should be closed
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventView_validationResult_error_displaysCorrectly() {
+    // Arrange - create a mock repository that throws an exception
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns "owner123"
+
+    val mockEventRepository = EventRepositoryLocal()
+    runBlocking { mockEventRepository.addEvent(testEvent) }
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Network connection failed")
+          }
+        }
+
+    val errorViewModel = EventViewModel(errorThrowingRepo, userRepository)
+
+    composeTestRule.setContent {
+      EventView(
+          eventUid = testEvent.uid,
+          navController = rememberNavController(),
+          eventViewModel = errorViewModel,
+          hasJoined = false)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.SCAN_QR_BUTTON))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Act - open scanner and trigger an error
+    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.QR_SCANNER_DIALOG))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Simulate validation through ViewModel - this will throw an exception
+    composeTestRule.runOnIdle { errorViewModel.validateParticipant(testEvent.uid, "userId") }
+
+    // Assert - error result should be displayed
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(
+              androidx.compose.ui.test.hasTestTag(EventViewTestTags.VALIDATION_RESULT_ERROR))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_ERROR).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Verification Error").assertIsDisplayed()
   }
 }
