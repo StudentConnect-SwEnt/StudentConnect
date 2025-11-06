@@ -78,7 +78,6 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -129,41 +128,45 @@ fun HomeScreen(
             topBar = {
               if (pagerState.currentPage == 1) {
                 HomeTopBar(
-                    showNotifications = showNotifications,
-                    onNotificationClick = { showNotifications = !showNotifications },
-                    onDismiss = { showNotifications = false },
-                    notifications = notificationUiState.notifications,
-                    unreadCount = notificationUiState.unreadCount,
-                    onNotificationRead = { notificationViewModel.markAsRead(it) },
-                    onNotificationDelete = { notificationViewModel.deleteNotification(it) },
-                    onFriendRequestAccept = { notificationId, fromUserId ->
-                      coroutineScope.launch {
-                        try {
-                          val userId = FirebaseAuth.getInstance().currentUser?.uid
-                          if (userId != null) {
-                            FriendsRepositoryProvider.repository.acceptFriendRequest(
-                                userId, fromUserId)
-                            notificationViewModel.deleteNotification(notificationId)
-                          }
-                        } catch (e: Exception) {
-                          // Handle error silently or show a message
-                        }
-                      }
-                    },
-                    onFriendRequestReject = { notificationId, fromUserId ->
-                      coroutineScope.launch {
-                        try {
-                          val userId = FirebaseAuth.getInstance().currentUser?.uid
-                          if (userId != null) {
-                            FriendsRepositoryProvider.repository.rejectFriendRequest(
-                                userId, fromUserId)
-                            notificationViewModel.deleteNotification(notificationId)
-                          }
-                        } catch (e: Exception) {
-                          // Handle error silently or show a message
-                        }
-                      }
-                    },
+                    notificationState =
+                        NotificationState(
+                            showNotifications = showNotifications,
+                            notifications = notificationUiState.notifications,
+                            unreadCount = notificationUiState.unreadCount),
+                    notificationCallbacks =
+                        NotificationCallbacks(
+                            onNotificationClick = { showNotifications = !showNotifications },
+                            onDismiss = { showNotifications = false },
+                            onNotificationRead = { notificationViewModel.markAsRead(it) },
+                            onNotificationDelete = { notificationViewModel.deleteNotification(it) },
+                            onFriendRequestAccept = { notificationId, fromUserId ->
+                              coroutineScope.launch {
+                                try {
+                                  val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                  if (userId != null) {
+                                    FriendsRepositoryProvider.repository.acceptFriendRequest(
+                                        userId, fromUserId)
+                                    notificationViewModel.deleteNotification(notificationId)
+                                  }
+                                } catch (e: Exception) {
+                                  // Handle error silently or show a message
+                                }
+                              }
+                            },
+                            onFriendRequestReject = { notificationId, fromUserId ->
+                              coroutineScope.launch {
+                                try {
+                                  val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                  if (userId != null) {
+                                    FriendsRepositoryProvider.repository.rejectFriendRequest(
+                                        userId, fromUserId)
+                                    notificationViewModel.deleteNotification(notificationId)
+                                  }
+                                } catch (e: Exception) {
+                                  // Handle error silently or show a message
+                                }
+                              }
+                            }),
                     navController = navController)
               }
             }) { paddingValues ->
@@ -240,100 +243,150 @@ fun HomeScreen(
       }
 }
 
+data class NotificationState(
+    val showNotifications: Boolean,
+    val notifications: List<Notification> = emptyList(),
+    val unreadCount: Int = 0
+)
+
+data class NotificationCallbacks(
+    val onNotificationClick: () -> Unit,
+    val onDismiss: () -> Unit,
+    val onNotificationRead: (String) -> Unit = {},
+    val onNotificationDelete: (String) -> Unit = {},
+    val onFriendRequestAccept: (String, String) -> Unit = { _, _ -> },
+    val onFriendRequestReject: (String, String) -> Unit = { _, _ -> }
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
-    showNotifications: Boolean,
-    onNotificationClick: () -> Unit,
-    onDismiss: () -> Unit,
-    notifications: List<Notification> = emptyList(),
-    unreadCount: Int = 0,
-    onNotificationRead: (String) -> Unit = {},
-    onNotificationDelete: (String) -> Unit = {},
-    onFriendRequestAccept: (String, String) -> Unit = { _, _ -> },
-    onFriendRequestReject: (String, String) -> Unit = { _, _ -> },
+    notificationState: NotificationState,
+    notificationCallbacks: NotificationCallbacks,
     navController: NavHostController = rememberNavController()
 ) {
   TopAppBar(
-      title = {
-        TextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-            placeholder = { Text("Search for events...") },
-            leadingIcon = {
-              Icon(
-                  painter = painterResource(id = R.drawable.ic_search),
-                  contentDescription = "Search Icon")
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent))
-      },
+      title = { SearchTextField() },
       actions = {
-        Box {
-          // Notification icon button with badge
-          IconButton(
-              onClick = onNotificationClick, modifier = Modifier.testTag("NotificationButton")) {
-                BadgedBox(
-                    badge = {
-                      if (unreadCount > 0) {
-                        Badge { Text(unreadCount.toString()) }
-                      }
-                    }) {
-                      Icon(
-                          imageVector = Icons.Default.Notifications,
-                          contentDescription = "Notifications")
-                    }
-              }
-          DropdownMenu(
-              expanded = showNotifications,
-              onDismissRequest = onDismiss,
-              modifier =
-                  Modifier.background(Color.Transparent)
-                      .shadow(0.dp)
-                      .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
-                Panel<Notification>(
-                    items = notifications,
-                    title = "Notifications",
-                    itemContent = { notification ->
-                      NotificationItem(
-                          notification = notification,
-                          onRead = { onNotificationRead(notification.id) },
-                          onDelete = { onNotificationDelete(notification.id) },
-                          onAccept =
-                              if (notification is Notification.FriendRequest) {
-                                { onFriendRequestAccept(notification.id, notification.fromUserId) }
-                              } else null,
-                          onReject =
-                              if (notification is Notification.FriendRequest) {
-                                { onFriendRequestReject(notification.id, notification.fromUserId) }
-                              } else null,
-                          onClick = {
-                            when (notification) {
-                              is Notification.FriendRequest -> {
-                                // Navigate to visitor profile
-                                navController.navigate(
-                                    Route.visitorProfile(notification.fromUserId))
-                                onNotificationRead(notification.id)
-                                onDismiss()
-                              }
-                              is Notification.EventStarting -> {
-                                // Navigate to event view
-                                navController.navigate("eventView/${notification.eventId}/true")
-                                onNotificationRead(notification.id)
-                                onDismiss()
-                              }
-                            }
-                          })
-                    })
-              }
-        }
+        NotificationDropdown(
+            notificationState = notificationState,
+            notificationCallbacks = notificationCallbacks,
+            navController = navController)
       })
+}
+
+@Composable
+private fun SearchTextField() {
+  TextField(
+      value = "",
+      onValueChange = {},
+      modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
+      placeholder = { Text("Search for events...") },
+      leadingIcon = {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_search),
+            contentDescription = "Search Icon")
+      },
+      singleLine = true,
+      shape = RoundedCornerShape(24.dp),
+      colors =
+          TextFieldDefaults.colors(
+              focusedIndicatorColor = Color.Transparent,
+              unfocusedIndicatorColor = Color.Transparent,
+              disabledIndicatorColor = Color.Transparent))
+}
+
+@Composable
+private fun NotificationDropdown(
+    notificationState: NotificationState,
+    notificationCallbacks: NotificationCallbacks,
+    navController: NavHostController
+) {
+  Box {
+    IconButton(
+        onClick = notificationCallbacks.onNotificationClick,
+        modifier = Modifier.testTag("NotificationButton")) {
+          NotificationBadge(unreadCount = notificationState.unreadCount)
+        }
+    DropdownMenu(
+        expanded = notificationState.showNotifications,
+        onDismissRequest = notificationCallbacks.onDismiss,
+        modifier =
+            Modifier.background(Color.Transparent)
+                .shadow(0.dp)
+                .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
+          Panel<Notification>(
+              items = notificationState.notifications,
+              title = "Notifications",
+              itemContent = { notification ->
+                NotificationItem(
+                    notification = notification,
+                    onRead = { notificationCallbacks.onNotificationRead(notification.id) },
+                    onDelete = { notificationCallbacks.onNotificationDelete(notification.id) },
+                    onAccept =
+                        getAcceptCallback(
+                            notification, notificationCallbacks.onFriendRequestAccept),
+                    onReject =
+                        getRejectCallback(
+                            notification, notificationCallbacks.onFriendRequestReject),
+                    onClick = {
+                      handleNotificationClick(
+                          notification,
+                          navController,
+                          notificationCallbacks.onNotificationRead,
+                          notificationCallbacks.onDismiss)
+                    })
+              })
+        }
+  }
+}
+
+@Composable
+private fun NotificationBadge(unreadCount: Int) {
+  BadgedBox(
+      badge = {
+        if (unreadCount > 0) {
+          Badge { Text(unreadCount.toString()) }
+        }
+      }) {
+        Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notifications")
+      }
+}
+
+private fun getAcceptCallback(
+    notification: Notification,
+    onFriendRequestAccept: (String, String) -> Unit
+): (() -> Unit)? {
+  return if (notification is Notification.FriendRequest) {
+    { onFriendRequestAccept(notification.id, notification.fromUserId) }
+  } else null
+}
+
+private fun getRejectCallback(
+    notification: Notification,
+    onFriendRequestReject: (String, String) -> Unit
+): (() -> Unit)? {
+  return if (notification is Notification.FriendRequest) {
+    { onFriendRequestReject(notification.id, notification.fromUserId) }
+  } else null
+}
+
+private fun handleNotificationClick(
+    notification: Notification,
+    navController: NavHostController,
+    onNotificationRead: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+  when (notification) {
+    is Notification.FriendRequest -> {
+      navController.navigate(Route.visitorProfile(notification.fromUserId))
+    }
+    is Notification.EventStarting -> {
+      navController.navigate("eventView/${notification.eventId}/true")
+    }
+  }
+  onNotificationRead(notification.id)
+  onDismiss()
 }
 
 @Composable
@@ -348,98 +401,127 @@ fun NotificationItem(
   Card(
       modifier = Modifier.fillMaxWidth().testTag("NotificationItem_${notification.id}"),
       colors =
-          CardDefaults.cardColors(
-              containerColor =
-                  if (notification.isRead) MaterialTheme.colorScheme.surface
-                  else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))) {
+          CardDefaults.cardColors(containerColor = getNotificationBackgroundColor(notification))) {
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-          Row(
-              modifier = Modifier.fillMaxWidth().clickable { onClick() },
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically) {
-                      // Icon based on notification type
-                      Icon(
-                          imageVector =
-                              when (notification) {
-                                is Notification.FriendRequest -> Icons.Default.Person
-                                is Notification.EventStarting -> Icons.Default.Event
-                              },
-                          contentDescription = null,
-                          modifier = Modifier.size(24.dp),
-                          tint = MaterialTheme.colorScheme.primary)
+          NotificationContent(notification = notification, onClick = onClick, onDelete = onDelete)
 
-                      Spacer(modifier = Modifier.width(12.dp))
-
-                      // Notification message
-                      Column(modifier = Modifier.weight(1f)) {
-                        val message: String =
-                            when (notification) {
-                              is Notification.FriendRequest -> notification.getMessage()
-                              is Notification.EventStarting -> notification.getMessage()
-                            }
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight =
-                                if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis)
-                      }
-                    }
-
-                // Delete button
-                IconButton(
-                    onClick = { onDelete() },
-                    modifier =
-                        Modifier.size(24.dp)
-                            .testTag("DeleteNotificationButton_${notification.id}")) {
-                      Icon(
-                          imageVector = Icons.Default.Close,
-                          contentDescription = "Delete",
-                          modifier = Modifier.size(16.dp))
-                    }
-              }
-
-          // Accept/Reject buttons for friend requests
-          if (notification is Notification.FriendRequest && onAccept != null && onReject != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                  Button(
-                      onClick = {
-                        onAccept()
-                        onRead()
-                      },
-                      modifier =
-                          Modifier.weight(1f)
-                              .testTag("AcceptFriendRequestButton_${notification.id}"),
-                      colors =
-                          ButtonDefaults.buttonColors(
-                              containerColor = MaterialTheme.colorScheme.primary)) {
-                        Text("Accept")
-                      }
-                  Button(
-                      onClick = {
-                        onReject()
-                        onRead()
-                      },
-                      modifier =
-                          Modifier.weight(1f)
-                              .testTag("RejectFriendRequestButton_${notification.id}"),
-                      colors =
-                          ButtonDefaults.buttonColors(
-                              containerColor = MaterialTheme.colorScheme.error)) {
-                        Text("Reject")
-                      }
-                }
+          if (shouldShowActionButtons(notification, onAccept, onReject)) {
+            FriendRequestActions(
+                notificationId = notification.id,
+                onAccept = onAccept!!,
+                onReject = onReject!!,
+                onRead = onRead)
           }
         }
       }
+}
+
+@Composable
+private fun getNotificationBackgroundColor(notification: Notification): Color {
+  return if (notification.isRead) {
+    MaterialTheme.colorScheme.surface
+  } else {
+    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+  }
+}
+
+@Composable
+private fun NotificationContent(
+    notification: Notification,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+  Row(
+      modifier = Modifier.fillMaxWidth().clickable { onClick() },
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically) {
+        NotificationIcon(notification = notification)
+        Spacer(modifier = Modifier.width(12.dp))
+        NotificationMessage(notification = notification, modifier = Modifier.weight(1f))
+        DeleteButton(notificationId = notification.id, onDelete = onDelete)
+      }
+}
+
+@Composable
+private fun NotificationIcon(notification: Notification) {
+  val icon =
+      when (notification) {
+        is Notification.FriendRequest -> Icons.Default.Person
+        is Notification.EventStarting -> Icons.Default.Event
+      }
+  Icon(
+      imageVector = icon,
+      contentDescription = null,
+      modifier = Modifier.size(24.dp),
+      tint = MaterialTheme.colorScheme.primary)
+}
+
+@Composable
+private fun NotificationMessage(notification: Notification, modifier: Modifier = Modifier) {
+  val message =
+      when (notification) {
+        is Notification.FriendRequest -> notification.getMessage()
+        is Notification.EventStarting -> notification.getMessage()
+      }
+  val fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal
+
+  Text(
+      text = message,
+      style = MaterialTheme.typography.bodyMedium,
+      fontWeight = fontWeight,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+      modifier = modifier)
+}
+
+@Composable
+private fun DeleteButton(notificationId: String, onDelete: () -> Unit) {
+  IconButton(
+      onClick = { onDelete() },
+      modifier = Modifier.size(24.dp).testTag("DeleteNotificationButton_$notificationId")) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Delete",
+            modifier = Modifier.size(16.dp))
+      }
+}
+
+private fun shouldShowActionButtons(
+    notification: Notification,
+    onAccept: (() -> Unit)?,
+    onReject: (() -> Unit)?
+): Boolean {
+  return notification is Notification.FriendRequest && onAccept != null && onReject != null
+}
+
+@Composable
+private fun FriendRequestActions(
+    notificationId: String,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+    onRead: () -> Unit
+) {
+  Spacer(modifier = Modifier.height(8.dp))
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Button(
+        onClick = {
+          onAccept()
+          onRead()
+        },
+        modifier = Modifier.weight(1f).testTag("AcceptFriendRequestButton_$notificationId"),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+          Text("Accept")
+        }
+    Button(
+        onClick = {
+          onReject()
+          onRead()
+        },
+        modifier = Modifier.weight(1f).testTag("RejectFriendRequestButton_$notificationId"),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+          Text("Reject")
+        }
+  }
 }
 
 /**
