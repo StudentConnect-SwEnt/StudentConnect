@@ -113,7 +113,8 @@ class HomeScreenQRScannerTest {
   @Test
   fun storiesRow_withStoriesOfZeroTotal_doesNotDisplay() {
     composeTestRule.setContent {
-      val stories = mapOf(testEvent1 to Pair(0, 0)) // 0 total stories
+      val stories: Map<Event, Pair<Int, Int>> =
+          mapOf(testEvent1 as Event to Pair(0, 0)) // 0 total stories
       StoriesRow(onClick = { _, _ -> }, stories = stories)
     }
 
@@ -138,7 +139,8 @@ class HomeScreenQRScannerTest {
         )
 
     composeTestRule.setContent {
-      val stories = mapOf(testEvent1 to Pair(3, 1), testEvent2 to Pair(5, 0))
+      val stories: Map<Event, Pair<Int, Int>> =
+          mapOf(testEvent1 as Event to Pair(3, 1), testEvent2 as Event to Pair(5, 0))
       StoriesRow(onClick = { _, _ -> }, stories = stories)
     }
 
