@@ -1,9 +1,9 @@
 package com.github.se.studentconnect.repository
 
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.*
 
 class UserRepositoryProviderTest {
 
@@ -26,4 +26,3 @@ class UserRepositoryProviderTest {
     }
   }
 }
-

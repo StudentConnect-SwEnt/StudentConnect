@@ -7,7 +7,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -90,7 +89,8 @@ class UsernameTextFieldTest {
 
     composeTestRule.waitForIdle()
     composeTestRule
-        .onNodeWithText("Only alphanumeric characters, underscores, hyphens, and periods are allowed")
+        .onNodeWithText(
+            "Only alphanumeric characters, underscores, hyphens, and periods are allowed")
         .assertExists()
   }
 
@@ -119,7 +119,10 @@ class UsernameTextFieldTest {
     composeTestRule.waitForIdle()
     // Wait for debounce and availability check
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("This username is already taken").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithText("This username is already taken")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     composeTestRule.onNodeWithText("This username is already taken").assertExists()
   }
@@ -139,7 +142,10 @@ class UsernameTextFieldTest {
     composeTestRule.waitForIdle()
     // Wait for debounce and availability check
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithContentDescription("Available").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithContentDescription("Available")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     composeTestRule.onNodeWithContentDescription("Available").assertExists()
   }
@@ -241,7 +247,10 @@ class UsernameTextFieldTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("This username is already taken").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithText("This username is already taken")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     // Should show error when exception occurs
     composeTestRule.onNodeWithText("This username is already taken").assertExists()
@@ -255,9 +264,7 @@ class UsernameTextFieldTest {
             username = "ab",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
@@ -273,9 +280,7 @@ class UsernameTextFieldTest {
             username = "a".repeat(21),
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
@@ -291,17 +296,13 @@ class UsernameTextFieldTest {
             username = "user_name-123.test",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
     // Should be valid format (will check availability)
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -313,9 +314,7 @@ class UsernameTextFieldTest {
             username = "",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
@@ -362,16 +361,12 @@ class UsernameTextFieldTest {
             username = "abc",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -383,16 +378,12 @@ class UsernameTextFieldTest {
             username = "a".repeat(20),
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -404,16 +395,12 @@ class UsernameTextFieldTest {
             username = "user_name",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -425,16 +412,12 @@ class UsernameTextFieldTest {
             username = "user-name",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -446,16 +429,12 @@ class UsernameTextFieldTest {
             username = "user.name",
             onUsernameChange = {},
             userRepository = repository,
-            onValidationStateChange = { isValid, _ ->
-              validationState = isValid to null
-            })
+            onValidationStateChange = { isValid, _ -> validationState = isValid to null })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      validationState?.first == true
-    }
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
 
@@ -478,4 +457,3 @@ class UsernameTextFieldTest {
     assert(validationState?.second == null)
   }
 }
-
