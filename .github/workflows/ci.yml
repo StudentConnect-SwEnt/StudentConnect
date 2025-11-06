@@ -40,16 +40,13 @@ jobs:
         run: ./gradlew ktfmtCheck --configuration-cache
 
       - name: Assemble and Lint
-        run: ./gradlew assembleDebug assembleDebugAndroidTest assembleRelease lint --parallel --build-cache --configuration-cache --max-workers=2
+        run: ./gradlew assembleNormalRelease lint --parallel --build-cache --configuration-cache --max-workers=2
 
-      - name: Upload APKs
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apks
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/androidTest/debug/*.apk
-            app/build/outputs/apk/release/*.apk
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -74,7 +71,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --parallel --build-cache --configuration-cache --max-workers=2
+        run: ./gradlew testResOverrideDebugUnitTest --parallel --build-cache --configuration-cache --max-workers=2
 
       - name: Upload unit test results
         if: always()
@@ -185,7 +182,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedCheck -PtestShardIndex=${{ matrix.shard }} -PtestNumShards=5 --parallel --build-cache --max-workers=2
+          script: ./gradlew connectedResOverrideDebugAndroidTest -PtestShardIndex=${{ matrix.shard }} -PtestNumShards=5 --parallel --build-cache --max-workers=2
 
       - name: Upload instrumented test results
         if: always()
@@ -277,7 +274,7 @@ jobs:
           echo "Instrumented test coverage files:"
           find app/build/outputs/code_coverage -name "*.ec" 2>/dev/null || echo "No .ec files found"
       - name: Generate Coverage Report
-        run: ./gradlew jacocoTestReport --configuration-cache --max-workers=2
+        run: ./gradlew jacocoTestReport -PcoverageFlavor=resOverride --configuration-cache --max-workers=2
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -289,4 +286,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar --parallel --build-cache --configuration-cache --max-workers=2 --stacktrace --info
+        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --configuration-cache --max-workers=2 --stacktrace --info
