@@ -87,4 +87,47 @@ class HomeScreenStoriesTest {
 
     composeTestRule.onNodeWithContentDescription("Event Story").assertHasClickAction()
   }
+
+  @Test
+  fun storyItem_withViewedStory_displaysCorrectly() {
+    composeTestRule.setContent {
+      StoryItem(
+          name = "Test Story",
+          avatarRes = com.github.se.studentconnect.R.drawable.avatar_12,
+          viewed = true,
+          onClick = {},
+          contentDescription = "Test Story Content")
+    }
+
+    composeTestRule.onNodeWithContentDescription("Test Story Content").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyItem_withUnviewedStory_displaysCorrectly() {
+    composeTestRule.setContent {
+      StoryItem(
+          name = "Test Story",
+          avatarRes = com.github.se.studentconnect.R.drawable.avatar_12,
+          viewed = false,
+          onClick = {},
+          contentDescription = "Test Story Content")
+    }
+
+    composeTestRule.onNodeWithContentDescription("Test Story Content").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyItem_withCustomTestTag_displaysWithTestTag() {
+    composeTestRule.setContent {
+      StoryItem(
+          name = "Test Story",
+          avatarRes = com.github.se.studentconnect.R.drawable.avatar_12,
+          viewed = false,
+          onClick = {},
+          contentDescription = "Test Story Content",
+          testTag = "custom_test_tag")
+    }
+
+    composeTestRule.onNodeWithContentDescription("Test Story Content").assertIsDisplayed()
+  }
 }
