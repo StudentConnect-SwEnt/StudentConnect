@@ -217,6 +217,7 @@ class ActivitiesViewModelTest {
     coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(futureEvent.uid)
     coEvery { eventRepository.getEvent(futureEvent.uid) } returns futureEvent
 
+    coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
     viewModel.onTabSelected(EventTab.Past)
     advanceUntilIdle()
 
