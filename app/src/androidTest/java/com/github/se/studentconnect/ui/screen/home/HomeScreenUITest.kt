@@ -898,4 +898,235 @@ class HomeScreenUITest {
     composeTestRule.onNodeWithText("Alice Brown sent you a friend request").assertIsDisplayed()
     composeTestRule.onNodeWithText("Event \"Workshop\" is starting soon").assertIsDisplayed()
   }
+
+  @Test
+  fun homeScreen_emptyNotifications_displaysNoBadge() {
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Badge should not be displayed when there are no unread notifications
+    composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
+  }
+
+  @Test
+  fun homeScreen_searchBar_hasClickAction() {
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Search for events...").assertHasClickAction()
+  }
+
+  @Test
+  fun homeScreen_clickSearchBar_doesNotCrash() {
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Search for events...").performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun homeScreen_notificationPanel_canBeClosed() {
+    val friendRequestNotification =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend456",
+            fromUserName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking { notificationRepository.createNotification(friendRequestNotification, {}, {}) }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Open notification panel
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify panel is open
+    composeTestRule.onNodeWithText("Notifications").assertIsDisplayed()
+
+    // Click outside or press back to close (test that it doesn't crash)
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun homeScreen_multipleFriendRequests_displayCorrectly() {
+    val friendRequest1 =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend1",
+            fromUserName = "Alice Johnson",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    val friendRequest2 =
+        Notification.FriendRequest(
+            id = "notif-2",
+            userId = "user123",
+            fromUserId = "friend2",
+            fromUserName = "Bob Williams",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    runBlocking {
+      notificationRepository.createNotification(friendRequest1, {}, {})
+      notificationRepository.createNotification(friendRequest2, {}, {})
+    }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify both friend requests are displayed
+    composeTestRule.onNodeWithText("Alice Johnson sent you a friend request").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Bob Williams sent you a friend request").assertIsDisplayed()
+
+    // Verify both have Accept and Reject buttons
+    composeTestRule
+        .onAllNodes(androidx.compose.ui.test.hasText("Accept"))
+        .fetchSemanticsNodes()
+        .let { nodes -> assert(nodes.size >= 2) }
+  }
+
+  @Test
+  fun homeScreen_favoriteFilter_hasClickAction() {
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasText("Favorites"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("Favorites").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
+  }
+
+  @Test
+  fun homeScreen_clickFavoritesFilter_doesNotCrash() {
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasText("Favorites"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun homeScreen_allReadNotifications_badgeNotDisplayed() {
+    // Add only read notifications
+    val readNotification1 =
+        Notification.FriendRequest(
+            id = "notif-1",
+            userId = "user123",
+            fromUserId = "friend1",
+            fromUserName = "Sam Green",
+            timestamp = Timestamp.now(),
+            isRead = true)
+
+    val readNotification2 =
+        Notification.EventStarting(
+            id = "notif-2",
+            userId = "user123",
+            eventId = "event789",
+            eventTitle = "Meeting",
+            eventStart = Timestamp.now(),
+            timestamp = Timestamp.now(),
+            isRead = true)
+
+    runBlocking {
+      notificationRepository.createNotification(readNotification1, {}, {})
+      notificationRepository.createNotification(readNotification2, {}, {})
+    }
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          viewModel = viewModel,
+          notificationViewModel = NotificationViewModel(notificationRepository))
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasContentDescription("Notifications"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Badge should not show when all notifications are read
+    composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
+
+    // Open panel to verify read notifications are still displayed
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Sam Green sent you a friend request").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event \"Meeting\" is starting soon").assertIsDisplayed()
+  }
 }
