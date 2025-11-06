@@ -7,7 +7,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -160,7 +159,9 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled() // Now enabled with empty selection
+    composeTestRule
+        .onNodeWithText("Save Activities")
+        .assertIsEnabled() // Now enabled with empty selection
   }
 
   @Test
@@ -481,10 +482,7 @@ class EditActivitiesScreenTest {
 
     // Wait until loading state is active (button text disappears)
     composeTestRule.waitUntil(timeoutMillis = 1000) {
-      composeTestRule
-          .onAllNodesWithText("Save Activities")
-          .fetchSemanticsNodes()
-          .isEmpty()
+      composeTestRule.onAllNodesWithText("Save Activities").fetchSemanticsNodes().isEmpty()
     }
 
     // Should show loading state (button text disappeared, showing progress indicator)
@@ -778,9 +776,7 @@ class EditActivitiesScreenTest {
 
     init {
       // Initialize with user synchronously using runBlocking
-      initialUser?.let {
-        kotlinx.coroutines.runBlocking { delegate.saveUser(it) }
-      }
+      initialUser?.let { kotlinx.coroutines.runBlocking { delegate.saveUser(it) } }
     }
 
     override suspend fun getUserById(userId: String): User? {
