@@ -17,7 +17,6 @@ import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
-import com.github.se.studentconnect.viewmodel.EventViewModel
 import com.google.firebase.Timestamp
 import io.mockk.every
 import io.mockk.mockkObject

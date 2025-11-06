@@ -54,20 +54,17 @@ class EventViewModel(
 
       val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
 
-      val isFull = fetchedEvent.maxCapacity?.let { max ->
-        participantCount >= max.toInt()
-      } ?: false
+      val isFull = fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
 
       val finalIsJoined = actualIsJoined
 
       _uiState.update {
         it.copy(
-          event = fetchedEvent,
-          isLoading = false,
-          isJoined = finalIsJoined,
-          participantCount = participantCount,
-          isFull = isFull
-        )
+            event = fetchedEvent,
+            isLoading = false,
+            isJoined = finalIsJoined,
+            participantCount = participantCount,
+            isFull = isFull)
       }
     }
   }
@@ -83,11 +80,11 @@ class EventViewModel(
       val event = _uiState.value.event
       val ownerId = event?.ownerId
       val participantCount = participants.count { it.uid != ownerId }
-      val isFull = event?.maxCapacity?.let { max ->
-        participantCount >= max.toInt()
-      } ?: false
+      val isFull = event?.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
 
-      _uiState.update { it.copy(isJoined = false, participantCount = participantCount, isFull = isFull) }
+      _uiState.update {
+        it.copy(isJoined = false, participantCount = participantCount, isFull = isFull)
+      }
     }
   }
 
@@ -105,12 +102,12 @@ class EventViewModel(
       // Participant count (Exclude owner)
       val participants = eventRepository.getEventParticipants(eventUid)
       val participantCount = participants.count { it.uid != ownerId }
-      val isFull = event?.maxCapacity?.let { max ->
-        participantCount >= max.toInt()
-      } ?: false
+      val isFull = event?.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
       val actualIsJoined = participants.any { it.uid == currentUserUid && it.uid != ownerId }
 
-      _uiState.update { it.copy(isJoined = actualIsJoined, participantCount = participantCount, isFull = isFull) }
+      _uiState.update {
+        it.copy(isJoined = actualIsJoined, participantCount = participantCount, isFull = isFull)
+      }
     }
   }
 

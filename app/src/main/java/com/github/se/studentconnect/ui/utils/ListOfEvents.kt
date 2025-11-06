@@ -108,17 +108,17 @@ fun EventCard(
 ) {
   var localFavorite by remember { mutableStateOf(isFavorite) }
 
-  LaunchedEffect(isFavorite) {
-    localFavorite = isFavorite
-  }
+  LaunchedEffect(isFavorite) { localFavorite = isFavorite }
 
   val now = Timestamp.now()
-  val endTime = event.end ?: run {
-    val cal = Calendar.getInstance()
-    cal.time = event.start.toDate()
-    cal.add(Calendar.HOUR_OF_DAY, 3)
-    Timestamp(cal.time)
-  }
+  val endTime =
+      event.end
+          ?: run {
+            val cal = Calendar.getInstance()
+            cal.time = event.start.toDate()
+            cal.add(Calendar.HOUR_OF_DAY, 3)
+            Timestamp(cal.time)
+          }
   val isLive = now >= event.start && now < endTime
 
   Card(

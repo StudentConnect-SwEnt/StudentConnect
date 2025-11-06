@@ -128,11 +128,12 @@ class ActivitiesViewModel(
             EventTab.Past -> {
               val joinedEvents = userRepository.getJoinedEvents(userUid)
 
-              val allVisibleEvents = try {
-                eventRepository.getAllVisibleEvents()
-              } catch (_: Exception) {
-                emptyList()
-              }
+              val allVisibleEvents =
+                  try {
+                    eventRepository.getAllVisibleEvents()
+                  } catch (_: Exception) {
+                    emptyList()
+                  }
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
 
               val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()

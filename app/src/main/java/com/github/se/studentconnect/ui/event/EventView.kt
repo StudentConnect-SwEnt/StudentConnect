@@ -35,14 +35,14 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.ui.event.EventViewModel
+import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
-import com.github.se.studentconnect.ui.event.EventViewModel
-import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.google.firebase.Timestamp
 
 private val screenPadding = 25.dp
@@ -127,17 +127,14 @@ fun EventView(
       }) { paddingValues ->
         if (isLoading) {
           Box(
-              modifier = Modifier
-                  .fillMaxSize()
-                  .testTag(EventViewTestTags.LOADING_INDICATOR),
+              modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
               contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
               }
         } else if (event != null) {
           Column(
               modifier =
-                  Modifier
-                      .fillMaxSize()
+                  Modifier.fillMaxSize()
                       .padding(paddingValues)
                       .verticalScroll(rememberScrollState()),
               horizontalAlignment = Alignment.CenterHorizontally,
@@ -146,8 +143,7 @@ fun EventView(
                     imageVector = Icons.Default.Image,
                     contentDescription = "Event Image",
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
+                        Modifier.fillMaxWidth()
                             .height(250.dp)
                             .padding(horizontal = screenPadding)
                             .clip(RoundedCornerShape(16.dp))
@@ -200,8 +196,7 @@ private fun InfoEvent(
             val text = if (isJoined) "Hurry up! Event has started" else "Event has started"
             Text(
                 modifier =
-                    Modifier
-                        .align(Alignment.CenterHorizontally)
+                    Modifier.align(Alignment.CenterHorizontally)
                         .fillMaxHeight()
                         .testTag(EventViewTestTags.COUNTDOWN_TIMER),
                 color = MaterialTheme.colorScheme.primary,
@@ -213,8 +208,7 @@ private fun InfoEvent(
           timeLeft > DAY_IN_SECONDS -> {
             Text(
                 modifier =
-                    Modifier
-                        .align(Alignment.CenterHorizontally)
+                    Modifier.align(Alignment.CenterHorizontally)
                         .fillMaxHeight()
                         .testTag(EventViewTestTags.COUNTDOWN_DAYS),
                 color = MaterialTheme.colorScheme.primary,
@@ -224,8 +218,7 @@ private fun InfoEvent(
           else -> {
             Box(
                 modifier =
-                    Modifier
-                        .testTag(EventViewTestTags.COUNTDOWN_TIMER)
+                    Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
                         .align(Alignment.CenterHorizontally)) {
                   CountDownDisplay(timeLeft)
                 }
@@ -242,39 +235,42 @@ private fun InfoEvent(
 
 @Composable
 private fun ParticipantsInfo(event: Event, participantCount: Int) {
-  val (capacity, label) = when (event) {
-    is Event.Public -> event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
-    is Event.Private -> event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
-  }
+  val (capacity, label) =
+      when (event) {
+        is Event.Public ->
+            event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
+        is Event.Private ->
+            event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
+      }
   Column(modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.PARTICIPANTS_INFO)) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-      Icon(
-          painter = painterResource(id = R.drawable.ic_group),
-          contentDescription = "Participants",
-          modifier = Modifier.size(24.dp))
-      val participantsText = if (capacity != null) {
-        "$participantCount / $capacity"
-      } else {
-        "$participantCount $label"
-      }
-      Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
-    }
+          Icon(
+              painter = painterResource(id = R.drawable.ic_group),
+              contentDescription = "Participants",
+              modifier = Modifier.size(24.dp))
+          val participantsText =
+              if (capacity != null) {
+                "$participantCount / $capacity"
+              } else {
+                "$participantCount $label"
+              }
+          Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+        }
     capacity?.let { maxCap ->
       val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
       Spacer(modifier = Modifier.height(8.dp))
-        LinearProgressIndicator(
-        progress = { progress },
-        modifier = Modifier
-                      .fillMaxWidth()
-                      .height(10.dp)
-                      .clip(RoundedCornerShape(6.dp)),
-        color = if (progress < 0.75f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-        )
+      LinearProgressIndicator(
+          progress = { progress },
+          modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
+          color =
+              if (progress < 0.75f) MaterialTheme.colorScheme.primary
+              else MaterialTheme.colorScheme.error,
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+      )
     }
   }
 }
@@ -284,8 +280,7 @@ private fun ChatButton(context: Context = LocalContext.current) {
   Button(
       onClick = { DialogNotImplemented(context) },
       modifier =
-          Modifier
-              .fillMaxWidth()
+          Modifier.fillMaxWidth()
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
               .testTag(EventViewTestTags.CHAT_BUTTON),
       colors =
@@ -353,9 +348,7 @@ fun EventActionButtons(
 
     // Common action buttons for all users
     CommonActionButtons(
-        currentEvent = currentEvent,
-        context = context,
-        navController = navController)
+        currentEvent = currentEvent, context = context, navController = navController)
   }
 }
 
@@ -375,10 +368,7 @@ private fun OwnerActionButtons(
   Button(
       onClick = { eventViewModel.showQrScanner() },
       modifier =
-          Modifier
-              .wrapContentSize()
-              .padding(2.dp)
-              .testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
         Icon(
             imageVector = Icons.Default.QrCodeScanner,
             contentDescription = "Scan icon",
@@ -389,10 +379,7 @@ private fun OwnerActionButtons(
   Button(
       onClick = { navController.navigate(editRoute) },
       modifier =
-          Modifier
-              .wrapContentSize()
-              .padding(2.dp)
-              .testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
         Icon(
             painter = painterResource(id = R.drawable.ic_add),
             contentDescription = "Edit icon",
@@ -422,11 +409,11 @@ private fun NonOwnerActionButtons(
         }
       },
       modifier =
-          Modifier
-              .wrapContentSize()
+          Modifier.wrapContentSize()
               .padding(2.dp)
               .testTag(
-                  if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON else EventViewTestTags.JOIN_BUTTON),
+                  if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
+                  else EventViewTestTags.JOIN_BUTTON),
       enabled = if (joined) true else (!eventHasStarted && !isFull)) {
         val showIcon = joined || (!eventHasStarted && !isFull)
         if (showIcon) {
@@ -524,8 +511,7 @@ private fun QrScannerDialog(
   Dialog(onDismissRequest = onDismiss) {
     Surface(
         modifier =
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .fillMaxHeight(0.7f)
                 .testTag(EventViewTestTags.QR_SCANNER_DIALOG),
         color = MaterialTheme.colorScheme.surface,
@@ -558,18 +544,14 @@ private fun ValidationResultOverlay(
 ) {
   Box(
       modifier =
-          Modifier
-              .fillMaxSize()
-              .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+          Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
       contentAlignment = Alignment.Center) {
         Card(
             modifier = Modifier.padding(32.dp),
             colors =
                 CardDefaults.cardColors(containerColor = getValidationContainerColor(result))) {
               Column(
-                  modifier = Modifier
-                      .padding(24.dp)
-                      .testTag(getValidationTestTag(result)),
+                  modifier = Modifier.padding(24.dp).testTag(getValidationTestTag(result)),
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     ValidationIcon(result = result)

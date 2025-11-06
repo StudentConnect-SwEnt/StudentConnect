@@ -327,12 +327,14 @@ fun CarouselCard(
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
   val now = Timestamp.now()
-  val endTime = item.end ?: run {
-    val cal = Calendar.getInstance()
-    cal.time = item.start.toDate()
-    cal.add(Calendar.HOUR_OF_DAY, 3)
-    Timestamp(cal.time)
-  }
+  val endTime =
+      item.end
+          ?: run {
+            val cal = Calendar.getInstance()
+            cal.time = item.start.toDate()
+            cal.add(Calendar.HOUR_OF_DAY, 3)
+            Timestamp(cal.time)
+          }
   val isLive = now >= item.start && now < endTime
 
   Card(
