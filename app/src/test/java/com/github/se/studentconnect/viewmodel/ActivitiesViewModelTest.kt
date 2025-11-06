@@ -196,10 +196,11 @@ class ActivitiesViewModelTest {
 
   @Test
   fun refreshEventsLoadsPastEventsCorrectly() = runTest {
-    val pastEvent = mockEvent.copy(
-        start = Timestamp(System.currentTimeMillis() / 1000 - 7200, 0),  // 2 hours ago
-        end = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0)     // 1 hour ago
-    )
+    val pastEvent =
+        mockEvent.copy(
+            start = Timestamp(System.currentTimeMillis() / 1000 - 7200, 0), // 2 hours ago
+            end = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0) // 1 hour ago
+            )
 
     coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(pastEvent.uid)
     coEvery { eventRepository.getEvent(pastEvent.uid) } returns pastEvent
