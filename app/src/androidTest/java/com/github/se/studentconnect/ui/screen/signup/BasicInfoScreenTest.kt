@@ -166,7 +166,8 @@ class BasicInfoScreenTest : StudentConnectTest() {
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
     viewModel.setUsername("adalovelace")
-    waitForEnabledState(expected = false) // Wait for username check, but still false without birthdate
+    waitForEnabledState(
+        expected = false) // Wait for username check, but still false without birthdate
 
     val selectedMillis = 946684800000L
     val selectedTimestamp = Timestamp(Date(selectedMillis))
