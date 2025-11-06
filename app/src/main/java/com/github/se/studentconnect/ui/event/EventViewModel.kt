@@ -49,24 +49,20 @@ class EventViewModel(
 
   fun leaveEvent(eventUid: String) {
     val currentUserUid = AuthenticationProvider.currentUser
-    if (currentUserUid != null) {
-      viewModelScope.launch {
-        userRepository.leaveEvent(eventUid, currentUserUid)
-        eventRepository.removeParticipantFromEvent(eventUid, currentUserUid)
-        _uiState.update { it.copy(isJoined = false) }
-      }
+    viewModelScope.launch {
+      userRepository.leaveEvent(eventUid, currentUserUid)
+      eventRepository.removeParticipantFromEvent(eventUid, currentUserUid)
+      _uiState.update { it.copy(isJoined = false) }
     }
   }
 
   fun joinEvent(eventUid: String) {
     val currentUserUid = AuthenticationProvider.currentUser
-    if (currentUserUid != null) {
-      viewModelScope.launch {
-        userRepository.joinEvent(eventUid, currentUserUid)
-        val eventParticipant = EventParticipant(currentUserUid)
-        eventRepository.addParticipantToEvent(eventUid, eventParticipant)
-        _uiState.update { it.copy(isJoined = true) }
-      }
+    viewModelScope.launch {
+      userRepository.joinEvent(eventUid, currentUserUid)
+      val eventParticipant = EventParticipant(currentUserUid)
+      eventRepository.addParticipantToEvent(eventUid, eventParticipant)
+      _uiState.update { it.copy(isJoined = true) }
     }
   }
 

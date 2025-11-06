@@ -5,11 +5,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.screens.HomeScreen
-import com.github.se.studentconnect.viewmodel.HomePageUiState
 import com.google.firebase.Timestamp
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +38,7 @@ class HomeScreenStoriesTest {
   fun homeScreen_eventsStories_isDisplayed() {
     composeTestRule.setContent {
       HomeScreen(
+          navController = rememberNavController(),
           onClickStory = { e, i -> },
           uiState =
               HomePageUiState(
@@ -56,6 +56,7 @@ class HomeScreenStoriesTest {
   fun homeScreen_eventsStories_isNotDisplayed_whenNoStories() {
     composeTestRule.setContent {
       HomeScreen(
+          navController = rememberNavController(),
           onClickStory = { e, i -> },
           uiState =
               HomePageUiState(
@@ -73,6 +74,7 @@ class HomeScreenStoriesTest {
   fun homeScreen_eventsStories_hasClickAction() {
     composeTestRule.setContent {
       HomeScreen(
+          navController = rememberNavController(),
           onClickStory = { e, i -> },
           uiState =
               HomePageUiState(

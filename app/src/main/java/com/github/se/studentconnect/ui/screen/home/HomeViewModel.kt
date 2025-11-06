@@ -40,7 +40,6 @@ class HomePageViewModel
 constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     // maybe will be used after for recommendations
-    private val currentUserId: String,
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
 
@@ -70,23 +69,25 @@ constructor(
 
   private fun loadAllSubscribedEventsStories() {
     viewModelScope.launch {
-      _uiState.update { it.copy(isLoading = true) }
+      try {
+        // Get all visible events to show stories for
+        val allEvents = eventRepository.getAllVisibleEvents()
 
-      val allSubscribedEventsId = userRepositoryLocal.getJoinedEvents(currentUserId)
-      val allSubscribedEvents =
-          eventRepository.getAllVisibleEventsSatisfying { event ->
-            allSubscribedEventsId.contains(event.uid)
-          }
+        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+        // Create stories with Pair(totalStories, seenStories)
+        // For demo: take first 10 events, mix of seen and unseen stories
+        allEvents.take(10).forEachIndexed { index, event ->
+          val totalStories = if (index < 3) 3 else 5
+          val seenStories = if (index == 0) 1 else 0 // First one is partially seen
+          allEventsStory[event] = Pair(totalStories, seenStories)
+        }
 
-      val allSubscribedEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
-      var i = 0
-      for (e in allSubscribedEvents) {
-        allSubscribedEventsStory.put(e, Pair(i, 0))
-        i++
-      }
+        Log.d("HomePageViewModel", "Loaded ${allEventsStory.size} stories")
 
-      _uiState.update {
-        it.copy(subscribedEventsStories = allSubscribedEventsStory, isLoading = false)
+        _uiState.update { it.copy(subscribedEventsStories = allEventsStory) }
+      } catch (e: Exception) {
+        Log.e("HomePageViewModel", "Error loading stories", e)
+        _uiState.update { it.copy(subscribedEventsStories = emptyMap()) }
       }
     }
   }
@@ -144,7 +145,7 @@ constructor(
       }
     }
   }
-  
+
   fun toggleFavorite(eventId: String) {
     currentUserId.let { uid ->
       viewModelScope.launch {

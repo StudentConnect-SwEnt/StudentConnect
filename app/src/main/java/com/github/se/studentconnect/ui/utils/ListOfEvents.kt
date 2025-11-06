@@ -107,7 +107,7 @@ fun EventCard(
 ) {
   Card(
       onClick = onClick,
-      modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+      modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
       shape = RoundedCornerShape(16.dp),
       elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
       colors =
@@ -146,7 +146,8 @@ fun EventCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis)
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("event_card_title_${event.uid}"))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = event.location?.name ?: "Location not specified",

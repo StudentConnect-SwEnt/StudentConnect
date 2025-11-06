@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.home
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -63,7 +64,7 @@ class HomeScreenUITest {
   fun setup() {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = HomePageViewModel(eventRepository, userRepository, "user")
+    viewModel = HomePageViewModel(eventRepository, userRepository)
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
@@ -192,7 +193,7 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_emptyState_displaysLoading() {
     val emptyRepository = EventRepositoryLocal()
-    val emptyViewModel = HomePageViewModel(emptyRepository, userRepository, "user")
+    val emptyViewModel = HomePageViewModel(emptyRepository, userRepository)
 
     composeTestRule.setContent {
       HomeScreen(navController = rememberNavController(), viewModel = emptyViewModel)
@@ -211,13 +212,11 @@ class HomeScreenUITest {
 
     // Wait for events to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Summer Festival"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
+      composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Summer Festival").assertHasClickAction()
+    // Use onNodeWithTag to specifically target the event card, not the story
+    composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
   }
 
   // @Test
