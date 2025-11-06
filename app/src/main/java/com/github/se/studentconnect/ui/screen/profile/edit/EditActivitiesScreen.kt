@@ -116,7 +116,7 @@ fun EditActivitiesScreen(
           Button(
               onClick = { viewModel.saveActivities() },
               modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp).testTag("saveButton"),
-              enabled = !isLoading && selectedActivities.isNotEmpty()) {
+              enabled = !isLoading) {
                 if (isLoading) {
                   CircularProgressIndicator(
                       modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

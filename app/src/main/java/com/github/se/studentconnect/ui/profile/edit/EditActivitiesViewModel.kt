@@ -83,17 +83,17 @@ class EditActivitiesViewModel(
       try {
         _uiState.value = UiState.Loading
 
+        // Verify user exists before updating
         val user = userRepository.getUserById(userId)
-        if (user != null) {
-          val updatedUser =
-              user.copy(
-                  hobbies = _selectedActivities.value.toList(),
-                  updatedAt = System.currentTimeMillis())
-          userRepository.saveUser(updatedUser)
-          _uiState.value = UiState.Success("Activities updated successfully")
-        } else {
+        if (user == null) {
           _uiState.value = UiState.Error("User not found")
+          return@launch
         }
+
+        // Use updateUser to avoid race conditions and ensure atomic updates
+        val updates = mapOf("hobbies" to _selectedActivities.value.toList())
+        userRepository.updateUser(userId, updates)
+        _uiState.value = UiState.Success("Activities updated successfully")
       } catch (e: Exception) {
         _uiState.value = UiState.Error(e.message ?: "Failed to save activities")
       }

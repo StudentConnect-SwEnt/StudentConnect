@@ -6,9 +6,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -19,7 +21,7 @@ class EditActivitiesScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private lateinit var repository: TestUserRepository
+  private lateinit var repository: TestableUserRepositoryLocal
   private val testUser =
       User(
           userId = "test_user",
@@ -37,7 +39,7 @@ class EditActivitiesScreenTest {
 
   @Before
   fun setUp() {
-    repository = TestUserRepository(testUser)
+    repository = TestableUserRepositoryLocal(testUser)
     navigatedBack = false
   }
 
@@ -145,19 +147,20 @@ class EditActivitiesScreenTest {
 
   @Test
   fun editActivitiesScreen_saveButtonIsDisabledWithNoSelection() {
-    repository = TestUserRepository(testUser.copy(hobbies = emptyList()))
+    val userWithNoHobbies = testUser.copy(hobbies = emptyList())
+    val testRepository = TestableUserRepositoryLocal(userWithNoHobbies)
 
     composeTestRule.setContent {
       MaterialTheme {
         EditActivitiesScreen(
             userId = testUser.userId,
-            userRepository = repository,
+            userRepository = testRepository,
             onNavigateBack = { navigatedBack = true })
       }
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Activities").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled() // Now enabled with empty selection
   }
 
   @Test
@@ -194,13 +197,14 @@ class EditActivitiesScreenTest {
 
   @Test
   fun editActivitiesScreen_selectedCountSingularForm() {
-    repository = TestUserRepository(testUser.copy(hobbies = listOf("Football")))
+    val userWithOneHobby = testUser.copy(hobbies = listOf("Football"))
+    val testRepository = TestableUserRepositoryLocal(userWithOneHobby)
 
     composeTestRule.setContent {
       MaterialTheme {
         EditActivitiesScreen(
             userId = testUser.userId,
-            userRepository = repository,
+            userRepository = testRepository,
             onNavigateBack = { navigatedBack = true })
       }
     }
@@ -394,14 +398,19 @@ class EditActivitiesScreenTest {
     composeTestRule.onNodeWithText("Save Activities").performClick()
 
     // Wait for save to complete
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
+    composeTestRule.waitForIdle()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
 
     // Verify saved data
-    val savedUser = repository.savedUsers.last()
-    assert(savedUser.hobbies.contains("Tennis"))
-    assert(savedUser.hobbies.contains("Football"))
-    assert(savedUser.hobbies.contains("AI"))
-    assert(savedUser.hobbies.contains("Piano"))
+    runBlocking {
+      val savedUser = repository.getUserById(testUser.userId)
+      assert(savedUser != null)
+      assert(savedUser!!.hobbies.contains("Tennis"))
+      assert(savedUser.hobbies.contains("Football"))
+      assert(savedUser.hobbies.contains("AI"))
+      assert(savedUser.hobbies.contains("Piano"))
+    }
   }
 
   @Test
@@ -444,7 +453,9 @@ class EditActivitiesScreenTest {
     composeTestRule.onNodeWithText("Save Activities").performClick()
 
     // Wait for save to complete
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
+    composeTestRule.waitForIdle()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
 
     // Should NOT navigate back automatically
     assert(!navigatedBack)
@@ -452,7 +463,7 @@ class EditActivitiesScreenTest {
 
   @Test
   fun editActivitiesScreen_showsLoadingStateWhileSaving() {
-    repository.saveDelay = 1000L
+    repository.saveDelay = 2000L
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -468,9 +479,15 @@ class EditActivitiesScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save Activities").performClick()
 
-    composeTestRule.waitForIdle()
+    // Wait until loading state is active (button text disappears)
+    composeTestRule.waitUntil(timeoutMillis = 1000) {
+      composeTestRule
+          .onAllNodesWithText("Save Activities")
+          .fetchSemanticsNodes()
+          .isEmpty()
+    }
 
-    // Should show loading state (button text disappears, shows progress)
+    // Should show loading state (button text disappeared, showing progress indicator)
     composeTestRule.onNodeWithText("Save Activities").assertDoesNotExist()
   }
 
@@ -650,8 +667,8 @@ class EditActivitiesScreenTest {
     composeTestRule.onNodeWithText("0 activities selected").assertDoesNotExist()
     composeTestRule.onNodeWithText("3 activities selected").assertDoesNotExist()
 
-    // Save button should be disabled
-    composeTestRule.onNodeWithTag("saveButton").assertIsNotEnabled()
+    // Save button should be enabled even with no selection (allows saving empty list)
+    composeTestRule.onNodeWithTag("saveButton").assertIsEnabled()
   }
 
   @Test
@@ -731,13 +748,13 @@ class EditActivitiesScreenTest {
 
   @Test
   fun editActivitiesScreen_handlesUserNotFound() {
-    repository = TestUserRepository(null)
+    val testRepository = TestableUserRepositoryLocal()
 
     composeTestRule.setContent {
       MaterialTheme {
         EditActivitiesScreen(
             userId = "non_existent_user",
-            userRepository = repository,
+            userRepository = testRepository,
             onNavigateBack = { navigatedBack = true })
       }
     }
@@ -745,21 +762,30 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // With user not found, should still show empty state
-    // Save button should be disabled with no selection
-    composeTestRule.onNodeWithText("Save Activities").assertIsNotEnabled()
+    // Save button should be enabled even with no selection (allows saving empty list)
+    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled()
   }
 
-  private class TestUserRepository(
-      private var user: User? = null,
-      var shouldThrowOnSave: Throwable? = null,
-      var shouldThrowOnLoad: Throwable? = null,
-      var saveDelay: Long = 0L
-  ) : UserRepository {
-    val savedUsers = mutableListOf<User>()
+  /**
+   * TestableUserRepositoryLocal wraps UserRepositoryLocal to add error injection and delay
+   * capabilities for testing error scenarios.
+   */
+  private class TestableUserRepositoryLocal(initialUser: User? = null) : UserRepository {
+    private val delegate = UserRepositoryLocal()
+    var shouldThrowOnSave: Throwable? = null
+    var shouldThrowOnLoad: Throwable? = null
+    var saveDelay: Long = 0L
+
+    init {
+      // Initialize with user synchronously using runBlocking
+      initialUser?.let {
+        kotlinx.coroutines.runBlocking { delegate.saveUser(it) }
+      }
+    }
 
     override suspend fun getUserById(userId: String): User? {
       shouldThrowOnLoad?.let { throw it }
-      return if (userId == user?.userId) user else null
+      return delegate.getUserById(userId)
     }
 
     override suspend fun saveUser(user: User) {
@@ -767,57 +793,64 @@ class EditActivitiesScreenTest {
         delay(saveDelay)
       }
       shouldThrowOnSave?.let { throw it }
-      savedUsers.add(user)
-      this.user = user
+      delegate.saveUser(user)
     }
 
-    override suspend fun leaveEvent(eventId: String, userId: String) = Unit
+    override suspend fun getUserByEmail(email: String) = delegate.getUserByEmail(email)
 
-    override suspend fun getUserByEmail(email: String) = null
-
-    override suspend fun getAllUsers() = emptyList<User>()
+    override suspend fun getAllUsers() = delegate.getAllUsers()
 
     override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
-        emptyList<User>() to false
+        delegate.getUsersPaginated(limit, lastUserId)
 
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) = Unit
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+      if (saveDelay > 0) {
+        delay(saveDelay)
+      }
+      shouldThrowOnSave?.let { throw it }
+      delegate.updateUser(userId, updates)
+    }
 
-    override suspend fun deleteUser(userId: String) = Unit
+    override suspend fun deleteUser(userId: String) = delegate.deleteUser(userId)
 
-    override suspend fun getUsersByUniversity(university: String) = emptyList<User>()
+    override suspend fun getUsersByUniversity(university: String) =
+        delegate.getUsersByUniversity(university)
 
-    override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
+    override suspend fun getUsersByHobby(hobby: String) = delegate.getUsersByHobby(hobby)
 
-    override suspend fun getNewUid() = "new_uid"
+    override suspend fun getNewUid() = delegate.getNewUid()
 
-    override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
+    override suspend fun getJoinedEvents(userId: String) = delegate.getJoinedEvents(userId)
 
-    override suspend fun addEventToUser(eventId: String, userId: String) = Unit
+    override suspend fun addEventToUser(eventId: String, userId: String) =
+        delegate.addEventToUser(eventId, userId)
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
-        Unit
+        delegate.addInvitationToUser(eventId, userId, fromUserId)
 
-    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
+    override suspend fun getInvitations(userId: String) = delegate.getInvitations(userId)
 
-    override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
+    override suspend fun acceptInvitation(eventId: String, userId: String) =
+        delegate.acceptInvitation(eventId, userId)
 
-    override suspend fun declineInvitation(eventId: String, userId: String) = Unit
+    override suspend fun declineInvitation(eventId: String, userId: String) =
+        delegate.declineInvitation(eventId, userId)
 
-    override suspend fun joinEvent(eventId: String, userId: String) = Unit
+    override suspend fun joinEvent(eventId: String, userId: String) =
+        delegate.joinEvent(eventId, userId)
+
+    override suspend fun leaveEvent(eventId: String, userId: String) =
+        delegate.leaveEvent(eventId, userId)
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        Unit
+        delegate.sendInvitation(eventId, fromUserId, toUserId)
 
-    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) =
+        delegate.addFavoriteEvent(userId, eventId)
 
-    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) =
+        delegate.removeFavoriteEvent(userId, eventId)
 
-    override suspend fun getFavoriteEvents(userId: String): List<String> {
-      TODO("Not yet implemented")
-    }
+    override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
   }
 }

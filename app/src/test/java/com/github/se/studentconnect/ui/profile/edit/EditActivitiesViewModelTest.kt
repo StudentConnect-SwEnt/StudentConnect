@@ -2,7 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.screen.activities.Invitation
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -18,7 +18,7 @@ class EditActivitiesViewModelTest {
 
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
-  private lateinit var repository: TestUserRepository
+  private lateinit var repository: TestableUserRepositoryLocal
   private lateinit var viewModel: EditActivitiesViewModel
   private val testUser =
       User(
@@ -34,8 +34,9 @@ class EditActivitiesViewModelTest {
           profilePictureUrl = null)
 
   @Before
-  fun setUp() {
-    repository = TestUserRepository(testUser)
+  fun setUp() = runTest {
+    repository = TestableUserRepositoryLocal()
+    repository.saveUser(testUser)
     viewModel = EditActivitiesViewModel(repository, testUser.userId)
   }
 
@@ -52,34 +53,37 @@ class EditActivitiesViewModelTest {
 
   @Test
   fun `initial state with no activities`() = runTest {
-    repository = TestUserRepository(testUser.copy(hobbies = emptyList()))
-    viewModel = EditActivitiesViewModel(repository, testUser.userId)
+    val userWithNoHobbies = testUser.copy(hobbies = emptyList())
+    val testRepository = TestableUserRepositoryLocal()
+    testRepository.saveUser(userWithNoHobbies)
+    val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
 
     kotlinx.coroutines.delay(200)
 
-    assertEquals(0, viewModel.selectedActivities.value.size)
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
+    assertEquals(0, testViewModel.selectedActivities.value.size)
+    assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
   }
 
   @Test
   fun `initial state handles user not found`() = runTest {
-    repository = TestUserRepository(null)
-    viewModel = EditActivitiesViewModel(repository, "non_existent_user")
+    val testRepository = TestableUserRepositoryLocal()
+    val testViewModel = EditActivitiesViewModel(testRepository, "non_existent_user")
 
     kotlinx.coroutines.delay(200)
 
-    assertEquals(0, viewModel.selectedActivities.value.size)
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
+    assertEquals(0, testViewModel.selectedActivities.value.size)
+    assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
   }
 
   @Test
   fun `initial state handles repository error`() = runTest {
-    repository.shouldThrowOnLoad = RuntimeException("Load failed")
-    viewModel = EditActivitiesViewModel(repository, testUser.userId)
+    val testRepository = TestableUserRepositoryLocal()
+    testRepository.shouldThrowOnLoad = RuntimeException("Load failed")
+    val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
 
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
+    assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
   }
 
   @Test
@@ -226,9 +230,9 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    assertTrue(repository.savedUsers.isNotEmpty())
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.hobbies.contains("Tennis"))
+    val savedUser = repository.getUserById(testUser.userId)
+    assertTrue(savedUser != null)
+    assertTrue(savedUser!!.hobbies.contains("Tennis"))
     assertTrue(savedUser.hobbies.contains("Football"))
     assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Success)
   }
@@ -242,24 +246,26 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.updatedAt > originalTimestamp)
+    val savedUser = repository.getUserById(testUser.userId)
+    assertTrue(savedUser != null)
+    assertTrue(savedUser!!.updatedAt > originalTimestamp)
   }
 
   @Test
   fun `saveActivities handles user not found`() = runTest {
     kotlinx.coroutines.delay(200)
-    repository = TestUserRepository(null)
-    viewModel = EditActivitiesViewModel(repository, "non_existent_user")
+    val testRepository = TestableUserRepositoryLocal()
+    val testViewModel = EditActivitiesViewModel(testRepository, "non_existent_user")
 
     kotlinx.coroutines.delay(200)
 
-    viewModel.saveActivities()
+    testViewModel.saveActivities()
 
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
-    assertTrue(repository.savedUsers.isEmpty())
+    assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
+    val savedUser = testRepository.getUserById("non_existent_user")
+    assertTrue(savedUser == null)
   }
 
   @Test
@@ -284,8 +290,9 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.hobbies is List)
+    val savedUser = repository.getUserById(testUser.userId)
+    assertTrue(savedUser != null)
+    assertTrue(savedUser!!.hobbies is List)
     assertTrue(savedUser.hobbies.contains("Tennis"))
     assertTrue(savedUser.hobbies.contains("Running"))
   }
@@ -303,8 +310,9 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.hobbies.isEmpty())
+    val savedUser = repository.getUserById(testUser.userId)
+    assertTrue(savedUser != null)
+    assertTrue(savedUser!!.hobbies.isEmpty())
     assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Success)
   }
 
@@ -322,8 +330,9 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    assertEquals(2, repository.savedUsers.size)
-    assertTrue(repository.savedUsers.last().hobbies.contains("Running"))
+    val savedUser = repository.getUserById(testUser.userId)
+    assertTrue(savedUser != null)
+    assertTrue(savedUser!!.hobbies.contains("Running"))
   }
 
   @Test
@@ -417,14 +426,15 @@ class EditActivitiesViewModelTest {
   @Test
   fun `load activities with special characters`() = runTest {
     val userWithSpecialActivities = testUser.copy(hobbies = listOf("AI", "Web", "Mobile"))
-    repository = TestUserRepository(userWithSpecialActivities)
-    viewModel = EditActivitiesViewModel(repository, testUser.userId)
+    val testRepository = TestableUserRepositoryLocal()
+    testRepository.saveUser(userWithSpecialActivities)
+    val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
 
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.selectedActivities.value.contains("AI"))
-    assertTrue(viewModel.selectedActivities.value.contains("Web"))
-    assertTrue(viewModel.selectedActivities.value.contains("Mobile"))
+    assertTrue(testViewModel.selectedActivities.value.contains("AI"))
+    assertTrue(testViewModel.selectedActivities.value.contains("Web"))
+    assertTrue(testViewModel.selectedActivities.value.contains("Mobile"))
   }
 
   @Test
@@ -437,70 +447,77 @@ class EditActivitiesViewModelTest {
     assertEquals(1, viewModel.filteredActivities.value.size)
   }
 
-  private class TestUserRepository(
-      private var user: User? = null,
-      var shouldThrowOnSave: Throwable? = null,
-      var shouldThrowOnLoad: Throwable? = null
-  ) : UserRepository {
-    val savedUsers = mutableListOf<User>()
+  /**
+   * TestableUserRepositoryLocal wraps UserRepositoryLocal to add error injection capabilities for
+   * testing error scenarios.
+   */
+  private class TestableUserRepositoryLocal : UserRepository {
+    private val delegate = UserRepositoryLocal()
+    var shouldThrowOnSave: Throwable? = null
+    var shouldThrowOnLoad: Throwable? = null
 
     override suspend fun getUserById(userId: String): User? {
       shouldThrowOnLoad?.let { throw it }
-      return if (userId == user?.userId) user else null
+      return delegate.getUserById(userId)
     }
 
     override suspend fun saveUser(user: User) {
       shouldThrowOnSave?.let { throw it }
-      savedUsers.add(user)
+      delegate.saveUser(user)
     }
 
-    override suspend fun leaveEvent(eventId: String, userId: String) = Unit
+    override suspend fun getUserByEmail(email: String) = delegate.getUserByEmail(email)
 
-    override suspend fun getUserByEmail(email: String) = null
-
-    override suspend fun getAllUsers() = emptyList<User>()
+    override suspend fun getAllUsers() = delegate.getAllUsers()
 
     override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
-        emptyList<User>() to false
+        delegate.getUsersPaginated(limit, lastUserId)
 
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) = Unit
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+      shouldThrowOnSave?.let { throw it }
+      delegate.updateUser(userId, updates)
+    }
 
-    override suspend fun deleteUser(userId: String) = Unit
+    override suspend fun deleteUser(userId: String) = delegate.deleteUser(userId)
 
-    override suspend fun getUsersByUniversity(university: String) = emptyList<User>()
+    override suspend fun getUsersByUniversity(university: String) =
+        delegate.getUsersByUniversity(university)
 
-    override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
+    override suspend fun getUsersByHobby(hobby: String) = delegate.getUsersByHobby(hobby)
 
-    override suspend fun getNewUid() = "new_uid"
+    override suspend fun getNewUid() = delegate.getNewUid()
 
-    override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
+    override suspend fun getJoinedEvents(userId: String) = delegate.getJoinedEvents(userId)
 
-    override suspend fun addEventToUser(eventId: String, userId: String) = Unit
+    override suspend fun addEventToUser(eventId: String, userId: String) =
+        delegate.addEventToUser(eventId, userId)
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
-        Unit
+        delegate.addInvitationToUser(eventId, userId, fromUserId)
 
-    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
+    override suspend fun getInvitations(userId: String) = delegate.getInvitations(userId)
 
-    override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
+    override suspend fun acceptInvitation(eventId: String, userId: String) =
+        delegate.acceptInvitation(eventId, userId)
 
-    override suspend fun declineInvitation(eventId: String, userId: String) = Unit
+    override suspend fun declineInvitation(eventId: String, userId: String) =
+        delegate.declineInvitation(eventId, userId)
 
-    override suspend fun joinEvent(eventId: String, userId: String) = Unit
+    override suspend fun joinEvent(eventId: String, userId: String) =
+        delegate.joinEvent(eventId, userId)
+
+    override suspend fun leaveEvent(eventId: String, userId: String) =
+        delegate.leaveEvent(eventId, userId)
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        Unit
+        delegate.sendInvitation(eventId, fromUserId, toUserId)
 
-    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) =
+        delegate.addFavoriteEvent(userId, eventId)
 
-    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) =
+        delegate.removeFavoriteEvent(userId, eventId)
 
-    override suspend fun getFavoriteEvents(userId: String): List<String> {
-      TODO("Not yet implemented")
-    }
+    override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
   }
 }
