@@ -38,7 +38,9 @@ class EditBirthdayScreenTest {
           birthday = "15/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
-          profilePictureUrl = null)
+          profilePictureUrl = null,
+          username = "Avatar123",
+      )
 
   private var navigatedBack = false
 
@@ -513,5 +515,9 @@ class EditBirthdayScreenTest {
         delegate.removeFavoriteEvent(userId, eventId)
 
     override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 }
