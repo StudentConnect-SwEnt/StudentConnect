@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -25,6 +29,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,6 +37,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -203,6 +209,10 @@ fun HomeScreen(
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                           } else {
                             Column {
+                              StoryRow(
+                                  onAddStoryClick = {
+                                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                  })
                               FilterBar(
                                   context = LocalContext.current,
                                   onCalendarClick = onCalendarClick,
@@ -374,6 +384,42 @@ fun StoriesRow(onClick: (Event, Int) -> Unit, stories: Map<Event, Pair<Int, Int>
               contentDescription = "Event Story",
               testTag = "story_item_${event.uid}")
         }
+      }
+}
+
+@Composable
+fun StoryRow(onAddStoryClick: () -> Unit) {
+  LazyRow(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        item {
+          // Add Story Button
+          Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              modifier = Modifier.testTag("addStoryButton")) {
+                Box(
+                    modifier =
+                        Modifier.size(64.dp)
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = CircleShape)
+                            .clickable { onAddStoryClick() },
+                    contentAlignment = Alignment.Center) {
+                      Icon(
+                          imageVector = Icons.Default.Add,
+                          contentDescription = "Add Story",
+                          tint = MaterialTheme.colorScheme.primary,
+                          modifier = Modifier.size(28.dp))
+                    }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Add Story",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface)
+              }
+        }
+        // Future: Add existing stories here
       }
 }
 
