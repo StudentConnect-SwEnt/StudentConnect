@@ -9,12 +9,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.MainActivity
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp
 import java.util.Date
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -229,5 +231,57 @@ class BasicInfoScreenTest : StudentConnectTest() {
 
     waitForIdle()
     assert(enabledStates.isEmpty())
+  }
+
+  @Test
+  fun continue_disabled_when_username_invalid() {
+    viewModel.setFirstName("Ada")
+    viewModel.setLastName("Lovelace")
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
+    viewModel.setUsername("ab") // Too short
+    waitForIdle()
+
+    // Should remain disabled because username is invalid
+    assert(!enabledStates.last())
+  }
+
+  @Test
+  fun continue_disabled_when_username_unavailable() {
+    val repository = UserRepositoryLocal()
+    runBlocking {
+      repository.saveUser(
+          User(
+              userId = "user1",
+              username = "takenuser",
+              email = "test@epfl.ch",
+              firstName = "Test",
+              lastName = "User",
+              university = "EPFL"))
+    }
+
+    composeTestRule.activity.setContent {
+      AppTheme {
+        val pickerState = rememberDatePickerState(initialSelectedDateMillis = null)
+        datePickerState = pickerState
+
+        BasicInfoScreen(
+            viewModel = viewModel,
+            userRepository = repository,
+            onContinue = {},
+            onBack = {},
+            onContinueEnabledChanged = { enabledStates += it },
+            datePickerState = pickerState,
+            showDateDialogState = dialogState)
+      }
+    }
+
+    viewModel.setFirstName("Ada")
+    viewModel.setLastName("Lovelace")
+    viewModel.setBirthdate(Timestamp(Date(1_000L)))
+    viewModel.setUsername("takenuser")
+    waitForEnabledState(expected = false, timeoutMillis = 3000)
+
+    // Should remain disabled because username is taken
+    assert(!enabledStates.last())
   }
 }

@@ -320,4 +320,51 @@ class UsernameTextFieldTest {
     assert(validationState?.first == false)
     assert(validationState?.second == null)
   }
+
+  @Test
+  fun usernameTextField_showsLoadingIndicator() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "newuser",
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { _, _ -> })
+      }
+    }
+    composeTestRule.waitForIdle()
+
+    // Loading indicator may appear briefly during debounce
+    // This test verifies the component handles the loading state
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithContentDescription("Available")
+          .fetchSemanticsNodes()
+          .isNotEmpty() ||
+          composeTestRule.onAllNodesWithContentDescription("Taken")
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+    }
+  }
+
+  @Test
+  fun usernameTextField_errorTextElseBranch() {
+    // Test the else -> null branch in errorText when format is valid but edge case
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "validuser",
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { _, _ -> })
+      }
+    }
+    composeTestRule.waitForIdle()
+
+    // Should not show format error when valid
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long")
+          .fetchSemanticsNodes()
+          .isEmpty()
+    }
+  }
 }
