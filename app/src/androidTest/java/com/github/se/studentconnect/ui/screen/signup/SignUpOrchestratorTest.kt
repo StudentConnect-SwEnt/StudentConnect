@@ -54,6 +54,7 @@ class SignUpOrchestratorTest {
 
     val viewModel =
         SignUpViewModel().apply {
+          setUsername("ada_lovelace")
           setFirstName("Ada")
           setLastName("Lovelace")
           setBio("Hello world")
@@ -156,5 +157,9 @@ class SignUpOrchestratorTest {
     override suspend fun removeFavoriteEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 }

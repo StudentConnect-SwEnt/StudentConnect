@@ -79,7 +79,8 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
             firstName = "Edit",
             lastName = "Picture",
             university = "EPFL",
-            hobbies = listOf("Testing"))
+            hobbies = listOf("Testing"),
+            username = "edit_picture_user")
 
     runTest { userRepository.saveUser(testUser) }
 
