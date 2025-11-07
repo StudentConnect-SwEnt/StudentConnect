@@ -279,4 +279,45 @@ class UsernameTextFieldTest {
     composeTestRule.waitUntil(timeoutMillis = 2000) { validationState?.first == true }
     assert(validationState?.first == true)
   }
+
+  @Test
+  fun usernameTextField_noError_whenBlank() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "",
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { isValid, isAvailable ->
+              validationState = isValid to isAvailable
+            })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState != null }
+    assert(validationState?.first == false)
+    assert(validationState?.second == null)
+    composeTestRule.onAllNodesWithText("Username must be 3-20 characters long").assertCountEquals(0)
+  }
+
+  @Test
+  fun usernameTextField_callsInvalidCallback() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "ab",
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { isValid, isAvailable ->
+              validationState = isValid to isAvailable
+            })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) { validationState != null }
+    assert(validationState?.first == false)
+    assert(validationState?.second == null)
+  }
 }
