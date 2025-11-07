@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.ui.screen.filters.LocationPickerDialog
 import kotlinx.coroutines.launch
 
 data class FilterData(
@@ -100,10 +101,6 @@ fun FilterBar(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        FilterChip(
-            text = "Paris",
-            onClick = { DialogNotImplemented(context) },
-            icon = R.drawable.ic_location)
         FilterChip(
             icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
@@ -303,9 +300,18 @@ fun FilterBar(
                 }
           }
     }
-    if (showLocationPicker) {
-      DialogNotImplemented(context)
-    }
+  }
+
+  if (showLocationPicker) {
+    LocationPickerDialog(
+        initialLocation = selectedLocation,
+        initialRadius = searchRadius,
+        onDismiss = { showLocationPicker = false },
+        onLocationSelected = { location, radius ->
+          selectedLocation = location
+          searchRadius = radius
+          // showLocationPicker = false is handled by onDismiss or can be added here if needed
+        })
   }
 }
 
