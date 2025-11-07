@@ -337,10 +337,12 @@ class UsernameTextFieldTest {
     // Loading indicator may appear briefly during debounce
     // This test verifies the component handles the loading state
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithContentDescription("Available")
+      composeTestRule
+          .onAllNodesWithContentDescription("Available")
           .fetchSemanticsNodes()
           .isNotEmpty() ||
-          composeTestRule.onAllNodesWithContentDescription("Taken")
+          composeTestRule
+              .onAllNodesWithContentDescription("Taken")
               .fetchSemanticsNodes()
               .isNotEmpty()
     }
@@ -362,7 +364,8 @@ class UsernameTextFieldTest {
 
     // Should not show format error when valid
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long")
+      composeTestRule
+          .onAllNodesWithText("Username must be 3-20 characters long")
           .fetchSemanticsNodes()
           .isEmpty()
     }
