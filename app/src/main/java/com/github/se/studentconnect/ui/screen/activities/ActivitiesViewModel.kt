@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
 data class ActivitiesUiState(
     val items: List<CarouselDisplayItem> = emptyList(),
     val selectedTab: EventTab = EventTab.Upcoming,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
 )
 
 class ActivitiesViewModel(
@@ -75,6 +76,10 @@ class ActivitiesViewModel(
     }
   }
 
+  fun clearErrorMessage() {
+    _uiState.update { it.copy(errorMessage = null) }
+  }
+
   fun refreshEvents(userUid: String?) {
     if (userUid == null) {
       _uiState.update { it.copy(items = emptyList(), isLoading = false) }
@@ -82,7 +87,7 @@ class ActivitiesViewModel(
     }
 
     viewModelScope.launch {
-      _uiState.update { it.copy(isLoading = true) }
+      _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
       val now = Timestamp.now()
       val items: List<CarouselDisplayItem> =
@@ -131,7 +136,11 @@ class ActivitiesViewModel(
               val allVisibleEvents =
                   try {
                     eventRepository.getAllVisibleEvents()
-                  } catch (_: Exception) {
+                  } catch (e: Exception) {
+                    _uiState.update {
+                      it.copy(
+                          errorMessage = "Failed to load events: ${e.message ?: "Unknown error"}")
+                    }
                     emptyList()
                   }
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
