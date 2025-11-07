@@ -25,6 +25,7 @@ data class SignUpState(
     val userId: String? = null,
     val firstName: String = "",
     val lastName: String = "",
+    val username: String = "",
     val birthdate: Timestamp? = null,
     val nationality: String? = null,
     val profilePictureUri: Uri? = null,
@@ -53,6 +54,8 @@ class SignUpViewModel : ViewModel() {
   fun setFirstName(firstName: String) = update { it.copy(firstName = firstName.trim()) }
 
   fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
+
+  fun setUsername(username: String) = update { it.copy(username = username.trim().lowercase()) }
 
   fun setBirthdate(birthdate: Timestamp?) = update { it.copy(birthdate = birthdate) }
 
@@ -84,7 +87,14 @@ class SignUpViewModel : ViewModel() {
         state.value.firstName.isNotBlank() &&
             state.value.firstName.length <= 100 &&
             state.value.lastName.isNotBlank() &&
-            state.value.lastName.length <= 100
+            state.value.lastName.length <= 100 &&
+            isValidUsernameFormat(state.value.username)
+
+  private fun isValidUsernameFormat(username: String): Boolean {
+    if (username.isBlank()) return false
+    if (username.length !in 3..20) return false
+    return username.matches(Regex("^[a-zA-Z0-9_.-]+$"))
+  }
 
   val isNationalityValid: Boolean
     get() = !state.value.nationality.isNullOrBlank()

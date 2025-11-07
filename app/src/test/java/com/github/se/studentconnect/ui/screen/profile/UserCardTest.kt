@@ -42,6 +42,7 @@ class UserCardTest {
         User(
             userId = TEST_USER_ID,
             email = TEST_EMAIL,
+            username = "testuser",
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
             birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
@@ -453,6 +454,7 @@ class UserCardTest {
         User(
             userId = "a", // single character
             email = "test@example.com", // valid email format
+            username = "usera",
             firstName = "A", // single character
             lastName = "B", // single character
             university = "U", // single character
@@ -470,6 +472,7 @@ class UserCardTest {
         User(
             userId = TEST_USER_ID,
             email = TEST_EMAIL,
+            username = "testuser",
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
             university = TEST_UNIVERSITY,
@@ -480,6 +483,7 @@ class UserCardTest {
         User(
             userId = TEST_USER_ID,
             email = TEST_EMAIL,
+            username = "testuser",
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
             university = TEST_UNIVERSITY,

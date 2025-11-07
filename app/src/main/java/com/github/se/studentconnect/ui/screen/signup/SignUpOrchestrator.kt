@@ -80,6 +80,7 @@ fun SignUpOrchestrator(
     SignUpStep.BasicInfo -> {
       BasicInfoScreen(
           viewModel = signUpViewModel,
+          userRepository = userRepository,
           onContinue = { signUpViewModel.nextStep() },
           // No back navigation from BasicInfo since user is already authenticated
           // and committed to onboarding flow
@@ -138,6 +139,7 @@ fun SignUpOrchestrator(
                     User(
                         userId = firebaseUserId,
                         email = email,
+                        username = signUpState.username,
                         firstName = signUpState.firstName,
                         lastName = signUpState.lastName,
                         birthdate = signUpState.birthdate,

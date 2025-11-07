@@ -154,4 +154,10 @@ class UserRepositoryLocal : UserRepository {
   override suspend fun getFavoriteEvents(userId: String): List<String> {
     return favoriteEvents[userId] ?: emptyList()
   }
+
+  override suspend fun checkUsernameAvailability(username: String): Boolean {
+    // Case-insensitive check: normalize to lowercase for comparison
+    val normalizedUsername = username.lowercase()
+    return users.none { it.username.lowercase() == normalizedUsername }
+  }
 }

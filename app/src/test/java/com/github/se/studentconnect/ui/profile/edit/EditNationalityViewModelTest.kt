@@ -24,6 +24,7 @@ class EditNationalityViewModelTest {
   private val testUser =
       User(
           userId = "test_user",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           email = "john.doe@example.com",
@@ -408,6 +409,10 @@ class EditNationalityViewModelTest {
     }
 
     override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
   }
