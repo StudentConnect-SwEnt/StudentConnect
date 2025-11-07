@@ -244,7 +244,7 @@ class LocationPickerDialogTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Radius : 5 km").assertIsDisplayed()
-}
+  }
 
   @Test
   fun locationPickerDialog_cancelButtonIsAlwaysEnabled() {
