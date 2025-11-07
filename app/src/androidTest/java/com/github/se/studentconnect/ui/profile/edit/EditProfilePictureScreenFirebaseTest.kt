@@ -80,7 +80,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
             lastName = "Picture",
             university = "EPFL",
             hobbies = listOf("Testing"),
-          username = "edit_picture_user")
+            username = "edit_picture_user")
 
     runTest { userRepository.saveUser(testUser) }
 

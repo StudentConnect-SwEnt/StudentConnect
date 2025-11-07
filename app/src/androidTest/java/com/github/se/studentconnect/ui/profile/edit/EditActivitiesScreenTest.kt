@@ -31,8 +31,7 @@ class EditActivitiesScreenTest {
           hobbies = listOf("Football", "AI", "Piano"),
           bio = "Test bio",
           profilePictureUrl = null,
-          username = "john_doe"
-      )
+          username = "john_doe")
 
   private var navigatedBack = false
 
