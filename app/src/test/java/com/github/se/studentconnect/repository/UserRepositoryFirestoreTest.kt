@@ -9,8 +9,10 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -33,6 +35,8 @@ class UserRepositoryFirestoreTest {
 
   @Mock private lateinit var mockQuerySnapshot: QuerySnapshot
 
+  @Mock private lateinit var mockQuery: Query
+
   @Mock private lateinit var mockJoinedEventsCollection: CollectionReference
 
   @Mock private lateinit var mockInvitationsCollection: CollectionReference
@@ -43,6 +47,7 @@ class UserRepositoryFirestoreTest {
       User(
           userId = "user123",
           email = "test@epfl.ch",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           university = "EPFL",
@@ -178,6 +183,7 @@ class UserRepositoryFirestoreTest {
         User(
             userId = "user456",
             email = "test2@unil.ch",
+            username = "janesmith",
             firstName = "Jane",
             lastName = "Smith",
             university = "UNIL",
@@ -978,5 +984,58 @@ class UserRepositoryFirestoreTest {
     } catch (e: Exception) {
       assert(e == exception)
     }
+  }
+
+  // Username availability tests
+  @Test
+  fun testCheckUsernameAvailability_returnsTrue_whenUsernameNotExists() = runTest {
+    // Arrange
+    whenever(mockCollectionReference.whereEqualTo("username", "newuser")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(1)).thenReturn(mockQuery)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.isEmpty).thenReturn(true)
+
+    // Act
+    val result = repository.checkUsernameAvailability("newuser")
+
+    // Assert
+    assertTrue(result)
+    verify(mockCollectionReference).whereEqualTo("username", "newuser")
+    verify(mockQuery).limit(1)
+  }
+
+  @Test
+  fun testCheckUsernameAvailability_returnsFalse_whenUsernameExists() = runTest {
+    // Arrange
+    whenever(mockCollectionReference.whereEqualTo("username", "johndoe")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(1)).thenReturn(mockQuery)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.isEmpty).thenReturn(false)
+
+    // Act
+    val result = repository.checkUsernameAvailability("johndoe")
+
+    // Assert
+    assertFalse(result)
+    verify(mockCollectionReference).whereEqualTo("username", "johndoe")
+  }
+
+  @Test
+  fun testCheckUsernameAvailability_isCaseInsensitive() = runTest {
+    // Arrange
+    whenever(mockCollectionReference.whereEqualTo("username", "johndoe")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(1)).thenReturn(mockQuery)
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.isEmpty).thenReturn(false)
+
+    // Act
+    val result = repository.checkUsernameAvailability("JOHNDOE")
+
+    // Assert
+    assertFalse(result)
+    verify(mockCollectionReference).whereEqualTo("username", "johndoe")
   }
 }

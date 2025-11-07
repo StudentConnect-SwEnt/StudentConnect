@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,8 +27,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -37,8 +38,10 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
+import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.viewmodel.EventViewModel
+import com.github.se.studentconnect.viewmodel.TicketValidationResult
 
 private val screenPadding = 25.dp
 
@@ -60,6 +63,11 @@ object EventViewTestTags {
   const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
   const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
   const val LOADING_INDICATOR = "event_view_loading_indicator"
+  const val SCAN_QR_BUTTON = "event_view_scan_qr_button"
+  const val QR_SCANNER_DIALOG = "event_view_qr_scanner_dialog"
+  const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
+  const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
+  const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,6 +82,8 @@ fun EventView(
   val event = uiState.event
   val isLoading = uiState.isLoading
   val isJoined = uiState.isJoined
+  val showQrScanner = uiState.showQrScanner
+  val validationResult = uiState.ticketValidationResult
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -81,6 +91,15 @@ fun EventView(
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid, hasJoined) }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
+
+  // QR Scanner Dialog
+  if (showQrScanner && event != null) {
+    QrScannerDialog(
+        eventUid = event.uid,
+        eventViewModel = eventViewModel,
+        onDismiss = { eventViewModel.hideQrScanner() },
+        validationResult = validationResult)
+  }
 
   Scaffold(
       modifier = Modifier.testTag(EventViewTestTags.EVENT_VIEW_SCREEN),
@@ -239,10 +258,24 @@ fun EventActionButtons(
       horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (isOwner) {
-      Button(
-          onClick = { navController.navigate(editRoute) },
-          modifier = Modifier.align(Alignment.End).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
-            Text("Edit event")
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+            Button(
+                onClick = { eventViewModel.showQrScanner() },
+                modifier = Modifier.testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
+                  Icon(
+                      imageVector = Icons.Default.QrCodeScanner,
+                      contentDescription = null,
+                      modifier = Modifier.size(20.dp))
+                  Spacer(modifier = Modifier.width(4.dp))
+                  Text("Scan Ticket")
+                }
+            Button(
+                onClick = { navController.navigate(editRoute) },
+                modifier = Modifier.testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
+                  Text("Edit event")
+                }
           }
       Spacer(modifier = Modifier.height(12.dp))
     }
@@ -351,8 +384,141 @@ fun titleTextStyle(): TextStyle =
     MaterialTheme.typography.titleLarge.copy(
         color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
 
-@Preview(showBackground = true)
 @Composable
-fun EventViewPreview() {
-  MaterialTheme { EventView(eventUid = "event-killer-concert-01", hasJoined = false) }
+private fun QrScannerDialog(
+    eventUid: String,
+    eventViewModel: EventViewModel,
+    onDismiss: () -> Unit,
+    validationResult: TicketValidationResult?
+) {
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth()
+                .fillMaxHeight(0.7f)
+                .testTag(EventViewTestTags.QR_SCANNER_DIALOG),
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)) {
+          Box(modifier = Modifier.fillMaxSize()) {
+            QrScannerScreen(
+                onBackClick = onDismiss,
+                onProfileDetected = { userId ->
+                  eventViewModel.validateParticipant(eventUid, userId)
+                },
+                modifier = Modifier.fillMaxSize(),
+                isActive = validationResult == null)
+
+            validationResult?.let { result ->
+              ValidationResultOverlay(
+                  result = result,
+                  onScanNext = { eventViewModel.clearValidationResult() },
+                  onClose = onDismiss)
+            }
+          }
+        }
+  }
 }
+
+@Composable
+private fun ValidationResultOverlay(
+    result: TicketValidationResult,
+    onScanNext: () -> Unit,
+    onClose: () -> Unit
+) {
+  Box(
+      modifier =
+          Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+      contentAlignment = Alignment.Center) {
+        Card(
+            modifier = Modifier.padding(32.dp),
+            colors =
+                CardDefaults.cardColors(containerColor = getValidationContainerColor(result))) {
+              Column(
+                  modifier = Modifier.padding(24.dp).testTag(getValidationTestTag(result)),
+                  horizontalAlignment = Alignment.CenterHorizontally,
+                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ValidationIcon(result = result)
+                    ValidationTitle(result = result)
+                    ValidationMessage(result = result)
+
+                    Button(onClick = onScanNext, modifier = Modifier.fillMaxWidth()) {
+                      Text("Scan Next")
+                    }
+
+                    OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                      Text("Close Scanner")
+                    }
+                  }
+            }
+      }
+}
+
+@Composable
+private fun ValidationIcon(result: TicketValidationResult) {
+  val iconRes =
+      when (result) {
+        is TicketValidationResult.Valid -> R.drawable.ic_add
+        is TicketValidationResult.Invalid -> R.drawable.ic_user
+        is TicketValidationResult.Error -> R.drawable.ic_arrow_right
+      }
+
+  Icon(
+      painter = painterResource(id = iconRes),
+      contentDescription = null,
+      modifier = Modifier.size(64.dp),
+      tint = getValidationContentColor(result))
+}
+
+@Composable
+private fun ValidationTitle(result: TicketValidationResult) {
+  val title =
+      when (result) {
+        is TicketValidationResult.Valid -> "Valid Ticket"
+        is TicketValidationResult.Invalid -> "Invalid Ticket"
+        is TicketValidationResult.Error -> "Verification Error"
+      }
+
+  Text(
+      text = title,
+      style = MaterialTheme.typography.headlineMedium,
+      color = getValidationContentColor(result))
+}
+
+@Composable
+private fun ValidationMessage(result: TicketValidationResult) {
+  val message =
+      when (result) {
+        is TicketValidationResult.Valid -> "Participant ID: ${result.participantId}"
+        is TicketValidationResult.Invalid ->
+            "User ${result.userId} is not registered for this event"
+        is TicketValidationResult.Error -> result.message
+      }
+
+  Text(
+      text = message,
+      style = MaterialTheme.typography.bodyMedium,
+      color = getValidationContentColor(result))
+}
+
+@Composable
+private fun getValidationContainerColor(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> MaterialTheme.colorScheme.primaryContainer
+      is TicketValidationResult.Invalid -> MaterialTheme.colorScheme.errorContainer
+      is TicketValidationResult.Error -> MaterialTheme.colorScheme.secondaryContainer
+    }
+
+@Composable
+private fun getValidationContentColor(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> MaterialTheme.colorScheme.onPrimaryContainer
+      is TicketValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
+      is TicketValidationResult.Error -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
+
+private fun getValidationTestTag(result: TicketValidationResult) =
+    when (result) {
+      is TicketValidationResult.Valid -> EventViewTestTags.VALIDATION_RESULT_VALID
+      is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
+      is TicketValidationResult.Error -> EventViewTestTags.VALIDATION_RESULT_ERROR
+    }

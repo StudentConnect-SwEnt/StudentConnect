@@ -225,4 +225,18 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         db.collection(COLLECTION_NAME).document(userId).collection(FAVORITE_EVENTS).get().await()
     return document.documents.map { it.getString("eventId")!! }
   }
+
+  override suspend fun checkUsernameAvailability(username: String): Boolean {
+    // Username is already normalized to lowercase by SignUpViewModel
+    // Query Firestore for username (stored in lowercase)
+    val querySnapshot =
+        db.collection(COLLECTION_NAME)
+            .whereEqualTo("username", username.lowercase())
+            .limit(1)
+            .get()
+            .await()
+
+    // Username is available if no documents are found
+    return querySnapshot.isEmpty
+  }
 }

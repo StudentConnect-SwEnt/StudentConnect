@@ -282,5 +282,9 @@ class BaseEditViewModelTest {
     override suspend fun getFavoriteEvents(userId: String): List<String> {
       TODO("Not yet implemented")
     }
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 }

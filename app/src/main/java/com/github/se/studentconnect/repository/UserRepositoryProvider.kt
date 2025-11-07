@@ -49,6 +49,7 @@ object UserRepositoryProvider {
         User(
             userId = "user-bob-02",
             email = "bob@example.com",
+            username = "bob_the_builder",
             firstName = "Bob",
             lastName = "Johnson",
             university = "EPFL",
@@ -56,6 +57,7 @@ object UserRepositoryProvider {
         User(
             userId = "user-charlie-03",
             email = "charlie@example.com",
+            username = "charlie_brown",
             firstName = "Charlie",
             lastName = "Brown",
             university = "UNIL",

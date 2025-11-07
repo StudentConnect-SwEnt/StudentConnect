@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.net.toUri
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -23,10 +24,10 @@ class AddPictureScreenTest {
   companion object {
     private const val CONTINUE_LABEL = "Continue"
     private const val UPLOAD_PROMPT = "Upload/Take your profile photo"
-    private const val PICKER_SUCCESS_URI = "content://photo/42"
+    private val PICKER_SUCCESS_URI = "content://photo/42".toUri()
     private const val BACK_DESCRIPTION = "Back"
-    private const val PLACEHOLDER = "ic_user"
-    private const val DEFAULT_PLACEHOLDER = "ic_user"
+    private val PLACEHOLDER = "ic_user".toUri()
+    private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
   }
 
   private lateinit var controller: ActivityController<ComponentActivity>
@@ -105,10 +106,10 @@ class AddPictureScreenTest {
     composeScreen()
 
     // Test ViewModel state changes
-    viewModel.setProfilePictureUri("content://external")
+    viewModel.setProfilePictureUri("content://external".toUri())
     assertEquals(
         "Profile picture should be set",
-        "content://external",
+        "content://external".toUri(),
         viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri(null)
@@ -160,7 +161,7 @@ class AddPictureScreenTest {
     composeScreen()
 
     // Test blank URI handling - the ViewModel should filter out blank URIs
-    viewModel.setProfilePictureUri("   ")
+    viewModel.setProfilePictureUri("   ".toUri())
 
     // Blank URIs should be filtered out by the ViewModel
     assertNull(
@@ -172,12 +173,14 @@ class AddPictureScreenTest {
     composeScreen()
 
     // Set initial state in ViewModel
-    viewModel.setProfilePictureUri("initial-uri")
+    viewModel.setProfilePictureUri("initial-uri".toUri())
 
     // The LaunchedEffect should synchronize the local state
     // We can verify this by checking that the ViewModel state is updated
     assertEquals(
-        "ViewModel state should be updated", "initial-uri", viewModel.state.value.profilePictureUri)
+        "ViewModel state should be updated",
+        "initial-uri".toUri(),
+        viewModel.state.value.profilePictureUri)
   }
 
   @Test
@@ -189,12 +192,13 @@ class AddPictureScreenTest {
     assertNull("Should handle null state", viewModel.state.value.profilePictureUri)
 
     // Test blank state
-    viewModel.setProfilePictureUri("")
+    viewModel.setProfilePictureUri("".toUri())
     assertNull("Should handle blank state", viewModel.state.value.profilePictureUri)
 
     // Test valid state
-    viewModel.setProfilePictureUri("valid-uri")
-    assertEquals("Should handle valid state", "valid-uri", viewModel.state.value.profilePictureUri)
+    viewModel.setProfilePictureUri("valid-uri".toUri())
+    assertEquals(
+        "Should handle valid state", "valid-uri".toUri(), viewModel.state.value.profilePictureUri)
 
     // Test placeholder state
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
@@ -220,10 +224,10 @@ class AddPictureScreenTest {
         viewModel.state.value.profilePictureUri)
 
     // Test actual image selection
-    viewModel.setProfilePictureUri("content://image/123")
+    viewModel.setProfilePictureUri("content://image/123".toUri())
     assertEquals(
         "Should handle actual image selection",
-        "content://image/123",
+        "content://image/123".toUri(),
         viewModel.state.value.profilePictureUri)
   }
 
@@ -261,10 +265,10 @@ class AddPictureScreenTest {
         viewModel.state.value.profilePictureUri)
 
     // Test UploadCard with actual image selection
-    viewModel.setProfilePictureUri("content://image/123")
+    viewModel.setProfilePictureUri("content://image/123".toUri())
     assertEquals(
         "Should handle actual image selection",
-        "content://image/123",
+        "content://image/123".toUri(),
         viewModel.state.value.profilePictureUri)
 
     // This test exercises the UploadCard component which uses drawDashedCircleBorder
@@ -276,16 +280,18 @@ class AddPictureScreenTest {
     composeScreen()
 
     // Test various edge cases that might affect the rendering logic
-    viewModel.setProfilePictureUri("")
+    viewModel.setProfilePictureUri("".toUri())
     assertNull("Empty string should be filtered out", viewModel.state.value.profilePictureUri)
 
-    viewModel.setProfilePictureUri("   ")
+    viewModel.setProfilePictureUri("   ".toUri())
     assertNull(
         "Whitespace-only string should be filtered out", viewModel.state.value.profilePictureUri)
 
-    viewModel.setProfilePictureUri("valid-uri")
+    viewModel.setProfilePictureUri("valid-uri".toUri())
     assertEquals(
-        "Valid URI should be preserved", "valid-uri", viewModel.state.value.profilePictureUri)
+        "Valid URI should be preserved",
+        "valid-uri".toUri(),
+        viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
     assertEquals(
@@ -295,18 +301,13 @@ class AddPictureScreenTest {
   }
 
   private fun composeScreen(
-      onPickImage: (onResult: (String?) -> Unit) -> Unit = {},
       onSkip: () -> Unit = {},
       onContinue: () -> Unit = {},
       onBack: () -> Unit = {}
   ) {
     controller.get().setContent {
       AddPictureScreen(
-          viewModel = viewModel,
-          onPickImage = onPickImage,
-          onSkip = onSkip,
-          onContinue = onContinue,
-          onBack = onBack)
+          viewModel = viewModel, onSkip = onSkip, onContinue = onContinue, onBack = onBack)
     }
     runOnIdle()
   }

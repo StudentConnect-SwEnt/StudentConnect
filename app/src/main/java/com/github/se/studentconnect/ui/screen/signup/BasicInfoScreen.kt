@@ -12,15 +12,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
@@ -43,8 +52,11 @@ import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import com.github.se.studentconnect.ui.components.BirthdayPickerDialog
+import com.github.se.studentconnect.repository.UserRepository
 import com.google.firebase.Timestamp
 import java.util.Date
+import java.util.Locale
+import kotlinx.coroutines.delay
 
 /**
  * Collects and persists the user's core profile details (names and birthdate) while controlling
@@ -54,6 +66,7 @@ import java.util.Date
 @Composable
 fun BasicInfoScreen(
     viewModel: SignUpViewModel,
+    userRepository: UserRepository,
     onContinue: () -> Unit,
     onBack: () -> Unit,
     onContinueEnabledChanged: ((Boolean) -> Unit)? = null,
@@ -91,9 +104,18 @@ fun BasicInfoScreen(
 
   val firstNameText = signUpState.firstName
   val lastNameText = signUpState.lastName
+  val usernameText = signUpState.username
   val isFirstNameValid = firstNameText.isNotBlank()
   val isLastNameValid = lastNameText.isNotBlank()
-  val isContinueEnabled = isFirstNameValid && isLastNameValid && isBirthdateValid
+
+  // Username validation state (managed by UsernameTextField)
+  var isUsernameFormatValid by remember { mutableStateOf(false) }
+  var isUsernameAvailable by remember { mutableStateOf<Boolean?>(null) }
+
+  // Username is valid if format is valid AND available
+  val isUsernameValid = isUsernameFormatValid && isUsernameAvailable == true
+
+  val isContinueEnabled = isFirstNameValid && isLastNameValid && isBirthdateValid && isUsernameValid
   LaunchedEffect(isContinueEnabled) { onContinueEnabledChanged?.invoke(isContinueEnabled) }
 
   Column(
@@ -135,6 +157,19 @@ fun BasicInfoScreen(
             label = { Text("Last name") },
             placeholder = { Text("Enter your last name") },
             singleLine = true)
+
+        Spacer(Modifier.height(16.dp))
+
+        // Username field with real-time validation and availability check
+        UsernameTextField(
+            username = usernameText,
+            onUsernameChange = { newUsername -> viewModel.setUsername(newUsername) },
+            userRepository = userRepository,
+            onValidationStateChange = { isValid, available ->
+              isUsernameFormatValid = isValid
+              isUsernameAvailable = available
+            },
+            modifier = Modifier.fillMaxWidth())
 
         Spacer(Modifier.height(16.dp))
 
@@ -180,6 +215,106 @@ fun BasicInfoScreen(
       }
 }
 
+/** Text field for username input with real-time validation and availability checking. */
+@Composable
+fun UsernameTextField(
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    userRepository: UserRepository,
+    onValidationStateChange: (isValid: Boolean, isAvailable: Boolean?) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
+) {
+  var isChecking by remember { mutableStateOf(false) }
+  var isAvailable by remember { mutableStateOf<Boolean?>(null) }
+
+  val isValidFormat =
+      remember(username) {
+        !username.isBlank() &&
+            username.length in 3..20 &&
+            username.matches(Regex("^[a-zA-Z0-9_.-]+$"))
+      }
+
+  LaunchedEffect(username) {
+    isChecking = false
+    isAvailable = null
+    onValidationStateChange(isValidFormat, null)
+
+    if (isValidFormat) {
+      delay(300)
+      isChecking = true
+      try {
+        isAvailable = userRepository.checkUsernameAvailability(username)
+        onValidationStateChange(true, isAvailable)
+      } catch (e: Exception) {
+        isAvailable = false
+        onValidationStateChange(true, false)
+      } finally {
+        isChecking = false
+      }
+    } else {
+      onValidationStateChange(false, null)
+    }
+  }
+
+  val errorText =
+      when {
+        !isValidFormat && username.isNotBlank() ->
+            when {
+              username.length !in 3..20 -> "Username must be 3-20 characters long"
+              !username.matches(Regex("^[a-zA-Z0-9_.-]+$")) ->
+                  "Only alphanumeric characters, underscores, hyphens, and periods are allowed"
+              else -> null
+            }
+        isAvailable == false -> "This username is already taken"
+        else -> null
+      }
+
+  val trailingIcon: @Composable (() -> Unit)? =
+      when {
+        isChecking -> {
+          { CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp) }
+        }
+        isValidFormat && isAvailable == true -> {
+          {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = "Available",
+                modifier = Modifier.size(20.dp),
+                tint = Color(0xFF4CAF50))
+          }
+        }
+        isValidFormat && isAvailable == false -> {
+          {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Taken",
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.error)
+          }
+        }
+        else -> null
+      }
+
+  OutlinedTextField(
+      value = username,
+      onValueChange = {
+        onUsernameChange(it.lowercase().filter { c -> c.isLetterOrDigit() || c in "_-." })
+      },
+      modifier = modifier.fillMaxWidth(),
+      label = { Text("Username") },
+      placeholder = { Text("Choose a unique username") },
+      singleLine = true,
+      isError = errorText != null,
+      supportingText = errorText?.let { { Text(it) } },
+      trailingIcon = trailingIcon,
+      colors =
+          OutlinedTextFieldDefaults.colors(
+              errorTrailingIconColor = MaterialTheme.colorScheme.error,
+              focusedTrailingIconColor =
+                  if (isAvailable == true) Color(0xFF4CAF50)
+                  else MaterialTheme.colorScheme.onSurface))
+}
+
 @Composable
 private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
   val primary = MaterialTheme.colorScheme.primary
@@ -221,3 +356,17 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
             contentScale = ContentScale.Crop)
       }
 }
+
+// @SuppressLint("ViewModelConstructorInComposable")
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Preview(showBackground = true)
+// @Composable
+// private fun BasicInfoScreenPreview() {
+//  AppTheme {
+//    BasicInfoScreen(
+//        viewModel = SignUpViewModel(),
+//        userRepository = UserRepositoryLocal(),
+//        onContinue = {},
+//        onBack = {})
+//  }
+// }

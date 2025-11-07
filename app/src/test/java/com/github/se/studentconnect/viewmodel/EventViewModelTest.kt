@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.viewmodel
 
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
@@ -185,5 +187,245 @@ class EventViewModelTest {
     val uiState = viewModel.uiState.value
     assertTrue("Should be marked as joined", uiState.isJoined)
     assertNotNull("Event should be loaded", uiState.event)
+  }
+
+  @Test
+  fun initialState_qrScannerNotShown() {
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showQrScanner)
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun showQrScanner_updatesUiState() {
+    // Act
+    viewModel.showQrScanner()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showQrScanner)
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun hideQrScanner_updatesUiState() {
+    // Arrange
+    viewModel.showQrScanner()
+
+    // Act
+    viewModel.hideQrScanner()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showQrScanner)
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun showQrScanner_clearsValidationResult() {
+    // Arrange - set a validation result first
+    viewModel.showQrScanner()
+    viewModel.validateParticipant(testEvent.uid, "user123")
+
+    // Act - show scanner again
+    viewModel.showQrScanner()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showQrScanner)
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun validateParticipant_withValidParticipant_returnsValid() = runTest {
+    // Arrange
+    val participantId = "participant123"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, participantId)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNotNull(uiState.ticketValidationResult)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Valid)
+    assertEquals(
+        participantId,
+        (uiState.ticketValidationResult as TicketValidationResult.Valid).participantId)
+  }
+
+  @Test
+  fun validateParticipant_withInvalidParticipant_returnsInvalid() = runTest {
+    // Arrange
+    val nonParticipantId = "nonparticipant123"
+    eventRepository.addEvent(testEvent)
+    // Add a different participant
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("otheruser"))
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, nonParticipantId)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNotNull(uiState.ticketValidationResult)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Invalid)
+    assertEquals(
+        nonParticipantId, (uiState.ticketValidationResult as TicketValidationResult.Invalid).userId)
+  }
+
+  @Test
+  fun validateParticipant_withNoParticipants_returnsInvalid() = runTest {
+    // Arrange
+    val userId = "user123"
+    eventRepository.addEvent(testEvent)
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, userId)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNotNull(uiState.ticketValidationResult)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Invalid)
+  }
+
+  @Test
+  fun validateParticipant_withMultipleParticipants_findsCorrectOne() = runTest {
+    // Arrange
+    val targetParticipant = "target123"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user1"))
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user2"))
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(targetParticipant))
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user4"))
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, targetParticipant)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNotNull(uiState.ticketValidationResult)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Valid)
+    assertEquals(
+        targetParticipant,
+        (uiState.ticketValidationResult as TicketValidationResult.Valid).participantId)
+  }
+
+  @Test
+  fun clearValidationResult_removesResult() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user123"))
+    viewModel.validateParticipant(testEvent.uid, "user123")
+    advanceUntilIdle()
+
+    // Act
+    viewModel.clearValidationResult()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun clearValidationResult_whenNoResult_doesNotCrash() {
+    // Act & Assert - should not crash
+    viewModel.clearValidationResult()
+
+    val uiState = viewModel.uiState.value
+    assertNull(uiState.ticketValidationResult)
+  }
+
+  @Test
+  fun validateParticipant_withException_returnsError() = runTest {
+    // Arrange - create a mock repository that throws an exception
+    val mockEventRepository = EventRepositoryLocal()
+    mockEventRepository.addEvent(testEvent)
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Network error")
+          }
+        }
+    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+
+    val userId = "user123"
+
+    // Act
+    mockViewModel.validateParticipant(testEvent.uid, userId)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = mockViewModel.uiState.value
+    assertNotNull(uiState.ticketValidationResult)
+    assertTrue(uiState.ticketValidationResult is TicketValidationResult.Error)
+  }
+
+  @Test
+  fun ticketValidationResult_validType_hasCorrectData() = runTest {
+    // Arrange
+    val participantId = "valid-participant"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, participantId)
+    advanceUntilIdle()
+
+    // Assert
+    val result = viewModel.uiState.value.ticketValidationResult
+    assertTrue(result is TicketValidationResult.Valid)
+    val validResult = result as TicketValidationResult.Valid
+    assertEquals(participantId, validResult.participantId)
+  }
+
+  @Test
+  fun ticketValidationResult_invalidType_hasCorrectData() = runTest {
+    // Arrange
+    val invalidUserId = "invalid-user"
+    eventRepository.addEvent(testEvent)
+
+    // Act
+    viewModel.validateParticipant(testEvent.uid, invalidUserId)
+    advanceUntilIdle()
+
+    // Assert
+    val result = viewModel.uiState.value.ticketValidationResult
+    assertTrue(result is TicketValidationResult.Invalid)
+    val invalidResult = result as TicketValidationResult.Invalid
+    assertEquals(invalidUserId, invalidResult.userId)
+  }
+
+  @Test
+  fun ticketValidationResult_errorType_hasCorrectMessage() = runTest {
+    // Arrange - create a mock repository that throws an exception
+    val mockEventRepository = EventRepositoryLocal()
+    mockEventRepository.addEvent(testEvent)
+
+    val errorThrowingRepo =
+        object : EventRepository by mockEventRepository {
+          override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> {
+            throw RuntimeException("Connection timeout")
+          }
+        }
+    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+
+    val userId = "user123"
+
+    // Act
+    mockViewModel.validateParticipant(testEvent.uid, userId)
+    advanceUntilIdle()
+
+    // Assert
+    val result = mockViewModel.uiState.value.ticketValidationResult
+    assertTrue(result is TicketValidationResult.Error)
+    val errorResult = result as TicketValidationResult.Error
+    assertTrue(errorResult.message.isNotEmpty())
+    assertEquals("Connection timeout", errorResult.message)
   }
 }

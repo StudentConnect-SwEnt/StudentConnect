@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.home
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -41,7 +42,8 @@ class HomeScreenUITest {
           website = "https://example.com",
           ownerId = "owner1",
           isFlash = false,
-          tags = listOf("music", "outdoor"))
+          tags = listOf("music", "outdoor"),
+      )
 
   private val testEvent2 =
       Event.Public(
@@ -55,7 +57,8 @@ class HomeScreenUITest {
           website = "https://example.com",
           ownerId = "owner2",
           isFlash = false,
-          tags = listOf("tech", "networking"))
+          tags = listOf("tech", "networking"),
+      )
 
   @Before
   fun setup() {
@@ -209,13 +212,11 @@ class HomeScreenUITest {
 
     // Wait for events to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Summer Festival"))
-          .fetchSemanticsNodes()
-          .isNotEmpty()
+      composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Summer Festival").assertHasClickAction()
+    // Use onNodeWithTag to specifically target the event card, not the story
+    composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
   }
 
   // @Test

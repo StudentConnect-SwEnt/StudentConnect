@@ -22,6 +22,7 @@ class EditProfilePictureScreenTest {
   private val testUser =
       User(
           userId = "test_user",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           email = "john.doe@example.com",
@@ -112,11 +113,11 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("No profile picture set").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
-  fun editProfilePictureScreen_displaysChangeProfilePictureSection() {
+  fun editProfilePictureScreen_displaysActionButtonsSection() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -127,11 +128,12 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Change Profile Picture").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 
   @Test
-  fun editProfilePictureScreen_displaysCameraButton() {
+  fun editProfilePictureScreen_displaysRemovePhotoButton() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -142,12 +144,12 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Take Photo").assertExists()
-    composeTestRule.onNodeWithContentDescription("Take Photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertIsNotEnabled()
   }
 
   @Test
-  fun editProfilePictureScreen_displaysGalleryButton() {
+  fun editProfilePictureScreen_displaysInstructionText() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -158,8 +160,7 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Choose from Gallery").assertExists()
-    composeTestRule.onNodeWithContentDescription("Choose from Gallery").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
@@ -175,10 +176,11 @@ class EditProfilePictureScreenTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
   }
 
   @Test
-  fun editProfilePictureScreen_cameraButtonIsClickable() {
+  fun editProfilePictureScreen_profilePictureIsClickable() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -189,13 +191,12 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Take Photo").assertIsEnabled()
-    composeTestRule.onNodeWithText("Take Photo").performClick()
-    // Since functionality is not implemented yet, just verify it's clickable
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertHasClickAction()
   }
 
   @Test
-  fun editProfilePictureScreen_galleryButtonIsClickable() {
+  fun editProfilePictureScreen_removePhotoButtonDisabledByDefault() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -206,13 +207,12 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Choose from Gallery").assertIsEnabled()
-    composeTestRule.onNodeWithText("Choose from Gallery").performClick()
-    // Since functionality is not implemented yet, just verify it's clickable
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertIsNotEnabled()
   }
 
   @Test
-  fun editProfilePictureScreen_saveButtonIsClickable() {
+  fun editProfilePictureScreen_saveButtonDisabledByDefault() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -223,9 +223,8 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Changes").assertIsEnabled()
-    composeTestRule.onNodeWithText("Save Changes").performClick()
-    // Since functionality is not implemented yet, just verify it's clickable
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
   }
 
   @Test
@@ -242,7 +241,7 @@ class EditProfilePictureScreenTest {
     composeTestRule.waitForIdle()
 
     // Verify the user was loaded by checking if the profile section is displayed
-    composeTestRule.onNodeWithText("No profile picture set").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
@@ -302,11 +301,13 @@ class EditProfilePictureScreenTest {
     composeTestRule.waitForIdle()
 
     // Eventually the content should be loaded
-    composeTestRule.onNodeWithText("No profile picture set", useUnmergedTree = true).assertExists()
+    composeTestRule
+        .onNodeWithText("Tap above to choose a profile photo", useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
-  fun editProfilePictureScreen_allButtonsVisibleSimultaneously() {
+  fun editProfilePictureScreen_actionButtonsVisibleSimultaneously() {
     composeTestRule.setContent {
       MaterialTheme {
         EditProfilePictureScreen(
@@ -318,9 +319,8 @@ class EditProfilePictureScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // All three action buttons should be visible at the same time
-    composeTestRule.onNodeWithText("Take Photo").assertExists()
-    composeTestRule.onNodeWithText("Choose from Gallery").assertExists()
+    // All action buttons should be visible at the same time
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
     composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 
@@ -342,40 +342,6 @@ class EditProfilePictureScreenTest {
   }
 
   @Test
-  fun editProfilePictureScreen_cameraIconIsDisplayed() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditProfilePictureScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // The camera icon should be displayed in the Take Photo button
-    composeTestRule.onNodeWithContentDescription("Take Photo").assertExists()
-  }
-
-  @Test
-  fun editProfilePictureScreen_galleryIconIsDisplayed() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditProfilePictureScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // The gallery icon should be displayed in the Choose from Gallery button
-    composeTestRule.onNodeWithContentDescription("Choose from Gallery").assertExists()
-  }
-
-  @Test
   fun editProfilePictureScreen_withExistingProfilePicture() {
     repository = TestUserRepository(testUserWithPicture)
 
@@ -392,7 +358,7 @@ class EditProfilePictureScreenTest {
 
     // Should still display the profile section
     composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
-    composeTestRule.onNodeWithText("Change Profile Picture").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
   }
 
   @Test
@@ -428,10 +394,8 @@ class EditProfilePictureScreenTest {
     composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
     composeTestRule.onNodeWithContentDescription("Back").assertExists()
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
-    composeTestRule.onNodeWithText("No profile picture set").assertExists()
-    composeTestRule.onNodeWithText("Change Profile Picture").assertExists()
-    composeTestRule.onNodeWithText("Take Photo").assertExists()
-    composeTestRule.onNodeWithText("Choose from Gallery").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
     composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 
@@ -450,35 +414,10 @@ class EditProfilePictureScreenTest {
 
     // Verify the layout contains both cards
     // First card: Current profile picture
-    composeTestRule.onNodeWithText("No profile picture set").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
 
     // Second card: Action buttons
-    composeTestRule.onNodeWithText("Change Profile Picture").assertExists()
-  }
-
-  @Test
-  fun editProfilePictureScreen_multipleClicksOnButtons() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditProfilePictureScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Click buttons multiple times to ensure they don't crash
-    composeTestRule.onNodeWithText("Take Photo").performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Choose from Gallery").performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Changes").performClick()
-    composeTestRule.waitForIdle()
-
-    // Should not crash and UI should still be visible
-    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
   }
 
   private class TestUserRepository(
@@ -554,6 +493,10 @@ class EditProfilePictureScreenTest {
     }
 
     override suspend fun getFavoriteEvents(userId: String): List<String> {
+      TODO("Not yet implemented")
+    }
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
   }
