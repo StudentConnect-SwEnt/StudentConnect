@@ -22,6 +22,7 @@ class EditActivitiesViewModelTest {
   private val testUser =
       User(
           userId = "test_user",
+          username = "johndoe",
           firstName = "John",
           lastName = "Doe",
           email = "john.doe@example.com",
