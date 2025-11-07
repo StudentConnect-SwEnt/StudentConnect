@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -150,7 +151,7 @@ fun LocationPickerDialog(
                         if (useTestMap) {
                           // Use component provided above or test equivalent if available
                           LocationPickerMapComponent(
-                              modifier = Modifier.fillMaxSize(),
+                              modifier = Modifier.fillMaxSize().testTag("location_picker_map"),
                               selectedPoint = selectedPoint,
                               onMapClick = { point ->
                                 selectedPoint = point
