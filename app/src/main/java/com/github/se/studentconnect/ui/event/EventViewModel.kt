@@ -154,23 +154,41 @@ class EventViewModel(
 
   fun fetchAttendees() {
     val event = uiState.value.event
-    val currentUserUid = AuthenticationProvider.currentUser
     if (event != null) {
       _uiState.update { it.copy(isLoading = true) }
 
       viewModelScope.launch {
         val userList = mutableListOf<User>()
-        val currentUser = userRepository.getUserById(currentUserUid)
-        val ownerId = event.ownerId
-        val owner = userRepository.getUserById(ownerId)
 
         eventRepository.getEventParticipants(event.uid).forEach { eventParticipant ->
           val participant = userRepository.getUserById(eventParticipant.uid)
           if (participant != null) userList.add(participant)
         }
-        _uiState.update {
-          it.copy(isLoading = false, attendees = userList, currentUser = currentUser, owner = owner)
-        }
+        _uiState.update { it.copy(isLoading = false, attendees = userList) }
+      }
+    }
+  }
+
+  fun fetchCurrentUser() {
+    val currentUserUid = AuthenticationProvider.currentUser
+    if (currentUserUid != null) {
+      _uiState.update { it.copy(isLoading = true) }
+      viewModelScope.launch {
+        val currentUser = userRepository.getUserById(currentUserUid)
+        _uiState.update { it.copy(isLoading = false, currentUser = currentUser) }
+      }
+    }
+  }
+
+  fun fetchOwner() {
+    val event = uiState.value.event
+    if (event != null) {
+
+      _uiState.update { it.copy(isLoading = true) }
+      viewModelScope.launch {
+        val ownerId = event.ownerId
+        val owner = userRepository.getUserById(ownerId)
+        _uiState.update { it.copy(isLoading = false, owner = owner) }
       }
     }
   }
