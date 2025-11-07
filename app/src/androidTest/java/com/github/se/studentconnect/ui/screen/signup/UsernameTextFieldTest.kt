@@ -62,7 +62,10 @@ class UsernameTextFieldTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithText("Username must be 3-20 characters long")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
   }
@@ -81,7 +84,10 @@ class UsernameTextFieldTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithText("Username must be 3-20 characters long")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
   }
@@ -100,7 +106,11 @@ class UsernameTextFieldTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule.onAllNodesWithText("Only alphanumeric characters, underscores, hyphens, and periods are allowed").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithText(
+              "Only alphanumeric characters, underscores, hyphens, and periods are allowed")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
     composeTestRule
         .onNodeWithText(
