@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -25,6 +28,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,6 +36,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -48,8 +53,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -208,7 +216,11 @@ fun HomeScreen(
                                   onCalendarClick = onCalendarClick,
                                   onApplyFilters = onApplyFilters)
                               StoriesRow(
-                                  onClick = onClickStory, stories = uiState.subscribedEventsStories)
+                                  onAddStoryClick = {
+                                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                  },
+                                  onClick = onClickStory,
+                                  stories = uiState.subscribedEventsStories)
                               EventListScreen(
                                   navController = navController,
                                   events = uiState.events,
@@ -339,18 +351,17 @@ fun StoryItem(
 }
 
 @Composable
-fun StoriesRow(onClick: (Event, Int) -> Unit, stories: Map<Event, Pair<Int, Int>>) {
+fun StoriesRow(
+    onAddStoryClick: () -> Unit,
+    onClick: (Event, Int) -> Unit,
+    stories: Map<Event, Pair<Int, Int>>
+) {
   // Filter stories to only show events with actual stories (totalStories > 0)
   val eventsWithStories =
       stories.filter { (_, storyCounts) ->
         val (_, totalStories) = storyCounts
         totalStories > 0
       }
-
-  if (eventsWithStories.isEmpty()) {
-    // Don't show the stories row if there are no stories
-    return
-  }
 
   LazyRow(
       modifier =
@@ -363,6 +374,43 @@ fun StoriesRow(onClick: (Event, Int) -> Unit, stories: Map<Event, Pair<Int, Int>
           Arrangement.spacedBy(HomeScreenConstants.STORIES_ROW_HORIZONTAL_SPACING_DP.dp),
       contentPadding =
           PaddingValues(horizontal = HomeScreenConstants.STORIES_ROW_HORIZONTAL_PADDING_DP.dp)) {
+        // Add Story Button (always first)
+        item {
+          val primaryColor = MaterialTheme.colorScheme.primary
+          Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              modifier = Modifier.testTag("addStoryButton")) {
+                Box(
+                    modifier =
+                        Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
+                            .drawBehind {
+                              drawCircle(
+                                  color = primaryColor,
+                                  style =
+                                      Stroke(
+                                          width =
+                                              HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp.toPx(),
+                                          pathEffect =
+                                              PathEffect.dashPathEffect(
+                                                  floatArrayOf(10f, 10f), 0f)))
+                            }
+                            .clickable { onAddStoryClick() },
+                    contentAlignment = Alignment.Center) {
+                      Icon(
+                          imageVector = Icons.Default.Add,
+                          contentDescription = "Add Story",
+                          tint = primaryColor,
+                          modifier = Modifier.size(32.dp))
+                    }
+                Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_PADDING_TOP_DP.dp))
+                Text(
+                    text = "Add Story",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface)
+              }
+        }
+
+        // Existing stories
         items(eventsWithStories.toList()) { (event, storyCounts) ->
           val (seenStories, totalStories) = storyCounts
           val allStoriesViewed = seenStories >= totalStories
