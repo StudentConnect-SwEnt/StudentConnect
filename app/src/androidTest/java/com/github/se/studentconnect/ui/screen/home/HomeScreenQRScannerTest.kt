@@ -104,7 +104,9 @@ class HomeScreenQRScannerTest {
 
   @Test
   fun storiesRow_withEmptyStories_doesNotDisplay() {
-    composeTestRule.setContent { StoriesRow(onClick = { _, _ -> }, stories = emptyMap()) }
+    composeTestRule.setContent {
+      StoriesRow(onAddStoryClick = {}, onClick = { _, _ -> }, stories = emptyMap())
+    }
 
     // The stories row should not be rendered
     // We can't directly assert it doesn't exist, but we can verify the test passes
@@ -115,7 +117,7 @@ class HomeScreenQRScannerTest {
     composeTestRule.setContent {
       val stories: Map<Event, Pair<Int, Int>> =
           mapOf(testEvent1 as Event to Pair(0, 0)) // 0 total stories
-      StoriesRow(onClick = { _, _ -> }, stories = stories)
+      StoriesRow(onAddStoryClick = {}, onClick = { _, _ -> }, stories = stories)
     }
 
     // Stories with 0 total should be filtered out
@@ -141,7 +143,7 @@ class HomeScreenQRScannerTest {
     composeTestRule.setContent {
       val stories: Map<Event, Pair<Int, Int>> =
           mapOf(testEvent1 as Event to Pair(3, 1), testEvent2 as Event to Pair(5, 0))
-      StoriesRow(onClick = { _, _ -> }, stories = stories)
+      StoriesRow(onAddStoryClick = {}, onClick = { _, _ -> }, stories = stories)
     }
 
     composeTestRule.onNodeWithTag("stories_row").assertIsDisplayed()
