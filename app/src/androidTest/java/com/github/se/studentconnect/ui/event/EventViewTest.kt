@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -247,7 +248,10 @@ class EventViewTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.CHAT_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test
@@ -266,6 +270,7 @@ class EventViewTest {
     }
 
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).performScrollTo()
     composeTestRule.onNodeWithText("Event chat").assertIsDisplayed()
   }
 
@@ -858,7 +863,10 @@ class EventViewTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test
@@ -886,6 +894,8 @@ class EventViewTest {
     }
 
     composeTestRule.waitForIdle()
+    // Scroll to participants info section first
+    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).performScrollTo()
     // Should show "2 / 50" for the participants count
     composeTestRule.onNodeWithText("2 / 50").assertIsDisplayed()
   }
@@ -913,7 +923,10 @@ class EventViewTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+        .performScrollTo()
+        .assertIsDisplayed()
 
     // Clean up this extra event
     runBlocking { eventRepository.deleteEvent(eventWithoutCapacity.uid) }
@@ -1286,7 +1299,10 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     // Progress bar should be displayed
-    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test
