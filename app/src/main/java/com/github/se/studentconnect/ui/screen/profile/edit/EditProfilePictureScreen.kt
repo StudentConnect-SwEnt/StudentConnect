@@ -1,30 +1,17 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
-import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,24 +37,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.PicturePickerCard
+import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -97,52 +75,18 @@ fun EditProfilePictureScreen(
   val user by viewModel.user.collectAsState()
 
   val snackbarHostState = remember { SnackbarHostState() }
-  val context = LocalContext.current
   val coroutineScope = rememberCoroutineScope()
   var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-  var initialImageUri by remember { mutableStateOf<Uri?>(null) }
-  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   var userModified by remember { mutableStateOf(false) }
+  var currentImagePath by remember { mutableStateOf<String?>(null) }
   val repository = MediaRepositoryProvider.repository
-  val pickMediaLauncher =
-      rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-          selectedImageUri = uri
-          userModified = true
-        }
-      }
-  val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(18f, 16f), 0f) }
   var isUploading by remember { mutableStateOf(false) }
 
-  LaunchedEffect(user?.profilePictureUrl, repository) {
-    val profileId = user?.profilePictureUrl
-    val previousInitial = initialImageUri
-    val downloadedUri =
-        profileId?.let {
-          runCatching { withContext(Dispatchers.IO) { repository.download(it) } }
-              .onFailure {
-                android.util.Log.e(
-                    "EditProfilePictureScreen", "Failed to download profile image: $profileId", it)
-              }
-              .getOrNull()
-        }
-
-    val newInitial =
-        when {
-          profileId.isNullOrBlank() -> null
-          downloadedUri != null -> downloadedUri
-          else -> previousInitial
-        }
-
-    initialImageUri = newInitial
+  LaunchedEffect(user?.profilePictureUrl) {
     if (!userModified) {
-      selectedImageUri = newInitial
+      selectedImageUri = null
     }
-  }
-
-  LaunchedEffect(selectedImageUri) {
-    imageBitmap =
-        if (selectedImageUri != null) loadBitmapFromUri(context, selectedImageUri!!) else null
+    currentImagePath = user?.profilePictureUrl
   }
 
   Scaffold(
@@ -173,7 +117,8 @@ fun EditProfilePictureScreen(
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
-              // Current Profile Picture Section
+              val hasPhoto = selectedImageUri != null || currentImagePath != null
+
               Card(
                   modifier = Modifier.wrapContentWidth(),
                   colors =
@@ -182,65 +127,28 @@ fun EditProfilePictureScreen(
                         modifier = Modifier.padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                          // Profile Picture Display - Centered
-                          Box(
-                              modifier =
-                                  Modifier.size(140.dp)
-                                      .clip(CircleShape)
-                                      .background(
-                                          MaterialTheme.colorScheme.surfaceVariant.copy(
-                                              alpha = 0.2f))
-                                      .clickable {
-                                        pickMediaLauncher.launch(
-                                            PickVisualMediaRequest(
-                                                ActivityResultContracts.PickVisualMedia.ImageOnly))
-                                      }
-                                      .drawDashedCircleBorder(
-                                          color =
-                                              MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                                  alpha = 0.5f),
-                                          pathEffect = dashEffect,
-                                          padding = 8.dp),
-                              contentAlignment = Alignment.Center) {
-                                if (imageBitmap != null) {
-                                  Image(
-                                      bitmap = imageBitmap!!,
-                                      contentDescription = "Selected profile photo",
-                                      modifier = Modifier.fillMaxSize(),
-                                      contentScale = ContentScale.Crop)
-                                  Text(
-                                      text = "Tap to change photo",
-                                      style =
-                                          MaterialTheme.typography.bodySmall.copy(
-                                              color = MaterialTheme.colorScheme.onSurfaceVariant),
-                                      textAlign = TextAlign.Center,
-                                      modifier =
-                                          Modifier.align(Alignment.BottomCenter)
-                                              .padding(bottom = 12.dp)
-                                              .background(
-                                                  color =
-                                                      MaterialTheme.colorScheme.surface.copy(
-                                                          alpha = 0.9f),
-                                                  shape = RoundedCornerShape(12.dp))
-                                              .padding(horizontal = 10.dp, vertical = 4.dp))
-                                } else {
-                                  Icon(
-                                      imageVector = Icons.Default.Person,
-                                      contentDescription = "Profile Picture",
-                                      modifier = Modifier.size(60.dp),
-                                      tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                              }
+                          PicturePickerCard(
+                              style = PicturePickerStyle.Avatar,
+                              existingImagePath = currentImagePath,
+                              selectedImageUri = selectedImageUri,
+                              onImageSelected = { uri ->
+                                selectedImageUri = uri
+                                userModified = true
+                              },
+                              placeholderText = "Upload/Take your profile photo",
+                              overlayText = "Tap to change photo",
+                              imageDescription = "Profile Picture")
 
                           Text(
                               text =
-                                  if (imageBitmap != null) {
+                                  if (hasPhoto) {
                                     "Preview of your new profile picture"
                                   } else {
                                     "Tap above to choose a profile photo"
                                   },
                               style = MaterialTheme.typography.bodyMedium,
-                              color = MaterialTheme.colorScheme.onSurfaceVariant)
+                              color = MaterialTheme.colorScheme.onSurfaceVariant,
+                              textAlign = TextAlign.Center)
                         }
                   }
 
@@ -255,13 +163,13 @@ fun EditProfilePictureScreen(
                           OutlinedButton(
                               onClick = {
                                 selectedImageUri = null
-                                imageBitmap = null
+                                currentImagePath = null
                                 userModified = true
                               },
                               enabled =
                                   !isLoading &&
                                       !isUploading &&
-                                      (selectedImageUri != null || initialImageUri != null),
+                                      (selectedImageUri != null || currentImagePath != null),
                               modifier = Modifier.fillMaxWidth()) {
                                 Text("Remove Photo")
                               }
@@ -276,10 +184,9 @@ fun EditProfilePictureScreen(
                                     val workingUri = selectedImageUri
                                     if (workingUri == null) {
                                       viewModel.updateProfilePicture(null)
-                                      initialImageUri = null
                                       userModified = false
                                       selectedImageUri = null
-                                      imageBitmap = null
+                                      currentImagePath = null
                                       onNavigateBack?.invoke()
                                     } else {
                                       val uploadedId =
@@ -289,7 +196,8 @@ fun EditProfilePictureScreen(
                                               uri = workingUri)
                                       if (uploadedId != null) {
                                         viewModel.updateProfilePicture(uploadedId)
-                                        initialImageUri = workingUri
+                                        currentImagePath = uploadedId
+                                        selectedImageUri = null
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
@@ -317,26 +225,6 @@ fun EditProfilePictureScreen(
       }
 }
 
-private fun Modifier.drawDashedCircleBorder(
-    color: Color,
-    pathEffect: PathEffect,
-    padding: Dp,
-    strokeWidth: Dp = 3.dp
-): Modifier =
-    this.then(
-        Modifier.drawBehind {
-          val strokePx = strokeWidth.toPx()
-          val paddingPx = padding.toPx()
-          val radius = (size.minDimension / 2f) - paddingPx - strokePx / 2f
-          if (radius > 0f) {
-            drawCircle(
-                color = color,
-                radius = radius,
-                center = Offset(size.width / 2f, size.height / 2f),
-                style = Stroke(width = strokePx, pathEffect = pathEffect))
-          }
-        })
-
 private suspend fun uploadProfilePicture(
     repository: MediaRepository,
     userId: String,
@@ -352,18 +240,3 @@ private suspend fun uploadProfilePicture(
     null
   }
 }
-
-private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
-    withContext(Dispatchers.IO) {
-      try {
-        when (uri.scheme?.lowercase()) {
-          "file" -> uri.path?.let { path -> BitmapFactory.decodeFile(path)?.asImageBitmap() }
-          else ->
-              context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream)?.asImageBitmap()
-              }
-        }
-      } catch (_: Exception) {
-        null
-      }
-    }

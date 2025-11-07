@@ -138,6 +138,15 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   }
 
   @Test
+  fun bannerPicker_isDisplayed() {
+    waitForTag(CreatePrivateEventScreenTestTags.BANNER_PICKER)
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.BANNER_PICKER)
+        .performScrollTo()
+        .assertIsDisplayed()
+  }
+
+  @Test
   fun saveButton_disabled_whenMandatoryFieldsEmpty() {
     waitForTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
     composeTestRule
