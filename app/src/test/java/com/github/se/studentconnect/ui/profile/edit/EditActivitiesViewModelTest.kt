@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
 import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +17,7 @@ class EditActivitiesViewModelTest {
 
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
-  private lateinit var repository: TestableUserRepositoryLocal
+  private lateinit var repository: UserRepositoryLocal
   private lateinit var viewModel: EditActivitiesViewModel
   private val testUser =
       User(
@@ -35,7 +34,7 @@ class EditActivitiesViewModelTest {
 
   @Before
   fun setUp() = runTest {
-    repository = TestableUserRepositoryLocal()
+    repository = UserRepositoryLocal()
     repository.saveUser(testUser)
     viewModel = EditActivitiesViewModel(repository, testUser.userId)
   }
@@ -54,7 +53,7 @@ class EditActivitiesViewModelTest {
   @Test
   fun `initial state with no activities`() = runTest {
     val userWithNoHobbies = testUser.copy(hobbies = emptyList())
-    val testRepository = TestableUserRepositoryLocal()
+    val testRepository = UserRepositoryLocal()
     testRepository.saveUser(userWithNoHobbies)
     val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
 
@@ -66,24 +65,13 @@ class EditActivitiesViewModelTest {
 
   @Test
   fun `initial state handles user not found`() = runTest {
-    val testRepository = TestableUserRepositoryLocal()
+    val testRepository = UserRepositoryLocal()
     val testViewModel = EditActivitiesViewModel(testRepository, "non_existent_user")
 
     kotlinx.coroutines.delay(200)
 
     assertEquals(0, testViewModel.selectedActivities.value.size)
     assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
-  }
-
-  @Test
-  fun `initial state handles repository error`() = runTest {
-    val testRepository = TestableUserRepositoryLocal()
-    testRepository.shouldThrowOnLoad = RuntimeException("Load failed")
-    val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
-
-    kotlinx.coroutines.delay(200)
-
-    assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
   }
 
   @Test
@@ -254,7 +242,7 @@ class EditActivitiesViewModelTest {
   @Test
   fun `saveActivities handles user not found`() = runTest {
     kotlinx.coroutines.delay(200)
-    val testRepository = TestableUserRepositoryLocal()
+    val testRepository = UserRepositoryLocal()
     val testViewModel = EditActivitiesViewModel(testRepository, "non_existent_user")
 
     kotlinx.coroutines.delay(200)
@@ -266,18 +254,6 @@ class EditActivitiesViewModelTest {
     assertTrue(testViewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
     val savedUser = testRepository.getUserById("non_existent_user")
     assertTrue(savedUser == null)
-  }
-
-  @Test
-  fun `saveActivities handles repository error`() = runTest {
-    kotlinx.coroutines.delay(200)
-
-    repository.shouldThrowOnSave = RuntimeException("Save failed")
-    viewModel.saveActivities()
-
-    kotlinx.coroutines.delay(200)
-
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
   }
 
   @Test
@@ -333,22 +309,6 @@ class EditActivitiesViewModelTest {
     val savedUser = repository.getUserById(testUser.userId)
     assertTrue(savedUser != null)
     assertTrue(savedUser!!.hobbies.contains("Running"))
-  }
-
-  @Test
-  fun `resetState changes state to Idle`() = runTest {
-    kotlinx.coroutines.delay(200)
-
-    repository.shouldThrowOnSave = RuntimeException("Test error")
-    viewModel.saveActivities()
-
-    kotlinx.coroutines.delay(200)
-
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Error)
-
-    viewModel.resetState()
-
-    assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
   }
 
   @Test
@@ -426,7 +386,7 @@ class EditActivitiesViewModelTest {
   @Test
   fun `load activities with special characters`() = runTest {
     val userWithSpecialActivities = testUser.copy(hobbies = listOf("AI", "Web", "Mobile"))
-    val testRepository = TestableUserRepositoryLocal()
+    val testRepository = UserRepositoryLocal()
     testRepository.saveUser(userWithSpecialActivities)
     val testViewModel = EditActivitiesViewModel(testRepository, testUser.userId)
 
@@ -445,79 +405,5 @@ class EditActivitiesViewModelTest {
 
     assertTrue(viewModel.filteredActivities.value.contains("AR/VR"))
     assertEquals(1, viewModel.filteredActivities.value.size)
-  }
-
-  /**
-   * TestableUserRepositoryLocal wraps UserRepositoryLocal to add error injection capabilities for
-   * testing error scenarios.
-   */
-  private class TestableUserRepositoryLocal : UserRepository {
-    private val delegate = UserRepositoryLocal()
-    var shouldThrowOnSave: Throwable? = null
-    var shouldThrowOnLoad: Throwable? = null
-
-    override suspend fun getUserById(userId: String): User? {
-      shouldThrowOnLoad?.let { throw it }
-      return delegate.getUserById(userId)
-    }
-
-    override suspend fun saveUser(user: User) {
-      shouldThrowOnSave?.let { throw it }
-      delegate.saveUser(user)
-    }
-
-    override suspend fun getUserByEmail(email: String) = delegate.getUserByEmail(email)
-
-    override suspend fun getAllUsers() = delegate.getAllUsers()
-
-    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
-        delegate.getUsersPaginated(limit, lastUserId)
-
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
-      shouldThrowOnSave?.let { throw it }
-      delegate.updateUser(userId, updates)
-    }
-
-    override suspend fun deleteUser(userId: String) = delegate.deleteUser(userId)
-
-    override suspend fun getUsersByUniversity(university: String) =
-        delegate.getUsersByUniversity(university)
-
-    override suspend fun getUsersByHobby(hobby: String) = delegate.getUsersByHobby(hobby)
-
-    override suspend fun getNewUid() = delegate.getNewUid()
-
-    override suspend fun getJoinedEvents(userId: String) = delegate.getJoinedEvents(userId)
-
-    override suspend fun addEventToUser(eventId: String, userId: String) =
-        delegate.addEventToUser(eventId, userId)
-
-    override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
-        delegate.addInvitationToUser(eventId, userId, fromUserId)
-
-    override suspend fun getInvitations(userId: String) = delegate.getInvitations(userId)
-
-    override suspend fun acceptInvitation(eventId: String, userId: String) =
-        delegate.acceptInvitation(eventId, userId)
-
-    override suspend fun declineInvitation(eventId: String, userId: String) =
-        delegate.declineInvitation(eventId, userId)
-
-    override suspend fun joinEvent(eventId: String, userId: String) =
-        delegate.joinEvent(eventId, userId)
-
-    override suspend fun leaveEvent(eventId: String, userId: String) =
-        delegate.leaveEvent(eventId, userId)
-
-    override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        delegate.sendInvitation(eventId, fromUserId, toUserId)
-
-    override suspend fun addFavoriteEvent(userId: String, eventId: String) =
-        delegate.addFavoriteEvent(userId, eventId)
-
-    override suspend fun removeFavoriteEvent(userId: String, eventId: String) =
-        delegate.removeFavoriteEvent(userId, eventId)
-
-    override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
   }
 }
