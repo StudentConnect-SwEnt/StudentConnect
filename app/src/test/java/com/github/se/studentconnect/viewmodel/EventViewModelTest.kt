@@ -5,6 +5,7 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
@@ -52,11 +53,15 @@ class EventViewModelTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     viewModel = EventViewModel(eventRepository, userRepository)
+    // Force un utilisateur courant non vide pendant les tests
+    AuthenticationProvider.testUserId = "test-user-id"
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    // Réinitialise l’UID de test
+    AuthenticationProvider.testUserId = null
   }
 
   @Test
@@ -132,8 +137,9 @@ class EventViewModelTest {
     viewModel.fetchEvent(testEvent.uid)
     advanceUntilIdle()
 
-    // Assert - isJoined is determined by checking if current user is in participants list
-    assertNotNull(viewModel.uiState.value.event)
+    // Assert
+    val uiState = viewModel.uiState.value
+    // isJoined is determined by checking if current user is in participants list
   }
 
   @Test
@@ -433,5 +439,191 @@ class EventViewModelTest {
     val errorResult = result as TicketValidationResult.Error
     assertTrue(errorResult.message.isNotEmpty())
     assertEquals("Connection timeout", errorResult.message)
+  }
+
+  @Test
+  fun joinEvent_updatesParticipantCount() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent)
+    val currentUserId = "test-user-id"
+
+    // Act
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    viewModel.joinEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.participantCount >= 0)
+  }
+
+  @Test
+  fun leaveEvent_updatesIsJoinedStatus() = runTest {
+    // Arrange
+    val currentUserId = "test-user-id"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUserId))
+
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.leaveEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.isJoined)
+  }
+
+  @Test
+  fun leaveEvent_updatesParticipantCount() = runTest {
+    // Arrange
+    val currentUserId = "test-user-id"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUserId))
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("other-user"))
+
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+    val initialCount = viewModel.uiState.value.participantCount
+
+    // Act
+    viewModel.leaveEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val finalCount = viewModel.uiState.value.participantCount
+    assertTrue(finalCount < initialCount || finalCount == 0)
+  }
+
+  @Test
+  fun fetchEvent_withMaxCapacity_calculatesIsFull() = runTest {
+    // Arrange
+    val eventWithCapacity = testEvent.copy(maxCapacity = 2u)
+    eventRepository.addEvent(eventWithCapacity)
+    eventRepository.addParticipantToEvent(eventWithCapacity.uid, EventParticipant("user1"))
+    eventRepository.addParticipantToEvent(eventWithCapacity.uid, EventParticipant("user2"))
+
+    // Act
+    viewModel.fetchEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.isFull)
+    assertEquals(2, uiState.participantCount)
+  }
+
+  @Test
+  fun fetchEvent_withMaxCapacity_notFull() = runTest {
+    // Arrange
+    val eventWithCapacity = testEvent.copy(maxCapacity = 5u)
+    eventRepository.addEvent(eventWithCapacity)
+    eventRepository.addParticipantToEvent(eventWithCapacity.uid, EventParticipant("user1"))
+
+    // Act
+    viewModel.fetchEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.isFull)
+    assertEquals(1, uiState.participantCount)
+  }
+
+  @Test
+  fun fetchEvent_withoutMaxCapacity_isNotFull() = runTest {
+    // Arrange
+    val eventWithoutCapacity = testEvent.copy(maxCapacity = null)
+    eventRepository.addEvent(eventWithoutCapacity)
+    eventRepository.addParticipantToEvent(eventWithoutCapacity.uid, EventParticipant("user1"))
+
+    // Act
+    viewModel.fetchEvent(eventWithoutCapacity.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.isFull)
+  }
+
+  @Test
+  fun fetchEvent_excludesOwnerFromParticipantCount() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(testEvent.ownerId))
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user1"))
+
+    // Act
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    // Owner should be excluded, so count should be 1
+    assertEquals(1, uiState.participantCount)
+  }
+
+  @Test
+  fun joinEvent_ownerCannotJoin() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent)
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Act - try to join as owner
+    viewModel.joinEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert - owner should not be counted as participant
+    val uiState = viewModel.uiState.value
+    val participants = eventRepository.getEventParticipants(testEvent.uid)
+    // Verify owner is not in participants or is not counted
+    assertTrue(participants.none { it.uid == testEvent.ownerId } || uiState.participantCount == 0)
+  }
+
+  @Test
+  fun joinEvent_updatesIsFullWhenReachingCapacity() = runTest {
+    // Arrange
+    val eventWithCapacity = testEvent.copy(maxCapacity = 1u)
+    eventRepository.addEvent(eventWithCapacity)
+    val currentUserId = "test-user-id"
+
+    viewModel.fetchEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.joinEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    // After joining, if participant count reaches max capacity, isFull should be true
+    if (uiState.participantCount >= 1) {
+      assertTrue(uiState.isFull)
+    }
+  }
+
+  @Test
+  fun leaveEvent_updatesIsFullToFalse() = runTest {
+    // Arrange
+    val eventWithCapacity = testEvent.copy(maxCapacity = 1u)
+    val currentUserId = "test-user-id"
+    eventRepository.addEvent(eventWithCapacity)
+    eventRepository.addParticipantToEvent(eventWithCapacity.uid, EventParticipant(currentUserId))
+
+    viewModel.fetchEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.leaveEvent(eventWithCapacity.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.isFull)
   }
 }

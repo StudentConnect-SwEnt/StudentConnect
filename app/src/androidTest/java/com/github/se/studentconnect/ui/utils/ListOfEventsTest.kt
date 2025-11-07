@@ -307,4 +307,252 @@ class ListOfEventsTest {
 
     composeTestRule.onNodeWithText("Free").assertIsDisplayed()
   }
+
+  @Test
+  fun eventCard_liveIndicator_shownForLiveEvent() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val liveEvent = createTestEvent().copy(
+        start = Timestamp(pastStart.time),
+        end = Timestamp(futureEnd.time)
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = liveEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("LIVE").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_liveIndicator_notShownForFutureEvent() {
+    val futureStart = Calendar.getInstance().apply { add(Calendar.HOUR, 1) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.HOUR, 3) }
+
+    val futureEvent = createTestEvent().copy(
+        start = Timestamp(futureStart.time),
+        end = Timestamp(futureEnd.time)
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = futureEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("LIVE").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_liveIndicator_notShownForPastEvent() {
+    val pastStart = Calendar.getInstance().apply { add(Calendar.HOUR, -3) }
+    val pastEnd = Calendar.getInstance().apply { add(Calendar.HOUR, -1) }
+
+    val pastEvent = createTestEvent().copy(
+        start = Timestamp(pastStart.time),
+        end = Timestamp(pastEnd.time)
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = pastEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("LIVE").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_liveIndicator_calculatesDefaultEndTime() {
+    val pastStart = Calendar.getInstance().apply { add(Calendar.HOUR, -1) }
+
+    val eventWithoutEnd = createTestEvent().copy(
+        start = Timestamp(pastStart.time),
+        end = null
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = eventWithoutEnd, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Should show LIVE as default end is start + 3 hours
+    composeTestRule.onNodeWithText("LIVE").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_favoriteToggle_callsCallback() {
+    val event = createTestEvent(uid = "event123")
+    var toggledEventId: String? = null
+
+    composeTestRule.setContent {
+      EventCard(
+          event = event,
+          isFavorite = false,
+          onFavoriteToggle = { eventId -> toggledEventId = eventId },
+          onClick = {})
+    }
+
+    composeTestRule.onNodeWithContentDescription("Favorite").performClick()
+    assert(toggledEventId == "event123")
+  }
+
+  @Test
+  fun eventCard_favoriteState_changesIcon() {
+    val event = createTestEvent()
+
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = true, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // When favorited, the icon should be displayed
+    composeTestRule.onNodeWithContentDescription("Favorite").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_privateEvent_displaysCorrectly() {
+    val privateEvent = Event.Private(
+        uid = "private1",
+        ownerId = "owner1",
+        title = "Private Party",
+        description = "Private Description",
+        imageUrl = null,
+        location = Location(0.0, 0.0, "Secret Location"),
+        start = Timestamp.now(),
+        end = Timestamp.now(),
+        maxCapacity = 20u,
+        participationFee = null,
+        isFlash = false,
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = privateEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    composeTestRule.onNodeWithText("Private Party").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Secret Location").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventListScreen_favoriteToggle_propagatesCorrectly() {
+    val event = createTestEvent(uid = "fav-event")
+    var toggledId: String? = null
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = listOf(event),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = { eventId -> toggledId = eventId })
+    }
+
+    composeTestRule.onNodeWithContentDescription("Favorite").performClick()
+    assert(toggledId == "fav-event")
+  }
+
+  @Test
+  fun eventListScreen_favoriteEventIds_displaysFavorited() {
+    val event = createTestEvent(uid = "fav123")
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = listOf(event),
+          hasJoined = false,
+          favoriteEventIds = setOf("fav123"),
+          onFavoriteToggle = {})
+    }
+
+    // Event should be displayed with favorite icon shown
+    composeTestRule.onNodeWithText("Test Event").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Favorite").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_longDescription_truncatesCorrectly() {
+    val event = createTestEvent(
+        description = "This is a very long description that should be truncated at some point"
+    )
+
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Description should be displayed (truncation is handled by the UI)
+    composeTestRule.onNodeWithText("Test Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_dateFormatting_displaysCorrectFormat() {
+    val event = createTestEvent()
+
+    composeTestRule.setContent {
+      EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Date/time should be displayed in the format "Today | HH:mm"
+    composeTestRule.onNodeWithText("Today", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventListScreen_multipleEventsOnSameDay_groupedUnderOneHeader() {
+    val today = Calendar.getInstance()
+    val event1 = createTestEvent(uid = "e1", title = "Morning Event").copy(start = Timestamp(today.time))
+
+    val todayEvening = Calendar.getInstance().apply { add(Calendar.HOUR, 5) }
+    val event2 = createTestEvent(uid = "e2", title = "Evening Event").copy(start = Timestamp(todayEvening.time))
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      EventListScreen(
+          navController = navController,
+          events = listOf(event1, event2),
+          hasJoined = false,
+          favoriteEventIds = emptySet(),
+          onFavoriteToggle = {})
+    }
+
+    // Should only have one "TODAY" header
+    composeTestRule.onNodeWithText("TODAY").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Morning Event").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Evening Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_clickAction_triggersCallback() {
+    val event = createTestEvent()
+    var clickCount = 0
+
+    composeTestRule.setContent {
+      EventCard(
+          event = event,
+          isFavorite = false,
+          onFavoriteToggle = {},
+          onClick = { clickCount++ })
+    }
+
+    composeTestRule.onNodeWithText("Test Event").performClick()
+    assert(clickCount == 1)
+  }
+
+  @Test
+  fun eventCard_multipleFavoriteToggles_eachCallsCallback() {
+    val event = createTestEvent()
+    var toggleCount = 0
+
+    composeTestRule.setContent {
+      EventCard(
+          event = event,
+          isFavorite = false,
+          onFavoriteToggle = { toggleCount++ },
+          onClick = {})
+    }
+
+    val favoriteButton = composeTestRule.onNodeWithContentDescription("Favorite")
+    favoriteButton.performClick()
+    favoriteButton.performClick()
+    favoriteButton.performClick()
+
+    assert(toggleCount == 3)
+  }
 }
