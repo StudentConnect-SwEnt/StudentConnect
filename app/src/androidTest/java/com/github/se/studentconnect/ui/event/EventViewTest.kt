@@ -50,7 +50,8 @@ class EventViewTest {
           website = "https://example.com",
           ownerId = "owner123",
           isFlash = false,
-          tags = listOf("tech", "networking"))
+          tags = listOf("tech", "networking"),
+          maxCapacity = 50u)
 
   @Before
   fun setup() {
@@ -403,16 +404,29 @@ class EventViewTest {
 
   @Test
   fun eventView_whenNotJoined_displaysJoinButton() {
+    // Create a future event to ensure it hasn't started
+    val futureEvent =
+        testEvent.copy(
+            uid = "future-join-event",
+            start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0) // 1 hour from now
+            )
+    runBlocking { eventRepository.addEvent(futureEvent) }
+
+    // Create a new ViewModel for this test
+    val futureEventViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { futureEventViewModel.fetchEvent(futureEvent.uid) }
+
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "not-owner"
+
     composeTestRule.setContent {
       val navController = rememberNavController()
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
+              eventUid = futureEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
+              eventViewModel = futureEventViewModel,
               hasJoined = false)
         }
       }
@@ -420,6 +434,9 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Join").assertIsDisplayed()
+
+    // Clean up
+    runBlocking { eventRepository.deleteEvent(futureEvent.uid) }
   }
 
   @Test
@@ -1212,6 +1229,9 @@ class EventViewTest {
               navController = navController,
               eventViewModel = viewModel,
               hasJoined = false)
+        }
+        composable("map/{lat}/{lon}/{zoom}") {
+          // Placeholder for map screen
         }
       }
     }

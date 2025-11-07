@@ -282,14 +282,21 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
     val participantRef = eventRef.collection(PARTICIPANTS_COLLECTION_PATH).document(participant.uid)
 
+    // Check if participant already exists
     val participantSnapshot = participantRef.get().await()
-    if (participantSnapshot.exists())
-        throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
+    if (participantSnapshot.exists()) {
+      throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
+    }
 
     val participantData = mapOf("uid" to participant.uid, "joinedAt" to participant.joinedAt)
 
     try {
       participantRef.set(participantData).await()
+      // Verify the participant was actually added by checking again
+      val verifySnapshot = participantRef.get().await()
+      if (!verifySnapshot.exists()) {
+        throw IllegalStateException("Failed to add participant ${participant.uid} to event $eventUid")
+      }
     } catch (e: FirebaseFirestoreException) {
       if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
         throw IllegalStateException(
