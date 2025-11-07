@@ -295,7 +295,8 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
       // Verify the participant was actually added by checking again
       val verifySnapshot = participantRef.get().await()
       if (!verifySnapshot.exists()) {
-        throw IllegalStateException("Failed to add participant ${participant.uid} to event $eventUid")
+        throw IllegalStateException(
+            "Failed to add participant ${participant.uid} to event $eventUid")
       }
     } catch (e: FirebaseFirestoreException) {
       if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
