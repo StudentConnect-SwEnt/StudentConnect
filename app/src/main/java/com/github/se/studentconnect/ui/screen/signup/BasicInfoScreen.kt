@@ -1,12 +1,10 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,14 +47,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -378,11 +372,11 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
       }
 }
 
-//@SuppressLint("ViewModelConstructorInComposable")
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Preview(showBackground = true)
-//@Composable
-//private fun BasicInfoScreenPreview() {
+// @SuppressLint("ViewModelConstructorInComposable")
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Preview(showBackground = true)
+// @Composable
+// private fun BasicInfoScreenPreview() {
 //  AppTheme {
 //    BasicInfoScreen(
 //        viewModel = SignUpViewModel(),
@@ -390,4 +384,4 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
 //        onContinue = {},
 //        onBack = {})
 //  }
-//}
+// }
