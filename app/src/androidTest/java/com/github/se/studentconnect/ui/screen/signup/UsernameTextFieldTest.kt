@@ -38,10 +38,10 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
+    composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Username").assertExists()
     // Placeholder may not be directly accessible, but component renders correctly
-    composeTestRule.waitForIdle()
   }
 
   @Test
@@ -118,8 +118,8 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
-
     composeTestRule.waitForIdle()
+
     // Wait for debounce and availability check
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule
@@ -141,8 +141,8 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
-
     composeTestRule.waitForIdle()
+
     // Wait for debounce and availability check
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule
@@ -182,6 +182,7 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
+    composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Username").performTextInput("User@Name#123")
     composeTestRule.waitForIdle()
@@ -203,6 +204,7 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
+    composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Username").performTextInput("USERNAME")
     composeTestRule.waitForIdle()
@@ -222,8 +224,8 @@ class UsernameTextFieldTest {
             })
       }
     }
-
     composeTestRule.waitForIdle()
+
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       validationState != null && validationState!!.first == true && validationState!!.second == true
     }
@@ -249,8 +251,8 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
-
     composeTestRule.waitForIdle()
+
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule
           .onAllNodesWithText("This username is already taken")
@@ -352,8 +354,8 @@ class UsernameTextFieldTest {
             onValidationStateChange = { _, _ -> })
       }
     }
-
     composeTestRule.waitForIdle()
+
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule.onAllNodesWithContentDescription("Taken").fetchSemanticsNodes().isNotEmpty()
     }
