@@ -35,7 +35,9 @@ class EditBirthdayViewModelTest {
           birthday = "15/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
-          profilePictureUrl = null)
+          profilePictureUrl = null,
+          username = "johndoe",
+      )
 
   @Before
   fun setUp() = runTest {
@@ -496,5 +498,9 @@ class EditBirthdayViewModelTest {
         delegate.removeFavoriteEvent(userId, eventId)
 
     override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
+
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 }
