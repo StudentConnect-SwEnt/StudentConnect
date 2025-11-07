@@ -15,7 +15,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.github.se.studentconnect.ui.components.PicturePickerCard
+import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
@@ -46,6 +53,8 @@ object CreatePrivateEventScreenTestTags {
   const val PARTICIPATION_FEE_SWITCH = "participationFeeSwitch"
   const val FLASH_EVENT_SWITCH = "flashEventSwitch"
   const val SAVE_BUTTON = "saveButton"
+  const val BANNER_PICKER = "bannerPicker"
+  const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
 
 @Composable
@@ -103,6 +112,46 @@ fun CreatePrivateEventScreen(
         value = createPrivateEventUiState.description,
         onValueChange = { createPrivateEventViewModel.updateDescription(it) },
     )
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+          Column(
+              modifier = Modifier.padding(16.dp),
+              verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Event Banner",
+                    style =
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                PicturePickerCard(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .testTag(CreatePrivateEventScreenTestTags.BANNER_PICKER),
+                    style = PicturePickerStyle.Banner,
+                    existingImagePath = createPrivateEventUiState.bannerImagePath,
+                    selectedImageUri = createPrivateEventUiState.bannerImageUri,
+                    onImageSelected = { uri ->
+                      createPrivateEventViewModel.updateBannerImageUri(uri)
+                    },
+                    placeholderText = "Upload a banner for your event",
+                    overlayText = "Tap to change banner",
+                    imageDescription = "Event banner")
+                Text(
+                    text = "Add a banner so attendees can quickly recognize your event.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(
+                    onClick = { createPrivateEventViewModel.removeBannerImage() },
+                    enabled =
+                        createPrivateEventUiState.bannerImageUri != null ||
+                            createPrivateEventUiState.bannerImagePath != null,
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .testTag(CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON)) {
+                      Text("Remove banner")
+                    }
+              }
+        }
 
     LocationTextField(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),

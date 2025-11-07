@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.net.Uri
 import com.github.se.studentconnect.model.location.Location
 import java.time.LocalDate
 import java.time.LocalTime
@@ -21,6 +22,9 @@ sealed class CreateEventUiState {
   abstract val isFlash: Boolean
   abstract val finishedSaving: Boolean
   abstract val isSaving: Boolean
+  abstract val bannerImageUri: Uri?
+  abstract val bannerImagePath: String?
+  abstract val shouldRemoveBanner: Boolean
 
   data class Public(
       override val title: String = "",
@@ -36,6 +40,9 @@ sealed class CreateEventUiState {
       override val isFlash: Boolean = false,
       override val finishedSaving: Boolean = false,
       override val isSaving: Boolean = false,
+      override val bannerImageUri: Uri? = null,
+      override val bannerImagePath: String? = null,
+      override val shouldRemoveBanner: Boolean = false,
       val subtitle: String = "",
       val website: String = "",
       val tags: List<String> = emptyList(),
@@ -55,5 +62,8 @@ sealed class CreateEventUiState {
       override val isFlash: Boolean = false,
       override val finishedSaving: Boolean = false,
       override val isSaving: Boolean = false,
+      override val bannerImageUri: Uri? = null,
+      override val bannerImagePath: String? = null,
+      override val shouldRemoveBanner: Boolean = false,
   ) : CreateEventUiState()
 }
