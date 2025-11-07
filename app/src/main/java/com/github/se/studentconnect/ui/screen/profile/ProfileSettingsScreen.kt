@@ -188,7 +188,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Activities,
                               isLoading = loadingFields.contains(EditingField.Activities),
                               errorMessage = fieldErrors[EditingField.Activities],
-                              onEditClick = { /*Disabled for now*/},
+                              onEditClick = { onNavigateToEditActivities?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateActivities(newValue) },
                               onCancel = { viewModel.cancelEditing() })
 

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.resources.Variables
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -89,7 +90,7 @@ internal fun ExperiencesContent(
     modifier: Modifier = Modifier
 ) {
   val scrollState = rememberScrollState()
-  val topics = experienceTopics[selectedFilter] ?: emptyList()
+  val topics = Activities.experienceTopics[selectedFilter] ?: emptyList()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
@@ -138,7 +139,7 @@ internal fun ExperiencesContent(
                         },
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 8.dp)) {
-                      items(filterOptions) { filter ->
+                      items(Activities.filterOptions) { filter ->
                         val isSelected = filter == selectedFilter
                         ExperienceFilterChip(
                             label = filter,
@@ -317,111 +318,12 @@ internal fun PrimaryCtaButton(
 
 private val topicChipWidth = 100.dp
 
-val filterOptions = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
-
-val experienceTopics =
-    mapOf(
-        "Sports" to
-            listOf(
-                "Bowling",
-                "Football",
-                "Tennis",
-                "Squatch",
-                "Running",
-                "Cycling",
-                "Volleyball",
-                "Baseball",
-                "Climbing",
-                "Rowing",
-                "Rugby",
-                "Hockey",
-                "MMA"),
-        "Science" to
-            listOf(
-                "Astronomy",
-                "Biology",
-                "Chemistry",
-                "Physics",
-                "Robotics",
-                "Ecology",
-                "Genetics",
-                "Medicine",
-                "Research",
-                "Space",
-                "Ocean",
-                "Energy",
-                "Climate",
-                "Geology",
-                "Neuro-sci"),
-        "Music" to
-            listOf(
-                "Choir",
-                "Guitar",
-                "Piano",
-                "Jazz",
-                "Drums",
-                "Violin",
-                "DJing",
-                "Theory",
-                "Opera",
-                "Bands",
-                "Compose",
-                "Recording",
-            ),
-        "Language" to
-            listOf(
-                "Spanish",
-                "French",
-                "German",
-                "Japanese",
-                "Mandarin",
-                "Italian",
-                "Arabic",
-                "Russian",
-                "Korean",
-                "Hindi",
-                "Greek",
-                "Dutch",
-                "Swedish",
-                "Finnish"),
-        "Art" to
-            listOf(
-                "Painting",
-                "Photo",
-                "Design",
-                "Theatre",
-                "Dance",
-                "Sculpture",
-                "Animation",
-                "Film",
-                "Crafts",
-                "Fashion",
-                "Architecture",
-                "Ceramics"),
-        "Tech" to
-            listOf(
-                "AI",
-                "Web",
-                "Mobile",
-                "Cybersecurity",
-                "AR/VR",
-                "Cloud",
-                "IoT",
-                "Data",
-                "Blockchain",
-                "Robotics",
-                "Edge",
-                "DevOps",
-                "GameDev",
-                "Hardware",
-                "ML"))
-
 @Preview(showBackground = true)
 @Composable
 private fun ExperiencesScreenPreview() {
   AppTheme {
     ExperiencesScreen(
-        selectedFilter = filterOptions.first(),
+        selectedFilter = Activities.filterOptions.first(),
         selectedTopics = emptySet(),
         onFilterSelected = {},
         onTopicToggle = {},

@@ -52,9 +52,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.screen.signup.experienceTopics
-import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import kotlinx.coroutines.launch
 
 data class FilterData(
@@ -89,7 +88,7 @@ fun FilterBar(
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
 
-  val availableCategories = remember { filterOptions }
+  val availableCategories = remember { Activities.filterOptions }
   val selectedFilters = remember { mutableStateListOf<String>() }
   var selectedLocation by remember { mutableStateOf<Location?>(null) }
   var searchRadius by remember { mutableFloatStateOf(DEFAULT_RADIUS) }
@@ -179,7 +178,7 @@ fun FilterBar(
                                 onClick = {
                                   if (isCategorySelected) {
                                     selectedFilters.remove(category)
-                                    experienceTopics[category]?.forEach { topic ->
+                                    Activities.experienceTopics[category]?.forEach { topic ->
                                       selectedFilters.remove(topic)
                                     }
                                   } else {
@@ -188,7 +187,7 @@ fun FilterBar(
                                 })
                             AnimatedVisibility(
                                 visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
-                                  val topics = experienceTopics[category] ?: emptyList()
+                                  val topics = Activities.experienceTopics[category] ?: emptyList()
                                   FlowRow(
                                       modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                                       horizontalArrangement = Arrangement.spacedBy(6.dp),
