@@ -41,6 +41,9 @@ class UsernameTextFieldTest {
     }
     composeTestRule.waitForIdle()
 
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Username").assertExists()
     // Placeholder may not be directly accessible, but component renders correctly
   }
@@ -58,6 +61,9 @@ class UsernameTextFieldTest {
     }
 
     composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
   }
 
@@ -74,6 +80,9 @@ class UsernameTextFieldTest {
     }
 
     composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username must be 3-20 characters long").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
   }
 
@@ -90,6 +99,9 @@ class UsernameTextFieldTest {
     }
 
     composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Only alphanumeric characters, underscores, hyphens, and periods are allowed").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule
         .onNodeWithText(
             "Only alphanumeric characters, underscores, hyphens, and periods are allowed")
@@ -185,6 +197,9 @@ class UsernameTextFieldTest {
     }
     composeTestRule.waitForIdle()
 
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Username").performTextInput("User@Name#123")
     composeTestRule.waitForIdle()
     // Wait for the callback to be invoked with filtered value
@@ -207,6 +222,9 @@ class UsernameTextFieldTest {
     }
     composeTestRule.waitForIdle()
 
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule.onAllNodesWithText("Username").fetchSemanticsNodes().isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Username").performTextInput("USERNAME")
     composeTestRule.waitForIdle()
     assert(capturedValue == "username")
