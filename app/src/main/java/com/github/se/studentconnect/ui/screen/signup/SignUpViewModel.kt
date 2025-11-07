@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -26,7 +27,7 @@ data class SignUpState(
     val lastName: String = "",
     val birthdate: Timestamp? = null,
     val nationality: String? = null,
-    val profilePictureUri: String? = null,
+    val profilePictureUri: Uri? = null,
     val bio: String? = null,
     val interests: Set<String> = emptySet(),
     val currentStep: SignUpStep = SignUpStep.GettingStarted
@@ -59,8 +60,8 @@ class SignUpViewModel : ViewModel() {
     it.copy(nationality = nationality.trim().uppercase(Locale.US))
   }
 
-  fun setProfilePictureUri(uri: String?) = update {
-    it.copy(profilePictureUri = uri?.ifBlank { null })
+  fun setProfilePictureUri(uri: Uri?) = update {
+    it.copy(profilePictureUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
   }
 
   fun setBio(bio: String?) = update { it.copy(bio = bio?.ifBlank { null }) }
