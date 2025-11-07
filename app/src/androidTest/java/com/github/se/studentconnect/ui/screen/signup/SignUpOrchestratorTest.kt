@@ -156,5 +156,8 @@ class SignUpOrchestratorTest {
     override suspend fun removeFavoriteEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
+    override suspend fun checkUsernameAvailability(username: String): Boolean {
+      TODO("Not yet implemented")
+    }
   }
 }

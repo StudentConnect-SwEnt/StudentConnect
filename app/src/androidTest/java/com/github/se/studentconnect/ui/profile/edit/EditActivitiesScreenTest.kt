@@ -30,7 +30,9 @@ class EditActivitiesScreenTest {
           birthday = "01/01/2000",
           hobbies = listOf("Football", "AI", "Piano"),
           bio = "Test bio",
-          profilePictureUrl = null)
+          profilePictureUrl = null,
+          username = "john_doe"
+      )
 
   private var navigatedBack = false
 
