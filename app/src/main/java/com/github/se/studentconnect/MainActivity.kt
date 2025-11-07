@@ -48,8 +48,8 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
