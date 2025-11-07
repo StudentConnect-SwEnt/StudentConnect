@@ -235,13 +235,12 @@ private fun InfoEvent(
 
 @Composable
 private fun ParticipantsInfo(event: Event, participantCount: Int) {
-  val (capacity, label) =
+  val capacity =
       when (event) {
-        is Event.Public ->
-            event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
-        is Event.Private ->
-            event.maxCapacity to if (event.maxCapacity != null) "participants" else "participants"
+        is Event.Public -> event.maxCapacity
+        is Event.Private -> event.maxCapacity
       }
+
   Column(modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.PARTICIPANTS_INFO)) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -255,7 +254,7 @@ private fun ParticipantsInfo(event: Event, participantCount: Int) {
               if (capacity != null) {
                 "$participantCount / $capacity"
               } else {
-                "$participantCount $label"
+                "$participantCount participants"
               }
           Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
         }
