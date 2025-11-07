@@ -314,10 +314,8 @@ class ListOfEventsTest {
     val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
     val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
 
-    val liveEvent = createTestEvent().copy(
-        start = Timestamp(pastStart.time),
-        end = Timestamp(futureEnd.time)
-    )
+    val liveEvent =
+        createTestEvent().copy(start = Timestamp(pastStart.time), end = Timestamp(futureEnd.time))
 
     composeTestRule.setContent {
       EventCard(event = liveEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -331,10 +329,8 @@ class ListOfEventsTest {
     val futureStart = Calendar.getInstance().apply { add(Calendar.HOUR, 1) }
     val futureEnd = Calendar.getInstance().apply { add(Calendar.HOUR, 3) }
 
-    val futureEvent = createTestEvent().copy(
-        start = Timestamp(futureStart.time),
-        end = Timestamp(futureEnd.time)
-    )
+    val futureEvent =
+        createTestEvent().copy(start = Timestamp(futureStart.time), end = Timestamp(futureEnd.time))
 
     composeTestRule.setContent {
       EventCard(event = futureEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -348,10 +344,8 @@ class ListOfEventsTest {
     val pastStart = Calendar.getInstance().apply { add(Calendar.HOUR, -3) }
     val pastEnd = Calendar.getInstance().apply { add(Calendar.HOUR, -1) }
 
-    val pastEvent = createTestEvent().copy(
-        start = Timestamp(pastStart.time),
-        end = Timestamp(pastEnd.time)
-    )
+    val pastEvent =
+        createTestEvent().copy(start = Timestamp(pastStart.time), end = Timestamp(pastEnd.time))
 
     composeTestRule.setContent {
       EventCard(event = pastEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -364,10 +358,7 @@ class ListOfEventsTest {
   fun eventCard_liveIndicator_calculatesDefaultEndTime() {
     val pastStart = Calendar.getInstance().apply { add(Calendar.HOUR, -1) }
 
-    val eventWithoutEnd = createTestEvent().copy(
-        start = Timestamp(pastStart.time),
-        end = null
-    )
+    val eventWithoutEnd = createTestEvent().copy(start = Timestamp(pastStart.time), end = null)
 
     composeTestRule.setContent {
       EventCard(event = eventWithoutEnd, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -408,19 +399,20 @@ class ListOfEventsTest {
 
   @Test
   fun eventCard_privateEvent_displaysCorrectly() {
-    val privateEvent = Event.Private(
-        uid = "private1",
-        ownerId = "owner1",
-        title = "Private Party",
-        description = "Private Description",
-        imageUrl = null,
-        location = Location(0.0, 0.0, "Secret Location"),
-        start = Timestamp.now(),
-        end = Timestamp.now(),
-        maxCapacity = 20u,
-        participationFee = null,
-        isFlash = false,
-    )
+    val privateEvent =
+        Event.Private(
+            uid = "private1",
+            ownerId = "owner1",
+            title = "Private Party",
+            description = "Private Description",
+            imageUrl = null,
+            location = Location(0.0, 0.0, "Secret Location"),
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            maxCapacity = 20u,
+            participationFee = null,
+            isFlash = false,
+        )
 
     composeTestRule.setContent {
       EventCard(event = privateEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -470,9 +462,9 @@ class ListOfEventsTest {
 
   @Test
   fun eventCard_longDescription_truncatesCorrectly() {
-    val event = createTestEvent(
-        description = "This is a very long description that should be truncated at some point"
-    )
+    val event =
+        createTestEvent(
+            description = "This is a very long description that should be truncated at some point")
 
     composeTestRule.setContent {
       EventCard(event = event, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -497,10 +489,13 @@ class ListOfEventsTest {
   @Test
   fun eventListScreen_multipleEventsOnSameDay_groupedUnderOneHeader() {
     val today = Calendar.getInstance()
-    val event1 = createTestEvent(uid = "e1", title = "Morning Event").copy(start = Timestamp(today.time))
+    val event1 =
+        createTestEvent(uid = "e1", title = "Morning Event").copy(start = Timestamp(today.time))
 
     val todayEvening = Calendar.getInstance().apply { add(Calendar.HOUR, 5) }
-    val event2 = createTestEvent(uid = "e2", title = "Evening Event").copy(start = Timestamp(todayEvening.time))
+    val event2 =
+        createTestEvent(uid = "e2", title = "Evening Event")
+            .copy(start = Timestamp(todayEvening.time))
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -525,10 +520,7 @@ class ListOfEventsTest {
 
     composeTestRule.setContent {
       EventCard(
-          event = event,
-          isFavorite = false,
-          onFavoriteToggle = {},
-          onClick = { clickCount++ })
+          event = event, isFavorite = false, onFavoriteToggle = {}, onClick = { clickCount++ })
     }
 
     composeTestRule.onNodeWithText("Test Event").performClick()
@@ -542,10 +534,7 @@ class ListOfEventsTest {
 
     composeTestRule.setContent {
       EventCard(
-          event = event,
-          isFavorite = false,
-          onFavoriteToggle = { toggleCount++ },
-          onClick = {})
+          event = event, isFavorite = false, onFavoriteToggle = { toggleCount++ }, onClick = {})
     }
 
     val favoriteButton = composeTestRule.onNodeWithContentDescription("Favorite")

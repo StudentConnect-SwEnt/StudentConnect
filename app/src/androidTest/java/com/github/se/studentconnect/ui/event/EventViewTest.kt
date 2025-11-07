@@ -12,7 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
-import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
@@ -781,7 +780,6 @@ class EventViewTest {
     composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
   }
 
-
   @Test
   fun eventView_editButton_displayedForOwner() {
     // Arrange
@@ -855,9 +853,7 @@ class EventViewTest {
 
     // Create a fresh ViewModel that will fetch the updated data
     val testViewModel = EventViewModel(eventRepository, userRepository)
-    runBlocking {
-      testViewModel.fetchEvent(testEvent.uid)
-    }
+    runBlocking { testViewModel.fetchEvent(testEvent.uid) }
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -880,9 +876,7 @@ class EventViewTest {
   @Test
   fun eventView_eventWithoutMaxCapacity_showsParticipantsWithoutLimit() {
     val eventWithoutCapacity = testEvent.copy(uid = "event-no-capacity", maxCapacity = null)
-    runBlocking {
-      eventRepository.addEvent(eventWithoutCapacity)
-    }
+    runBlocking { eventRepository.addEvent(eventWithoutCapacity) }
 
     // Create a new ViewModel for this test
     val newViewModel = EventViewModel(eventRepository, userRepository)
@@ -946,10 +940,9 @@ class EventViewTest {
 
   @Test
   fun eventView_startedEvent_displaysStartedButton() {
-    val pastEvent = testEvent.copy(
-        uid = "started-event",
-        start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0)
-    )
+    val pastEvent =
+        testEvent.copy(
+            uid = "started-event", start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0))
     runBlocking { eventRepository.addEvent(pastEvent) }
 
     mockkObject(AuthenticationProvider)
@@ -981,11 +974,11 @@ class EventViewTest {
 
   @Test
   fun eventView_eventStarted_showsHurryUpMessage() {
-    val startedEvent = testEvent.copy(
-        uid = "hurry-event",
-        start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0),
-        end = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0)
-    )
+    val startedEvent =
+        testEvent.copy(
+            uid = "hurry-event",
+            start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0),
+            end = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0))
     runBlocking {
       eventRepository.addEvent(startedEvent)
       eventRepository.addParticipantToEvent(startedEvent.uid, EventParticipant("test-user"))
@@ -1020,10 +1013,11 @@ class EventViewTest {
 
   @Test
   fun eventView_eventFarInFuture_showsDaysLeft() {
-    val futureEvent = testEvent.copy(
-        uid = "future-event",
-        start = Timestamp(System.currentTimeMillis() / 1000 + 172800, 0) // 2 days from now
-    )
+    val futureEvent =
+        testEvent.copy(
+            uid = "future-event",
+            start = Timestamp(System.currentTimeMillis() / 1000 + 172800, 0) // 2 days from now
+            )
     runBlocking { eventRepository.addEvent(futureEvent) }
 
     // Create a new ViewModel for this test
@@ -1052,10 +1046,11 @@ class EventViewTest {
 
   @Test
   fun eventView_eventSoon_showsCountdownTimer() {
-    val soonEvent = testEvent.copy(
-        uid = "soon-event",
-        start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0) // 1 hour from now
-    )
+    val soonEvent =
+        testEvent.copy(
+            uid = "soon-event",
+            start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0) // 1 hour from now
+            )
     runBlocking { eventRepository.addEvent(soonEvent) }
 
     // Create a new ViewModel for this test
@@ -1134,17 +1129,17 @@ class EventViewTest {
 
   @Test
   fun eventView_privateEvent_displaysCorrectly() {
-    val privateEvent = Event.Private(
-        uid = "private-event-123",
-        title = "Private Event",
-        description = "Private event description",
-        start = Timestamp.now(),
-        end = Timestamp.now(),
-        location = Location(46.52, 6.57, "EPFL"),
-        ownerId = "owner123",
-        isFlash = false,
-        maxCapacity = 20u
-    )
+    val privateEvent =
+        Event.Private(
+            uid = "private-event-123",
+            title = "Private Event",
+            description = "Private event description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            location = Location(46.52, 6.57, "EPFL"),
+            ownerId = "owner123",
+            isFlash = false,
+            maxCapacity = 20u)
     runBlocking { eventRepository.addEvent(privateEvent) }
 
     composeTestRule.setContent {
@@ -1254,9 +1249,7 @@ class EventViewTest {
 
   @Test
   fun eventView_progressBar_displayedForEventWithCapacity() {
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user1"))
-    }
+    runBlocking { eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("user1")) }
 
     composeTestRule.setContent {
       val navController = rememberNavController()
