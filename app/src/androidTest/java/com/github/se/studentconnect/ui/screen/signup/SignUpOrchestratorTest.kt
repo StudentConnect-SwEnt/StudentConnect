@@ -54,6 +54,7 @@ class SignUpOrchestratorTest {
 
     val viewModel =
         SignUpViewModel().apply {
+          setUsername("ada_lovelace")
           setFirstName("Ada")
           setLastName("Lovelace")
           setBio("Hello world")
