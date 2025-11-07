@@ -378,58 +378,16 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
       }
 }
 
-/** Branded primary call-to-action that centers text and optionally shows a trailing icon. */
-@Composable
-fun PrimaryActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    @DrawableRes iconRes: Int? = null
-) {
-  Button(
-      onClick = onClick,
-      enabled = enabled,
-      modifier = modifier.height(56.dp),
-      shape = RoundedCornerShape(40.dp),
-      contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp),
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.primary,
-              contentColor = MaterialTheme.colorScheme.onPrimary,
-              disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-              disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)),
-      elevation =
-          ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center) {
-              Text(
-                  text = text,
-                  style =
-                      MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-              if (iconRes != null) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary)
-              }
-            }
-      }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
-@Composable
-private fun BasicInfoScreenPreview() {
-  AppTheme {
-    BasicInfoScreen(
-        viewModel = SignUpViewModel(),
-        userRepository = UserRepositoryLocal(),
-        onContinue = {},
-        onBack = {})
-  }
-}
+//@SuppressLint("ViewModelConstructorInComposable")
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Preview(showBackground = true)
+//@Composable
+//private fun BasicInfoScreenPreview() {
+//  AppTheme {
+//    BasicInfoScreen(
+//        viewModel = SignUpViewModel(),
+//        userRepository = UserRepositoryLocal(),
+//        onContinue = {},
+//        onBack = {})
+//  }
+//}
