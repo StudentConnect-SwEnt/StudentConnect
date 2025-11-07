@@ -31,6 +31,7 @@ constructor(
   val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
 
   private var stopListening: (() -> Unit)? = null
+  private var currentUserId: String? = null
 
   init {
     startListeningToNotifications()
@@ -38,7 +39,14 @@ constructor(
 
   /** Starts listening to real-time notification updates */
   private fun startListeningToNotifications() {
-    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
+    val userId = getCurrentUserId() ?: return
+
+    // Stop existing listener if any
+    stopListening?.invoke()
+    stopListening = null
+
+    // Update current user ID
+    currentUserId = userId
 
     _uiState.update { it.copy(isLoading = true) }
 
@@ -51,37 +59,90 @@ constructor(
         }
   }
 
+  /** Gets the current user ID with proper validation */
+  private fun getCurrentUserId(): String? {
+    return AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+  }
+
+  /** Restarts the notification listener (useful after auth changes) */
+  fun restartListener() {
+    val newUserId = getCurrentUserId()
+    if (newUserId != currentUserId) {
+      startListeningToNotifications()
+    }
+  }
+
   /**
    * Marks a notification as read
    *
    * @param notificationId The ID of the notification to mark as read
    */
   fun markAsRead(notificationId: String) {
+    // Optimistically update UI
+    val currentNotifications = _uiState.value.notifications
+    val updatedNotifications =
+        currentNotifications.map { notification ->
+          if (notification.id == notificationId) {
+            when (notification) {
+              is Notification.FriendRequest -> notification.copy(isRead = true)
+              is Notification.EventStarting -> notification.copy(isRead = true)
+            }
+          } else {
+            notification
+          }
+        }
+
+    val newUnreadCount = updatedNotifications.count { !it.isRead }
+    _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = newUnreadCount) }
+
     viewModelScope.launch {
       repository.markAsRead(
           notificationId,
           onSuccess = {
-            // Update will come through the listener
+            // UI already updated optimistically
           },
           onFailure = { e ->
-            // Log error but don't update UI - listener will handle state
-            android.util.Log.e("NotificationViewModel", "Failed to mark as read", e)
+            android.util.Log.e(TAG, "Failed to mark as read", e)
+            // Revert optimistic update
+            _uiState.update {
+              it.copy(
+                  notifications = currentNotifications,
+                  unreadCount = currentNotifications.count { !it.isRead })
+            }
           })
     }
   }
 
   /** Marks all notifications as read */
   fun markAllAsRead() {
-    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
+    val userId = getCurrentUserId() ?: return
+
+    // Optimistically update UI
+    val currentNotifications = _uiState.value.notifications
+    val updatedNotifications =
+        currentNotifications.map { notification ->
+          when (notification) {
+            is Notification.FriendRequest -> notification.copy(isRead = true)
+            is Notification.EventStarting -> notification.copy(isRead = true)
+          }
+        }
+
+    _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = 0) }
 
     viewModelScope.launch {
       repository.markAllAsRead(
           userId,
           onSuccess = {
-            // Update will come through the listener
+            // UI already updated optimistically
           },
           onFailure = { e ->
-            android.util.Log.e("NotificationViewModel", "Failed to mark all as read", e)
+            android.util.Log.e(TAG, "Failed to mark all as read", e)
+            // Revert optimistic update
+            _uiState.update {
+              it.copy(
+                  notifications = currentNotifications,
+                  unreadCount = currentNotifications.count { !it.isRead })
+            }
           })
     }
   }
@@ -92,21 +153,34 @@ constructor(
    * @param notificationId The ID of the notification to delete
    */
   fun deleteNotification(notificationId: String) {
+    // Optimistically update UI
+    val currentNotifications = _uiState.value.notifications
+    val updatedNotifications = currentNotifications.filter { it.id != notificationId }
+    val newUnreadCount = updatedNotifications.count { !it.isRead }
+
+    _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = newUnreadCount) }
+
     viewModelScope.launch {
       repository.deleteNotification(
           notificationId,
           onSuccess = {
-            // Update will come through the listener
+            // UI already updated optimistically
           },
           onFailure = { e ->
-            android.util.Log.e("NotificationViewModel", "Failed to delete notification", e)
+            android.util.Log.e(TAG, "Failed to delete notification", e)
+            // Revert optimistic update
+            _uiState.update {
+              it.copy(
+                  notifications = currentNotifications,
+                  unreadCount = currentNotifications.count { !it.isRead })
+            }
           })
     }
   }
 
   /** Refreshes notifications manually */
   fun refresh() {
-    val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return
+    val userId = getCurrentUserId() ?: return
 
     _uiState.update { it.copy(isLoading = true) }
 
@@ -119,7 +193,7 @@ constructor(
           }
         },
         onFailure = { e ->
-          android.util.Log.e("NotificationViewModel", "Failed to load notifications", e)
+          android.util.Log.e(TAG, "Failed to load notifications", e)
           _uiState.update { it.copy(isLoading = false) }
         })
   }
@@ -127,5 +201,11 @@ constructor(
   override fun onCleared() {
     super.onCleared()
     stopListening?.invoke()
+    stopListening = null
+    currentUserId = null
+  }
+
+  companion object {
+    private const val TAG = "NotificationViewModel"
   }
 }
