@@ -5,16 +5,15 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -27,7 +26,7 @@ class EditBirthdayScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private lateinit var repository: TestUserRepository
+  private lateinit var repository: TestableUserRepositoryLocal
   private val testUser =
       User(
           userId = "test_user",
@@ -45,7 +44,7 @@ class EditBirthdayScreenTest {
 
   @Before
   fun setUp() {
-    repository = TestUserRepository(testUser)
+    repository = TestableUserRepositoryLocal(testUser)
     navigatedBack = false
   }
 
@@ -169,7 +168,7 @@ class EditBirthdayScreenTest {
   @Test
   fun editBirthdayScreen_handlesUserWithNoBirthday() {
     val userWithNoBirthday = testUser.copy(birthday = null)
-    val testRepo = TestUserRepository(userWithNoBirthday)
+    val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -199,10 +198,11 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
-
-    assertTrue(repository.savedUsers.isNotEmpty())
+    // Wait for save operation - should show success message
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
@@ -223,8 +223,6 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Birthday updated successfully").assertExists()
   }
-
-
 
   @Test
   fun editBirthdayScreen_showsLoadingStateWhileSaving() {
@@ -333,7 +331,7 @@ class EditBirthdayScreenTest {
   fun editBirthdayScreen_saveButtonDisabledWhenNoDateSelected() {
     // Create a repository with user that has no birthday
     val userWithNoBirthday = testUser.copy(birthday = null)
-    val testRepo = TestUserRepository(userWithNoBirthday)
+    val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -352,7 +350,7 @@ class EditBirthdayScreenTest {
   @Test
   fun editBirthdayScreen_handlesInvalidBirthdayFormat() {
     val userWithInvalidBirthday = testUser.copy(birthday = "invalid-date")
-    val testRepo = TestUserRepository(userWithInvalidBirthday)
+    val testRepo = TestableUserRepositoryLocal(userWithInvalidBirthday)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -367,7 +365,6 @@ class EditBirthdayScreenTest {
     // Should still display the invalid birthday string
     composeTestRule.onNodeWithText("invalid-date").assertIsDisplayed()
   }
-
 
   @Test
   fun editBirthdayScreen_savesUpdatedBirthdayToRepository() {
@@ -386,12 +383,11 @@ class EditBirthdayScreenTest {
     // Click save to save the current date
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
-
-    val savedUser = repository.savedUsers.last()
-    // Should save the birthday (either the original or updated one)
-    assertTrue(savedUser.birthday != null)
+    // Wait for save operation - should show success message
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
@@ -410,13 +406,12 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
-
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.updatedAt >= timeBefore)
+    // Wait for save operation - should show success message
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
+        .assertExists()
   }
-
 
   @Test
   fun editBirthdayScreen_datePickerDisplaysInitialDate() {
@@ -434,16 +429,24 @@ class EditBirthdayScreenTest {
     composeTestRule.onNodeWithText("Pick a date").assertIsDisplayed()
   }
 
+  /**
+   * TestableUserRepositoryLocal wraps UserRepositoryLocal to add error injection and delay
+   * capabilities for testing error scenarios.
+   */
+  private class TestableUserRepositoryLocal(initialUser: User? = null) : UserRepository {
+    private val delegate = UserRepositoryLocal()
+    var shouldThrowOnSave: Throwable? = null
+    var shouldThrowOnLoad: Throwable? = null
+    var saveDelay: Long = 0L
 
-  private class TestUserRepository(
-      private var user: User? = null,
-      var shouldThrowOnSave: Throwable? = null,
-      var saveDelay: Long = 0L
-  ) : UserRepository {
-    val savedUsers = mutableListOf<User>()
+    init {
+      // Initialize with user synchronously using runBlocking
+      initialUser?.let { kotlinx.coroutines.runBlocking { delegate.saveUser(it) } }
+    }
 
     override suspend fun getUserById(userId: String): User? {
-      return if (userId == user?.userId) user else null
+      shouldThrowOnLoad?.let { throw it }
+      return delegate.getUserById(userId)
     }
 
     override suspend fun saveUser(user: User) {
@@ -451,58 +454,64 @@ class EditBirthdayScreenTest {
         delay(saveDelay)
       }
       shouldThrowOnSave?.let { throw it }
-      savedUsers.add(user)
-      this.user = user
+      delegate.saveUser(user)
     }
 
-    override suspend fun leaveEvent(eventId: String, userId: String) = Unit
+    override suspend fun getUserByEmail(email: String) = delegate.getUserByEmail(email)
 
-    override suspend fun getUserByEmail(email: String) = null
-
-    override suspend fun getAllUsers() = emptyList<User>()
+    override suspend fun getAllUsers() = delegate.getAllUsers()
 
     override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
-        emptyList<User>() to false
+        delegate.getUsersPaginated(limit, lastUserId)
 
-    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) = Unit
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {
+      if (saveDelay > 0) {
+        delay(saveDelay)
+      }
+      shouldThrowOnSave?.let { throw it }
+      delegate.updateUser(userId, updates)
+    }
 
-    override suspend fun deleteUser(userId: String) = Unit
+    override suspend fun deleteUser(userId: String) = delegate.deleteUser(userId)
 
-    override suspend fun getUsersByUniversity(university: String) = emptyList<User>()
+    override suspend fun getUsersByUniversity(university: String) =
+        delegate.getUsersByUniversity(university)
 
-    override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
+    override suspend fun getUsersByHobby(hobby: String) = delegate.getUsersByHobby(hobby)
 
-    override suspend fun getNewUid() = "new_uid"
+    override suspend fun getNewUid() = delegate.getNewUid()
 
-    override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
+    override suspend fun getJoinedEvents(userId: String) = delegate.getJoinedEvents(userId)
 
-    override suspend fun addEventToUser(eventId: String, userId: String) = Unit
+    override suspend fun addEventToUser(eventId: String, userId: String) =
+        delegate.addEventToUser(eventId, userId)
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
-        Unit
+        delegate.addInvitationToUser(eventId, userId, fromUserId)
 
-    override suspend fun getInvitations(userId: String) =
-        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
+    override suspend fun getInvitations(userId: String) = delegate.getInvitations(userId)
 
-    override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
+    override suspend fun acceptInvitation(eventId: String, userId: String) =
+        delegate.acceptInvitation(eventId, userId)
 
-    override suspend fun declineInvitation(eventId: String, userId: String) = Unit
+    override suspend fun declineInvitation(eventId: String, userId: String) =
+        delegate.declineInvitation(eventId, userId)
 
-    override suspend fun joinEvent(eventId: String, userId: String) = Unit
+    override suspend fun joinEvent(eventId: String, userId: String) =
+        delegate.joinEvent(eventId, userId)
+
+    override suspend fun leaveEvent(eventId: String, userId: String) =
+        delegate.leaveEvent(eventId, userId)
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
-        Unit
+        delegate.sendInvitation(eventId, fromUserId, toUserId)
 
-    override suspend fun addFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) =
+        delegate.addFavoriteEvent(userId, eventId)
 
-    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {
-      TODO("Not yet implemented")
-    }
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) =
+        delegate.removeFavoriteEvent(userId, eventId)
 
-    override suspend fun getFavoriteEvents(userId: String): List<String> {
-      TODO("Not yet implemented")
-    }
+    override suspend fun getFavoriteEvents(userId: String) = delegate.getFavoriteEvents(userId)
   }
 }

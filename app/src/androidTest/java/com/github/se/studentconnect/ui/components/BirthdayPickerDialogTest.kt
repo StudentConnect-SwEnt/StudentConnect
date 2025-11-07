@@ -8,6 +8,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.util.Calendar
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -15,8 +17,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.Calendar
-import java.util.TimeZone
 
 @RunWith(AndroidJUnit4::class)
 class BirthdayPickerDialogTest {
@@ -30,10 +30,7 @@ class BirthdayPickerDialogTest {
       MaterialTheme {
         val datePickerState = rememberDatePickerState()
         BirthdayPickerDialog(
-            showDialog = false,
-            datePickerState = datePickerState,
-            onDismiss = {},
-            onConfirm = {})
+            showDialog = false, datePickerState = datePickerState, onDismiss = {}, onConfirm = {})
       }
     }
 
@@ -49,10 +46,7 @@ class BirthdayPickerDialogTest {
       MaterialTheme {
         val datePickerState = rememberDatePickerState()
         BirthdayPickerDialog(
-            showDialog = true,
-            datePickerState = datePickerState,
-            onDismiss = {},
-            onConfirm = {})
+            showDialog = true, datePickerState = datePickerState, onDismiss = {}, onConfirm = {})
       }
     }
 
@@ -68,10 +62,7 @@ class BirthdayPickerDialogTest {
       MaterialTheme {
         val datePickerState = rememberDatePickerState()
         BirthdayPickerDialog(
-            showDialog = true,
-            datePickerState = datePickerState,
-            onDismiss = {},
-            onConfirm = {})
+            showDialog = true, datePickerState = datePickerState, onDismiss = {}, onConfirm = {})
       }
     }
 
@@ -85,10 +76,7 @@ class BirthdayPickerDialogTest {
       MaterialTheme {
         val datePickerState = rememberDatePickerState()
         BirthdayPickerDialog(
-            showDialog = true,
-            datePickerState = datePickerState,
-            onDismiss = {},
-            onConfirm = {})
+            showDialog = true, datePickerState = datePickerState, onDismiss = {}, onConfirm = {})
       }
     }
 
@@ -149,7 +137,6 @@ class BirthdayPickerDialogTest {
     assertNotNull(confirmedMillis)
   }
 
-
   @OptIn(ExperimentalMaterial3Api::class)
   @Test
   fun birthdayPickerDialog_okButtonDoesNotCallConfirmWhenNoDateSelected() {
@@ -193,8 +180,6 @@ class BirthdayPickerDialogTest {
     composeTestRule.onNodeWithText("Cancel").performClick()
     assertEquals(1, dismissCount)
   }
-
-
 
   @OptIn(ExperimentalMaterial3Api::class)
   @Test

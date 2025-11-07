@@ -311,17 +311,17 @@ private fun MainAppContent(
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
               }
-            // Edit Birthday Screen
-        composable(
-            route = ProfileRoutes.EDIT_BIRTHDAY,
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-            EditBirthdayScreen(
-                userId = userId,
-                userRepository = userRepository,
-                onNavigateBack = { navController.popBackStack() })
-            }
+          // Edit Birthday Screen
+          composable(
+              route = ProfileRoutes.EDIT_BIRTHDAY,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditBirthdayScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
+              }
 
           composable(
               route = "eventView/{eventUid}/{hasJoined}",

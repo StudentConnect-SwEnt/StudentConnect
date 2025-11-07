@@ -1,11 +1,11 @@
 package com.github.se.studentconnect.ui.components
 
+import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import java.text.SimpleDateFormat
@@ -15,8 +15,8 @@ import java.util.Locale
 /**
  * Reusable birthday picker dialog component.
  *
- * This component provides a Material 3 DatePickerDialog that can be used
- * for birthday selection across different screens (signup, profile edit, etc.)
+ * This component provides a Material 3 DatePickerDialog that can be used for birthday selection
+ * across different screens (signup, profile edit, etc.)
  *
  * @param showDialog Whether the dialog should be shown
  * @param datePickerState The state of the date picker
@@ -55,13 +55,9 @@ fun BirthdayPickerDialog(
   }
 }
 
-/**
- * Utility object for birthday-related date formatting.
- */
+/** Utility object for birthday-related date formatting. */
 object BirthdayFormatter {
-  /**
-   * Standard date formatter for birthday display (dd/MM/yyyy).
-   */
+  /** Standard date formatter for birthday display (dd/MM/yyyy). */
   val dateFormatter: SimpleDateFormat
     get() = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
 

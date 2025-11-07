@@ -1,11 +1,11 @@
 package com.github.se.studentconnect.ui.components
 
+import java.util.Calendar
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.util.Calendar
-import java.util.TimeZone
 
 class BirthdayFormatterTest {
 
@@ -96,8 +96,9 @@ class BirthdayFormatterTest {
   @Test
   fun `parseDate parses different valid date strings correctly`() {
     val testCases =
-        listOf("01/01/2000", "31/12/1995", "15/03/2024", "04/07/1990", "29/02/2000" // Leap year
-        )
+        listOf(
+            "01/01/2000", "31/12/1995", "15/03/2024", "04/07/1990", "29/02/2000" // Leap year
+            )
 
     testCases.forEach { dateString ->
       val millis = BirthdayFormatter.parseDate(dateString)
