@@ -49,6 +49,7 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
@@ -307,6 +308,17 @@ private fun MainAppContent(
                   backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
                 EditNationalityScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
+              }
+          // Edit Birthday Screen
+          composable(
+              route = ProfileRoutes.EDIT_BIRTHDAY,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                EditBirthdayScreen(
                     userId = userId,
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })

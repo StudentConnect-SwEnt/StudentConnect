@@ -188,7 +188,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Birthday,
                               isLoading = loadingFields.contains(EditingField.Birthday),
                               errorMessage = fieldErrors[EditingField.Birthday],
-                              onEditClick = { /*Disabled for now*/},
+                              onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBirthday(newValue) },
                               onCancel = { viewModel.cancelEditing() })
 

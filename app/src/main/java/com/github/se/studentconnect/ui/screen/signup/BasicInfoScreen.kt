@@ -21,8 +21,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,10 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.BirthdayFormatter
+import com.github.se.studentconnect.ui.components.BirthdayPickerDialog
 import com.google.firebase.Timestamp
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.delay
 
 /**
@@ -73,9 +71,7 @@ fun BasicInfoScreen(
     showDateDialogState: MutableState<Boolean>? = null
 ) {
   val signUpState by viewModel.state
-  val dateFormatter = remember {
-    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false }
-  }
+  val dateFormatter = BirthdayFormatter.dateFormatter
 
   val selectedMillis = signUpState.birthdate?.toDate()?.time
   val pickerState =
@@ -195,29 +191,15 @@ fun BasicInfoScreen(
               }
             }
 
-        if (dialogState.value) {
-          DatePickerDialog(
-              onDismissRequest = { dialogState.value = false },
-              confirmButton = {
-                Button(
-                    onClick = {
-                      val millis = pickerState.selectedDateMillis
-                      if (millis != null) {
-                        birthdayText = dateFormatter.format(Date(millis))
-                        isBirthdateValid = true
-                        viewModel.setBirthdate(Timestamp(Date(millis)))
-                      }
-                      dialogState.value = false
-                    }) {
-                      Text("OK")
-                    }
-              },
-              dismissButton = {
-                Button(onClick = { dialogState.value = false }) { Text("Cancel") }
-              }) {
-                DatePicker(state = pickerState)
-              }
-        }
+        BirthdayPickerDialog(
+            showDialog = dialogState.value,
+            datePickerState = pickerState,
+            onDismiss = { dialogState.value = false },
+            onConfirm = { millis ->
+              birthdayText = BirthdayFormatter.formatDate(millis)
+              isBirthdateValid = true
+              viewModel.setBirthdate(Timestamp(Date(millis)))
+            })
 
         Spacer(modifier = Modifier.weight(1f))
 
