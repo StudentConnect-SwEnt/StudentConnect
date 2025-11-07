@@ -196,20 +196,19 @@ class UsernameTextFieldTest {
       composeTestRule.onAllNodesWithText("Username").fetchSemanticsNodes().isNotEmpty()
     }
     composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
-          .fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodes(hasSetTextAction(), useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
-    composeTestRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
+    composeTestRule
+        .onAllNodes(hasSetTextAction(), useUnmergedTree = true)
         .onFirst()
         .performTextReplacement("User@Name#123")
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 5000) {
-      capturedValue.isNotEmpty()
-    }
+    composeTestRule.waitUntil(timeoutMillis = 5000) { capturedValue.isNotEmpty() }
     composeTestRule.runOnIdle {
-      assert(capturedValue == "username123") {
-        "Expected 'username123' but got '$capturedValue'"
-      }
+      assert(capturedValue == "username123") { "Expected 'username123' but got '$capturedValue'" }
     }
   }
 
