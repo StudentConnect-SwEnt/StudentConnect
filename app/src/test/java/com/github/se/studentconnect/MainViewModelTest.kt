@@ -120,6 +120,7 @@ class MainViewModelTest {
             User(
                 userId = testUserId,
                 email = testEmail,
+                username = "testuser",
                 firstName = "Test",
                 lastName = "User",
                 university = "EPFL")
@@ -172,6 +173,7 @@ class MainViewModelTest {
             User(
                 userId = testUserId,
                 email = testEmail,
+                username = "charlie",
                 firstName = "Charlie",
                 lastName = "Test",
                 university = "EPFL")
@@ -222,6 +224,7 @@ class MainViewModelTest {
             User(
                 userId = testUserId,
                 email = testEmail,
+                username = "testuser",
                 firstName = "Test",
                 lastName = "User",
                 university = "EPFL")
@@ -340,6 +343,7 @@ class MainViewModelTest {
             User(
                 userId = testUserId,
                 email = testEmail,
+                username = "returninguser",
                 firstName = "Returning",
                 lastName = "User",
                 university = "EPFL")

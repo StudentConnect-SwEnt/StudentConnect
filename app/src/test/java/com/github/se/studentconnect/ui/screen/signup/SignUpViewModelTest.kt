@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import java.util.Date
 import org.junit.Assert.*
@@ -44,14 +45,16 @@ class SignUpViewModelTest {
     // Arrange
     val firstName = "Ada"
     val lastName = "Lovelace"
+    val username = "adalovelace"
     val birthdate = Timestamp(Date(42L))
     val nationality = "ch"
-    val profileUri = "content://avatar"
+    val profileUri = "content://avatar".toUri()
     val bio = "Hello world"
 
     // Act
     viewModel.setFirstName("  $firstName ")
     viewModel.setLastName(" $lastName  ")
+    viewModel.setUsername("  $username  ")
     viewModel.setBirthdate(birthdate)
     viewModel.setNationality(nationality)
     viewModel.setProfilePictureUri(profileUri)
@@ -61,6 +64,7 @@ class SignUpViewModelTest {
     val state = viewModel.state.value
     assertEquals(firstName, state.firstName)
     assertEquals(lastName, state.lastName)
+    assertEquals(username, state.username)
     assertEquals(birthdate, state.birthdate)
     assertEquals("CH", state.nationality)
     assertEquals(profileUri, state.profilePictureUri)
@@ -70,10 +74,10 @@ class SignUpViewModelTest {
   @Test
   fun `setProfilePictureUri blanks reset the field`() {
     // Arrange
-    viewModel.setProfilePictureUri("content://photo")
+    viewModel.setProfilePictureUri("content://photo".toUri())
 
     // Act
-    viewModel.setProfilePictureUri("   ")
+    viewModel.setProfilePictureUri("   ".toUri())
 
     // Assert
     assertNull(viewModel.state.value.profilePictureUri)
@@ -113,6 +117,7 @@ class SignUpViewModelTest {
     // Arrange
     viewModel.setFirstName("Ada")
     viewModel.setLastName("Lovelace")
+    viewModel.setUsername("adalovelace")
     viewModel.setNationality(" UK ")
     viewModel.setBio("short bio")
 
@@ -123,6 +128,7 @@ class SignUpViewModelTest {
 
     // Introduce invalid data
     viewModel.setFirstName("")
+    viewModel.setUsername("ab")
     viewModel.setBio("x".repeat(600))
 
     assertFalse(viewModel.isBasicInfoValid)
@@ -224,5 +230,104 @@ class SignUpViewModelTest {
     viewModel.toggleInterest("music")
 
     assertTrue(viewModel.state.value.interests.contains("MUSIC"))
+  }
+
+  // Username tests
+  @Test
+  fun `setUsername stores trimmed and lowercased value`() {
+    // Arrange
+    val username = "JohnDoe"
+
+    // Act
+    viewModel.setUsername("  $username  ")
+
+    // Assert
+    assertEquals("johndoe", viewModel.state.value.username)
+  }
+
+  @Test
+  fun `setUsername normalizes to lowercase`() {
+    viewModel.setUsername("USERNAME123")
+    assertEquals("username123", viewModel.state.value.username)
+  }
+
+  @Test
+  fun `setUsername trims whitespace`() {
+    viewModel.setUsername("  testuser  ")
+    assertEquals("testuser", viewModel.state.value.username)
+  }
+
+  @Test
+  fun `isBasicInfoValid returns false when username is blank`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setUsername("")
+
+    assertFalse(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `isBasicInfoValid returns false when username is too short`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setUsername("ab")
+
+    assertFalse(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `isBasicInfoValid returns false when username is too long`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setUsername("a".repeat(21))
+
+    assertFalse(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `isBasicInfoValid returns false when username has invalid characters`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setUsername("user@name")
+
+    assertFalse(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `isBasicInfoValid returns true when username is valid`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+    viewModel.setUsername("validuser123")
+
+    assertTrue(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `isBasicInfoValid accepts valid username formats`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+
+    val validUsernames = listOf("abc", "user123", "john_doe", "test-user", "user.name")
+
+    validUsernames.forEach { username ->
+      viewModel.setUsername(username)
+      assertTrue("Username '$username' should be valid", viewModel.isBasicInfoValid)
+    }
+  }
+
+  @Test
+  fun `isBasicInfoValid requires valid username even with valid name fields`() {
+    viewModel.setFirstName("John")
+    viewModel.setLastName("Doe")
+
+    assertFalse(viewModel.isBasicInfoValid)
+  }
+
+  @Test
+  fun `reset clears username`() {
+    viewModel.setUsername("testuser")
+    viewModel.reset()
+
+    assertEquals("", viewModel.state.value.username)
   }
 }

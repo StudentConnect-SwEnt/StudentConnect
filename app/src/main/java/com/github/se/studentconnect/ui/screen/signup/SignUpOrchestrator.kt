@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.net.Uri
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.launch
 
@@ -78,6 +80,7 @@ fun SignUpOrchestrator(
     SignUpStep.BasicInfo -> {
       BasicInfoScreen(
           viewModel = signUpViewModel,
+          userRepository = userRepository,
           onContinue = { signUpViewModel.nextStep() },
           // No back navigation from BasicInfo since user is already authenticated
           // and committed to onboarding flow
@@ -128,16 +131,21 @@ fun SignUpOrchestrator(
                 android.util.Log.d(
                     "SignUpOrchestrator", "Creating user profile for: $firebaseUserId")
 
+                val profilePictureUrl =
+                    uploadProfilePictureIfNeeded(
+                        profileUri = signUpState.profilePictureUri, firebaseUserId = firebaseUserId)
+
                 val user =
                     User(
                         userId = firebaseUserId,
                         email = email,
+                        username = signUpState.username,
                         firstName = signUpState.firstName,
                         lastName = signUpState.lastName,
                         birthdate = signUpState.birthdate,
                         university = "EPFL", // TODO: Add university selection
                         hobbies = selectedExperienceTopics.toList(),
-                        profilePictureUrl = signUpState.profilePictureUri,
+                        profilePictureUrl = profilePictureUrl,
                         bio = signUpState.bio,
                         country = signUpState.nationality)
 
@@ -160,4 +168,27 @@ fun SignUpOrchestrator(
           errorMessage = errorMessage)
     }
   }
+}
+
+private suspend fun uploadProfilePictureIfNeeded(
+    profileUri: Uri?,
+    firebaseUserId: String
+): String? {
+  val uri = profileUri ?: return null
+  val scheme = uri.scheme?.lowercase()
+
+  if (scheme.isNullOrBlank()) {
+    return null
+  }
+
+  if (scheme == "http" || scheme == "https") {
+    android.util.Log.w("SignUpOrchestrator", "Skipping upload for remote profile picture URI: $uri")
+    return null
+  }
+
+  val repository = MediaRepositoryProvider.repository
+
+  val uploadId = repository.upload(uri, "users/$firebaseUserId/profile")
+
+  return uploadId
 }

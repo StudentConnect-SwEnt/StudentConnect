@@ -1,18 +1,12 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,54 +18,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.CountryListSurface
 import com.github.se.studentconnect.ui.components.filterCountries
 import com.github.se.studentconnect.ui.components.loadCountries
 import com.github.se.studentconnect.ui.theme.AppTheme
-
-// Spacing values
-private val SmallSpacing = 4.dp
-private val MediumSpacing = 16.dp
-private val LargeSpacing = 24.dp
-
-// Text styles
-@Composable
-private fun TitleText(text: String) {
-  Text(
-      text = text,
-      style =
-          MaterialTheme.typography.headlineMedium.copy(
-              fontFamily = FontFamily.SansSerif,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.primary))
-}
-
-@Composable
-private fun SubtitleText(text: String) {
-  Text(
-      text = text,
-      style =
-          MaterialTheme.typography.bodyMedium.copy(
-              fontFamily = FontFamily.SansSerif,
-              fontWeight = FontWeight.Normal,
-              color = MaterialTheme.colorScheme.onSurfaceVariant),
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis)
-}
-
-// Spacers
-@Composable private fun SmallSpacer() = Spacer(Modifier.height(SmallSpacing))
-
-@Composable private fun MediumSpacer() = Spacer(Modifier.height(MediumSpacing))
-
-@Composable private fun LargeSpacer() = Spacer(Modifier.height(LargeSpacing))
 
 @Composable
 fun NationalityScreen(
@@ -89,19 +42,21 @@ fun NationalityScreen(
   LaunchedEffect(signUpState.nationality) { selectedCode = signUpState.nationality }
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
-        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
+        SignUpBackButton(onClick = onBack)
 
-        MediumSpacer()
+        SignUpMediumSpacer()
 
-        TitleText("Where are you from ?")
-        SmallSpacer()
-        SubtitleText("Helps us connect you with other students and events")
+        SignUpTitle(text = "Where are you from ?")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Helps us connect you with other students and events")
 
-        LargeSpacer()
+        SignUpLargeSpacer()
 
         OutlinedTextField(
             value = query,
@@ -111,7 +66,7 @@ fun NationalityScreen(
             singleLine = true,
             trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
 
-        MediumSpacer()
+        SignUpMediumSpacer()
 
         CountryListSurface(
             modifier = Modifier.fillMaxWidth().weight(1f),
@@ -122,9 +77,9 @@ fun NationalityScreen(
               viewModel.setNationality(country.code)
             })
 
-        LargeSpacer()
+        SignUpLargeSpacer()
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,

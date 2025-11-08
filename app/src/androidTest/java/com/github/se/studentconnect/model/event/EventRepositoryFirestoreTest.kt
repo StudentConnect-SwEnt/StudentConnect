@@ -325,7 +325,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     }
   }
 
-  @Test(expected = IllegalStateException::class)
+  @Test
   fun addParticipantTwice_throws() {
     runBlocking {
       signIn("owner")
@@ -347,7 +347,10 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val currentParticipantId = getCurrentUserId()
       val p = EventParticipant(currentParticipantId, now)
       repository.addParticipantToEvent(e.uid, p)
-      repository.addParticipantToEvent(e.uid, p) // second time → throws
+
+      assertThrows(IllegalStateException::class.java) {
+        runBlocking { repository.addParticipantToEvent(e.uid, p) } // second time → throws
+      }
     }
   }
 

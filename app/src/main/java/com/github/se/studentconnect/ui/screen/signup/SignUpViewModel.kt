@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -24,9 +25,10 @@ data class SignUpState(
     val userId: String? = null,
     val firstName: String = "",
     val lastName: String = "",
+    val username: String = "",
     val birthdate: Timestamp? = null,
     val nationality: String? = null,
-    val profilePictureUri: String? = null,
+    val profilePictureUri: Uri? = null,
     val bio: String? = null,
     val interests: Set<String> = emptySet(),
     val currentStep: SignUpStep = SignUpStep.GettingStarted
@@ -53,14 +55,16 @@ class SignUpViewModel : ViewModel() {
 
   fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
 
+  fun setUsername(username: String) = update { it.copy(username = username.trim().lowercase()) }
+
   fun setBirthdate(birthdate: Timestamp?) = update { it.copy(birthdate = birthdate) }
 
   fun setNationality(nationality: String) = update {
     it.copy(nationality = nationality.trim().uppercase(Locale.US))
   }
 
-  fun setProfilePictureUri(uri: String?) = update {
-    it.copy(profilePictureUri = uri?.ifBlank { null })
+  fun setProfilePictureUri(uri: Uri?) = update {
+    it.copy(profilePictureUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
   }
 
   fun setBio(bio: String?) = update { it.copy(bio = bio?.ifBlank { null }) }
@@ -83,7 +87,14 @@ class SignUpViewModel : ViewModel() {
         state.value.firstName.isNotBlank() &&
             state.value.firstName.length <= 100 &&
             state.value.lastName.isNotBlank() &&
-            state.value.lastName.length <= 100
+            state.value.lastName.length <= 100 &&
+            isValidUsernameFormat(state.value.username)
+
+  private fun isValidUsernameFormat(username: String): Boolean {
+    if (username.isBlank()) return false
+    if (username.length !in 3..20) return false
+    return username.matches(Regex("^[a-zA-Z0-9_.-]+$"))
+  }
 
   val isNationalityValid: Boolean
     get() = !state.value.nationality.isNullOrBlank()

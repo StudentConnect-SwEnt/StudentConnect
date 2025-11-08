@@ -1,6 +1,13 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 // import androidx.compose.ui.tooling.preview.Preview
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,10 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,19 +38,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.github.se.studentconnect.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 // import com.github.se.studentconnect.ui.theme.AppTheme
 
-private const val DEFAULT_PLACEHOLDER = "ic_user"
+private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
 
 /**
  * Screen for adding a profile picture during the signup flow.
@@ -56,8 +65,6 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
  * provides callbacks for navigation actions.
  *
  * @param viewModel The SignUpViewModel that manages the signup flow state
- * @param onPickImage Callback function that handles image picking. Receives a result callback that
- *   should be called with the selected image URI (or null if cancelled)
  * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
  * @param onContinue Callback invoked when the user wants to proceed to the next step
  * @param onBack Callback invoked when the user wants to go back to the previous step
@@ -65,7 +72,6 @@ private const val DEFAULT_PLACEHOLDER = "ic_user"
 @Composable
 fun AddPictureScreen(
     viewModel: SignUpViewModel,
-    onPickImage: (onResult: (String?) -> Unit) -> Unit = {},
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit
@@ -75,17 +81,19 @@ fun AddPictureScreen(
 
   LaunchedEffect(signUpState.profilePictureUri) { profileUri = signUpState.profilePictureUri }
 
-  val canContinue = !profileUri.isNullOrBlank()
+  val canContinue = profileUri != null
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(
+                  horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                  vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-          IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-          }
+          SignUpBackButton(onClick = onBack)
           Spacer(Modifier.weight(1f))
-          SkipButton(
+          SignUpSkipButton(
               onClick = {
                 viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
                 profileUri = DEFAULT_PLACEHOLDER
@@ -93,43 +101,26 @@ fun AddPictureScreen(
               })
         }
 
-        Spacer(Modifier.height(16.dp))
+        SignUpMediumSpacer()
 
-        Text(
-            text = "Add a profile picture",
-            style =
-                MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary))
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Let others know what you look like !",
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis)
+        SignUpTitle(text = "Add a profile picture")
+        SignUpSmallSpacer()
+        SignUpSubtitle(text = "Let others know what you look like !")
 
-        Spacer(Modifier.height(24.dp))
+        SignUpLargeSpacer()
 
         UploadCard(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            hasSelection = !profileUri.isNullOrBlank() && profileUri != DEFAULT_PLACEHOLDER,
-            onClick = {
-              onPickImage { uri ->
-                if (!uri.isNullOrBlank()) {
-                  viewModel.setProfilePictureUri(uri)
-                  profileUri = uri
-                }
-              }
+            imageUri = profileUri?.takeIf { it != DEFAULT_PLACEHOLDER },
+            hasSelection = profileUri != null && profileUri != DEFAULT_PLACEHOLDER,
+            onPickImage = { uri ->
+              viewModel.setProfilePictureUri(uri)
+              profileUri = uri
             })
 
         Spacer(modifier = Modifier.weight(1f))
 
-        PrimaryActionButton(
+        SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Continue",
             iconRes = R.drawable.ic_arrow_forward,
@@ -153,11 +144,26 @@ private fun SkipButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onClick: () -> Unit) {
+private fun UploadCard(
+    modifier: Modifier = Modifier,
+    imageUri: Uri?,
+    hasSelection: Boolean,
+    onPickImage: (Uri) -> Unit
+) {
   val borderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
   val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(18f, 16f), 0f) }
   val borderPadding = 12.dp
   val frameSize = 260.dp
+  val context = LocalContext.current
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  val pickMediaLauncher =
+      rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let(onPickImage)
+      }
+
+  LaunchedEffect(imageUri) {
+    imageBitmap = if (imageUri != null) loadBitmapFromUri(context, imageUri) else null
+  }
 
   Box(
       modifier =
@@ -165,31 +171,55 @@ private fun UploadCard(modifier: Modifier = Modifier, hasSelection: Boolean, onC
               .size(frameSize)
               .clip(CircleShape)
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f))
-              .clickable(onClick = onClick)
+              .clickable(
+                  onClick = {
+                    pickMediaLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                  })
               .drawDashedCircleBorder(borderColor, dashEffect, borderPadding),
       contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-              Surface(
-                  shape = CircleShape,
-                  color = MaterialTheme.colorScheme.surface,
-                  modifier = Modifier.size(56.dp),
-                  tonalElevation = 2.dp) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                      Icon(
-                          painter = painterResource(id = R.drawable.ic_camera),
-                          contentDescription = "Upload photo",
-                          tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap!!,
+              contentDescription = "Selected photo",
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop)
+          Text(
+              text = "Tap to change photo",
+              style =
+                  MaterialTheme.typography.bodyMedium.copy(
+                      color = MaterialTheme.colorScheme.onSurfaceVariant),
+              modifier =
+                  Modifier.align(Alignment.BottomCenter)
+                      .padding(bottom = 24.dp)
+                      .background(
+                          color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                          shape = RoundedCornerShape(12.dp))
+                      .padding(horizontal = 12.dp, vertical = 6.dp))
+        } else {
+          Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.Center) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.size(56.dp),
+                    tonalElevation = 2.dp) {
+                      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_camera),
+                            contentDescription = "Upload photo",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
                     }
-                  }
-              Spacer(Modifier.height(16.dp))
-              Text(
-                  text = if (hasSelection) "Photo selected" else "Upload/Take your profile photo",
-                  style =
-                      MaterialTheme.typography.bodyMedium.copy(
-                          color = MaterialTheme.colorScheme.onSurfaceVariant))
-            }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = if (hasSelection) "Photo selected" else "Upload/Take your profile photo",
+                    style =
+                        MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant))
+              }
+        }
       }
 }
 
@@ -220,3 +250,14 @@ private fun Modifier.drawDashedCircleBorder(
 //    AddPictureScreen(viewModel = SignUpViewModel(), onSkip = {}, onContinue = {}, onBack = {})
 //  }
 // }
+
+private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
+    withContext(Dispatchers.IO) {
+      try {
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+          BitmapFactory.decodeStream(stream)?.asImageBitmap()
+        }
+      } catch (_: Exception) {
+        null
+      }
+    }

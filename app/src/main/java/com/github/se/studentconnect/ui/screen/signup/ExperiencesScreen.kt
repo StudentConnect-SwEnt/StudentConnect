@@ -23,13 +23,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.resources.Variables
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -89,63 +90,48 @@ internal fun ExperiencesContent(
     modifier: Modifier = Modifier
 ) {
   val scrollState = rememberScrollState()
-  val topics = experienceTopics[selectedFilter] ?: emptyList()
+  val topics = Activities.experienceTopics[selectedFilter] ?: emptyList()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-    Box(
+    Column(
         modifier =
-            Modifier.fillMaxSize().semantics { testTag = C.Tag.experiences_screen_container },
-        contentAlignment = Alignment.Center) {
+            Modifier.fillMaxSize()
+                .padding(
+                    horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
+                    vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING)
+                .semantics { testTag = C.Tag.experiences_screen_container },
+        horizontalAlignment = Alignment.Start) {
           Column(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .verticalScroll(scrollState)
-                      .padding(top = 32.dp, bottom = 120.dp)
-                      .padding(horizontal = 24.dp)
-                      .align(Alignment.TopCenter),
-              horizontalAlignment = Alignment.CenterHorizontally) {
-                Column(
+              modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_top_bar },
+              horizontalAlignment = Alignment.Start) {
+                SignUpBackButton(onClick = onBackClick)
+
+                SignUpMediumSpacer()
+
+                Text(
+                    text = "For an experience beyond Expectations",
+                    style =
+                        MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 32.sp,
+                            color = MaterialTheme.colorScheme.primary),
+                    textAlign = TextAlign.Start,
                     modifier =
-                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_top_bar },
-                    horizontalAlignment = Alignment.Start) {
-                      IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface)
-                      }
+                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_title })
 
-                      Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                      Text(
-                          text = "For an experience beyond Expectations",
-                          style =
-                              MaterialTheme.typography.headlineMedium.copy(
-                                  fontWeight = FontWeight.Medium,
-                                  fontSize = 32.sp,
-                                  color = MaterialTheme.colorScheme.onSurface),
-                          textAlign = TextAlign.Center,
-                          modifier =
-                              Modifier.fillMaxWidth().semantics {
-                                testTag = C.Tag.experiences_title
-                              })
+                SignUpSubtitle(
+                    text = "Discover what excites you",
+                    modifier =
+                        Modifier.fillMaxWidth().semantics { testTag = C.Tag.experiences_subtitle })
+              }
 
-                      Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(24.dp))
 
-                      Text(
-                          text = "Discover what excites you",
-                          style =
-                              MaterialTheme.typography.bodyMedium.copy(
-                                  color = MaterialTheme.colorScheme.onSurface),
-                          textAlign = TextAlign.Center,
-                          modifier =
-                              Modifier.fillMaxWidth().semantics {
-                                testTag = C.Tag.experiences_subtitle
-                              })
-                    }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
+          Column(
+              modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState),
+              horizontalAlignment = Alignment.CenterHorizontally) {
                 LazyRow(
                     modifier =
                         Modifier.fillMaxWidth().semantics {
@@ -153,7 +139,7 @@ internal fun ExperiencesContent(
                         },
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 8.dp)) {
-                      items(filterOptions) { filter ->
+                      items(Activities.filterOptions) { filter ->
                         val isSelected = filter == selectedFilter
                         ExperienceFilterChip(
                             label = filter,
@@ -166,9 +152,9 @@ internal fun ExperiencesContent(
 
                 Box(
                     modifier =
-                        Modifier.fillMaxWidth()
-                            .semantics { testTag = C.Tag.experiences_topic_grid }
-                            .align(Alignment.CenterHorizontally)) {
+                        Modifier.fillMaxWidth().semantics {
+                          testTag = C.Tag.experiences_topic_grid
+                        }) {
                       val columns = 3
                       val spacing = 16.dp
                       FlowRow(
@@ -205,11 +191,15 @@ internal fun ExperiencesContent(
                 }
               }
 
-          PrimaryCtaButton(
+          Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
+
+          SignUpPrimaryButton(
               text = "Start Now",
+              iconRes = R.drawable.ic_arrow_forward,
               onClick = onStartClick,
               enabled = !isSaving,
-              modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp))
+              modifier =
+                  Modifier.align(Alignment.CenterHorizontally).testTag(C.Tag.experiences_cta))
         }
   }
 }
@@ -328,111 +318,12 @@ internal fun PrimaryCtaButton(
 
 private val topicChipWidth = 100.dp
 
-val filterOptions = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
-
-val experienceTopics =
-    mapOf(
-        "Sports" to
-            listOf(
-                "Bowling",
-                "Football",
-                "Tennis",
-                "Squatch",
-                "Running",
-                "Cycling",
-                "Volleyball",
-                "Baseball",
-                "Climbing",
-                "Rowing",
-                "Rugby",
-                "Hockey",
-                "MMA"),
-        "Science" to
-            listOf(
-                "Astronomy",
-                "Biology",
-                "Chemistry",
-                "Physics",
-                "Robotics",
-                "Ecology",
-                "Genetics",
-                "Medicine",
-                "Research",
-                "Space",
-                "Ocean",
-                "Energy",
-                "Climate",
-                "Geology",
-                "Neuro-sci"),
-        "Music" to
-            listOf(
-                "Choir",
-                "Guitar",
-                "Piano",
-                "Jazz",
-                "Drums",
-                "Violin",
-                "DJing",
-                "Theory",
-                "Opera",
-                "Bands",
-                "Compose",
-                "Recording",
-            ),
-        "Language" to
-            listOf(
-                "Spanish",
-                "French",
-                "German",
-                "Japanese",
-                "Mandarin",
-                "Italian",
-                "Arabic",
-                "Russian",
-                "Korean",
-                "Hindi",
-                "Greek",
-                "Dutch",
-                "Swedish",
-                "Finnish"),
-        "Art" to
-            listOf(
-                "Painting",
-                "Photo",
-                "Design",
-                "Theatre",
-                "Dance",
-                "Sculpture",
-                "Animation",
-                "Film",
-                "Crafts",
-                "Fashion",
-                "Architecture",
-                "Ceramics"),
-        "Tech" to
-            listOf(
-                "AI",
-                "Web",
-                "Mobile",
-                "Cybersecurity",
-                "AR/VR",
-                "Cloud",
-                "IoT",
-                "Data",
-                "Blockchain",
-                "Robotics",
-                "Edge",
-                "DevOps",
-                "GameDev",
-                "Hardware",
-                "ML"))
-
 @Preview(showBackground = true)
 @Composable
 private fun ExperiencesScreenPreview() {
   AppTheme {
     ExperiencesScreen(
-        selectedFilter = filterOptions.first(),
+        selectedFilter = Activities.filterOptions.first(),
         selectedTopics = emptySet(),
         onFilterSelected = {},
         onTopicToggle = {},
