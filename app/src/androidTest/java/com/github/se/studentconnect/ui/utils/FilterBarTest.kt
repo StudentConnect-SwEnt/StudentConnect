@@ -22,7 +22,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_openBottomSheet_displaysFilterOptions() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
 
@@ -33,7 +33,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_bottomSheet_displaysCategoryChips() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -48,7 +48,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_selectCategory_showsTopics() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -63,7 +63,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_selectMultipleCategories_displaysAllTopics() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -80,7 +80,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_deselectCategory_hidesTopics() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -96,7 +96,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_selectTopic_marksAsSelected() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -111,7 +111,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_applyFilters_callsCallback() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -129,7 +131,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_resetFilters_clearsSelection() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -147,7 +151,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_closeButton_dismissesBottomSheet() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -160,7 +164,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_radiusSlider_isDisplayed() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -170,7 +174,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_locationSection_isDisplayed() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -181,7 +185,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_multipleTopics_canBeSelected() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -198,7 +202,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_appliedFilters_containsLocation() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -212,7 +218,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_appliedFilters_containsRadius() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -226,7 +234,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_selectAndDeselectTopic_worksCorrectly() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -243,7 +251,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_allCategories_areClickable() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -257,7 +265,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_favoritesButton_togglesState() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     // Click Favorites button
     composeTestRule.onNodeWithText("Favorites").performClick()
@@ -278,7 +288,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_favoritesWithOtherFilters_appliesBoth() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     // Open filters and select category
     composeTestRule.onNodeWithText("Filters").performClick()
@@ -300,7 +312,7 @@ class FilterBarComprehensiveTest {
 
   @Test
   fun filterBar_priceRange_isDisplayed() {
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  {}) }
+    composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -319,7 +331,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_applyFilters_includesPriceRange() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -335,7 +349,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_resetFilters_resetsAllFilters() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters }) }
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     // Open filters and select category
     composeTestRule.onNodeWithText("Filters").performClick()
@@ -359,7 +375,9 @@ class FilterBarComprehensiveTest {
   @Test
   fun filterBar_deselectCategory_removesAllTopics() {
     var capturedFilters: FilterData? = null
-    composeTestRule.setContent { FilterBar(context, onApplyFilters =  { filters -> capturedFilters = filters })}
+    composeTestRule.setContent {
+      FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
+    }
 
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
@@ -432,6 +450,5 @@ class FilterBarComprehensiveTest {
     // Click Apply
     composeTestRule.onNodeWithText("Apply").performClick()
     composeTestRule.waitForIdle()
-
   }
 }

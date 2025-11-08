@@ -313,8 +313,7 @@ fun FilterBar(
           searchRadius = radius
           // showLocationPicker = false is handled by onDismiss or can be added here if needed
         },
-        useTestMap = useTestMap
-    )
+        useTestMap = useTestMap)
   }
 }
 
