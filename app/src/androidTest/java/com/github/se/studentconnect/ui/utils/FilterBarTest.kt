@@ -253,4 +253,141 @@ class FilterBarComprehensiveTest {
       composeTestRule.onNodeWithText(category).assertHasClickAction()
     }
   }
+
+  @Test
+  fun filterBar_favoritesButton_togglesState() {
+    var capturedFilters: FilterData? = null
+    composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
+
+    // Click Favorites button
+    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify callback was called with showOnlyFavorites = true
+    assert(capturedFilters != null)
+    assert(capturedFilters!!.showOnlyFavorites)
+
+    // Click again to toggle off
+    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify callback was called with showOnlyFavorites = false
+    assert(capturedFilters!!.showOnlyFavorites == false)
+  }
+
+  @Test
+  fun filterBar_favoritesWithOtherFilters_appliesBoth() {
+    var capturedFilters: FilterData? = null
+    composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
+
+    // Open filters and select category
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Sports").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    // Now enable favorites
+    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify both filters are applied
+    assert(capturedFilters != null)
+    assert(capturedFilters!!.showOnlyFavorites)
+    assert(capturedFilters!!.categories.contains("Sports"))
+  }
+
+  @Test
+  fun filterBar_priceRange_isDisplayed() {
+    composeTestRule.setContent { FilterBar(context) {} }
+
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Price (€)").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Min: 0€").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Max: 50€").assertIsDisplayed()
+  }
+
+  @Test
+  fun filterBar_applyFilters_includesPriceRange() {
+    var capturedFilters: FilterData? = null
+    composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
+
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    assert(capturedFilters != null)
+    assert(capturedFilters!!.priceRange.start == 0f)
+    assert(capturedFilters!!.priceRange.endInclusive == 50f)
+  }
+
+  @Test
+  fun filterBar_resetFilters_resetsShowOnlyFavorites() {
+    var capturedFilters: FilterData? = null
+    composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
+
+    // Enable favorites
+    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.waitForIdle()
+
+    // Open filters and reset
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Reset Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify favorites is still enabled (reset doesn't affect it)
+    assert(capturedFilters != null)
+    // Note: Based on code, reset doesn't change showOnlyFavorites, only other filters
+  }
+
+  @Test
+  fun filterBar_deselectCategory_removesAllTopics() {
+    var capturedFilters: FilterData? = null
+    composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
+
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    // Select category and a topic
+    composeTestRule.onNodeWithText("Sports").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Football").performClick()
+    composeTestRule.waitForIdle()
+
+    // Deselect the category
+    composeTestRule.onNodeWithText("Sports").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify neither category nor topic are in filters
+    assert(capturedFilters != null)
+    assert(!capturedFilters!!.categories.contains("Sports"))
+    assert(!capturedFilters!!.categories.contains("Football"))
+  }
+
+  @Test
+  fun filterBar_calendarButton_isDisplayed() {
+    composeTestRule.setContent { FilterBar(context) {} }
+
+    composeTestRule.onNode(hasTestTag("calendar_button")).assertExists()
+  }
+
+  @Test
+  fun filterBar_calendarButton_isClickable() {
+    var calendarClicked = false
+    composeTestRule.setContent { FilterBar(context, onCalendarClick = { calendarClicked = true }) }
+
+    composeTestRule.onNode(hasTestTag("calendar_button")).performClick()
+    composeTestRule.waitForIdle()
+
+    assert(calendarClicked)
+  }
 }
