@@ -305,6 +305,10 @@ class FilterBarComprehensiveTest {
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
 
+    // Scroll to the price section
+    composeTestRule.onNodeWithText("Price (€)").performScrollTo()
+    composeTestRule.waitForIdle()
+
     composeTestRule.onNodeWithText("Price (€)").assertIsDisplayed()
     composeTestRule.onNodeWithText("Min: 0€").assertIsDisplayed()
     composeTestRule.onNodeWithText("Max: 50€").assertIsDisplayed()
@@ -327,23 +331,27 @@ class FilterBarComprehensiveTest {
   }
 
   @Test
-  fun filterBar_resetFilters_resetsShowOnlyFavorites() {
+  fun filterBar_resetFilters_resetsAllFilters() {
     var capturedFilters: FilterData? = null
     composeTestRule.setContent { FilterBar(context) { filters -> capturedFilters = filters } }
 
-    // Enable favorites
-    composeTestRule.onNodeWithText("Favorites").performClick()
-    composeTestRule.waitForIdle()
-
-    // Open filters and reset
+    // Open filters and select category
     composeTestRule.onNodeWithText("Filters").performClick()
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Sports").performClick()
+    composeTestRule.waitForIdle()
+
+    // Reset filters
     composeTestRule.onNodeWithText("Reset Filters").performClick()
     composeTestRule.waitForIdle()
 
-    // Verify favorites is still enabled (reset doesn't affect it)
+    // Verify all filters are reset
     assert(capturedFilters != null)
-    // Note: Based on code, reset doesn't change showOnlyFavorites, only other filters
+    assert(capturedFilters!!.categories.isEmpty())
+    assert(capturedFilters!!.location == null)
+    assert(capturedFilters!!.radiusKm == 10f)
+    assert(capturedFilters!!.priceRange.start == 0f)
+    assert(capturedFilters!!.priceRange.endInclusive == 50f)
   }
 
   @Test
