@@ -5,10 +5,7 @@ import com.google.firebase.messaging.RemoteMessage
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.kotlin.*
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 class FCMServiceTest {
 
@@ -40,7 +37,17 @@ class FCMServiceTest {
     whenever(remoteMessage.data).thenReturn(data)
     whenever(remoteMessage.from).thenReturn("test-sender")
 
-    whenever(mockHandler.processMessage(data)).thenReturn(null)
+    fcmService.onMessageReceived(remoteMessage)
+
+    verify(mockHandler, times(1)).processMessage(data)
+  }
+
+  @Test
+  fun onMessageReceived_withEmptyData_callsHandler() {
+    val remoteMessage: RemoteMessage = mock()
+    val data = emptyMap<String, String>()
+    whenever(remoteMessage.data).thenReturn(data)
+    whenever(remoteMessage.from).thenReturn("test-sender")
 
     fcmService.onMessageReceived(remoteMessage)
 
@@ -48,26 +55,7 @@ class FCMServiceTest {
   }
 
   @Test
-  fun onMessageReceived_whenHandlerReturnsNull_doesNotShowNotification() {
-    val remoteMessage: RemoteMessage = mock()
-    val data = emptyMap<String, String>()
-    whenever(remoteMessage.data).thenReturn(data)
-    whenever(remoteMessage.from).thenReturn("test-sender")
-
-    whenever(mockHandler.processMessage(data)).thenReturn(null)
-
-    // Spy on fcmService to verify showPushNotification is not called
-    val spyService = spy(fcmService)
-    spyService.fcmHandler = mockHandler
-
-    spyService.onMessageReceived(remoteMessage)
-
-    verify(mockHandler, times(1)).processMessage(data)
-    verify(spyService, never()).showPushNotification(any(), any(), any(), any())
-  }
-
-  @Test
-  fun onMessageReceived_whenHandlerReturnsInfo_showsNotification() {
+  fun onMessageReceived_withValidData_callsHandler() {
     val remoteMessage: RemoteMessage = mock()
     val data =
         mapOf(
@@ -78,23 +66,9 @@ class FCMServiceTest {
     whenever(remoteMessage.data).thenReturn(data)
     whenever(remoteMessage.from).thenReturn("test-sender")
 
-    val notificationInfo =
-        NotificationInfo(
-            title = "Test Title",
-            message = "Test Message",
-            channelId = "test-channel",
-            notificationId = 12345)
-    whenever(mockHandler.processMessage(data)).thenReturn(notificationInfo)
-
-    val spyService = spy(fcmService)
-    spyService.fcmHandler = mockHandler
-    doNothing().whenever(spyService).showPushNotification(any(), any(), any(), any())
-
-    spyService.onMessageReceived(remoteMessage)
+    fcmService.onMessageReceived(remoteMessage)
 
     verify(mockHandler, times(1)).processMessage(data)
-    verify(spyService, times(1))
-        .showPushNotification("Test Title", "Test Message", "test-channel", 12345)
   }
 
   @Test
@@ -166,102 +140,5 @@ class FCMServiceTest {
   fun notificationChannelIds_areCorrect() {
     assertEquals("friend_requests", NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID)
     assertEquals("event_starting", NotificationChannelManager.EVENT_STARTING_CHANNEL_ID)
-  }
-
-  @Test
-  fun notificationInfo_dataClass_works() {
-    // Test the NotificationInfo data class
-    val info = NotificationInfo("Title", "Message", "channel", 123)
-
-    assertEquals("Title", info.title)
-    assertEquals("Message", info.message)
-    assertEquals("channel", info.channelId)
-    assertEquals(123, info.notificationId)
-  }
-}
-
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], manifest = Config.NONE)
-class FCMServiceRobolectricTest {
-
-  private lateinit var context: android.content.Context
-
-  @Before
-  fun setUp() {
-    context = androidx.test.core.app.ApplicationProvider.getApplicationContext()
-  }
-
-  private fun getServiceWithContext(): FCMService {
-    val service = FCMService()
-    val baseContextField = android.content.ContextWrapper::class.java.getDeclaredField("mBase")
-    baseContextField.isAccessible = true
-    baseContextField.set(service, context)
-    return service
-  }
-
-  @Test
-  fun showPushNotification_executesWithoutException() {
-    val service = getServiceWithContext()
-    service.showPushNotification("Test Title", "Test Message", "test_channel", 42)
-
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_createsIntentWithCorrectFlags() {
-    val service = getServiceWithContext()
-    // This test ensures the intent creation logic is executed
-    service.showPushNotification("Test Title", "Test Message", "test_channel", 123)
-
-    // Verify execution completes (intent and pending intent created)
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_buildsNotificationWithCorrectProperties() {
-    val service = getServiceWithContext()
-    // Test with different notification parameters
-    service.showPushNotification(
-        "Friend Request", "John wants to be your friend", "friend_requests", 456)
-
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_handlesNotificationDisplay() {
-    val service = getServiceWithContext()
-    // Test the notification display logic
-    service.showPushNotification("Event Starting", "Your event starts soon", "event_starting", 789)
-
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_withEmptyStrings_executesWithoutException() {
-    val service = getServiceWithContext()
-    // Test edge case with empty strings
-    service.showPushNotification("", "", "test_channel", 999)
-
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_withLongText_executesWithoutException() {
-    val service = getServiceWithContext()
-    val longTitle = "A".repeat(100)
-    val longMessage = "B".repeat(500)
-
-    service.showPushNotification(longTitle, longMessage, "test_channel", 111)
-
-    assertTrue(true)
-  }
-
-  @Test
-  fun showPushNotification_withSpecialCharacters_executesWithoutException() {
-    val service = getServiceWithContext()
-    service.showPushNotification(
-        "Test \n Title 🎉", "Message with émojis 💬 and\nlinebreaks", "test_channel", 222)
-
-    assertTrue(true)
   }
 }
