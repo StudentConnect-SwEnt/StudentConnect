@@ -82,7 +82,8 @@ private val DEFAULT_PRICE_RANGE: ClosedFloatingPointRange<Float> = 0f..50f
 fun FilterBar(
     context: Context,
     onCalendarClick: () -> Unit = { DialogNotImplemented(context) },
-    onApplyFilters: (FilterData) -> Unit = {}
+    onApplyFilters: (FilterData) -> Unit = {},
+    useTestMap: Boolean = false
 ) {
   var showBottomSheet by remember { mutableStateOf(false) }
   var showLocationPicker by remember { mutableStateOf(false) }
@@ -311,7 +312,9 @@ fun FilterBar(
           selectedLocation = location
           searchRadius = radius
           // showLocationPicker = false is handled by onDismiss or can be added here if needed
-        })
+        },
+        useTestMap = useTestMap
+    )
   }
 }
 
