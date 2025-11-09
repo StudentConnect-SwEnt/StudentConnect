@@ -590,4 +590,241 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     // Fill required fields, click save
     // Then assert navigation state (e.g. checking fake NavController)
   }
+
+  // --------------------------------------------------
+  // 11. New UI Components - Scaffold, TopAppBar, FAB
+  // --------------------------------------------------
+
+  @Test
+  fun scaffold_isDisplayed() {
+    waitForTag(CreatePublicEventScreenTestTags.SCAFFOLD)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SCAFFOLD).assertIsDisplayed()
+  }
+
+  @Test
+  fun topAppBar_isDisplayed() {
+    waitForTag(CreatePublicEventScreenTestTags.TOP_APP_BAR)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TOP_APP_BAR).assertIsDisplayed()
+  }
+
+  @Test
+  fun topAppBar_showsCorrectTitle_whenCreatingNewEvent() {
+    waitForTag(CreatePublicEventScreenTestTags.TOP_APP_BAR)
+    composeTestRule.onNodeWithText("Create Public Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun backButton_isDisplayed() {
+    waitForTag(CreatePublicEventScreenTestTags.BACK_BUTTON)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.BACK_BUTTON).assertIsDisplayed()
+  }
+
+  @Test
+  fun backButton_isClickable() {
+    waitForTag(CreatePublicEventScreenTestTags.BACK_BUTTON)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.BACK_BUTTON).performClick()
+    // Navigation callback should be triggered
+  }
+
+  @Test
+  fun floatingActionButton_isDisplayedAsFAB() {
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).assertIsDisplayed()
+  }
+
+  @Test
+  fun floatingActionButton_hasCorrectIcon() {
+    waitForTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+    // FAB should contain save icon
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).assertExists()
+  }
+
+  // --------------------------------------------------
+  // 12. Required Field Indicators (Asterisks)
+  // --------------------------------------------------
+
+  @Test
+  fun titleField_showsRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
+    // Check that Title field has asterisk indicator
+    composeTestRule.onNodeWithText("Title *", substring = true).assertExists()
+  }
+
+  @Test
+  fun startDateField_showsRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
+        .performScrollTo()
+    // Check that Start date field has asterisk indicator
+    composeTestRule.onNodeWithText("Start of the event *", substring = true).assertExists()
+  }
+
+  @Test
+  fun endDateField_showsRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT).performScrollTo()
+    // Check that End date field has asterisk indicator
+    composeTestRule.onNodeWithText("End of the event *", substring = true).assertExists()
+  }
+
+  @Test
+  fun optionalFields_doNotShowRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
+    // Subtitle should not have asterisk
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT).performScrollTo()
+    // Should show "Subtitle" without asterisk
+    composeTestRule.onNodeWithText("Subtitle", substring = true).assertExists()
+  }
+
+  @Test
+  fun descriptionField_doesNotShowRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
+        .performScrollTo()
+    // Should show "Description" without asterisk
+    composeTestRule.onNodeWithText("Description", substring = true).assertExists()
+  }
+
+  @Test
+  fun websiteField_doesNotShowRequiredIndicator() {
+    waitForTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT).performScrollTo()
+    // Should show "Event website" without asterisk
+    composeTestRule.onNodeWithText("Event website", substring = true).assertExists()
+  }
+
+  // --------------------------------------------------
+  // 13. Location Field - Suggestion Hiding After Selection
+  // --------------------------------------------------
+
+  @Test
+  fun locationTextField_suggestionDisappearsAfterSelection() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Lausanne")
+
+    // Wait for "Fake Lausanne" to appear
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Click the dropdown suggestion
+    composeTestRule
+        .onNode(
+            hasText("Fake Lausanne") and
+                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .performClick()
+
+    // Wait for dropdown to disappear
+    composeTestRule.waitUntil(3000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+
+    // Verify field value updated
+    locationNode.assertTextContains("Fake Lausanne")
+  }
+
+  @Test
+  fun locationTextField_suggestionsReappearAfterTypingAgain() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("EPFL")
+
+    // Wait for suggestion
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Select suggestion
+    composeTestRule
+        .onNode(
+            hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .performClick()
+
+    // Wait for dropdown to close
+    composeTestRule.waitUntil(3000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake EPFL") and !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+
+    // Type again to trigger suggestions
+    locationNode.performTextClearance()
+    locationNode.performTextInput("Lausanne")
+
+    // Suggestions should reappear
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+  }
+
+  @Test
+  fun locationTextField_suggestionsHiddenWhenLocationWasSelected() {
+    waitForTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    val locationNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.LOCATION_INPUT)
+    locationNode.performScrollTo()
+    locationNode.performTextInput("Lausanne")
+
+    // Wait for suggestion
+    composeTestRule.waitUntil(7000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Click suggestion
+    composeTestRule
+        .onNode(
+            hasText("Fake Lausanne") and
+                !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+            useUnmergedTree = true)
+        .performClick()
+
+    // Verify suggestions are hidden
+    composeTestRule.waitUntil(3000) {
+      composeTestRule
+          .onAllNodes(
+              hasText("Fake Lausanne") and
+                  !hasTestTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isEmpty()
+    }
+  }
 }
