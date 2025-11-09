@@ -148,7 +148,7 @@ jobs:
         with:
           google_services: ${{ secrets.GOOGLE_SERVICES }}
           local_properties: ${{ secrets.LOCAL_PROPERTIES }}
-          keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          android_keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
       - name: Assemble APK
         env:
