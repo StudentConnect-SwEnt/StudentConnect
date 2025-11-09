@@ -78,11 +78,9 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      # Load google-services.json and local.properties from the secrets
-      - name: Decode secrets
+      - name: Decode google-services.json from secrets
         env:
           GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
         run: |
           if [ -n "$GOOGLE_SERVICES" ]; then
             echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
@@ -90,40 +88,31 @@ jobs:
             echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
           fi
 
+      - name: Decode local.properties from secrets
+        env:
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: |
           if [ -n "$LOCAL_PROPERTIES" ]; then
             echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
           else
             echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
           fi
 
+      - name: Decode release keystore from secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            mkdir -p ~/.android
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ~/.android/release.keystore
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set. ~/.android/release.keystore will not be created."
+          fi
+
       - name: Lint
         run: |
           # To run the CI with debug information, add --info
           ./gradlew lint --parallel --build-cache
-
-      # Generate debug keystore for signing release APK
-      # This ensures consistent SHA-1 fingerprints across all builds
-      - name: Generate debug keystore
-        run: |
-          mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkey -v -keystore ~/.android/debug.keystore \
-              -storepass android -alias androiddebugkey -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
-
-      # Assemble Release APK
-      - name: Assemble APK
-        run: |
-          ./gradlew assembleNormalRelease --parallel --build-cache
-
-      # Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: app/build/outputs/apk/normal/release/*.apk
 
       # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
@@ -190,3 +179,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+
+      # Assemble Release APK
+      - name: Assemble APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          ./gradlew assembleNormalRelease --parallel --build-cache \
+            -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
+
+      - name: Print signing cert SHA-1 (from keystore)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          keytool -list -v \
+            -storetype PKCS12 \
+            -keystore ~/.android/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            | grep -E "SHA( |-)?1:"
+
