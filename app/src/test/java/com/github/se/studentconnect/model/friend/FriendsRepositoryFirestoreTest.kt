@@ -9,7 +9,6 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Transaction
 import kotlinx.coroutines.test.runTest
@@ -63,8 +62,7 @@ class FriendsRepositoryFirestoreTest {
     whenever(mockFirestore.collection("users")).thenReturn(mockUsersCollection)
     whenever(mockUsersCollection.document(anyString())).thenReturn(mockUserDocument)
     whenever(mockUserDocument.collection("friends")).thenReturn(mockFriendsCollection)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockUserDocument.collection("sentRequests")).thenReturn(mockSentRequestsCollection)
 
     repository = FriendsRepositoryFirestore(mockFirestore)
@@ -325,8 +323,7 @@ class FriendsRepositoryFirestoreTest {
     whenever(reverseDoc.exists()).thenReturn(true)
     val reverseTask: Task<DocumentSnapshot> = Tasks.forResult(reverseDoc)
 
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(reverseTask)
 
@@ -349,8 +346,7 @@ class FriendsRepositoryFirestoreTest {
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(noRequestDoc)
 
     whenever(mockUsersCollection.document(user1Id)).thenReturn(mockUserDocument)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
 
@@ -372,8 +368,7 @@ class FriendsRepositoryFirestoreTest {
     val requestTask: Task<DocumentSnapshot> = Tasks.forResult(requestDoc)
 
     whenever(mockUsersCollection.document(user1Id)).thenReturn(mockUserDocument)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(requestTask)
 
@@ -397,8 +392,7 @@ class FriendsRepositoryFirestoreTest {
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(noRequestDoc)
 
     whenever(mockUsersCollection.document(user1Id)).thenReturn(mockUserDocument)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
 
@@ -423,8 +417,7 @@ class FriendsRepositoryFirestoreTest {
     val mockSenderRequestRef: DocumentReference = mock(DocumentReference::class.java)
 
     whenever(mockUsersCollection.document(user1Id)).thenReturn(mockUserDocument)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockRecipientRequestRef)
     whenever(mockRecipientRequestRef.get()).thenReturn(requestTask)
     whenever(mockRecipientRequestRef.delete()).thenReturn(Tasks.forResult(null))
@@ -627,8 +620,7 @@ class FriendsRepositoryFirestoreTest {
     val mockTask: Task<DocumentSnapshot> = Tasks.forResult(requestDoc)
 
     whenever(mockUsersCollection.document(user1Id)).thenReturn(mockUserDocument)
-    whenever(mockUserDocument.collection("friendRequests"))
-        .thenReturn(mockFriendRequestsCollection)
+    whenever(mockUserDocument.collection("friendRequests")).thenReturn(mockFriendRequestsCollection)
     whenever(mockFriendRequestsCollection.document(user2Id)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(mockTask)
 
