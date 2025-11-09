@@ -449,11 +449,14 @@ private fun CommonActionButtons(
         }
       },
       modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-  ButtonIcon(
-      id = R.drawable.ic_web,
-      onClick = {
-        (currentEvent as? Event.Public)?.website?.let { website ->
-          if (website.isNotEmpty()) {
+
+  // Only show website button if event is Public and has a non-empty website
+  val hasWebsite = (currentEvent as? Event.Public)?.website?.isNotEmpty() == true
+  if (hasWebsite) {
+    ButtonIcon(
+        id = R.drawable.ic_web,
+        onClick = {
+          (currentEvent as? Event.Public)?.website?.let { website ->
             val fixedUrl =
                 if (!website.startsWith("http://") && !website.startsWith("https://")) {
                   "https://$website"
@@ -469,9 +472,10 @@ private fun CommonActionButtons(
                   .show()
             }
           }
-        }
-      },
-      modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+        },
+        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+  }
+
   ButtonIcon(
       id = R.drawable.ic_share,
       onClick = { DialogNotImplemented(context) },
