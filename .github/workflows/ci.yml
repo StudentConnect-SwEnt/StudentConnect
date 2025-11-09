@@ -129,9 +129,15 @@ jobs:
           name: app-release
           path: app/build/outputs/apk/normal/release/*.apk
 
-      - name: Print signing cert SHA-1 (from APK)
+      - name: Print signing cert SHA-1 (from keystore)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          apksigner verify --print-certs app/build/outputs/apk/normal/release/*.apk | grep -E SHA-1
+          keytool -list -v \
+            -storetype PKCS12 \
+            -keystore ~/.android/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            | grep -E "SHA( |-)?1:"
 
       # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
