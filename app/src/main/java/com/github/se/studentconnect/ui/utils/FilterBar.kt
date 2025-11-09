@@ -311,7 +311,6 @@ fun FilterBar(
         onLocationSelected = { location, radius ->
           selectedLocation = location
           searchRadius = radius
-          // showLocationPicker = false is handled by onDismiss or can be added here if needed
         },
         useTestMap = useTestMap)
   }

@@ -26,6 +26,7 @@ import com.github.se.studentconnect.ui.screen.map.MapViewEvent
 import com.github.se.studentconnect.ui.screen.map.MapViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
@@ -39,7 +40,7 @@ import kotlinx.coroutines.launch
 fun LocationPickerMapComponent(
     modifier: Modifier = Modifier,
     selectedPoint: Point?,
-    mapViewportState: com.mapbox.maps.extension.compose.animation.viewport.MapViewportState? = null,
+    mapViewportState: MapViewportState? = null,
     onMapClick: (Point) -> Unit
 ) {
   val viewportState =
@@ -149,7 +150,6 @@ fun LocationPickerDialog(
                     Column(modifier = Modifier.fillMaxSize()) {
                       Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                         if (useTestMap) {
-                          // Use component provided above or test equivalent if available
                           LocationPickerMapComponent(
                               modifier = Modifier.fillMaxSize().testTag("location_picker_map"),
                               selectedPoint = selectedPoint,
