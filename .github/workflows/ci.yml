@@ -39,7 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
-      - uses: ./.github/actions/decode-secrets
+
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google_services: ${{ secrets.GOOGLE_SERVICES }}
+          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Run unit tests
         run: |
@@ -57,7 +62,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
-      - uses: ./.github/actions/decode-secrets
+
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google_services: ${{ secrets.GOOGLE_SERVICES }}
+          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux
       # Enabling it allows the Android emulator to run faster
@@ -132,7 +142,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
-      - uses: ./.github/actions/decode-secrets
+
+      - name: Decode secrets
+        uses: ./.github/actions/decode-secrets
+        with:
+          google_services: ${{ secrets.GOOGLE_SERVICES }}
+          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
+          keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
       - name: Assemble APK
         env:
