@@ -52,6 +52,7 @@ class FriendsRepositoryFirestoreTest {
               User(
                   userId = uid,
                   email = "$email@test.com",
+                  username = email,
                   firstName = email,
                   lastName = "Test",
                   university = "EPFL",

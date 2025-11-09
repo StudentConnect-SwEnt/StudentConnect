@@ -1,5 +1,9 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+import android.content.Context
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,10 +35,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,6 +51,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.EditableProfileField
@@ -50,7 +60,8 @@ import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
-import kotlin.let
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Profile Settings screen showing user information with edit functionality. This is the detailed
@@ -177,7 +188,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Birthday,
                               isLoading = loadingFields.contains(EditingField.Birthday),
                               errorMessage = fieldErrors[EditingField.Birthday],
-                              onEditClick = { /*Disabled for now*/},
+                              onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBirthday(newValue) },
                               onCancel = { viewModel.cancelEditing() })
 
@@ -188,7 +199,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Activities,
                               isLoading = loadingFields.contains(EditingField.Activities),
                               errorMessage = fieldErrors[EditingField.Activities],
-                              onEditClick = { /*Disabled for now*/},
+                              onEditClick = { onNavigateToEditActivities?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateActivities(newValue) },
                               onCancel = { viewModel.cancelEditing() })
 
@@ -225,24 +236,48 @@ private fun ProfileHeaderSection(
     onEditName: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { withContext(Dispatchers.IO) { repository.download(id) } }
+                  .onFailure {
+                    android.util.Log.e(
+                        "ProfileSettingsScreen", "Failed to download profile image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it) }
+            }
+      }
+
   Column(
       modifier = modifier.fillMaxWidth(),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // Profile Picture
         Box(modifier = Modifier.size(120.dp)) {
-          // Profile picture placeholder
           Box(
               modifier =
                   Modifier.size(120.dp)
                       .clip(CircleShape)
-                      .background(MaterialTheme.colorScheme.primaryContainer),
+                      .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)),
               contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                if (imageBitmap != null) {
+                  Image(
+                      bitmap = imageBitmap!!,
+                      contentDescription = "Profile Picture",
+                      modifier = Modifier.fillMaxSize(),
+                      contentScale = ContentScale.Crop)
+                } else {
+                  Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = "Profile Picture",
+                      modifier = Modifier.size(60.dp),
+                      tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
               }
 
           IconButton(
@@ -277,3 +312,14 @@ private fun ProfileHeaderSection(
             }
       }
 }
+
+private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
+    withContext(Dispatchers.IO) {
+      try {
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+          BitmapFactory.decodeStream(stream)?.asImageBitmap()
+        }
+      } catch (_: Exception) {
+        null
+      }
+    }

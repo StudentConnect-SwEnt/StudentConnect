@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
@@ -10,7 +11,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
-import com.github.se.studentconnect.ui.screen.signup.filterOptions
 import com.github.se.studentconnect.ui.utils.FilterData
 import java.util.Calendar
 import java.util.Date
@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomePageUiState(
+    val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
     val events: List<Event> = emptyList(),
     val isLoading: Boolean = true,
     val isCalendarVisible: Boolean = false,
@@ -38,6 +39,7 @@ class HomePageViewModel
 @Inject
 constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    // maybe will be used after for recommendations
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
 
@@ -62,6 +64,32 @@ constructor(
   init {
     loadAllEvents()
     loadFavoriteEvents()
+    loadAllSubscribedEventsStories()
+  }
+
+  private fun loadAllSubscribedEventsStories() {
+    viewModelScope.launch {
+      try {
+        // Get all visible events to show stories for
+        val allEvents = eventRepository.getAllVisibleEvents()
+
+        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+        // Create stories with Pair(totalStories, seenStories)
+        // For demo: take first 10 events, mix of seen and unseen stories
+        allEvents.take(10).forEachIndexed { index, event ->
+          val totalStories = if (index < 3) 3 else 5
+          val seenStories = if (index == 0) 1 else 0 // First one is partially seen
+          allEventsStory[event] = Pair(totalStories, seenStories)
+        }
+
+        Log.d("HomePageViewModel", "Loaded ${allEventsStory.size} stories")
+
+        _uiState.update { it.copy(subscribedEventsStories = allEventsStory) }
+      } catch (e: Exception) {
+        Log.e("HomePageViewModel", "Error loading stories", e)
+        _uiState.update { it.copy(subscribedEventsStories = emptyMap()) }
+      }
+    }
   }
 
   private fun loadAllEvents() {
@@ -92,6 +120,27 @@ constructor(
           }
         } catch (e: Exception) {
           Log.e("HomePageViewModel", "Error loading favorite events", e)
+        }
+      }
+    }
+  }
+
+  fun updateSeenStories(event: Event, seenIndex: Int) {
+    viewModelScope.launch {
+      _uiState.update { it.copy(isLoading = true) }
+      val stories = _uiState.value.subscribedEventsStories
+
+      stories[event]?.first?.let { i ->
+        if (i >= seenIndex) {
+          stories[event]?.second?.let { j ->
+            if (j < seenIndex) {
+              val subscribedEventsStoryUpdate = stories.toMutableMap()
+              subscribedEventsStoryUpdate.replace(event, Pair(i, j))
+              _uiState.update {
+                it.copy(subscribedEventsStories = subscribedEventsStoryUpdate, isLoading = false)
+              }
+            }
+          }
         }
       }
     }
@@ -198,11 +247,12 @@ constructor(
     return earthRadiusKm * c
   }
 
-  fun getAvailableFilters(): List<String> = filterOptions
+  fun getAvailableFilters(): List<String> = Activities.filterOptions
 
   fun refresh() {
     loadAllEvents()
     loadFavoriteEvents()
+    loadAllSubscribedEventsStories()
   }
 
   /** Shows the calendar modal. */

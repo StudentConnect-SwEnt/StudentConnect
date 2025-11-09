@@ -10,11 +10,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -105,9 +106,24 @@ fun EventCard(
     onFavoriteToggle: (String) -> Unit,
     onClick: () -> Unit
 ) {
+  var localFavorite by remember { mutableStateOf(isFavorite) }
+
+  LaunchedEffect(isFavorite) { localFavorite = isFavorite }
+
+  val now = Timestamp.now()
+  val endTime =
+      event.end
+          ?: run {
+            val cal = Calendar.getInstance()
+            cal.time = event.start.toDate()
+            cal.add(Calendar.HOUR_OF_DAY, 3)
+            Timestamp(cal.time)
+          }
+  val isLive = now >= event.start && now < endTime
+
   Card(
       onClick = onClick,
-      modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+      modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
       shape = RoundedCornerShape(16.dp),
       elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
       colors =
@@ -129,15 +145,41 @@ fun EventCard(
                         .background(color = Color.Black.copy(alpha = 0.3f), shape = CircleShape)
                         .clip(CircleShape)) {
                   IconButton(
-                      onClick = { onFavoriteToggle(event.uid) }, modifier = Modifier.size(36.dp)) {
+                      onClick = {
+                        localFavorite = !localFavorite
+                        onFavoriteToggle(event.uid)
+                      },
+                      modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector =
-                                if (isFavorite) Icons.Filled.Favorite
+                                if (localFavorite) Icons.Filled.Favorite
                                 else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorite",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
                       }
                 }
+
+            if (isLive) {
+              Row(
+                  modifier =
+                      Modifier.align(Alignment.TopStart)
+                          .padding(8.dp)
+                          .background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
+                          .padding(horizontal = 10.dp, vertical = 5.dp),
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Circle,
+                        contentDescription = "Live Icon",
+                        tint = Color.White,
+                        modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "LIVE",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold)
+                  }
+            }
           }
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -146,7 +188,8 @@ fun EventCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis)
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("event_card_title_${event.uid}"))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = event.location?.name ?: "Location not specified",

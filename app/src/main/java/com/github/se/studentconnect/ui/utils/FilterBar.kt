@@ -52,9 +52,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.screen.signup.experienceTopics
-import com.github.se.studentconnect.ui.screen.signup.filterOptions
+import com.github.se.studentconnect.ui.screen.filters.LocationPickerDialog
 import kotlinx.coroutines.launch
 
 data class FilterData(
@@ -82,14 +82,15 @@ private val DEFAULT_PRICE_RANGE: ClosedFloatingPointRange<Float> = 0f..50f
 fun FilterBar(
     context: Context,
     onCalendarClick: () -> Unit = { DialogNotImplemented(context) },
-    onApplyFilters: (FilterData) -> Unit = {}
+    onApplyFilters: (FilterData) -> Unit = {},
+    useTestMap: Boolean = false
 ) {
   var showBottomSheet by remember { mutableStateOf(false) }
   var showLocationPicker by remember { mutableStateOf(false) }
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
   val scope = rememberCoroutineScope()
 
-  val availableCategories = remember { filterOptions }
+  val availableCategories = remember { Activities.filterOptions }
   val selectedFilters = remember { mutableStateListOf<String>() }
   var selectedLocation by remember { mutableStateOf<Location?>(null) }
   var searchRadius by remember { mutableFloatStateOf(DEFAULT_RADIUS) }
@@ -101,10 +102,6 @@ fun FilterBar(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        FilterChip(
-            text = "Paris",
-            onClick = { DialogNotImplemented(context) },
-            icon = R.drawable.ic_location)
         FilterChip(
             icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
@@ -179,7 +176,7 @@ fun FilterBar(
                                 onClick = {
                                   if (isCategorySelected) {
                                     selectedFilters.remove(category)
-                                    experienceTopics[category]?.forEach { topic ->
+                                    Activities.experienceTopics[category]?.forEach { topic ->
                                       selectedFilters.remove(topic)
                                     }
                                   } else {
@@ -188,7 +185,7 @@ fun FilterBar(
                                 })
                             AnimatedVisibility(
                                 visible = isCategorySelected, enter = fadeIn(), exit = fadeOut()) {
-                                  val topics = experienceTopics[category] ?: emptyList()
+                                  val topics = Activities.experienceTopics[category] ?: emptyList()
                                   FlowRow(
                                       modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
                                       horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -304,9 +301,18 @@ fun FilterBar(
                 }
           }
     }
-    if (showLocationPicker) {
-      DialogNotImplemented(context)
-    }
+  }
+
+  if (showLocationPicker) {
+    LocationPickerDialog(
+        initialLocation = selectedLocation,
+        initialRadius = searchRadius,
+        onDismiss = { showLocationPicker = false },
+        onLocationSelected = { location, radius ->
+          selectedLocation = location
+          searchRadius = radius
+        },
+        useTestMap = useTestMap)
   }
 }
 

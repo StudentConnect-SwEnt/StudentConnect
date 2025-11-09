@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.event
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +20,9 @@ data class EventUiState(
     val isLoading: Boolean = true,
     val isJoined: Boolean = false,
     val showQrScanner: Boolean = false,
-    val ticketValidationResult: TicketValidationResult? = null
+    val ticketValidationResult: TicketValidationResult? = null,
+    val participantCount: Int = 0,
+    val isFull: Boolean = false
 )
 
 sealed class TicketValidationResult {
@@ -39,33 +41,72 @@ class EventViewModel(
   private val _uiState = MutableStateFlow(EventUiState())
   val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
-  fun fetchEvent(eventUid: String, isJoined: Boolean) {
-    _uiState.update { it.copy(isLoading = true, isJoined = isJoined) }
+  fun fetchEvent(eventUid: String) {
+    _uiState.update { it.copy(isLoading = true) }
     viewModelScope.launch {
       val fetchedEvent = eventRepository.getEvent(eventUid)
-      _uiState.update { it.copy(event = fetchedEvent, isLoading = false) }
+      val currentUserUid = AuthenticationProvider.currentUser
+
+      val participants = eventRepository.getEventParticipants(eventUid)
+      val ownerId = fetchedEvent.ownerId
+      val filteredParticipants = participants.filter { it.uid != ownerId }
+      val participantCount = filteredParticipants.size
+
+      val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
+
+      val isFull = fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
+
+      val finalIsJoined = actualIsJoined
+
+      _uiState.update {
+        it.copy(
+            event = fetchedEvent,
+            isLoading = false,
+            isJoined = finalIsJoined,
+            participantCount = participantCount,
+            isFull = isFull)
+      }
     }
   }
 
   fun leaveEvent(eventUid: String) {
     val currentUserUid = AuthenticationProvider.currentUser
-    if (currentUserUid != null) {
-      viewModelScope.launch {
-        userRepository.leaveEvent(eventUid, currentUserUid)
-        eventRepository.removeParticipantFromEvent(eventUid, currentUserUid)
-        _uiState.update { it.copy(isJoined = false) }
+    viewModelScope.launch {
+      userRepository.leaveEvent(eventUid, currentUserUid)
+      eventRepository.removeParticipantFromEvent(eventUid, currentUserUid)
+
+      // Update participant count (exclude owner)
+      val participants = eventRepository.getEventParticipants(eventUid)
+      val event = _uiState.value.event
+      val ownerId = event?.ownerId
+      val participantCount = participants.count { it.uid != ownerId }
+      val isFull = event?.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
+
+      _uiState.update {
+        it.copy(isJoined = false, participantCount = participantCount, isFull = isFull)
       }
     }
   }
 
   fun joinEvent(eventUid: String) {
     val currentUserUid = AuthenticationProvider.currentUser
-    if (currentUserUid != null) {
-      viewModelScope.launch {
+    viewModelScope.launch {
+      val event = _uiState.value.event
+      val ownerId = event?.ownerId
+      if (event != null && currentUserUid != ownerId) {
         userRepository.joinEvent(eventUid, currentUserUid)
         val eventParticipant = EventParticipant(currentUserUid)
         eventRepository.addParticipantToEvent(eventUid, eventParticipant)
-        _uiState.update { it.copy(isJoined = true) }
+      }
+
+      // Participant count (Exclude owner)
+      val participants = eventRepository.getEventParticipants(eventUid)
+      val participantCount = participants.count { it.uid != ownerId }
+      val isFull = event?.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
+      val actualIsJoined = participants.any { it.uid == currentUserUid && it.uid != ownerId }
+
+      _uiState.update {
+        it.copy(isJoined = actualIsJoined, participantCount = participantCount, isFull = isFull)
       }
     }
   }

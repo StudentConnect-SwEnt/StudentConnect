@@ -7,7 +7,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -34,14 +35,15 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.ui.event.EventViewModel
+import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
-import com.github.se.studentconnect.viewmodel.EventViewModel
-import com.github.se.studentconnect.viewmodel.TicketValidationResult
+import com.google.firebase.Timestamp
 
 private val screenPadding = 25.dp
 
@@ -68,13 +70,15 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
   const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
+  const val JOIN_BUTTON = "event_view_join_button"
+  const val PARTICIPANTS_INFO = "event_view_participants_info"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(
     eventUid: String,
-    navController: NavHostController = NavHostController(LocalContext.current),
+    navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
     hasJoined: Boolean,
 ) {
@@ -84,11 +88,13 @@ fun EventView(
   val isJoined = uiState.isJoined
   val showQrScanner = uiState.showQrScanner
   val validationResult = uiState.ticketValidationResult
+  val isFull = uiState.isFull
+  val participantCount = uiState.participantCount
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
-  LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid, hasJoined) }
+  LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
@@ -147,6 +153,7 @@ fun EventView(
 
                 EventActionButtons(
                     joined = isJoined,
+                    isFull = isFull,
                     currentEvent = event,
                     eventViewModel = eventViewModel,
                     modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
@@ -155,6 +162,8 @@ fun EventView(
                 InfoEvent(
                     timeLeft = timeLeft,
                     event = event,
+                    isJoined = isJoined,
+                    participantCount = participantCount,
                     modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
 
                 ChatButton()
@@ -166,35 +175,103 @@ fun EventView(
 private const val DAY_IN_SECONDS = 86400
 
 @Composable
-private fun InfoEvent(timeLeft: Long, event: Event, modifier: Modifier = Modifier) {
+private fun InfoEvent(
+    timeLeft: Long,
+    event: Event,
+    isJoined: Boolean,
+    participantCount: Int,
+    modifier: Modifier = Modifier
+) {
+  val now = Timestamp.now()
+  val eventHasStarted = now >= event.start
+
   Column(
       verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
       modifier =
           modifier
               .fillMaxWidth()
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
-        if (timeLeft > DAY_IN_SECONDS) {
-          Text(
-              modifier =
-                  Modifier.align(Alignment.CenterHorizontally)
-                      .fillMaxHeight()
-                      .testTag(EventViewTestTags.COUNTDOWN_DAYS),
-              color = MaterialTheme.colorScheme.primary,
-              text = days(timeLeft) + " days left",
-              style = MaterialTheme.typography.displaySmall)
-        } else {
-          Box(
-              modifier =
-                  Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
-                      .align(Alignment.CenterHorizontally)) {
-                CountDownDisplay(timeLeft)
-              }
+        when {
+          eventHasStarted && timeLeft <= 0 -> {
+            val text = if (isJoined) "Hurry up! Event has started" else "Event has started"
+            Text(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .fillMaxHeight()
+                        .testTag(EventViewTestTags.COUNTDOWN_TIMER),
+                color = MaterialTheme.colorScheme.primary,
+                text = text,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center)
+          }
+          timeLeft > DAY_IN_SECONDS -> {
+            Text(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .fillMaxHeight()
+                        .testTag(EventViewTestTags.COUNTDOWN_DAYS),
+                color = MaterialTheme.colorScheme.primary,
+                text = days(timeLeft) + " days left",
+                style = MaterialTheme.typography.displaySmall)
+          }
+          else -> {
+            Box(
+                modifier =
+                    Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
+                        .align(Alignment.CenterHorizontally)) {
+                  CountDownDisplay(timeLeft)
+                }
+          }
         }
         Text(text = "Description", style = titleTextStyle())
         Text(
             text = event.description,
             modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
+        Spacer(modifier = Modifier.height(10.dp))
+        ParticipantsInfo(event = event, participantCount = participantCount)
       }
+}
+
+@Composable
+private fun ParticipantsInfo(event: Event, participantCount: Int) {
+  val capacity =
+      when (event) {
+        is Event.Public -> event.maxCapacity
+        is Event.Private -> event.maxCapacity
+      }
+
+  Column(modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.PARTICIPANTS_INFO)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          Icon(
+              painter = painterResource(id = R.drawable.ic_group),
+              contentDescription = "Participants",
+              modifier = Modifier.size(24.dp))
+          val participantsText =
+              if (capacity != null) {
+                "$participantCount / $capacity"
+              } else {
+                "$participantCount participants"
+              }
+          Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+        }
+    capacity?.let { maxCap ->
+      val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
+      Spacer(modifier = Modifier.height(8.dp))
+      LinearProgressIndicator(
+          progress = { progress },
+          modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
+          color =
+              if (progress < 0.75f) MaterialTheme.colorScheme.primary
+              else MaterialTheme.colorScheme.error,
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+      )
+    }
+  }
 }
 
 @Composable
@@ -236,6 +313,7 @@ private fun ChatButton(context: Context = LocalContext.current) {
 @Composable
 fun EventActionButtons(
     joined: Boolean,
+    isFull: Boolean,
     currentEvent: Event,
     eventViewModel: EventViewModel,
     modifier: Modifier = Modifier,
@@ -243,49 +321,161 @@ fun EventActionButtons(
 ) {
   val context = LocalContext.current
   val currentUserId = AuthenticationProvider.currentUser
-  val isOwner = !currentUserId.isNullOrBlank() && currentUserId == currentEvent.ownerId
+  val isOwner = currentUserId == currentEvent.ownerId
+
+  Row(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
+      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+  ) {
+    if (isOwner) {
+      // Owner-specific buttons
+      OwnerActionButtons(
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel,
+          navController = navController)
+    } else {
+      // Non-owner buttons
+      NonOwnerActionButtons(
+          joined = joined,
+          isFull = isFull,
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel)
+    }
+
+    // Common action buttons for all users
+    CommonActionButtons(
+        currentEvent = currentEvent, context = context, navController = navController)
+  }
+}
+
+/** Owner-specific action buttons */
+@Composable
+private fun OwnerActionButtons(
+    currentEvent: Event,
+    eventViewModel: EventViewModel,
+    navController: NavHostController
+) {
   val editRoute =
       when (currentEvent) {
         is Event.Public -> Route.editPublicEvent(currentEvent.uid)
         is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
       }
 
-  Column(
+  Button(
+      onClick = { eventViewModel.showQrScanner() },
       modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    if (isOwner) {
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-            Button(
-                onClick = { eventViewModel.showQrScanner() },
-                modifier = Modifier.testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
-                  Icon(
-                      imageVector = Icons.Default.QrCodeScanner,
-                      contentDescription = null,
-                      modifier = Modifier.size(20.dp))
-                  Spacer(modifier = Modifier.width(4.dp))
-                  Text("Scan Ticket")
-                }
-            Button(
-                onClick = { navController.navigate(editRoute) },
-                modifier = Modifier.testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
-                  Text("Edit event")
-                }
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
+        Icon(
+            imageVector = Icons.Default.QrCodeScanner,
+            contentDescription = "Scan icon",
+            modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text("Scan")
+      }
+  Button(
+      onClick = { navController.navigate(editRoute) },
+      modifier =
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_add),
+            contentDescription = "Edit icon",
+            modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text("Edit")
+      }
+}
+
+/** Non-owner action buttons (Join/Leave) */
+@Composable
+private fun NonOwnerActionButtons(
+    joined: Boolean,
+    isFull: Boolean,
+    currentEvent: Event,
+    eventViewModel: EventViewModel
+) {
+  val now = Timestamp.now()
+  val eventHasStarted = now >= currentEvent.start
+
+  Button(
+      onClick = {
+        if (joined) {
+          eventViewModel.leaveEvent(eventUid = currentEvent.uid)
+        } else if (!isFull && !eventHasStarted) {
+          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+        }
+      },
+      modifier =
+          Modifier.wrapContentSize()
+              .padding(2.dp)
+              .testTag(
+                  if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
+                  else EventViewTestTags.JOIN_BUTTON),
+      enabled = if (joined) true else (!eventHasStarted && !isFull)) {
+        val showIcon = joined || (!eventHasStarted && !isFull)
+        if (showIcon) {
+          Icon(
+              painter =
+                  if (joined) painterResource(id = R.drawable.ic_arrow_right)
+                  else painterResource(id = R.drawable.ic_add),
+              contentDescription = "action icon",
+              modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(4.dp))
+        }
+        when {
+          joined -> Text("Leave")
+          isFull -> Text("Full")
+          eventHasStarted -> Text("Started")
+          else -> Text("Join")
+        }
+      }
+}
+
+/** Common action buttons for all users (Location, Web, Share) */
+@Composable
+private fun CommonActionButtons(
+    currentEvent: Event,
+    context: Context,
+    navController: NavHostController
+) {
+  ButtonIcon(
+      id = R.drawable.ic_location_pin,
+      onClick = {
+        currentEvent.location?.let { location ->
+          val route = Route.mapWithLocation(location.latitude, location.longitude)
+          navController.navigate(route)
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+  ButtonIcon(
+      id = R.drawable.ic_web,
+      onClick = {
+        (currentEvent as? Event.Public)?.website?.let { website ->
+          if (website.isNotEmpty()) {
+            val fixedUrl =
+                if (!website.startsWith("http://") && !website.startsWith("https://")) {
+                  "https://$website"
+                } else website
+            try {
+              val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
+              context.startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+              Toast.makeText(
+                      context,
+                      "No application can handle this request. Please install a web browser.",
+                      Toast.LENGTH_LONG)
+                  .show()
+            }
           }
-      Spacer(modifier = Modifier.height(12.dp))
-    }
-    JoinedEventActions(
-        currentEvent = currentEvent,
-        eventViewModel = eventViewModel,
-        context = context,
-        navController = navController,
-        joined = joined)
-  }
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+  ButtonIcon(
+      id = R.drawable.ic_share,
+      onClick = { DialogNotImplemented(context) },
+      modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
 }
 
 @Composable
@@ -299,84 +489,10 @@ private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifi
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
         Icon(
             painter = painterResource(id = id),
-            contentDescription = "Action button", // Generic description
+            contentDescription = "Action button",
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer)
       }
-}
-
-/** Show the actions available when the user has joined the event. */
-@Composable
-private fun JoinedEventActions(
-    currentEvent: Event,
-    eventViewModel: EventViewModel,
-    context: Context,
-    navController: NavHostController,
-    joined: Boolean
-) {
-  Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
-  ) {
-    Button(
-        onClick = {
-          if (joined) {
-            eventViewModel.leaveEvent(eventUid = currentEvent.uid)
-          } else {
-            eventViewModel.joinEvent(eventUid = currentEvent.uid)
-          }
-        },
-        modifier =
-            Modifier.wrapContentSize()
-                .padding(2.dp)
-                .padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp)) {
-          Icon(
-              painter =
-                  if (joined) painterResource(id = R.drawable.ic_arrow_right)
-                  else painterResource(id = R.drawable.ic_add),
-              contentDescription = "action icon",
-              modifier =
-                  Modifier.size(20.dp).padding(start = 2.dp, top = 2.dp, end = 2.dp, bottom = 2.dp))
-          Spacer(modifier = Modifier.width(2.dp))
-          if (joined) Text("Leave") else Text("Join")
-        }
-    ButtonIcon(
-        id = R.drawable.ic_location_pin,
-        onClick = {
-          currentEvent.location?.let { location ->
-            val route = Route.mapWithLocation(location.latitude, location.longitude)
-            navController.navigate(route)
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-    ButtonIcon(
-        id = R.drawable.ic_web,
-        onClick = {
-          (currentEvent as? Event.Public)?.website?.let { website ->
-            if (website.isNotEmpty()) {
-              val fixedUrl =
-                  if (!website.startsWith("http://") && !website.startsWith("https://")) {
-                    "https://$website"
-                  } else website
-              try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
-                context.startActivity(intent)
-              } catch (e: ActivityNotFoundException) {
-                Toast.makeText(
-                        context,
-                        "No application can handle this request. Please install a web browser.",
-                        Toast.LENGTH_LONG)
-                    .show()
-              }
-            }
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-    ButtonIcon(
-        id = R.drawable.ic_share,
-        onClick = { DialogNotImplemented(context) },
-        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-  }
 }
 
 @Composable

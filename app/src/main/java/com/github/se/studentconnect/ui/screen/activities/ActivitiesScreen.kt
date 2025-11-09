@@ -43,6 +43,7 @@ import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.google.firebase.Timestamp
+import java.util.*
 
 sealed interface CarouselDisplayItem {
   val uid: String
@@ -325,7 +326,16 @@ fun CarouselCard(
 ) {
   val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-  val isLive = Timestamp.now() >= item.start
+  val now = Timestamp.now()
+  val endTime =
+      item.end
+          ?: run {
+            val cal = Calendar.getInstance()
+            cal.time = item.start.toDate()
+            cal.add(Calendar.HOUR_OF_DAY, 3)
+            Timestamp(cal.time)
+          }
+  val isLive = now >= item.start && now < endTime
 
   Card(
       onClick = onEventClick,

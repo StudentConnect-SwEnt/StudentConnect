@@ -41,6 +41,7 @@ class SearchScreenTest {
           User(
               userId = uid,
               email = email,
+              username = firstName.lowercase(),
               firstName = firstName,
               lastName = lastName,
               university = university,

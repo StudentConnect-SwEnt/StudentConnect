@@ -1,11 +1,14 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -19,7 +22,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CreatePublicEventViewModel(
-    private val eventRepository: EventRepository = EventRepositoryProvider.repository
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val mediaRepository: MediaRepository = MediaRepositoryProvider.repository
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Public())
   val uiState: StateFlow<CreateEventUiState.Public> = _uiState.asStateFlow()
@@ -69,6 +73,15 @@ class CreatePublicEventViewModel(
     _uiState.value = uiState.value.copy(isFlash = newIsFlash)
   }
 
+  fun updateBannerImageUri(newUri: Uri) {
+    _uiState.value = uiState.value.copy(bannerImageUri = newUri, shouldRemoveBanner = false)
+  }
+
+  fun removeBannerImage() {
+    _uiState.value =
+        uiState.value.copy(bannerImageUri = null, bannerImagePath = null, shouldRemoveBanner = true)
+  }
+
   fun updateSubtitle(newSubtitle: String) {
     _uiState.value = uiState.value.copy(subtitle = newSubtitle)
   }
@@ -109,6 +122,7 @@ class CreatePublicEventViewModel(
             subtitle = event.subtitle,
             website = event.website.orEmpty(),
             tags = event.tags,
+            bannerImagePath = event.imageUrl,
         )
   }
 
@@ -121,74 +135,91 @@ class CreatePublicEventViewModel(
   }
 
   fun saveEvent() {
-    val canSave =
-        uiState.value.title.isNotBlank() &&
-            uiState.value.startDate != null &&
-            uiState.value.endDate != null
+    val state = uiState.value
+    val canSave = state.title.isNotBlank() && state.startDate != null && state.endDate != null
     check(canSave)
 
     val currentUserId = Firebase.auth.currentUser?.uid
     checkNotNull(currentUserId)
 
-    _uiState.value = uiState.value.copy(isSaving = true)
-
-    val start =
-        LocalDateTime.of(uiState.value.startDate, uiState.value.startTime).let {
-          val instant = it.atZone(ZoneId.systemDefault()).toInstant()
-
-          Timestamp(instant)
-        }
-
-    val end =
-        LocalDateTime.of(uiState.value.endDate, uiState.value.endTime).let {
-          val instant = it.atZone(ZoneId.systemDefault()).toInstant()
-
-          Timestamp(instant)
-        }
-
-    val maxCapacity =
-        try {
-          uiState.value.numberOfParticipantsString.toUInt()
-        } catch (_: Exception) {
-          null
-        }
-
-    val participationFee =
-        try {
-          uiState.value.participationFeeString.toUInt()
-        } catch (_: Exception) {
-          null
-        }
-
+    _uiState.value = state.copy(isSaving = true)
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
-    val event =
-        Event.Public(
-            uid = eventUid,
-            ownerId = currentUserId,
-            title = uiState.value.title,
-            description = uiState.value.description,
-            imageUrl = null,
-            location = uiState.value.location,
-            start = start,
-            end = end,
-            maxCapacity = maxCapacity,
-            participationFee = participationFee,
-            isFlash = uiState.value.isFlash,
-            subtitle = uiState.value.subtitle,
-            tags = uiState.value.tags,
-            website = uiState.value.website)
 
     viewModelScope.launch {
       try {
+        val latestState = uiState.value
+        val start =
+            LocalDateTime.of(latestState.startDate!!, latestState.startTime).let {
+              val instant = it.atZone(ZoneId.systemDefault()).toInstant()
+              Timestamp(instant)
+            }
+
+        val end =
+            LocalDateTime.of(latestState.endDate!!, latestState.endTime).let {
+              val instant = it.atZone(ZoneId.systemDefault()).toInstant()
+              Timestamp(instant)
+            }
+
+        val maxCapacity =
+            try {
+              latestState.numberOfParticipantsString.toUInt()
+            } catch (_: Exception) {
+              null
+            }
+
+        val participationFee =
+            try {
+              latestState.participationFeeString.toUInt()
+            } catch (_: Exception) {
+              null
+            }
+
+        val bannerPath = resolveBannerImagePath(eventUid, latestState)
+
+        val event =
+            Event.Public(
+                uid = eventUid,
+                ownerId = currentUserId,
+                title = latestState.title,
+                description = latestState.description,
+                imageUrl = bannerPath,
+                location = latestState.location,
+                start = start,
+                end = end,
+                maxCapacity = maxCapacity,
+                participationFee = participationFee,
+                isFlash = latestState.isFlash,
+                subtitle = latestState.subtitle,
+                tags = latestState.tags,
+                website = latestState.website)
+
         if (editingEventUid != null) {
           eventRepository.editEvent(eventUid, event)
         } else {
           eventRepository.addEvent(event)
         }
-        _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = true)
+        _uiState.value =
+            uiState.value.copy(
+                isSaving = false,
+                finishedSaving = true,
+                bannerImageUri = null,
+                bannerImagePath = bannerPath,
+                shouldRemoveBanner = false)
       } catch (_: Exception) {
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)
       }
+    }
+  }
+
+  private suspend fun resolveBannerImagePath(
+      eventUid: String,
+      state: CreateEventUiState.Public
+  ): String? {
+    return when {
+      state.bannerImageUri != null ->
+          mediaRepository.upload(state.bannerImageUri, "events/$eventUid/banner")
+      state.shouldRemoveBanner -> null
+      else -> state.bannerImagePath
     }
   }
 }
