@@ -12,10 +12,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,6 +26,7 @@ import com.github.se.studentconnect.ui.screen.map.MapViewEvent
 import com.github.se.studentconnect.ui.screen.map.MapViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
@@ -39,13 +40,12 @@ import kotlinx.coroutines.launch
 fun LocationPickerMapComponent(
     modifier: Modifier = Modifier,
     selectedPoint: Point?,
-    mapViewportState: androidx.compose.ui.unit.Dp? = null,
+    mapViewportState: MapViewportState? = null,
     onMapClick: (Point) -> Unit
 ) {
-  MapboxMap(
-      modifier = modifier,
-      mapViewportState =
-          rememberMapViewportState {
+  val viewportState =
+      mapViewportState
+          ?: rememberMapViewportState {
             setCameraOptions {
               center(
                   selectedPoint
@@ -54,7 +54,11 @@ fun LocationPickerMapComponent(
                           MapConfiguration.Coordinates.EPFL_LATITUDE))
               zoom(MapConfiguration.Zoom.DEFAULT)
             }
-          },
+          }
+
+  MapboxMap(
+      modifier = modifier,
+      mapViewportState = viewportState,
       scaleBar = {},
       logo = {},
       attribution = {},
@@ -77,7 +81,7 @@ fun LocationPickerDialog(
     initialRadius: Float,
     onDismiss: () -> Unit,
     onLocationSelected: (Location, Float) -> Unit,
-    useTestMap: Boolean = false // Add parameter to switch to test map
+    useTestMap: Boolean = false
 ) {
   val context = LocalContext.current
 
@@ -131,16 +135,14 @@ fun LocationPickerDialog(
     }
   }
 
-  Popup(
-      alignment = Alignment.Center,
-      offset = IntOffset(0, 0),
+  Dialog(
       onDismissRequest = onDismiss,
-      properties = PopupProperties(focusable = true)) {
+      properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(
             modifier =
                 Modifier.fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    .wrapContentSize(Alignment.Center)) {
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)),
+            contentAlignment = Alignment.Center) {
               Card(
                   modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.7f),
                   shape = RoundedCornerShape(16.dp),
@@ -148,9 +150,8 @@ fun LocationPickerDialog(
                     Column(modifier = Modifier.fillMaxSize()) {
                       Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                         if (useTestMap) {
-                          // Use test map component
-                          com.github.se.studentconnect.ui.screen.map.TestLocationPickerMap(
-                              modifier = Modifier.fillMaxSize(),
+                          LocationPickerMapComponent(
+                              modifier = Modifier.fillMaxSize().testTag("location_picker_map"),
                               selectedPoint = selectedPoint,
                               onMapClick = { point ->
                                 selectedPoint = point

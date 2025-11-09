@@ -126,13 +126,13 @@ class HomeScreenUITest {
     // Wait for content to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
+          .onAllNodes(androidx.compose.ui.test.hasText("Filters"))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Paris").assertIsDisplayed()
     composeTestRule.onNodeWithText("Filters").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Favorites").assertIsDisplayed()
   }
 
   // @Test
@@ -247,12 +247,11 @@ class HomeScreenUITest {
     // Wait for content to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
+          .onAllNodes(androidx.compose.ui.test.hasText("Filters"))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Paris").assertHasClickAction()
     composeTestRule.onNodeWithText("Filters").assertHasClickAction()
     composeTestRule.onNodeWithText("Favorites").assertHasClickAction()
   }
@@ -266,12 +265,12 @@ class HomeScreenUITest {
     // Wait for content to load
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasText("Paris"))
+          .onAllNodes(androidx.compose.ui.test.hasText("Filters"))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Paris").performClick()
-    // Should show "Not yet implemented" toast
+    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.waitForIdle()
   }
 }

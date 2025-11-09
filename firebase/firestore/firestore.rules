@@ -3,23 +3,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Fonction pour vérifier si l'utilisateur est propriétaire (utilise les données de la ressource existante)
+    // HELPER FUNCTIONS
+
+    // Check if the user is the owner (uses existing resource data)
     function isResourceOwner() {
       return request.auth.uid == resource.data.ownerId;
     }
 
-    // Fonction pour vérifier si l'utilisateur est propriétaire (utilise les nouvelles données)
+    // Check if the user is the owner (uses new incoming data)
     function isRequestOwner() {
       return request.auth.uid == request.resource.data.ownerId;
     }
 
+    // Check if user is in the 'participants' subcollection of an event
     function isParticipant(eventId) {
       return exists(/databases/$(database)/documents/events/$(eventId)/participants/$(request.auth.uid));
     }
 
+    // Check if user is in the 'invitations' subcollection of an event
     function isInvited(eventId) {
       return exists(/databases/$(database)/documents/events/$(eventId)/invitations/$(request.auth.uid));
     }
+
+    // EVENTS COLLECTION
 
     match /events/{eventId} {
       // Allow read access to:
@@ -46,121 +52,103 @@ service cloud.firestore {
       // Allow deletes only by the event owner
       allow delete: if request.auth != null && isResourceOwner();
 
-      // Rules for the 'participants' subcollection
+      // Subcollection: participants
       match /participants/{userId} {
-        // Allow reads if the user can view the parent event
         allow get, list: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.type == "public" ||
                           get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           isParticipant(eventId) ||
                           isInvited(eventId));
 
-        // Allow a user to add themselves as a participant
         allow create: if request.auth != null &&
                          request.auth.uid == userId &&
                          request.resource.data.uid == userId;
 
-        // Allow a user to remove themselves as a participant
         allow delete: if request.auth != null &&
                          request.auth.uid == userId;
       }
 
-      // Rules for the 'invitations' subcollection
+      // Subcollection: invitations
       match /invitations/{userId} {
-        // Allow the event owner or the invited user to read the invitation
         allow get: if request.auth != null &&
                       (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                        request.auth.uid == userId);
 
-        // Only the event owner can create an invitation
         allow create: if request.auth != null &&
                          get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
 
-        // Allow the invited user or event owner to update invitation status
         allow update: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           request.auth.uid == userId);
       }
     }
 
-    // Rules for the 'users' collection
+    // USERS COLLECTION
+
     match /users/{userId} {
-      // Allow users to read their own profile and other users' profiles (for friend discovery)
+      // Allow users to read their own profile and other users' profiles
       allow get, list: if request.auth != null;
+      // Allow users to create/update/delete only their own profile
+      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
 
-      // Allow users to create their own profile
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Allow users to update only their own profile
-      allow update: if request.auth != null && request.auth.uid == userId;
-
-      // Allow users to delete only their own profile
-      allow delete: if request.auth != null && request.auth.uid == userId;
-
-      // Rules for the 'friends' subcollection
+      // Subcollection: friends
       match /friends/{friendId} {
-        // Allow users to read their own friends list and others' friends lists
         allow get, list: if request.auth != null;
-
-        // Allow users to add friends to their own list OR when someone is accepting their request
-        // (friendId must be the current user when adding to someone else's list)
-        allow create: if request.auth != null &&
-                         (request.auth.uid == userId || request.auth.uid == friendId);
-
-        // Allow users to remove friends from their own list OR when the friend removes the friendship
-        allow delete: if request.auth != null &&
-                         (request.auth.uid == userId || request.auth.uid == friendId);
+        allow create, delete: if request.auth != null &&
+                                 (request.auth.uid == userId || request.auth.uid == friendId);
       }
 
-      // Rules for the 'friendRequests' subcollection (incoming requests)
+      // Subcollection: friendRequests (incoming)
       match /friendRequests/{requesterId} {
-        // Allow users to read their own friend requests
         allow get, list: if request.auth != null && request.auth.uid == userId;
-
-        // Allow anyone to create a friend request (the sender creates it)
         allow create: if request.auth != null;
-
-        // Allow the recipient to delete/update their friend requests, OR the sender to cancel
         allow delete, update: if request.auth != null &&
                                  (request.auth.uid == userId || request.auth.uid == requesterId);
       }
 
-      // Rules for the 'sentRequests' subcollection (outgoing requests)
+      // Subcollection: sentRequests (outgoing)
       match /sentRequests/{recipientId} {
-        // Allow users to read their own sent requests
         allow get, list: if request.auth != null && request.auth.uid == userId;
-
-        // Allow users to create their own sent requests
         allow create: if request.auth != null && request.auth.uid == userId;
-
-        // Allow users to delete/update their own sent requests, OR the recipient when accepting/rejecting
         allow delete, update: if request.auth != null &&
                                  (request.auth.uid == userId || request.auth.uid == recipientId);
       }
 
-      // Rules for the 'joinedEvents' subcollection
+      // Subcollection: joinedEvents
       match /joinedEvents/{eventId} {
-        // Allow users to read their own joined events
         allow get, list: if request.auth != null && request.auth.uid == userId;
-
-        // Allow users to add events to their own list
-        allow create: if request.auth != null && request.auth.uid == userId;
-
-        // Allow users to remove events from their own list
-        allow delete: if request.auth != null && request.auth.uid == userId;
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Rules for the 'invitations' subcollection (event invitations)
+      // Subcollection: invitations (event invitations received by user)
       match /invitations/{eventId} {
-        // Allow users to read their own invitations
         allow get, list: if request.auth != null && request.auth.uid == userId;
-
-        // Allow anyone to create invitations (event owners create them)
         allow create: if request.auth != null;
-
-        // Allow the recipient to delete/update their invitations
         allow delete, update: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Subcollection: favoriteEvents (IMPORTED FROM LOCAL)
+      match /favoriteEvents/{eventId} {
+        // Allow users to read their own favorite events
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+
+        // Allow users to add/remove events to their own favorites
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+
+    // NOTIFICATIONS COLLECTION
+
+    match /notifications/{notificationId} {
+      // Allow read access only if the logged-in user owns the notification
+      allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      // Allow users to create notifications for themselves
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+
+      // Allow updating/deleting only for the owner
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
