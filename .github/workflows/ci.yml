@@ -201,8 +201,9 @@ jobs:
     needs: [build-and-lint, unit-tests, instrumented-tests]
     if: |
       always() &&
-      needs.build-and-lint.result != 'cancelled' &&
-      (needs.unit-tests.result == 'success' || needs.instrumented-tests.result == 'success')
+      needs.build-and-lint.result == 'success' &&
+      needs.unit-tests.result == 'success' &&
+      needs.instrumented-tests.result == 'success'
 
     steps:
       - name: Checkout
