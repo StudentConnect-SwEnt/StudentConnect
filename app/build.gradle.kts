@@ -73,11 +73,8 @@ android {
             )
             buildConfigField("Boolean", "USE_MOCK_MAP", "false")
             buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", "false")
-            // Sign with debug keystore for consistent fingerprints across environments (if available)
-            val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             enableUnitTestCoverage = true
