@@ -7,6 +7,7 @@ runs:
     - name: Decode google-services.json from secrets
       env:
         GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+      shell: bash
       run: |
         if [ -n "$GOOGLE_SERVICES" ]; then
           echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
@@ -17,6 +18,7 @@ runs:
     - name: Decode local.properties from secrets
       env:
         LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+      shell: bash
       run: |
         if [ -n "$LOCAL_PROPERTIES" ]; then
           echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
@@ -27,6 +29,7 @@ runs:
     - name: Decode release keystore from secrets
       env:
         ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      shell: bash
       run: |
         if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
           mkdir -p ~/.android
