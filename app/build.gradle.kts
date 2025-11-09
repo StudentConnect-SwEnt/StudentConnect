@@ -41,15 +41,27 @@ android {
 
     signingConfigs {
         create("release") {
-            // Use debug keystore for CI builds to maintain consistent SHA-1 fingerprint
+            // Use keystore for CI builds to maintain consistent SHA-1 fingerprint
             // This allows the APK to work with Firebase without additional configuration
-            val keystoreFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = "android"
-                keyAlias = "androiddebugkey"
-                keyPassword = "android"
+            val keystorePassword = project.findProperty("ANDROID_KEYSTORE_PASSWORD")?.toString()
+
+            if (keystorePassword == null) {
+                logger.warn("ANDROID_KEYSTORE_PASSWORD is not defined, will not sign the APK...")
+                return@create
             }
+
+            val keystoreFilePath = "${System.getProperty("user.home")}/.android/release.keystore"
+            val keystoreFile = file(keystoreFilePath)
+
+            if (!keystoreFile.exists()) {
+                logger.error("Keystore file \"$keystoreFilePath\" does not exist")
+                return@create
+            }
+
+            storeFile = keystoreFile
+            storePassword = keystorePassword
+            keyAlias = "release"
+            keyPassword = keystorePassword // same as storePassword for PKCS12
         }
     }
 
