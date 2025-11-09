@@ -13,25 +13,14 @@ on:
       - reopened
 
 jobs:
-  ci:
-    name: CI
-    # Execute the CI on the course's runners
+  static-checks:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-
     steps:
-      # First step : Checkout the repository on the runner
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis (if we use Sonar Later)
-
-      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
-      - name: Enable KVM group perms
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -39,7 +28,6 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      # Cache the gradle folder
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -51,12 +39,117 @@ jobs:
         run: |
           chmod +x ./gradlew
 
-      # Check formatting
       - name: KTFmt Check
         run: |
           ./gradlew ktfmtCheck
 
-      # Cache the Emulator, if the cache does not hit, create the emulator
+      - name: Lint
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew lint --parallel --build-cache
+
+      - name: Upload lint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-*
+
+  unit-tests:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          chmod +x ./gradlew
+
+      - name: Decode google-services.json from secrets
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES" ]; then
+            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+          fi
+
+      - name: Decode local.properties from secrets
+        env:
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: |
+          if [ -n "$LOCAL_PROPERTIES" ]; then
+            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
+          else
+            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
+          fi
+
+      - name: Run unit tests
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
+
+      - name: Generate Coverage Report
+        run: |
+          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: app/build/reports/jacoco/jacocoTestReport
+
+  connected-tests:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux
+      # Enabling it allows the Android emulator to run faster
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          chmod +x ./gradlew
+
+      # Cache the Android emulator
       - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
@@ -66,6 +159,7 @@ jobs:
             ~/.android/adb*
           key: avd-34
 
+      # If the cache does not hit, create the Android emulator
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -98,33 +192,14 @@ jobs:
             echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
           fi
 
-      - name: Decode release keystore from secrets
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            mkdir -p ~/.android
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ~/.android/release.keystore
-          else
-            echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set. ~/.android/release.keystore will not be created."
-          fi
-
-      - name: Lint
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew lint --parallel --build-cache
-
-      # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # Install Firebase CLI
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
@@ -137,13 +212,6 @@ jobs:
             echo "Firebase emulators not configured, skipping emulator startup..."
           fi
 
-      # Run Unit tests
-      - name: Run unit tests
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
-
-      # Run connected tests on the emulator
       - name: Run connected tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -155,7 +223,6 @@ jobs:
           disable-animations: true
           script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache
 
-      # This step generates the coverage report which will be uploaded to sonar
       - name: Generate Coverage Report
         run: |
           ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
@@ -163,37 +230,72 @@ jobs:
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: Coverage report
+          name: connected-coverage
           path: app/build/reports/jacoco/jacocoTestReport
 
-      - name: Cache SonarQube packages
+  build-apk:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
 
-      # Upload the various reports to sonar
-      - name: Upload report to SonarCloud
+      - name: Grant execute permission for gradlew
+        run: |
+          chmod +x ./gradlew
+
+      - name: Decode google-services.json from secrets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES" ]; then
+            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+          fi
 
-      # Assemble Release APK
+      - name: Decode local.properties from secrets
+        env:
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: |
+          if [ -n "$LOCAL_PROPERTIES" ]; then
+            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
+          else
+            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
+          fi
+
+      - name: Decode release keystore from secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            mkdir -p ~/.android
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ~/.android/release.keystore
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set. ~/.android/release.keystore will not be created."
+          fi
+
       - name: Assemble APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           ./gradlew assembleNormalRelease --parallel --build-cache \
             -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
-
-      # Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: app/build/outputs/apk/normal/release/*.apk
 
       - name: Print signing cert SHA-1 (from keystore)
         env:
@@ -204,4 +306,63 @@ jobs:
             -keystore ~/.android/release.keystore \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
             | grep -E "SHA( |-)?1:"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
+
+  sonar:
+    needs: [static-checks, unit-tests, connected-tests]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: |
+          chmod +x ./gradlew
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Download coverage (unit + connected)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-coverage"
+          merge-multiple: true
+          path: .
+
+      - name: Download lint report
+        uses: actions/download-artifact@v4
+        with:
+          name: lint-report
+          path: .
+
+      - name: Upload reports to SonarCloud
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
 
