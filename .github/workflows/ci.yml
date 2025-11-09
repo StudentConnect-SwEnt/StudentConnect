@@ -16,28 +16,7 @@ jobs:
   static-checks:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
+      - uses: ./.github/actions/android-base
 
       - name: KTFmt Check
         run: |
@@ -57,48 +36,8 @@ jobs:
   unit-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
-
-      - name: Decode google-services.json from secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-      - name: Decode local.properties from secrets
-        env:
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
+      - uses: ./.github/actions/android-base
+      - uses: ./.github/actions/decode-secrets
 
       - name: Run unit tests
         run: |
@@ -114,17 +53,8 @@ jobs:
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
+      - uses: ./.github/actions/android-base
+      - uses: ./.github/actions/decode-secrets
 
       # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux
       # Enabling it allows the Android emulator to run faster
@@ -133,17 +63,6 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
 
       # Cache the Android emulator
       - name: AVD cache
@@ -167,26 +86,6 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
-
-      - name: Decode google-services.json from secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-      - name: Decode local.properties from secrets
-        env:
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
 
       - name: Setup NodeJS
         uses: actions/setup-node@v4
@@ -228,59 +127,8 @@ jobs:
   build-apk:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
-
-      - name: Decode google-services.json from secrets
-        env:
-          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES" ]; then
-            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
-          else
-            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
-          fi
-
-      - name: Decode local.properties from secrets
-        env:
-          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
-        run: |
-          if [ -n "$LOCAL_PROPERTIES" ]; then
-            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
-          else
-            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
-          fi
-
-      - name: Decode release keystore from secrets
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            mkdir -p ~/.android
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ~/.android/release.keystore
-          else
-            echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set. ~/.android/release.keystore will not be created."
-          fi
+      - uses: ./.github/actions/android-base
+      - uses: ./.github/actions/decode-secrets
 
       - name: Assemble APK
         env:
@@ -309,28 +157,7 @@ jobs:
     needs: [static-checks, unit-tests, connected-tests]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: |
-          chmod +x ./gradlew
+      - uses: ./.github/actions/android-base
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4

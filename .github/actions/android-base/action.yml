@@ -1,0 +1,29 @@
+name: Android base setup
+description: Checkout repository, setup JDK, cache Gradle packages, and make gradlew executable
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
+
+    - name: Setup JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: ${{ runner.os }}-gradle
+
+    - name: Grant execute permission for gradlew
+      run: |
+        chmod +x ./gradlew
+
