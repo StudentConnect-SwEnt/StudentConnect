@@ -114,31 +114,6 @@ jobs:
           # To run the CI with debug information, add --info
           ./gradlew lint --parallel --build-cache
 
-      # Assemble Release APK
-      - name: Assemble APK
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        run: |
-          ./gradlew assembleNormalRelease --parallel --build-cache \
-            -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
-
-      # Upload APK artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: app/build/outputs/apk/normal/release/*.apk
-
-      - name: Print signing cert SHA-1 (from keystore)
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        run: |
-          keytool -list -v \
-            -storetype PKCS12 \
-            -keystore ~/.android/release.keystore \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            | grep -E "SHA( |-)?1:"
-
       # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
         uses: actions/setup-node@v4
@@ -204,3 +179,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+
+      # Assemble Release APK
+      - name: Assemble APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          ./gradlew assembleNormalRelease --parallel --build-cache \
+            -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
+
+      - name: Print signing cert SHA-1 (from keystore)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          keytool -list -v \
+            -storetype PKCS12 \
+            -keystore ~/.android/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            | grep -E "SHA( |-)?1:"
+
