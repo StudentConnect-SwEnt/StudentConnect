@@ -13,15 +13,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SaveAlt
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,6 +46,9 @@ import com.github.se.studentconnect.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
 object CreatePublicEventScreenTestTags {
+  const val TOP_APP_BAR = "topAppBar"
+  const val BACK_BUTTON = "backButton"
+  const val SCAFFOLD = "scaffold"
   const val TITLE_INPUT = "titleInput"
   const val SUBTITLE_INPUT = "subtitleInput"
   const val DESCRIPTION_INPUT = "descriptionInput"
@@ -59,6 +67,7 @@ object CreatePublicEventScreenTestTags {
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePublicEventScreen(
     modifier: Modifier = Modifier,
@@ -90,221 +99,255 @@ fun CreatePublicEventScreen(
     }
   }
 
-  Column(
-      modifier =
-          modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    /*
-    val color = MaterialTheme.colorScheme.onSecondary
-    Box(
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .height(120.dp)
-            .drawBehind {
-                val stroke = Stroke(
-                    width = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f), 0f)
-                )
-                drawRoundRect(
-                    color = color,
-                    size = size,
-                    style = stroke,
-                    cornerRadius = CornerRadius(8.dp.toPx())
-                )
+  Scaffold(
+      modifier = modifier.testTag(CreatePublicEventScreenTestTags.SCAFFOLD),
+      topBar = {
+        TopAppBar(
+            modifier = Modifier.testTag(CreatePublicEventScreenTestTags.TOP_APP_BAR),
+            title = {
+              Text(
+                  text =
+                      if (existingEventId != null) "Edit Public Event" else "Create Public Event")
             },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.CameraAlt, contentDescription = null)
-            Text("Upload a picture for your Event Page")
+            navigationIcon = {
+              IconButton(
+                  modifier = Modifier.testTag(CreatePublicEventScreenTestTags.BACK_BUTTON),
+                  onClick = { navController?.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back")
+                  }
+            })
+      },
+      floatingActionButton = {
+        FloatingActionButton(
+            modifier = Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON),
+            onClick = { createPublicEventViewModel.saveEvent() },
+            containerColor = MaterialTheme.colorScheme.primary,
+        ) {
+          Icon(imageVector = Icons.Default.SaveAlt, contentDescription = "Save")
         }
-    }
-    */
+      }) { paddingValues ->
+        Column(
+            modifier =
+                Modifier.fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+          /*
+          val color = MaterialTheme.colorScheme.onSecondary
+          Box(
+              modifier = Modifier
+                  .fillMaxWidth(0.9f)
+                  .height(120.dp)
+                  .drawBehind {
+                      val stroke = Stroke(
+                          width = 1.dp.toPx(),
+                          pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f), 0f)
+                      )
+                      drawRoundRect(
+                          color = color,
+                          size = size,
+                          style = stroke,
+                          cornerRadius = CornerRadius(8.dp.toPx())
+                      )
+                  },
+              contentAlignment = Alignment.Center
+          ) {
+              Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                  Icon(Icons.Default.CameraAlt, contentDescription = null)
+                  Text("Upload a picture for your Event Page")
+              }
+          }
+          */
 
-    FormTextField(
-        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TITLE_INPUT),
-        label = "Title",
-        placeholder = "My new event",
-        value = createPublicEventUiState.title,
-        onValueChange = { createPublicEventViewModel.updateTitle(it) },
-        errorText = if (createPublicEventUiState.title.isBlank()) "Title cannot be blank" else null)
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TITLE_INPUT),
+              label = "Title",
+              placeholder = "My new event",
+              value = createPublicEventUiState.title,
+              onValueChange = { createPublicEventViewModel.updateTitle(it) },
+              errorText =
+                  if (createPublicEventUiState.title.isBlank()) "Title cannot be blank" else null,
+              required = true)
 
-    FormTextField(
-        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT),
-        label = "Subtitle",
-        placeholder = "Optional supporting text",
-        value = createPublicEventUiState.subtitle,
-        onValueChange = { createPublicEventViewModel.updateSubtitle(it) },
-    )
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT),
+              label = "Subtitle",
+              placeholder = "Optional supporting text",
+              value = createPublicEventUiState.subtitle,
+              onValueChange = { createPublicEventViewModel.updateSubtitle(it) },
+          )
 
-    FormTextField(
-        modifier =
-            Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT),
-        label = "Description",
-        placeholder = "Describe your event",
-        value = createPublicEventUiState.description,
-        onValueChange = { createPublicEventViewModel.updateDescription(it) },
-    )
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT),
+              label = "Description",
+              placeholder = "Describe your event",
+              value = createPublicEventUiState.description,
+              onValueChange = { createPublicEventViewModel.updateDescription(it) },
+          )
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-          Column(
-              modifier = Modifier.padding(16.dp),
-              verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = "Event Banner",
-                    style =
-                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-                PicturePickerCard(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .testTag(CreatePublicEventScreenTestTags.BANNER_PICKER),
-                    style = PicturePickerStyle.Banner,
-                    existingImagePath = createPublicEventUiState.bannerImagePath,
-                    selectedImageUri = createPublicEventUiState.bannerImageUri,
-                    onImageSelected = { uri ->
-                      createPublicEventViewModel.updateBannerImageUri(uri)
-                    },
-                    placeholderText = "Upload a banner for your event page",
-                    overlayText = "Tap to change banner",
-                    imageDescription = "Event banner")
-                Text(
-                    text = "A banner makes your public event stand out in search results.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedButton(
-                    onClick = { createPublicEventViewModel.removeBannerImage() },
-                    enabled =
-                        createPublicEventUiState.bannerImageUri != null ||
-                            createPublicEventUiState.bannerImagePath != null,
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .testTag(CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON)) {
-                      Text("Remove banner")
+          Card(
+              modifier = Modifier.fillMaxWidth(),
+              colors =
+                  CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                      Text(
+                          text = "Event Banner",
+                          style =
+                              MaterialTheme.typography.titleMedium.copy(
+                                  fontWeight = FontWeight.SemiBold))
+                      PicturePickerCard(
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .testTag(CreatePublicEventScreenTestTags.BANNER_PICKER),
+                          style = PicturePickerStyle.Banner,
+                          existingImagePath = createPublicEventUiState.bannerImagePath,
+                          selectedImageUri = createPublicEventUiState.bannerImageUri,
+                          onImageSelected = { uri ->
+                            createPublicEventViewModel.updateBannerImageUri(uri)
+                          },
+                          placeholderText = "Upload a banner for your event page",
+                          overlayText = "Tap to change banner",
+                          imageDescription = "Event banner")
+                      Text(
+                          text = "A banner makes your public event stand out in search results.",
+                          style = MaterialTheme.typography.bodyMedium,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant)
+                      OutlinedButton(
+                          onClick = { createPublicEventViewModel.removeBannerImage() },
+                          enabled =
+                              createPublicEventUiState.bannerImageUri != null ||
+                                  createPublicEventUiState.bannerImagePath != null,
+                          modifier =
+                              Modifier.fillMaxWidth()
+                                  .testTag(CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON)) {
+                            Text("Remove banner")
+                          }
                     }
               }
+
+          LocationTextField(
+              modifier =
+                  Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
+              label = "Location",
+              placeholder = "Enter the event's location",
+              initialValue = locationInitial,
+              onLocationChange = { createPublicEventViewModel.updateLocation(it) })
+
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(20.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            DateTextField(
+                modifier =
+                    Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
+                label = "Start of the event",
+                placeholder = "DD/MM/YYYY",
+                initialValue = startDateInitial,
+                onDateChange = { createPublicEventViewModel.updateStartDate(it) },
+                required = true)
+
+            TimePicker(
+                modifier = Modifier.testTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON),
+                time = createPublicEventUiState.startTime,
+                onTimeChange = { createPublicEventViewModel.updateStartTime(it) })
+          }
+
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(20.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            DateTextField(
+                modifier =
+                    Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
+                label = "End of the event",
+                placeholder = "DD/MM/YYYY",
+                initialValue = endDateInitial,
+                onDateChange = { createPublicEventViewModel.updateEndDate(it) },
+                required = true)
+
+            TimePicker(
+                modifier = Modifier.testTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON),
+                time = createPublicEventUiState.endTime,
+                onTimeChange = { createPublicEventViewModel.updateEndTime(it) })
+          }
+
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT),
+              label = "Number of participants",
+              value = createPublicEventUiState.numberOfParticipantsString,
+              onValueChange = { createPublicEventViewModel.updateNumberOfParticipantsString(it) },
+          )
+
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT),
+              label = "Event website",
+              value = createPublicEventUiState.website,
+              onValueChange = { createPublicEventViewModel.updateWebsite(it) },
+          )
+
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(20.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            FormTextField(
+                modifier =
+                    Modifier.weight(0.7f)
+                        .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT),
+                label = "Participation fees",
+                value = createPublicEventUiState.participationFeeString,
+                onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
+                enabled = createPublicEventUiState.hasParticipationFee,
+            )
+
+            Switch(
+                modifier =
+                    Modifier.testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH),
+                checked = createPublicEventUiState.hasParticipationFee,
+                onCheckedChange = {
+                  createPublicEventViewModel.updateHasParticipationFee(it)
+                  if (!it) createPublicEventViewModel.updateParticipationFeeString("")
+                },
+            )
+          }
+
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(20.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+                modifier = Modifier.weight(0.7f),
+                text = "Flash Event",
+            )
+
+            Switch(
+                modifier = Modifier.testTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH),
+                checked = createPublicEventUiState.isFlash,
+                onCheckedChange = { createPublicEventViewModel.updateIsFlash(it) },
+            )
+          }
+
+          // Add some bottom padding to avoid FAB overlap
+          Spacer(modifier = Modifier.size(80.dp))
         }
-
-    LocationTextField(
-        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
-        label = "Location",
-        placeholder = "Enter the event's location",
-        initialValue = locationInitial,
-        onLocationChange = { createPublicEventViewModel.updateLocation(it) })
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      DateTextField(
-          modifier =
-              Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
-          label = "Start of the event",
-          placeholder = "DD/MM/YYYY",
-          initialValue = startDateInitial,
-          onDateChange = { createPublicEventViewModel.updateStartDate(it) },
-      )
-
-      TimePicker(
-          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON),
-          time = createPublicEventUiState.startTime,
-          onTimeChange = { createPublicEventViewModel.updateStartTime(it) })
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      DateTextField(
-          modifier = Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
-          label = "End of the event",
-          placeholder = "DD/MM/YYYY",
-          initialValue = endDateInitial,
-          onDateChange = { createPublicEventViewModel.updateEndDate(it) },
-      )
-
-      TimePicker(
-          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON),
-          time = createPublicEventUiState.endTime,
-          onTimeChange = { createPublicEventViewModel.updateEndTime(it) })
-    }
-
-    FormTextField(
-        modifier =
-            Modifier.fillMaxWidth()
-                .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT),
-        label = "Number of participants",
-        value = createPublicEventUiState.numberOfParticipantsString,
-        onValueChange = { createPublicEventViewModel.updateNumberOfParticipantsString(it) },
-    )
-
-    FormTextField(
-        modifier = Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT),
-        label = "Event website",
-        value = createPublicEventUiState.website,
-        onValueChange = { createPublicEventViewModel.updateWebsite(it) },
-    )
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      FormTextField(
-          modifier =
-              Modifier.weight(0.7f)
-                  .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT),
-          label = "Participation fees",
-          value = createPublicEventUiState.participationFeeString,
-          onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
-          enabled = createPublicEventUiState.hasParticipationFee,
-      )
-
-      Switch(
-          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH),
-          checked = createPublicEventUiState.hasParticipationFee,
-          onCheckedChange = {
-            createPublicEventViewModel.updateHasParticipationFee(it)
-            if (!it) createPublicEventViewModel.updateParticipationFeeString("")
-          },
-      )
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-          modifier = Modifier.weight(0.7f),
-          text = "Flash Event",
-      )
-
-      Switch(
-          modifier = Modifier.testTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH),
-          checked = createPublicEventUiState.isFlash,
-          onCheckedChange = { createPublicEventViewModel.updateIsFlash(it) },
-      )
-    }
-
-    Button(
-        modifier = Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON),
-        enabled = canSave,
-        onClick = { createPublicEventViewModel.saveEvent() },
-    ) {
-      Icon(
-          imageVector = Icons.Default.SaveAlt,
-          contentDescription = "Save",
-          modifier = Modifier.size(20.dp))
-      Spacer(modifier = Modifier.size(6.dp))
-      Text("Save")
-    }
-  }
+      }
 }
 
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)

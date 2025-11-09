@@ -91,14 +91,16 @@ fun LocationTextField(
     initialValue: String = "",
     onLocationChange: (Location?) -> Unit,
     locationTextFieldViewModel: LocationTextFieldViewModel = viewModel(),
+    required: Boolean = false,
 ) {
   val locationTextFieldUiState by locationTextFieldViewModel.uiState.collectAsState()
   val locationSuggestions = locationTextFieldUiState.locationSuggestions
   val isLoadingLocationSuggestions = locationTextFieldUiState.isLoadingLocationSuggestions
 
   var locationHasBeenInteractedWith by remember { mutableStateOf(false) }
+  var locationWasSelected by remember { mutableStateOf(false) }
   val locationDropdownMenuIsExpanded =
-      locationHasBeenInteractedWith && locationSuggestions.isNotEmpty()
+      locationHasBeenInteractedWith && !locationWasSelected && locationSuggestions.isNotEmpty()
 
   var locationFieldValue by remember {
     mutableStateOf(TextFieldValue(initialValue, TextRange(initialValue.length)))
@@ -132,7 +134,10 @@ fun LocationTextField(
   ) {
     ExposedDropdownMenu(
         expanded = locationDropdownMenuIsExpanded,
-        onDismissRequest = { locationHasBeenInteractedWith = false }, // reset interaction
+        onDismissRequest = {
+          locationHasBeenInteractedWith = false // reset interaction
+          locationWasSelected = false
+        },
     ) {
       for (locationSuggestion in locationSuggestions) {
         DropdownMenuItem(
@@ -147,6 +152,7 @@ fun LocationTextField(
                       text = locationSuggestion.name ?: "",
                       selection = TextRange(locationSuggestion.name?.length ?: 0))
               locationHasBeenInteractedWith = false // reset interaction
+              locationWasSelected = true // mark as selected to hide suggestions
               onLocationChange(locationSuggestion)
             })
       }
@@ -158,12 +164,14 @@ fun LocationTextField(
         onValueChange = {
           locationFieldValue = it
           locationHasBeenInteractedWith = true
+          locationWasSelected = false // reset when user types again
         },
         label = label,
         placeholder = placeholder,
         errorText =
             if (!locationDropdownMenuIsExpanded && locationSuggestions.size > 1)
                 "The location is invalid"
-            else null)
+            else null,
+        required = required)
   }
 }

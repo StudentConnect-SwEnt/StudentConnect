@@ -10,7 +10,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,6 +26,7 @@ fun FormTextField(
     placeholder: String? = null,
     enabled: Boolean = true,
     errorText: String? = null,
+    required: Boolean = false,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
 
@@ -32,6 +37,22 @@ fun FormTextField(
 
   // only show the error if the field has been focused and modified once before
   val shouldShowError = hasBeenInteractedWith && errorText != null
+
+  // Create label with asterisk if required
+  val labelComposable: (@Composable () -> Unit)? =
+      label?.let {
+        {
+          if (required) {
+            Text(
+                buildAnnotatedString {
+                  append(it)
+                  withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
+                })
+          } else {
+            Text(it)
+          }
+        }
+      }
 
   OutlinedTextField(
       modifier =
@@ -45,7 +66,7 @@ fun FormTextField(
         hasBeenInteractedWith = true
         onValueChange(it)
       },
-      label = label?.let { { Text(it) } },
+      label = labelComposable,
       placeholder = placeholder?.let { { Text(it) } },
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
@@ -62,6 +83,7 @@ fun FormTextField(
     placeholder: String? = null,
     enabled: Boolean = true,
     errorText: String? = null,
+    required: Boolean = false,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
 
@@ -72,6 +94,22 @@ fun FormTextField(
 
   // only show the error if the field has been focused and modified once before
   val shouldShowError = hasBeenInteractedWith && errorText != null
+
+  // Create label with asterisk if required
+  val labelComposable: (@Composable () -> Unit)? =
+      label?.let {
+        {
+          if (required) {
+            Text(
+                buildAnnotatedString {
+                  append(it)
+                  withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
+                })
+          } else {
+            Text(it)
+          }
+        }
+      }
 
   OutlinedTextField(
       modifier =
@@ -85,7 +123,7 @@ fun FormTextField(
         hasBeenInteractedWith = true
         onValueChange(it)
       },
-      label = label?.let { { Text(it) } },
+      label = labelComposable,
       placeholder = placeholder?.let { { Text(it) } },
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
