@@ -105,15 +105,11 @@ jobs:
           # To run the CI with debug information, add --info
           ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
 
-      - name: Generate Coverage Report
-        run: |
-          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
-
-      - name: Upload coverage
+      - name: Upload unit exec
         uses: actions/upload-artifact@v4
         with:
-          name: unit-coverage
-          path: app/build/reports/jacoco/jacocoTestReport
+          name: unit-exec
+          path: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/testResOverrideDebugUnitTest.exec
 
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -223,15 +219,11 @@ jobs:
           disable-animations: true
           script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache
 
-      - name: Generate Coverage Report
-        run: |
-          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
-
-      - name: Upload coverage
+      - name: Upload android ec
         uses: actions/upload-artifact@v4
         with:
-          name: connected-coverage
-          path: app/build/reports/jacoco/jacocoTestReport
+          name: android-ec
+          path: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/**/coverage.ec
 
   build-apk:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -347,11 +339,16 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Download coverage (unit + connected)
+      - name: Download unit exec
         uses: actions/download-artifact@v4
         with:
-          pattern: "*-coverage"
-          merge-multiple: true
+          name: unit-exec
+          path: .
+
+      - name: Download android ec
+        uses: actions/download-artifact@v4
+        with:
+          name: android-ec
           path: .
 
       - name: Download lint report
@@ -359,6 +356,15 @@ jobs:
         with:
           name: lint-report
           path: .
+
+      # This step is needed so the compiled classes are available to JaCoCo
+      # We can't upload them as artifacts as they can be very big
+      - name: Rebuild app for coverage report
+        run: ./gradlew assembleResOverrideDebug --parallel --build-cache
+
+      - name: Generate Coverage Report
+        run: |
+          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
 
       - name: Upload reports to SonarCloud
         env:
