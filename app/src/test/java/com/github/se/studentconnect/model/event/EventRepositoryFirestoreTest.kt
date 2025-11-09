@@ -1,13 +1,11 @@
 // Portions of this code were generated with the help of ChatGPT
 package com.github.se.studentconnect.model.event
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.utils.FirebaseEmulator
-import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import java.util.Date
 import kotlinx.coroutines.runBlocking
@@ -18,11 +16,16 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
-class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30], manifest = Config.NONE)
+class EventRepositoryFirestoreTest {
   private val now = Timestamp(Date())
   private lateinit var auth: FirebaseAuth
+  private lateinit var firestore: FirebaseFirestore
+  private lateinit var repository: EventRepositoryFirestore
 
   // --- Test User IDs - Ces variables vont stocker les vrais UIDs Firebase ---
   private var ownerId = ""
@@ -31,9 +34,22 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   private var otherId = ""
 
   @Before
-  override fun setUp() {
-    super.setUp()
-    auth = FirebaseEmulator.auth
+  fun setUp() {
+    // Initialize Firebase if not already initialized
+    if (FirebaseApp.getApps(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+        .isEmpty()) {
+      FirebaseApp.initializeApp(androidx.test.core.app.ApplicationProvider.getApplicationContext())
+    }
+
+    auth = FirebaseAuth.getInstance()
+    firestore = FirebaseFirestore.getInstance()
+
+    // Use emulator for tests
+    auth.useEmulator("10.0.2.2", 9099)
+    firestore.useEmulator("10.0.2.2", 8080)
+
+    repository = EventRepositoryFirestore(db = firestore)
+
     runBlocking {
       val users =
           mapOf(
@@ -52,7 +68,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
             "invited" -> invitedId = result.user?.uid ?: ""
             "other" -> otherId = result.user?.uid ?: ""
           }
-        } catch (e: FirebaseAuthUserCollisionException) {
+        } catch (e: Exception) {
           // L'utilisateur existe déjà, récupérer son UID
           val result = auth.signInWithEmailAndPassword("$email@test.com", password).await()
           when (email) {
@@ -68,11 +84,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   }
 
   @After
-  override fun tearDown() {
-    if (this::auth.isInitialized) {
-      runBlocking { auth.signOut() }
-    }
-    super.tearDown()
+  fun tearDown() {
+    runBlocking { auth.signOut() }
   }
 
   private fun signIn(email: String) {
@@ -431,7 +444,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       signIn("owner")
       val currentOwnerId = getCurrentUserId()
       val badUid = repository.getNewUid()
-      FirebaseEmulator.firestore
+      firestore
           .collection("events")
           .document(badUid)
           .set(
