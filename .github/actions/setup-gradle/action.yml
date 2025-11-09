@@ -1,14 +1,10 @@
-name: Android base setup
-description: Checkout repository, setup JDK, cache Gradle packages, and make gradlew executable
+name: Setup gradle
+description: Setup JDK, cache Gradle packages, and make gradlew executable
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
+    - uses: actions/checkout@v4
 
     - name: Setup JDK
       uses: actions/setup-java@v4

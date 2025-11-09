@@ -16,7 +16,8 @@ jobs:
   static-checks:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: ./.github/actions/android-base
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
 
       - name: KTFmt Check
         run: |
@@ -36,7 +37,8 @@ jobs:
   unit-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: ./.github/actions/android-base
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
       - uses: ./.github/actions/decode-secrets
 
       - name: Run unit tests
@@ -53,7 +55,8 @@ jobs:
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: ./.github/actions/android-base
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
       - uses: ./.github/actions/decode-secrets
 
       # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux
@@ -127,7 +130,8 @@ jobs:
   build-apk:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: ./.github/actions/android-base
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
       - uses: ./.github/actions/decode-secrets
 
       - name: Assemble APK
@@ -157,7 +161,13 @@ jobs:
     needs: [static-checks, unit-tests, connected-tests]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: ./.github/actions/android-base
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
+
+      - uses: ./.github/actions/setup-gradle
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
