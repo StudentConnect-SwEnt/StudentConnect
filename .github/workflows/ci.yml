@@ -122,12 +122,16 @@ jobs:
           ./gradlew assembleNormalRelease --parallel --build-cache \
             -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
 
-  # Upload APK artifact
+      # Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: app/build/outputs/apk/normal/release/*.apk
+
+      - name: Print signing cert SHA-1 (from APK)
+        run: |
+          apksigner verify --print-certs app/build/outputs/apk/normal/release/*.apk | grep -E SHA-1
 
       # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
