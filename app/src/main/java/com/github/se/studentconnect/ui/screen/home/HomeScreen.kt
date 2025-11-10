@@ -569,13 +569,61 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
       }
   val fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal
 
-  Text(
-      text = message,
-      style = MaterialTheme.typography.bodyMedium,
-      fontWeight = fontWeight,
-      maxLines = 2,
-      overflow = TextOverflow.Ellipsis,
-      modifier = modifier)
+  // Get username and time info
+  val (username, timeAgo) = getUsernameAndTime(notification)
+
+  Column(modifier = modifier) {
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = fontWeight,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis)
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    // Display time and username tags
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              text = timeAgo,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+              text = "•",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+              text = username,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+  }
+}
+
+private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
+  val username =
+      when (notification) {
+        is Notification.FriendRequest -> notification.fromUserId
+        is Notification.EventStarting -> notification.userId
+      }
+
+  val timeAgo =
+      notification.timestamp?.let {
+        val now = System.currentTimeMillis()
+        val notificationTime = it.toDate().time
+        val diffMillis = now - notificationTime
+
+        when {
+          diffMillis < 60_000 -> "just now"
+          diffMillis < 3600_000 -> "${diffMillis / 60_000}m ago"
+          diffMillis < 86400_000 -> "${diffMillis / 3600_000}h ago"
+          else -> "${diffMillis / 86400_000}d ago"
+        }
+      } ?: "just now"
+
+  return Pair(username, timeAgo)
 }
 
 @Composable

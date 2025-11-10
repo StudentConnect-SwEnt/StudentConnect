@@ -119,12 +119,20 @@ class NotificationListenerService : Service() {
         PendingIntent.getActivity(
             this, notification.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE)
 
-    // Build the notification
+    // Get username and time info
+    val (username, timeAgo) = getUsernameAndTime(notification)
+
+    // Build the notification with BigTextStyle to show username and time
+    val bigTextStyle =
+        NotificationCompat.BigTextStyle().bigText(message).setSummaryText("$timeAgo • $username")
+
     val notificationBuilder =
         NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notifications)
             .setContentTitle(title)
             .setContentText(message)
+            .setStyle(bigTextStyle)
+            .setSubText("$timeAgo • $username")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
@@ -158,5 +166,35 @@ class NotificationListenerService : Service() {
             NotificationChannelManager.EVENT_STARTING_CHANNEL_ID)
       }
     }
+  }
+
+  /**
+   * Extracts username and time difference from a notification
+   *
+   * @param notification The notification
+   * @return Pair of (username, timeAgo)
+   */
+  private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
+    val username =
+        when (notification) {
+          is Notification.FriendRequest -> notification.fromUserId
+          is Notification.EventStarting -> notification.userId
+        }
+
+    val timeAgo =
+        notification.timestamp?.let {
+          val now = System.currentTimeMillis()
+          val notificationTime = it.toDate().time
+          val diffMillis = now - notificationTime
+
+          when {
+            diffMillis < 60_000 -> "just now"
+            diffMillis < 3600_000 -> "${diffMillis / 60_000}m ago"
+            diffMillis < 86400_000 -> "${diffMillis / 3600_000}h ago"
+            else -> "${diffMillis / 86400_000}d ago"
+          }
+        } ?: "just now"
+
+    return Pair(username, timeAgo)
   }
 }
