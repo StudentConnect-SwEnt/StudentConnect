@@ -88,9 +88,12 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
   const val RETURN_TO_EVENT_BUTTON = "event_view_return_to_event_button"
   const val ATTENDEE_LIST_ITEM = "event_view_attendee_list_item"
+  const val ATTENDEE_LIST_OWNER = "event_view_attendee_list_owner"
+  const val ATTENDEE_LIST_CURRENT_USER = "event_view_attendee_list_current_user"
   const val ATTENDEE_LIST = "event_view_attendee_list"
   const val JOIN_BUTTON = "event_view_join_button"
   const val PARTICIPANTS_INFO = "event_view_participants_info"
+  const val BASE_SCREEN = "event_view_base_screen"
 }
 
 /** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
@@ -191,15 +194,31 @@ fun EventView(
                   modifier = Modifier.fillMaxSize().padding(paddingValues),
               ) {
                 if (isJoined && user != null && user != owner) {
-                  item { AttendeeItem(user, false, { DialogNotImplemented(context = context) }) }
+                  item {
+                    AttendeeItem(
+                        user,
+                        false,
+                        { DialogNotImplemented(context = context) },
+                        modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
+                  }
                 }
                 if (owner != null) {
-                  item { AttendeeItem(owner, true, { DialogNotImplemented(context = context) }) }
+                  item {
+                    AttendeeItem(
+                        owner,
+                        true,
+                        { DialogNotImplemented(context = context) },
+                        modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
+                  }
                 }
 
                 items(attendees) { a ->
                   if (a != user && a != owner)
-                      AttendeeItem(a, false, { DialogNotImplemented(context = context) })
+                      AttendeeItem(
+                          a,
+                          false,
+                          { DialogNotImplemented(context = context) },
+                          modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
                 }
               }
             }
@@ -224,7 +243,8 @@ fun EventView(
                   modifier =
                       Modifier.fillMaxSize()
                           .padding(paddingValues)
-                          .verticalScroll(rememberScrollState()),
+                          .verticalScroll(rememberScrollState())
+                          .testTag(EventViewTestTags.BASE_SCREEN),
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
                   val configuration = LocalConfiguration.current
@@ -772,13 +792,18 @@ private fun getValidationContentColor(result: TicketValidationResult) =
     }
 
 @Composable
-private fun AttendeeItem(attendee: User, owner: Boolean, onClick: () -> Unit) {
+private fun AttendeeItem(
+    attendee: User,
+    owner: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
   Row(
       modifier =
-          Modifier.fillMaxWidth()
+          modifier
+              .fillMaxWidth()
               .padding(start = screenPadding, end = screenPadding)
-              .clickable(onClick = onClick)
-              .testTag(EventViewTestTags.ATTENDEE_LIST_ITEM),
+              .clickable(onClick = onClick),
       horizontalArrangement = Arrangement.spacedBy(10.dp),
       verticalAlignment = Alignment.CenterVertically,
   ) {
