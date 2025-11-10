@@ -63,8 +63,27 @@ jobs:
           name: unit-test-results
           path: app/build/test-results/testResOverrideDebugUnitTest/
 
+  build-test-apks:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
+
+      - name: Assemble app and androidTest APKs
+        run: ./gradlew assembleResOverrideDebug assembleResOverrideDebugAndroidTest --parallel --build-cache
+
+      - name: Save Gradle cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle/libs.versions.toml') }}
+
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    needs: build-test-apks
     strategy:
       fail-fast: false
       matrix:
@@ -141,7 +160,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
+          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache -x assembleResOverrideDebug -x assembleResOverrideDebugAndroidTest -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
 
       - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
@@ -149,7 +168,7 @@ jobs:
           name: android-ec-${{ matrix.shard_index }}
           path: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/**/coverage.ec
 
-  build-apk:
+  build-release-apk:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
@@ -186,7 +205,7 @@ jobs:
           path: app/build/outputs/apk/normal/release/*.apk
 
   sonar:
-    needs: [static-checks, unit-tests, connected-tests]
+    needs: [static-checks, unit-tests, build-test-apks, connected-tests]
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -241,8 +260,8 @@ jobs:
 
       # This step is needed so the compiled classes are available to JaCoCo
       # We can't upload them as artifacts as they can be very big
-      - name: Rebuild app for coverage report
-        run: ./gradlew assembleResOverrideDebug --parallel --build-cache
+      - name: Materialize class files (from cache)
+        run: ./gradlew compileResOverrideDebugSources --build-cache --parallel
 
       - name: Generate coverage report
         run: |
