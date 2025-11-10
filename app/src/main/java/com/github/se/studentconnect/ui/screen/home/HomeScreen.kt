@@ -86,6 +86,7 @@ import com.github.se.studentconnect.ui.events.EventListScreen
 import com.github.se.studentconnect.ui.events.formatDateHeader
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
+import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
@@ -125,8 +126,6 @@ fun HomeScreen(
   val notificationUiState by notificationViewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
 
-  LaunchedEffect(Unit) { viewModel.refresh() }
-
   HomeScreen(
       navController = navController,
       shouldOpenQRScanner = shouldOpenQRScanner,
@@ -138,8 +137,10 @@ fun HomeScreen(
       favoriteEventIds = favoriteEventIds,
       onDateSelected = { date -> viewModel.onDateSelected(date) },
       onCalendarClick = { viewModel.showCalendar() },
+      onCalendarDismiss = { viewModel.hideCalendar() },
       onApplyFilters = viewModel::applyFilters,
       onFavoriteToggle = viewModel::toggleFavorite,
+      onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
       onClearScrollTarget = { viewModel.clearScrollTarget() })
 }
 
@@ -159,8 +160,10 @@ fun HomeScreen(
     favoriteEventIds: Set<String> = emptySet(),
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
+    onCalendarDismiss: () -> Unit = {},
     onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
+    onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
@@ -275,7 +278,15 @@ fun HomeScreen(
                               FilterBar(
                                   context = LocalContext.current,
                                   onCalendarClick = onCalendarClick,
-                                  onApplyFilters = onApplyFilters)
+                                  onApplyFilters = onApplyFilters,
+                                  showOnlyFavorites = uiState.showOnlyFavorites,
+                                  onToggleFavorites = onToggleFavoritesFilter)
+                              StoriesRow(
+                                  onAddStoryClick = {
+                                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                  },
+                                  onClick = onClickStory,
+                                  stories = uiState.subscribedEventsStories)
                               EventListScreen(
                                   navController = navController,
                                   events = uiState.events,
@@ -321,8 +332,7 @@ fun HomeScreen(
         // Handle modal dismissal (when user taps outside or swipes down)
         LaunchedEffect(sheetState.isVisible) {
           if (!sheetState.isVisible && uiState.isCalendarVisible) {
-            // Modal was dismissed by user interaction, update ViewModel state
-            onCalendarClick()
+            onCalendarDismiss()
           }
         }
       }
@@ -690,8 +700,8 @@ fun StoryItem(
     testTag: String = ""
 ) {
   val borderColor =
-      if (viewed) androidx.compose.material3.MaterialTheme.colorScheme.outline
-      else androidx.compose.material3.MaterialTheme.colorScheme.primary
+      if (viewed) MaterialTheme.colorScheme.outline
+      else MaterialTheme.colorScheme.primary
   Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier =
@@ -713,7 +723,7 @@ fun StoryItem(
             modifier =
                 Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
                     .testTag("story_text_$name"),
-            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             maxLines = 1)
       }
 }
