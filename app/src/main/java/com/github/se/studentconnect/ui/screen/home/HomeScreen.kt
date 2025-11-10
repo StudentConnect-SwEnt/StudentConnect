@@ -282,12 +282,6 @@ fun HomeScreen(
                                   onApplyFilters = onApplyFilters,
                                   showOnlyFavorites = uiState.showOnlyFavorites,
                                   onToggleFavorites = onToggleFavoritesFilter)
-                              StoriesRow(
-                                  onAddStoryClick = {
-                                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                  },
-                                  onClick = onClickStory,
-                                  stories = uiState.subscribedEventsStories)
                               EventListScreen(
                                   navController = navController,
                                   events = uiState.events,
