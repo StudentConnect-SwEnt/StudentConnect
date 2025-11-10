@@ -142,9 +142,9 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
           script: |
-            ./gradlew \
-              connectedResOverrideDebugAndroidTest --parallel --build-cache \
-              -PtestShardIndex=${{ matrix.shard_index }} \
+            ./gradlew
+              connectedResOverrideDebugAndroidTest --parallel --build-cache
+              -PtestShardIndex=${{ matrix.shard_index }}
               -PtestNumShards=$SHARD_COUNT
 
       - name: Upload android ec for this shard
