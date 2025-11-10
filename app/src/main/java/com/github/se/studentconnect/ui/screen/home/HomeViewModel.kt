@@ -234,7 +234,9 @@ constructor(
 
           locationMatch
         }
-    _uiState.update { it.copy(events = filtered, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites) }
+    _uiState.update {
+      it.copy(events = filtered, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites)
+    }
   }
 
   fun toggleFavoritesFilter() {

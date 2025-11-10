@@ -83,7 +83,9 @@ fun FilterBar(
     context: Context,
     onCalendarClick: () -> Unit = { DialogNotImplemented(context) },
     onApplyFilters: (FilterData) -> Unit = {},
-    useTestMap: Boolean = false
+    useTestMap: Boolean = false,
+    showOnlyFavorites: Boolean = false,
+    onToggleFavorites: () -> Unit = {}
 ) {
   var showBottomSheet by remember { mutableStateOf(false) }
   var showLocationPicker by remember { mutableStateOf(false) }
@@ -95,8 +97,6 @@ fun FilterBar(
   var selectedLocation by remember { mutableStateOf<Location?>(null) }
   var searchRadius by remember { mutableFloatStateOf(DEFAULT_RADIUS) }
   var priceRange by remember { mutableStateOf(DEFAULT_PRICE_RANGE) }
-
-  var showOnlyFavorites by remember { mutableStateOf(false) }
 
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -110,17 +110,7 @@ fun FilterBar(
             text = "Favorites",
             icon = R.drawable.ic_heart,
             isSelected = showOnlyFavorites,
-            onClick = {
-              showOnlyFavorites = !showOnlyFavorites
-              val currentFilterData =
-                  FilterData(
-                      categories = selectedFilters.toList(),
-                      location = selectedLocation,
-                      radiusKm = searchRadius,
-                      priceRange = priceRange,
-                      showOnlyFavorites = showOnlyFavorites)
-              onApplyFilters(currentFilterData)
-            })
+            onClick = onToggleFavorites)
       }
 
   if (showBottomSheet) {

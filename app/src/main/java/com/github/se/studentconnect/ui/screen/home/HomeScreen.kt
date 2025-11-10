@@ -700,8 +700,7 @@ fun StoryItem(
     testTag: String = ""
 ) {
   val borderColor =
-      if (viewed) MaterialTheme.colorScheme.outline
-      else MaterialTheme.colorScheme.primary
+      if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
   Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier =
