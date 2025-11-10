@@ -7,6 +7,7 @@ import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.github.se.studentconnect.ui.utils.FilterData
 import com.google.firebase.Timestamp
+import java.util.Date
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
@@ -35,14 +36,17 @@ class HomePageViewModelFilterTest {
   // Geneva location (about 50km from EPFL)
   private val genevaLocation = Location(46.2044, 6.1432, "Geneva")
 
+  // Create timestamps for future events (1 hour from now)
+  private val futureTime = Timestamp(Date(System.currentTimeMillis() + 3600000))
+
   private val eventAtEPFL =
       Event.Public(
           uid = "event-epfl",
           title = "EPFL Event",
           subtitle = "At EPFL",
           description = "Event at EPFL",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = epflLocation,
           website = "https://event.com",
           ownerId = "owner1",
@@ -55,8 +59,8 @@ class HomePageViewModelFilterTest {
           title = "Lausanne Event",
           subtitle = "In Lausanne",
           description = "Event in Lausanne",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = lausanneCenterLocation,
           website = "https://event.com",
           ownerId = "owner2",
@@ -69,8 +73,8 @@ class HomePageViewModelFilterTest {
           title = "Geneva Event",
           subtitle = "In Geneva",
           description = "Event in Geneva",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = genevaLocation,
           website = "https://event.com",
           ownerId = "owner3",
@@ -83,8 +87,8 @@ class HomePageViewModelFilterTest {
           title = "Paid Event",
           subtitle = "Costs money",
           description = "Event with participation fee",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = epflLocation,
           website = "https://event.com",
           ownerId = "owner4",
@@ -98,8 +102,8 @@ class HomePageViewModelFilterTest {
           title = "Online Event",
           subtitle = "Virtual",
           description = "Event without location",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = null,
           website = "https://event.com",
           ownerId = "owner5",
