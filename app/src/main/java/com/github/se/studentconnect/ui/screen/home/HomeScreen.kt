@@ -86,7 +86,8 @@ import com.github.se.studentconnect.ui.events.EventListScreen
 import com.github.se.studentconnect.ui.events.formatDateHeader
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
-import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.screen.camera.CameraMode
+import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
@@ -164,6 +165,7 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
+  var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   val notificationUiState by notificationViewModel.uiState.collectAsState()
   val sheetState =
       rememberModalBottomSheetState(
@@ -246,10 +248,11 @@ fun HomeScreen(
                   userScrollEnabled = true) { page ->
                     when (page) {
                       HomeScreenConstants.PAGER_SCANNER_PAGE -> {
-                        // QR Scanner page
-                        QrScannerScreen(
+                        // Camera Mode Selector page (Story/QR Scanner)
+                        CameraModeSelectorScreen(
                             onBackClick = {
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
                                 pagerState.animateScrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
@@ -257,13 +260,22 @@ fun HomeScreen(
                             onProfileDetected = { userId ->
                               // Navigate to visitor profile and return to home page
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               navController.navigate(Route.visitorProfile(userId))
                               coroutineScope.launch {
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            isActive =
-                                pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
+                            onStoryCapture = { imageBytes ->
+                              // For now, just return to home page
+                              // TODO: Implement story upload functionality
+                              onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
+                              coroutineScope.launch {
+                                pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
+                              }
+                            },
+                            initialMode = cameraMode)
                       }
                       HomeScreenConstants.PAGER_HOME_PAGE -> {
                         // Home content page
@@ -286,8 +298,10 @@ fun HomeScreen(
                                   topContent = {
                                     StoriesRow(
                                         onAddStoryClick = {
+                                          cameraMode = CameraMode.STORY
                                           coroutineScope.launch {
-                                            pagerState.animateScrollToPage(0)
+                                            pagerState.animateScrollToPage(
+                                                HomeScreenConstants.PAGER_SCANNER_PAGE)
                                           }
                                         },
                                         onClick = onClickStory,

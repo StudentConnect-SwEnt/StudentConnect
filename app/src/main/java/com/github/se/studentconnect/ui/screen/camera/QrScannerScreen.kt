@@ -166,7 +166,7 @@ fun QrScannerScreen(
         Column(
             modifier =
                 Modifier.Companion.align(Alignment.Companion.BottomCenter)
-                    .padding(horizontal = 32.dp, vertical = 48.dp)
+                    .padding(horizontal = 32.dp, vertical = 160.dp)
                     .semantics { testTag = C.Tag.qr_scanner_instructions },
             horizontalAlignment = Alignment.Companion.CenterHorizontally) {
               Text(
