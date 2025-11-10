@@ -150,14 +150,16 @@ fun MainContent() {
   val viewModel: MainViewModel = viewModel(factory = MainViewModelFactory(userRepository))
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = navBackStackEntry?.destination?.route
-  fun routeToTab(route: String?): Tab? = when {
-    route == null -> null
-    route == Route.HOME -> Tab.Home
-    route == Route.MAP || route == Route.MAP_WITH_LOCATION || route.startsWith("map/") -> Tab.Map
-    route == Route.ACTIVITIES -> Tab.Activities
-    route == Route.PROFILE -> Tab.Profile
-    else -> null
-  }
+  fun routeToTab(route: String?): Tab? =
+      when {
+        route == null -> null
+        route == Route.HOME -> Tab.Home
+        route == Route.MAP || route == Route.MAP_WITH_LOCATION || route.startsWith("map/") ->
+            Tab.Map
+        route == Route.ACTIVITIES -> Tab.Activities
+        route == Route.PROFILE -> Tab.Profile
+        else -> null
+      }
   val derivedTab = routeToTab(currentRoute)
   LaunchedEffect(derivedTab) {
     if (derivedTab != null && derivedTab != selectedTab) {
