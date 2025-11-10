@@ -57,6 +57,12 @@ jobs:
           name: unit-exec
           path: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/testResOverrideDebugUnitTest.exec
 
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/test-results/testResOverrideDebugUnitTest/
+
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -196,7 +202,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-exec
-          path: .
+          path: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/
 
       - name: Download android ec
         uses: actions/download-artifact@v4
@@ -204,26 +210,18 @@ jobs:
           name: android-ec
           path: .
 
+      - name: Move android ec to correct path
+        env:
+          ANDROID_EC_PATH: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/shard-0/
+        run: |
+          mkdir -p $ANDROID_EC_PATH
+          mv **/coverage.ec $ANDROID_EC_PATH
+
       - name: Download lint report
         uses: actions/download-artifact@v4
         with:
           name: lint-report
-          path: .
-
-      - name: Move downloads to correct paths
-        env:
-          UNIT_EXEC_PATH: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/
-          ANDROID_EC_PATH: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/shard-0/
-          LINT_REPORT_PATH: app/build/reports/
-        run: |
-          mkdir -p $UNIT_EXEC_PATH
-          mv *.exec $UNIT_EXEC_PATH
-
-          mkdir -p $ANDROID_EC_PATH
-          mv **/coverage.ec $ANDROID_EC_PATH
-
-          mkdir -p $LINT_REPORT_PATH
-          mv lint-* $LINT_REPORT_PATH
+          path: app/build/reports/
 
       # This step is needed so the compiled classes are available to JaCoCo
       # We can't upload them as artifacts as they can be very big
