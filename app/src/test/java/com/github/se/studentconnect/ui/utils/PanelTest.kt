@@ -4,20 +4,17 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.rule.GrantPermissionRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class PanelTest {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   data class TestItem(val name: String, val value: Int)
 

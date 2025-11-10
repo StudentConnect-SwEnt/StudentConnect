@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.util.Locale
 
 plugins {
@@ -185,6 +187,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.play.services.location)
     implementation(libs.androidx.work.testing)
+    implementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -245,6 +248,11 @@ dependencies {
     testImplementation(libs.json)
     testImplementation(libs.androidx.arch.core.testing)
 
+    // Compose testing for Robolectric unit tests
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
+
     // Test UI
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
@@ -267,11 +275,40 @@ configurations.all {
     resolutionStrategy {
         // Enforce a single Guava version (Android flavor)
         force(libs.guava.get().toString())
+        // Force consistent test library versions to avoid conflicts
+        force("androidx.test.ext:junit:1.2.1")
+        force("androidx.test.espresso:espresso-core:3.6.1")
     }
 }
 
-tasks.withType<Test> {
-    // Configure Jacoco for each tests
+tasks.withType<Test>().configureEach {
+    // Disable per-test logging
+    testLogging {
+        events() // no events -> suppress "PASSED"/"FAILED"/"SKIPPED" lines
+    }
+
+    // Print only a summary after all tests
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) {}
+        override fun beforeTest(testDescriptor: TestDescriptor) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+        override fun afterSuite(desc: TestDescriptor, result: TestResult) {
+            if (desc.parent == null) {
+                println(
+                    """
+                    |
+                    |Test summary:
+                    |  Total: ${result.testCount}
+                    |  Passed: ${result.successfulTestCount}
+                    |  Failed: ${result.failedTestCount}
+                    |  Skipped: ${result.skippedTestCount}
+                    """.trimMargin()
+                )
+            }
+        }
+    })
+
+    // Keep Jacoco config
     configure<JacocoTaskExtension> {
         isIncludeNoLocationClasses = true
         excludes = listOf("jdk.internal.*")

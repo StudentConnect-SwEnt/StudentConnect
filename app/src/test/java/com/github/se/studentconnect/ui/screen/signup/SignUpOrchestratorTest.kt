@@ -5,8 +5,6 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
@@ -20,16 +18,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 @OptIn(ExperimentalTestApi::class)
 class SignUpOrchestratorTest {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private lateinit var originalMediaRepository: MediaRepository
   private lateinit var fakeMediaRepository: FakeMediaRepository
