@@ -71,9 +71,7 @@ fun EventListScreen(
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
         // Optional header content that scrolls with the list (e.g., StoriesRow)
-        topContent?.let { header ->
-          item(key = "event_list_header") { header() }
-        }
+        topContent?.let { header -> item(key = "event_list_header") { header() } }
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
           item {
             Text(

@@ -225,7 +225,9 @@ fun HomeScreen(
                                   topContent = {
                                     StoriesRow(
                                         onAddStoryClick = {
-                                          coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                          coroutineScope.launch {
+                                            pagerState.animateScrollToPage(0)
+                                          }
                                         },
                                         onClick = onClickStory,
                                         stories = uiState.subscribedEventsStories)
