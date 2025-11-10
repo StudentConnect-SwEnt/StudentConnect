@@ -215,19 +215,21 @@ fun HomeScreen(
                                   context = LocalContext.current,
                                   onCalendarClick = onCalendarClick,
                                   onApplyFilters = onApplyFilters)
-                              StoriesRow(
-                                  onAddStoryClick = {
-                                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                  },
-                                  onClick = onClickStory,
-                                  stories = uiState.subscribedEventsStories)
                               EventListScreen(
                                   navController = navController,
                                   events = uiState.events,
                                   hasJoined = false,
                                   listState = listState,
                                   favoriteEventIds = favoriteEventIds,
-                                  onFavoriteToggle = onFavoriteToggle)
+                                  onFavoriteToggle = onFavoriteToggle,
+                                  topContent = {
+                                    StoriesRow(
+                                        onAddStoryClick = {
+                                          coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                        },
+                                        onClick = onClickStory,
+                                        stories = uiState.subscribedEventsStories)
+                                  })
                             }
                           }
                         }
