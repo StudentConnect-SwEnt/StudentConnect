@@ -81,13 +81,13 @@ import kotlinx.coroutines.launch
 
 // UI Constants
 private object HomeScreenConstants {
-  const val STORY_SIZE_DP = 90
-  const val STORY_BORDER_WIDTH_DP = 3
-  const val STORY_PADDING_TOP_DP = 4
+  const val STORY_SIZE_DP = 64
+  const val STORY_BORDER_WIDTH_DP = 2
+  const val STORY_PADDING_TOP_DP = 2
   const val STORIES_ROW_TOP_PADDING_DP = 12
   const val STORIES_ROW_BOTTOM_PADDING_DP = 4
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
-  const val STORIES_ROW_HORIZONTAL_PADDING_DP = 16
+  const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
   const val SEARCH_BAR_CORNER_RADIUS_DP = 24
   const val SEARCH_BAR_END_PADDING_DP = 8
   const val PAGER_SCANNER_PAGE = 0
