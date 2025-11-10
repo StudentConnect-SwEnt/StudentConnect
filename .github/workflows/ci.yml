@@ -210,6 +210,21 @@ jobs:
           name: lint-report
           path: .
 
+      - name: Move downloads to correct paths
+        env:
+          UNIT_EXEC_PATH: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/
+          ANDROID_EC_PATH: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/shard-0/
+          LINT_REPORT_PATH: app/build/reports/
+        run: |
+          mkdir -p $UNIT_EXEC_PATH
+          mv *.exec $UNIT_EXEC_PATH
+
+          mkdir -p $ANDROID_EC_PATH
+          mv **/coverage.ec $ANDROID_EC_PATH
+
+          mkdir -p $LINT_REPORT_PATH
+          mv lint-* $LINT_REPORT_PATH
+
       # This step is needed so the compiled classes are available to JaCoCo
       # We can't upload them as artifacts as they can be very big
       - name: Rebuild app for coverage report
