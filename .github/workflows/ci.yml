@@ -228,9 +228,6 @@ jobs:
         run: |
           mkdir -p $BASE
 
-          ls
-          ls android-ec-0
-
           for i in $(seq 0 $((SHARD_COUNT - 1))); do
             mkdir -p "$BASE/shard-$i"
             mv android-ec-$i/**/coverage.ec "$BASE/shard-$i/"
