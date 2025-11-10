@@ -454,8 +454,9 @@ private fun CommonActionButtons(
   }
 
   // Only show website button if event is Public and has a non-empty website
-  val hasWebsite = (currentEvent as? Event.Public)?.website?.isNotEmpty() == true
-  if (hasWebsite) {
+  val publicEvent = currentEvent as? Event.Public
+  val websiteUrl = publicEvent?.website
+  if (!websiteUrl.isNullOrEmpty()) {
     ButtonIcon(
         id = R.drawable.ic_web,
         onClick = {
