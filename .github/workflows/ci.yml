@@ -68,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard-index: [0, 1, 2, 3]
+        shard_index: [0, 1, 2, 3]
     env:
       SHARD_COUNT: 4
     steps:
