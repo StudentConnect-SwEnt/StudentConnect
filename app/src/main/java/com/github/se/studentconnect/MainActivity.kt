@@ -166,7 +166,6 @@ fun MainContent() {
       selectedTab = derivedTab
     }
   }
-
   val uiState by viewModel.uiState.collectAsState()
 
   // Initial auth check on app start
