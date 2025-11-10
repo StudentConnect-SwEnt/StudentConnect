@@ -150,5 +150,19 @@ service cloud.firestore {
       // Allow updating/deleting only for the owner
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
+    // Rules for notifications
+      match /notifications/{notificationId} {
+        // Allow read access only if the logged-in user owns the notification
+        allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
+
+        // Allow users to create notifications for themselves
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+
+        // Allow updating only for the owner (for example, marking as read)
+        allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+
+        // Allow deleting only for the owner
+        allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+}
   }
 }

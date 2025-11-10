@@ -22,22 +22,19 @@ class FCMNotificationHandler(
   }
 
   /**
-   * Processes a received FCM message and returns the notification to display
+   * Processes a received FCM message and stores it in Firestore
    *
    * @param data The FCM message data
-   * @return Pair of (title, message, channelId, notificationId) or null if message should be
-   *   ignored
    */
-  fun processMessage(data: Map<String, String>): NotificationInfo? {
-    val type = data["type"] ?: return null
-    val userId = getCurrentUserId() ?: return null
+  fun processMessage(data: Map<String, String>) {
+    val type = data["type"] ?: return
+    val userId = getCurrentUserId() ?: return
 
-    return when (type) {
+    when (type) {
       NotificationType.FRIEND_REQUEST.name -> processFriendRequest(data, userId)
       NotificationType.EVENT_STARTING.name -> processEventStarting(data, userId)
       else -> {
         Log.w(TAG, "Unknown notification type: $type")
-        null
       }
     }
   }
@@ -47,10 +44,9 @@ class FCMNotificationHandler(
    *
    * @param data The notification data
    * @param userId The user ID
-   * @return NotificationInfo or null if invalid data
    */
-  fun processFriendRequest(data: Map<String, String>, userId: String): NotificationInfo? {
-    val fromUserId = data["fromUserId"] ?: return null
+  fun processFriendRequest(data: Map<String, String>, userId: String) {
+    val fromUserId = data["fromUserId"] ?: return
     val fromUserName = data["fromUserName"] ?: "Someone"
     val notificationId = data["notificationId"] ?: ""
 
@@ -66,12 +62,6 @@ class FCMNotificationHandler(
 
     // Store in Firestore
     storeNotification(notification)
-
-    return NotificationInfo(
-        title = "New Friend Request",
-        message = notification.getMessage(),
-        channelId = NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID,
-        notificationId = notificationId.hashCode())
   }
 
   /**
@@ -79,13 +69,12 @@ class FCMNotificationHandler(
    *
    * @param data The notification data
    * @param userId The user ID
-   * @return NotificationInfo or null if invalid data
    */
-  fun processEventStarting(data: Map<String, String>, userId: String): NotificationInfo? {
-    val eventId = data["eventId"] ?: return null
+  fun processEventStarting(data: Map<String, String>, userId: String) {
+    val eventId = data["eventId"] ?: return
     val eventTitle = data["eventTitle"] ?: "Event"
     val notificationId = data["notificationId"] ?: ""
-    val eventStartMillis = data["eventStart"]?.toLongOrNull() ?: return null
+    val eventStartMillis = data["eventStart"]?.toLongOrNull() ?: return
 
     // Create notification object
     val notification =
@@ -100,12 +89,6 @@ class FCMNotificationHandler(
 
     // Store in Firestore
     storeNotification(notification)
-
-    return NotificationInfo(
-        title = "Event Starting Soon",
-        message = notification.getMessage(),
-        channelId = NotificationChannelManager.EVENT_STARTING_CHANNEL_ID,
-        notificationId = notificationId.hashCode())
   }
 
   /**
@@ -124,11 +107,3 @@ class FCMNotificationHandler(
     }
   }
 }
-
-/** Data class for notification display information */
-data class NotificationInfo(
-    val title: String,
-    val message: String,
-    val channelId: String,
-    val notificationId: Int
-)

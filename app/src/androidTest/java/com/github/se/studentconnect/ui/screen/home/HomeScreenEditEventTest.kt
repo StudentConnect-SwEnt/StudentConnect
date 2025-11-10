@@ -15,12 +15,15 @@ import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreenTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -34,10 +37,18 @@ class HomeScreenEditEventTest : StudentConnectTest() {
   override fun createInitializedRepository() = EventRepositoryLocal()
 
   private lateinit var ownerId: String
+  private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
+  private lateinit var homeViewModel: HomePageViewModel
+  private lateinit var notificationViewModel: NotificationViewModel
 
   @Before
   fun captureOwner() {
     ownerId = currentUser.uid
+    userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
+    homeViewModel = HomePageViewModel(repository, userRepository)
+    notificationViewModel = NotificationViewModel(notificationRepository)
   }
 
   @Test
@@ -66,7 +77,12 @@ class HomeScreenEditEventTest : StudentConnectTest() {
         val navController = rememberNavController()
         LaunchedEffect(Unit) { navController.navigate("edit_public") }
         NavHost(navController = navController, startDestination = "home") {
-          composable("home") { HomeScreen(navController = navController) }
+          composable("home") {
+            HomeScreen(
+                navController = navController,
+                viewModel = homeViewModel,
+                notificationViewModel = notificationViewModel)
+          }
           composable("edit_public") {
             CreatePublicEventScreen(navController = navController, existingEventId = event.uid)
           }
@@ -116,7 +132,12 @@ class HomeScreenEditEventTest : StudentConnectTest() {
         val navController = rememberNavController()
         LaunchedEffect(Unit) { navController.navigate("edit_private") }
         NavHost(navController = navController, startDestination = "home") {
-          composable("home") { HomeScreen(navController = navController) }
+          composable("home") {
+            HomeScreen(
+                navController = navController,
+                viewModel = homeViewModel,
+                notificationViewModel = notificationViewModel)
+          }
           composable("edit_private") {
             CreatePrivateEventScreen(navController = navController, existingEventId = event.uid)
           }

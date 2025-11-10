@@ -23,33 +23,30 @@ class FCMNotificationHandlerTest {
   // ==================== processMessage Tests ====================
 
   @Test
-  fun processMessage_withNoType_returnsNull() {
+  fun processMessage_withNoType_doesNothing() {
     val data = emptyMap<String, String>()
 
-    val result = handler.processMessage(data)
+    handler.processMessage(data)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   @Test
-  fun processMessage_withNoUserId_returnsNull() {
+  fun processMessage_withNoUserId_doesNothing() {
     val handlerNoUser = FCMNotificationHandler(mockRepository) { null }
     val data = mapOf("type" to NotificationType.FRIEND_REQUEST.name)
 
-    val result = handlerNoUser.processMessage(data)
+    handlerNoUser.processMessage(data)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   @Test
-  fun processMessage_withUnknownType_returnsNull() {
+  fun processMessage_withUnknownType_doesNothing() {
     val data = mapOf("type" to "UNKNOWN_TYPE")
 
-    val result = handler.processMessage(data)
+    handler.processMessage(data)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
@@ -62,11 +59,8 @@ class FCMNotificationHandlerTest {
             "fromUserName" to "John Doe",
             "notificationId" to "notif-abc")
 
-    val result = handler.processMessage(data)
+    handler.processMessage(data)
 
-    assertNotNull(result)
-    assertEquals("New Friend Request", result?.title)
-    assertEquals(NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID, result?.channelId)
     verify(mockRepository, times(1)).createNotification(any(), any(), any())
   }
 
@@ -80,11 +74,8 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-def",
             "eventStart" to "1704067200000")
 
-    val result = handler.processMessage(data)
+    handler.processMessage(data)
 
-    assertNotNull(result)
-    assertEquals("Event Starting Soon", result?.title)
-    assertEquals(NotificationChannelManager.EVENT_STARTING_CHANNEL_ID, result?.channelId)
     verify(mockRepository, times(1)).createNotification(any(), any(), any())
   }
 
@@ -98,11 +89,7 @@ class FCMNotificationHandlerTest {
             "fromUserName" to "John Doe",
             "notificationId" to "notif-abc")
 
-    val result = handler.processFriendRequest(data, testUserId)
-
-    assertNotNull(result)
-    assertEquals("New Friend Request", result?.title)
-    assertEquals(NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID, result?.channelId)
+    handler.processFriendRequest(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -116,12 +103,11 @@ class FCMNotificationHandlerTest {
   }
 
   @Test
-  fun processFriendRequest_withNoFromUserId_returnsNull() {
+  fun processFriendRequest_withNoFromUserId_doesNothing() {
     val data = mapOf("fromUserName" to "John Doe", "notificationId" to "notif-abc")
 
-    val result = handler.processFriendRequest(data, testUserId)
+    handler.processFriendRequest(data, testUserId)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
@@ -129,9 +115,7 @@ class FCMNotificationHandlerTest {
   fun processFriendRequest_withNoFromUserName_usesDefault() {
     val data = mapOf("fromUserId" to "sender-123", "notificationId" to "notif-abc")
 
-    val result = handler.processFriendRequest(data, testUserId)
-
-    assertNotNull(result)
+    handler.processFriendRequest(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -144,29 +128,13 @@ class FCMNotificationHandlerTest {
   fun processFriendRequest_withNoNotificationId_usesEmptyString() {
     val data = mapOf("fromUserId" to "sender-123", "fromUserName" to "John Doe")
 
-    val result = handler.processFriendRequest(data, testUserId)
-
-    assertNotNull(result)
+    handler.processFriendRequest(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
 
     val notification = captor.firstValue as Notification.FriendRequest
     assertEquals("", notification.id)
-  }
-
-  @Test
-  fun processFriendRequest_generatesCorrectNotificationId() {
-    val data =
-        mapOf(
-            "fromUserId" to "sender-123",
-            "fromUserName" to "John Doe",
-            "notificationId" to "notif-abc")
-
-    val result = handler.processFriendRequest(data, testUserId)
-
-    assertNotNull(result)
-    assertEquals("notif-abc".hashCode(), result?.notificationId)
   }
 
   // ==================== processEventStarting Tests ====================
@@ -180,11 +148,7 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-def",
             "eventStart" to "1704067200000")
 
-    val result = handler.processEventStarting(data, testUserId)
-
-    assertNotNull(result)
-    assertEquals("Event Starting Soon", result?.title)
-    assertEquals(NotificationChannelManager.EVENT_STARTING_CHANNEL_ID, result?.channelId)
+    handler.processEventStarting(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -198,35 +162,33 @@ class FCMNotificationHandlerTest {
   }
 
   @Test
-  fun processEventStarting_withNoEventId_returnsNull() {
+  fun processEventStarting_withNoEventId_doesNothing() {
     val data =
         mapOf(
             "eventTitle" to "Team Meeting",
             "notificationId" to "notif-def",
             "eventStart" to "1704067200000")
 
-    val result = handler.processEventStarting(data, testUserId)
+    handler.processEventStarting(data, testUserId)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   @Test
-  fun processEventStarting_withNoEventStart_returnsNull() {
+  fun processEventStarting_withNoEventStart_doesNothing() {
     val data =
         mapOf(
             "eventId" to "event-456",
             "eventTitle" to "Team Meeting",
             "notificationId" to "notif-def")
 
-    val result = handler.processEventStarting(data, testUserId)
+    handler.processEventStarting(data, testUserId)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   @Test
-  fun processEventStarting_withInvalidEventStart_returnsNull() {
+  fun processEventStarting_withInvalidEventStart_doesNothing() {
     val data =
         mapOf(
             "eventId" to "event-456",
@@ -234,9 +196,8 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-def",
             "eventStart" to "invalid-timestamp")
 
-    val result = handler.processEventStarting(data, testUserId)
+    handler.processEventStarting(data, testUserId)
 
-    assertNull(result)
     verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
@@ -248,9 +209,7 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-def",
             "eventStart" to "1704067200000")
 
-    val result = handler.processEventStarting(data, testUserId)
-
-    assertNotNull(result)
+    handler.processEventStarting(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -267,9 +226,7 @@ class FCMNotificationHandlerTest {
             "eventTitle" to "Team Meeting",
             "eventStart" to "1704067200000")
 
-    val result = handler.processEventStarting(data, testUserId)
-
-    assertNotNull(result)
+    handler.processEventStarting(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -287,9 +244,7 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-def",
             "eventStart" to "1704067200000")
 
-    val result = handler.processEventStarting(data, testUserId)
-
-    assertNotNull(result)
+    handler.processEventStarting(data, testUserId)
 
     val captor = argumentCaptor<Notification>()
     verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
@@ -368,42 +323,9 @@ class FCMNotificationHandlerTest {
             "notificationId" to "notif-abc")
 
     // Should not throw exception
-    val result = handlerWithBadRepo.processFriendRequest(data, testUserId)
+    handlerWithBadRepo.processFriendRequest(data, testUserId)
 
-    // Result should still be created even though storing failed
-    assertNotNull(result)
-  }
-
-  // ==================== NotificationInfo Tests ====================
-
-  @Test
-  fun notificationInfo_containsCorrectData() {
-    val info =
-        NotificationInfo(
-            title = "Test Title",
-            message = "Test Message",
-            channelId = "test-channel",
-            notificationId = 12345)
-
-    assertEquals("Test Title", info.title)
-    assertEquals("Test Message", info.message)
-    assertEquals("test-channel", info.channelId)
-    assertEquals(12345, info.notificationId)
-  }
-
-  @Test
-  fun notificationInfo_dataClass_hasCorrectEquality() {
-    val info1 =
-        NotificationInfo(
-            title = "Title", message = "Message", channelId = "channel", notificationId = 123)
-    val info2 =
-        NotificationInfo(
-            title = "Title", message = "Message", channelId = "channel", notificationId = 123)
-    val info3 =
-        NotificationInfo(
-            title = "Different", message = "Message", channelId = "channel", notificationId = 123)
-
-    assertEquals(info1, info2)
-    assertNotEquals(info1, info3)
+    // Should complete without throwing
+    assertTrue(true)
   }
 }

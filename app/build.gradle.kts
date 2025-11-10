@@ -243,6 +243,7 @@ dependencies {
     androidTestImplementation(libs.mockk.agent)
     testImplementation(libs.mockk)
     testImplementation(libs.json)
+    testImplementation(libs.androidx.arch.core.testing)
 
     // Test UI
     androidTestImplementation(platform(libs.androidx.compose.bom))

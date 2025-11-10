@@ -64,6 +64,7 @@ kotlinxSerializationJson = "1.6.2"
 androidxCoreKtx = "1.6.1"
 playServicesLocation = "21.3.0"
 workRuntime = "2.9.0"
+archCoreTesting = "2.2.0"
 
 # CameraX
 cameraX = "1.4.2"
@@ -140,6 +141,7 @@ bouncycastle = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bo
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntime" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "workTesting" }
+androidx-arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "archCoreTesting" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
