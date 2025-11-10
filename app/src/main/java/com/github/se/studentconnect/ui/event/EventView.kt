@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.CalendarContract
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -131,9 +129,6 @@ fun EventView(
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
-  LaunchedEffect(attendees) { eventViewModel.fetchAttendees() }
-  LaunchedEffect(user) { eventViewModel.fetchCurrentUser() }
-  LaunchedEffect(owner) { eventViewModel.fetchOwner() }
 
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
@@ -282,14 +277,13 @@ fun EventView(
                       }
                   }
 
-                EventActionButtons(
-                    joined = isJoined,
-                    isFull = isFull,
-                    currentEvent = event,
-                    eventViewModel = eventViewModel,
-                    modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                    navController = navController,
-                    pagerState = pagerState,)
+              EventActionButtons(
+                  joined = isJoined,
+                  isFull = isFull,
+                  currentEvent = event,
+                  eventViewModel = eventViewModel,
+                  modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+                  navController = navController)
 
               InfoEvent(
                   timeLeft = timeLeft,
@@ -302,9 +296,9 @@ fun EventView(
                   },
                   modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
 
-                ChatButton()
-              }
+              ChatButton()
             }
+          }
         }
       }
     }
@@ -464,8 +458,7 @@ fun EventActionButtons(
     currentEvent: Event,
     eventViewModel: EventViewModel,
     modifier: Modifier = Modifier,
-    navController: NavHostController,
-    pagerState: PagerState,
+    navController: NavHostController
 ) {
   val context = LocalContext.current
   val currentUserId = AuthenticationProvider.currentUser
@@ -478,39 +471,25 @@ fun EventActionButtons(
               .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
   ) {
-    AttendeesListNavButton(pagerState = pagerState)
     if (isOwner) {
-        // Owner-specific buttons
-        OwnerActionButtons(
-            currentEvent = currentEvent,
-            eventViewModel = eventViewModel,
-            navController = navController)
+      // Owner-specific buttons
+      OwnerActionButtons(
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel,
+          navController = navController)
     } else {
-        // Non-owner buttons
-        NonOwnerActionButtons(
-            joined = joined,
-            isFull = isFull,
-            currentEvent = currentEvent,
-            eventViewModel = eventViewModel)
+      // Non-owner buttons
+      NonOwnerActionButtons(
+          joined = joined,
+          isFull = isFull,
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel)
     }
 
-      // Common action buttons for all users
-      CommonActionButtons(
-          currentEvent = currentEvent, context = context, navController = navController)
+    // Common action buttons for all users
+    CommonActionButtons(
+        currentEvent = currentEvent, context = context, navController = navController)
   }
-}
-
-/** Attendees list navigation buttons */
-@Composable
-private fun AttendeesListNavButton(
-    pagerState: PagerState
-){
-    val coroutineScope = rememberCoroutineScope()
-    ButtonIcon(
-        id = R.drawable.ic_users,
-        onClick = { coroutineScope.launch { pagerState.scrollToPage(0) } },
-        modifier = Modifier.testTag(EventViewTestTags.SEE_ATTENDEES_BUTTON),
-    )
 }
 
 /** Owner-specific action buttons */
@@ -569,21 +548,21 @@ private fun NonOwnerActionButtons(
   val now = Timestamp.now()
   val eventHasStarted = now >= currentEvent.start
 
-    Button(
-        onClick = {
-            if (joined) {
-                eventViewModel.leaveEvent(eventUid = currentEvent.uid)
-            } else if (!isFull && !eventHasStarted) {
-                eventViewModel.joinEvent(eventUid = currentEvent.uid)
-            }
-        },
-        modifier =
-            Modifier.wrapContentSize()
-                .padding(2.dp)
-                .testTag(
-                    if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
-                    else EventViewTestTags.JOIN_BUTTON),
-        enabled = if (joined) true else (!eventHasStarted && !isFull)) {
+  Button(
+      onClick = {
+        if (joined) {
+          eventViewModel.leaveEvent(eventUid = currentEvent.uid)
+        } else if (!isFull && !eventHasStarted) {
+          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+        }
+      },
+      modifier =
+          Modifier.wrapContentSize()
+              .padding(2.dp)
+              .testTag(
+                  if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
+                  else EventViewTestTags.JOIN_BUTTON),
+      enabled = if (joined) true else (!eventHasStarted && !isFull)) {
         val showIcon = joined || (!eventHasStarted && !isFull)
         if (showIcon) {
           Icon(
@@ -600,7 +579,7 @@ private fun NonOwnerActionButtons(
           eventHasStarted -> Text(stringResource(R.string.button_started))
           else -> Text(stringResource(R.string.button_join))
         }
-    }
+      }
 }
 
 /** Common action buttons for all users (Location, Web, Share) */
