@@ -1475,4 +1475,61 @@ class EventViewTest {
 
     runBlocking { eventRepository.deleteEvent(publicEventWithWebsite.uid) }
   }
+
+  @Test
+  fun eventView_locationButton_notDisplayedWhenLocationIsNull() {
+    val eventNoLocation = testEvent.copy(uid = "event-no-location", location = null)
+    runBlocking { eventRepository.addEvent(eventNoLocation) }
+
+    val noLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { noLocationViewModel.fetchEvent(eventNoLocation.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventNoLocation.uid,
+              navController = navController,
+              eventViewModel = noLocationViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertDoesNotExist()
+
+    runBlocking { eventRepository.deleteEvent(eventNoLocation.uid) }
+  }
+
+  @Test
+  fun eventView_locationButton_displayedWhenLocationIsPresent() {
+    val eventWithLocation =
+        testEvent.copy(
+            uid = "event-with-location",
+            location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"))
+    runBlocking { eventRepository.addEvent(eventWithLocation) }
+
+    val withLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { withLocationViewModel.fetchEvent(eventWithLocation.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventWithLocation.uid,
+              navController = navController,
+              eventViewModel = withLocationViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertIsDisplayed()
+
+    runBlocking { eventRepository.deleteEvent(eventWithLocation.uid) }
+  }
 }
