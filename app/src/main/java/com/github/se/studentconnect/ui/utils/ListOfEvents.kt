@@ -53,7 +53,8 @@ fun EventListScreen(
     hasJoined: Boolean,
     listState: LazyListState = rememberLazyListState(),
     favoriteEventIds: Set<String> = emptySet(),
-    onFavoriteToggle: (String) -> Unit = {}
+    onFavoriteToggle: (String) -> Unit = {},
+    topContent: (@Composable () -> Unit)? = null
 ) {
   if (events.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -69,6 +70,10 @@ fun EventListScreen(
       state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
+        // Optional header content that scrolls with the list (e.g., StoriesRow)
+        topContent?.let { header ->
+          item(key = "event_list_header") { header() }
+        }
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
           item {
             Text(
