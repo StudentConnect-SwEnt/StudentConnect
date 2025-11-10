@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.CalendarContract
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -88,7 +86,6 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
   const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
-  const val SEE_ATTENDEES_BUTTON = "event_view_see_attendees_button"
   const val RETURN_TO_EVENT_BUTTON = "event_view_return_to_event_button"
   const val ATTENDEE_LIST_ITEM = "event_view_attendee_list_item"
   const val ATTENDEE_LIST = "event_view_attendee_list"
@@ -105,6 +102,7 @@ fun EventView(
     eventViewModel: EventViewModel = viewModel(),
     hasJoined: Boolean,
 ) {
+  val context = LocalContext.current
   val coroutineScope = rememberCoroutineScope()
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
@@ -126,9 +124,6 @@ fun EventView(
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
-  LaunchedEffect(attendees) { eventViewModel.fetchAttendees() }
-  LaunchedEffect(user) { eventViewModel.fetchCurrentUser() }
-  LaunchedEffect(owner) { eventViewModel.fetchOwner() }
 
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
@@ -195,14 +190,17 @@ fun EventView(
                   verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
                   modifier = Modifier.fillMaxSize().padding(paddingValues),
               ) {
-                if (isJoined && user != null) {
-                  item { AttendeeItem(user, false, {}) }
+                if (isJoined && user != null && user != owner) {
+                  item { AttendeeItem(user, false, { DialogNotImplemented(context = context) }) }
                 }
                 if (owner != null) {
-                  item { AttendeeItem(owner, true, {}) }
+                  item { AttendeeItem(owner, true, { DialogNotImplemented(context = context) }) }
                 }
 
-                items(attendees) { a -> if (a != user && a != owner) AttendeeItem(a, false, {}) }
+                items(attendees) { a ->
+                  if (a != user && a != owner)
+                      AttendeeItem(a, false, { DialogNotImplemented(context = context) })
+                }
               }
             }
           }
@@ -257,25 +255,28 @@ fun EventView(
                       }
                   }
 
-                EventActionButtons(
-                    joined = isJoined,
-                    isFull = isFull,
-                    currentEvent = event,
-                    eventViewModel = eventViewModel,
-                    modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                    navController = navController,
-                    pagerState = pagerState,)
+              EventActionButtons(
+                  joined = isJoined,
+                  isFull = isFull,
+                  currentEvent = event,
+                  eventViewModel = eventViewModel,
+                  modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+                  navController = navController)
 
-                InfoEvent(
-                    timeLeft = timeLeft,
-                    event = event,
-                    isJoined = isJoined,
-                    participantCount = participantCount,
-                    modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+              InfoEvent(
+                  timeLeft = timeLeft,
+                  event = event,
+                  isJoined = isJoined,
+                  participantCount = participantCount,
+                  onClickParticipants = {
+                    coroutineScope.launch { pagerState.scrollToPage(0) }
+                    coroutineScope.launch { eventViewModel.fetchAttendees() }
+                  },
+                  modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
 
-                ChatButton()
-              }
+              ChatButton()
             }
+          }
         }
       }
     }
@@ -291,6 +292,7 @@ private fun InfoEvent(
     event: Event,
     isJoined: Boolean,
     participantCount: Int,
+    onClickParticipants: () -> Unit,
     modifier: Modifier = Modifier
 ) {
   val now = Timestamp.now()
@@ -342,49 +344,53 @@ private fun InfoEvent(
             text = event.description,
             modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
         Spacer(modifier = Modifier.height(10.dp))
-        ParticipantsInfo(event = event, participantCount = participantCount)
+        ParticipantsInfo(event = event, participantCount = participantCount, onClickParticipants)
       }
 }
 
 @Composable
-private fun ParticipantsInfo(event: Event, participantCount: Int) {
+private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () -> Unit) {
   val capacity =
       when (event) {
         is Event.Public -> event.maxCapacity
         is Event.Private -> event.maxCapacity
       }
 
-  Column(modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.PARTICIPANTS_INFO)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          Icon(
-              painter = painterResource(id = R.drawable.ic_group),
-              contentDescription = stringResource(R.string.content_description_participants),
-              modifier = Modifier.size(24.dp))
-          val participantsText =
-              if (capacity != null) {
-                "$participantCount / $capacity"
-              } else {
-                stringResource(R.string.text_participants_count, participantCount)
-              }
-          Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .testTag(EventViewTestTags.PARTICIPANTS_INFO)
+              .clickable(onClick = onClick)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              Icon(
+                  painter = painterResource(id = R.drawable.ic_group),
+                  contentDescription = stringResource(R.string.content_description_participants),
+                  modifier = Modifier.size(24.dp))
+              val participantsText =
+                  if (capacity != null) {
+                    "$participantCount / $capacity"
+                  } else {
+                      stringResource(R.string.text_participants_count, participantCount)
+                  }
+              Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+            }
+        capacity?.let { maxCap ->
+          val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
+          Spacer(modifier = Modifier.height(8.dp))
+          LinearProgressIndicator(
+              progress = { progress },
+              modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
+              color =
+                  if (progress < 0.75f) MaterialTheme.colorScheme.primary
+                  else MaterialTheme.colorScheme.error,
+              trackColor = MaterialTheme.colorScheme.surfaceVariant,
+              strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+          )
         }
-    capacity?.let { maxCap ->
-      val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
-      Spacer(modifier = Modifier.height(8.dp))
-      LinearProgressIndicator(
-          progress = { progress },
-          modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
-          color =
-              if (progress < 0.75f) MaterialTheme.colorScheme.primary
-              else MaterialTheme.colorScheme.error,
-          trackColor = MaterialTheme.colorScheme.surfaceVariant,
-          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-      )
-    }
-  }
+      }
 }
 
 @Composable
@@ -430,8 +436,7 @@ fun EventActionButtons(
     currentEvent: Event,
     eventViewModel: EventViewModel,
     modifier: Modifier = Modifier,
-    navController: NavHostController,
-    pagerState: PagerState,
+    navController: NavHostController
 ) {
   val context = LocalContext.current
   val currentUserId = AuthenticationProvider.currentUser
@@ -444,39 +449,25 @@ fun EventActionButtons(
               .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
   ) {
-    AttendeesListNavButton(pagerState = pagerState)
     if (isOwner) {
-        // Owner-specific buttons
-        OwnerActionButtons(
-            currentEvent = currentEvent,
-            eventViewModel = eventViewModel,
-            navController = navController)
+      // Owner-specific buttons
+      OwnerActionButtons(
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel,
+          navController = navController)
     } else {
-        // Non-owner buttons
-        NonOwnerActionButtons(
-            joined = joined,
-            isFull = isFull,
-            currentEvent = currentEvent,
-            eventViewModel = eventViewModel)
+      // Non-owner buttons
+      NonOwnerActionButtons(
+          joined = joined,
+          isFull = isFull,
+          currentEvent = currentEvent,
+          eventViewModel = eventViewModel)
     }
 
-      // Common action buttons for all users
-      CommonActionButtons(
-          currentEvent = currentEvent, context = context, navController = navController)
+    // Common action buttons for all users
+    CommonActionButtons(
+        currentEvent = currentEvent, context = context, navController = navController)
   }
-}
-
-/** Attendees list navigation buttons */
-@Composable
-private fun AttendeesListNavButton(
-    pagerState: PagerState
-){
-    val coroutineScope = rememberCoroutineScope()
-    ButtonIcon(
-        id = R.drawable.ic_users,
-        onClick = { coroutineScope.launch { pagerState.scrollToPage(0) } },
-        modifier = Modifier.testTag(EventViewTestTags.SEE_ATTENDEES_BUTTON),
-    )
 }
 
 /** Owner-specific action buttons */
@@ -532,24 +523,24 @@ private fun NonOwnerActionButtons(
     currentEvent: Event,
     eventViewModel: EventViewModel
 ) {
-  val now = Timestamp.now()
-  val eventHasStarted = now >= currentEvent.start
+    val now = Timestamp.now()
+    val eventHasStarted = now >= currentEvent.start
 
-    Button(
-        onClick = {
-            if (joined) {
-                eventViewModel.leaveEvent(eventUid = currentEvent.uid)
-            } else if (!isFull && !eventHasStarted) {
-                eventViewModel.joinEvent(eventUid = currentEvent.uid)
-            }
-        },
-        modifier =
-            Modifier.wrapContentSize()
-                .padding(2.dp)
-                .testTag(
-                    if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
-                    else EventViewTestTags.JOIN_BUTTON),
-        enabled = if (joined) true else (!eventHasStarted && !isFull)) {
+  Button(
+      onClick = {
+        if (joined) {
+          eventViewModel.leaveEvent(eventUid = currentEvent.uid)
+        } else if (!isFull && !eventHasStarted) {
+          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+        }
+      },
+      modifier =
+          Modifier.wrapContentSize()
+              .padding(2.dp)
+              .testTag(
+                  if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
+                  else EventViewTestTags.JOIN_BUTTON),
+      enabled = if (joined) true else (!eventHasStarted && !isFull)) {
         val showIcon = joined || (!eventHasStarted && !isFull)
         if (showIcon) {
           Icon(
@@ -566,7 +557,7 @@ private fun NonOwnerActionButtons(
           eventHasStarted -> Text(stringResource(R.string.button_started))
           else -> Text(stringResource(R.string.button_join))
         }
-    }
+      }
 }
 
 /** Common action buttons for all users (Location, Web, Share) */
