@@ -45,6 +45,7 @@ import java.util.Locale
  * @param listState The LazyListState for controlling scroll position.
  * @param favoriteEventIds A set of event IDs that are marked as favorites by the user
  * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
+ * @param topContent Optional composable content to display at the top of the list (e.g., filters).
  */
 @Composable
 fun EventListScreen(
@@ -70,7 +71,6 @@ fun EventListScreen(
       state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
-        // Optional header content that scrolls with the list (e.g., StoriesRow)
         topContent?.let { header -> item(key = "event_list_header") { header() } }
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
           item {
