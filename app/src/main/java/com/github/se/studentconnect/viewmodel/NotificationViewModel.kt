@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 /** UI state for notifications */
 data class NotificationUiState(
@@ -95,22 +93,21 @@ constructor(
     val newUnreadCount = updatedNotifications.count { !it.isRead }
     _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = newUnreadCount) }
 
-    viewModelScope.launch {
-      repository.markAsRead(
-          notificationId,
-          onSuccess = {
-            // UI already updated optimistically
-          },
-          onFailure = { e ->
-            android.util.Log.e(TAG, "Failed to mark as read", e)
-            // Revert optimistic update
-            _uiState.update {
-              it.copy(
-                  notifications = currentNotifications,
-                  unreadCount = currentNotifications.count { !it.isRead })
-            }
-          })
-    }
+    // Repository call is synchronous with callbacks - no need for coroutine
+    repository.markAsRead(
+        notificationId,
+        onSuccess = {
+          // UI already updated optimistically
+        },
+        onFailure = { e ->
+          android.util.Log.e(TAG, "Failed to mark as read", e)
+          // Revert optimistic update
+          _uiState.update {
+            it.copy(
+                notifications = currentNotifications,
+                unreadCount = currentNotifications.count { !it.isRead })
+          }
+        })
   }
 
   /** Marks all notifications as read */
@@ -129,22 +126,21 @@ constructor(
 
     _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = 0) }
 
-    viewModelScope.launch {
-      repository.markAllAsRead(
-          userId,
-          onSuccess = {
-            // UI already updated optimistically
-          },
-          onFailure = { e ->
-            android.util.Log.e(TAG, "Failed to mark all as read", e)
-            // Revert optimistic update
-            _uiState.update {
-              it.copy(
-                  notifications = currentNotifications,
-                  unreadCount = currentNotifications.count { !it.isRead })
-            }
-          })
-    }
+    // Repository call is synchronous with callbacks - no need for coroutine
+    repository.markAllAsRead(
+        userId,
+        onSuccess = {
+          // UI already updated optimistically
+        },
+        onFailure = { e ->
+          android.util.Log.e(TAG, "Failed to mark all as read", e)
+          // Revert optimistic update
+          _uiState.update {
+            it.copy(
+                notifications = currentNotifications,
+                unreadCount = currentNotifications.count { !it.isRead })
+          }
+        })
   }
 
   /**
@@ -160,22 +156,21 @@ constructor(
 
     _uiState.update { it.copy(notifications = updatedNotifications, unreadCount = newUnreadCount) }
 
-    viewModelScope.launch {
-      repository.deleteNotification(
-          notificationId,
-          onSuccess = {
-            // UI already updated optimistically
-          },
-          onFailure = { e ->
-            android.util.Log.e(TAG, "Failed to delete notification", e)
-            // Revert optimistic update
-            _uiState.update {
-              it.copy(
-                  notifications = currentNotifications,
-                  unreadCount = currentNotifications.count { !it.isRead })
-            }
-          })
-    }
+    // Repository call is synchronous with callbacks - no need for coroutine
+    repository.deleteNotification(
+        notificationId,
+        onSuccess = {
+          // UI already updated optimistically
+        },
+        onFailure = { e ->
+          android.util.Log.e(TAG, "Failed to delete notification", e)
+          // Revert optimistic update
+          _uiState.update {
+            it.copy(
+                notifications = currentNotifications,
+                unreadCount = currentNotifications.count { !it.isRead })
+          }
+        })
   }
 
   /** Refreshes notifications manually */
