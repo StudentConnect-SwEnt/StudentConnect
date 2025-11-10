@@ -65,6 +65,12 @@ jobs:
 
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard-index: [0, 1, 2, 3]
+    env:
+      SHARD_COUNT: 4
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -126,7 +132,7 @@ jobs:
             echo "Firebase emulators not configured, skipping emulator startup..."
           fi
 
-      - name: Run connected tests
+      - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -135,12 +141,16 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache
+          script: |
+            ./gradlew
+              connectedResOverrideDebugAndroidTest --parallel --build-cache \
+              -PtestShardIndex=${{ matrix.shard_index }}
+              -PtestNumShards=$SHARD_COUNT
 
-      - name: Upload android ec
+      - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
         with:
-          name: android-ec
+          name: android-ec-${{ matrix.shard_index }}
           path: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/**/coverage.ec
 
   build-apk:
@@ -210,18 +220,25 @@ jobs:
           name: unit-test-results
           path: app/build/test-results/
 
-      - name: Download android ec
+      - name: Download android ec for all shards
         uses: actions/download-artifact@v4
         with:
-          name: android-ec
+          name: android-ec-*
           path: .
 
-      - name: Move android ec to correct path
+      - name: Arrange android ec files
         env:
-          ANDROID_EC_PATH: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/shard-0/
+          BASE: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected
         run: |
-          mkdir -p $ANDROID_EC_PATH
-          mv **/coverage.ec $ANDROID_EC_PATH
+          mkdir -p $BASE
+
+          ls
+          ls android-ec-0
+
+          for i in $(seq 0 $((SHARD_COUNT - 1))); do
+            mkdir -p "$BASE/shard-$i"
+            mv android-ec-$i/**/coverage.ec "$BASE/shard-$i/"
+          done
 
       - name: Download lint report
         uses: actions/download-artifact@v4
