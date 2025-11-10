@@ -91,8 +91,6 @@ object EventViewTestTags {
   const val ATTENDEE_LIST_OWNER = "event_view_attendee_list_owner"
   const val ATTENDEE_LIST_CURRENT_USER = "event_view_attendee_list_current_user"
   const val ATTENDEE_LIST = "event_view_attendee_list"
-  const val SEE_ATTENDEES_BUTTON = "event_view_see_attendees_button"
-
   const val JOIN_BUTTON = "event_view_join_button"
   const val PARTICIPANTS_INFO = "event_view_participants_info"
   const val BASE_SCREEN = "event_view_base_screen"
@@ -246,6 +244,7 @@ fun EventView(
                       Modifier.fillMaxSize()
                           .padding(paddingValues)
                           .verticalScroll(rememberScrollState())
+                          .testTag(EventViewTestTags.BASE_SCREEN)
                           .testTag(EventViewTestTags.BASE_SCREEN),
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
@@ -794,13 +793,18 @@ private fun getValidationContentColor(result: TicketValidationResult) =
     }
 
 @Composable
-private fun AttendeeItem(attendee: User, owner: Boolean, onClick: () -> Unit) {
+private fun AttendeeItem(
+    attendee: User,
+    owner: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
   Row(
       modifier =
-          Modifier.fillMaxWidth()
+          modifier
+              .fillMaxWidth()
               .padding(start = screenPadding, end = screenPadding)
-              .clickable(onClick = onClick)
-              .testTag(EventViewTestTags.ATTENDEE_LIST_ITEM),
+              .clickable(onClick = onClick),
       horizontalArrangement = Arrangement.spacedBy(10.dp),
       verticalAlignment = Alignment.CenterVertically,
   ) {
