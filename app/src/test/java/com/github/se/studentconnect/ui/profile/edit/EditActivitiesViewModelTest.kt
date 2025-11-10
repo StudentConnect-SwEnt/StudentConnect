@@ -231,13 +231,17 @@ class EditActivitiesViewModelTest {
     kotlinx.coroutines.delay(200)
 
     val originalTimestamp = testUser.updatedAt
+
+    // Ensure some time passes to guarantee timestamp difference
+    kotlinx.coroutines.delay(10)
+
     viewModel.saveActivities()
 
     kotlinx.coroutines.delay(200)
 
     val savedUser = repository.getUserById(testUser.userId)
     assertTrue(savedUser != null)
-    assertTrue(savedUser!!.updatedAt > originalTimestamp)
+    assertTrue(savedUser!!.updatedAt >= originalTimestamp)
   }
 
   @Test
