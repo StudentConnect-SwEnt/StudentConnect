@@ -30,14 +30,17 @@ class HomeScreenUITest {
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var viewModel: HomePageViewModel
 
+  // Create future timestamp (1 hour from now) to pass temporality filter
+  private val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+
   private val testEvent1 =
       Event.Public(
           uid = "event-1",
           title = "Summer Festival",
           subtitle = "Best summer event",
           description = "Join us for an amazing summer festival.",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
           website = "https://example.com",
           ownerId = "owner1",
@@ -51,8 +54,8 @@ class HomeScreenUITest {
           title = "Tech Conference",
           subtitle = "Latest in tech",
           description = "Explore the latest technology trends.",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(latitude = 46.52, longitude = 6.57, name = "SwissTech"),
           website = "https://example.com",
           ownerId = "owner2",
