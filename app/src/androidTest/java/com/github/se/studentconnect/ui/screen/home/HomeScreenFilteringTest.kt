@@ -35,6 +35,8 @@ class HomeScreenFilteringTest {
       title: String,
       tags: List<String> = emptyList()
   ): Event.Public {
+    // Create future timestamp (1 hour from now) to pass temporality filter
+    val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
     return Event.Public(
         uid = uid,
         ownerId = "owner1",
@@ -42,8 +44,8 @@ class HomeScreenFilteringTest {
         description = "Description",
         imageUrl = null,
         location = Location(0.0, 0.0, "Location"),
-        start = Timestamp.now(),
-        end = Timestamp.now(),
+        start = futureTime,
+        end = futureTime,
         maxCapacity = null,
         participationFee = null,
         isFlash = false,

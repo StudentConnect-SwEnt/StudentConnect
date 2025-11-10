@@ -53,6 +53,10 @@ class HomeScreenEditEventTest : StudentConnectTest() {
 
   @Test
   fun editingPublicEvent_updatesHomeList() {
+    // Use future timestamps to pass temporality filter
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
     val event =
         Event.Public(
             uid = "public-home-test",
@@ -61,8 +65,8 @@ class HomeScreenEditEventTest : StudentConnectTest() {
             description = "Original description",
             imageUrl = null,
             location = Location(46.52, 6.56, "Original Location"),
-            start = Timestamp.fromDate(2025, 4, 9),
-            end = Timestamp.fromDate(2025, 4, 10),
+            start = futureStart,
+            end = futureEnd,
             maxCapacity = null,
             participationFee = null,
             isFlash = false,
@@ -111,6 +115,10 @@ class HomeScreenEditEventTest : StudentConnectTest() {
 
   @Test
   fun editingPrivateEvent_updatesHomeList() {
+    // Use future timestamps to pass temporality filter
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
     val event =
         Event.Private(
             uid = "private-home-test",
@@ -119,8 +127,8 @@ class HomeScreenEditEventTest : StudentConnectTest() {
             description = "Original private description",
             imageUrl = null,
             location = Location(46.51, 6.57, "Private Location"),
-            start = Timestamp.fromDate(2025, 5, 1),
-            end = Timestamp.fromDate(2025, 5, 2),
+            start = futureStart,
+            end = futureEnd,
             maxCapacity = 20u,
             participationFee = 5u,
             isFlash = true)

@@ -42,8 +42,9 @@ class HomePageViewModelGetEventsForDateTest {
 
   @Test
   fun getEventsForDate_returnsOnlyEventsFromThatDay() = runTest {
-    val todayCal = Calendar.getInstance()
-    val tomorrowCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+    // Use future dates to pass temporality filter
+    val todayCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+    val tomorrowCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 2) }
 
     val eventToday =
         Event.Public(
@@ -53,6 +54,7 @@ class HomePageViewModelGetEventsForDateTest {
             description = "",
             location = Location(0.0, 0.0, "Loc"),
             start = Timestamp(todayCal.time),
+            end = Timestamp(todayCal.time),
             isFlash = false,
             subtitle = "")
     val eventTomorrow =
@@ -63,6 +65,7 @@ class HomePageViewModelGetEventsForDateTest {
             description = "",
             location = Location(0.0, 0.0, "Loc"),
             start = Timestamp(tomorrowCal.time),
+            end = Timestamp(tomorrowCal.time),
             isFlash = false,
             subtitle = "")
 
