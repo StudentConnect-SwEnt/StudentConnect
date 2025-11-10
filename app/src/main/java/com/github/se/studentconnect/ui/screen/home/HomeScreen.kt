@@ -126,6 +126,8 @@ fun HomeScreen(
   val notificationUiState by notificationViewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
 
+  LaunchedEffect(Unit) { viewModel.refresh() }
+
   HomeScreen(
       navController = navController,
       shouldOpenQRScanner = shouldOpenQRScanner,

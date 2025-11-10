@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -98,6 +99,9 @@ fun FilterBar(
   var searchRadius by remember { mutableFloatStateOf(DEFAULT_RADIUS) }
   var priceRange by remember { mutableStateOf(DEFAULT_PRICE_RANGE) }
 
+  var localShowOnlyFavorites by remember { mutableStateOf(showOnlyFavorites) }
+  LaunchedEffect(showOnlyFavorites) { localShowOnlyFavorites = showOnlyFavorites }
+
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -109,8 +113,18 @@ fun FilterBar(
         FilterChipWithHighlight(
             text = "Favorites",
             icon = R.drawable.ic_heart,
-            isSelected = showOnlyFavorites,
-            onClick = onToggleFavorites)
+            isSelected = localShowOnlyFavorites,
+            onClick = {
+              localShowOnlyFavorites = !localShowOnlyFavorites
+              onToggleFavorites()
+              onApplyFilters(
+                  FilterData(
+                      categories = selectedFilters.toList(),
+                      location = selectedLocation,
+                      radiusKm = searchRadius,
+                      priceRange = priceRange,
+                      showOnlyFavorites = localShowOnlyFavorites))
+            })
       }
 
   if (showBottomSheet) {
@@ -255,7 +269,7 @@ fun FilterBar(
                           location = selectedLocation,
                           radiusKm = searchRadius,
                           priceRange = priceRange,
-                          showOnlyFavorites = showOnlyFavorites)
+                          showOnlyFavorites = localShowOnlyFavorites)
                   onApplyFilters(filters)
                   scope
                       .launch { sheetState.hide() }
@@ -283,7 +297,7 @@ fun FilterBar(
                           null,
                           DEFAULT_RADIUS,
                           DEFAULT_PRICE_RANGE,
-                          showOnlyFavorites))
+                          localShowOnlyFavorites))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors()) {
