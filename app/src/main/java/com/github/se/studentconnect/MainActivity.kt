@@ -198,24 +198,28 @@ private fun MainAppContent(
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit
 ) {
+  var isCameraActive by remember { mutableStateOf(false) }
+
   Scaffold(
       bottomBar = {
-        BottomNavigationBar(
-            selectedTab = selectedTab,
-            onTabSelected = { tab ->
-              onTabSelected(tab)
-              onQRScannerStateChange(false)
-              navController.navigate(tab.destination.route) {
-                launchSingleTop = true
-                restoreState = true
-              }
-            },
-            onCreatePublicEvent = {
-              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-            },
-            onCreatePrivateEvent = {
-              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-            })
+        if (!isCameraActive) {
+          BottomNavigationBar(
+              selectedTab = selectedTab,
+              onTabSelected = { tab ->
+                onTabSelected(tab)
+                onQRScannerStateChange(false)
+                navController.navigate(tab.destination.route) {
+                  launchSingleTop = true
+                  restoreState = true
+                }
+              },
+              onCreatePublicEvent = {
+                navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+              },
+              onCreatePrivateEvent = {
+                navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+              })
+        }
       }) { paddingValues ->
         // Use real repository from provider
         val userRepository = UserRepositoryProvider.repository
@@ -232,7 +236,8 @@ private fun MainAppContent(
             HomeScreen(
                 navController = navController,
                 shouldOpenQRScanner = shouldOpenQRScanner,
-                onQRScannerClosed = { onQRScannerStateChange(false) })
+                onQRScannerClosed = { onQRScannerStateChange(false) },
+                onCameraActiveChange = { isActive -> isCameraActive = isActive })
           }
           composable(Route.MAP) { MapScreen() }
           composable(
