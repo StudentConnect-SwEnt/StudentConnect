@@ -33,6 +33,7 @@ data class HomePageUiState(
     val isCalendarVisible: Boolean = false,
     val selectedDate: Date? = null,
     val scrollToDate: Date? = null,
+    val showOnlyFavorites: Boolean = false,
 )
 
 class HomePageViewModel
@@ -240,7 +241,14 @@ constructor(
 
           locationMatch
         }
-    _uiState.update { it.copy(events = filtered, isLoading = false) }
+    _uiState.update {
+      it.copy(events = filtered, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites)
+    }
+  }
+
+  fun toggleFavoritesFilter() {
+    val newFilters = currentFilters.copy(showOnlyFavorites = !currentFilters.showOnlyFavorites)
+    applyFilters(newFilters)
   }
 
   private fun calculateHaversineDistance(loc1: Location, loc2: Location): Double {
