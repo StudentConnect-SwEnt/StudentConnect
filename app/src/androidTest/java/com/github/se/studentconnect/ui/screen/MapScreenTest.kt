@@ -158,4 +158,65 @@ class MapScreenTest : TestCase() {
       locateUserFab.assertHasClickAction()
     }
   }
+
+  @Test
+  fun mapScreen_withTargetEventUid_displaysCorrectly() = run {
+    val targetLatitude = 46.5197
+    val targetLongitude = 6.6323
+    val targetZoom = 15.0
+    val targetEventUid = "test-event-123"
+
+    step("Display MapScreen with target location and event UID") {
+      composeTestRule.setContent {
+        MapScreen(
+            targetLatitude = targetLatitude,
+            targetLongitude = targetLongitude,
+            targetZoom = targetZoom,
+            targetEventUid = targetEventUid)
+      }
+    }
+
+    step("Verify all components are displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withNullTargetEventUid_displaysCorrectly() = run {
+    val targetLatitude = 46.5197
+    val targetLongitude = 6.6323
+    val targetZoom = 15.0
+
+    step("Display MapScreen with target location but no event UID") {
+      composeTestRule.setContent {
+        MapScreen(
+            targetLatitude = targetLatitude,
+            targetLongitude = targetLongitude,
+            targetZoom = targetZoom,
+            targetEventUid = null)
+      }
+    }
+
+    step("Verify all components are displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withOnlyEventUid_displaysCorrectly() = run {
+    val targetEventUid = "test-event-456"
+
+    step("Display MapScreen with only event UID (no coordinates)") {
+      composeTestRule.setContent { MapScreen(targetEventUid = targetEventUid) }
+    }
+
+    step("Verify all components are displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
+    }
+  }
 }

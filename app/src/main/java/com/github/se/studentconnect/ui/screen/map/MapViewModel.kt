@@ -254,7 +254,7 @@ class MapViewModel(
             _uiState.value.copy(
                 selectedEvent = selectedEvent,
                 selectedEventLocation = selectedLocation,
-                shouldAnimateToSelectedEvent = selectedEvent != null)
+                shouldAnimateToSelectedEvent = selectedLocation != null)
       }
       is MapViewEvent.ClearEventSelectionAnimation -> {
         _uiState.value = _uiState.value.copy(shouldAnimateToSelectedEvent = false)

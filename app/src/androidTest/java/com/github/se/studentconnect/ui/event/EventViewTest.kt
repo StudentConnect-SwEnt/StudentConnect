@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -26,12 +27,24 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class EventViewTest {
+
+  companion object {
+    @BeforeClass
+    @JvmStatic
+    fun grantPermissions() {
+      val instrumentation = InstrumentationRegistry.getInstrumentation()
+      val context = instrumentation.targetContext
+      instrumentation.uiAutomation.executeShellCommand(
+          "pm grant ${context.packageName} android.permission.CAMERA")
+    }
+  }
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -1529,6 +1542,121 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertIsDisplayed()
+
+    runBlocking { eventRepository.deleteEvent(eventWithLocation.uid) }
+  }
+
+  @Test
+  fun eventView_locationButtonClick_navigatesWithEventUid() {
+    val eventWithLocation =
+        testEvent.copy(
+            uid = "event-location-nav",
+            location = Location(latitude = 46.5197, longitude = 6.6323, name = "Test Location"))
+    runBlocking { eventRepository.addEvent(eventWithLocation) }
+
+    val withLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { withLocationViewModel.fetchEvent(eventWithLocation.uid) }
+
+    var capturedEventUid: String? = null
+    var navigationOccurred = false
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventWithLocation.uid,
+              navController = navController,
+              eventViewModel = withLocationViewModel,
+              hasJoined = false)
+        }
+        composable(
+            "map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}",
+            arguments =
+                listOf(
+                    androidx.navigation.navArgument("eventUid") {
+                      nullable = true
+                      defaultValue = null
+                    })) { backStackEntry ->
+              navigationOccurred = true
+              capturedEventUid = backStackEntry.arguments?.getString("eventUid")
+            }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).performScrollTo()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
+
+    // Verify navigation occurred with correct eventUid
+    assert(navigationOccurred) { "Expected navigation to map screen to occur" }
+    assert(capturedEventUid == eventWithLocation.uid) {
+      "Expected eventUid to be ${eventWithLocation.uid}, but got: $capturedEventUid"
+    }
+
+    runBlocking { eventRepository.deleteEvent(eventWithLocation.uid) }
+  }
+
+  @Test
+  fun eventView_locationButtonClick_includesCorrectCoordinatesInRoute() {
+    val eventWithLocation =
+        testEvent.copy(
+            uid = "event-coords-test",
+            location = Location(latitude = 46.5197, longitude = 6.6323, name = "Test Location"))
+    runBlocking { eventRepository.addEvent(eventWithLocation) }
+
+    val withLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { withLocationViewModel.fetchEvent(eventWithLocation.uid) }
+
+    var capturedLatitude: String? = null
+    var capturedLongitude: String? = null
+    var navigationOccurred = false
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventWithLocation.uid,
+              navController = navController,
+              eventViewModel = withLocationViewModel,
+              hasJoined = false)
+        }
+        composable(
+            "map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}",
+            arguments =
+                listOf(
+                    androidx.navigation.navArgument("latitude") {
+                      type = androidx.navigation.NavType.StringType
+                    },
+                    androidx.navigation.navArgument("longitude") {
+                      type = androidx.navigation.NavType.StringType
+                    })) { backStackEntry ->
+              navigationOccurred = true
+              capturedLatitude = backStackEntry.arguments?.getString("latitude")
+              capturedLongitude = backStackEntry.arguments?.getString("longitude")
+            }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).performScrollTo()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
+
+    // Verify navigation occurred with correct coordinates
+    assert(navigationOccurred) { "Expected navigation to map screen to occur" }
+    assert(capturedLatitude == "46.5197") {
+      "Expected latitude to be 46.5197, but got: $capturedLatitude"
+    }
+    assert(capturedLongitude == "6.6323") {
+      "Expected longitude to be 6.6323, but got: $capturedLongitude"
+    }
 
     runBlocking { eventRepository.deleteEvent(eventWithLocation.uid) }
   }
