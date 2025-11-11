@@ -260,11 +260,21 @@ private fun MainAppContent(
                   listOf(
                       navArgument("latitude") { type = NavType.StringType },
                       navArgument("longitude") { type = NavType.StringType },
-                      navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
+                      navArgument("zoom") { type = NavType.StringType },
+                      navArgument("eventUid") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                      })) { backStackEntry ->
                 val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
                 val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
                 val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
-                MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                MapScreen(
+                    targetLatitude = latitude,
+                    targetLongitude = longitude,
+                    targetZoom = zoom,
+                    targetEventUid = eventUid)
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
 

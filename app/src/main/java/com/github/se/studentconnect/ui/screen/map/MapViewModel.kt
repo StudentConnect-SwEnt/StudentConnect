@@ -339,8 +339,8 @@ class MapViewModel(
       mapViewportState.flyTo(
           cameraOptions {
             center(eventLocation)
-            // Keep current zoom or use a comfortable zoom level
-            zoom(mapViewportState.cameraState?.zoom?.coerceAtLeast(MapConfiguration.Zoom.TARGET))
+            // Use a comfortable zoom level for viewing event details (15.0)
+            zoom(15.0)
             bearing(MapConfiguration.Camera.BEARING)
             pitch(MapConfiguration.Camera.PITCH)
           },

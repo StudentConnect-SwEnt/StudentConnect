@@ -85,6 +85,7 @@ import java.util.Locale
  * @param targetLatitude Optional latitude to animate the map to on load
  * @param targetLongitude Optional longitude to animate the map to on load
  * @param targetZoom Zoom level for the target location (default: MapConfiguration.Zoom.TARGET)
+ * @param targetEventUid Optional event UID to automatically select and display on load
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,6 +93,7 @@ fun MapScreen(
     targetLatitude: Double? = null,
     targetLongitude: Double? = null,
     targetZoom: Double = MapConfiguration.Zoom.TARGET,
+    targetEventUid: String? = null,
 ) {
   val context = LocalContext.current
   val actualViewModel: MapViewModel = viewModel { MapViewModel(LocationRepositoryImpl(context)) }
@@ -127,11 +129,16 @@ fun MapScreen(
       onPermissionGranted = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(true)) },
       onPermissionDenied = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(false)) })
 
-  LaunchedEffect(targetLatitude, targetLongitude) {
+  LaunchedEffect(targetLatitude, targetLongitude, targetEventUid) {
     if (targetLatitude != null && targetLongitude != null) {
       actualViewModel.onEvent(
           MapViewEvent.SetTargetLocation(targetLatitude, targetLongitude, targetZoom))
-      actualViewModel.animateToTarget(mapViewportState, targetLatitude, targetLongitude, targetZoom)
+      // Only animate to coordinates if we're not also selecting an event
+      // (event selection will handle the animation)
+      if (targetEventUid == null) {
+        actualViewModel.animateToTarget(
+            mapViewportState, targetLatitude, targetLongitude, targetZoom)
+      }
     }
   }
 
@@ -146,6 +153,13 @@ fun MapScreen(
     if (uiState.shouldAnimateToSelectedEvent && uiState.selectedEventLocation != null) {
       actualViewModel.animateToSelectedEvent(mapViewportState)
       actualViewModel.onEvent(MapViewEvent.ClearEventSelectionAnimation)
+    }
+  }
+
+  // Automatically select event when targetEventUid is provided
+  LaunchedEffect(targetEventUid, uiState.events) {
+    if (targetEventUid != null && uiState.events.isNotEmpty()) {
+      actualViewModel.onEvent(MapViewEvent.SelectEvent(targetEventUid))
     }
   }
 
