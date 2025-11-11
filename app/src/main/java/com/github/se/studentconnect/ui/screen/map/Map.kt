@@ -296,6 +296,17 @@ private fun MapContainer(
   val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
   val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
   val previousFriendLocations = remember { mutableStateOf<Map<String, FriendLocation>?>(null) }
+  // Track when an event is initially selected to avoid dismissing during animation
+  val isAnimatingToEvent = remember { mutableStateOf(false) }
+
+  // Set animation flag when event is selected and reset after animation completes
+  LaunchedEffect(selectedEvent) {
+    if (selectedEvent != null) {
+      isAnimatingToEvent.value = true
+      kotlinx.coroutines.delay(1000) // Wait for animation to complete
+      isAnimatingToEvent.value = false
+    }
+  }
 
   Box(modifier = modifier.clip(RoundedCornerShape(Corner.MAP_RADIUS))) {
     if (BuildConfig.USE_MOCK_MAP || isInAndroidTest()) {
@@ -344,6 +355,32 @@ private fun MapContainer(
                           }
                     }
                 true
+              }
+            }
+
+            // Add camera change listener to dismiss info card when user scrolls away
+            MapEffect(selectedEvent, selectedEventLocation) { mapView ->
+              if (selectedEvent != null && selectedEventLocation != null) {
+                mapView.mapboxMap.subscribeCameraChanged { _ ->
+                  // Skip camera change checks during initial animation
+                  if (!isAnimatingToEvent.value) {
+                    // When camera moves and we have a selected event, check if we've moved far
+                    // enough
+                    val currentCenter = mapView.mapboxMap.cameraState.center
+
+                    // Calculate distance between current center and selected event location
+                    val latDiff = currentCenter.latitude() - selectedEventLocation.latitude()
+                    val lonDiff = currentCenter.longitude() - selectedEventLocation.longitude()
+                    val distance = kotlin.math.sqrt(latDiff * latDiff + lonDiff * lonDiff)
+
+                    // Dismiss if user scrolled more than a threshold distance
+                    // Using a reasonable threshold (roughly 200-300 meters at typical zoom)
+                    val dismissThreshold = 0.002
+                    if (distance > dismissThreshold) {
+                      onEventSelected(null)
+                    }
+                  }
+                }
               }
             }
 
