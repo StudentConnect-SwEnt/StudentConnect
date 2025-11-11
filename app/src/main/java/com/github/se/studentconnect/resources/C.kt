@@ -34,6 +34,7 @@ object C {
     const val map_locate_user_fab = "map_locate_user_fab"
     const val map_toggle_view_fab = "map_toggle_view_fab"
     const val map_search_field = "map_search_field"
+    const val map_event_info_card = "map_event_info_card"
 
     // Navigation test tags
     const val bottom_navigation_menu = "bottom_navigation_menu"

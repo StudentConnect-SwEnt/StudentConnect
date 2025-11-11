@@ -4,18 +4,30 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
@@ -46,6 +59,7 @@ import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.repository.LocationRepositoryImpl
 import com.github.se.studentconnect.repository.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
+import com.google.firebase.Timestamp
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
@@ -53,8 +67,11 @@ import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import com.mapbox.maps.plugin.locationcomponent.location
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Main map screen composable that displays an interactive map with event markers.
@@ -125,6 +142,13 @@ fun MapScreen(
     }
   }
 
+  LaunchedEffect(uiState.shouldAnimateToSelectedEvent) {
+    if (uiState.shouldAnimateToSelectedEvent && uiState.selectedEventLocation != null) {
+      actualViewModel.animateToSelectedEvent(mapViewportState)
+      actualViewModel.onEvent(MapViewEvent.ClearEventSelectionAnimation)
+    }
+  }
+
   LaunchedEffect(uiState.errorMessage) {
     uiState.errorMessage?.let { message ->
       snackbarHostState.showSnackbar(message)
@@ -172,8 +196,13 @@ fun MapScreen(
           isEventsView = uiState.isEventsView,
           events = uiState.events,
           friendLocations = uiState.friendLocations,
+          selectedEvent = uiState.selectedEvent,
+          selectedEventLocation = uiState.selectedEventLocation,
           onToggleView = { actualViewModel.onEvent(MapViewEvent.ToggleView) },
           onLocateUser = { actualViewModel.onEvent(MapViewEvent.LocateUser) },
+          onEventSelected = { eventUid ->
+            actualViewModel.onEvent(MapViewEvent.SelectEvent(eventUid))
+          },
           modifier =
               Modifier.fillMaxSize()
                   .padding(
@@ -241,8 +270,11 @@ private fun SearchBar(
  * @param isEventsView Whether currently in events view (vs friends view)
  * @param events List of events to display as markers
  * @param friendLocations Map of friend locations to display as markers
+ * @param selectedEvent Currently selected event to display info for
+ * @param selectedEventLocation Geographic location of the selected event
  * @param onToggleView Callback to toggle between views
  * @param onLocateUser Callback to center map on user location
+ * @param onEventSelected Callback when an event marker is clicked
  * @param modifier Modifier to be applied to the container
  */
 @Composable
@@ -252,8 +284,11 @@ private fun MapContainer(
     isEventsView: Boolean,
     events: List<Event>,
     friendLocations: Map<String, FriendLocation>,
+    selectedEvent: Event?,
+    selectedEventLocation: Point?,
     onToggleView: () -> Unit,
     onLocateUser: () -> Unit,
+    onEventSelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -279,6 +314,36 @@ private fun MapContainer(
                 puckBearingEnabled = true
                 enabled = true
                 pulsingEnabled = true
+              }
+
+              // Add click listener for event markers
+              mapView.mapboxMap.addOnMapClickListener { point ->
+                val screenCoordinate = mapView.mapboxMap.pixelForCoordinate(point)
+
+                // Query rendered features synchronously using the gesture plugin
+                mapView.mapboxMap.queryRenderedFeatures(
+                    com.mapbox.maps.RenderedQueryGeometry(screenCoordinate),
+                    com.mapbox.maps.RenderedQueryOptions(
+                        listOf(EventMarkerConfig.LAYER_ID), null)) { expected ->
+                      expected.value?.let { features ->
+                        if (features.isNotEmpty()) {
+                          val eventUid =
+                              features[0]
+                                  .queriedFeature
+                                  .feature
+                                  .getStringProperty(EventMarkerConfig.PROP_UID)
+                          onEventSelected(eventUid)
+                        } else {
+                          // Clicked on map, not on a marker - clear selection
+                          onEventSelected(null)
+                        }
+                      }
+                          ?: run {
+                            // Error querying features - clear selection
+                            onEventSelected(null)
+                          }
+                    }
+                true
               }
             }
 
@@ -359,6 +424,14 @@ private fun MapContainer(
           }
     }
 
+    // Display event info card when an event is selected
+    selectedEvent?.let { event ->
+      EventInfoCard(
+          event = event,
+          onClose = { onEventSelected(null) },
+          modifier = Modifier.align(Alignment.TopCenter).padding(Padding.CONTENT))
+    }
+
     MapActionButtons(
         hasLocationPermission = hasLocationPermission,
         isEventsView = isEventsView,
@@ -422,6 +495,132 @@ private fun BoxScope.MapActionButtons(
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.Companion.size(Size.LARGE_ICON))
       }
+}
+
+/**
+ * Event info card that displays basic event information when a marker is clicked. Styled like a
+ * callout bubble with a pointer at the bottom to indicate connection to the marker.
+ *
+ * @param event The event to display information for
+ * @param onClose Callback when the close button is clicked
+ * @param modifier Modifier to be applied to the card
+ */
+@Composable
+private fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
+  Column(
+      modifier = modifier.fillMaxWidth().semantics { testTag = C.Tag.map_event_info_card },
+      horizontalAlignment = Alignment.CenterHorizontally) {
+        // Main card content
+        Card(
+            shape = RoundedCornerShape(Corner.RADIUS),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+              Column(modifier = Modifier.padding(Padding.CONTENT)) {
+                // Header with title and close button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Text(
+                          text = event.title,
+                          style = MaterialTheme.typography.titleMedium,
+                          fontWeight = FontWeight.Bold,
+                          color = MaterialTheme.colorScheme.onSurface,
+                          modifier = Modifier.weight(1f))
+                      IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp))
+                      }
+                    }
+
+                Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+
+                // Event subtitle (for public events)
+                if (event is Event.Public) {
+                  Text(
+                      text = event.subtitle,
+                      style = MaterialTheme.typography.bodyMedium,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                }
+
+                // Location
+                event.location?.let { location ->
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Size.ICON))
+                    Spacer(modifier = Modifier.width(Padding.VERTICAL_SPACING))
+                    Text(
+                        text = location.name ?: "Unknown location",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface)
+                  }
+                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                }
+
+                // Start time
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector = Icons.Default.AccessTime,
+                      contentDescription = "Time",
+                      tint = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.size(Size.ICON))
+                  Spacer(modifier = Modifier.width(Padding.VERTICAL_SPACING))
+                  Text(
+                      text = formatTimestamp(event.start),
+                      style = MaterialTheme.typography.bodyMedium,
+                      color = MaterialTheme.colorScheme.onSurface)
+                }
+
+                // Max capacity
+                event.maxCapacity?.let { capacity ->
+                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.People,
+                        contentDescription = "Capacity",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Size.ICON))
+                    Spacer(modifier = Modifier.width(Padding.VERTICAL_SPACING))
+                    Text(
+                        text = "Max: $capacity people",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface)
+                  }
+                }
+              }
+            }
+
+        // Pointer/arrow pointing down to the marker
+        Box(
+            modifier =
+                Modifier.size(16.dp, 8.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape =
+                            GenericShape { size, _ ->
+                              moveTo(0f, 0f)
+                              lineTo(size.width / 2f, size.height)
+                              lineTo(size.width, 0f)
+                              close()
+                            }))
+      }
+}
+
+/**
+ * Formats a Firebase Timestamp to a readable date/time string.
+ *
+ * @param timestamp The timestamp to format
+ * @return Formatted string like "Jan 15, 2025 2:30 PM"
+ */
+private fun formatTimestamp(timestamp: Timestamp): String {
+  val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
+  return dateFormat.format(timestamp.toDate())
 }
 
 /**
