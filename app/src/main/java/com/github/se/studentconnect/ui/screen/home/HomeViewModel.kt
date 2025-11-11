@@ -190,7 +190,8 @@ constructor(
 
     val filtered =
         eventsToFilter.filter { event ->
-          val publicEvent = event as? Event.Public
+          // Only show public events on home page
+          val publicEvent = event as? Event.Public ?: return@filter false
 
           // Temporality: only show future or LIVE events
           val eventEndTime = event.end?.toDate() ?: event.start.toDate()
@@ -211,7 +212,7 @@ constructor(
               if (filters.categories.isEmpty()) {
                 true
               } else {
-                val eventTags = publicEvent?.tags ?: emptyList()
+                val eventTags = publicEvent.tags
                 eventTags.any { eventTag ->
                   filters.categories.any { selectedTag ->
                     eventTag.equals(selectedTag, ignoreCase = true)
@@ -222,7 +223,7 @@ constructor(
 
           // Price
           val priceMatch =
-              if (publicEvent?.participationFee == null || publicEvent.participationFee == 0u) {
+              if (publicEvent.participationFee == null || publicEvent.participationFee == 0u) {
                 filters.priceRange.start <= 0f
               } else {
                 val fee = publicEvent.participationFee.toFloat()
