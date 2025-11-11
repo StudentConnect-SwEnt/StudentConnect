@@ -94,7 +94,23 @@ class ActivitiesViewModel(
           when (uiState.value.selectedTab) {
             EventTab.Upcoming -> {
               val joinedEvents = userRepository.getJoinedEvents(userUid)
-              joinedEvents
+
+              // Get all visible events (includes private events owned by user)
+              val allVisibleEvents =
+                  try {
+                    eventRepository.getAllVisibleEvents()
+                  } catch (e: Exception) {
+                    _uiState.update {
+                      it.copy(
+                          errorMessage = "Failed to load events: ${e.message ?: "Unknown error"}")
+                    }
+                    emptyList()
+                  }
+
+              val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
+              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
+
+              allEventIds
                   .mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
