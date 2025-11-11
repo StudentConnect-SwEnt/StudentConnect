@@ -49,7 +49,7 @@ constructor(
   private val _favoriteEventIds = MutableStateFlow<Set<String>>(emptySet())
   val favoriteEventIds: StateFlow<Set<String>> = _favoriteEventIds.asStateFlow()
 
-  private val currentUserId: String = AuthenticationProvider.currentUser
+  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
 
   private var currentFilters: FilterData =
       FilterData(
@@ -107,7 +107,7 @@ constructor(
   }
 
   private fun loadFavoriteEvents() {
-    currentUserId.let { uid ->
+    currentUserId?.let { uid ->
       viewModelScope.launch {
         try {
           val favorites = userRepository.getFavoriteEvents(uid)
@@ -147,7 +147,7 @@ constructor(
   }
 
   fun toggleFavorite(eventId: String) {
-    currentUserId.let { uid ->
+    currentUserId?.let { uid ->
       viewModelScope.launch {
         var didAdd = false
         _favoriteEventIds.update { current ->
@@ -185,9 +185,16 @@ constructor(
   private fun applyFilters(filters: FilterData, eventsToFilter: List<Event>) {
     _uiState.update { it.copy(isLoading = true) }
 
+    val currentTime = Date()
+
     val filtered =
         eventsToFilter.filter { event ->
           val publicEvent = event as? Event.Public
+
+          // Temporality: only show future or LIVE events
+          val eventEndTime = event.end?.toDate() ?: event.start.toDate()
+          val isFutureOrLive = eventEndTime.after(currentTime) || eventEndTime == currentTime
+          if (!isFutureOrLive) return@filter false
 
           // Favorites
           val favoriteMatch =

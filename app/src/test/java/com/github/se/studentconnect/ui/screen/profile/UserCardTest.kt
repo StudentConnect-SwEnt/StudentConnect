@@ -468,6 +468,7 @@ class UserCardTest {
 
   @Test
   fun `user card data class equality works correctly`() {
+    val fixedTimestamp = 1000000000L
     val user1 =
         User(
             userId = TEST_USER_ID,
@@ -478,7 +479,9 @@ class UserCardTest {
             university = TEST_UNIVERSITY,
             hobbies = listOf("Programming", "Photography"),
             profilePictureUrl = TEST_PROFILE_PICTURE_URL,
-            bio = "Computer Science student")
+            bio = "Computer Science student",
+            createdAt = fixedTimestamp,
+            updatedAt = fixedTimestamp)
     val user2 =
         User(
             userId = TEST_USER_ID,
@@ -489,7 +492,9 @@ class UserCardTest {
             university = TEST_UNIVERSITY,
             hobbies = listOf("Programming", "Photography"),
             profilePictureUrl = TEST_PROFILE_PICTURE_URL,
-            bio = "Computer Science student")
+            bio = "Computer Science student",
+            createdAt = fixedTimestamp,
+            updatedAt = fixedTimestamp)
 
     assertEquals("Equal User objects should be equal", user1, user2)
   }

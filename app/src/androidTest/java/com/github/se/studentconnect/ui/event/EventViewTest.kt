@@ -1327,4 +1327,209 @@ class EventViewTest {
     // Join button should not exist for owner
     composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertDoesNotExist()
   }
+
+  @Test
+  fun eventView_websiteButton_notDisplayedForPrivateEvent() {
+    val privateEvent =
+        Event.Private(
+            uid = "private-no-website",
+            title = "Private Event",
+            description = "Private event has no website field",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            location = Location(46.52, 6.57, "EPFL"),
+            ownerId = "owner123",
+            isFlash = false,
+            maxCapacity = 20u)
+    runBlocking { eventRepository.addEvent(privateEvent) }
+
+    val privateViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { privateViewModel.fetchEvent(privateEvent.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = privateEvent.uid,
+              navController = navController,
+              eventViewModel = privateViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertDoesNotExist()
+
+    runBlocking { eventRepository.deleteEvent(privateEvent.uid) }
+  }
+
+  @Test
+  fun eventView_websiteButton_notDisplayedWhenWebsiteIsNull() {
+    val publicEventNoWebsite = testEvent.copy(uid = "public-no-website", website = null)
+    runBlocking { eventRepository.addEvent(publicEventNoWebsite) }
+
+    val noWebsiteViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { noWebsiteViewModel.fetchEvent(publicEventNoWebsite.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = publicEventNoWebsite.uid,
+              navController = navController,
+              eventViewModel = noWebsiteViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertDoesNotExist()
+
+    runBlocking { eventRepository.deleteEvent(publicEventNoWebsite.uid) }
+  }
+
+  @Test
+  fun eventView_websiteButton_notDisplayedWhenWebsiteIsEmpty() {
+    val publicEventEmptyWebsite = testEvent.copy(uid = "public-empty-website", website = "")
+    runBlocking { eventRepository.addEvent(publicEventEmptyWebsite) }
+
+    val emptyWebsiteViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { emptyWebsiteViewModel.fetchEvent(publicEventEmptyWebsite.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = publicEventEmptyWebsite.uid,
+              navController = navController,
+              eventViewModel = emptyWebsiteViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertDoesNotExist()
+
+    runBlocking { eventRepository.deleteEvent(publicEventEmptyWebsite.uid) }
+  }
+
+  @Test
+  fun eventView_websiteButton_displayedWhenWebsiteIsPresent() {
+    val publicEventWithWebsite =
+        testEvent.copy(uid = "public-with-website", website = "https://example.com")
+    runBlocking { eventRepository.addEvent(publicEventWithWebsite) }
+
+    val withWebsiteViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { withWebsiteViewModel.fetchEvent(publicEventWithWebsite.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = publicEventWithWebsite.uid,
+              navController = navController,
+              eventViewModel = withWebsiteViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertIsDisplayed()
+
+    runBlocking { eventRepository.deleteEvent(publicEventWithWebsite.uid) }
+  }
+
+  @Test
+  fun eventView_websiteButton_displayedForNonEmptyWebsite() {
+    val publicEventWithWebsite =
+        testEvent.copy(uid = "public-non-empty-website", website = "example.com")
+    runBlocking { eventRepository.addEvent(publicEventWithWebsite) }
+
+    val websiteViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { websiteViewModel.fetchEvent(publicEventWithWebsite.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = publicEventWithWebsite.uid,
+              navController = navController,
+              eventViewModel = websiteViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EventViewTestTags.VISIT_WEBSITE_BUTTON).assertHasClickAction()
+
+    runBlocking { eventRepository.deleteEvent(publicEventWithWebsite.uid) }
+  }
+
+  @Test
+  fun eventView_locationButton_notDisplayedWhenLocationIsNull() {
+    val eventNoLocation = testEvent.copy(uid = "event-no-location", location = null)
+    runBlocking { eventRepository.addEvent(eventNoLocation) }
+
+    val noLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { noLocationViewModel.fetchEvent(eventNoLocation.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventNoLocation.uid,
+              navController = navController,
+              eventViewModel = noLocationViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertDoesNotExist()
+
+    runBlocking { eventRepository.deleteEvent(eventNoLocation.uid) }
+  }
+
+  @Test
+  fun eventView_locationButton_displayedWhenLocationIsPresent() {
+    val eventWithLocation =
+        testEvent.copy(
+            uid = "event-with-location",
+            location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"))
+    runBlocking { eventRepository.addEvent(eventWithLocation) }
+
+    val withLocationViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { withLocationViewModel.fetchEvent(eventWithLocation.uid) }
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = eventWithLocation.uid,
+              navController = navController,
+              eventViewModel = withLocationViewModel,
+              hasJoined = false)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertIsDisplayed()
+
+    runBlocking { eventRepository.deleteEvent(eventWithLocation.uid) }
+  }
 }
