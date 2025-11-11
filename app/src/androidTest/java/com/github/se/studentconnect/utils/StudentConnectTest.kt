@@ -21,7 +21,7 @@ import org.junit.Before
 const val UI_WAIT_TIMEOUT = 5_000L
 
 /** Base class for all StudentConnect tests, providing common setup and utility functions. */
-abstract class StudentConnectTest() {
+abstract class StudentConnectTest(private val signInAnonymouslyIfPossible: Boolean = true) {
 
   abstract fun createInitializedRepository(): EventRepository
 
@@ -33,7 +33,7 @@ abstract class StudentConnectTest() {
   val httpClient
     get() = HttpClientProvider.client
 
-  val shouldSignInAnounymously: Boolean = FirebaseEmulator.isRunning
+  val shouldSignInAnonymously: Boolean = signInAnonymouslyIfPossible && FirebaseEmulator.isRunning
 
   val currentUser: FirebaseUser
     get() = FirebaseEmulator.auth.currentUser!!
@@ -46,7 +46,7 @@ abstract class StudentConnectTest() {
   open fun setUp() {
     EventRepositoryProvider.repository = createInitializedRepository()
     HttpClientProvider.client = initializeHTTPClient()
-    if (shouldSignInAnounymously) {
+    if (shouldSignInAnonymously) {
       runTest { FirebaseEmulator.auth.signInAnonymously().await() }
     }
   }
