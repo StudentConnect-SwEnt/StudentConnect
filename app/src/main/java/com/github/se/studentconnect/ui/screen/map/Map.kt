@@ -388,8 +388,7 @@ private fun MapContainer(
                     val distance = kotlin.math.sqrt(latDiff * latDiff + lonDiff * lonDiff)
 
                     // Dismiss if user scrolled more than a threshold distance
-                    // Using a reasonable threshold (roughly 200-300 meters at typical zoom)
-                    val dismissThreshold = 0.002
+                    val dismissThreshold = 0.0005
                     if (distance > dismissThreshold) {
                       onEventSelected(null)
                     }
@@ -559,7 +558,7 @@ private fun BoxScope.MapActionButtons(
 @Composable
 private fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
   Column(
-      modifier = modifier.fillMaxWidth().semantics { testTag = C.Tag.map_event_info_card },
+      modifier = modifier.fillMaxWidth(0.85f).semantics { testTag = C.Tag.map_event_info_card },
       horizontalAlignment = Alignment.CenterHorizontally) {
         // Main card content
         Card(
