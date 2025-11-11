@@ -279,9 +279,9 @@ configurations.all {
 }
 
 tasks.withType<Test>().configureEach {
-    // Disable per-test logging
+    // Show only failing tests to reduce noise while keeping visibility of failures
     testLogging {
-        events() // no events -> suppress "PASSED"/"FAILED"/"SKIPPED" lines
+        events(TestLogEvent.FAILED)
     }
 
     // Print only a summary after all tests
