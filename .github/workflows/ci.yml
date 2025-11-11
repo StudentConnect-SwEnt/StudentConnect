@@ -16,7 +16,7 @@ jobs:
   ci:
     name: CI
     # Execute the CI on the course's runners
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: [self-hosted, haven]
 
     steps:
       # First step : Checkout the repository on the runner
@@ -190,3 +190,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+<<<<<<< Updated upstream
+=======
+
+      # Assemble Release APK
+      - name: Assemble APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          ./gradlew assembleNormalRelease --parallel --build-cache \
+            -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
+
+      - name: Print signing cert SHA-1 (from keystore)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          keytool -list -v \
+            -storetype PKCS12 \
+            -keystore ~/.android/release.keystore \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            | grep -E "SHA( |-)?1:"
+>>>>>>> Stashed changes
