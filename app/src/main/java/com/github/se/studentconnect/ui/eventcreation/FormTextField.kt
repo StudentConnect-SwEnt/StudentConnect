@@ -17,6 +17,30 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
+/**
+ * Creates a composable label for form text fields with optional required indicator.
+ *
+ * @param label The text to display in the label, or null if no label should be shown
+ * @param required Whether to append a red asterisk (*) to indicate a required field
+ * @return A composable function that renders the label, or null if label is null
+ */
+@Composable
+private fun createLabelComposable(label: String?, required: Boolean): (@Composable () -> Unit)? {
+  return label?.let {
+    {
+      if (required) {
+        Text(
+            buildAnnotatedString {
+              append(it)
+              withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
+            })
+      } else {
+        Text(it)
+      }
+    }
+  }
+}
+
 @Composable
 fun FormTextField(
     modifier: Modifier = Modifier,
@@ -29,35 +53,13 @@ fun FormTextField(
     required: Boolean = false,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
-
-  // remember if the field has been interacted with once before
-  // an interaction is: either the value has been modified, or the element was focused then
-  // unfocused
   var hasBeenInteractedWith by remember { mutableStateOf(false) }
-
-  // only show the error if the field has been focused and modified once before
   val shouldShowError = hasBeenInteractedWith && errorText != null
-
-  // Create label with asterisk if required
-  val labelComposable: (@Composable () -> Unit)? =
-      label?.let {
-        {
-          if (required) {
-            Text(
-                buildAnnotatedString {
-                  append(it)
-                  withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
-                })
-          } else {
-            Text(it)
-          }
-        }
-      }
+  val labelComposable = createLabelComposable(label, required)
 
   OutlinedTextField(
       modifier =
           modifier.onFocusChanged {
-            // if the element was focused and then unfocused, it is an interaction
             if (it.isFocused) hasBeenFocused = true
             else if (hasBeenFocused) hasBeenInteractedWith = true
           },
@@ -86,35 +88,13 @@ fun FormTextField(
     required: Boolean = false,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
-
-  // remember if the field has been interacted with once before
-  // an interaction is: either the value has been modified, or the element was focused then
-  // unfocused
   var hasBeenInteractedWith by remember { mutableStateOf(false) }
-
-  // only show the error if the field has been focused and modified once before
   val shouldShowError = hasBeenInteractedWith && errorText != null
-
-  // Create label with asterisk if required
-  val labelComposable: (@Composable () -> Unit)? =
-      label?.let {
-        {
-          if (required) {
-            Text(
-                buildAnnotatedString {
-                  append(it)
-                  withStyle(style = SpanStyle(color = Color.Red)) { append(" *") }
-                })
-          } else {
-            Text(it)
-          }
-        }
-      }
+  val labelComposable = createLabelComposable(label, required)
 
   OutlinedTextField(
       modifier =
           modifier.onFocusChanged {
-            // if the element was focused and then unfocused, it is an interaction
             if (it.isFocused) hasBeenFocused = true
             else if (hasBeenFocused) hasBeenInteractedWith = true
           },
