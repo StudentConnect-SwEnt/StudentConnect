@@ -44,7 +44,7 @@ class UserCardTest {
             username = "testuser",
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
-            birthday = "30/04/2005",
+            birthdate = "30/04/2005",
             university = TEST_UNIVERSITY,
             hobbies = listOf("Programming", "Photography"),
             profilePictureUrl = null,
@@ -258,15 +258,15 @@ class UserCardTest {
 
   @Test
   fun `user card handles birthdate formatting correctly`() {
-    val userWithBirthdate = testUser.copy(birthday = BirthdayFormatter.formatDate(1114819200000L))
+    val userWithBirthdate = testUser.copy(birthdate = BirthdayFormatter.formatDate(1114819200000L))
     composeUserCard(userWithBirthdate)
 
-    assertNotNull("Birthday should not be null", userWithBirthdate.birthday)
+    assertNotNull("Birthday should not be null", userWithBirthdate.birthdate)
   }
 
   @Test
   fun `user card handles null birthdate correctly`() {
-    val userWithoutBirthdate = testUser.copy(birthday = null)
+    val userWithoutBirthdate = testUser.copy(birthdate = null)
     composeUserCard(userWithoutBirthdate)
 
     assertTrue("UserCard should handle null birthday", true)
@@ -301,9 +301,9 @@ class UserCardTest {
     val differentDates = listOf("01/01/2000", "01/01/2020", "01/01/1970")
 
     differentDates.forEach { date ->
-      val userWithDate = testUser.copy(birthday = date)
+      val userWithDate = testUser.copy(birthdate = date)
       composeUserCard(userWithDate)
-      assertNotNull("Birthdate should be handled", userWithDate.birthday)
+      assertNotNull("Birthdate should be handled", userWithDate.birthdate)
     }
   }
 
