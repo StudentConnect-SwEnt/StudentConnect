@@ -200,15 +200,17 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
-  fun editBirthdayScreen_showsSuccessMessageAfterSave() {
+  fun editBirthdayScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditBirthdayScreen(
@@ -221,9 +223,13 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Birthday updated successfully").assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
@@ -385,11 +391,13 @@ class EditBirthdayScreenTest {
     // Click save to save the current date
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
@@ -408,11 +416,14 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and verify timestamp was updated
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    val timeAfter = System.currentTimeMillis()
+    val savedUser = repository.savedUsers.last()
+    assert(savedUser.updatedAt >= timeBefore && savedUser.updatedAt <= timeAfter)
   }
 
   @Test

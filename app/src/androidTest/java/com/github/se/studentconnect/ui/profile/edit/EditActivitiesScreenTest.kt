@@ -417,7 +417,7 @@ class EditActivitiesScreenTest {
   }
 
   @Test
-  fun editActivitiesScreen_showsSuccessMessage() {
+  fun editActivitiesScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditActivitiesScreen(
@@ -432,36 +432,13 @@ class EditActivitiesScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save Activities").performClick()
 
-    // Wait for success message
-    composeTestRule.waitForIdle()
-
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText("Activities updated successfully").assertExists()
-  }
-
-  @Test
-  fun editActivitiesScreen_doesNotNavigateBackAfterSave() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditActivitiesScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
-
-    // Wait for save to complete
+    // Wait for save to complete and navigation
     composeTestRule.waitForIdle()
     Thread.sleep(500) // Give time for save operation
     composeTestRule.waitForIdle()
 
-    // Should NOT navigate back automatically
-    assert(!navigatedBack)
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
