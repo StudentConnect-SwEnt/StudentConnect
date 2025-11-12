@@ -11,7 +11,6 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -75,7 +74,6 @@ class SearchScreenTest {
               subtitle = subtitle,
           ))
     }
-    
   }
 
   @Composable
@@ -193,5 +191,4 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
   }
-
 }

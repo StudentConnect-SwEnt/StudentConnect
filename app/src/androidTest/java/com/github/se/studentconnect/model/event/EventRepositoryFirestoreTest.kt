@@ -525,5 +525,4 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       Assert.assertFalse(events.any { it.uid == privateEvent.uid })
     }
   }
-
 }
