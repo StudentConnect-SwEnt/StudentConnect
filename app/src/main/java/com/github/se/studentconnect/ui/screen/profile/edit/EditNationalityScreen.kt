@@ -109,10 +109,12 @@ fun EditNationalityScreen(
 
   val snackbarHostState = remember { SnackbarHostState() }
 
-  // Show success messages
+  // Navigate back immediately after successful save
   LaunchedEffect(successMessage) {
-    successMessage?.let { message ->
-      snackbarHostState.showSnackbar(message)
+    successMessage?.let {
+      // Navigate back immediately after successful save
+      onNavigateBack?.invoke()
+      // Clear message after navigation to avoid cancelling LaunchedEffect
       viewModel.clearSuccessMessage()
     }
   }
