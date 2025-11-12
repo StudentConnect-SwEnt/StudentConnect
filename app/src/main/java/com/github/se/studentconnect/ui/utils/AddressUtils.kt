@@ -1,5 +1,13 @@
 package com.github.se.studentconnect.ui.utils
 
+private const val MAX_ADDRESS_LENGTH = 50
+private const val MAX_ADDRESS_LENGTH_WITH_ELLIPSIS = 47
+private const val FIRST_PART_INDEX = 0
+private const val SECOND_PART_INDEX = 1
+private const val THIRD_PART_INDEX = 2
+private const val MIN_PARTS_FOR_JOIN = 2
+private const val ELLIPSIS_LENGTH = 3
+
 /**
  * Formats a Nominatim display_name into a short address (max 50 chars). Extracts road,
  * neighbourhood/suburb, and city/town/village, or falls back to first two parts.
@@ -12,29 +20,29 @@ fun formatShortAddress(displayName: String?): String {
   val parts = displayName.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
   if (parts.isEmpty()) {
-    return displayName.take(50).let { if (it.length < displayName.length) "$it..." else it }
+    return displayName.take(MAX_ADDRESS_LENGTH).let { if (it.length < displayName.length) "$it..." else it }
   }
 
   val addressParts = mutableListOf<String>()
   if (parts.isNotEmpty()) {
-    addressParts.add(parts[0])
+    addressParts.add(parts[FIRST_PART_INDEX])
   }
-  if (parts.size > 1) {
-    addressParts.add(parts[1])
+  if (parts.size > SECOND_PART_INDEX) {
+    addressParts.add(parts[SECOND_PART_INDEX])
   }
-  if (parts.size > 2) {
-    addressParts.add(parts[2])
+  if (parts.size > THIRD_PART_INDEX) {
+    addressParts.add(parts[THIRD_PART_INDEX])
   }
 
   val shortAddress =
-      if (addressParts.size >= 2) {
+      if (addressParts.size >= MIN_PARTS_FOR_JOIN) {
         addressParts.joinToString(", ")
       } else {
-        parts.take(2).joinToString(", ")
+        parts.take(MIN_PARTS_FOR_JOIN).joinToString(", ")
       }
 
-  return if (shortAddress.length > 50) {
-    shortAddress.take(47) + "..."
+  return if (shortAddress.length > MAX_ADDRESS_LENGTH) {
+    shortAddress.take(MAX_ADDRESS_LENGTH_WITH_ELLIPSIS) + "..."
   } else {
     shortAddress
   }

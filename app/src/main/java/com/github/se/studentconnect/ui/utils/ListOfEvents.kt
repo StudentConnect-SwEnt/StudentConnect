@@ -36,6 +36,8 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 
+private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
+
 /**
  * The main screen composable that displays a vertical list of event cards.
  *
@@ -198,7 +200,7 @@ fun EventCard(
                 text = formatShortAddress(event.location?.name),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
+                maxLines = MAX_LINES_FOR_ADDRESS_TEXT,
                 overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(12.dp))
             Row(
