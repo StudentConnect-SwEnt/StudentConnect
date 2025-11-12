@@ -48,7 +48,7 @@ class EventViewTest {
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+      GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
