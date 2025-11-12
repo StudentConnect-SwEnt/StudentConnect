@@ -2,8 +2,10 @@ package com.github.se.studentconnect.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.ResourceProvider
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +21,12 @@ import kotlinx.coroutines.launch
  *
  * @param userRepository Repository for user data operations
  * @param currentUserId The ID of the current user
+ * @param resourceProvider Provider for accessing string resources
  */
 class ProfileViewModel(
     private val userRepository: UserRepository,
-    private val currentUserId: String
+    private val currentUserId: String,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
   // User data state
@@ -57,7 +61,7 @@ class ProfileViewModel(
         _user.value = loadedUser
       } catch (exception: Exception) {
         _fieldErrors.value =
-            mapOf(EditingField.None to (exception.message ?: "Failed to load profile"))
+            mapOf(EditingField.None to (exception.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile)))
       }
     }
   }
@@ -87,7 +91,7 @@ class ProfileViewModel(
   fun updateName(firstName: String, lastName: String) {
     if (firstName.isBlank() || lastName.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Name to ProfileConstants.ERROR_NAME_EMPTY)
+          _fieldErrors.value + (EditingField.Name to resourceProvider.getString(R.string.error_name_empty))
       return
     }
 
@@ -110,7 +114,7 @@ class ProfileViewModel(
   fun updateUniversity(university: String) {
     if (university.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.University to ProfileConstants.ERROR_UNIVERSITY_EMPTY)
+          _fieldErrors.value + (EditingField.University to resourceProvider.getString(R.string.error_university_empty))
       return
     }
 
@@ -146,7 +150,7 @@ class ProfileViewModel(
   fun updateBirthday(birthday: String) {
     if (birthday.isNotBlank() && !isValidDateFormat(birthday)) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Birthday to ProfileConstants.ERROR_DATE_FORMAT)
+          _fieldErrors.value + (EditingField.Birthday to resourceProvider.getString(R.string.error_date_format))
       return
     }
 
@@ -217,7 +221,7 @@ class ProfileViewModel(
       } catch (exception: Exception) {
         _fieldErrors.value =
             _fieldErrors.value +
-                (field to (exception.message ?: "Failed to update ${field.displayName}"))
+                (field to (exception.message ?: String.format("Failed to update %s", field.displayName)))
       } finally {
         setFieldLoading(field, false)
       }
@@ -264,13 +268,13 @@ class ProfileViewModel(
    */
   private fun getSuccessMessage(field: EditingField): String {
     return when (field) {
-      EditingField.Name -> ProfileConstants.SUCCESS_NAME_UPDATED
-      EditingField.University -> ProfileConstants.SUCCESS_UNIVERSITY_UPDATED
-      EditingField.Country -> ProfileConstants.SUCCESS_COUNTRY_UPDATED
-      EditingField.Birthday -> ProfileConstants.SUCCESS_BIRTHDAY_UPDATED
-      EditingField.Activities -> ProfileConstants.SUCCESS_ACTIVITIES_UPDATED
-      EditingField.Bio -> ProfileConstants.SUCCESS_BIO_UPDATED
-      EditingField.None -> ProfileConstants.SUCCESS_PROFILE_UPDATED
+      EditingField.Name -> resourceProvider.getString(R.string.success_name_updated)
+      EditingField.University -> resourceProvider.getString(R.string.success_university_updated)
+      EditingField.Country -> resourceProvider.getString(R.string.success_country_updated)
+      EditingField.Birthday -> resourceProvider.getString(R.string.success_birthday_updated)
+      EditingField.Activities -> resourceProvider.getString(R.string.success_activities_updated)
+      EditingField.Bio -> resourceProvider.getString(R.string.success_bio_updated)
+      EditingField.None -> resourceProvider.getString(R.string.success_profile_updated)
     }
   }
 }
