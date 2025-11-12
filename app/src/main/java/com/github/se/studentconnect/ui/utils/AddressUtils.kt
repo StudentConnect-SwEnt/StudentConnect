@@ -20,7 +20,9 @@ fun formatShortAddress(displayName: String?): String {
   val parts = displayName.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
   if (parts.isEmpty()) {
-    return displayName.take(MAX_ADDRESS_LENGTH).let { if (it.length < displayName.length) "$it..." else it }
+    return displayName.take(MAX_ADDRESS_LENGTH).let {
+      if (it.length < displayName.length) "$it..." else it
+    }
   }
 
   val addressParts = mutableListOf<String>()
