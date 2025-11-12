@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
@@ -129,7 +130,7 @@ private fun TopSearchBar(
             },
             query = viewModel.state.value.query,
             onQueryChange = { viewModel.setQuery(it) },
-            placeholder = { Text("Search") },
+            placeholder = { Text(stringResource(R.string.placeholder_search)) },
             onSearch = {},
             expanded = false,
             onExpandedChange = {},
@@ -152,7 +153,7 @@ private fun People(viewModel: SearchViewModel) {
   if (viewModel.hasUsers())
       Column {
         Text(
-            "People",
+            stringResource(R.string.text_people),
             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
             fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
             modifier =
@@ -204,7 +205,7 @@ private fun Events(viewModel: SearchViewModel) {
 
   if (viewModel.hasEvents())
       Text(
-          "Events",
+          stringResource(R.string.text_events),
           fontSize = MaterialTheme.typography.headlineSmall.fontSize,
           fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
           modifier =
