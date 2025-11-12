@@ -2,8 +2,12 @@
 
 package com.github.se.studentconnect.ui.eventcreation
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,10 +42,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -110,6 +119,24 @@ fun CreatePublicEventScreen(
   val scrollState = rememberScrollState()
   val isAtBottom by remember { derivedStateOf { scrollState.value >= scrollState.maxValue - 50 } }
 
+  // Track if any text field has focus
+  var isAnyFieldFocused by remember { mutableStateOf(false) }
+  val focusManager = LocalFocusManager.current
+  val keyboardController = LocalSoftwareKeyboardController.current
+
+  // Handle back button / escape key to clear focus and hide keyboard
+  BackHandler(enabled = isAnyFieldFocused) {
+    focusManager.clearFocus()
+    keyboardController?.hide()
+  }
+
+  // When focus changes, ensure keyboard state matches
+  LaunchedEffect(isAnyFieldFocused) {
+    if (!isAnyFieldFocused) {
+      keyboardController?.hide()
+    }
+  }
+
   val buttonWidthFraction by
       animateFloatAsState(
           targetValue = if (isAtBottom) 0.9f else 0.35f,
@@ -175,7 +202,9 @@ fun CreatePublicEventScreen(
 
             FormTextField(
                 modifier =
-                    Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TITLE_INPUT),
+                    Modifier.fillMaxWidth()
+                        .testTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
+                        .onFocusChanged { isAnyFieldFocused = it.isFocused },
                 label = "Title",
                 placeholder = "My new event",
                 value = createPublicEventUiState.title,
@@ -186,7 +215,9 @@ fun CreatePublicEventScreen(
 
             FormTextField(
                 modifier =
-                    Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT),
+                    Modifier.fillMaxWidth()
+                        .testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
+                        .onFocusChanged { isAnyFieldFocused = it.isFocused },
                 label = "Subtitle",
                 placeholder = "Optional supporting text",
                 value = createPublicEventUiState.subtitle,
@@ -196,7 +227,8 @@ fun CreatePublicEventScreen(
             FormTextField(
                 modifier =
                     Modifier.fillMaxWidth()
-                        .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT),
+                        .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
+                        .onFocusChanged { isAnyFieldFocused = it.isFocused },
                 label = "Description",
                 placeholder = "Describe your event",
                 value = createPublicEventUiState.description,
@@ -298,7 +330,8 @@ fun CreatePublicEventScreen(
             FormTextField(
                 modifier =
                     Modifier.fillMaxWidth()
-                        .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT),
+                        .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
+                        .onFocusChanged { isAnyFieldFocused = it.isFocused },
                 label = "Number of participants",
                 value = createPublicEventUiState.numberOfParticipantsString,
                 onValueChange = { createPublicEventViewModel.updateNumberOfParticipantsString(it) },
@@ -306,7 +339,9 @@ fun CreatePublicEventScreen(
 
             FormTextField(
                 modifier =
-                    Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT),
+                    Modifier.fillMaxWidth()
+                        .testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
+                        .onFocusChanged { isAnyFieldFocused = it.isFocused },
                 label = "Event website",
                 value = createPublicEventUiState.website,
                 onValueChange = { createPublicEventViewModel.updateWebsite(it) },
@@ -320,7 +355,8 @@ fun CreatePublicEventScreen(
               FormTextField(
                   modifier =
                       Modifier.weight(0.7f)
-                          .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT),
+                          .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
+                          .onFocusChanged { isAnyFieldFocused = it.isFocused },
                   label = "Participation fees",
                   value = createPublicEventUiState.participationFeeString,
                   onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
@@ -355,40 +391,49 @@ fun CreatePublicEventScreen(
               )
             }
 
-            // Add some bottom padding to avoid button overlap
-            Spacer(modifier = Modifier.size(80.dp))
+            // Add bottom padding to avoid save button overlap (button + padding = ~90dp)
+            Spacer(modifier = Modifier.size(100.dp))
           }
         }
 
-    // Animated Save Button
-    Box(
-        modifier =
-            Modifier.align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp)) {
-          Surface(
+    // Animated Save Button - Hide when any field is focused
+    AnimatedVisibility(
+        visible = !isAnyFieldFocused,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier.align(Alignment.BottomCenter)) {
+          Box(
               modifier =
-                  Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
-                      .fillMaxWidth(buttonWidthFraction)
-                      .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
-                      .height(56.dp)
-                      .clip(RoundedCornerShape(28.dp)),
-              color = MaterialTheme.colorScheme.primary,
-              shadowElevation = 6.dp,
-              onClick = { createPublicEventViewModel.saveEvent() }) {
-                Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                      Icon(
-                          imageVector = Icons.Default.SaveAlt,
-                          contentDescription = null,
-                          tint = MaterialTheme.colorScheme.onPrimary)
-                      Spacer(modifier = Modifier.width(12.dp))
-                      Text(
-                          "Save",
-                          style = MaterialTheme.typography.titleMedium,
-                          color = MaterialTheme.colorScheme.onPrimary)
+                  Modifier.fillMaxWidth()
+                      .height(90.dp) // Fixed height to avoid blocking content
+                      .padding(horizontal = 16.dp, vertical = 16.dp)) {
+                Surface(
+                    modifier =
+                        Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+                            .fillMaxWidth(buttonWidthFraction)
+                            .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(28.dp)),
+                    color =
+                        if (canSave) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                    shadowElevation = 6.dp,
+                    enabled = canSave,
+                    onClick = { createPublicEventViewModel.saveEvent() }) {
+                      Row(
+                          modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                          horizontalArrangement = Arrangement.Center,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.SaveAlt,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Save",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onPrimary)
+                          }
                     }
               }
         }
