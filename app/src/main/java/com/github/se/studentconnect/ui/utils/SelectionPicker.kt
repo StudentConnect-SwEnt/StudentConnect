@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -21,21 +22,21 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.LocationRepositoryImpl
+import com.github.se.studentconnect.ui.screen.map.EventMarkers
 import com.github.se.studentconnect.ui.screen.map.MapConfiguration
 import com.github.se.studentconnect.ui.screen.map.MapViewEvent
 import com.github.se.studentconnect.ui.screen.map.MapViewModel
 import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.PolygonAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import kotlin.math.*
 import kotlinx.coroutines.launch
 
-/**
- * Composable for the map component in LocationPickerDialog. This can be replaced with a test
- * version during testing.
- */
 @Composable
 fun LocationPickerMapComponent(
     modifier: Modifier = Modifier,
@@ -67,11 +68,7 @@ fun LocationPickerMapComponent(
           OnMapClickListener { point ->
             onMapClick(point)
             true
-          }) {
-        if (selectedPoint != null) {
-          PointAnnotation(point = selectedPoint)
-        }
-      }
+          }) {}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,10 +95,7 @@ fun LocationPickerDialog(
       }
 
   val mapViewModel: MapViewModel = viewModel(factory = mapViewModelFactory)
-
   val uiState by mapViewModel.uiState.collectAsState()
-
-  // use a remembered coroutine scope to call the selection callback without blocking UI
   val coroutineScope = rememberCoroutineScope()
 
   var currentRadius by remember { mutableFloatStateOf(initialRadius) }
@@ -167,7 +161,6 @@ fun LocationPickerDialog(
                                         MapConfiguration.Zoom.TARGET))
                               })
                         } else {
-                          // Use real Mapbox map
                           MapboxMap(
                               modifier = Modifier.fillMaxSize(),
                               mapViewportState = mapViewportState,
@@ -178,7 +171,7 @@ fun LocationPickerDialog(
                                         Location(
                                             latitude = point.latitude(),
                                             longitude = point.longitude(),
-                                            name = "")
+                                            name = "Selected Location")
                                     mapViewModel.onEvent(
                                         MapViewEvent.SetTargetLocation(
                                             point.latitude(),
@@ -186,8 +179,40 @@ fun LocationPickerDialog(
                                             MapConfiguration.Zoom.TARGET))
                                     true
                                   }) {
-                                if (selectedPoint != null) {
-                                  PointAnnotation(point = selectedPoint!!)
+                                key(selectedPoint, currentRadius) {
+                                  if (selectedPoint != null) {
+                                    val circlePoints =
+                                        createCirclePoints(
+                                            selectedPoint!!, currentRadius.toDouble(), 64)
+
+                                    // Filled polygon (semi-transparent)
+                                    val colorFill =
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    PolygonAnnotation(points = listOf(circlePoints)) {
+                                      fillColor = colorFill
+                                      fillOutlineColor = colorFill
+                                    }
+
+                                    // Outline of the circle
+                                    PolylineAnnotation(points = circlePoints) {
+                                      lineColor = Color.Black
+                                      lineWidth = 1.5
+                                    }
+                                  }
+                                }
+
+                                // Add a MapEffect to draw the marker
+                                MapEffect(selectedPoint) { mapView ->
+                                  selectedPoint?.let { point ->
+                                    mapView.mapboxMap.getStyle { style ->
+                                      EventMarkers.addEventMarkerIcon(context, style)
+
+                                      EventMarkers.addClickMarker(
+                                          style = style,
+                                          point = point,
+                                          title = selectedLocation?.name ?: "Selected")
+                                    }
+                                  }
                                 }
                               }
                         }
@@ -199,7 +224,12 @@ fun LocationPickerDialog(
                             style = MaterialTheme.typography.titleMedium)
                         selectedLocation?.let {
                           Text(
-                              "(${String.format("%.4f", it.latitude)}, ${String.format("%.4f", it.longitude)})",
+                              "(${String.format("%.4f", it.latitude)}, ${
+                                    String.format(
+                                        "%.4f",
+                                        it.longitude
+                                    )
+                                })",
                               style = MaterialTheme.typography.bodySmall)
                         }
 
@@ -254,4 +284,25 @@ fun LocationPickerDialog(
                   }
             }
       }
+}
+
+private const val EARTH_RADIUS_KM = 6371.0
+
+private fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Double): Point {
+  val brng = Math.toRadians(bearing)
+  val lat1 = Math.toRadians(center.latitude())
+  val lon1 = Math.toRadians(center.longitude())
+  val d = distanceKm / EARTH_RADIUS_KM // angular distance
+
+  val lat2 = asin(sin(lat1) * cos(d) + cos(lat1) * sin(d) * cos(brng))
+  val lon2 = lon1 + atan2(sin(brng) * sin(d) * cos(lat1), cos(d) - sin(lat1) * sin(lat2))
+
+  return Point.fromLngLat(Math.toDegrees(lon2), Math.toDegrees(lat2))
+}
+
+private fun createCirclePoints(center: Point, radiusKm: Double, steps: Int = 64): List<Point> {
+  return (0..steps).map { i ->
+    val bearing = (360.0 / steps) * i
+    getDestinationPoint(center, bearing, radiusKm)
+  }
 }
