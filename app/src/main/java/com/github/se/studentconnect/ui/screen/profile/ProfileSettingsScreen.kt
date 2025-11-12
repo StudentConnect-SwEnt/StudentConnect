@@ -210,7 +210,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Bio,
                               isLoading = loadingFields.contains(EditingField.Bio),
                               errorMessage = fieldErrors[EditingField.Bio],
-                              onEditClick = { onNavigateToEditBio?.invoke(currentUserId)},
+                              onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBio(newValue) },
                               onCancel = { viewModel.cancelEditing() })
                         }

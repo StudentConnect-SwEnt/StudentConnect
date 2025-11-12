@@ -198,9 +198,7 @@ class EditBioScreenTest {
     // Try to add text that exceeds max length (should be prevented by component)
     val tooLongText = "A".repeat(ProfileConstants.MAX_BIO_LENGTH + 1)
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput(tooLongText)
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput(tooLongText)
 
     composeTestRule.waitForIdle()
     // The actual text should be capped at max length, so button should still be enabled
@@ -222,9 +220,7 @@ class EditBioScreenTest {
 
     // Edit the bio
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput("My new bio")
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput("My new bio")
 
     // Verify new text is displayed
     composeTestRule.onNodeWithText("My new bio").assertExists()
@@ -313,9 +309,7 @@ class EditBioScreenTest {
 
     // Edit bio
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput("Updated bio")
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput("Updated bio")
 
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
@@ -342,9 +336,7 @@ class EditBioScreenTest {
 
     // Edit bio
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput("Updated bio")
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput("Updated bio")
 
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
@@ -374,9 +366,7 @@ class EditBioScreenTest {
 
     // Edit bio
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput("Updated bio")
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput("Updated bio")
 
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
@@ -493,9 +483,7 @@ class EditBioScreenTest {
     // Edit with multiline bio
     val multilineBio = "Line 1\nLine 2\nLine 3"
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput(multilineBio)
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput(multilineBio)
 
     // Verify multiline text is displayed
     composeTestRule.onNodeWithText(multilineBio).assertExists()
@@ -562,9 +550,7 @@ class EditBioScreenTest {
     // Create a bio at max length
     val maxLengthBio = "A".repeat(ProfileConstants.MAX_BIO_LENGTH)
     composeTestRule.onNodeWithText("This is my test bio").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput(maxLengthBio)
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput(maxLengthBio)
 
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()

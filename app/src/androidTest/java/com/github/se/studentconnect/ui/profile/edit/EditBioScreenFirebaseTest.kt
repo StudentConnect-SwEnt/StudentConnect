@@ -179,13 +179,12 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
     composeTestRule.waitForIdle()
 
     // Success message should appear
-    composeTestRule
-        .waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
-          composeTestRule
-              .onAllNodesWithText(ProfileConstants.SUCCESS_BIO_UPDATED)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      composeTestRule
+          .onAllNodesWithText(ProfileConstants.SUCCESS_BIO_UPDATED)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
   }
 
   @Test
@@ -202,9 +201,7 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
 
     // Edit with multiline text
     composeTestRule.onNodeWithText("Original bio text for testing").performTextClearance()
-    composeTestRule
-        .onNodeWithText(ProfileConstants.PLACEHOLDER_BIO)
-        .performTextInput(multilineBio)
+    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput(multilineBio)
 
     // Verify multiline text is displayed
     composeTestRule.onNodeWithText(multilineBio).assertExists()

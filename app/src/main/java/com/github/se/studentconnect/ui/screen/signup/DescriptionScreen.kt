@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.BioTextField
@@ -97,7 +96,8 @@ fun DescriptionContent(
                 BioTextField(
                     value = description,
                     onValueChange = onDescriptionChange,
-                    modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.description_input },
+                    modifier =
+                        Modifier.fillMaxSize().semantics { testTag = C.Tag.description_input },
                     placeholder = "What should other students know about you?",
                     showCharacterCount = false,
                     minLines = 6,

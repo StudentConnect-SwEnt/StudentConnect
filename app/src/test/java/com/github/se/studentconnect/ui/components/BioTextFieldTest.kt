@@ -32,9 +32,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_displaysPlaceholder() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(value = "", onValueChange = {}, placeholder = "Enter your bio")
-      }
+      MaterialTheme { BioTextField(value = "", onValueChange = {}, placeholder = "Enter your bio") }
     }
 
     composeTestRule.onNodeWithText("Enter your bio").assertExists()
@@ -72,10 +70,7 @@ class BioTextFieldTest {
     composeTestRule.setContent {
       MaterialTheme {
         BioTextField(
-            value = "",
-            onValueChange = {},
-            isError = true,
-            errorMessage = "Bio cannot be empty")
+            value = "", onValueChange = {}, isError = true, errorMessage = "Bio cannot be empty")
       }
     }
 
@@ -194,9 +189,7 @@ class BioTextFieldTest {
 
   @Test
   fun bioTextField_handlesEmptyValue() {
-    composeTestRule.setContent {
-      MaterialTheme { BioTextField(value = "", onValueChange = {}) }
-    }
+    composeTestRule.setContent { MaterialTheme { BioTextField(value = "", onValueChange = {}) } }
 
     // Should display placeholder
     composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).assertExists()
@@ -380,9 +373,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_errorMessageOnlyShownWhenIsErrorTrue() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(value = "test", onValueChange = {}, isError = false)
-      }
+      MaterialTheme { BioTextField(value = "test", onValueChange = {}, isError = false) }
     }
 
     // When isError is false, the text field should be displayed normally

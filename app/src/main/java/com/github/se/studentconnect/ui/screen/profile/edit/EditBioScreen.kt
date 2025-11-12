@@ -48,7 +48,7 @@ fun EditBioScreen(
         snackbarHostState.showSnackbar(state.message)
         viewModel.resetState()
         // Navigate back after successful save
-          delay(500)
+        delay(500)
         onNavigateBack()
       }
       is BaseEditViewModel.UiState.Error -> {

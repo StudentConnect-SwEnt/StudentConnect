@@ -354,17 +354,17 @@ private fun MainAppContent(
                     onNavigateBack = { navController.popBackStack() })
               }
 
-            // Edit Bio Screen
-            composable(
-                route = ProfileRoutes.EDIT_BIO,
-                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                    backStackEntry ->
+          // Edit Bio Screen
+          composable(
+              route = ProfileRoutes.EDIT_BIO,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
                 EditBioScreen(
                     userId = userId,
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
-            }
+              }
 
           composable(
               route = "eventView/{eventUid}/{hasJoined}",

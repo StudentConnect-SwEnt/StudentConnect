@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,10 +79,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       AppTheme {
         BioTextField(
-            value = "",
-            onValueChange = {},
-            isError = true,
-            errorMessage = "Bio cannot be empty")
+            value = "", onValueChange = {}, isError = true, errorMessage = "Bio cannot be empty")
       }
     }
 
@@ -182,9 +178,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_handlesLongText() {
     val longText = "A".repeat(400)
     composeTestRule.setContent {
-      AppTheme {
-        BioTextField(value = longText, onValueChange = {}, showCharacterCount = true)
-      }
+      AppTheme { BioTextField(value = longText, onValueChange = {}, showCharacterCount = true) }
     }
 
     composeTestRule.onNodeWithText("400 / ${ProfileConstants.MAX_BIO_LENGTH}").assertExists()
@@ -219,10 +213,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       AppTheme {
         BioTextField(
-            value = "Test",
-            onValueChange = {},
-            showCharacterCount = true,
-            maxCharacters = 100)
+            value = "Test", onValueChange = {}, showCharacterCount = true, maxCharacters = 100)
       }
     }
 
@@ -280,9 +271,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_characterCountWithUnicode() {
     val unicodeText = "Hello 👋 World 🌍"
     composeTestRule.setContent {
-      AppTheme {
-        BioTextField(value = unicodeText, onValueChange = {}, showCharacterCount = true)
-      }
+      AppTheme { BioTextField(value = unicodeText, onValueChange = {}, showCharacterCount = true) }
     }
 
     val expectedLength = unicodeText.length
