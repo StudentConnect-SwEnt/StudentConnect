@@ -93,9 +93,8 @@ class ActivitiesViewModel(
       val items: List<CarouselDisplayItem> =
           when (uiState.value.selectedTab) {
             EventTab.Upcoming -> {
-              val joinedEvents = userRepository.getJoinedEvents(userUid)
+              val joinedEventIds = userRepository.getJoinedEvents(userUid)
 
-              // Get all visible events (includes private events owned by user)
               val allVisibleEvents =
                   try {
                     eventRepository.getAllVisibleEvents()
@@ -108,15 +107,11 @@ class ActivitiesViewModel(
                   }
 
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
+              val joinedOnlyIds =
+                  joinedEventIds.filterNot { id -> allVisibleEvents.any { it.uid == id } }
 
-              // We already have full Event objects for owned events from allVisibleEvents.
-              // Only fetch events for joined event IDs that are not already covered by ownedEvents
-              val ownedEventIds = ownedEvents.map { it.uid }.toSet()
-
-              val joinedButNotOwned = joinedEvents.filter { it !in ownedEventIds }
-
-              val joinedEventObjects =
-                  joinedButNotOwned.mapNotNull { eventId ->
+              val joinedEvents =
+                  joinedOnlyIds.mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
                     } catch (_: Exception) {
@@ -124,9 +119,8 @@ class ActivitiesViewModel(
                     }
                   }
 
-              // Combine owned events (already fetched) with joined events we just fetched.
-              (ownedEvents + joinedEventObjects)
-                  .distinctBy { it.uid }
+              val now = Timestamp.now()
+              (ownedEvents + joinedEvents)
                   .filter { event ->
                     val endTime =
                         event.end
@@ -170,22 +164,16 @@ class ActivitiesViewModel(
                   }
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
 
-              // Use owned events directly and only fetch joined events not already owned
-              val ownedEventIdsPast = ownedEvents.map { it.uid }.toSet()
+              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
 
-              val joinedButNotOwnedPast = joinedEvents.filter { it !in ownedEventIdsPast }
-
-              val joinedEventObjectsPast =
-                  joinedButNotOwnedPast.mapNotNull { eventId ->
+              allEventIds
+                  .mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
                     } catch (_: Exception) {
                       null
                     }
                   }
-
-              (ownedEvents + joinedEventObjectsPast)
-                  .distinctBy { it.uid }
                   .filter { event ->
                     val endTime =
                         event.end
