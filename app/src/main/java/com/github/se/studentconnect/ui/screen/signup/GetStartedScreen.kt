@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
@@ -188,10 +189,10 @@ private fun SignInButton(
             horizontalArrangement = Arrangement.Center) {
               Image(
                   painter = painterResource(id = R.drawable.google_logo),
-                  contentDescription = "Google logo",
+                  contentDescription = stringResource(R.string.text_google_logo),
                   modifier = Modifier.size(24.dp))
               Spacer(Modifier.width(12.dp))
-              Text("Get Started With Google", style = MaterialTheme.typography.titleMedium)
+              Text(stringResource(R.string.text_get_started_with_google), style = MaterialTheme.typography.titleMedium)
             }
       }
 }

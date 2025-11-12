@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
@@ -52,9 +53,9 @@ fun NationalityScreen(
 
         SignUpMediumSpacer()
 
-        SignUpTitle(text = "Where are you from ?")
+        SignUpTitle(text = stringResource(R.string.instruction_where_are_you_from))
         SignUpSmallSpacer()
-        SignUpSubtitle(text = "Helps us connect you with other students and events")
+        SignUpSubtitle(text = stringResource(R.string.instruction_nationality_helps_connect))
 
         SignUpLargeSpacer()
 
@@ -62,9 +63,9 @@ fun NationalityScreen(
             value = query,
             onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search countries...") },
+            placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
             singleLine = true,
-            trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
+            trailingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.content_description_search)) })
 
         SignUpMediumSpacer()
 
@@ -81,7 +82,7 @@ fun NationalityScreen(
 
         SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            text = "Continue",
+            text = stringResource(R.string.button_continue),
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
             enabled = !selectedCode.isNullOrBlank())
