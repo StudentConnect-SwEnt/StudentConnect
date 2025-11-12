@@ -196,7 +196,6 @@ class SearchScreenTest {
 
   @Test
   fun testEventWithLocation_displaysFormattedAddress() = runTest {
-    EventRepositoryProvider.repository = EventRepositoryLocal()
     EventRepositoryProvider.repository.addEvent(
         Event.Public(
             uid = "event-loc",
@@ -210,7 +209,6 @@ class SearchScreenTest {
                 Location(
                     0.0, 0.0, "Rue de la Gare, Quartier du Centre, Lausanne, Vaud, Switzerland")))
 
-    composeTestRule.setContent { AppTheme { TestSearchScreen() } }
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("location")
