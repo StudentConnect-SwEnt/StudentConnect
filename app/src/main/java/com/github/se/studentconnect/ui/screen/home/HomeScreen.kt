@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -504,12 +505,16 @@ private fun NotificationContent(
     onDelete: () -> Unit
 ) {
   Row(
-      modifier = Modifier.fillMaxWidth().clickable { onClick() },
+      modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
-        NotificationIcon(notification = notification)
-        Spacer(modifier = Modifier.width(12.dp))
-        NotificationMessage(notification = notification, modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.weight(1f).clickable(role = Role.Button) { onClick() },
+            verticalAlignment = Alignment.CenterVertically) {
+              NotificationIcon(notification = notification)
+              Spacer(modifier = Modifier.width(12.dp))
+              NotificationMessage(notification = notification, modifier = Modifier.weight(1f))
+            }
         DeleteButton(notificationId = notification.id, onDelete = onDelete)
       }
 }
@@ -546,7 +551,8 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = fontWeight,
         maxLines = 2,
-        overflow = TextOverflow.Ellipsis)
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.testTag("NotificationMessage_${notification.id}"))
 
     Spacer(modifier = Modifier.height(4.dp))
 
