@@ -163,6 +163,22 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
     composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
+  @Test
+  fun takePhotoOption_enablesSaveButton() {
+    val saveButton = composeTestRule.onNodeWithText("Save Changes")
+    saveButton.assertExists().assertIsNotEnabled()
+
+    // Permission result + TakePicture result
+    registryOwner.enqueueResult(true)
+    registryOwner.enqueueResult(true)
+
+    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    selectTakePhotoOption()
+    composeTestRule.waitForIdle()
+
+    saveButton.assertIsEnabled()
+  }
+
   private fun createTempImageFile(): File {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     val file = File(context.cacheDir, "profile_${UUID.randomUUID()}.png")
@@ -175,6 +191,10 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   private fun selectGalleryOption() {
     composeTestRule.onNodeWithText("Choose from gallery").assertExists().performClick()
+  }
+
+  private fun selectTakePhotoOption() {
+    composeTestRule.onNodeWithText("Take photo").assertExists().performClick()
   }
 }
 
