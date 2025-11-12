@@ -76,14 +76,13 @@ jobs:
       - name: Assemble app and androidTest APKs
         run: ./gradlew assembleResOverrideDebug assembleResOverrideDebugAndroidTest --parallel --build-cache
 
-      - name: Save Gradle cache
-        if: always()
-        uses: actions/cache/save@v4
+      - name: Upload test APKs
+        uses: actions/upload-artifact@v4
         with:
+          name: test-apks
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle/libs.versions.toml') }}
+            app/build/outputs/apk/resOverride/debug/*.apk
+            app/build/outputs/apk/androidTest/resOverride/debug/*.apk
 
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -167,8 +166,22 @@ jobs:
             echo "Firebase emulators not configured, skipping emulator startup..."
           fi
 
+      - name: Download test APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: test-apks
+          path: .
+
+      - run: |
+          ls
+          ls app/build/outputs/
+          ls app/build/outputs/apk
+          ls app/build/outputs/apks
+
       - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SKIP_STEPS: --no-rebuild -x assembleResOverrideDebug -x assembleResOverrideDebugAndroidTest -x packageResOverrideDebug -x packageResOverrideDebugAndroidTest
         with:
           api-level: 34
           target: google_apis
@@ -176,7 +189,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
+          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache $SKIP_STEPS -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
 
       - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
