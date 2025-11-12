@@ -1,8 +1,8 @@
 package com.github.se.studentconnect.ui.utils
 
 /**
- * Formats a Nominatim display_name into a short address (max 50 chars).
- * Extracts road, neighbourhood/suburb, and city/town/village, or falls back to first two parts.
+ * Formats a Nominatim display_name into a short address (max 50 chars). Extracts road,
+ * neighbourhood/suburb, and city/town/village, or falls back to first two parts.
  */
 fun formatShortAddress(displayName: String?): String {
   if (displayName == null) {
@@ -26,11 +26,12 @@ fun formatShortAddress(displayName: String?): String {
     addressParts.add(parts[2])
   }
 
-  val shortAddress = if (addressParts.size >= 2) {
-    addressParts.joinToString(", ")
-  } else {
-    parts.take(2).joinToString(", ")
-  }
+  val shortAddress =
+      if (addressParts.size >= 2) {
+        addressParts.joinToString(", ")
+      } else {
+        parts.take(2).joinToString(", ")
+      }
 
   return if (shortAddress.length > 50) {
     shortAddress.take(47) + "..."
@@ -38,4 +39,3 @@ fun formatShortAddress(displayName: String?): String {
     shortAddress
   }
 }
-

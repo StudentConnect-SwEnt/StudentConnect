@@ -290,4 +290,3 @@ private fun createGregorianFormatter(
       isLenient = false
       calendar = GregorianCalendar().apply { gregorianChange = Date(Long.MIN_VALUE) }
     }
-
