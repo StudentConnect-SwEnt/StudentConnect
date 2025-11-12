@@ -164,8 +164,8 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
-  val notificationUiState = notificationViewModel?.uiState?.collectAsState()?.value
-      ?: NotificationUiState()
+  val notificationUiState =
+      notificationViewModel?.uiState?.collectAsState()?.value ?: NotificationUiState()
   val sheetState =
       rememberModalBottomSheetState(
           initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
@@ -207,7 +207,9 @@ fun HomeScreen(
                             onNotificationClick = { showNotifications = !showNotifications },
                             onDismiss = { showNotifications = false },
                             onNotificationRead = { notificationViewModel?.markAsRead(it) },
-                            onNotificationDelete = { notificationViewModel?.deleteNotification(it) },
+                            onNotificationDelete = {
+                              notificationViewModel?.deleteNotification(it)
+                            },
                             onFriendRequestAccept = { notificationId, fromUserId ->
                               coroutineScope.launch {
                                 try {
