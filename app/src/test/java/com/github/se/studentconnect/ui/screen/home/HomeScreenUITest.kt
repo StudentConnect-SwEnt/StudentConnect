@@ -83,7 +83,7 @@ class HomeScreenUITest {
     userRepository = UserRepositoryLocal()
     notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
-    // NotificationViewModel will be created after notifications are added in individual tests
+    notificationViewModel = NotificationViewModel(notificationRepository)
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
@@ -103,7 +103,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -115,7 +115,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
@@ -127,7 +127,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Search Icon").assertIsDisplayed()
@@ -139,7 +139,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertIsDisplayed()
@@ -151,7 +151,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithContentDescription("Notifications").assertHasClickAction()
@@ -163,7 +163,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load
@@ -184,7 +184,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -205,7 +205,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -226,7 +226,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for screen to load
@@ -251,7 +251,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = emptyViewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Initially loading indicator should be displayed
@@ -265,7 +265,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -283,7 +283,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for events to load
@@ -305,7 +305,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load
@@ -326,7 +326,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for content to load
@@ -359,7 +359,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait for screen to load
@@ -396,7 +396,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait and open notification panel
@@ -436,7 +436,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     // Wait and open notification panel
@@ -474,7 +474,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -507,7 +507,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -540,7 +540,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -588,7 +588,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -633,7 +633,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -667,7 +667,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -701,7 +701,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -736,7 +736,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -770,7 +770,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -804,7 +804,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -839,7 +839,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -885,7 +885,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -912,7 +912,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -932,7 +932,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitForIdle()
@@ -948,7 +948,7 @@ class HomeScreenUITest {
           HomeScreen(
               navController = navController,
               viewModel = viewModel,
-              notificationViewModel = NotificationViewModel(notificationRepository))
+              notificationViewModel = notificationViewModel)
         }
         composable("search") {
           // Empty composable for navigation destination
@@ -978,7 +978,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -1029,7 +1029,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -1059,7 +1059,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -1079,7 +1079,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
@@ -1124,7 +1124,7 @@ class HomeScreenUITest {
       HomeScreen(
           navController = rememberNavController(),
           viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
