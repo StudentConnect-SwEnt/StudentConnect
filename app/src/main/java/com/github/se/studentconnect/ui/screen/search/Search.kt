@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -42,6 +43,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.formatShortAddress
 
 /**
  * The Search screen of the app, allowing users to search for people and events.
@@ -259,9 +261,11 @@ private fun EventCard(event: Event) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Icon(painterResource(R.drawable.ic_location), contentDescription = null)
           Text(
-              text = it,
+              text = formatShortAddress(it),
               fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
               fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
           )
         }
       }

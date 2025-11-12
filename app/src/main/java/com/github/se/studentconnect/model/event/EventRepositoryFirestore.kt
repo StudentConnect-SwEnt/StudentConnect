@@ -39,13 +39,13 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     }
   }
 
-  private fun privateEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Private {
-    val uid = documentSnapshot.id
-    val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
-    val title = checkNotNull(documentSnapshot.getString("title"))
+  /**
+   * Extracts common event fields from a DocumentSnapshot. This helper function eliminates code
+   * duplication between private and public event parsing.
+   */
+  private fun extractCommonEventFields(documentSnapshot: DocumentSnapshot): CommonEventFields {
     val description = checkNotNull(documentSnapshot.getString("description"))
     val imageUrl = documentSnapshot.getString("imageUrl")
-
     val location =
         (documentSnapshot.get("location") as? Map<*, *>)?.let {
           Location(
@@ -53,17 +53,13 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
               longitude = it["longitude"] as Double,
               name = it["name"] as? String)
         }
-
     val start = checkNotNull(documentSnapshot.getTimestamp("start"))
     val end = documentSnapshot.getTimestamp("end")
     val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
     val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
     val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
 
-    return Event.Private(
-        uid = uid,
-        ownerId = ownerId,
-        title = title,
+    return CommonEventFields(
         description = description,
         imageUrl = imageUrl,
         location = location,
@@ -74,27 +70,44 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         isFlash = isFlash)
   }
 
+  /** Data class to hold common event fields extracted from Firestore. */
+  private data class CommonEventFields(
+      val description: String,
+      val imageUrl: String?,
+      val location: Location?,
+      val start: com.google.firebase.Timestamp,
+      val end: com.google.firebase.Timestamp?,
+      val maxCapacity: UInt?,
+      val participationFee: UInt?,
+      val isFlash: Boolean
+  )
+
+  private fun privateEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Private {
+    val uid = documentSnapshot.id
+    val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+    val title = checkNotNull(documentSnapshot.getString("title"))
+    val commonFields = extractCommonEventFields(documentSnapshot)
+
+    return Event.Private(
+        uid = uid,
+        ownerId = ownerId,
+        title = title,
+        description = commonFields.description,
+        imageUrl = commonFields.imageUrl,
+        location = commonFields.location,
+        start = commonFields.start,
+        end = commonFields.end,
+        maxCapacity = commonFields.maxCapacity,
+        participationFee = commonFields.participationFee,
+        isFlash = commonFields.isFlash)
+  }
+
   private fun publicEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Public {
     val uid = documentSnapshot.id
     val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
     val title = checkNotNull(documentSnapshot.getString("title"))
     val subtitle = checkNotNull(documentSnapshot.getString("subtitle"))
-    val description = checkNotNull(documentSnapshot.getString("description"))
-    val imageUrl = documentSnapshot.getString("imageUrl")
-
-    val location =
-        (documentSnapshot.get("location") as? Map<*, *>)?.let {
-          Location(
-              latitude = it["latitude"] as Double,
-              longitude = it["longitude"] as Double,
-              name = it["name"] as? String)
-        }
-
-    val start = checkNotNull(documentSnapshot.getTimestamp("start"))
-    val end = documentSnapshot.getTimestamp("end")
-    val maxCapacity = documentSnapshot.getLong("maxCapacity")?.toUInt()
-    val participationFee = documentSnapshot.getLong("participationFee")?.toUInt()
-    val isFlash = documentSnapshot.getBoolean("isFlash") ?: false
+    val commonFields = extractCommonEventFields(documentSnapshot)
     val tags = documentSnapshot.get("tags") as? List<String> ?: emptyList()
     val website = documentSnapshot.getString("website")
 
@@ -103,14 +116,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         ownerId = ownerId,
         title = title,
         subtitle = subtitle,
-        description = description,
-        imageUrl = imageUrl,
-        location = location,
-        start = start,
-        end = end,
-        maxCapacity = maxCapacity,
-        participationFee = participationFee,
-        isFlash = isFlash,
+        description = commonFields.description,
+        imageUrl = commonFields.imageUrl,
+        location = commonFields.location,
+        start = commonFields.start,
+        end = commonFields.end,
+        maxCapacity = commonFields.maxCapacity,
+        participationFee = commonFields.participationFee,
+        isFlash = commonFields.isFlash,
         tags = tags,
         website = website)
   }
@@ -169,19 +182,52 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   }
 
   override suspend fun getAllVisibleEvents(): List<Event> {
-    // TODO: filter based on if the currently logged in user can see the event or not; for now, gets
-    //  all events
+    val currentUserId = getCurrentUserId()
     val querySnapshot = db.collection(EVENTS_COLLECTION_PATH).get().await()
-    Log.d(
-        "EventRepositoryFirestore",
-        "Fetched ${querySnapshot.documents.size} event documents from Firestore")
-
     return querySnapshot.documents.mapNotNull { doc ->
       try {
         val event = eventFromDocumentSnapshot(doc)
-        Log.d(
-            "EventRepositoryFirestore",
-            "Successfully parsed event: ${event.uid} - ${event.title} - Location: ${event.location}")
+
+        if (event is Event.Public) {
+          Log.d(
+              "EventRepositoryFirestore",
+              "Successfully parsed public event: ${event.uid} - ${event.title}")
+          return@mapNotNull event
+        }
+
+        if (event is Event.Private) {
+          val ownerId = doc.getString("ownerId")
+
+          // Owner can always see their own events
+          if (ownerId == currentUserId) {
+            Log.d(
+                "EventRepositoryFirestore",
+                "Successfully parsed private event (owner): ${event.uid} - ${event.title}")
+            return@mapNotNull event
+          }
+
+          val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(event.uid)
+
+          // Check if user is a participant (joined or has accepted invitation)
+          val isParticipant =
+              eventRef
+                  .collection(PARTICIPANTS_COLLECTION_PATH)
+                  .document(currentUserId)
+                  .get()
+                  .await()
+                  .exists()
+
+          if (isParticipant) {
+            Log.d(
+                "EventRepositoryFirestore",
+                "Successfully parsed private event (participant): ${event.uid} - ${event.title}")
+            return@mapNotNull event
+          }
+
+          Log.d("EventRepositoryFirestore", "Skipping private event (no access): ${event.uid}")
+          return@mapNotNull null
+        }
+
         event
       } catch (e: FirebaseFirestoreException) {
         Log.e(
