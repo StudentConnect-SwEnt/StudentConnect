@@ -6,9 +6,9 @@ package com.github.se.studentconnect.ui.profile
  * This object centralizes all magic numbers, strings, and configuration values used in the profile
  * editing functionality.
  *
- * Note: String constants have been migrated to strings.xml for i18n support.
- * This object maintains hardcoded strings for test compatibility only.
- * Production code should use stringResource() or ResourceProvider.
+ * Note: String constants have been migrated to strings.xml for i18n support. This object maintains
+ * hardcoded strings for test compatibility only. Production code should use stringResource() or
+ * ResourceProvider.
  */
 object ProfileConstants {
 

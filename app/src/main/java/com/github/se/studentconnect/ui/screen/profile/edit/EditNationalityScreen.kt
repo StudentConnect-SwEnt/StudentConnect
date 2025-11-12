@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
@@ -98,10 +99,10 @@ private fun SubtitleText(text: String) {
 fun EditNationalityScreen(
     userId: String,
     userRepository: UserRepository,
-            viewModel: EditNationalityViewModel = viewModel {
-              val context = LocalContext.current
-              EditNationalityViewModel(userRepository, userId, AndroidResourceProvider(context))
-            },
+    viewModel: EditNationalityViewModel = viewModel {
+      val context = LocalContext.current
+      EditNationalityViewModel(userRepository, userId, AndroidResourceProvider(context))
+    },
     onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -153,7 +154,9 @@ fun EditNationalityScreen(
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -180,7 +183,11 @@ fun EditNationalityScreen(
                   modifier = Modifier.fillMaxWidth(),
                   placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
                   singleLine = true,
-                  trailingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.content_description_search)) })
+                  trailingIcon = {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = stringResource(R.string.content_description_search))
+                  })
 
               MediumSpacer()
 

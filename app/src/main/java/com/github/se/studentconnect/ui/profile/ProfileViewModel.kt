@@ -61,7 +61,10 @@ class ProfileViewModel(
         _user.value = loadedUser
       } catch (exception: Exception) {
         _fieldErrors.value =
-            mapOf(EditingField.None to (exception.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile)))
+            mapOf(
+                EditingField.None to
+                    (exception.message
+                        ?: resourceProvider.getString(R.string.error_failed_to_load_profile)))
       }
     }
   }
@@ -91,7 +94,8 @@ class ProfileViewModel(
   fun updateName(firstName: String, lastName: String) {
     if (firstName.isBlank() || lastName.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Name to resourceProvider.getString(R.string.error_name_empty))
+          _fieldErrors.value +
+              (EditingField.Name to resourceProvider.getString(R.string.error_name_empty))
       return
     }
 
@@ -114,7 +118,9 @@ class ProfileViewModel(
   fun updateUniversity(university: String) {
     if (university.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.University to resourceProvider.getString(R.string.error_university_empty))
+          _fieldErrors.value +
+              (EditingField.University to
+                  resourceProvider.getString(R.string.error_university_empty))
       return
     }
 
@@ -150,7 +156,8 @@ class ProfileViewModel(
   fun updateBirthday(birthday: String) {
     if (birthday.isNotBlank() && !isValidDateFormat(birthday)) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Birthday to resourceProvider.getString(R.string.error_date_format))
+          _fieldErrors.value +
+              (EditingField.Birthday to resourceProvider.getString(R.string.error_date_format))
       return
     }
 
@@ -221,7 +228,8 @@ class ProfileViewModel(
       } catch (exception: Exception) {
         _fieldErrors.value =
             _fieldErrors.value +
-                (field to (exception.message ?: String.format("Failed to update %s", field.displayName)))
+                (field to
+                    (exception.message ?: String.format("Failed to update %s", field.displayName)))
       } finally {
         setFieldLoading(field, false)
       }

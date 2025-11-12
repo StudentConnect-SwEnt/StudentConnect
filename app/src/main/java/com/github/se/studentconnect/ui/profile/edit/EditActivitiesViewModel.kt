@@ -50,7 +50,9 @@ class EditActivitiesViewModel(
         _selectedActivities.value = user?.hobbies?.toSet() ?: emptySet()
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_activities))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_load_activities))
       }
     }
   }

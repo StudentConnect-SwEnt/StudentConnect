@@ -35,9 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
@@ -138,9 +138,12 @@ fun EditProfilePictureScreen(
                                 selectedImageUri = uri
                                 userModified = true
                               },
-                              placeholderText = stringResource(R.string.placeholder_upload_take_photo),
-                              overlayText = stringResource(R.string.placeholder_tap_to_change_photo),
-                              imageDescription = stringResource(R.string.content_description_profile_picture))
+                              placeholderText =
+                                  stringResource(R.string.placeholder_upload_take_photo),
+                              overlayText =
+                                  stringResource(R.string.placeholder_tap_to_change_photo),
+                              imageDescription =
+                                  stringResource(R.string.content_description_profile_picture))
 
                           Text(
                               text =
@@ -205,7 +208,8 @@ fun EditProfilePictureScreen(
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
-                                        snackbarHostState.showSnackbar(stringResource(R.string.error_failed_to_upload_photo))
+                                        snackbarHostState.showSnackbar(
+                                            stringResource(R.string.error_failed_to_upload_photo))
                                       }
                                     }
                                   } finally {
