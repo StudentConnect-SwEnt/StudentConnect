@@ -54,16 +54,15 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.format.DateTimeFormatter
 
+/** Test tags for the CreatePublicEventScreen and its components. */
 object CreatePublicEventScreenTestTags {
   const val TOP_APP_BAR = "topAppBar"
   const val BACK_BUTTON = "backButton"
@@ -86,6 +85,22 @@ object CreatePublicEventScreenTestTags {
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
 
+/**
+ * Screen for creating or editing a public event with comprehensive form fields.
+ *
+ * Features include:
+ * - Dynamic banner image upload
+ * - Date/time selection with validation
+ * - Location picker integration
+ * - Optional participation fees and participant limits
+ * - Animated save button that adapts based on scroll position and keyboard state
+ * - Auto-save on focus loss for text fields
+ *
+ * @param modifier Modifier to be applied to the root composable
+ * @param navController Navigation controller for screen navigation
+ * @param existingEventId Optional event ID for editing an existing event
+ * @param createPublicEventViewModel ViewModel managing the event creation/editing state
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePublicEventScreen(
@@ -441,10 +456,4 @@ fun CreatePublicEventScreen(
               }
         }
   }
-}
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 640)
-@Composable
-fun CreatePublicEventScreenPreview() {
-  AppTheme { CreatePublicEventScreen() }
 }
