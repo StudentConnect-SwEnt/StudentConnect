@@ -88,6 +88,7 @@ import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.github.se.studentconnect.viewmodel.NotificationUiState
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
@@ -130,7 +131,6 @@ fun HomeScreen(
       onQRScannerClosed = onQRScannerClosed,
       onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
       uiState = uiState,
-      viewModel = viewModel,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,
       onDateSelected = { date -> viewModel.onDateSelected(date) },
@@ -153,8 +153,7 @@ fun HomeScreen(
     onQRScannerClosed: () -> Unit = {},
     onClickStory: (Event, Int) -> Unit = { _, _ -> },
     uiState: HomePageUiState = HomePageUiState(),
-    notificationViewModel: NotificationViewModel = viewModel(),
-    viewModel: HomePageViewModel = viewModel(),
+    notificationViewModel: NotificationViewModel? = null,
     favoriteEventIds: Set<String> = emptySet(),
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
@@ -165,7 +164,8 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
-  val notificationUiState by notificationViewModel.uiState.collectAsState()
+  val notificationUiState = notificationViewModel?.uiState?.collectAsState()?.value
+      ?: NotificationUiState()
   val sheetState =
       rememberModalBottomSheetState(
           initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
@@ -175,8 +175,6 @@ fun HomeScreen(
           pageCount = { HomeScreenConstants.PAGER_HOME_PAGE + 1 })
   val coroutineScope = rememberCoroutineScope()
   val listState = rememberLazyListState()
-
-  LaunchedEffect(Unit) { viewModel.refresh() }
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -208,8 +206,8 @@ fun HomeScreen(
                         NotificationCallbacks(
                             onNotificationClick = { showNotifications = !showNotifications },
                             onDismiss = { showNotifications = false },
-                            onNotificationRead = { notificationViewModel.markAsRead(it) },
-                            onNotificationDelete = { notificationViewModel.deleteNotification(it) },
+                            onNotificationRead = { notificationViewModel?.markAsRead(it) },
+                            onNotificationDelete = { notificationViewModel?.deleteNotification(it) },
                             onFriendRequestAccept = { notificationId, fromUserId ->
                               coroutineScope.launch {
                                 try {
@@ -217,7 +215,7 @@ fun HomeScreen(
                                   if (userId != null) {
                                     FriendsRepositoryProvider.repository.acceptFriendRequest(
                                         userId, fromUserId)
-                                    notificationViewModel.deleteNotification(notificationId)
+                                    notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
                                   // Handle error silently or show a message
@@ -231,7 +229,7 @@ fun HomeScreen(
                                   if (userId != null) {
                                     FriendsRepositoryProvider.repository.rejectFriendRequest(
                                         userId, fromUserId)
-                                    notificationViewModel.deleteNotification(notificationId)
+                                    notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
                                   // Handle error silently or show a message

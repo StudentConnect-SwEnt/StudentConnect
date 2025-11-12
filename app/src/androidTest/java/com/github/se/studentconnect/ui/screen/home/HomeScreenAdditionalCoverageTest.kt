@@ -288,7 +288,6 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = true, events = emptyList()),
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -305,7 +304,6 @@ class HomeScreenAdditionalCoverageTest {
           uiState =
               HomePageUiState(
                   isLoading = false, events = emptyList(), subscribedEventsStories = emptyMap()),
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -327,7 +325,6 @@ class HomeScreenAdditionalCoverageTest {
           uiState =
               HomePageUiState(
                   isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories),
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -345,7 +342,6 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
           onDateSelected = { dateSelected = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -362,7 +358,6 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
           onApplyFilters = { filtersApplied = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -379,7 +374,6 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
           onFavoriteToggle = { favoriteToggled = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -396,7 +390,6 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
           onClearScrollTarget = { scrollTargetCleared = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -411,7 +404,6 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = true,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -428,7 +420,6 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
           onCalendarClick = { calendarClicked = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -449,7 +440,6 @@ class HomeScreenAdditionalCoverageTest {
           uiState =
               HomePageUiState(
                   isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories),
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 
@@ -504,7 +494,6 @@ class HomeScreenAdditionalCoverageTest {
           onApplyFilters = { filtersApplied = true },
           onFavoriteToggle = { favoriteToggled = true },
           onClearScrollTarget = { scrollCleared = true },
-          viewModel = viewModel,
           notificationViewModel = notificationViewModel)
     }
 

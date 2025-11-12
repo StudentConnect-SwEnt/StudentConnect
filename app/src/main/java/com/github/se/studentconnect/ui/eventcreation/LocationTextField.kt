@@ -74,11 +74,16 @@ class LocationTextFieldViewModel(
   }
 
   fun updateLocationSuggestions(locationString: String) {
+    if (locationString.isBlank()) {
+      _uiState.value =
+          uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
+    }
     queryFlow.value = locationString
-
-    if (locationString.isBlank())
-        _uiState.value =
-            uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
+  }
+  
+  fun clearSuggestions() {
+    _uiState.value =
+        uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
   }
 }
 
@@ -142,11 +147,13 @@ fun LocationTextField(
                       ?: "(${locationSuggestion.latitude}, ${locationSuggestion.longitude})")
             },
             onClick = {
+              val selectedName = locationSuggestion.name ?: ""
               locationFieldValue =
                   TextFieldValue(
-                      text = locationSuggestion.name ?: "",
-                      selection = TextRange(locationSuggestion.name?.length ?: 0))
+                      text = selectedName,
+                      selection = TextRange(selectedName.length))
               locationHasBeenInteractedWith = false // reset interaction
+              locationTextFieldViewModel.clearSuggestions() // clear stale suggestions
               onLocationChange(locationSuggestion)
             })
       }
