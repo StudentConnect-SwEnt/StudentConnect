@@ -170,13 +170,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-apks
-          path: .
-
-      - run: |
-          ls
-          ls app/build/outputs/
-          ls app/build/outputs/apk
-          ls app/build/outputs/apks
+          path: ./app/build/outputs/apk/
 
       - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
