@@ -34,6 +34,7 @@ enum class CameraMode {
   QR_SCAN
 }
 
+/** Hosts the story camera and QR scanner pages with iOS-style swipe navigation. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CameraModeSelectorScreen(
@@ -114,6 +115,7 @@ fun CameraModeSelectorScreen(
   }
 }
 
+/** Renders a selectable tab label for the camera mode picker. */
 @Composable
 private fun CameraModeTab(
     text: String,

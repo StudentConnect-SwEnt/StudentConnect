@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.ui.camera.CameraView
 
+/** Minimal story capture preview that toggles between live camera and inactive placeholder. */
 @Composable
 fun StoryCaptureScreen(
     onBackClick: () -> Unit,
@@ -73,6 +74,7 @@ fun StoryCaptureScreen(
   }
 }
 
+/** Explains that camera permissions are needed before launching the story capture flow. */
 @Composable
 private fun PermissionRequired(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
   Column(
@@ -93,6 +95,7 @@ private fun PermissionRequired(onBackClick: () -> Unit, modifier: Modifier = Mod
       }
 }
 
+/** Placeholder shown when story capture is not the active page in the camera pager. */
 @Composable
 private fun InactiveCameraBackground(modifier: Modifier = Modifier) {
   Box(

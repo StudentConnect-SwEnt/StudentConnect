@@ -110,6 +110,7 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** DI-friendly overload that wires default view models and exposes callback hooks. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -146,6 +147,7 @@ fun HomeScreen(
       onClearScrollTarget = { viewModel.clearScrollTarget() })
 }
 
+/** Core Home screen implementation containing pager, filters, notifications, and stories. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -350,12 +352,14 @@ fun HomeScreen(
       }
 }
 
+/** Aggregates notification UI state that feeds badge and dropdown rendering. */
 data class NotificationState(
     val showNotifications: Boolean,
     val notifications: List<Notification> = emptyList(),
     val unreadCount: Int = 0
 )
 
+/** Callbacks emitted from the notification dropdown interactions. */
 data class NotificationCallbacks(
     val onNotificationClick: () -> Unit,
     val onDismiss: () -> Unit,
@@ -365,6 +369,7 @@ data class NotificationCallbacks(
     val onFriendRequestReject: (String, String) -> Unit = { _, _ -> }
 )
 
+/** Search bar plus notification icon row shown at the top of the Home page. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
@@ -426,6 +431,7 @@ private fun SearchTextField() {
               disabledIndicatorColor = Color.Transparent))
 }
 
+/** Wraps the notification bell button and the dropdown that lists notifications. */
 @Composable
 private fun NotificationDropdown(
     notificationState: NotificationState,
@@ -519,6 +525,7 @@ private fun handleNotificationClick(
   onDismiss()
 }
 
+/** Single notification card with optional friend request controls. */
 @Composable
 fun NotificationItem(
     notification: Notification,
@@ -702,6 +709,7 @@ private fun FriendRequestActions(
   }
 }
 
+/** Renders a single story bubble with seen/unseen styling. */
 @Composable
 fun StoryItem(
     name: String,
@@ -740,6 +748,7 @@ fun StoryItem(
       }
 }
 
+/** Horizontal list of story bubbles with a leading "Add Story" affordance. */
 @Composable
 fun StoriesRow(
     onAddStoryClick: () -> Unit,

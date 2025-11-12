@@ -74,6 +74,7 @@ object EventViewTestTags {
   const val PARTICIPANTS_INFO = "event_view_participants_info"
 }
 
+/** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(
@@ -174,6 +175,7 @@ fun EventView(
 
 private const val DAY_IN_SECONDS = 86400
 
+/** Shows countdown, description, and attendance information for the given event. */
 @Composable
 private fun InfoEvent(
     timeLeft: Long,

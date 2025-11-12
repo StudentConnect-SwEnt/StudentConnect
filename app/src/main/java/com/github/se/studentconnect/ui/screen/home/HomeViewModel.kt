@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
     val events: List<Event> = emptyList(),
@@ -35,6 +36,7 @@ data class HomePageUiState(
     val scrollToDate: Date? = null,
 )
 
+/** Coordinates event loading, filtering, favorite handling, and story progress. */
 class HomePageViewModel
 @Inject
 constructor(
@@ -125,6 +127,7 @@ constructor(
     }
   }
 
+  /** Persists seen story progress for the provided event. */
   fun updateSeenStories(event: Event, seenIndex: Int) {
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true) }
@@ -146,6 +149,7 @@ constructor(
     }
   }
 
+  /** Optimistically toggles the favorite state of an event and syncs it with the repository. */
   fun toggleFavorite(eventId: String) {
     currentUserId?.let { uid ->
       viewModelScope.launch {
@@ -177,6 +181,7 @@ constructor(
     }
   }
 
+  /** Applies the given filters to the cached events and refreshes the UI state. */
   fun applyFilters(filters: FilterData) {
     currentFilters = filters
     applyFilters(filters, allFetchedEvents)
@@ -247,8 +252,10 @@ constructor(
     return earthRadiusKm * c
   }
 
+  /** Returns the static list of available filter chips for the UI. */
   fun getAvailableFilters(): List<String> = Activities.filterOptions
 
+  /** Reloads events, favorites, and story data. */
   fun refresh() {
     loadAllEvents()
     loadFavoriteEvents()
