@@ -134,7 +134,11 @@ fun CreatePublicEventScreen(
   }
 
   val scrollState = rememberScrollState()
-  val isAtBottom by remember { derivedStateOf { scrollState.value >= scrollState.maxValue - 50 } }
+  val scrollBottomThresholdPx =
+      50 // Distance from the bottom where the save button should start its final animation
+  val isAtBottom by remember {
+    derivedStateOf { scrollState.value >= scrollState.maxValue - scrollBottomThresholdPx }
+  }
 
   // Track if any text field has focus
   var isAnyFieldFocused by remember { mutableStateOf(false) }
@@ -190,33 +194,6 @@ fun CreatePublicEventScreen(
               verticalArrangement = Arrangement.spacedBy(12.dp),
               horizontalAlignment = Alignment.CenterHorizontally,
           ) {
-            /*
-            val color = MaterialTheme.colorScheme.onSecondary
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(120.dp)
-                    .drawBehind {
-                        val stroke = Stroke(
-                            width = 1.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f), 0f)
-                        )
-                        drawRoundRect(
-                            color = color,
-                            size = size,
-                            style = stroke,
-                            cornerRadius = CornerRadius(8.dp.toPx())
-                        )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
-                    Text("Upload a picture for your Event Page")
-                }
-            }
-            */
-
             FormTextField(
                 modifier =
                     Modifier.fillMaxWidth()
@@ -303,6 +280,9 @@ fun CreatePublicEventScreen(
                 initialValue = locationInitial,
                 onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
+            val wideFieldWeight =
+                0.7f // Weight that gives text inputs more width than their paired controls
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -310,7 +290,7 @@ fun CreatePublicEventScreen(
             ) {
               DateTextField(
                   modifier =
-                      Modifier.weight(0.7f)
+                      Modifier.weight(wideFieldWeight)
                           .testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
                   label = "Start of the event",
                   placeholder = "DD/MM/YYYY",
@@ -331,7 +311,8 @@ fun CreatePublicEventScreen(
             ) {
               DateTextField(
                   modifier =
-                      Modifier.weight(0.7f).testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
+                      Modifier.weight(wideFieldWeight)
+                          .testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
                   label = "End of the event",
                   placeholder = "DD/MM/YYYY",
                   initialValue = endDateInitial,
@@ -371,7 +352,7 @@ fun CreatePublicEventScreen(
             ) {
               FormTextField(
                   modifier =
-                      Modifier.weight(0.7f)
+                      Modifier.weight(wideFieldWeight)
                           .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
                           .onFocusChanged { isAnyFieldFocused = it.isFocused },
                   label = "Participation fees",
@@ -397,7 +378,7 @@ fun CreatePublicEventScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
               Text(
-                  modifier = Modifier.weight(0.7f),
+                  modifier = Modifier.weight(wideFieldWeight),
                   text = "Flash Event",
               )
 
