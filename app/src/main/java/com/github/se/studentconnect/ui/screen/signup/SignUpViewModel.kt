@@ -27,7 +27,6 @@ data class SignUpState(
     val lastName: String = "",
     val username: String = "",
     val birthdate: Timestamp? = null,
-    val birthday: String = "",
     val nationality: String? = null,
     val profilePictureUri: Uri? = null,
     val bio: String? = null,
@@ -59,8 +58,6 @@ class SignUpViewModel : ViewModel() {
   fun setUsername(username: String) = update { it.copy(username = username.trim().lowercase()) }
 
   fun setBirthdate(birthdate: Timestamp?) = update { it.copy(birthdate = birthdate) }
-
-  fun setBirthday(birthday: String) = update { it.copy(birthday = birthday) }
 
   fun setNationality(nationality: String) = update {
     it.copy(nationality = nationality.trim().uppercase(Locale.US))

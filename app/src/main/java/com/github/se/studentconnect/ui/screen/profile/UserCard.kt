@@ -47,8 +47,6 @@ import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.userqr.UserQRCode
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 // Common styling constants
 private val CARD_SHAPE = RoundedCornerShape(16.dp)
@@ -201,11 +199,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text =
-                      user.birthdate?.let {
-                        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        dateFormat.format(it.toDate())
-                      } ?: "Birthday not provided",
+                  text = user.birthday ?: "Birthday not provided",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
