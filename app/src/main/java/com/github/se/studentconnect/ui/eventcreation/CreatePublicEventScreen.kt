@@ -291,9 +291,7 @@ fun CreatePublicEventScreen(
       Switch(
           modifier = Modifier.testTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH),
           checked = createPublicEventUiState.isFlash,
-          onCheckedChange = {
-            DialogNotImplemented(context)
-          },
+          onCheckedChange = { DialogNotImplemented(context) },
       )
     }
 

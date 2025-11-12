@@ -249,9 +249,7 @@ fun CreatePrivateEventScreen(
       Switch(
           modifier = Modifier.testTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH),
           checked = createPrivateEventUiState.isFlash,
-          onCheckedChange = {
-            DialogNotImplemented(context)
-          },
+          onCheckedChange = { DialogNotImplemented(context) },
       )
     }
 
