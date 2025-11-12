@@ -7,10 +7,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.AndroidResourceProvider
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
 
 /**
@@ -28,7 +32,10 @@ fun EditBirthdayScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  val viewModel: EditBirthdayViewModel = viewModel { EditBirthdayViewModel(userRepository, userId) }
+  val viewModel: EditBirthdayViewModel = viewModel {
+    val context = LocalContext.current
+    EditBirthdayViewModel(userRepository, userId, AndroidResourceProvider(context))
+  }
 
   val selectedDateMillis by viewModel.selectedDateMillis.collectAsState()
   val birthdayString by viewModel.birthdayString.collectAsState()
@@ -81,13 +88,13 @@ fun EditBirthdayScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Birthday",
+                  text = stringResource(R.string.screen_title_edit_birthday),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.SemiBold)
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -105,7 +112,7 @@ fun EditBirthdayScreen(
                   horizontalAlignment = Alignment.CenterHorizontally) {
                     // Instructions
                     Text(
-                        text = "Select your date of birth",
+                        text = stringResource(R.string.instruction_select_date_of_birth),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp))
@@ -121,7 +128,7 @@ fun EditBirthdayScreen(
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally) {
                                   Text(
-                                      text = "Current Birthday",
+                                      text = stringResource(R.string.label_current_birthday),
                                       style = MaterialTheme.typography.labelMedium,
                                       color = MaterialTheme.colorScheme.onPrimaryContainer)
                                   Spacer(modifier = Modifier.height(4.dp))
@@ -139,7 +146,7 @@ fun EditBirthdayScreen(
                     // DatePicker
                     DatePicker(
                         state = datePickerState,
-                        title = { Text(text = "Pick a date", modifier = Modifier.padding(16.dp)) })
+                        title = { Text(text = stringResource(R.string.placeholder_pick_a_date), modifier = Modifier.padding(16.dp)) })
                   }
 
               // Save Button
@@ -155,7 +162,7 @@ fun EditBirthdayScreen(
                           color = MaterialTheme.colorScheme.onPrimary)
                     } else {
                       Text(
-                          text = "Save",
+                          text = stringResource(R.string.button_save),
                           style = MaterialTheme.typography.bodyLarge,
                           fontWeight = FontWeight.SemiBold)
                     }

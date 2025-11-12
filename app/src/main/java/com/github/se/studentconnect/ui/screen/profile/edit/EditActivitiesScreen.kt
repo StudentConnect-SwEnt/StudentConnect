@@ -14,9 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.AndroidResourceProvider
 import com.github.se.studentconnect.ui.profile.edit.EditActivitiesViewModel
 
 /**
@@ -35,7 +39,8 @@ fun EditActivitiesScreen(
     modifier: Modifier = Modifier
 ) {
   val viewModel: EditActivitiesViewModel = viewModel {
-    EditActivitiesViewModel(userRepository, userId)
+    val context = LocalContext.current
+    EditActivitiesViewModel(userRepository, userId, AndroidResourceProvider(context))
   }
 
   val searchQuery by viewModel.searchQuery.collectAsState()
@@ -65,13 +70,13 @@ fun EditActivitiesScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Select Your Activities",
+                  text = stringResource(R.string.screen_title_edit_activities),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.SemiBold)
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -86,15 +91,15 @@ fun EditActivitiesScreen(
               value = searchQuery,
               onValueChange = { viewModel.updateSearchQuery(it) },
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("searchField"),
-              placeholder = { Text("Search activities...") },
-              leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+              placeholder = { Text(stringResource(R.string.placeholder_search_activities)) },
+              leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.content_description_search)) },
               singleLine = true,
               shape = RoundedCornerShape(24.dp))
 
           if (selectedActivities.isNotEmpty()) {
-            val activityText = if (selectedActivities.size == 1) "activity" else "activities"
+            val activityText = if (selectedActivities.size == 1) stringResource(R.string.text_activity) else stringResource(R.string.text_activities)
             Text(
-                text = "${selectedActivities.size} $activityText selected",
+                text = "${selectedActivities.size} $activityText ${stringResource(R.string.text_selected)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
@@ -124,7 +129,7 @@ fun EditActivitiesScreen(
                       modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
                   Text(
-                      text = "Save Activities",
+                      text = stringResource(R.string.button_save_activities),
                       style = MaterialTheme.typography.bodyLarge,
                       fontWeight = FontWeight.SemiBold)
                 }
@@ -169,7 +174,7 @@ private fun ActivityItem(
               if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.content_description_selected),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp))
               }

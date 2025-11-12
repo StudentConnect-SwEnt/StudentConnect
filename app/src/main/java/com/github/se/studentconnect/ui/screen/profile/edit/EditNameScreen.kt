@@ -8,9 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.AndroidResourceProvider
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditNameViewModel
@@ -30,7 +34,10 @@ fun EditNameScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  val viewModel: EditNameViewModel = viewModel { EditNameViewModel(userRepository, userId) }
+  val viewModel: EditNameViewModel = viewModel {
+    val context = LocalContext.current
+    EditNameViewModel(userRepository, userId, AndroidResourceProvider(context))
+  }
 
   val firstName by viewModel.firstName.collectAsState()
   val lastName by viewModel.lastName.collectAsState()
@@ -61,13 +68,13 @@ fun EditNameScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Name",
+                  text = stringResource(R.string.screen_title_edit_name),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.SemiBold)
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -85,7 +92,7 @@ fun EditNameScreen(
                   verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     // Instructions
                     Text(
-                        text = ProfileConstants.INSTRUCTION_ENTER_NAME,
+                        text = stringResource(R.string.instruction_enter_full_name),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp))
@@ -95,8 +102,8 @@ fun EditNameScreen(
                         value = firstName,
                         onValueChange = { viewModel.updateFirstName(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(ProfileConstants.LABEL_FIRST_NAME) },
-                        placeholder = { Text(ProfileConstants.PLACEHOLDER_FIRST_NAME) },
+                        label = { Text(stringResource(R.string.label_first_name)) },
+                        placeholder = { Text(stringResource(R.string.placeholder_first_name)) },
                         isError = firstNameError != null,
                         supportingText = {
                           if (firstNameError != null) {
@@ -114,8 +121,8 @@ fun EditNameScreen(
                         value = lastName,
                         onValueChange = { viewModel.updateLastName(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(ProfileConstants.LABEL_LAST_NAME) },
-                        placeholder = { Text(ProfileConstants.PLACEHOLDER_LAST_NAME) },
+                        label = { Text(stringResource(R.string.label_last_name)) },
+                        placeholder = { Text(stringResource(R.string.placeholder_last_name)) },
                         isError = lastNameError != null,
                         supportingText = {
                           if (lastNameError != null) {
@@ -143,7 +150,7 @@ fun EditNameScreen(
                           color = MaterialTheme.colorScheme.onPrimary)
                     } else {
                       Text(
-                          text = "Save",
+                          text = stringResource(R.string.button_save),
                           style = MaterialTheme.typography.bodyLarge,
                           fontWeight = FontWeight.SemiBold)
                     }

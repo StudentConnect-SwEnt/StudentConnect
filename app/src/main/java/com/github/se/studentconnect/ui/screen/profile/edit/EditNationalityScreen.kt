@@ -37,7 +37,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryListSurface
@@ -96,9 +98,10 @@ private fun SubtitleText(text: String) {
 fun EditNationalityScreen(
     userId: String,
     userRepository: UserRepository,
-    viewModel: EditNationalityViewModel = viewModel {
-      EditNationalityViewModel(userRepository, userId)
-    },
+            viewModel: EditNationalityViewModel = viewModel {
+              val context = LocalContext.current
+              EditNationalityViewModel(userRepository, userId, AndroidResourceProvider(context))
+            },
     onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -143,13 +146,13 @@ fun EditNationalityScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Nationality",
+                  text = stringResource(R.string.screen_title_edit_nationality),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold)
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -164,9 +167,9 @@ fun EditNationalityScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.Start) {
-              TitleText("Where are you from ?")
+              TitleText(stringResource(R.string.instruction_where_are_you_from))
               SmallSpacer()
-              SubtitleText("Helps us connect you with other students and events")
+              SubtitleText(stringResource(R.string.instruction_nationality_helps_connect))
 
               LargeSpacer()
 
@@ -174,9 +177,9 @@ fun EditNationalityScreen(
                   value = query,
                   onValueChange = { query = it },
                   modifier = Modifier.fillMaxWidth(),
-                  placeholder = { Text("Search countries...") },
+                  placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
                   singleLine = true,
-                  trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
+                  trailingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.content_description_search)) })
 
               MediumSpacer()
 
@@ -199,7 +202,7 @@ fun EditNationalityScreen(
                           modifier = Modifier.size(16.dp),
                           color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                      Text("Save Changes")
+                      Text(stringResource(R.string.button_save_changes))
                     }
                   }
             }
