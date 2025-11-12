@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
-import kotlinx.coroutines.delay
 
 /**
  * Screen for editing user birthday with Material 3 DatePicker.
@@ -64,11 +63,10 @@ fun EditBirthdayScreen(
   LaunchedEffect(uiState) {
     when (val state = uiState) {
       is EditBirthdayViewModel.UiState.Success -> {
-        snackbarHostState.showSnackbar(state.message)
-        viewModel.resetState()
-        // Navigate back after successful save
-        delay(500)
+        // Navigate back immediately after successful save
         onNavigateBack()
+        // Reset state after navigation to avoid cancelling LaunchedEffect
+        viewModel.resetState()
       }
       is EditBirthdayViewModel.UiState.Error -> {
         snackbarHostState.showSnackbar(state.message)
