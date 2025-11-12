@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarDefaults.inputFieldColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -62,6 +63,7 @@ fun HomeSearchBar(
           SearchBarColors(
               MaterialTheme.colorScheme.surfaceContainer,
               MaterialTheme.colorScheme.onSurface,
+              inputFieldColors()
           ),
   ) {}
 }
