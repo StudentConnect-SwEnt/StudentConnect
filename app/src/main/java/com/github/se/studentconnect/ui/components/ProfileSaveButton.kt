@@ -37,8 +37,7 @@ fun ProfileSaveButton(
       enabled = enabled && !isLoading) {
         if (isLoading) {
           CircularProgressIndicator(
-              modifier = Modifier.size(24.dp),
-              color = MaterialTheme.colorScheme.onPrimary)
+              modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
         } else {
           Text(
               text = text,
@@ -47,4 +46,3 @@ fun ProfileSaveButton(
         }
       }
 }
-
