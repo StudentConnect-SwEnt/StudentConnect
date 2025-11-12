@@ -1,4 +1,158 @@
 <resources>
     <string name="app_name">StudentConnect</string>
     <string name="default_web_client_id">1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com</string>
+    
+    <!-- Error Messages -->
+    <string name="error_network">Network error</string>
+    <string name="error_unexpected">An unexpected error occurred</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_profile_not_found">Profile not found</string>
+    <string name="error_failed_to_load_profile">Failed to load profile</string>
+    <string name="error_failed_to_save_name">Failed to save name</string>
+    <string name="error_failed_to_save_bio">Failed to save bio</string>
+    <string name="error_failed_to_update_nationality">Failed to update nationality</string>
+    <string name="error_failed_to_save_activities">Failed to save activities</string>
+    <string name="error_failed_to_load_activities">Failed to load activities</string>
+    <string name="error_first_name_empty">First name cannot be empty</string>
+    <string name="error_last_name_empty">Last name cannot be empty</string>
+    <string name="error_name_empty">First name and last name cannot be empty</string>
+    <string name="error_university_empty">University cannot be empty</string>
+    <string name="error_bio_empty">Bio cannot be empty</string>
+    <string name="error_bio_too_long">Bio exceeds %d characters</string>
+    <string name="error_date_format">Please use DD/MM/YYYY format</string>
+    <string name="error_failed_to_upload_photo">Failed to upload photo</string>
+    <string name="error_username_length">Username must be 3-20 characters long</string>
+    <string name="error_username_format">Only alphanumeric characters, underscores, hyphens, and periods are allowed</string>
+    <string name="error_username_taken">This username is already taken</string>
+    
+    <!-- Success Messages -->
+    <string name="success_name_updated">Name updated successfully</string>
+    <string name="success_university_updated">University updated successfully</string>
+    <string name="success_country_updated">Country updated successfully</string>
+    <string name="success_nationality_updated">Nationality updated successfully</string>
+    <string name="success_birthday_updated">Birthday updated successfully</string>
+    <string name="success_activities_updated">Activities updated successfully</string>
+    <string name="success_bio_updated">Bio updated successfully</string>
+    <string name="success_profile_updated">Profile updated successfully</string>
+    <string name="success_profile_picture_updated">Profile picture updated successfully</string>
+    
+    <!-- Screen Titles -->
+    <string name="screen_title_edit_nationality">Edit Nationality</string>
+    <string name="screen_title_edit_name">Edit Name</string>
+    <string name="screen_title_edit_birthday">Edit Birthday</string>
+    <string name="screen_title_edit_activities">Select Your Activities</string>
+    <string name="screen_title_edit_profile_picture">Edit Profile Picture</string>
+    <string name="screen_title_search">Search</string>
+    <string name="screen_title_home">Home</string>
+    <string name="screen_title_map">Map</string>
+    <string name="screen_title_activities">Activities</string>
+    <string name="screen_title_profile">Profile</string>
+    
+    <!-- Buttons -->
+    <string name="button_save">Save</string>
+    <string name="button_save_changes">Save Changes</string>
+    <string name="button_save_activities">Save Activities</string>
+    <string name="button_remove_photo">Remove Photo</string>
+    <string name="button_back">Back</string>
+    <string name="button_search">Search</string>
+    <string name="button_continue">Continue</string>
+    <string name="button_skip">Skip</string>
+    
+    <!-- Labels -->
+    <string name="label_first_name">First Name</string>
+    <string name="label_last_name">Last Name</string>
+    <string name="label_university">University</string>
+    <string name="label_country">Country</string>
+    <string name="label_birthday">Birthday</string>
+    <string name="label_activities">Favourite Activities</string>
+    <string name="label_bio">More About Me</string>
+    <string name="label_current_birthday">Current Birthday</string>
+    <string name="label_username">Username</string>
+    <string name="label_name">Name</string>
+    <string name="label_profile">Profile</string>
+    
+    <!-- Placeholders -->
+    <string name="placeholder_first_name">John</string>
+    <string name="placeholder_last_name">Doe</string>
+    <string name="placeholder_bio">Tell us about yourself…</string>
+    <string name="placeholder_not_specified">Not specified</string>
+    <string name="placeholder_search_countries">Search countries…</string>
+    <string name="placeholder_search_activities">Search activities…</string>
+    <string name="placeholder_search">Search</string>
+    <string name="placeholder_enter_first_name">Enter your first name</string>
+    <string name="placeholder_enter_last_name">Enter your last name</string>
+    <string name="placeholder_pick_a_date">Pick a date</string>
+    <string name="placeholder_select_birthdate">Select your birthdate</string>
+    <string name="placeholder_choose_username">Choose a unique username</string>
+    <string name="placeholder_upload_take_photo">Upload/Take your profile photo</string>
+    <string name="placeholder_tap_to_change_photo">Tap to change photo</string>
+    
+    <!-- Instructions -->
+    <string name="instruction_where_are_you_from">Where are you from ?</string>
+    <string name="instruction_nationality_helps_connect">Helps us connect you with other students and events</string>
+    <string name="instruction_who_are_you">Who are you ?</string>
+    <string name="instruction_let_others_know">Let others know who you are !</string>
+    <string name="instruction_select_date_of_birth">Select your date of birth</string>
+    <string name="instruction_tap_to_choose_photo">Tap above to choose a profile photo</string>
+    <string name="instruction_enter_full_name">Enter your full name</string>
+    <string name="instruction_tell_about_yourself">Tell us about yourself</string>
+    <string name="instruction_preview_new_profile_picture">Preview of your new profile picture</string>
+    
+    <!-- Content Descriptions -->
+    <string name="content_description_back">Back</string>
+    <string name="content_description_search">Search</string>
+    <string name="content_description_selected">Selected</string>
+    <string name="content_description_favorite">Favorite</string>
+    <string name="content_description_live_icon">Live Icon</string>
+    <string name="content_description_student_connect_logo">Student Connect Logo</string>
+    <string name="content_description_profile_picture">Profile Picture</string>
+    <string name="content_description_edit_profile_picture">Edit Profile Picture</string>
+    <string name="content_description_edit_name">Edit Name</string>
+    <string name="content_description_search_icon">Search Icon</string>
+    <string name="content_description_notifications">Notifications</string>
+    <string name="content_description_delete">Delete</string>
+    <string name="content_description_add_story">Add Story</string>
+    <string name="content_description_event_story">Event Story</string>
+    <string name="content_description_save">Save</string>
+    <string name="content_description_available">Available</string>
+    <string name="content_description_taken">Taken</string>
+    <string name="content_description_avatar">Avatar</string>
+    
+    <!-- Other UI Text -->
+    <string name="text_activity">activity</string>
+    <string name="text_activities">activities</string>
+    <string name="text_selected">selected</string>
+    <string name="text_people">People</string>
+    <string name="text_events">Events</string>
+    <string name="text_invalid_date">invalid-date</string>
+    <string name="text_get_started_with_google">Get Started With Google</string>
+    <string name="text_google_logo">Google logo</string>
+    <string name="text_no_events_found">No events found matching your criteria.</string>
+    <string name="text_search_for_events">Search for events…</string>
+    <string name="text_accept">Accept</string>
+    <string name="text_reject">Reject</string>
+    <string name="text_upload_picture">Upload a picture for your Event Page</string>
+    <string name="text_remove_banner">Remove banner</string>
+    <string name="text_add_photo">Add a photo</string>
+    <string name="text_choose_how_to_add">Choose how you want to add your picture.</string>
+    <string name="text_choose_from_gallery">Choose from gallery</string>
+    <string name="text_take_photo">Take photo</string>
+    <string name="text_cancel">Cancel</string>
+    <string name="text_filter_events">Filter Events</string>
+    <string name="text_categories_tags">Categories &amp; Tags</string>
+    <string name="text_location">Location</string>
+    <string name="text_price">Price (€)</string>
+    <string name="text_min">Min: %d€</string>
+    <string name="text_max">Max: %d€</string>
+    <string name="text_apply_filters">Apply Filters</string>
+    <string name="text_reset_filters">Reset Filters</string>
+    <string name="text_scan">Scan</string>
+    <string name="text_edit">Edit</string>
+    <string name="text_leave">Leave</string>
+    <string name="text_full">Full</string>
+    <string name="text_started">Started</string>
+    <string name="text_join">Join</string>
+    <string name="text_scan_next">Scan Next</string>
+    <string name="text_close_scanner">Close Scanner</string>
+    <string name="text_apply">Apply</string>
 </resources>
