@@ -185,6 +185,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.play.services.location)
     implementation(libs.androidx.work.testing)
+    implementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.test.core.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
