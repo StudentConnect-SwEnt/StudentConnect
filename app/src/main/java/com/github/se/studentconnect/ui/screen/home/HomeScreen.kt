@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +41,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +50,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -353,7 +355,7 @@ fun HomeTopBar(
     notificationCallbacks: NotificationCallbacks,
     navController: NavHostController = rememberNavController()
 ) {
-  TopAppBar(
+  CenterAlignedTopAppBar(
       title = {
         HomeSearchBar(
             modifier = Modifier.clickable(onClick = { navController.navigate(Route.SEARCH) }),
@@ -367,7 +369,14 @@ fun HomeTopBar(
             notificationState = notificationState,
             notificationCallbacks = notificationCallbacks,
             navController = navController)
-      })
+      },
+      windowInsets =
+          WindowInsets(
+              0.dp,
+              LocalWindowInfo.current.containerSize.height.dp * 0.01f,
+              LocalWindowInfo.current.containerSize.width.dp * 0.02f,
+              0.dp,
+          ))
 }
 
 @Composable

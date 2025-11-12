@@ -28,7 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -54,9 +54,16 @@ fun SearchScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: SearchViewModel = viewModel(),
 ) {
-
   Scaffold(
-      topBar = { SearchTopBar(viewModel, navController) },
+      topBar = {
+        SearchTopBar(
+            query = viewModel.state.value.query,
+            onQueryChange = { viewModel.setQuery(it) },
+            onNavigateBack = {
+              navController.popBackStack()
+              viewModel.reset()
+            })
+      },
       modifier =
           modifier
               .fillMaxSize()
@@ -75,23 +82,21 @@ fun SearchScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchTopBar(
-    viewModel: SearchViewModel,
-    navController: NavHostController,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
   CenterAlignedTopAppBar(
       title = {
         HomeSearchBar(
-            query = viewModel.state.value.query,
-            onQueryChange = { viewModel.setQuery(it) },
+            query = query,
+            onQueryChange = onQueryChange,
         )
       },
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
         IconButton(
-            onClick = {
-              navController.popBackStack()
-              viewModel.reset()
-            },
+            onClick = onNavigateBack,
             content = {
               Icon(
                   painterResource(R.drawable.ic_placeholder),
@@ -105,9 +110,9 @@ private fun SearchTopBar(
       windowInsets =
           WindowInsets(
               0.dp,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
-              LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
+              LocalWindowInfo.current.containerSize.height.dp * 0.01f,
+              LocalWindowInfo.current.containerSize.width.dp * 0.02f,
+              LocalWindowInfo.current.containerSize.height.dp * 0.01f,
           ),
   )
 }
@@ -122,7 +127,7 @@ private fun People(viewModel: SearchViewModel) {
             fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
             modifier =
                 Modifier.padding(
-                        LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                        LocalWindowInfo.current.containerSize.width.dp * 0.02f,
                         0.dp,
                         0.dp,
                         0.dp,
@@ -131,10 +136,10 @@ private fun People(viewModel: SearchViewModel) {
         )
         LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
           items(viewModel.state.value.shownUsers) { user ->
-            Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f))
+            Spacer(Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.02f))
             UserCard(user)
           }
-          item { Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f)) }
+          item { Spacer(Modifier.size(LocalWindowInfo.current.containerSize.width.dp * 0.02f)) }
         }
       }
 }
@@ -174,7 +179,7 @@ private fun Events(viewModel: SearchViewModel) {
           fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
           modifier =
               Modifier.padding(
-                      LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                      LocalWindowInfo.current.containerSize.width.dp * 0.02f,
                       0.dp,
                       0.dp,
                       0.dp,
@@ -184,7 +189,7 @@ private fun Events(viewModel: SearchViewModel) {
   LazyColumn(
       modifier =
           Modifier.padding(
-                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                  LocalWindowInfo.current.containerSize.width.dp * 0.02f,
                   0.dp,
                   0.dp,
                   0.dp,
