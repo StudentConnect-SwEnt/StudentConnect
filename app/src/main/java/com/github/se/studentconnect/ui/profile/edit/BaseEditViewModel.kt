@@ -2,7 +2,9 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.ResourceProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,10 +18,12 @@ import kotlinx.coroutines.launch
  *
  * @param userRepository Repository for user data operations
  * @param userId The ID of the user being edited
+ * @param resourceProvider Provider for accessing string resources
  */
 abstract class BaseEditViewModel(
     protected val userRepository: UserRepository,
-    protected val userId: String
+    protected val userId: String,
+    protected val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
   // UI State
@@ -83,7 +87,7 @@ abstract class BaseEditViewModel(
         operation()
         onSuccess()
       } catch (e: Exception) {
-        onError(e.message ?: "An unexpected error occurred")
+        onError(e.message ?: resourceProvider.getString(R.string.error_unexpected))
       }
     }
   }
