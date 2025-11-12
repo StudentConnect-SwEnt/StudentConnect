@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.navigation
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Screen
@@ -11,8 +10,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class NavigationComponentsTest {
 
   /** Test to verify that route constants are correctly defined. */

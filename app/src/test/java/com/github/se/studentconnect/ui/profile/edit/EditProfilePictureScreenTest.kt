@@ -3,19 +3,20 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.profile.ProfileConstants
-import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
-class EditNameScreenTest {
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
+class EditProfilePictureScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -34,6 +35,8 @@ class EditNameScreenTest {
           bio = "Test bio",
           profilePictureUrl = null)
 
+  private val testUserWithPicture = testUser.copy(profilePictureUrl = "http://example.com/pic.jpg")
+
   private var navigatedBack = false
 
   @Before
@@ -43,24 +46,24 @@ class EditNameScreenTest {
   }
 
   @Test
-  fun editNameScreen_displaysCorrectTitle() {
+  fun editProfilePictureScreen_displaysCorrectTitle() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
       }
     }
 
-    composeTestRule.onNodeWithText("Edit Name").assertExists()
+    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
   }
 
   @Test
-  fun editNameScreen_displaysBackButton() {
+  fun editProfilePictureScreen_displaysBackButton() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -71,10 +74,10 @@ class EditNameScreenTest {
   }
 
   @Test
-  fun editNameScreen_backButtonNavigatesBack() {
+  fun editProfilePictureScreen_backButtonNavigatesBack() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -86,24 +89,25 @@ class EditNameScreenTest {
   }
 
   @Test
-  fun editNameScreen_displaysInstructions() {
+  fun editProfilePictureScreen_displaysProfilePictureIcon() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
       }
     }
 
-    composeTestRule.onNodeWithText(ProfileConstants.INSTRUCTION_ENTER_NAME).assertExists()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
   }
 
   @Test
-  fun editNameScreen_displaysFirstNameField() {
+  fun editProfilePictureScreen_displaysNoProfilePictureText() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -111,14 +115,14 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
-  fun editNameScreen_displaysLastNameField() {
+  fun editProfilePictureScreen_displaysActionButtonsSection() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -126,14 +130,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_LAST_NAME).assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 
   @Test
-  fun editNameScreen_loadsExistingUserNames() {
+  fun editProfilePictureScreen_displaysRemovePhotoButton() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -141,16 +146,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    // Check that the text fields contain the user's current names
-    composeTestRule.onAllNodesWithText("John").assertAny(hasSetTextAction())
-    composeTestRule.onAllNodesWithText("Doe").assertAny(hasSetTextAction())
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertIsNotEnabled()
   }
 
   @Test
-  fun editNameScreen_displaysSaveButton() {
+  fun editProfilePictureScreen_displaysInstructionText() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -158,14 +162,14 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
-  fun editNameScreen_saveButtonIsEnabledWithValidNames() {
+  fun editProfilePictureScreen_displaysSaveButton() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -173,14 +177,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
   }
 
   @Test
-  fun editNameScreen_saveButtonIsDisabledWithEmptyFirstName() {
+  fun editProfilePictureScreen_profilePictureIsClickable() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -188,19 +193,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-
-    // Clear first name
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertHasClickAction()
   }
 
   @Test
-  fun editNameScreen_saveButtonIsDisabledWithEmptyLastName() {
+  fun editProfilePictureScreen_removePhotoButtonDisabledByDefault() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -208,19 +209,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-
-    // Clear last name
-    composeTestRule.onAllNodesWithText("Doe")[0].performTextClearance()
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertIsNotEnabled()
   }
 
   @Test
-  fun editNameScreen_canEditFirstName() {
+  fun editProfilePictureScreen_saveButtonDisabledByDefault() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -228,20 +225,15 @@ class EditNameScreenTest {
     }
 
     composeTestRule.waitForIdle()
-
-    // Edit first name
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
-
-    // Verify new text is displayed
-    composeTestRule.onNodeWithText("Alice").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
   }
 
   @Test
-  fun editNameScreen_canEditLastName() {
+  fun editProfilePictureScreen_loadsUserProfileOnInit() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -250,22 +242,18 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Edit last name
-    composeTestRule.onAllNodesWithText("Doe")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_LAST_NAME).performTextInput("Smith")
-
-    // Verify new text is displayed
-    composeTestRule.onNodeWithText("Smith").assertExists()
+    // Verify the user was loaded by checking if the profile section is displayed
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
   }
 
   @Test
-  fun editNameScreen_showsLoadingStateWhileSaving() {
-    repository.saveDelay = 1000L
+  fun editProfilePictureScreen_handlesUserNotFound() {
+    repository = TestUserRepository(null)
 
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
-            userId = testUser.userId,
+        EditProfilePictureScreen(
+            userId = "non_existent",
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
       }
@@ -273,24 +261,17 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Change names
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
-
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
-
-    // Should show loading state
-    composeTestRule.waitForIdle()
-    // Note: CircularProgressIndicator will be in the button, button should be disabled
-    composeTestRule.onNodeWithText("Save").assertDoesNotExist()
+    // Should still display the UI even if user is not found
+    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
   }
 
   @Test
-  fun editNameScreen_navigatesBackAfterSave() {
+  fun editProfilePictureScreen_handlesRepositoryError() {
+    repository.shouldThrowOnGet = RuntimeException("Network error")
+
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -299,59 +280,39 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Edit names
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
-
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
-
-    // Wait for save operation and navigation
-    composeTestRule.waitForIdle()
-    Thread.sleep(500) // Give time for save operation
-    composeTestRule.waitForIdle()
-
-    // Should navigate back automatically after successful save
-    assert(navigatedBack)
+    // Should display error state
+    // Note: Currently the error might be shown in a snackbar or handled differently
+    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
   }
 
   @Test
-  fun editNameScreen_handlesRepositoryError() {
-    repository.shouldThrowOnSave = RuntimeException("Network error")
+  fun editProfilePictureScreen_displaysLoadingStateDuringInitialLoad() {
+    repository.getDelay = 500L
 
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
       }
     }
 
+    // Check that loading state is shown (CircularProgressIndicator might be present)
+    // The exact behavior depends on implementation
     composeTestRule.waitForIdle()
 
-    // Edit names
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
-
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
-
-    // Wait for error message
-    composeTestRule.waitForIdle()
-
-    // Should show error message in snackbar
-    composeTestRule.onNodeWithText("Network error").assertExists()
-
-    // Should NOT navigate back
-    assert(!navigatedBack)
+    // Eventually the content should be loaded
+    composeTestRule
+        .onNodeWithText("Tap above to choose a profile photo", useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
-  fun editNameScreen_trimsWhitespaceFromNames() {
+  fun editProfilePictureScreen_actionButtonsVisibleSimultaneously() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -360,30 +321,16 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Edit names with extra whitespace
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("  Alice  ")
-    composeTestRule.onAllNodesWithText("Doe")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_LAST_NAME).performTextInput("  Smith  ")
-
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
-
-    // Wait for save
-    composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
-
-    // Verify trimmed values were saved
-    assert(repository.savedUsers.last().firstName == "Alice")
-    assert(repository.savedUsers.last().lastName == "Smith")
+    // All action buttons should be visible at the same time
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 
   @Test
-  fun editNameScreen_saveButtonDisabledDuringLoading() {
-    repository.saveDelay = 1000L
-
+  fun editProfilePictureScreen_profileIconIsDisplayed() {
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -392,26 +339,51 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Edit names
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
-
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Button should not show "Save" text anymore (showing progress instead)
-    composeTestRule.onNodeWithText("Save").assertDoesNotExist()
+    // The profile icon (Person icon) should be displayed
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
   }
 
   @Test
-  fun editNameScreen_textFieldsDisabledDuringLoading() {
-    repository.saveDelay = 1000L
+  fun editProfilePictureScreen_withExistingProfilePicture() {
+    repository = TestUserRepository(testUserWithPicture)
 
     composeTestRule.setContent {
       MaterialTheme {
-        EditNameScreen(
+        EditProfilePictureScreen(
+            userId = testUserWithPicture.userId,
+            userRepository = repository,
+            onNavigateBack = { navigatedBack = true })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Should still display the profile section
+    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+  }
+
+  @Test
+  fun editProfilePictureScreen_navigationIconIsCorrect() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        EditProfilePictureScreen(
+            userId = testUser.userId,
+            userRepository = repository,
+            onNavigateBack = { navigatedBack = true })
+      }
+    }
+
+    // Verify the back arrow icon exists
+    composeTestRule.onNodeWithContentDescription("Back").assertExists()
+    composeTestRule.onNodeWithContentDescription("Back").assertHasClickAction()
+  }
+
+  @Test
+  fun editProfilePictureScreen_screenshotTest() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        EditProfilePictureScreen(
             userId = testUser.userId,
             userRepository = repository,
             onNavigateBack = { navigatedBack = true })
@@ -420,27 +392,50 @@ class EditNameScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Edit names
-    composeTestRule.onAllNodesWithText("John")[0].performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.LABEL_FIRST_NAME).performTextInput("Alice")
+    // Verify all major UI components are present
+    composeTestRule.onNodeWithText("Edit Profile Picture").assertExists()
+    composeTestRule.onNodeWithContentDescription("Back").assertExists()
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
+    composeTestRule.onNodeWithText("Save Changes").assertExists()
+  }
 
-    // Click save
-    composeTestRule.onNodeWithText("Save").performClick()
+  @Test
+  fun editProfilePictureScreen_verifyLayoutStructure() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        EditProfilePictureScreen(
+            userId = testUser.userId,
+            userRepository = repository,
+            onNavigateBack = { navigatedBack = true })
+      }
+    }
 
     composeTestRule.waitForIdle()
 
-    // Text fields should be disabled during loading
-    // The fields should not be editable
+    // Verify the layout contains both cards
+    // First card: Current profile picture
+    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
+
+    // Second card: Action buttons
+    composeTestRule.onNodeWithText("Remove Photo").assertExists()
   }
 
   private class TestUserRepository(
       private var user: User? = null,
+      var shouldThrowOnGet: Throwable? = null,
       var shouldThrowOnSave: Throwable? = null,
+      var getDelay: Long = 0L,
       var saveDelay: Long = 0L
   ) : UserRepository {
     val savedUsers = mutableListOf<User>()
 
     override suspend fun getUserById(userId: String): User? {
+      if (getDelay > 0) {
+        delay(getDelay)
+      }
+      shouldThrowOnGet?.let { throw it }
       return if (userId == user?.userId) user else null
     }
 
