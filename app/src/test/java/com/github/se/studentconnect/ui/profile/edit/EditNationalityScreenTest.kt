@@ -170,7 +170,8 @@ class EditNationalityScreenTest {
 
     // Wait for country list to update and select France (exclude the search input)
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithText("France", substring = false).fetchSemanticsNodes().size >= 2
+      composeTestRule.onAllNodesWithText("France", substring = false).fetchSemanticsNodes().size >=
+          2
     }
     composeTestRule.onAllNodesWithText("France", substring = false)[1].performClick()
     composeTestRule.waitForIdle()
@@ -203,7 +204,8 @@ class EditNationalityScreenTest {
     composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Germany")
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithText("Germany", substring = false).fetchSemanticsNodes().size >= 2
+      composeTestRule.onAllNodesWithText("Germany", substring = false).fetchSemanticsNodes().size >=
+          2
     }
     composeTestRule.onAllNodesWithText("Germany", substring = false)[1].performClick()
     composeTestRule.waitForIdle()

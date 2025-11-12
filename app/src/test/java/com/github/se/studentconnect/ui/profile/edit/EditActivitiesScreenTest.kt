@@ -162,9 +162,7 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Save")
-        .assertIsEnabled() // Now enabled with empty selection
+    composeTestRule.onNodeWithText("Save").assertIsEnabled() // Now enabled with empty selection
   }
 
   @Test

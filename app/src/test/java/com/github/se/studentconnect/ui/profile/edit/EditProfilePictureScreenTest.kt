@@ -43,6 +43,7 @@ class EditProfilePictureScreenTest {
       MediaRepositoryProvider.repository = FakeMediaRepository()
     }
   }
+
   private val testUser =
       User(
           userId = "test_user",

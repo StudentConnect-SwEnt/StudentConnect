@@ -22,10 +22,7 @@ class ProfileSaveButtonTest {
     composeTestRule.setContent {
       MaterialTheme {
         ProfileSaveButton(
-            onClick = { clicked = true },
-            isLoading = false,
-            enabled = true,
-            text = "Save")
+            onClick = { clicked = true }, isLoading = false, enabled = true, text = "Save")
       }
     }
 
@@ -39,10 +36,7 @@ class ProfileSaveButtonTest {
     composeTestRule.setContent {
       MaterialTheme {
         ProfileSaveButton(
-            onClick = { clicked = true },
-            isLoading = false,
-            enabled = true,
-            text = "Save")
+            onClick = { clicked = true }, isLoading = false, enabled = true, text = "Save")
       }
     }
 
@@ -54,15 +48,13 @@ class ProfileSaveButtonTest {
   fun profileSaveButton_showsLoadingIndicator() {
     composeTestRule.setContent {
       MaterialTheme {
-        ProfileSaveButton(
-            onClick = {},
-            isLoading = true,
-            enabled = true,
-            text = "Save")
+        ProfileSaveButton(onClick = {}, isLoading = true, enabled = true, text = "Save")
       }
     }
 
-    composeTestRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
+    composeTestRule
+        .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
+        .assertExists()
     composeTestRule.onNodeWithText("Save").assertDoesNotExist()
   }
 
@@ -70,11 +62,7 @@ class ProfileSaveButtonTest {
   fun profileSaveButton_isDisabledWhenDisabled() {
     composeTestRule.setContent {
       MaterialTheme {
-        ProfileSaveButton(
-            onClick = {},
-            isLoading = false,
-            enabled = false,
-            text = "Save")
+        ProfileSaveButton(onClick = {}, isLoading = false, enabled = false, text = "Save")
       }
     }
 
@@ -85,31 +73,24 @@ class ProfileSaveButtonTest {
   fun profileSaveButton_isDisabledWhenLoading() {
     composeTestRule.setContent {
       MaterialTheme {
-        ProfileSaveButton(
-            onClick = {},
-            isLoading = true,
-            enabled = true,
-            text = "Save")
+        ProfileSaveButton(onClick = {}, isLoading = true, enabled = true, text = "Save")
       }
     }
 
     // Button should be disabled when loading
-    composeTestRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
+    composeTestRule
+        .onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate))
+        .assertExists()
   }
 
   @Test
   fun profileSaveButton_usesCustomText() {
     composeTestRule.setContent {
       MaterialTheme {
-        ProfileSaveButton(
-            onClick = {},
-            isLoading = false,
-            enabled = true,
-            text = "Save Changes")
+        ProfileSaveButton(onClick = {}, isLoading = false, enabled = true, text = "Save Changes")
       }
     }
 
     composeTestRule.onNodeWithText("Save Changes").assertExists()
   }
 }
-
