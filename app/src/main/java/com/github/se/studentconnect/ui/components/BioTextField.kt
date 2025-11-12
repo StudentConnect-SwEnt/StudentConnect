@@ -55,7 +55,7 @@ fun BioTextField(
     style: BioTextFieldStyle = BioTextFieldStyle.Outlined,
     colors: TextFieldColors? = null
 ) {
-  Column(modifier = modifier) {
+  Column {
     val textFieldColors =
         colors
             ?: when (style) {
@@ -73,18 +73,20 @@ fun BioTextField(
                       disabledContainerColor = Color.Transparent)
             }
 
+    val textFieldModifier =
+        if (style == BioTextFieldStyle.Bordered) {
+          modifier.border(
+              width = 2.dp,
+              color = MaterialTheme.colorScheme.primary,
+              shape = RoundedCornerShape(size = 16.dp))
+        } else {
+          modifier
+        }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier =
-            if (style == BioTextFieldStyle.Bordered) {
-              modifier.border(
-                  width = 2.dp,
-                  color = MaterialTheme.colorScheme.primary,
-                  shape = RoundedCornerShape(size = 16.dp))
-            } else {
-              modifier
-            },
+        modifier = textFieldModifier,
         placeholder = {
           Text(
               text = placeholder,
