@@ -22,27 +22,36 @@ class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
     return EventRepositoryProvider.repository
   }
 
-  companion object {
-    @JvmStatic
-    @BeforeClass
-    fun revokeCameraPermission() {
-      val instrumentation = InstrumentationRegistry.getInstrumentation()
-      val pkg = instrumentation.targetContext.packageName
-      // Revoke permission before any camera binding happens
-      instrumentation.uiAutomation.revokeRuntimePermission(pkg, Manifest.permission.CAMERA)
-    }
+  @Before
+  fun revokeCameraPermission() {
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    val pkg = instrumentation.targetContext.packageName
+    // Revoke permission before each test
+    instrumentation.uiAutomation.revokeRuntimePermission(pkg, Manifest.permission.CAMERA)
+    // Allow time for permission state to propagate
+    Thread.sleep(100)
   }
 
   @Test
   fun cameraView_rendersNoPermissionUI_whenPermissionDenied() {
     var noPermissionShown = false
+    var permissionDeniedCalled = false
 
     composeTestRule.setContent {
       CameraView(
-          noPermission = { Box { noPermissionShown = true } }, onImageCaptured = {}, onError = {})
+          noPermission = { Box { noPermissionShown = true } },
+          onCameraPermissionDenied = { permissionDeniedCalled = true },
+          onImageCaptured = {},
+          onError = {})
     }
 
+    // Wait for the permission launcher to be triggered and denied
     composeTestRule.waitForIdle()
-    assertTrue(noPermissionShown)
+
+    // The permission launcher should trigger, which will call onCameraPermissionDenied
+    // After that, noPermission should be shown on recomposition
+    composeTestRule.waitUntil(timeoutMillis = 5000) { noPermissionShown || permissionDeniedCalled }
+
+    assertTrue("Expected noPermission UI to be shown", noPermissionShown)
   }
 }
