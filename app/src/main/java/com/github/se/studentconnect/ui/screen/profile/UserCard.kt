@@ -199,7 +199,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text = user.birthday ?: "Birthday not provided",
+                  text = user.birthdate ?: "Birthday not provided",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

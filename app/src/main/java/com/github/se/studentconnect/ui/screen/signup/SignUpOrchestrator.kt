@@ -144,7 +144,7 @@ fun SignUpOrchestrator(
                         username = signUpState.username,
                         firstName = signUpState.firstName,
                         lastName = signUpState.lastName,
-                        birthday = formatBirthdateToBirthday(signUpState.birthdate),
+                        birthdate = formatBirthdateToBirthday(signUpState.birthdate),
                         university = "EPFL", // TODO: Add university selection
                         hobbies = selectedExperienceTopics.toList(),
                         profilePictureUrl = profilePictureUrl,

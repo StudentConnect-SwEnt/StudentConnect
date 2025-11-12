@@ -13,7 +13,7 @@ package com.github.se.studentconnect.model
  * @property profilePictureUrl URL to the user's profile picture (optional).
  * @property bio A short biography or description about the user (optional).
  * @property country The user's country (optional).
- * @property birthday The user's birthday in DD/MM/YYYY format (optional).
+ * @property birthdate The user's birthday in DD/MM/YYYY format (optional).
  * @property createdAt Timestamp when the user profile was created (in milliseconds).
  * @property updatedAt Timestamp when the user profile was last updated (in milliseconds).
  */
@@ -28,7 +28,7 @@ data class User(
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
     val country: String? = null, // optional
-    val birthday: String? = null, // optional - format: "31/12/1980"
+    val birthdate: String? = null, // optional - format: "31/12/1980"
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -146,10 +146,10 @@ data class User(
               is UpdateValue.SetValue -> country.value
               else -> this.country
             },
-        birthday =
+        birthdate =
             when (birthday) {
               is UpdateValue.SetValue -> birthday.value
-              else -> this.birthday
+              else -> this.birthdate
             },
         bio =
             when (bio) {
@@ -175,7 +175,7 @@ data class User(
         "hobbies" to hobbies,
         "profilePictureUrl" to profilePictureUrl,
         "country" to country,
-        "birthday" to birthday,
+        "birthday" to birthdate,
         "bio" to bio,
         "createdAt" to createdAt,
         "updatedAt" to updatedAt)
@@ -215,7 +215,7 @@ data class User(
             hobbies = (map["hobbies"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             profilePictureUrl = map["profilePictureUrl"] as? String,
             country = map["country"] as? String,
-            birthday = map["birthday"] as? String,
+            birthdate = map["birthday"] as? String,
             bio = map["bio"] as? String,
             createdAt = createdAt,
             updatedAt = updatedAt)

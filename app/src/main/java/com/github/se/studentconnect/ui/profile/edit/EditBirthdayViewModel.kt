@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
-import java.util.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,7 +37,7 @@ class EditBirthdayViewModel(
       try {
         _uiState.value = UiState.Loading
         val user = userRepository.getUserById(userId)
-        val currentBirthday = user?.birthday
+        val currentBirthday = user?.birthdate
 
         if (currentBirthday != null) {
           _birthdayString.value = currentBirthday
@@ -78,7 +77,7 @@ class EditBirthdayViewModel(
         val user = userRepository.getUserById(userId)
         if (user != null) {
           val updatedUser =
-              user.copy(birthday = birthdayToSave, updatedAt = System.currentTimeMillis())
+              user.copy(birthdate = birthdayToSave, updatedAt = System.currentTimeMillis())
           userRepository.saveUser(updatedUser)
           _uiState.value = UiState.Success("Birthday updated successfully")
         } else {
@@ -98,7 +97,7 @@ class EditBirthdayViewModel(
 
         val user = userRepository.getUserById(userId)
         if (user != null) {
-          val updatedUser = user.copy(birthday = null, updatedAt = System.currentTimeMillis())
+          val updatedUser = user.copy(birthdate = null, updatedAt = System.currentTimeMillis())
           userRepository.saveUser(updatedUser)
           _selectedDateMillis.value = null
           _birthdayString.value = null
