@@ -483,8 +483,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     }
   }
 
+  // --- Additional Coverage Tests --
   @Test
-  fun getEvent_withPrivateEventAsInvitedUser_allowsAccess() {
+  fun getPrivateEvent_asParticipant_succeeds() {
     runBlocking {
       signIn("owner")
       val currentOwnerId = getCurrentUserId()
@@ -492,37 +493,380 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Event",
-              "secret",
+              "VIP Party",
+              "members only",
               start = now,
               isFlash = false)
       repository.addEvent(privateEvent)
-      repository.addInvitationToEvent(privateEvent.uid, invitedId, currentOwnerId)
 
-      signIn("invited")
-      val event = repository.getEvent(privateEvent.uid)
-      Assert.assertEquals("Private Event", event.title)
+      // Owner invites participant
+      repository.addInvitationToEvent(privateEvent.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEvent.uid, participantId, currentOwnerId)
+
+      // Sign in as participant and accept invitation
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+
+      // Accept the invitation - this will add the participant to the event
+      userRepository.acceptInvitation(privateEvent.uid, currentParticipantId)
+
+      // Participant should be able to get the private event (after accepting invitation)
+      val loaded = repository.getEvent(privateEvent.uid) as Event.Private
+      Assert.assertEquals("VIP Party", loaded.title)
     }
   }
 
   @Test
-  fun getAllVisibleEvents_withPrivateEventAsNonParticipant_excludesEvent() {
+  fun addInvitation_byOwner_succeeds() {
     runBlocking {
       signIn("owner")
       val currentOwnerId = getCurrentUserId()
+      val event =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      repository.addEvent(event)
+
+      repository.addInvitationToEvent(event.uid, invitedId, currentOwnerId)
+
+      // Verify invitation was added by checking Firestore directly
+      val invitationDoc =
+          FirebaseEmulator.firestore
+              .collection("events")
+              .document(event.uid)
+              .collection("invitations")
+              .document(invitedId)
+              .get()
+              .await()
+
+      Assert.assertTrue(invitationDoc.exists())
+    }
+  }
+
+  @Test
+  fun addInvitation_byNonOwner_throws() {
+    assertThrows(IllegalAccessException::class.java) {
+      runBlocking {
+        signIn("owner")
+        val currentOwnerId = getCurrentUserId()
+        val event =
+            Event.Public(
+                repository.getNewUid(),
+                currentOwnerId,
+                "Event",
+                "Sub",
+                "desc",
+                null,
+                now,
+                isFlash = false,
+                subtitle = "")
+        repository.addEvent(event)
+
+        signIn("other")
+        val currentOtherId = getCurrentUserId()
+        repository.addInvitationToEvent(event.uid, invitedId, currentOtherId)
+      }
+    }
+  }
+
+  @Test
+  fun removeParticipant_bySelf_succeeds() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val event =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      repository.addEvent(event)
+
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      repository.addParticipantToEvent(event.uid, EventParticipant(currentParticipantId, now))
+
+      // Verify participant was added
+      var participants = repository.getEventParticipants(event.uid)
+      Assert.assertEquals(1, participants.size)
+
+      // Remove self
+      repository.removeParticipantFromEvent(event.uid, currentParticipantId)
+
+      // Verify participant was removed
+      participants = repository.getEventParticipants(event.uid)
+      Assert.assertEquals(0, participants.size)
+    }
+  }
+
+  @Test
+  fun addEvent_withAllOptionalFields_succeeds() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val event =
+          Event.Public(
+              uid = repository.getNewUid(),
+              ownerId = currentOwnerId,
+              title = "Full Event",
+              subtitle = "Complete",
+              description = "All fields present",
+              imageUrl = "https://example.com/image.png",
+              location = Location(46.5191, 6.5668, "EPFL"),
+              start = now,
+              end = Timestamp(Date(now.seconds * 1000 + 3600000)),
+              maxCapacity = 100u,
+              participationFee = 50u,
+              isFlash = true,
+              tags = listOf("tech", "networking", "fun"),
+              website = "https://example.com")
+
+      repository.addEvent(event)
+      val loaded = repository.getEvent(event.uid) as Event.Public
+
+      Assert.assertEquals("Full Event", loaded.title)
+      Assert.assertEquals("https://example.com/image.png", loaded.imageUrl)
+      Assert.assertNotNull(loaded.location)
+      Assert.assertEquals("EPFL", loaded.location?.name)
+      Assert.assertNotNull(loaded.end)
+      Assert.assertEquals(100u.toLong(), loaded.maxCapacity?.toLong())
+      Assert.assertEquals(50u.toLong(), loaded.participationFee?.toLong())
+      Assert.assertTrue(loaded.isFlash)
+      Assert.assertEquals(3, loaded.tags.size)
+      Assert.assertEquals("https://example.com", loaded.website)
+    }
+  }
+
+  @Test
+  fun addEvent_withMinimalFields_succeeds() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val event =
+          Event.Private(
+              uid = repository.getNewUid(),
+              ownerId = currentOwnerId,
+              title = "Minimal Event",
+              description = "Only required fields",
+              start = now,
+              isFlash = false)
+
+      repository.addEvent(event)
+      val loaded = repository.getEvent(event.uid) as Event.Private
+
+      Assert.assertEquals("Minimal Event", loaded.title)
+      Assert.assertNull(loaded.imageUrl)
+      Assert.assertNull(loaded.location)
+      Assert.assertNull(loaded.end)
+      Assert.assertNull(loaded.maxCapacity)
+      Assert.assertNull(loaded.participationFee)
+      Assert.assertFalse(loaded.isFlash)
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_withMalformedEvent_skipsIt() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Add a valid event
+      val validEvent =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Valid",
+              "Good",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      repository.addEvent(validEvent)
+
+      // Add a malformed event directly to Firestore (missing required field)
+      val malformedUid = repository.getNewUid()
+      FirebaseEmulator.firestore
+          .collection("events")
+          .document(malformedUid)
+          .set(
+              mapOf(
+                  "type" to "public", "ownerId" to currentOwnerId, "title" to "Broken"
+                  // Missing description, start, etc.
+                  ))
+          .await()
+
+      // getAllVisibleEvents should skip the malformed event and return only valid ones
+      val events = repository.getAllVisibleEvents()
+      Assert.assertTrue(events.any { it.uid == validEvent.uid })
+      Assert.assertFalse(events.any { it.uid == malformedUid })
+    }
+  }
+
+  // --- Tests for 100% coverage of lines 200-241 ---
+
+  @Test
+  fun getAllVisibleEvents_withOnlyPublicEvents_returnsAll() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      val event1 =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Event 1",
+              "Sub1",
+              "desc1",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      val event2 =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Event 2",
+              "Sub2",
+              "desc2",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      repository.addEvent(event1)
+      repository.addEvent(event2)
+
+      val events = repository.getAllVisibleEvents()
+      Assert.assertEquals(2, events.size)
+      Assert.assertTrue(events.all { it is Event.Public })
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_asOwner_seesOwnPrivateEvents() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
       val privateEvent =
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Event",
+              "My Private Event",
               "secret",
               start = now,
               isFlash = false)
-      repository.addEvent(privateEvent)
+      val publicEvent =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "My Public Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
 
+      repository.addEvent(privateEvent)
+      repository.addEvent(publicEvent)
+
+      val events = repository.getAllVisibleEvents()
+      Assert.assertEquals(2, events.size)
+      Assert.assertTrue(events.any { it.uid == privateEvent.uid && it is Event.Private })
+      Assert.assertTrue(events.any { it.uid == publicEvent.uid && it is Event.Public })
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_asNonParticipant_doesNotSeeOthersPrivateEvents() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Owner Private",
+              "secret",
+              start = now,
+              isFlash = false)
+      val publicEvent =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Public Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      repository.addEvent(privateEvent)
+      repository.addEvent(publicEvent)
+
+      // Switch to other user (not participant)
       signIn("other")
       val events = repository.getAllVisibleEvents()
-      Assert.assertFalse(events.any { it.uid == privateEvent.uid })
+
+      // Should only see the public event
+      Assert.assertEquals(1, events.size)
+      Assert.assertEquals("Public Event", events.first().title)
+      Assert.assertTrue(events.first() is Event.Public)
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_withFirebaseExceptionDuringParsing_skipsCorruptedEvent() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Add a valid public event
+      val validEvent =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Valid Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      repository.addEvent(validEvent)
+
+      // Add a corrupted private event with invalid data
+      val corruptedUid = repository.getNewUid()
+      FirebaseEmulator.firestore
+          .collection("events")
+          .document(corruptedUid)
+          .set(
+              mapOf(
+                  "type" to "private", "ownerId" to currentOwnerId
+                  // Missing required fields like title, description, start
+                  ))
+          .await()
+
+      // Should only return the valid event, skipping the corrupted one
+      val events = repository.getAllVisibleEvents()
+      Assert.assertTrue(events.any { it.uid == validEvent.uid })
+      Assert.assertFalse(events.any { it.uid == corruptedUid })
     }
   }
 }
