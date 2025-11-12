@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.formatShortAddress
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -195,9 +196,11 @@ fun EventCard(
                 modifier = Modifier.testTag("event_card_title_${event.uid}"))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = event.location?.name ?: "Location not specified",
+                text = formatShortAddress(event.location?.name),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -287,3 +290,4 @@ private fun createGregorianFormatter(
       isLenient = false
       calendar = GregorianCalendar().apply { gregorianChange = Date(Long.MIN_VALUE) }
     }
+
