@@ -50,7 +50,9 @@ class EditActivitiesViewModel(
         _selectedActivities.value = user?.hobbies?.toSet() ?: emptySet()
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_activities))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_load_activities))
       }
     }
   }
@@ -96,9 +98,12 @@ class EditActivitiesViewModel(
         // Use updateUser to avoid race conditions and ensure atomic updates
         val updates = mapOf("hobbies" to _selectedActivities.value.toList())
         userRepository.updateUser(userId, updates)
-        _uiState.value = UiState.Success(resourceProvider.getString(R.string.success_activities_updated))
+        _uiState.value =
+            UiState.Success(resourceProvider.getString(R.string.success_activities_updated))
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_save_activities))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_save_activities))
       }
     }
   }

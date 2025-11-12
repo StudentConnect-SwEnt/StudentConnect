@@ -3,9 +3,9 @@ package com.github.se.studentconnect.resources
 import androidx.annotation.StringRes
 
 /**
- * Interface for providing string resources to ViewModels and other non-UI components.
- * This allows ViewModels to access string resources without depending on Android Context directly,
- * making them more testable and platform-agnostic.
+ * Interface for providing string resources to ViewModels and other non-UI components. This allows
+ * ViewModels to access string resources without depending on Android Context directly, making them
+ * more testable and platform-agnostic.
  */
 interface ResourceProvider {
   /**
@@ -27,8 +27,8 @@ interface ResourceProvider {
 }
 
 /**
- * Android-specific implementation of [ResourceProvider].
- * Uses an Android [Context] to retrieve string resources from the application's `strings.xml`.
+ * Android-specific implementation of [ResourceProvider]. Uses an Android [Context] to retrieve
+ * string resources from the application's `strings.xml`.
  *
  * @param context The Android Context used to access string resources
  */
@@ -38,4 +38,3 @@ class AndroidResourceProvider(private val context: android.content.Context) : Re
   override fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
       context.getString(resId, *formatArgs)
 }
-

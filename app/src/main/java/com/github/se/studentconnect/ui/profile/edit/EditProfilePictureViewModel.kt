@@ -46,7 +46,8 @@ class EditProfilePictureViewModel(
         val loadedUser = userRepository.getUserById(userId)
         _user.value = loadedUser
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile)
+        _errorMessage.value =
+            exception.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile)
       } finally {
         _isLoading.value = false
       }
@@ -65,7 +66,8 @@ class EditProfilePictureViewModel(
         _user.value = updatedUser
         _successMessage.value = resourceProvider.getString(R.string.success_profile_picture_updated)
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: resourceProvider.getString(R.string.error_failed_to_upload_photo)
+        _errorMessage.value =
+            exception.message ?: resourceProvider.getString(R.string.error_failed_to_upload_photo)
       } finally {
         _isLoading.value = false
       }

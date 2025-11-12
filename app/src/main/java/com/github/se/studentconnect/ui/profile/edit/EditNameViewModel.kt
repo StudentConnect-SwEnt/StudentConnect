@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.profile.edit
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.resources.ResourceProvider
-import com.github.se.studentconnect.ui.profile.ProfileConstants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

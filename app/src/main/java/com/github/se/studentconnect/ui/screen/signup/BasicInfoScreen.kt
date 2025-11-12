@@ -180,10 +180,15 @@ fun BasicInfoScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
               Column(modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.label_birthday), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    stringResource(R.string.label_birthday),
+                    style = MaterialTheme.typography.labelSmall)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = birthdayText.ifEmpty { stringResource(R.string.placeholder_select_birthdate) },
+                    text =
+                        birthdayText.ifEmpty {
+                          stringResource(R.string.placeholder_select_birthdate)
+                        },
                     style = MaterialTheme.typography.bodyLarge,
                     color =
                         if (birthdayText.isEmpty())

@@ -53,7 +53,9 @@ class EditBirthdayViewModel(
 
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
       }
     }
   }
@@ -82,12 +84,15 @@ class EditBirthdayViewModel(
           val updatedUser =
               user.copy(birthdate = birthdayToSave, updatedAt = System.currentTimeMillis())
           userRepository.saveUser(updatedUser)
-          _uiState.value = UiState.Success(resourceProvider.getString(R.string.success_birthday_updated))
+          _uiState.value =
+              UiState.Success(resourceProvider.getString(R.string.success_birthday_updated))
         } else {
           _uiState.value = UiState.Error(resourceProvider.getString(R.string.error_user_not_found))
         }
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
       }
     }
   }
@@ -104,12 +109,15 @@ class EditBirthdayViewModel(
           userRepository.saveUser(updatedUser)
           _selectedDateMillis.value = null
           _birthdayString.value = null
-          _uiState.value = UiState.Success(resourceProvider.getString(R.string.success_birthday_updated))
+          _uiState.value =
+              UiState.Success(resourceProvider.getString(R.string.success_birthday_updated))
         } else {
           _uiState.value = UiState.Error(resourceProvider.getString(R.string.error_user_not_found))
         }
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
+        _uiState.value =
+            UiState.Error(
+                e.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile))
       }
     }
   }

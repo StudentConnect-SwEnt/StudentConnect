@@ -8,8 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
@@ -94,7 +94,9 @@ fun EditBirthdayScreen(
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -146,7 +148,11 @@ fun EditBirthdayScreen(
                     // DatePicker
                     DatePicker(
                         state = datePickerState,
-                        title = { Text(text = stringResource(R.string.placeholder_pick_a_date), modifier = Modifier.padding(16.dp)) })
+                        title = {
+                          Text(
+                              text = stringResource(R.string.placeholder_pick_a_date),
+                              modifier = Modifier.padding(16.dp))
+                        })
                   }
 
               // Save Button

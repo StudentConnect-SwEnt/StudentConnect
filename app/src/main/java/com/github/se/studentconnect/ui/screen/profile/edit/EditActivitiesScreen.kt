@@ -12,10 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
@@ -76,7 +76,9 @@ fun EditActivitiesScreen(
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_description_back))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -92,14 +94,21 @@ fun EditActivitiesScreen(
               onValueChange = { viewModel.updateSearchQuery(it) },
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("searchField"),
               placeholder = { Text(stringResource(R.string.placeholder_search_activities)) },
-              leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.content_description_search)) },
+              leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = stringResource(R.string.content_description_search))
+              },
               singleLine = true,
               shape = RoundedCornerShape(24.dp))
 
           if (selectedActivities.isNotEmpty()) {
-            val activityText = if (selectedActivities.size == 1) stringResource(R.string.text_activity) else stringResource(R.string.text_activities)
+            val activityText =
+                if (selectedActivities.size == 1) stringResource(R.string.text_activity)
+                else stringResource(R.string.text_activities)
             Text(
-                text = "${selectedActivities.size} $activityText ${stringResource(R.string.text_selected)}",
+                text =
+                    "${selectedActivities.size} $activityText ${stringResource(R.string.text_selected)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))

@@ -65,7 +65,11 @@ fun NationalityScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
             singleLine = true,
-            trailingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.content_description_search)) })
+            trailingIcon = {
+              Icon(
+                  Icons.Filled.Search,
+                  contentDescription = stringResource(R.string.content_description_search))
+            })
 
         SignUpMediumSpacer()
 

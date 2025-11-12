@@ -192,7 +192,9 @@ private fun SignInButton(
                   contentDescription = stringResource(R.string.text_google_logo),
                   modifier = Modifier.size(24.dp))
               Spacer(Modifier.width(12.dp))
-              Text(stringResource(R.string.text_get_started_with_google), style = MaterialTheme.typography.titleMedium)
+              Text(
+                  stringResource(R.string.text_get_started_with_google),
+                  style = MaterialTheme.typography.titleMedium)
             }
       }
 }
