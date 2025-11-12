@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.resources.ResourceProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +14,8 @@ import kotlinx.coroutines.launch
 /** ViewModel for EditNationalityScreen. Manages nationality editing state and operations. */
 class EditNationalityViewModel(
     private val userRepository: UserRepository,
-    private val userId: String
+    private val userId: String,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
   // User data state
@@ -43,7 +46,7 @@ class EditNationalityViewModel(
         val loadedUser = userRepository.getUserById(userId)
         _user.value = loadedUser
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: "Failed to load profile"
+        _errorMessage.value = exception.message ?: resourceProvider.getString(R.string.error_failed_to_load_profile)
       } finally {
         _isLoading.value = false
       }
@@ -60,9 +63,9 @@ class EditNationalityViewModel(
 
         userRepository.saveUser(updatedUser)
         _user.value = updatedUser
-        _successMessage.value = "Nationality updated successfully"
+        _successMessage.value = resourceProvider.getString(R.string.success_nationality_updated)
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: "Failed to update nationality"
+        _errorMessage.value = exception.message ?: resourceProvider.getString(R.string.error_failed_to_update_nationality)
       } finally {
         _isLoading.value = false
       }
