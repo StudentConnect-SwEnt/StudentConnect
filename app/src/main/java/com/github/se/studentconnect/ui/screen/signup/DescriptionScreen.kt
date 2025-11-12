@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,21 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.components.BioTextField
+import com.github.se.studentconnect.ui.components.BioTextFieldStyle
 
 @Composable
 fun DescriptionScreen(
@@ -97,39 +93,16 @@ fun DescriptionContent(
                   },
               verticalArrangement = Arrangement.Top,
               horizontalAlignment = Alignment.CenterHorizontally) {
-                OutlinedTextField(
+                // Bio TextField using reusable component
+                BioTextField(
                     value = description,
                     onValueChange = onDescriptionChange,
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(size = 16.dp))
-                            .semantics { testTag = C.Tag.description_input },
-                    placeholder = {
-                      Text(
-                          text = "What should other students know about you?",
-                          style = MaterialTheme.typography.bodyMedium,
-                          color = MaterialTheme.colorScheme.outline)
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    colors =
-                        TextFieldDefaults.colors(
-                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedIndicatorColor =
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            focusedPlaceholderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.primary),
-                    textStyle =
-                        MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.outline),
+                    modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.description_input },
+                    placeholder = "What should other students know about you?",
+                    showCharacterCount = false,
+                    minLines = 6,
                     maxLines = 8,
-                    minLines = 6)
+                    style = BioTextFieldStyle.Bordered)
               }
 
           Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
