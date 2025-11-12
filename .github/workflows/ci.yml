@@ -131,6 +131,18 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
+      - name: Cache Android SDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms/android-34
+            /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+            /usr/local/lib/android/sdk/build-tools/35.0.0
+            /usr/local/lib/android/sdk/platform-tools
+            /usr/local/lib/android/sdk/emulator
+            /usr/local/lib/android/sdk/licenses
+          key: ${{ runner.os }}-androidsdk-a34-googleapis-x86_64-bt35.0.0
+
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
