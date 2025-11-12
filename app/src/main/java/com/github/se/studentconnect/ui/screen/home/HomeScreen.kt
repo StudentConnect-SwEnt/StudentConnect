@@ -655,32 +655,30 @@ fun StoryItem(
 ) {
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
-  Box(
-      modifier =
-          if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
-              Image(
-                  painter = painterResource(avatarRes),
-                  contentDescription = contentDescription,
-                  modifier =
-                      Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
-                          .clip(CircleShape)
-                          .border(
-                              width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
-                              color = borderColor,
-                              shape = CircleShape)
-                          .clickable(onClick = onClick))
-              Text(
-                  text = name,
-                  modifier =
-                      Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
-                          .testTag("story_text_$name"),
-                  style = MaterialTheme.typography.bodySmall,
-                  maxLines = 1)
-            }
-      }
+  Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
+          Image(
+              painter = painterResource(avatarRes),
+              contentDescription = contentDescription,
+              modifier =
+                  Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
+                      .clip(CircleShape)
+                      .border(
+                          width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
+                          color = borderColor,
+                          shape = CircleShape)
+                      .clickable(onClick = onClick))
+          Text(
+              text = name,
+              modifier =
+                  Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
+                      .testTag("story_text_$name"),
+              style = MaterialTheme.typography.bodySmall,
+              maxLines = 1)
+        }
+  }
 }
 
 @Composable
