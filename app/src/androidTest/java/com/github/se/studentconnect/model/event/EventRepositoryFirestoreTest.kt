@@ -869,4 +869,203 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       Assert.assertFalse(events.any { it.uid == corruptedUid })
     }
   }
+
+  @Test
+  fun getAllVisibleEvents_asParticipant_seesPrivateEventTheyJoined() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Owner creates a private event
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Exclusive Party",
+              "Members only",
+              start = now,
+              isFlash = false)
+      repository.addEvent(privateEvent)
+
+      // Owner invites participant
+      repository.addInvitationToEvent(privateEvent.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEvent.uid, participantId, currentOwnerId)
+
+      // Sign in as participant and accept invitation
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+
+      // Accept the invitation
+      userRepository.acceptInvitation(privateEvent.uid, currentParticipantId)
+      // Add participant to event (as done in production code)
+      repository.addParticipantToEvent(
+          privateEvent.uid, EventParticipant(currentParticipantId, now))
+
+      // Participant should now see the private event in getAllVisibleEvents
+      val events = repository.getAllVisibleEvents()
+      Assert.assertTrue(events.any { it.uid == privateEvent.uid && it is Event.Private })
+
+      val loadedEvent = events.first { it.uid == privateEvent.uid } as Event.Private
+      Assert.assertEquals("Exclusive Party", loadedEvent.title)
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_asParticipant_seesMultiplePrivateEventsTheyJoined() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Owner creates multiple private events
+      val privateEvent1 =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Event 1",
+              "desc1",
+              start = now,
+              isFlash = false)
+      val privateEvent2 =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Event 2",
+              "desc2",
+              start = now,
+              isFlash = false)
+      val privateEvent3 =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Event 3",
+              "desc3",
+              start = now,
+              isFlash = false)
+
+      repository.addEvent(privateEvent1)
+      repository.addEvent(privateEvent2)
+      repository.addEvent(privateEvent3)
+
+      // Owner invites participant to events 1 and 2
+      repository.addInvitationToEvent(privateEvent1.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEvent1.uid, participantId, currentOwnerId)
+
+      repository.addInvitationToEvent(privateEvent2.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEvent2.uid, participantId, currentOwnerId)
+
+      // Sign in as participant and accept invitations for events 1 and 2
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      userRepository.acceptInvitation(privateEvent1.uid, currentParticipantId)
+      repository.addParticipantToEvent(
+          privateEvent1.uid, EventParticipant(currentParticipantId, now))
+
+      userRepository.acceptInvitation(privateEvent2.uid, currentParticipantId)
+      repository.addParticipantToEvent(
+          privateEvent2.uid, EventParticipant(currentParticipantId, now))
+
+      // Participant should see only the events they accepted (events 1 and 2, not 3)
+      val events = repository.getAllVisibleEvents()
+      val privateEventUids = events.filter { it is Event.Private }.map { it.uid }
+
+      Assert.assertTrue(privateEventUids.contains(privateEvent1.uid))
+      Assert.assertTrue(privateEventUids.contains(privateEvent2.uid))
+      Assert.assertFalse(privateEventUids.contains(privateEvent3.uid))
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_mixOfPublicAndPrivateEvents_filtersCorrectly() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Owner creates public and private events
+      val publicEvent =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Public Concert",
+              "Sub",
+              "Everyone welcome",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      val privateEventJoined =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Party - Joined",
+              "VIP only",
+              start = now,
+              isFlash = false)
+
+      val privateEventNotJoined =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Party - Not Joined",
+              "Super VIP",
+              start = now,
+              isFlash = false)
+
+      repository.addEvent(publicEvent)
+      repository.addEvent(privateEventJoined)
+      repository.addEvent(privateEventNotJoined)
+
+      // Owner invites participant to only one private event
+      repository.addInvitationToEvent(privateEventJoined.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEventJoined.uid, participantId, currentOwnerId)
+
+      // Sign in as participant and accept invitation
+      signIn("participant")
+      val currentParticipantId = getCurrentUserId()
+      userRepository.acceptInvitation(privateEventJoined.uid, currentParticipantId)
+      repository.addParticipantToEvent(
+          privateEventJoined.uid, EventParticipant(currentParticipantId, now))
+
+      // Participant should see: public event + private event they joined
+      val events = repository.getAllVisibleEvents()
+      val eventUids = events.map { it.uid }
+
+      Assert.assertEquals(2, events.size)
+      Assert.assertTrue(eventUids.contains(publicEvent.uid))
+      Assert.assertTrue(eventUids.contains(privateEventJoined.uid))
+      Assert.assertFalse(eventUids.contains(privateEventNotJoined.uid))
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_asInvitedUser_doesNotSeePrivateEventBeforeAccepting() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      // Owner creates a private event
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Party",
+              "VIP only",
+              start = now,
+              isFlash = false)
+      repository.addEvent(privateEvent)
+
+      // Owner invites participant but they haven't accepted yet
+      repository.addInvitationToEvent(privateEvent.uid, participantId, currentOwnerId)
+      userRepository.addInvitationToUser(privateEvent.uid, participantId, currentOwnerId)
+
+      // Sign in as participant (without accepting)
+      signIn("participant")
+
+      // Participant should NOT see the private event until they accept
+      val events = repository.getAllVisibleEvents()
+      val eventUids = events.map { it.uid }
+
+      Assert.assertFalse(eventUids.contains(privateEvent.uid))
+    }
+  }
 }
