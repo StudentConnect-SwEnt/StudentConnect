@@ -22,180 +22,179 @@ import org.robolectric.annotation.Config
 @Config(sdk = [30])
 class StoryViewerTest {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createComposeRule()
 
-    private val testEvent =
+  private val testEvent =
+      Event.Public(
+          uid = "test-event-1",
+          title = "Test Event Story",
+          subtitle = "Test subtitle",
+          description = "Test description for story viewer",
+          start = Timestamp.Companion.now(),
+          end = Timestamp.Companion.now(),
+          location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
+          website = "https://example.com",
+          ownerId = "owner-123",
+          isFlash = false,
+          tags = listOf("test", "story"),
+      )
+
+  @Test
+  fun storyViewer_whenVisible_displaysCorrectly() {
+    composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = true, onDismiss = {}) }
+
+    // Verify story viewer is displayed
+    composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
+
+    // Verify close button is displayed
+    composeTestRule.onNodeWithTag("story_close_button").assertIsDisplayed()
+
+    // Verify event title is displayed
+    composeTestRule.onNodeWithText("Test Event Story").assertIsDisplayed()
+
+    // Verify story content image is displayed
+    composeTestRule.onNodeWithContentDescription("Story content").assertIsDisplayed()
+
+    // Verify close icon is displayed
+    composeTestRule.onNodeWithContentDescription("Close story").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyViewer_whenNotVisible_doesNotDisplay() {
+    composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = false, onDismiss = {}) }
+
+    // Verify story viewer is not displayed when isVisible is false
+    composeTestRule.onNodeWithTag("story_viewer").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun storyViewer_closeButton_triggersOnDismiss() {
+    var dismissCalled = false
+
+    composeTestRule.setContent {
+      StoryViewer(event = testEvent, isVisible = true, onDismiss = { dismissCalled = true })
+    }
+
+    // Click the close button
+    composeTestRule.onNodeWithTag("story_close_button").performClick()
+
+    // Verify onDismiss was called
+    Assert.assertTrue("onDismiss should be called when close button is clicked", dismissCalled)
+  }
+
+  @Test
+  fun storyViewer_backgroundClick_triggersOnDismiss() {
+    var dismissCalled = false
+
+    composeTestRule.setContent {
+      StoryViewer(event = testEvent, isVisible = true, onDismiss = { dismissCalled = true })
+    }
+
+    // Click on the story viewer background
+    composeTestRule.onNodeWithTag("story_viewer").performClick()
+
+    // Verify onDismiss was called
+    Assert.assertTrue("onDismiss should be called when background is clicked", dismissCalled)
+  }
+
+  @Test
+  fun storyViewer_displaysEventTitleCorrectly() {
+    val eventWithLongTitle =
         Event.Public(
-            uid = "test-event-1",
-            title = "Test Event Story",
+            uid = "test-event-2",
+            title = "Very Long Event Title For Testing Story Viewer Display",
             subtitle = "Test subtitle",
-            description = "Test description for story viewer",
+            description = "Test description",
             start = Timestamp.Companion.now(),
             end = Timestamp.Companion.now(),
-            location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
+            location = Location(latitude = 46.52, longitude = 6.57, name = "Test Location"),
             website = "https://example.com",
-            ownerId = "owner-123",
+            ownerId = "owner-456",
             isFlash = false,
-            tags = listOf("test", "story"),
+            tags = listOf("test"),
         )
 
-    @Test
-    fun storyViewer_whenVisible_displaysCorrectly() {
-        composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = true, onDismiss = {}) }
-
-        // Verify story viewer is displayed
-        composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
-
-        // Verify close button is displayed
-        composeTestRule.onNodeWithTag("story_close_button").assertIsDisplayed()
-
-        // Verify event title is displayed
-        composeTestRule.onNodeWithText("Test Event Story").assertIsDisplayed()
-
-        // Verify story content image is displayed
-        composeTestRule.onNodeWithContentDescription("Story content").assertIsDisplayed()
-
-        // Verify close icon is displayed
-        composeTestRule.onNodeWithContentDescription("Close story").assertIsDisplayed()
+    composeTestRule.setContent {
+      StoryViewer(event = eventWithLongTitle, isVisible = true, onDismiss = {})
     }
 
-    @Test
-    fun storyViewer_whenNotVisible_doesNotDisplay() {
-        composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = false, onDismiss = {}) }
+    // Verify long title is displayed
+    composeTestRule
+        .onNodeWithText("Very Long Event Title For Testing Story Viewer Display")
+        .assertIsDisplayed()
+  }
 
-        // Verify story viewer is not displayed when isVisible is false
-        composeTestRule.onNodeWithTag("story_viewer").assertIsNotDisplayed()
+  @Test
+  fun storyViewer_multipleToggle_worksCorrectly() {
+    var isVisible = true
+
+    composeTestRule.setContent {
+      StoryViewer(event = testEvent, isVisible = isVisible, onDismiss = { isVisible = false })
     }
 
-    @Test
-    fun storyViewer_closeButton_triggersOnDismiss() {
-        var dismissCalled = false
+    // Initially visible
+    composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
 
-        composeTestRule.setContent {
-            StoryViewer(event = testEvent, isVisible = true, onDismiss = { dismissCalled = true })
-        }
+    // Toggle visibility
+    composeTestRule.onNodeWithTag("story_close_button").performClick()
+    composeTestRule.waitForIdle()
 
-        // Click the close button
-        composeTestRule.onNodeWithTag("story_close_button").performClick()
+    // After clicking, it should still be displayed (visibility is controlled by parent)
+    // but onDismiss callback should have been triggered
+    Assert.assertTrue("isVisible should be updated", !isVisible)
+  }
 
-        // Verify onDismiss was called
-        Assert.assertTrue("onDismiss should be called when close button is clicked", dismissCalled)
-    }
+  @Test
+  fun storyViewer_withDifferentEvents_displaysCorrectContent() {
+    val event1 =
+        Event.Public(
+            uid = "event-1",
+            title = "First Event",
+            subtitle = "First subtitle",
+            description = "First description",
+            start = Timestamp.Companion.now(),
+            end = Timestamp.Companion.now(),
+            location = Location(latitude = 46.52, longitude = 6.57, name = "Location 1"),
+            website = "https://event1.com",
+            ownerId = "owner-1",
+            isFlash = false,
+            tags = listOf("tag1"),
+        )
 
-    @Test
-    fun storyViewer_backgroundClick_triggersOnDismiss() {
-        var dismissCalled = false
+    composeTestRule.setContent { StoryViewer(event = event1, isVisible = true, onDismiss = {}) }
 
-        composeTestRule.setContent {
-            StoryViewer(event = testEvent, isVisible = true, onDismiss = { dismissCalled = true })
-        }
+    composeTestRule.onNodeWithText("First Event").assertIsDisplayed()
+  }
 
-        // Click on the story viewer background
-        composeTestRule.onNodeWithTag("story_viewer").performClick()
+  @Test
+  fun storyViewer_closeIcon_hasCorrectContentDescription() {
+    composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = true, onDismiss = {}) }
 
-        // Verify onDismiss was called
-        Assert.assertTrue("onDismiss should be called when background is clicked", dismissCalled)
-    }
+    // Verify close icon has the correct content description for accessibility
+    composeTestRule.onNodeWithContentDescription("Close story").assertIsDisplayed()
+  }
 
-    @Test
-    fun storyViewer_displaysEventTitleCorrectly() {
-        val eventWithLongTitle =
-            Event.Public(
-                uid = "test-event-2",
-                title = "Very Long Event Title For Testing Story Viewer Display",
-                subtitle = "Test subtitle",
-                description = "Test description",
-                start = Timestamp.Companion.now(),
-                end = Timestamp.Companion.now(),
-                location = Location(latitude = 46.52, longitude = 6.57, name = "Test Location"),
-                website = "https://example.com",
-                ownerId = "owner-456",
-                isFlash = false,
-                tags = listOf("test"),
-            )
+  @Test
+  fun storyViewer_withFlashEvent_displaysCorrectly() {
+    val flashEvent =
+        Event.Public(
+            uid = "flash-event-1",
+            title = "Flash Event",
+            subtitle = "Limited time",
+            description = "This is a flash event",
+            start = Timestamp.Companion.now(),
+            end = Timestamp.Companion.now(),
+            location = Location(latitude = 46.52, longitude = 6.57, name = "Flash Location"),
+            website = "https://flash.com",
+            ownerId = "owner-flash",
+            isFlash = true,
+            tags = listOf("flash", "urgent"),
+        )
 
-        composeTestRule.setContent {
-            StoryViewer(event = eventWithLongTitle, isVisible = true, onDismiss = {})
-        }
+    composeTestRule.setContent { StoryViewer(event = flashEvent, isVisible = true, onDismiss = {}) }
 
-        // Verify long title is displayed
-        composeTestRule
-            .onNodeWithText("Very Long Event Title For Testing Story Viewer Display")
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun storyViewer_multipleToggle_worksCorrectly() {
-        var isVisible = true
-
-        composeTestRule.setContent {
-            StoryViewer(event = testEvent, isVisible = isVisible, onDismiss = { isVisible = false })
-        }
-
-        // Initially visible
-        composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
-
-        // Toggle visibility
-        composeTestRule.onNodeWithTag("story_close_button").performClick()
-        composeTestRule.waitForIdle()
-
-        // After clicking, it should still be displayed (visibility is controlled by parent)
-        // but onDismiss callback should have been triggered
-        Assert.assertTrue("isVisible should be updated", !isVisible)
-    }
-
-    @Test
-    fun storyViewer_withDifferentEvents_displaysCorrectContent() {
-        val event1 =
-            Event.Public(
-                uid = "event-1",
-                title = "First Event",
-                subtitle = "First subtitle",
-                description = "First description",
-                start = Timestamp.Companion.now(),
-                end = Timestamp.Companion.now(),
-                location = Location(latitude = 46.52, longitude = 6.57, name = "Location 1"),
-                website = "https://event1.com",
-                ownerId = "owner-1",
-                isFlash = false,
-                tags = listOf("tag1"),
-            )
-
-        composeTestRule.setContent { StoryViewer(event = event1, isVisible = true, onDismiss = {}) }
-
-        composeTestRule.onNodeWithText("First Event").assertIsDisplayed()
-    }
-
-    @Test
-    fun storyViewer_closeIcon_hasCorrectContentDescription() {
-        composeTestRule.setContent { StoryViewer(event = testEvent, isVisible = true, onDismiss = {}) }
-
-        // Verify close icon has the correct content description for accessibility
-        composeTestRule.onNodeWithContentDescription("Close story").assertIsDisplayed()
-    }
-
-    @Test
-    fun storyViewer_withFlashEvent_displaysCorrectly() {
-        val flashEvent =
-            Event.Public(
-                uid = "flash-event-1",
-                title = "Flash Event",
-                subtitle = "Limited time",
-                description = "This is a flash event",
-                start = Timestamp.Companion.now(),
-                end = Timestamp.Companion.now(),
-                location = Location(latitude = 46.52, longitude = 6.57, name = "Flash Location"),
-                website = "https://flash.com",
-                ownerId = "owner-flash",
-                isFlash = true,
-                tags = listOf("flash", "urgent"),
-            )
-
-        composeTestRule.setContent { StoryViewer(event = flashEvent, isVisible = true, onDismiss = {}) }
-
-        // Verify flash event displays correctly
-        composeTestRule.onNodeWithText("Flash Event").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
-    }
+    // Verify flash event displays correctly
+    composeTestRule.onNodeWithText("Flash Event").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
+  }
 }
