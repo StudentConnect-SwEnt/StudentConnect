@@ -11,6 +11,7 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -190,5 +191,41 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun testEventWithLocation_displaysLocation() = runTest {
+    val location =
+        Location(
+            latitude = 46.5186,
+            longitude = 6.5681,
+            name = "Rue de la Gare, Quartier du Centre, Lausanne")
+    val eventWithLocation =
+        Event.Public(
+            uid = "event-location",
+            ownerId = "user1",
+            title = "Event Location",
+            subtitle = "Test",
+            description = "Test",
+            imageUrl = null,
+            location = location,
+            start = Timestamp.now(),
+            end = null,
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = false,
+            tags = emptyList(),
+            website = null)
+
+    EventRepositoryProvider.repository.addEvent(eventWithLocation)
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.event_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("Location")
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsDisplayed()
   }
 }

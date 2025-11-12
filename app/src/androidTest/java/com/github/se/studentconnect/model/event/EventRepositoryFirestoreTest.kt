@@ -482,4 +482,57 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       Assert.assertEquals("Public Concert", results.first().title)
     }
   }
+
+  @Test
+  fun getEvent_withPrivateEventAsInvitedUser_allowsAccess() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Event",
+              "secret",
+              start = now,
+              isFlash = false)
+      repository.addEvent(privateEvent)
+      repository.addInvitationToEvent(privateEvent.uid, invitedId, currentOwnerId)
+
+      signIn("invited")
+      val event = repository.getEvent(privateEvent.uid)
+      Assert.assertEquals("Private Event", event.title)
+    }
+  }
+
+  @Test
+  fun getAllVisibleEvents_withPrivateEventAsNonParticipant_excludesEvent() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Private Event",
+              "secret",
+              start = now,
+              isFlash = false)
+      repository.addEvent(privateEvent)
+
+      signIn("other")
+      val events = repository.getAllVisibleEvents()
+      Assert.assertFalse(events.any { it.uid == privateEvent.uid })
+    }
+  }
+
+  @Test
+  fun deleteEvent_withNonExistentEvent_throwsIllegalArgumentException() {
+    assertThrows(IllegalArgumentException::class.java) {
+      runBlocking {
+        signIn("owner")
+        repository.deleteEvent("non-existent-event-id")
+      }
+    }
+  }
 }

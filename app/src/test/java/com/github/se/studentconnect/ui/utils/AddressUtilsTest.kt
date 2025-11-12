@@ -51,4 +51,11 @@ class AddressUtilsTest {
             "Rue de la Gare, Quartier du Centre, Lausanne, District, Vaud, 1000, Switzerland")
     assertEquals("Rue de la Gare, Quartier du Centre, Lausanne", result)
   }
+
+  @Test
+  fun formatShortAddress_withTwoParts_truncatesIfLongerThan50() {
+    val result = formatShortAddress("Very Long Road Name That Exceeds Limit, Very Long City Name")
+    assertEquals(50, result.length)
+    assert(result.endsWith("..."))
+  }
 }
