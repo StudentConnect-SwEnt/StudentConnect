@@ -165,6 +165,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun takePhotoOption_enablesSaveButton() {
+    composeTestRule.waitForIdle()
     val saveButton = composeTestRule.onNodeWithText("Save")
     saveButton.assertExists().assertIsNotEnabled()
 
