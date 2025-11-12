@@ -42,14 +42,14 @@ fun HomeSearchBar(
             leadingIcon = {
               Icon(
                   painterResource(R.drawable.ic_search),
-                  contentDescription = null,
+                  contentDescription = "Search Icon",
                   modifier = Modifier.size(20.dp),
                   tint = MaterialTheme.colorScheme.onSurface,
               )
             },
             query = query,
             onQueryChange = onQueryChange,
-            placeholder = { Text("Search") },
+            placeholder = { Text("Search for events...") },
             onSearch = {},
             expanded = false,
             onExpandedChange = {},

@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -940,10 +942,18 @@ class HomeScreenUITest {
   @Test
   fun homeScreen_clickSearchBar_doesNotCrash() {
     composeTestRule.setContent {
-      HomeScreen(
-          navController = rememberNavController(),
-          viewModel = viewModel,
-          notificationViewModel = NotificationViewModel(notificationRepository))
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+          HomeScreen(
+              navController = navController,
+              viewModel = viewModel,
+              notificationViewModel = NotificationViewModel(notificationRepository))
+        }
+        composable("search") {
+          // Empty composable for navigation destination
+        }
+      }
     }
 
     composeTestRule.waitForIdle()

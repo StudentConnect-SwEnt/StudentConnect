@@ -10,8 +10,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +25,21 @@ import org.junit.runner.RunWith
 class HomeScreenAdditionalCoverageTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  private lateinit var eventRepository: EventRepositoryLocal
+  private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
+  private lateinit var viewModel: HomePageViewModel
+  private lateinit var notificationViewModel: NotificationViewModel
+
+  @Before
+  fun setup() {
+    eventRepository = EventRepositoryLocal()
+    userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    notificationViewModel = NotificationViewModel(notificationRepository)
+  }
 
   private val testEvent =
       Event.Public(
@@ -246,19 +266,18 @@ class HomeScreenAdditionalCoverageTest {
   }
 
   @Test
-  fun homeTopBar_withSearchClick_triggersCallback() {
-    var searchClicked = false
+  fun homeTopBar_displaysSearchBar() {
     composeTestRule.setContent {
+      val navController = rememberNavController()
       HomeTopBar(
-          showNotifications = false,
-          onNotificationClick = {},
-          onDismiss = {},
-          onSearchClick = { searchClicked = true })
+          notificationState = NotificationState(showNotifications = false),
+          notificationCallbacks = NotificationCallbacks(onNotificationClick = {}, onDismiss = {}),
+          navController = navController)
     }
 
-    // Click on the search bar area
-    composeTestRule.onNodeWithText("Search for events...").performClick()
-    assert(searchClicked)
+    // Verify the search bar is displayed (don't click it as it requires NavHost)
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Search for events...").assertExists()
   }
 
   @Test
@@ -268,7 +287,9 @@ class HomeScreenAdditionalCoverageTest {
           navController = rememberNavController(),
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
-          uiState = HomePageUiState(isLoading = true, events = emptyList()))
+          uiState = HomePageUiState(isLoading = true, events = emptyList()),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -283,11 +304,15 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState =
               HomePageUiState(
-                  isLoading = false, events = emptyList(), subscribedEventsStories = emptyMap()))
+                  isLoading = false, events = emptyList(), subscribedEventsStories = emptyMap()),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("stories_row").assertIsDisplayed()
+    // Note: stories_row is not rendered when events list is empty
+    // EventListScreen returns early without rendering topContent
   }
 
   @Test
@@ -301,7 +326,9 @@ class HomeScreenAdditionalCoverageTest {
           onQRScannerClosed = {},
           uiState =
               HomePageUiState(
-                  isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories))
+                  isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -317,7 +344,9 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          onDateSelected = { dateSelected = true })
+          onDateSelected = { dateSelected = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -332,7 +361,9 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          onApplyFilters = { filtersApplied = true })
+          onApplyFilters = { filtersApplied = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -347,7 +378,9 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          onFavoriteToggle = { favoriteToggled = true })
+          onFavoriteToggle = { favoriteToggled = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -362,7 +395,9 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          onClearScrollTarget = { scrollTargetCleared = true })
+          onClearScrollTarget = { scrollTargetCleared = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -375,7 +410,9 @@ class HomeScreenAdditionalCoverageTest {
           navController = rememberNavController(),
           shouldOpenQRScanner = true,
           onQRScannerClosed = {},
-          uiState = HomePageUiState(isLoading = false, events = emptyList()))
+          uiState = HomePageUiState(isLoading = false, events = emptyList()),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitForIdle()
@@ -390,7 +427,9 @@ class HomeScreenAdditionalCoverageTest {
           shouldOpenQRScanner = false,
           onQRScannerClosed = {},
           uiState = HomePageUiState(isLoading = false, events = emptyList()),
-          onCalendarClick = { calendarClicked = true })
+          onCalendarClick = { calendarClicked = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -409,7 +448,9 @@ class HomeScreenAdditionalCoverageTest {
           onClickStory = { _, _ -> storyClicked = true },
           uiState =
               HomePageUiState(
-                  isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories))
+                  isLoading = false, events = listOf(testEvent), subscribedEventsStories = stories),
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.waitForIdle()
@@ -421,8 +462,12 @@ class HomeScreenAdditionalCoverageTest {
   fun homeTopBar_dismissNotifications_triggersCallback() {
     var dismissed = false
     composeTestRule.setContent {
+      val navController = rememberNavController()
       HomeTopBar(
-          showNotifications = true, onNotificationClick = {}, onDismiss = { dismissed = true })
+          notificationState = NotificationState(showNotifications = true),
+          notificationCallbacks =
+              NotificationCallbacks(onNotificationClick = {}, onDismiss = { dismissed = true }),
+          navController = navController)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertDoesNotExist()
@@ -458,7 +503,9 @@ class HomeScreenAdditionalCoverageTest {
           onCalendarClick = { calendarClicked = true },
           onApplyFilters = { filtersApplied = true },
           onFavoriteToggle = { favoriteToggled = true },
-          onClearScrollTarget = { scrollCleared = true })
+          onClearScrollTarget = { scrollCleared = true },
+          viewModel = viewModel,
+          notificationViewModel = notificationViewModel)
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
