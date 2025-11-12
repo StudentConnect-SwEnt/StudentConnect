@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
@@ -49,8 +48,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,6 +84,7 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTag
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
+import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
@@ -358,27 +356,11 @@ fun HomeTopBar(
 ) {
   TopAppBar(
       title = {
-        TextField(
-            value = "",
-            onValueChange = {},
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(end = HomeScreenConstants.SEARCH_BAR_END_PADDING_DP.dp),
-            placeholder = { Text("Search for events...") },
-            leadingIcon = {
-              Icon(
-                  painter = painterResource(id = R.drawable.ic_search),
-                  contentDescription = "Search Icon",
-              )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(HomeScreenConstants.SEARCH_BAR_CORNER_RADIUS_DP.dp),
-            colors =
-                TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
+        HomeSearchBar(
+            modifier = Modifier.clickable(onClick = { navController.navigate(Route.SEARCH) }),
+            query = "",
+            onQueryChange = {},
+            enabled = false, // only a dummy search bar to navigate to the search screen
         )
       },
       actions = {
@@ -387,27 +369,6 @@ fun HomeTopBar(
             notificationCallbacks = notificationCallbacks,
             navController = navController)
       })
-}
-
-@Composable
-private fun SearchTextField() {
-  TextField(
-      value = "",
-      onValueChange = {},
-      modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-      placeholder = { Text("Search for events...") },
-      leadingIcon = {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_search),
-            contentDescription = "Search Icon")
-      },
-      singleLine = true,
-      shape = RoundedCornerShape(24.dp),
-      colors =
-          TextFieldDefaults.colors(
-              focusedIndicatorColor = Color.Transparent,
-              unfocusedIndicatorColor = Color.Transparent,
-              disabledIndicatorColor = Color.Transparent))
 }
 
 @Composable
