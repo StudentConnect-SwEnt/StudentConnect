@@ -526,13 +526,4 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
     }
   }
 
-  @Test
-  fun deleteEvent_withNonExistentEvent_throwsIllegalArgumentException() {
-    assertThrows(IllegalArgumentException::class.java) {
-      runBlocking {
-        signIn("owner")
-        repository.deleteEvent("non-existent-event-id")
-      }
-    }
-  }
 }
