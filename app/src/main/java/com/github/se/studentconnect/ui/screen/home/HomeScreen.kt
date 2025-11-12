@@ -82,13 +82,13 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.ui.calendar.EventCalendar
-import com.github.se.studentconnect.ui.utils.EventListScreen
-import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth

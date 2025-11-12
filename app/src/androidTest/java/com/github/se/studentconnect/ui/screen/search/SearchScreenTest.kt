@@ -206,8 +206,9 @@ class SearchScreenTest {
             start = Timestamp.now(),
             isFlash = false,
             subtitle = "Subtitle",
-            location = Location(0.0, 0.0, "Rue de la Gare, Quartier du Centre, Lausanne, Vaud, Switzerland")
-        ))
+            location =
+                Location(
+                    0.0, 0.0, "Rue de la Gare, Quartier du Centre, Lausanne, Vaud, Switzerland")))
 
     composeTestRule.setContent { AppTheme { TestSearchScreen() } }
     composeTestRule.waitForIdle()
@@ -222,6 +223,8 @@ class SearchScreenTest {
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Rue de la Gare, Quartier du Centre, Lausanne").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText("Rue de la Gare, Quartier du Centre, Lausanne")
+        .assertIsDisplayed()
   }
 }

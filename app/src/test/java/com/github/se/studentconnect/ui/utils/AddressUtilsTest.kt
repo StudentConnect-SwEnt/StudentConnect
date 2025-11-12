@@ -38,15 +38,17 @@ class AddressUtilsTest {
 
   @Test
   fun formatShortAddress_withThreePartsLongerThan50_truncates() {
-    val result = formatShortAddress("Very Long Road Name, Very Long Neighbourhood, Very Long City Name")
+    val result =
+        formatShortAddress("Very Long Road Name, Very Long Neighbourhood, Very Long City Name")
     assertEquals(50, result.length)
     assert(result.endsWith("..."))
   }
 
   @Test
   fun formatShortAddress_withNominatimFormat_returnsFirstThreeParts() {
-    val result = formatShortAddress("Rue de la Gare, Quartier du Centre, Lausanne, District, Vaud, 1000, Switzerland")
+    val result =
+        formatShortAddress(
+            "Rue de la Gare, Quartier du Centre, Lausanne, District, Vaud, 1000, Switzerland")
     assertEquals("Rue de la Gare, Quartier du Centre, Lausanne", result)
   }
 }
-
