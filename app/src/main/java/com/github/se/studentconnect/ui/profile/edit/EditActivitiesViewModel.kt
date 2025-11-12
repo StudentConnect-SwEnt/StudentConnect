@@ -2,8 +2,10 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.ResourceProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +14,8 @@ import kotlinx.coroutines.launch
 /** ViewModel for EditActivitiesScreen. Handles activities/hobbies selection and search. */
 class EditActivitiesViewModel(
     private val userRepository: UserRepository,
-    private val userId: String
+    private val userId: String,
+    private val resourceProvider: ResourceProvider
 ) : ViewModel() {
 
   // Available activities from central source
@@ -47,7 +50,7 @@ class EditActivitiesViewModel(
         _selectedActivities.value = user?.hobbies?.toSet() ?: emptySet()
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to load activities")
+        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_load_activities))
       }
     }
   }
@@ -86,16 +89,16 @@ class EditActivitiesViewModel(
         // Verify user exists before updating
         val user = userRepository.getUserById(userId)
         if (user == null) {
-          _uiState.value = UiState.Error("User not found")
+          _uiState.value = UiState.Error(resourceProvider.getString(R.string.error_user_not_found))
           return@launch
         }
 
         // Use updateUser to avoid race conditions and ensure atomic updates
         val updates = mapOf("hobbies" to _selectedActivities.value.toList())
         userRepository.updateUser(userId, updates)
-        _uiState.value = UiState.Success("Activities updated successfully")
+        _uiState.value = UiState.Success(resourceProvider.getString(R.string.success_activities_updated))
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to save activities")
+        _uiState.value = UiState.Error(e.message ?: resourceProvider.getString(R.string.error_failed_to_save_activities))
       }
     }
   }
