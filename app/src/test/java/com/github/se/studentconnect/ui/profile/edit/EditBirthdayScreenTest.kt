@@ -13,7 +13,9 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -403,7 +405,7 @@ class EditBirthdayScreenTest {
   }
 
   @Test
-  fun editBirthdayScreen_updatesTimestampOnSave() {
+  fun editBirthdayScreen_updatesTimestampOnSave() = runTest {
     val timeBefore = System.currentTimeMillis()
 
     composeTestRule.setContent {
@@ -420,12 +422,13 @@ class EditBirthdayScreenTest {
 
     // Wait for save operation and verify timestamp was updated
     composeTestRule.waitForIdle()
-    Thread.sleep(500) // Give time for save operation
+    delay(500) // Give time for save operation
     composeTestRule.waitForIdle()
 
     val timeAfter = System.currentTimeMillis()
-    val savedUser = repository.savedUsers.last()
-    assert(savedUser.updatedAt >= timeBefore && savedUser.updatedAt <= timeAfter)
+    val savedUser = repository.getUserById(testUser.userId)
+    assertNotNull(savedUser)
+    assert(savedUser!!.updatedAt >= timeBefore && savedUser.updatedAt <= timeAfter)
   }
 
   @Test
