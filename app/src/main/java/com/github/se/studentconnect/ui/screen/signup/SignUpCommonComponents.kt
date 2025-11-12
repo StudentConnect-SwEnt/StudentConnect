@@ -27,8 +27,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.R
 
 /**
  * Common constants for all sign-up screens to ensure visual consistency.
@@ -91,7 +93,7 @@ fun SignUpBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   IconButton(onClick = onClick, modifier = modifier.size(SignUpScreenConstants.BACK_BUTTON_SIZE)) {
     Icon(
         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-        contentDescription = "Back",
+        contentDescription = stringResource(R.string.content_description_back),
         tint = MaterialTheme.colorScheme.onSurface)
   }
 }
