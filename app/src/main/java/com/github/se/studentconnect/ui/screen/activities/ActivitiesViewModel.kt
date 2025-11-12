@@ -108,16 +108,25 @@ class ActivitiesViewModel(
                   }
 
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
-              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
 
-              allEventIds
-                  .mapNotNull { eventId ->
+              // We already have full Event objects for owned events from allVisibleEvents.
+              // Only fetch events for joined event IDs that are not already covered by ownedEvents
+              val ownedEventIds = ownedEvents.map { it.uid }.toSet()
+
+              val joinedButNotOwned = joinedEvents.filter { it !in ownedEventIds }
+
+              val joinedEventObjects =
+                  joinedButNotOwned.mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
                     } catch (_: Exception) {
                       null
                     }
                   }
+
+              // Combine owned events (already fetched) with joined events we just fetched.
+              (ownedEvents + joinedEventObjects)
+                  .distinctBy { it.uid }
                   .filter { event ->
                     val endTime =
                         event.end
@@ -161,16 +170,22 @@ class ActivitiesViewModel(
                   }
               val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
 
-              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
+              // Use owned events directly and only fetch joined events not already owned
+              val ownedEventIdsPast = ownedEvents.map { it.uid }.toSet()
 
-              allEventIds
-                  .mapNotNull { eventId ->
+              val joinedButNotOwnedPast = joinedEvents.filter { it !in ownedEventIdsPast }
+
+              val joinedEventObjectsPast =
+                  joinedButNotOwnedPast.mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
                     } catch (_: Exception) {
                       null
                     }
                   }
+
+              (ownedEvents + joinedEventObjectsPast)
+                  .distinctBy { it.uid }
                   .filter { event ->
                     val endTime =
                         event.end
