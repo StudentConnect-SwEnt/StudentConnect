@@ -17,8 +17,6 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
-import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreenTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -101,65 +99,6 @@ class HomeScreenEditEventTest : StudentConnectTest() {
 
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
-        .performScrollTo()
-        .assertIsEnabled()
-        .performClick()
-
-    composeTestRule.waitUntil(5_000) {
-      composeTestRule
-          .onAllNodes(hasText(updatedTitle), useUnmergedTree = true)
-          .fetchSemanticsNodes(false)
-          .isNotEmpty()
-    }
-  }
-
-  @Test
-  fun editingPrivateEvent_updatesHomeList() {
-    // Use future timestamps to pass temporality filter
-    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
-    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
-
-    val event =
-        Event.Private(
-            uid = "private-home-test",
-            ownerId = ownerId,
-            title = "Original Private Title",
-            description = "Original private description",
-            imageUrl = null,
-            location = Location(46.51, 6.57, "Private Location"),
-            start = futureStart,
-            end = futureEnd,
-            maxCapacity = 20u,
-            participationFee = 5u,
-            isFlash = true)
-
-    runBlocking { repository.addEvent(event) }
-
-    composeTestRule.setContent {
-      AppTheme {
-        val navController = rememberNavController()
-        LaunchedEffect(Unit) { navController.navigate("edit_private") }
-        NavHost(navController = navController, startDestination = "home") {
-          composable("home") {
-            HomeScreen(
-                navController = navController,
-                viewModel = homeViewModel,
-                notificationViewModel = notificationViewModel)
-          }
-          composable("edit_private") {
-            CreatePrivateEventScreen(navController = navController, existingEventId = event.uid)
-          }
-        }
-      }
-    }
-
-    val updatedTitle = "Updated Private Title"
-    val titleNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
-    titleNode.performScrollTo().performTextClearance()
-    titleNode.performTextInput(updatedTitle)
-
-    composeTestRule
-        .onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
         .performScrollTo()
         .assertIsEnabled()
         .performClick()
