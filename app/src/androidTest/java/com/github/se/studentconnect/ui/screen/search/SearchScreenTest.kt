@@ -211,7 +211,7 @@ class SearchScreenTest {
 
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("location")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("Event with Location")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -221,8 +221,9 @@ class SearchScreenTest {
           .isNotEmpty()
     }
 
+    composeTestRule.onNodeWithText("Event with Location").assertIsDisplayed()
     composeTestRule
-        .onNodeWithText("Rue de la Gare, Quartier du Centre, Lausanne")
+        .onNodeWithText("Rue de la Gare, Quartier du Centre, Lausanne", substring = true)
         .assertIsDisplayed()
   }
 }
