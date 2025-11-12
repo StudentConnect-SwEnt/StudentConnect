@@ -6,11 +6,13 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -190,5 +192,36 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun testEventWithLocation_displaysFormattedAddress() = runTest {
+    EventRepositoryProvider.repository = EventRepositoryLocal()
+    EventRepositoryProvider.repository.addEvent(
+        Event.Public(
+            uid = "event-loc",
+            ownerId = "user1",
+            title = "Event with Location",
+            description = "Test",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle",
+            location = Location(0.0, 0.0, "Rue de la Gare, Quartier du Centre, Lausanne, Vaud, Switzerland")
+        ))
+
+    composeTestRule.setContent { AppTheme { TestSearchScreen() } }
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("location")
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.event_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("Rue de la Gare, Quartier du Centre, Lausanne").assertIsDisplayed()
   }
 }

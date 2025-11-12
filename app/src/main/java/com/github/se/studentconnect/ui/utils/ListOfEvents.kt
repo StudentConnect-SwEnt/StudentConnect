@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.events
+package com.github.se.studentconnect.ui.utils
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.formatShortAddress
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
