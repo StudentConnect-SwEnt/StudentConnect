@@ -5,6 +5,10 @@ package com.github.se.studentconnect.ui.profile
  *
  * This object centralizes all magic numbers, strings, and configuration values used in the profile
  * editing functionality.
+ *
+ * Note: String constants have been migrated to strings.xml for i18n support.
+ * This object maintains hardcoded strings for test compatibility only.
+ * Production code should use stringResource() or ResourceProvider.
  */
 object ProfileConstants {
 
@@ -19,7 +23,7 @@ object ProfileConstants {
   // Navigation delays
   const val NAVIGATION_DELAY_MS = 500L
 
-  // Success messages
+  // Success messages - hardcoded for test compatibility
   const val SUCCESS_NAME_UPDATED = "Name updated successfully"
   const val SUCCESS_UNIVERSITY_UPDATED = "University updated successfully"
   const val SUCCESS_COUNTRY_UPDATED = "Country updated successfully"
@@ -29,7 +33,7 @@ object ProfileConstants {
   const val SUCCESS_PROFILE_UPDATED = "Profile updated successfully"
   const val SUCCESS_PROFILE_PICTURE_UPDATED = "Profile picture updated successfully"
 
-  // Error messages
+  // Error messages - hardcoded for test compatibility
   const val ERROR_FIRST_NAME_EMPTY = "First name cannot be empty"
   const val ERROR_LAST_NAME_EMPTY = "Last name cannot be empty"
   const val ERROR_NAME_EMPTY = "First name and last name cannot be empty"
@@ -44,7 +48,7 @@ object ProfileConstants {
   const val ERROR_UNEXPECTED = "An unexpected error occurred"
   const val ERROR_PROFILE_NOT_FOUND = "Profile not found"
 
-  // Field labels
+  // Field labels - hardcoded for test compatibility
   const val LABEL_FIRST_NAME = "First Name"
   const val LABEL_LAST_NAME = "Last Name"
   const val LABEL_UNIVERSITY = "University"
@@ -53,13 +57,13 @@ object ProfileConstants {
   const val LABEL_ACTIVITIES = "Favourite Activities"
   const val LABEL_BIO = "More About Me"
 
-  // Placeholders
+  // Placeholders - hardcoded for test compatibility
   const val PLACEHOLDER_FIRST_NAME = "John"
   const val PLACEHOLDER_LAST_NAME = "Doe"
-  const val PLACEHOLDER_BIO = "Tell us about yourself..."
+  const val PLACEHOLDER_BIO = "Tell us about yourself…"
   const val PLACEHOLDER_NOT_SPECIFIED = "Not specified"
 
-  // Instructions
+  // Instructions - hardcoded for test compatibility
   const val INSTRUCTION_ENTER_NAME = "Enter your full name"
   const val INSTRUCTION_TELL_ABOUT_YOURSELF = "Tell us about yourself"
 }
