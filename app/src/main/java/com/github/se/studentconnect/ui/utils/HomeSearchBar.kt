@@ -63,7 +63,6 @@ fun HomeSearchBar(
           SearchBarColors(
               MaterialTheme.colorScheme.surfaceContainer,
               MaterialTheme.colorScheme.onSurface,
-              inputFieldColors()
-          ),
+              inputFieldColors()),
   ) {}
 }
