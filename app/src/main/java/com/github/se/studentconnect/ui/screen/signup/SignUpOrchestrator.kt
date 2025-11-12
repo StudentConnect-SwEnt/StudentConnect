@@ -13,6 +13,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.BirthdayFormatter
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 
 /**
@@ -142,7 +144,7 @@ fun SignUpOrchestrator(
                         username = signUpState.username,
                         firstName = signUpState.firstName,
                         lastName = signUpState.lastName,
-                        birthdate = signUpState.birthdate,
+                        birthdate = formatBirthdateToBirthday(signUpState.birthdate),
                         university = "EPFL", // TODO: Add university selection
                         hobbies = selectedExperienceTopics.toList(),
                         profilePictureUrl = profilePictureUrl,
@@ -168,6 +170,12 @@ fun SignUpOrchestrator(
           errorMessage = errorMessage)
     }
   }
+}
+
+private fun formatBirthdateToBirthday(birthdate: Timestamp?): String? {
+  if (birthdate == null) return null
+  val birthdateMillie = birthdate.toDate().time
+  return BirthdayFormatter.formatDate(birthdateMillie)
 }
 
 private suspend fun uploadProfilePictureIfNeeded(

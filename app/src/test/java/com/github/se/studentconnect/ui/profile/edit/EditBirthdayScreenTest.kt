@@ -39,7 +39,7 @@ class EditBirthdayScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "15/01/2000",
+          birthdate = "15/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null,
@@ -173,7 +173,7 @@ class EditBirthdayScreenTest {
 
   @Test
   fun editBirthdayScreen_handlesUserWithNoBirthday() {
-    val userWithNoBirthday = testUser.copy(birthday = null)
+    val userWithNoBirthday = testUser.copy(birthdate = null)
     val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
@@ -342,7 +342,7 @@ class EditBirthdayScreenTest {
   @Test
   fun editBirthdayScreen_saveButtonDisabledWhenNoDateSelected() {
     // Create a repository with user that has no birthday
-    val userWithNoBirthday = testUser.copy(birthday = null)
+    val userWithNoBirthday = testUser.copy(birthdate = null)
     val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
@@ -361,7 +361,7 @@ class EditBirthdayScreenTest {
 
   @Test
   fun editBirthdayScreen_handlesInvalidBirthdayFormat() {
-    val userWithInvalidBirthday = testUser.copy(birthday = "invalid-date")
+    val userWithInvalidBirthday = testUser.copy(birthdate = "invalid-date")
     val testRepo = TestableUserRepositoryLocal(userWithInvalidBirthday)
 
     composeTestRule.setContent {

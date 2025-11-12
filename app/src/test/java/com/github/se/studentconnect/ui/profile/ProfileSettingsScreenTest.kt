@@ -31,7 +31,7 @@ class ProfileSettingsScreenTest {
           email = "john@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Coding"),
           bio = "Test bio")
 
@@ -221,7 +221,7 @@ class ProfileSettingsScreenTest {
 
   @Test
   fun profileSettingsScreen_handlesNullBirthday() {
-    val userWithoutBirthday = testUser.copy(birthday = null)
+    val userWithoutBirthday = testUser.copy(birthdate = null)
     repository = TestUserRepository(userWithoutBirthday)
 
     composeTestRule.setContent {

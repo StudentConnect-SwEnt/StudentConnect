@@ -30,7 +30,7 @@ class EditProfilePictureScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null)

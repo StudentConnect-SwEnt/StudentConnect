@@ -32,7 +32,7 @@ class EditBirthdayViewModelTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "15/01/2000",
+          birthdate = "15/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null,
@@ -58,7 +58,7 @@ class EditBirthdayViewModelTest {
 
   @Test
   fun `initial state handles user with no birthday`() = runTest {
-    val userWithNoBirthday = testUser.copy(birthday = null)
+    val userWithNoBirthday = testUser.copy(birthdate = null)
     val testRepository = TestableUserRepositoryLocal()
     testRepository.saveUser(userWithNoBirthday)
     val noBirthdayViewModel = EditBirthdayViewModel(testRepository, userWithNoBirthday.userId)
@@ -87,7 +87,7 @@ class EditBirthdayViewModelTest {
 
   @Test
   fun `initial state handles invalid birthday format`() = runTest {
-    val userWithInvalidBirthday = testUser.copy(birthday = "invalid-date")
+    val userWithInvalidBirthday = testUser.copy(birthdate = "invalid-date")
     val testRepository = TestableUserRepositoryLocal()
     testRepository.saveUser(userWithInvalidBirthday)
     val invalidBirthdayViewModel =
@@ -157,7 +157,7 @@ class EditBirthdayViewModelTest {
 
     val savedUser = repository.getUserById(testUser.userId)
     assertNotNull(savedUser)
-    assertEquals("10/06/1995", savedUser!!.birthday)
+    assertEquals("10/06/1995", savedUser!!.birthdate)
     assertTrue(viewModel.uiState.value is EditBirthdayViewModel.UiState.Success)
   }
 
@@ -230,7 +230,7 @@ class EditBirthdayViewModelTest {
 
     val savedUser = repository.getUserById(testUser.userId)
     assertNotNull(savedUser)
-    assertNull(savedUser!!.birthday)
+    assertNull(savedUser!!.birthdate)
     assertNull(viewModel.birthdayString.value)
     assertNull(viewModel.selectedDateMillis.value)
     assertTrue(viewModel.uiState.value is EditBirthdayViewModel.UiState.Success)
@@ -338,7 +338,7 @@ class EditBirthdayViewModelTest {
 
     val savedUser = repository.getUserById(testUser.userId)
     assertNotNull(savedUser)
-    assertEquals("29/02/2000", savedUser!!.birthday)
+    assertEquals("29/02/2000", savedUser!!.birthdate)
   }
 
   @Test
@@ -365,7 +365,7 @@ class EditBirthdayViewModelTest {
 
     val savedUser = repository.getUserById(testUser.userId)
     assertNotNull(savedUser)
-    assertEquals("25/12/1995", savedUser!!.birthday)
+    assertEquals("25/12/1995", savedUser!!.birthdate)
   }
 
   @Test
@@ -376,7 +376,7 @@ class EditBirthdayViewModelTest {
             )
 
     testDates.forEach { dateString ->
-      val userWithDate = testUser.copy(birthday = dateString)
+      val userWithDate = testUser.copy(birthdate = dateString)
       val testRepository = TestableUserRepositoryLocal()
       testRepository.saveUser(userWithDate)
       val vm = EditBirthdayViewModel(testRepository, userWithDate.userId)

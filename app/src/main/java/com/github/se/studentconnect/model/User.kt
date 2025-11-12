@@ -1,7 +1,5 @@
 package com.github.se.studentconnect.model
 
-import com.google.firebase.Timestamp
-
 /**
  * Represents a User in the StudentConnect application.
  *
@@ -15,7 +13,7 @@ import com.google.firebase.Timestamp
  * @property profilePictureUrl URL to the user's profile picture (optional).
  * @property bio A short biography or description about the user (optional).
  * @property country The user's country (optional).
- * @property birthday The user's birthday in DD/MM/YYYY format (optional).
+ * @property birthdate The user's birthday in DD/MM/YYYY format (optional).
  * @property createdAt Timestamp when the user profile was created (in milliseconds).
  * @property updatedAt Timestamp when the user profile was last updated (in milliseconds).
  */
@@ -25,13 +23,12 @@ data class User(
     val username: String,
     val firstName: String,
     val lastName: String,
-    val birthdate: Timestamp? = null,
     val university: String,
     val hobbies: List<String> = emptyList(),
     val profilePictureUrl: String? = null, // optional
     val bio: String? = null, // optional
     val country: String? = null, // optional
-    val birthday: String? = null, // optional - format: "31/12/1980"
+    val birthdate: String? = null, // optional - format: "31/12/1980"
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -149,10 +146,10 @@ data class User(
               is UpdateValue.SetValue -> country.value
               else -> this.country
             },
-        birthday =
+        birthdate =
             when (birthday) {
               is UpdateValue.SetValue -> birthday.value
-              else -> this.birthday
+              else -> this.birthdate
             },
         bio =
             when (bio) {
@@ -174,12 +171,11 @@ data class User(
         "username" to username, // Stored in lowercase
         "firstName" to firstName,
         "lastName" to lastName,
-        "birthdate" to birthdate,
         "university" to university,
         "hobbies" to hobbies,
         "profilePictureUrl" to profilePictureUrl,
         "country" to country,
-        "birthday" to birthday,
+        "birthday" to birthdate,
         "bio" to bio,
         "createdAt" to createdAt,
         "updatedAt" to updatedAt)
@@ -215,12 +211,11 @@ data class User(
             username = map["username"] as? String ?: return null,
             firstName = map["firstName"] as? String ?: return null,
             lastName = map["lastName"] as? String ?: return null,
-            birthdate = map["birthdate"] as? Timestamp,
             university = map["university"] as? String ?: return null,
             hobbies = (map["hobbies"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             profilePictureUrl = map["profilePictureUrl"] as? String,
             country = map["country"] as? String,
-            birthday = map["birthday"] as? String,
+            birthdate = map["birthday"] as? String,
             bio = map["bio"] as? String,
             createdAt = createdAt,
             updatedAt = updatedAt)

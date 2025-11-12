@@ -29,7 +29,7 @@ class EditActivitiesScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Football", "AI", "Piano"),
           bio = "Test bio",
           profilePictureUrl = null,
