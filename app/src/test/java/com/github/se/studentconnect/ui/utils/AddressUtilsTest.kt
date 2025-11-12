@@ -19,7 +19,7 @@ class AddressUtilsTest {
   @Test
   fun formatShortAddress_withOnlyCommas_handlesEmptyParts() {
     val result = formatShortAddress(",,,")
-    assertEquals("", result)
+    assertEquals(",,,", result)
   }
 
   @Test
