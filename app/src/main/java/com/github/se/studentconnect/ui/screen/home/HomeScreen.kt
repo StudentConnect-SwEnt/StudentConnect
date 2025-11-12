@@ -47,7 +47,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -66,9 +65,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -91,7 +88,6 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -105,8 +101,6 @@ private object HomeScreenConstants {
   const val STORIES_ROW_BOTTOM_PADDING_DP = 12
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
-  const val SEARCH_BAR_CORNER_RADIUS_DP = 24
-  const val SEARCH_BAR_END_PADDING_DP = 8
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
 }
@@ -357,12 +351,8 @@ fun HomeTopBar(
     notificationCallbacks: NotificationCallbacks,
     navController: NavHostController = rememberNavController()
 ) {
-  val density = LocalDensity.current
-  var iconButtonHeight by remember { mutableStateOf(0.dp) }
-
   TopAppBar(
       title = {
-<<<<<<< HEAD
         HomeSearchBar(
             modifier = Modifier.clickable(onClick = { navController.navigate(Route.SEARCH) }),
             query = "",
@@ -493,55 +483,6 @@ fun NotificationItem(
                 onAccept = onAccept!!,
                 onReject = onReject!!,
                 onRead = onRead)
-=======
-        Surface(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .then(
-                        if (iconButtonHeight > 0.dp) Modifier.height(iconButtonHeight)
-                        else Modifier)
-                    .clickable { onSearchClick() },
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainer) {
-              Row(
-                  modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.Start) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_search),
-                        contentDescription = "Search Icon",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Search for events...",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                  }
-            }
-      },
-      actions = {
-        Box {
-          // Notification icon button
-          IconButton(
-              onClick = onNotificationClick,
-              modifier =
-                  Modifier.onGloballyPositioned { coordinates ->
-                    iconButtonHeight = with(density) { coordinates.size.height.toDp() }
-                  }) {
-                Icon(
-                    imageVector = Icons.Default.Notifications, contentDescription = "Notifications")
-              }
-          DropdownMenu(
-              expanded = showNotifications,
-              onDismissRequest = onDismiss,
-              modifier =
-                  Modifier.background(Color.Transparent)
-                      .shadow(0.dp)
-                      .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER),
-          ) {
-            Panel<Invitation>(title = "Notifications")
->>>>>>> e9c921d0 (feat: clean up search bar and removed useless visitor profile route)
           }
         }
       }
@@ -834,7 +775,7 @@ private suspend fun scrollToDate(
     val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
-    val targetDateHeader = formatDateHeader(Timestamp(targetDate))
+    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
     // Calculate the index to scroll to
     var currentIndex = 0
