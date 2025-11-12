@@ -199,6 +199,7 @@ fun BasicInfoScreen(
               birthdayText = BirthdayFormatter.formatDate(millis)
               isBirthdateValid = true
               viewModel.setBirthdate(Timestamp(Date(millis)))
+              viewModel.setBirthday(birthdayText)
             })
 
         Spacer(modifier = Modifier.weight(1f))
