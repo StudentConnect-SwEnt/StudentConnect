@@ -3,6 +3,8 @@ package com.github.se.studentconnect.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.google.firebase.Timestamp
@@ -23,8 +25,10 @@ import org.junit.runner.RunWith
 class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   private val now = Timestamp(Date())
   private lateinit var auth: FirebaseAuth
+  // Provide access to the user repository used by tests
+  private val userRepository: UserRepository
+    get() = UserRepositoryProvider.repository
 
-  // --- Test User IDs - Ces variables vont stocker les vrais UIDs Firebase ---
   private var ownerId = ""
   private var participantId = ""
   private var invitedId = ""
@@ -52,8 +56,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
             "invited" -> invitedId = result.user?.uid ?: ""
             "other" -> otherId = result.user?.uid ?: ""
           }
-        } catch (e: FirebaseAuthUserCollisionException) {
-          // L'utilisateur existe déjà, récupérer son UID
+        } catch (_: FirebaseAuthUserCollisionException) {} catch (
+            e: FirebaseAuthUserCollisionException) {
           val result = auth.signInWithEmailAndPassword("$email@test.com", password).await()
           when (email) {
             "owner" -> ownerId = result.user?.uid ?: ""
@@ -100,7 +104,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val event =
           Event.Public(
               uid = repository.getNewUid(),
-              ownerId = currentUid, // Utiliser le vrai UID
+              ownerId = currentUid,
               title = "Concert",
               subtitle = "Epic!",
               description = "desc",
@@ -349,7 +353,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       repository.addParticipantToEvent(e.uid, p)
 
       assertThrows(IllegalStateException::class.java) {
-        runBlocking { repository.addParticipantToEvent(e.uid, p) } // second time → throws
+        runBlocking { repository.addParticipantToEvent(e.uid, p) } // second time ÔåÆ throws
       }
     }
   }
