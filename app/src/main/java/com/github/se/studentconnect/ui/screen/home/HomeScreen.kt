@@ -1,5 +1,11 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -72,6 +78,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -291,7 +298,11 @@ fun HomeScreen(
                                             pagerState.animateScrollToPage(0)
                                           }
                                         },
-                                        onClick = onClickStory,
+                                        onClick = { event, seenStories ->
+                                          selectedStory = event
+                                          showStoryViewer = true
+                                          onClickStory(event, seenStories)
+                                        },
                                         stories = uiState.subscribedEventsStories)
                                   })
                             }
@@ -301,6 +312,12 @@ fun HomeScreen(
                     }
                   }
             }
+
+        // Story Viewer Overlay
+        selectedStory?.let { story ->
+          StoryViewer(
+              event = story, isVisible = showStoryViewer, onDismiss = { showStoryViewer = false })
+        }
 
         // Handle scroll to date functionality
         LaunchedEffect(uiState.scrollToDate) {
@@ -757,6 +774,59 @@ fun StoriesRow(
               contentDescription = "Event Story",
               testTag = "story_item_${event.uid}")
         }
+      }
+}
+
+@Composable
+fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
+  AnimatedVisibility(
+      visible = isVisible,
+      enter =
+          fadeIn(animationSpec = tween(300)) +
+              scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
+      exit =
+          fadeOut(animationSpec = tween(200)) +
+              scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
+      modifier = Modifier.fillMaxSize().zIndex(1000f)) {
+        Box(
+            modifier =
+                Modifier.fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { onDismiss() }
+                    .testTag("story_viewer")) {
+              // Close button
+              IconButton(
+                  onClick = onDismiss,
+                  modifier =
+                      Modifier.align(Alignment.TopEnd)
+                          .padding(16.dp)
+                          .testTag("story_close_button")) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close story",
+                        tint = Color.White)
+                  }
+
+              // Story content - placeholder image for now
+              Box(
+                  modifier = Modifier.fillMaxSize().padding(vertical = 80.dp),
+                  contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                          Image(
+                              painter = painterResource(id = R.drawable.avatar_12),
+                              contentDescription = "Story content",
+                              modifier =
+                                  Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
+                          Spacer(modifier = Modifier.height(16.dp))
+                          Text(
+                              text = event.title,
+                              color = Color.White,
+                              style = MaterialTheme.typography.headlineSmall)
+                        }
+                  }
+            }
       }
 }
 
