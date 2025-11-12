@@ -12,6 +12,10 @@ on:
       - synchronize
       - reopened
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static-checks:
     runs-on: blacksmith-4vcpu-ubuntu-2404
