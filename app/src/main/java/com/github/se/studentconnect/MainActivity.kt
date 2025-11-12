@@ -217,24 +217,36 @@ private fun MainAppContent(
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit
 ) {
+  val currentBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = currentBackStackEntry?.destination?.route
+
+  // Hide bottom bar for create/edit event screens
+  val hideBottomBar =
+      currentRoute == Route.CREATE_PUBLIC_EVENT ||
+          currentRoute == Route.CREATE_PRIVATE_EVENT ||
+          currentRoute == Route.EDIT_PUBLIC_EVENT ||
+          currentRoute == Route.EDIT_PRIVATE_EVENT
+
   Scaffold(
       bottomBar = {
-        BottomNavigationBar(
-            selectedTab = selectedTab,
-            onTabSelected = { tab ->
-              onTabSelected(tab)
-              onQRScannerStateChange(false)
-              navController.navigate(tab.destination.route) {
-                launchSingleTop = true
-                restoreState = true
-              }
-            },
-            onCreatePublicEvent = {
-              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-            },
-            onCreatePrivateEvent = {
-              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-            })
+        if (!hideBottomBar) {
+          BottomNavigationBar(
+              selectedTab = selectedTab,
+              onTabSelected = { tab ->
+                onTabSelected(tab)
+                onQRScannerStateChange(false)
+                navController.navigate(tab.destination.route) {
+                  launchSingleTop = true
+                  restoreState = true
+                }
+              },
+              onCreatePublicEvent = {
+                navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+              },
+              onCreatePrivateEvent = {
+                navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+              })
+        }
       }) { paddingValues ->
         // Use real repository from provider
         val userRepository = UserRepositoryProvider.repository
