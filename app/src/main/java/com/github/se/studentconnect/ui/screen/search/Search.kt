@@ -23,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -39,7 +43,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.utils.HomeSearchBar
+import com.github.se.studentconnect.ui.utils.formatShortAddress
 
 /**
  * The Search screen of the app, allowing users to search for people and events.
@@ -79,12 +83,7 @@ private fun SearchTopBar(
     navController: NavHostController,
 ) {
   CenterAlignedTopAppBar(
-      title = {
-        HomeSearchBar(
-            query = viewModel.state.value.query,
-            onQueryChange = { viewModel.setQuery(it) },
-        )
-      },
+      title = { TopSearchBar(viewModel) },
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
         IconButton(
@@ -112,12 +111,44 @@ private fun SearchTopBar(
   )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopSearchBar(
+    viewModel: SearchViewModel,
+) {
+  SearchBar(
+      inputField = {
+        SearchBarDefaults.InputField(
+            leadingIcon = {
+              Icon(
+                  painterResource(R.drawable.ic_search),
+                  contentDescription = null,
+                  modifier = Modifier.size(20.dp),
+                  tint = MaterialTheme.colorScheme.onSurface,
+              )
+            },
+            query = viewModel.state.value.query,
+            onQueryChange = { viewModel.setQuery(it) },
+            placeholder = { Text(stringResource(R.string.placeholder_search)) },
+            onSearch = {},
+            expanded = false,
+            onExpandedChange = {},
+            modifier = Modifier.testTag(C.Tag.search_input_field),
+        )
+      },
+      expanded = false,
+      onExpandedChange = {},
+      colors = SearchBarDefaults.colors(),
+      modifier = Modifier.fillMaxWidth().padding(0.dp, 0.dp, 0.dp, 5.dp),
+  ) {}
+}
+
 @Composable
 private fun People(viewModel: SearchViewModel) {
   if (viewModel.hasUsers())
       Column {
         Text(
-            "People",
+            stringResource(R.string.text_people),
             fontSize = MaterialTheme.typography.headlineSmall.fontSize,
             fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
             modifier =
@@ -169,7 +200,7 @@ private fun Events(viewModel: SearchViewModel) {
 
   if (viewModel.hasEvents())
       Text(
-          "Events",
+          stringResource(R.string.text_events),
           fontSize = MaterialTheme.typography.headlineSmall.fontSize,
           fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
           modifier =
@@ -226,9 +257,11 @@ private fun EventCard(event: Event) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Icon(painterResource(R.drawable.ic_location), contentDescription = null)
           Text(
-              text = it,
+              text = formatShortAddress(it),
               fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
               fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
           )
         }
       }
