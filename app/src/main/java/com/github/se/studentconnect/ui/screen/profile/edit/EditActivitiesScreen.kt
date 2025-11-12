@@ -47,7 +47,9 @@ fun EditActivitiesScreen(
   LaunchedEffect(uiState) {
     when (val state = uiState) {
       is EditActivitiesViewModel.UiState.Success -> {
-        snackbarHostState.showSnackbar(state.message)
+        // Navigate back immediately after successful save
+        onNavigateBack()
+        // Reset state after navigation to avoid cancelling LaunchedEffect
         viewModel.resetState()
       }
       is EditActivitiesViewModel.UiState.Error -> {

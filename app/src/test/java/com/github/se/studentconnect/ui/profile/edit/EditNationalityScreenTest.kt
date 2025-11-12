@@ -175,7 +175,7 @@ class EditNationalityScreenTest {
   }
 
   @Test
-  fun editNationalityScreen_showsSuccessMessage() {
+  fun editNationalityScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditNationalityScreen(
@@ -190,17 +190,13 @@ class EditNationalityScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save Changes").performClick()
 
-    // Wait for success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule
-          .onAllNodesWithText("Nationality updated successfully")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
 
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText("Nationality updated successfully").assertExists()
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test

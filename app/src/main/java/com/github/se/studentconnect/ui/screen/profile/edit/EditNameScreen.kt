@@ -43,11 +43,10 @@ fun EditNameScreen(
   LaunchedEffect(uiState) {
     when (val state = uiState) {
       is BaseEditViewModel.UiState.Success -> {
-        snackbarHostState.showSnackbar(state.message)
-        viewModel.resetState()
-        // Navigate back after successful save
-        kotlinx.coroutines.delay(500)
+        // Navigate back immediately after successful save
         onNavigateBack()
+        // Reset state after navigation to avoid cancelling LaunchedEffect
+        viewModel.resetState()
       }
       is BaseEditViewModel.UiState.Error -> {
         snackbarHostState.showSnackbar(state.message)

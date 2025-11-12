@@ -13,7 +13,9 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -202,15 +204,17 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
-  fun editBirthdayScreen_showsSuccessMessageAfterSave() {
+  fun editBirthdayScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditBirthdayScreen(
@@ -223,9 +227,13 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Birthday updated successfully").assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
@@ -387,15 +395,17 @@ class EditBirthdayScreenTest {
     // Click save to save the current date
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
-  fun editBirthdayScreen_updatesTimestampOnSave() {
+  fun editBirthdayScreen_updatesTimestampOnSave() = runTest {
     val timeBefore = System.currentTimeMillis()
 
     composeTestRule.setContent {
@@ -410,11 +420,15 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and verify timestamp was updated
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    delay(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    val timeAfter = System.currentTimeMillis()
+    val savedUser = repository.getUserById(testUser.userId)
+    assertNotNull(savedUser)
+    assert(savedUser!!.updatedAt >= timeBefore && savedUser.updatedAt <= timeAfter)
   }
 
   @Test

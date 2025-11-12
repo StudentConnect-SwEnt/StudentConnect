@@ -289,7 +289,7 @@ class EditNameScreenTest {
   }
 
   @Test
-  fun editNameScreen_showsSuccessMessageBeforeNavigating() {
+  fun editNameScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditNameScreen(
@@ -308,11 +308,13 @@ class EditNameScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait a bit for the snackbar to appear
+    // Wait for save operation and navigation
+    composeTestRule.waitForIdle()
+    Thread.sleep(500) // Give time for save operation
     composeTestRule.waitForIdle()
 
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText(ProfileConstants.SUCCESS_NAME_UPDATED).assertExists()
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
