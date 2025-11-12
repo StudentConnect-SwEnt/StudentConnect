@@ -153,6 +153,8 @@ jobs:
 
       - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SKIP_STEPS: -x assembleResOverrideDebug -x assembleResOverrideDebugAndroidTest -x packageResOverrideDebug -x packageResOverrideDebugAndroidTest
         with:
           api-level: 34
           target: google_apis
@@ -160,7 +162,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache -x assembleResOverrideDebug -x assembleResOverrideDebugAndroidTest -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
+          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache --no-rebuild $SKIP_STEPS -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
 
       - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
