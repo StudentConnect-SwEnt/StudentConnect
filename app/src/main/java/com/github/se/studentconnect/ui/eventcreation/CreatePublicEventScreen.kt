@@ -293,7 +293,7 @@ fun CreatePublicEventScreen(
           checked = createPublicEventUiState.isFlash,
           onCheckedChange = {
             DialogNotImplemented(context)
-            //createPublicEventViewModel.updateIsFlash(it)
+            // createPublicEventViewModel.updateIsFlash(it)
           },
       )
     }

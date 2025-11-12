@@ -251,7 +251,7 @@ fun CreatePrivateEventScreen(
           checked = createPrivateEventUiState.isFlash,
           onCheckedChange = {
             DialogNotImplemented(context)
-            //createPrivateEventViewModel.updateIsFlash(it)
+            // createPrivateEventViewModel.updateIsFlash(it)
           },
       )
     }
