@@ -219,15 +219,13 @@ class HomeScreenStoriesTest {
     composeTestRule.setContent {
       HomeScreen(
           navController = rememberNavController(),
-          onClickStory = { e, i -> },
+          onClickStory = { _, _ -> },
           uiState =
               HomePageUiState(
                   isLoading = false,
                   events = listOf(testEvent1),
                   subscribedEventsStories = mapOf(pairs = arrayOf(Pair(testEvent1, Pair(1, 1)))),
-              ),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+              ))
     }
 
     composeTestRule.onNodeWithContentDescription("Event Story").assertIsDisplayed()
@@ -238,15 +236,13 @@ class HomeScreenStoriesTest {
     composeTestRule.setContent {
       HomeScreen(
           navController = rememberNavController(),
-          onClickStory = { e, i -> },
+          onClickStory = { _, _ -> },
           uiState =
               HomePageUiState(
                   isLoading = false,
                   events = listOf(testEvent1),
                   subscribedEventsStories = mapOf(pairs = arrayOf(Pair(testEvent1, Pair(0, 0)))),
-              ),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+              ))
     }
 
     composeTestRule.onNodeWithContentDescription("Event Story").assertIsNotDisplayed()
@@ -257,15 +253,13 @@ class HomeScreenStoriesTest {
     composeTestRule.setContent {
       HomeScreen(
           navController = rememberNavController(),
-          onClickStory = { e, i -> },
+          onClickStory = { _, _ -> },
           uiState =
               HomePageUiState(
                   isLoading = false,
                   events = listOf(testEvent1),
                   subscribedEventsStories = mapOf(pairs = arrayOf(Pair(testEvent1, Pair(1, 1)))),
-              ),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+              ))
     }
 
     composeTestRule.onNodeWithContentDescription("Event Story").assertHasClickAction()
