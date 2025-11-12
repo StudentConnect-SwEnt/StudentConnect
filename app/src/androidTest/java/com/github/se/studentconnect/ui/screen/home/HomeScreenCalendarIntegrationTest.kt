@@ -11,8 +11,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import java.util.*
 import kotlinx.coroutines.runBlocking
@@ -28,13 +30,17 @@ class HomeScreenCalendarIntegrationTest {
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var viewModel: HomePageViewModel
+  private lateinit var notificationViewModel: NotificationViewModel
 
   @Before
   fun setup() {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
+    notificationViewModel = NotificationViewModel(notificationRepository)
 
     // Add test events
     runBlocking {
@@ -58,7 +64,12 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_calendarButton_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+      AppTheme {
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = viewModel,
+            notificationViewModel = notificationViewModel)
+      }
     }
 
     // Verify calendar button is displayed
@@ -68,7 +79,12 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_calendarButton_opensModal() {
     composeTestRule.setContent {
-      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+      AppTheme {
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = viewModel,
+            notificationViewModel = notificationViewModel)
+      }
     }
 
     // Click calendar button
@@ -84,7 +100,12 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_calendarModal_containsDatePicker() {
     composeTestRule.setContent {
-      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+      AppTheme {
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = viewModel,
+            notificationViewModel = notificationViewModel)
+      }
     }
 
     // Open calendar modal
@@ -97,7 +118,12 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_calendarModal_calendarContainer_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+      AppTheme {
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = viewModel,
+            notificationViewModel = notificationViewModel)
+      }
     }
 
     // Open calendar modal
@@ -110,7 +136,12 @@ class HomeScreenCalendarIntegrationTest {
   @Test
   fun homeScreen_hidesCalendar_whenDateSelected() {
     composeTestRule.setContent {
-      AppTheme { HomeScreen(navController = rememberNavController(), viewModel = viewModel) }
+      AppTheme {
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = viewModel,
+            notificationViewModel = notificationViewModel)
+      }
     }
 
     // Open calendar

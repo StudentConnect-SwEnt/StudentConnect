@@ -28,14 +28,17 @@ class HomePageViewModelTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
 
+  // Create timestamps for future events (1 hour from now)
+  private val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+
   private val testEvent1 =
       Event.Public(
           uid = "event-1",
           title = "Event One",
           subtitle = "Subtitle One",
           description = "Description One",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(0.0, 0.0, "Location One"),
           website = "https://event1.com",
           ownerId = "owner1",
@@ -47,8 +50,8 @@ class HomePageViewModelTest {
           title = "Event Two",
           subtitle = "Subtitle Two",
           description = "Description Two",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(0.0, 0.0, "Location Two"),
           website = "https://event2.com",
           ownerId = "owner2",

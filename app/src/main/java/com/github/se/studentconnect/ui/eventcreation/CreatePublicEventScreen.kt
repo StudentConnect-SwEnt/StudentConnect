@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -60,6 +61,7 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.format.DateTimeFormatter
 
 object CreatePublicEventScreenTestTags {
@@ -384,10 +386,11 @@ fun CreatePublicEventScreen(
                   text = "Flash Event",
               )
 
+              val context = LocalContext.current
               Switch(
                   modifier = Modifier.testTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH),
                   checked = createPublicEventUiState.isFlash,
-                  onCheckedChange = { createPublicEventViewModel.updateIsFlash(it) },
+                  onCheckedChange = { DialogNotImplemented(context) },
               )
             }
 
