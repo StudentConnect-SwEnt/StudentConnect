@@ -19,14 +19,16 @@ import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
 
 /**
  * Utility object for managing event markers on the map.
  *
  * Provides functions for:
  * - Adding/removing event marker layers and sources
- * - Creating GeoJSON features from events
+ * - Creating GeoJson features from events
  * - Configuring marker clustering
  */
 object EventMarkers {
@@ -146,5 +148,39 @@ object EventMarkers {
           iconSize(EventMarkerConfig.ICON_SIZE)
           filter(not { has { literal("point_count") } })
         })
+  }
+
+  /**
+   * Adds or updates a single marker source/layer used for click-created markers. This keeps click
+   * markers separate from the clustered events source.
+   */
+  fun addClickMarker(style: Style, point: Point, title: String? = null, uid: String? = null) {
+    val clickSourceId = "${EventMarkerConfig.SOURCE_ID}_CLICK"
+    val clickLayerId = "${EventMarkerConfig.LAYER_ID}_CLICK"
+
+    val feature =
+        Feature.fromGeometry(point).apply {
+          title?.let { addStringProperty(EventMarkerConfig.PROP_TITLE, it) }
+          uid?.let { addStringProperty(EventMarkerConfig.PROP_UID, it) }
+        }
+
+    // If source doesn't exist, create it and add a symbol layer. Otherwise update the source data.
+    if (!style.styleSourceExists(clickSourceId)) {
+      style.addSource(
+          geoJsonSource(clickSourceId) {
+            featureCollection(FeatureCollection.fromFeatures(listOf(feature)))
+          })
+
+      style.addLayer(
+          circleLayer(clickLayerId, clickSourceId) {
+            circleColor(EventMarkerConfig.COLOR)
+            circleRadius(8.0)
+            circleStrokeWidth(2.0)
+            circleStrokeColor(EventMarkerConfig.CLUSTER_STROKE_COLOR)
+          })
+    } else {
+      val src = style.getSourceAs<GeoJsonSource>(clickSourceId)
+      src?.featureCollection(FeatureCollection.fromFeatures(listOf(feature)))
+    }
   }
 }
