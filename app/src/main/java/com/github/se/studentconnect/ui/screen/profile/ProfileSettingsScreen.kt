@@ -54,6 +54,7 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.resources.AndroidResourceProvider
 import com.github.se.studentconnect.ui.profile.EditableProfileField
 import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
 import com.github.se.studentconnect.ui.profile.EditingField
@@ -84,7 +85,10 @@ import kotlinx.coroutines.withContext
 fun ProfileSettingsScreen(
     currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
-    viewModel: ProfileViewModel = viewModel { ProfileViewModel(userRepository, currentUserId) },
+    viewModel: ProfileViewModel = viewModel {
+      val context = LocalContext.current
+      ProfileViewModel(userRepository, currentUserId, AndroidResourceProvider(context))
+    },
     onNavigateToEditPicture: ((String) -> Unit)? = null,
     onNavigateToEditName: ((String) -> Unit)? = null,
     onNavigateToEditBio: ((String) -> Unit)? = null,
