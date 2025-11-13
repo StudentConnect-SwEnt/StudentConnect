@@ -90,8 +90,7 @@ class ProfileViewModelTest {
     viewModel.updateName("", "Doe")
     kotlinx.coroutines.delay(100)
 
-    assertEquals(
-        R.string.error_name_empty.toString(), viewModel.fieldErrors.value[EditingField.Name])
+    assertEquals(R.string.error_name_empty, viewModel.fieldErrors.value[EditingField.Name])
   }
 
   @Test
@@ -99,8 +98,7 @@ class ProfileViewModelTest {
     viewModel.updateName("John", "")
     kotlinx.coroutines.delay(100)
 
-    assertEquals(
-        R.string.error_name_empty.toString(), viewModel.fieldErrors.value[EditingField.Name])
+    assertEquals(R.string.error_name_empty, viewModel.fieldErrors.value[EditingField.Name])
   }
 
   @Test

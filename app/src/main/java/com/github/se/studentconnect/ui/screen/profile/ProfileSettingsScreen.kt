@@ -167,7 +167,8 @@ fun ProfileSettingsScreen(
                               value = currentUser.university,
                               isEditing = editingField == EditingField.University,
                               isLoading = loadingFields.contains(EditingField.University),
-                              errorMessage = fieldErrors[EditingField.University],
+                              errorMessage =
+                                  fieldErrors[EditingField.University]?.let { stringResource(it) },
                               onEditClick = { /* disabled */},
                               onSave = { newValue -> viewModel.updateUniversity(newValue) },
                               onCancel = { viewModel.cancelEditing() },
@@ -179,7 +180,8 @@ fun ProfileSettingsScreen(
                               value = currentUser.country ?: "",
                               isEditing = editingField == EditingField.Country,
                               isLoading = loadingFields.contains(EditingField.Country),
-                              errorMessage = fieldErrors[EditingField.Country],
+                              errorMessage =
+                                  fieldErrors[EditingField.Country]?.let { stringResource(it) },
                               onEditClick = { onNavigateToEditNationality?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateCountry(newValue) },
                               onCancel = { viewModel.cancelEditing() })
@@ -190,7 +192,8 @@ fun ProfileSettingsScreen(
                               value = currentUser.birthdate ?: "",
                               isEditing = editingField == EditingField.Birthday,
                               isLoading = loadingFields.contains(EditingField.Birthday),
-                              errorMessage = fieldErrors[EditingField.Birthday],
+                              errorMessage =
+                                  fieldErrors[EditingField.Birthday]?.let { stringResource(it) },
                               onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBirthday(newValue) },
                               onCancel = { viewModel.cancelEditing() })
@@ -201,7 +204,8 @@ fun ProfileSettingsScreen(
                               value = currentUser.hobbies.joinToString(", "),
                               isEditing = editingField == EditingField.Activities,
                               isLoading = loadingFields.contains(EditingField.Activities),
-                              errorMessage = fieldErrors[EditingField.Activities],
+                              errorMessage =
+                                  fieldErrors[EditingField.Activities]?.let { stringResource(it) },
                               onEditClick = { onNavigateToEditActivities?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateActivities(newValue) },
                               onCancel = { viewModel.cancelEditing() })
@@ -212,7 +216,8 @@ fun ProfileSettingsScreen(
                               value = currentUser.bio ?: "",
                               isEditing = editingField == EditingField.Bio,
                               isLoading = loadingFields.contains(EditingField.Bio),
-                              errorMessage = fieldErrors[EditingField.Bio],
+                              errorMessage =
+                                  fieldErrors[EditingField.Bio]?.let { stringResource(it) },
                               onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBio(newValue) },
                               onCancel = { viewModel.cancelEditing() })
