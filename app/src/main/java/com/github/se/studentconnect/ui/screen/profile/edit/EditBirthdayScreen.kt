@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
 
 /**
@@ -143,23 +144,12 @@ fun EditBirthdayScreen(
                   }
 
               // Save Button
-              Button(
+              ProfileSaveButton(
                   onClick = { viewModel.saveBirthday() },
-                  modifier = Modifier.fillMaxWidth().height(56.dp),
+                  isLoading = uiState is EditBirthdayViewModel.UiState.Loading,
                   enabled =
                       uiState !is EditBirthdayViewModel.UiState.Loading &&
-                          datePickerState.selectedDateMillis != null) {
-                    if (uiState is EditBirthdayViewModel.UiState.Loading) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(24.dp),
-                          color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                      Text(
-                          text = "Save",
-                          style = MaterialTheme.typography.bodyLarge,
-                          fontWeight = FontWeight.SemiBold)
-                    }
-                  }
+                          datePickerState.selectedDateMillis != null)
             }
       }
 }

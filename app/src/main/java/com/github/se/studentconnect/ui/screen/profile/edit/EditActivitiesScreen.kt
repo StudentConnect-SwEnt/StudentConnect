@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditActivitiesViewModel
 
 /**
@@ -115,20 +116,12 @@ fun EditActivitiesScreen(
                 }
               }
 
-          Button(
+          ProfileSaveButton(
               onClick = { viewModel.saveActivities() },
-              modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp).testTag("saveButton"),
-              enabled = !isLoading) {
-                if (isLoading) {
-                  CircularProgressIndicator(
-                      modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                  Text(
-                      text = "Save Activities",
-                      style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = FontWeight.SemiBold)
-                }
-              }
+              isLoading = isLoading,
+              enabled = !isLoading,
+              text = "Save",
+              modifier = Modifier.padding(16.dp).testTag("saveButton"))
         }
       }
 }

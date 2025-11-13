@@ -127,7 +127,7 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Activities").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -143,7 +143,7 @@ class EditActivitiesScreenTest {
 
     composeTestRule.waitForIdle()
     // User already has activities selected
-    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save").assertIsEnabled()
   }
 
   @Test
@@ -162,9 +162,7 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Save Activities")
-        .assertIsEnabled() // Now enabled with empty selection
+    composeTestRule.onNodeWithText("Save").assertIsEnabled() // Now enabled with empty selection
   }
 
   @Test
@@ -400,7 +398,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save to complete
     composeTestRule.waitForIdle()
@@ -432,7 +430,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save to complete and navigation
     composeTestRule.waitForIdle()
@@ -662,6 +660,6 @@ class EditActivitiesScreenTest {
 
     // With user not found, should still show empty state
     // Save button should be enabled even with no selection (allows saving empty list)
-    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save").assertIsEnabled()
   }
 }

@@ -119,7 +119,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun saveButton_becomesClickableAfterSelectingPhoto() {
-    val saveButton = composeTestRule.onNodeWithText("Save Changes")
+    val saveButton = composeTestRule.onNodeWithText("Save")
     saveButton.assertExists().assertIsNotEnabled()
 
     registryOwner.enqueueResult(tempImageUri)
@@ -165,7 +165,8 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun takePhotoOption_enablesSaveButton() {
-    val saveButton = composeTestRule.onNodeWithText("Save Changes")
+    composeTestRule.waitForIdle()
+    val saveButton = composeTestRule.onNodeWithText("Save")
     saveButton.assertExists().assertIsNotEnabled()
 
     // Permission result + TakePicture result
