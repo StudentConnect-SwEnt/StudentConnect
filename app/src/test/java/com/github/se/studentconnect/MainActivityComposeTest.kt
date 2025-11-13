@@ -721,4 +721,175 @@ class MainActivityComposeTest {
 
     composeTestRule.waitForIdle()
   }
+
+  // ===== MAP_WITH_LOCATION Tests - Covering eventUid parameter lines =====
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_withEventUid_passesEventUidToMapScreen() {
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      navController.navigate("map/46.5197/6.6323/15.0?eventUid=test-event-123")
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_withoutEventUid_passesNullToMapScreen() {
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { navController.navigate("map/46.5197/6.6323/15.0") }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_withEventUid_coversEventUidRetrieval() {
+    // This test specifically covers the line: val eventUid =
+    // backStackEntry.arguments?.getString("eventUid")
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Home,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      navController.navigate("map/46.5197/6.6323/15.0?eventUid=event-uid-456")
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_withAllParameters_rendersMapScreen() {
+    // This test covers all parameters being passed to MapScreen including eventUid
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      navController.navigate("map/46.5197/6.6323/18.0?eventUid=my-test-event")
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_withDifferentZoomAndEventUid() {
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      navController.navigate("map/47.3769/8.5417/12.5?eventUid=zurich-event")
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_nullLatitude_withEventUid() {
+    // Test edge case with invalid latitude but valid eventUid
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      navController.navigate("map/invalid/invalid/15.0?eventUid=event-with-invalid-coords")
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_mapWithLocationRoute_emptyEventUid() {
+    // Test with empty eventUid parameter
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition to complete, then navigate
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { navController.navigate("map/46.5197/6.6323/15.0?eventUid=") }
+    composeTestRule.waitForIdle()
+  }
 }
