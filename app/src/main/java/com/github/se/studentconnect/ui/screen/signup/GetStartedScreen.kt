@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-// import androidx.compose.ui.tooling.preview.Preview
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -43,9 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-
-// import com.github.se.studentconnect.model.authentication.AuthRepository
-// import com.github.se.studentconnect.ui.theme.AppTheme
 
 object GetStartedScreenTestTags {
   const val CAROUSEL = "getting_started_carousel"
@@ -202,26 +198,3 @@ private fun SignInButton(
             }
       }
 }
-
-// @Preview(
-//    name = "Getting Started – Preview",
-//    showBackground = true,
-//    backgroundColor = 0xFFF4F1F6,
-//    widthDp = 412,
-//    heightDp = 915)
-// @Composable
-// private fun GettingStarted_Preview() {
-//  AppTheme {
-//    val previewViewModel = remember { GetStartedViewModel(PreviewAuthRepository()) }
-//    GetStartedScreen(onSignedIn = { _ -> }, onSignInError = {}, viewModel = previewViewModel)
-//  }
-// }
-//
-// private class PreviewAuthRepository : AuthRepository {
-//  override suspend fun signInWithGoogle(
-//      credential: androidx.credentials.Credential
-//  ): Result<com.google.firebase.auth.FirebaseUser> =
-//      Result.failure(UnsupportedOperationException("Preview only"))
-//
-//  override fun signOut(): Result<Unit> = Result.success(Unit)
-// }

@@ -39,24 +39,19 @@ class FriendsRepositoryLocal : FriendsRepository {
   override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {
     mutex.withLock {
       // Check if users are the same
-      if (fromUserId == toUserId) {
-        throw IllegalArgumentException("Cannot send friend request to yourself")
-      }
+      require(fromUserId != toUserId) { "Cannot send friend request to yourself" }
 
       // Check if already friends
-      if (friends[fromUserId]?.contains(toUserId) == true) {
-        throw IllegalArgumentException("Users are already friends")
-      }
+      require(friends[fromUserId]?.contains(toUserId) != true) { "Users are already friends" }
 
       // Check if request already exists
-      if (sentRequests[fromUserId]?.contains(toUserId) == true) {
-        throw IllegalArgumentException("Friend request already sent")
+      require(sentRequests[fromUserId]?.contains(toUserId) != true) {
+        "Friend request already sent"
       }
 
       // Check if reverse request exists
-      if (friendRequests[fromUserId]?.contains(toUserId) == true) {
-        throw IllegalArgumentException(
-            "A friend request from the recipient already exists. Accept their request instead.")
+      require(friendRequests[fromUserId]?.contains(toUserId) != true) {
+        "A friend request from the recipient already exists. Accept their request instead."
       }
 
       // Add to recipient's pending requests
@@ -70,8 +65,8 @@ class FriendsRepositoryLocal : FriendsRepository {
   override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {
     mutex.withLock {
       // Verify the request exists
-      if (friendRequests[userId]?.contains(fromUserId) != true) {
-        throw IllegalArgumentException("No pending friend request from user: $fromUserId")
+      require(friendRequests[userId]?.contains(fromUserId) == true) {
+        "No pending friend request from user: $fromUserId"
       }
 
       // Add to both users' friends lists
@@ -95,8 +90,8 @@ class FriendsRepositoryLocal : FriendsRepository {
   override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {
     mutex.withLock {
       // Verify the request exists
-      if (friendRequests[userId]?.contains(fromUserId) != true) {
-        throw IllegalArgumentException("No pending friend request from user: $fromUserId")
+      require(friendRequests[userId]?.contains(fromUserId) == true) {
+        "No pending friend request from user: $fromUserId"
       }
 
       // Remove from pending requests
@@ -116,8 +111,8 @@ class FriendsRepositoryLocal : FriendsRepository {
   override suspend fun cancelFriendRequest(userId: String, toUserId: String) {
     mutex.withLock {
       // Verify the sent request exists
-      if (sentRequests[userId]?.contains(toUserId) != true) {
-        throw IllegalArgumentException("No sent friend request to user: $toUserId")
+      require(sentRequests[userId]?.contains(toUserId) == true) {
+        "No sent friend request to user: $toUserId"
       }
 
       // Remove from sent requests
@@ -137,9 +132,7 @@ class FriendsRepositoryLocal : FriendsRepository {
   override suspend fun removeFriend(userId: String, friendId: String) {
     mutex.withLock {
       // Verify friendship exists
-      if (friends[userId]?.contains(friendId) != true) {
-        throw IllegalArgumentException("Users are not friends")
-      }
+      require(friends[userId]?.contains(friendId) == true) { "Users are not friends" }
 
       // Remove from both users' friends lists
       friends[userId]?.remove(friendId)

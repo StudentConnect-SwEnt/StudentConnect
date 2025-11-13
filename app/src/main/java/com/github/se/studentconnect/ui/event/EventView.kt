@@ -361,11 +361,19 @@ private fun OwnerActionButtons(
     eventViewModel: EventViewModel,
     navController: NavHostController
 ) {
+  val context = LocalContext.current
   val editRoute =
       when (currentEvent) {
         is Event.Public -> Route.editPublicEvent(currentEvent.uid)
         is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
       }
+
+  if (currentEvent is Event.Private) {
+    ButtonIcon(
+        id = R.drawable.ic_group,
+        onClick = { DialogNotImplemented(context) },
+        modifier = Modifier.testTag("event_view_invite_friends_button"))
+  }
 
   Button(
       onClick = { eventViewModel.showQrScanner() },
@@ -463,7 +471,7 @@ private fun CommonActionButtons(
     ButtonIcon(
         id = R.drawable.ic_web,
         onClick = {
-          currentEvent?.website?.let { website ->
+          currentEvent.website?.let { website ->
             val fixedUrl =
                 if (!website.startsWith("http://") && !website.startsWith("https://")) {
                   "https://$website"

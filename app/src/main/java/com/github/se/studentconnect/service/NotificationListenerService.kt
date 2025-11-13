@@ -14,7 +14,6 @@ import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.auth.ktx.auth
 
 /**
  * Background service that listens for new notifications in Firestore and displays them as Android

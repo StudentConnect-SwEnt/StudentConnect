@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -340,6 +339,7 @@ fun CarouselCard(
             Timestamp(cal.time)
           }
   val isLive = now >= item.start && now < endTime
+  val isPrivate = item is Event.Private
 
   Card(
       onClick = onEventClick,
@@ -376,34 +376,51 @@ fun CarouselCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis)
               }
+
+          // Event type icon (Public/Private) and LIVE badge
+          Row(
+              modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
+              horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (isLive) {
+                  Row(
+                      modifier =
+                          Modifier.background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
+                              .padding(horizontal = 10.dp, vertical = 5.dp),
+                      verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Circle,
+                            contentDescription = "Live Icon",
+                            tint = Color.White,
+                            modifier = Modifier.size(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "LIVE",
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold)
+                      }
+                }
+
+                // Public/Private icon
+                Icon(
+                    painter =
+                        painterResource(if (isPrivate) R.drawable.ic_lock else R.drawable.ic_web),
+                    contentDescription = if (isPrivate) "Private Event" else "Public Event",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier =
+                        Modifier.size(28.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                                shape = CircleShape)
+                            .padding(6.dp))
+              }
+
           if (isOwner) {
             Icon(
                 painter = painterResource(R.drawable.ic_crown),
                 contentDescription = "Owner",
                 tint = Color.Yellow,
                 modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).size(32.dp))
-          }
-
-          if (isLive) {
-            Row(
-                modifier =
-                    Modifier.align(Alignment.TopStart)
-                        .padding(16.dp)
-                        .background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                  Icon(
-                      imageVector = Icons.Filled.Circle,
-                      contentDescription = "Live Icon",
-                      tint = Color.White,
-                      modifier = Modifier.size(8.dp))
-                  Spacer(modifier = Modifier.width(6.dp))
-                  Text(
-                      text = "LIVE",
-                      color = Color.White,
-                      style = MaterialTheme.typography.labelMedium,
-                      fontWeight = FontWeight.Bold)
-                }
           }
         }
       }
@@ -504,10 +521,4 @@ fun InvitationCarouselCard(
           }
     }
   }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewImageTitleCarousel() {
-  MaterialTheme { ActivitiesScreen() }
 }
