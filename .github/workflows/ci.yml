@@ -175,8 +175,8 @@ jobs:
       - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          APP_DEBUG_APK: app/build/outputs/apk/resOverride/debug/*.apk
-          APP_DEBUG_TEST_APK: app/build/outputs/apk/androidTest/resOverride/debug/*.apk
+          APP_DEBUG_APK: app/build/outputs/apk/resOverride/debug/app-resOverride-debug.apk
+          APP_DEBUG_TEST_APK: app/build/outputs/apk/androidTest/resOverride/debug/app-resOverride-debug-androidTest.apk
           TEST_PACKAGE: com.github.se.studentconnect.test
           TEST_RUNNER: androidx.test.runner.AndroidJUnitRunner
         with:
