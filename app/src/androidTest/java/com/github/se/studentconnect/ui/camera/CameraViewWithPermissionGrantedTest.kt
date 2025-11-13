@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.utils.StudentConnectTest
@@ -20,20 +20,11 @@ import org.junit.*
 class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+  @get:Rule val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   override fun createInitializedRepository(): EventRepository {
     // Unused for camera tests but required by StudentConnectTest
     return EventRepositoryProvider.repository
-  }
-
-  companion object {
-    @JvmStatic
-    @BeforeClass
-    fun grantCameraPermission() {
-      val instrumentation = InstrumentationRegistry.getInstrumentation()
-      val pkg = instrumentation.targetContext.packageName
-      instrumentation.uiAutomation.grantRuntimePermission(pkg, Manifest.permission.CAMERA)
-    }
   }
 
   @Test
