@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
@@ -126,9 +127,9 @@ fun BasicInfoScreen(
 
         SignUpMediumSpacer()
 
-        SignUpTitle(text = "Who are you ?")
+        SignUpTitle(text = stringResource(R.string.instruction_who_are_you))
         SignUpSmallSpacer()
-        SignUpSubtitle(text = "Let others know who you are !")
+        SignUpSubtitle(text = stringResource(R.string.instruction_who_are_you_subtitle))
 
         SignUpLargeSpacer()
 
@@ -141,8 +142,8 @@ fun BasicInfoScreen(
             value = firstNameText,
             onValueChange = { text -> viewModel.setFirstName(text) },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("First name") },
-            placeholder = { Text("Enter your first name") },
+            label = { Text(stringResource(R.string.signup_label_first_name)) },
+            placeholder = { Text(stringResource(R.string.placeholder_enter_first_name)) },
             singleLine = true)
 
         Spacer(Modifier.height(16.dp))
@@ -151,8 +152,8 @@ fun BasicInfoScreen(
             value = lastNameText,
             onValueChange = { text -> viewModel.setLastName(text) },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Last name") },
-            placeholder = { Text("Enter your last name") },
+            label = { Text(stringResource(R.string.signup_label_last_name)) },
+            placeholder = { Text(stringResource(R.string.placeholder_enter_last_name)) },
             singleLine = true)
 
         Spacer(Modifier.height(16.dp))
@@ -179,10 +180,15 @@ fun BasicInfoScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
               Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Birthday", style = MaterialTheme.typography.labelSmall)
+                Text(
+                    stringResource(R.string.signup_label_birthday),
+                    style = MaterialTheme.typography.labelSmall)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = birthdayText.ifEmpty { "Select your birthdate" },
+                    text =
+                        birthdayText.ifEmpty {
+                          stringResource(R.string.placeholder_select_birthdate)
+                        },
                     style = MaterialTheme.typography.bodyLarge,
                     color =
                         if (birthdayText.isEmpty())
@@ -204,7 +210,7 @@ fun BasicInfoScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         SignUpPrimaryButton(
-            text = "Continue",
+            text = stringResource(R.string.button_continue),
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
             enabled = isContinueEnabled,
@@ -257,12 +263,12 @@ fun UsernameTextField(
       when {
         !isValidFormat && username.isNotBlank() ->
             when {
-              username.length !in 3..20 -> "Username must be 3-20 characters long"
+              username.length !in 3..20 -> stringResource(R.string.error_username_length)
               !username.matches(Regex("^[a-zA-Z0-9_.-]+$")) ->
-                  "Only alphanumeric characters, underscores, hyphens, and periods are allowed"
+                  stringResource(R.string.error_username_format)
               else -> null
             }
-        isAvailable == false -> "This username is already taken"
+        isAvailable == false -> stringResource(R.string.error_username_taken)
         else -> null
       }
 
@@ -275,7 +281,7 @@ fun UsernameTextField(
           {
             Icon(
                 imageVector = Icons.Filled.CheckCircle,
-                contentDescription = "Available",
+                contentDescription = stringResource(R.string.content_description_available),
                 modifier = Modifier.size(20.dp),
                 tint = Color(0xFF4CAF50))
           }
@@ -284,7 +290,7 @@ fun UsernameTextField(
           {
             Icon(
                 imageVector = Icons.Filled.Close,
-                contentDescription = "Taken",
+                contentDescription = stringResource(R.string.content_description_taken),
                 modifier = Modifier.size(20.dp),
                 tint = MaterialTheme.colorScheme.error)
           }
@@ -298,8 +304,8 @@ fun UsernameTextField(
         onUsernameChange(it.lowercase().filter { c -> c.isLetterOrDigit() || c in "_-." })
       },
       modifier = modifier.fillMaxWidth(),
-      label = { Text("Username") },
-      placeholder = { Text("Choose a unique username") },
+      label = { Text(stringResource(R.string.signup_label_username)) },
+      placeholder = { Text(stringResource(R.string.placeholder_choose_username)) },
       singleLine = true,
       isError = errorText != null,
       supportingText = errorText?.let { { Text(it) } },
@@ -348,7 +354,7 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
       shadowElevation = 0.dp) {
         Image(
             painter = painterResource(id = avatarResId),
-            contentDescription = "Avatar",
+            contentDescription = stringResource(R.string.content_description_avatar),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop)
       }
