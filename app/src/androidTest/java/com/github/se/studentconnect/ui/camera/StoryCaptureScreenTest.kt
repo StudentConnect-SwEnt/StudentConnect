@@ -131,13 +131,13 @@ class StoryCaptureScreenTest {
   }
 
   @Test
-  fun storyCaptureScreen_instructionsNotVisible_whenInactive() {
+  fun storyCaptureScreen_instructionsVisible_whenInactive() {
     composeTestRule.setContent {
       AppTheme { StoryCaptureScreen(onBackClick = {}, onCapture = {}, isActive = false) }
     }
 
-    // Instructions should not be visible when inactive (only inactive message shows)
-    composeTestRule.onNodeWithTag("story_instructions").assertDoesNotExist()
+    // Instructions are visible even when inactive (they appear over the inactive background)
+    composeTestRule.onNodeWithTag("story_instructions").assertIsDisplayed()
   }
 
   @Test
