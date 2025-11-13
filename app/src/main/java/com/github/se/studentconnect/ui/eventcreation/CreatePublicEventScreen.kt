@@ -83,6 +83,9 @@ object CreatePublicEventScreenTestTags {
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
 
+// Extracted UI sizing constants
+private val SAVE_BUTTON_CONTAINER = 90.dp
+
 /**
  * Screen for creating or editing a public event with comprehensive form fields.
  *
@@ -400,7 +403,7 @@ fun CreatePublicEventScreen(
       Box(
           modifier =
               Modifier.fillMaxWidth()
-                  .height(90.dp) // Fixed height to avoid blocking content
+                  .height(SAVE_BUTTON_CONTAINER) // Fixed height to avoid blocking content
                   .padding(horizontal = 16.dp, vertical = 16.dp)) {
             Surface(
                 modifier =
