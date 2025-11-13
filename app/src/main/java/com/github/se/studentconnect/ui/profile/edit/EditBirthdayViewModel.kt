@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +51,8 @@ class EditBirthdayViewModel(
 
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to load birthday")
+        _uiState.value =
+            UiState.Error(e.message ?: R.string.error_failed_to_load_birthday.toString())
       }
     }
   }
@@ -79,12 +81,13 @@ class EditBirthdayViewModel(
           val updatedUser =
               user.copy(birthdate = birthdayToSave, updatedAt = System.currentTimeMillis())
           userRepository.saveUser(updatedUser)
-          _uiState.value = UiState.Success("Birthday updated successfully")
+          _uiState.value = UiState.Success(R.string.success_birthday_updated.toString())
         } else {
-          _uiState.value = UiState.Error("User not found")
+          _uiState.value = UiState.Error(R.string.error_user_not_found.toString())
         }
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to save birthday")
+        _uiState.value =
+            UiState.Error(e.message ?: R.string.error_failed_to_save_birthday.toString())
       }
     }
   }
@@ -101,12 +104,13 @@ class EditBirthdayViewModel(
           userRepository.saveUser(updatedUser)
           _selectedDateMillis.value = null
           _birthdayString.value = null
-          _uiState.value = UiState.Success("Birthday removed successfully")
+          _uiState.value = UiState.Success(R.string.success_birthday_removed.toString())
         } else {
-          _uiState.value = UiState.Error("User not found")
+          _uiState.value = UiState.Error(R.string.error_user_not_found.toString())
         }
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to remove birthday")
+        _uiState.value =
+            UiState.Error(e.message ?: R.string.error_failed_to_remove_birthday.toString())
       }
     }
   }

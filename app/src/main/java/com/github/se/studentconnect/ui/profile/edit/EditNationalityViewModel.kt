@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +29,8 @@ class EditNationalityViewModel(
   val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
   // Success message state
-  private val _successMessage = MutableStateFlow<String?>(null)
-  val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+  private val _successMessage = MutableStateFlow<Int?>(null)
+  val successMessage: StateFlow<Int?> = _successMessage.asStateFlow()
 
   init {
     loadUserProfile()
@@ -43,7 +44,7 @@ class EditNationalityViewModel(
         val loadedUser = userRepository.getUserById(userId)
         _user.value = loadedUser
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: "Failed to load profile"
+        _errorMessage.value = exception.message ?: R.string.error_failed_to_load_profile.toString()
       } finally {
         _isLoading.value = false
       }
@@ -60,9 +61,10 @@ class EditNationalityViewModel(
 
         userRepository.saveUser(updatedUser)
         _user.value = updatedUser
-        _successMessage.value = "Nationality updated successfully"
+        _successMessage.value = R.string.success_nationality_updated
       } catch (exception: Exception) {
-        _errorMessage.value = exception.message ?: "Failed to update nationality"
+        _errorMessage.value =
+            exception.message ?: R.string.error_failed_to_update_nationality.toString()
       } finally {
         _isLoading.value = false
       }
