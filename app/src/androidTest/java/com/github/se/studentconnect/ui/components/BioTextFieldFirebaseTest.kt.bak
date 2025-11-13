@@ -46,12 +46,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   @Test
   fun bioTextField_displaysPlaceholder() {
     composeTestRule.setContent {
-      AppTheme {
-        BioTextField(
-            value = "",
-            onValueChange = {},
-            config = BioTextFieldConfig(placeholder = "Enter your bio"))
-      }
+      AppTheme { BioTextField(value = "", onValueChange = {}, placeholder = "Enter your bio") }
     }
 
     composeTestRule.onNodeWithText("Enter your bio").assertExists()
@@ -61,10 +56,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_showsCharacterCount() {
     composeTestRule.setContent {
       AppTheme {
-        BioTextField(
-            value = "Hello World",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
+        BioTextField(value = "Hello World", onValueChange = {}, showCharacterCount = true)
       }
     }
 
@@ -75,10 +67,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_hidesCharacterCountWhenDisabled() {
     composeTestRule.setContent {
       AppTheme {
-        BioTextField(
-            value = "Hello World",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = false))
+        BioTextField(value = "Hello World", onValueChange = {}, showCharacterCount = false)
       }
     }
 
@@ -118,10 +107,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       var value by remember { mutableStateOf("") }
       AppTheme {
-        BioTextField(
-            value = value,
-            onValueChange = { value = it },
-            config = BioTextFieldConfig(showCharacterCount = true))
+        BioTextField(value = value, onValueChange = { value = it }, showCharacterCount = true)
       }
     }
 
@@ -140,9 +126,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       AppTheme {
         BioTextField(
-            value = "Outlined style test",
-            onValueChange = {},
-            config = BioTextFieldConfig(style = BioTextFieldStyle.Outlined))
+            value = "Outlined style test", onValueChange = {}, style = BioTextFieldStyle.Outlined)
       }
     }
 
@@ -154,9 +138,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       AppTheme {
         BioTextField(
-            value = "Bordered style test",
-            onValueChange = {},
-            config = BioTextFieldConfig(style = BioTextFieldStyle.Bordered))
+            value = "Bordered style test", onValueChange = {}, style = BioTextFieldStyle.Bordered)
       }
     }
 
@@ -196,12 +178,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_handlesLongText() {
     val longText = "A".repeat(400)
     composeTestRule.setContent {
-      AppTheme {
-        BioTextField(
-            value = longText,
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
-      }
+      AppTheme { BioTextField(value = longText, onValueChange = {}, showCharacterCount = true) }
     }
 
     composeTestRule.onNodeWithText("400 / ${ProfileConstants.MAX_BIO_LENGTH}").assertExists()
@@ -236,9 +213,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
     composeTestRule.setContent {
       AppTheme {
         BioTextField(
-            value = "Test",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true, maxCharacters = 100))
+            value = "Test", onValueChange = {}, showCharacterCount = true, maxCharacters = 100)
       }
     }
 
@@ -296,12 +271,7 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
   fun bioTextField_characterCountWithUnicode() {
     val unicodeText = "Hello 👋 World 🌍"
     composeTestRule.setContent {
-      AppTheme {
-        BioTextField(
-            value = unicodeText,
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
-      }
+      AppTheme { BioTextField(value = unicodeText, onValueChange = {}, showCharacterCount = true) }
     }
 
     val expectedLength = unicodeText.length
