@@ -51,6 +51,7 @@ fun FormTextField(
     enabled: Boolean = true,
     errorText: String? = null,
     required: Boolean = false,
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
   var hasBeenInteractedWith by remember { mutableStateOf(false) }
@@ -73,7 +74,8 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText) })
+      supportingText = { if (shouldShowError) Text(text = errorText) },
+      trailingIcon = trailingIcon)
 }
 
 @Composable
@@ -86,6 +88,7 @@ fun FormTextField(
     enabled: Boolean = true,
     errorText: String? = null,
     required: Boolean = false,
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   var hasBeenFocused by remember { mutableStateOf(false) }
   var hasBeenInteractedWith by remember { mutableStateOf(false) }
@@ -108,5 +111,6 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText) })
+      supportingText = { if (shouldShowError) Text(text = errorText) },
+      trailingIcon = trailingIcon)
 }

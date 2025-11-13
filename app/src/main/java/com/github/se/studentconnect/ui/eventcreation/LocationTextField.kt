@@ -104,11 +104,10 @@ fun LocationTextField(
   var hasActiveQuery by remember { mutableStateOf(false) }
   var dropdownVisible by remember { mutableStateOf(false) }
 
-  var locationFieldValue by
-      remember {
-        val initialText = selectedLocation?.toInputLabel().orEmpty()
-        mutableStateOf(TextFieldValue(initialText, TextRange(initialText.length)))
-      }
+  var locationFieldValue by remember {
+    val initialText = selectedLocation?.toInputLabel().orEmpty()
+    mutableStateOf(TextFieldValue(initialText, TextRange(initialText.length)))
+  }
 
   LaunchedEffect(selectedLocation) {
     if (selectedLocation != null && selectedLocation != userSelectedLocation) {
@@ -139,8 +138,7 @@ fun LocationTextField(
   }
 
   val locationDropdownMenuIsExpanded =
-      dropdownVisible &&
-          (locationSuggestions.isNotEmpty() || isLoadingLocationSuggestions)
+      dropdownVisible && (locationSuggestions.isNotEmpty() || isLoadingLocationSuggestions)
 
   ExposedDropdownMenuBox(
       expanded = locationDropdownMenuIsExpanded,
@@ -148,28 +146,26 @@ fun LocationTextField(
   ) {
     ExposedDropdownMenu(
         expanded = locationDropdownMenuIsExpanded, onDismissRequest = { dropdownVisible = false }) {
-      if (isLoadingLocationSuggestions && locationSuggestions.isEmpty()) {
-        DropdownMenuItem(
-            enabled = false,
-            text = { Text("Searching...") },
-            onClick = {})
-      }
+          if (isLoadingLocationSuggestions && locationSuggestions.isEmpty()) {
+            DropdownMenuItem(enabled = false, text = { Text("Searching...") }, onClick = {})
+          }
 
-      for (locationSuggestion in locationSuggestions) {
-        DropdownMenuItem(
-            text = { Text(locationSuggestion.toInputLabel()) },
-            onClick = {
-              val selectedName = locationSuggestion.toInputLabel()
-              locationFieldValue =
-                  TextFieldValue(text = selectedName, selection = TextRange(selectedName.length))
-              dropdownVisible = false // reset interaction
-              if (hasActiveQuery) hasActiveQuery = false
-              userSelectedLocation = locationSuggestion
-              locationTextFieldViewModel.clearSuggestions() // clear stale suggestions
-              onLocationChange(locationSuggestion)
-            })
-      }
-    }
+          for (locationSuggestion in locationSuggestions) {
+            DropdownMenuItem(
+                text = { Text(locationSuggestion.toInputLabel()) },
+                onClick = {
+                  val selectedName = locationSuggestion.toInputLabel()
+                  locationFieldValue =
+                      TextFieldValue(
+                          text = selectedName, selection = TextRange(selectedName.length))
+                  dropdownVisible = false // reset interaction
+                  if (hasActiveQuery) hasActiveQuery = false
+                  userSelectedLocation = locationSuggestion
+                  locationTextFieldViewModel.clearSuggestions() // clear stale suggestions
+                  onLocationChange(locationSuggestion)
+                })
+          }
+        }
 
     FormTextField(
         modifier = modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
