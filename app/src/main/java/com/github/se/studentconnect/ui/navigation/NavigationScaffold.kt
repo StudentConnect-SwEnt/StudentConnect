@@ -106,8 +106,7 @@ fun BottomNavigationBar(
                 onCreatePrivateEvent = {
                   showBottomSheet = false
                   onCreatePrivateEvent()
-                },
-                onDismiss = { showBottomSheet = false })
+                })
           }
     }
   }
@@ -117,7 +116,6 @@ fun BottomNavigationBar(
 fun EventCreationBottomSheetContent(
     onCreatePublicEvent: () -> Unit,
     onCreatePrivateEvent: () -> Unit,
-    onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
   Column(

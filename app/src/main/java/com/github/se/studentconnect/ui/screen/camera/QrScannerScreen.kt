@@ -58,7 +58,7 @@ fun QrScannerScreen(
     modifier: Modifier = Modifier.Companion,
     isActive: Boolean = true,
     cameraContent: (@Composable (ImageAnalysis.Analyzer?) -> Unit)? = null,
-    analyzerProvider: AnalyzerProvider = { onDetected, onError, roi ->
+    analyzerProvider: AnalyzerProvider = { onDetected, onError, _ ->
       QrCodeAnalyzer(onDetected, onError)
     },
 ) {

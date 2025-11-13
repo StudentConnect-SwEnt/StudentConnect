@@ -37,9 +37,7 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun addEvent(event: Event) {
-    if (events.any { it.uid == event.uid }) {
-      throw IllegalArgumentException("Event with UID ${event.uid} already exists.")
-    }
+    require(!events.any { it.uid == event.uid }) { "Event with UID ${event.uid} already exists." }
     events.add(event)
     participantsByEvent[event.uid] = mutableListOf()
   }
@@ -63,14 +61,12 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) {
-    if (events.none { it.uid == eventUid }) {
-      throw IllegalArgumentException("Event $eventUid does not exist.")
-    }
+    require(!events.none { it.uid == eventUid }) { "Event $eventUid does not exist." }
 
     val participants = participantsByEvent.getOrPut(eventUid) { mutableListOf() }
 
-    if (participants.any { it.uid == participant.uid }) {
-      throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid.")
+    check(!participants.any { it.uid == participant.uid }) {
+      "Participant ${participant.uid} is already in event $eventUid."
     }
 
     participants.add(participant)
@@ -86,15 +82,13 @@ class EventRepositoryLocal : EventRepository {
           "Cannot invite to a non-existent event. Event with UID $eventUid not found.")
     }
     val participants = participantsByEvent[eventUid] ?: emptyList()
-    if (participants.any { it.uid == invitedUserUid }) {
-      throw IllegalStateException(
-          "User $invitedUserUid is already a participant in event $eventUid.")
+    check(!participants.any { it.uid == invitedUserUid }) {
+      "User $invitedUserUid is already a participant in event $eventUid."
     }
 
     val userInvitations = invitationsByUser.getOrPut(invitedUserUid) { mutableListOf() }
-    if (userInvitations.any { it.eventId == eventUid }) {
-      throw IllegalStateException(
-          "An invitation for event $eventUid has already been sent to user $invitedUserUid.")
+    check(!userInvitations.any { it.eventId == eventUid }) {
+      "An invitation for event $eventUid has already been sent to user $invitedUserUid."
     }
 
     val newInvitation =

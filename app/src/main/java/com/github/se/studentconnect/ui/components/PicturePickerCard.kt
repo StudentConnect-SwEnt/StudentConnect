@@ -59,6 +59,7 @@ import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import java.io.File
 import java.io.InputStream
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -85,9 +86,7 @@ fun PicturePickerCard(
 
   LaunchedEffect(existingImagePath, repository) {
     downloadedImageUri =
-        existingImagePath?.let {
-          runCatching { withContext(Dispatchers.IO) { repository.download(it) } }.getOrNull()
-        }
+        existingImagePath?.let { runCatching { repository.download(it) }.getOrNull() }
   }
 
   val displayUri = selectedImageUri ?: downloadedImageUri
@@ -99,7 +98,7 @@ fun PicturePickerCard(
   LaunchedEffect(displayUri) {
     imageBitmap =
         if (displayUri != null) {
-          loadBitmapFromUri(context, displayUri)
+          loadBitmapFromUri(context, displayUri, Dispatchers.IO)
         } else {
           null
         }
@@ -258,8 +257,12 @@ private fun Modifier.dashedBorder(shape: Shape, pathEffect: PathEffect, color: C
           }
         })
 
-private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
-    withContext(Dispatchers.IO) {
+private suspend fun loadBitmapFromUri(
+    context: Context,
+    uri: Uri,
+    dispatcher: CoroutineDispatcher
+): ImageBitmap? =
+    withContext(dispatcher) {
       try {
         when (uri.scheme?.lowercase()) {
           "file" -> uri.path?.let { path -> BitmapFactory.decodeFile(path)?.asImageBitmap() }

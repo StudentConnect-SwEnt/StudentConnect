@@ -6,16 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,10 +43,9 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Screen for editing profile picture. Shows current profile picture and options to change it.
@@ -100,7 +96,7 @@ fun EditProfilePictureScreen(
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
             },
             colors =
@@ -175,9 +171,10 @@ fun EditProfilePictureScreen(
                               }
 
                           // Save Button
-                          Button(
+                          ProfileSaveButton(
                               onClick = {
-                                if (isLoading || isUploading || !userModified) return@Button
+                                if (isLoading || isUploading || !userModified)
+                                    return@ProfileSaveButton
                                 coroutineScope.launch {
                                   isUploading = true
                                   try {
@@ -209,16 +206,9 @@ fun EditProfilePictureScreen(
                                   }
                                 }
                               },
+                              isLoading = isLoading || isUploading,
                               enabled = !isLoading && !isUploading && userModified,
-                              modifier = Modifier.fillMaxWidth()) {
-                                if (isLoading || isUploading) {
-                                  CircularProgressIndicator(
-                                      modifier = Modifier.size(16.dp),
-                                      color = MaterialTheme.colorScheme.onPrimary)
-                                } else {
-                                  Text("Save Changes")
-                                }
-                              }
+                              text = "Save")
                         }
                   }
             }
@@ -231,7 +221,7 @@ private suspend fun uploadProfilePicture(
     uri: Uri
 ): String? {
   return try {
-    withContext(Dispatchers.IO) { repository.upload(uri, "users/$userId/profile") }
+    repository.upload(uri, "users/$userId/profile")
   } catch (exception: Exception) {
     android.util.Log.e(
         "EditProfilePictureScreen",

@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.signup
 
-// import androidx.compose.ui.tooling.preview.Preview
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -45,15 +44,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.se.studentconnect.R
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-// import com.github.se.studentconnect.ui.theme.AppTheme
 
 private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
 
@@ -130,20 +127,6 @@ fun AddPictureScreen(
 }
 
 @Composable
-private fun SkipButton(onClick: () -> Unit) {
-  Surface(
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surfaceVariant,
-      modifier = Modifier.clip(RoundedCornerShape(20.dp)).clickable(onClick = onClick)) {
-        Text(
-            text = "Skip",
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
-      }
-}
-
-@Composable
 private fun UploadCard(
     modifier: Modifier = Modifier,
     imageUri: Uri?,
@@ -162,7 +145,8 @@ private fun UploadCard(
       }
 
   LaunchedEffect(imageUri) {
-    imageBitmap = if (imageUri != null) loadBitmapFromUri(context, imageUri) else null
+    imageBitmap =
+        if (imageUri != null) loadBitmapFromUri(context, imageUri, Dispatchers.IO) else null
   }
 
   Box(
@@ -243,16 +227,12 @@ private fun Modifier.drawDashedCircleBorder(
           }
         })
 
-// @Preview(showBackground = true, widthDp = 360, heightDp = 720)
-// @Composable
-// private fun AddPictureScreenPreview() {
-//  AppTheme {
-//    AddPictureScreen(viewModel = SignUpViewModel(), onSkip = {}, onContinue = {}, onBack = {})
-//  }
-// }
-
-private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
-    withContext(Dispatchers.IO) {
+private suspend fun loadBitmapFromUri(
+    context: Context,
+    uri: Uri,
+    dispatcher: CoroutineDispatcher
+): ImageBitmap? =
+    withContext(dispatcher) {
       try {
         context.contentResolver.openInputStream(uri)?.use { stream ->
           BitmapFactory.decodeStream(stream)?.asImageBitmap()

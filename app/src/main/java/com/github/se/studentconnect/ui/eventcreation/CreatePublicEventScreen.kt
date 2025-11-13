@@ -3,11 +3,8 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +64,7 @@ object CreatePublicEventScreenTestTags {
   const val TOP_APP_BAR = "topAppBar"
   const val BACK_BUTTON = "backButton"
   const val SCAFFOLD = "scaffold"
+  const val SCROLL_COLUMN = "scrollColumn"
   const val TITLE_INPUT = "titleInput"
   const val SUBTITLE_INPUT = "subtitleInput"
   const val DESCRIPTION_INPUT = "descriptionInput"
@@ -84,6 +82,9 @@ object CreatePublicEventScreenTestTags {
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
+
+// Extracted UI sizing constants
+private val SAVE_BUTTON_CONTAINER = 90.dp
 
 /**
  * Screen for creating or editing a public event with comprehensive form fields.
@@ -189,6 +190,7 @@ fun CreatePublicEventScreen(
               modifier =
                   Modifier.fillMaxSize()
                       .verticalScroll(scrollState)
+                      .testTag(CreatePublicEventScreenTestTags.SCROLL_COLUMN)
                       .padding(paddingValues)
                       .padding(horizontal = 16.dp),
               verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -395,46 +397,43 @@ fun CreatePublicEventScreen(
           }
         }
 
-    // Animated Save Button - Hide when any field is focused
-    AnimatedVisibility(
-        visible = !isAnyFieldFocused,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = Modifier.align(Alignment.BottomCenter)) {
-          Box(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .height(90.dp) // Fixed height to avoid blocking content
-                      .padding(horizontal = 16.dp, vertical = 16.dp)) {
-                Surface(
-                    modifier =
-                        Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
-                            .fillMaxWidth(buttonWidthFraction)
-                            .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(28.dp)),
-                    color =
-                        if (canSave) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant,
-                    shadowElevation = 6.dp,
-                    enabled = canSave,
-                    onClick = { createPublicEventViewModel.saveEvent() }) {
-                      Row(
-                          modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                          horizontalArrangement = Arrangement.Center,
-                          verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.SaveAlt,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                "Save",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimary)
-                          }
-                    }
-              }
-        }
+    // Save button is now always present (tests expect it to exist while editing).
+    // It remains disabled when canSave == false and will only trigger saveEvent when enabled.
+    Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+      Box(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .height(SAVE_BUTTON_CONTAINER) // Fixed height to avoid blocking content
+                  .padding(horizontal = 16.dp, vertical = 16.dp)) {
+            Surface(
+                modifier =
+                    Modifier.testTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+                        .fillMaxWidth(buttonWidthFraction)
+                        .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(28.dp)),
+                color =
+                    if (canSave) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceVariant,
+                shadowElevation = 6.dp,
+                enabled = canSave,
+                onClick = { if (canSave) createPublicEventViewModel.saveEvent() }) {
+                  Row(
+                      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                      horizontalArrangement = Arrangement.Center,
+                      verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.SaveAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Save",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary)
+                      }
+                }
+          }
+    }
   }
 }

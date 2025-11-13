@@ -14,10 +14,6 @@ import com.github.se.studentconnect.ui.components.BioTextField
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditBioViewModel
-import kotlinx.coroutines.delay
-
-/** Delay in milliseconds before navigating back after successful save */
-private const val NAVIGATION_DELAY_MS = 500L
 
 /** Standard button height following Material Design guidelines */
 private val BUTTON_HEIGHT = 56.dp
@@ -50,11 +46,8 @@ fun EditBioScreen(
   LaunchedEffect(uiState) {
     when (val state = uiState) {
       is BaseEditViewModel.UiState.Success -> {
-        snackbarHostState.showSnackbar(state.message)
-        viewModel.resetState()
-        // Navigate back after successful save
-        delay(NAVIGATION_DELAY_MS)
         onNavigateBack()
+        viewModel.resetState()
       }
       is BaseEditViewModel.UiState.Error -> {
         snackbarHostState.showSnackbar(state.message)
