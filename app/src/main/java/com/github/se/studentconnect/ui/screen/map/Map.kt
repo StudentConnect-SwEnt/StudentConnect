@@ -129,6 +129,11 @@ fun MapScreen(
       onPermissionGranted = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(true)) },
       onPermissionDenied = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(false)) })
 
+  /**
+   * Handle initial navigation to target location and/or event. When both location and event UID are
+   * provided, the event selection animation takes precedence to ensure proper zoom level and info
+   * card display.
+   */
   LaunchedEffect(targetLatitude, targetLongitude, targetEventUid) {
     if (targetLatitude != null && targetLongitude != null) {
       actualViewModel.onEvent(
@@ -149,6 +154,11 @@ fun MapScreen(
     }
   }
 
+  /**
+   * Animate to selected event location when event selection triggers an animation request. This
+   * ensures smooth camera transitions when events are selected programmatically or by user
+   * interaction.
+   */
   LaunchedEffect(uiState.shouldAnimateToSelectedEvent) {
     if (uiState.shouldAnimateToSelectedEvent && uiState.selectedEventLocation != null) {
       actualViewModel.animateToSelectedEvent(mapViewportState)
@@ -156,7 +166,11 @@ fun MapScreen(
     }
   }
 
-  // Automatically select event when targetEventUid is provided
+  /**
+   * Automatically select event when navigating to the map with a target event UID (e.g., from
+   * EventView). Waits for events to be loaded before triggering selection to ensure the event data
+   * is available.
+   */
   LaunchedEffect(targetEventUid, uiState.events) {
     if (targetEventUid != null && uiState.events.isNotEmpty()) {
       actualViewModel.onEvent(MapViewEvent.SelectEvent(targetEventUid))
@@ -310,14 +324,18 @@ private fun MapContainer(
   val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
   val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
   val previousFriendLocations = remember { mutableStateOf<Map<String, FriendLocation>?>(null) }
-  // Track when an event is initially selected to avoid dismissing during animation
+  /**
+   * Track when an event is initially selected to avoid dismissing the info card during the
+   * animation to the event location. This prevents the card from being dismissed due to camera
+   * movement during the automatic animation.
+   */
   val isAnimatingToEvent = remember { mutableStateOf(false) }
 
   // Set animation flag when event is selected and reset after animation completes
   LaunchedEffect(selectedEvent) {
     if (selectedEvent != null) {
       isAnimatingToEvent.value = true
-      kotlinx.coroutines.delay(1000) // Wait for animation to complete
+      kotlinx.coroutines.delay(1000) // Wait for animation to complete (1 second)
       isAnimatingToEvent.value = false
     }
   }
@@ -341,17 +359,23 @@ private fun MapContainer(
                 pulsingEnabled = true
               }
 
-              // Add click listener for event markers
+              /**
+               * Add click listener for event markers. When a marker is clicked, select the
+               * corresponding event and display its info card. When clicking on empty map space,
+               * clear the selection.
+               */
               mapView.mapboxMap.addOnMapClickListener { point ->
                 val screenCoordinate = mapView.mapboxMap.pixelForCoordinate(point)
 
-                // Query rendered features synchronously using the gesture plugin
+                // Query rendered features at the click point to check if an event marker was
+                // clicked
                 mapView.mapboxMap.queryRenderedFeatures(
                     com.mapbox.maps.RenderedQueryGeometry(screenCoordinate),
                     com.mapbox.maps.RenderedQueryOptions(
                         listOf(EventMarkerConfig.LAYER_ID), null)) { expected ->
                       expected.value?.let { features ->
                         if (features.isNotEmpty()) {
+                          // Extract event UID from the marker feature and select it
                           val eventUid =
                               features[0]
                                   .queriedFeature
@@ -372,22 +396,26 @@ private fun MapContainer(
               }
             }
 
-            // Add camera change listener to dismiss info card when user scrolls away
+            /**
+             * Add camera change listener to dismiss the event info card when the user scrolls away
+             * from the event location. This provides intuitive UX where the card automatically
+             * closes when the user moves the map significantly.
+             */
             MapEffect(selectedEvent, selectedEventLocation) { mapView ->
               if (selectedEvent != null && selectedEventLocation != null) {
                 mapView.mapboxMap.subscribeCameraChanged { _ ->
-                  // Skip camera change checks during initial animation
+                  // Skip camera change checks during initial animation to prevent premature
+                  // dismissal
                   if (!isAnimatingToEvent.value) {
-                    // When camera moves and we have a selected event, check if we've moved far
-                    // enough
                     val currentCenter = mapView.mapboxMap.cameraState.center
 
-                    // Calculate distance between current center and selected event location
+                    // Calculate Euclidean distance between current center and selected event
+                    // location
                     val latDiff = currentCenter.latitude() - selectedEventLocation.latitude()
                     val lonDiff = currentCenter.longitude() - selectedEventLocation.longitude()
                     val distance = kotlin.math.sqrt(latDiff * latDiff + lonDiff * lonDiff)
 
-                    // Dismiss if user scrolled more than a threshold distance
+                    // Dismiss if user scrolled more than threshold (approximately 50 meters)
                     val dismissThreshold = 0.0005
                     if (distance > dismissThreshold) {
                       onEventSelected(null)

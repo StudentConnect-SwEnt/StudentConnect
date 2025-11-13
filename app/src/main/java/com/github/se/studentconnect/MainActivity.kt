@@ -209,6 +209,19 @@ fun MainContent() {
   }
 }
 
+/**
+ * Main app content composable that contains the scaffold with bottom navigation and main screens.
+ *
+ * This composable manages the bottom navigation bar visibility and handles navigation between
+ * different screens. The bottom navigation bar is conditionally hidden when the camera mode
+ * selector is active to provide a full-screen camera experience.
+ *
+ * @param navController The navigation controller for handling navigation between screens
+ * @param selectedTab The currently selected bottom navigation tab
+ * @param onTabSelected Callback invoked when a tab is selected
+ * @param shouldOpenQRScanner Whether the QR scanner should be opened automatically
+ * @param onQRScannerStateChange Callback to notify when QR scanner state changes
+ */
 @Composable
 private fun MainAppContent(
     navController: NavHostController,
@@ -217,24 +230,30 @@ private fun MainAppContent(
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit
 ) {
+  // Track whether camera mode selector is currently active to conditionally hide bottom nav
+  var isCameraActive by remember { mutableStateOf(false) }
+
   Scaffold(
       bottomBar = {
-        BottomNavigationBar(
-            selectedTab = selectedTab,
-            onTabSelected = { tab ->
-              onTabSelected(tab)
-              onQRScannerStateChange(false)
-              navController.navigate(tab.destination.route) {
-                launchSingleTop = true
-                restoreState = true
-              }
-            },
-            onCreatePublicEvent = {
-              navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-            },
-            onCreatePrivateEvent = {
-              navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-            })
+        // Only show bottom navigation bar when camera is not active
+        if (!isCameraActive) {
+          BottomNavigationBar(
+              selectedTab = selectedTab,
+              onTabSelected = { tab ->
+                onTabSelected(tab)
+                onQRScannerStateChange(false)
+                navController.navigate(tab.destination.route) {
+                  launchSingleTop = true
+                  restoreState = true
+                }
+              },
+              onCreatePublicEvent = {
+                navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
+              },
+              onCreatePrivateEvent = {
+                navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+              })
+        }
       }) { paddingValues ->
         // Use real repository from provider
         val userRepository = UserRepositoryProvider.repository
@@ -251,7 +270,8 @@ private fun MainAppContent(
             HomeScreen(
                 navController = navController,
                 shouldOpenQRScanner = shouldOpenQRScanner,
-                onQRScannerClosed = { onQRScannerStateChange(false) })
+                onQRScannerClosed = { onQRScannerStateChange(false) },
+                onCameraActiveChange = { isActive -> isCameraActive = isActive })
           }
           composable(Route.MAP) { MapScreen() }
           composable(
