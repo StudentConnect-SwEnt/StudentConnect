@@ -175,7 +175,10 @@ jobs:
       - name: Run connected tests (shard ${{ matrix.shard_index }} of ${{ env.SHARD_COUNT }})
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          SKIP_STEPS: --no-rebuild -x assembleResOverrideDebug -x assembleResOverrideDebugAndroidTest -x packageResOverrideDebug -x packageResOverrideDebugAndroidTest
+          APP_DEBUG_APK: app/build/outputs/apk/resOverride/debug/*.apk
+          APP_DEBUG_TEST_APK: app/build/outputs/apk/androidTest/resOverride/debug/*.apk
+          TEST_PACKAGE: com.github.se.studentconnect.test
+          TEST_RUNNER: androidx.test.runner.AndroidJUnitRunner
         with:
           api-level: 34
           target: google_apis
@@ -183,13 +186,22 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache $SKIP_STEPS -PtestShardIndex=${{ matrix.shard_index }} -PtestNumShards=$SHARD_COUNT
+          script: |
+            # Install apks on device
+            adb install -t "$APP_DEBUG_APK"
+            adb install "$APP_DEBUG_TEST_APK"
+
+            # Run tests
+            adb shell am instrument -w -e coverage true -e coverageFile /sdcard/coverage.ec -e numShards $SHARD_COUNT -e shardIndex ${{ env.shard_index }} $TEST_PACKAGE/$TEST_RUNNER
+
+            # Pull coverage
+            adb pull /sdcard/coverage.ec ./coverage.ec
 
       - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
         with:
           name: android-ec-${{ matrix.shard_index }}
-          path: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected/**/coverage.ec
+          path: ./coverage.ec
 
   build-release-apk:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -224,7 +236,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: release-apk
           path: app/build/outputs/apk/normal/release/*.apk
 
   sonar:
