@@ -62,7 +62,10 @@ class AddPictureScreenTest {
     }
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule
+        .onNodeWithText(
+            ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
+        .assertExists()
     composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
   }
 
@@ -78,7 +81,10 @@ class AddPictureScreenTest {
     }
 
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule
+        .onNodeWithText(
+            ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
+        .assertExists()
     composeTestRule
         .onNodeWithContentDescription(ctx.getString(R.string.content_description_upload_photo))
         .assertExists()
