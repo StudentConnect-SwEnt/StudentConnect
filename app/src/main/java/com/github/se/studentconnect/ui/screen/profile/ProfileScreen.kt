@@ -43,8 +43,8 @@ import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 
 /**
- * Instagram-style Profile screen showing user information, stats, and pinned events.
- * Main profile view for the StudentConnect app.
+ * Instagram-style Profile screen showing user information, stats, and pinned events. Main profile
+ * view for the StudentConnect app.
  *
  * @param currentUserId The ID of the current user (default for demo purposes)
  * @param userRepository Repository for user data operations
@@ -63,152 +63,135 @@ fun ProfileScreen(
     onNavigateToMap: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val user by viewModel.user.collectAsState()
-    val friendsCount by viewModel.friendsCount.collectAsState()
-    val eventsCount by viewModel.eventsCount.collectAsState()
-    val pinnedEvents by viewModel.pinnedEvents.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+  val user by viewModel.user.collectAsState()
+  val friendsCount by viewModel.friendsCount.collectAsState()
+  val eventsCount by viewModel.eventsCount.collectAsState()
+  val pinnedEvents by viewModel.pinnedEvents.collectAsState()
+  val isLoading by viewModel.isLoading.collectAsState()
 
-    // Reload data when screen becomes visible again
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.loadUserProfile()
-                viewModel.loadPinnedEvents()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+  val context = LocalContext.current
+  val lifecycleOwner = LocalLifecycleOwner.current
+
+  // Reload data when screen becomes visible again
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME) {
+        viewModel.loadUserProfile()
+        viewModel.loadPinnedEvents()
+      }
     }
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Profile",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = {
-                    // Settings Icon
-                    IconButton(
-                        onClick = {
-                            if (onNavigateToSettings != null) {
-                                onNavigateToSettings()
-                            } else {
-                                Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = {
+              Text(
+                  text = "Profile",
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = FontWeight.Bold)
+            },
+            actions = {
+              // Settings Icon
+              IconButton(
+                  onClick = {
+                    if (onNavigateToSettings != null) {
+                      onNavigateToSettings()
+                    } else {
+                      Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
                     }
-                    
-                    // Map Icon
-                    IconButton(
-                        onClick = {
-                            if (onNavigateToMap != null) {
-                                onNavigateToMap()
-                            } else {
-                                Toast.makeText(context, "Map feature coming soon", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_vector),
-                            contentDescription = "Map",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                  }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = MaterialTheme.colorScheme.onSurface)
+                  }
+
+              // Map Icon
+              IconButton(
+                  onClick = {
+                    if (onNavigateToMap != null) {
+                      onNavigateToMap()
+                    } else {
+                      Toast.makeText(context, "Map feature coming soon", Toast.LENGTH_SHORT).show()
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
-        modifier = modifier
-    ) { paddingValues ->
+                  }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_vector),
+                        contentDescription = "Map",
+                        tint = MaterialTheme.colorScheme.onSurface)
+                  }
+            },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface))
+      },
+      modifier = modifier) { paddingValues ->
         when (val currentUser = user) {
-            null -> {
-                // Loading state
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+          null -> {
+            // Loading state
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center) {
+                  CircularProgressIndicator()
                 }
-            }
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
+          }
+          else -> {
+            Column(
+                modifier =
+                    Modifier.fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    // Profile Header Section (Profile Picture + Stats + User Info)
-                    ProfileHeader(
-                        user = currentUser,
-                        friendsCount = friendsCount,
-                        eventsCount = eventsCount,
-                        onFriendsClick = {
-                            // TODO: Navigate to friends list screen
-                            Toast.makeText(context, "Friends list coming soon", Toast.LENGTH_SHORT).show()
-                        },
-                        onEventsClick = {
-                            // TODO: Navigate to event history screen
-                            Toast.makeText(context, "Event history coming soon", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    
-                    // Divider
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Pinned Events Section
-                    PinnedEventsSection(
-                        pinnedEvents = pinnedEvents,
-                        onEventClick = { event ->
-                            // TODO: Navigate to event details screen
-                            Toast.makeText(
+                verticalArrangement = Arrangement.Top) {
+                  // Profile Header Section (Profile Picture + Stats + User Info)
+                  ProfileHeader(
+                      user = currentUser,
+                      friendsCount = friendsCount,
+                      eventsCount = eventsCount,
+                      onFriendsClick = {
+                        // TODO: Navigate to friends list screen
+                        Toast.makeText(context, "Friends list coming soon", Toast.LENGTH_SHORT)
+                            .show()
+                      },
+                      onEventsClick = {
+                        // TODO: Navigate to event history screen
+                        Toast.makeText(context, "Event history coming soon", Toast.LENGTH_SHORT)
+                            .show()
+                      })
+
+                  // Divider
+                  Divider(
+                      modifier = Modifier.padding(horizontal = 16.dp),
+                      color = MaterialTheme.colorScheme.outlineVariant)
+
+                  Spacer(modifier = Modifier.height(16.dp))
+
+                  // Pinned Events Section
+                  PinnedEventsSection(
+                      pinnedEvents = pinnedEvents,
+                      onEventClick = { event ->
+                        // TODO: Navigate to event details screen
+                        Toast.makeText(
                                 context,
                                 "Event details coming soon: ${event.title}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        onViewAllClick = {
-                            // TODO: Navigate to all pinned events screen
-                            Toast.makeText(
-                                context,
-                                "View all events coming soon",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
+                                Toast.LENGTH_SHORT)
+                            .show()
+                      },
+                      onViewAllClick = {
+                        // TODO: Navigate to all pinned events screen
+                        Toast.makeText(context, "View all events coming soon", Toast.LENGTH_SHORT)
+                            .show()
+                      })
+
+                  Spacer(modifier = Modifier.height(24.dp))
                 }
-            }
+          }
         }
-    }
+      }
 }
 
 private fun ProfileViewModel.loadPinnedEvents() {
-    TODO("Not yet implemented")
+  TODO("Not yet implemented")
 }
