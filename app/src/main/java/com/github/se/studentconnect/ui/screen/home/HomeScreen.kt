@@ -192,10 +192,7 @@ fun HomeScreen(
       modifier = Modifier.testTag("calendar_modal"),
       sheetState = sheetState,
       sheetContent = {
-        EventCalendar(
-            events = uiState.events,
-            selectedDate = uiState.selectedDate,
-            onDateSelected = onDateSelected)
+        EventCalendar(selectedDate = uiState.selectedDate, onDateSelected = onDateSelected)
       }) {
         Scaffold(
             modifier = Modifier.fillMaxSize().testTag("HomePage"),

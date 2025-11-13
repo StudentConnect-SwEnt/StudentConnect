@@ -39,7 +39,7 @@ class EventCalendarTest {
   @Test
   fun eventCalendar_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme { EventCalendar(events = mockEvents, selectedDate = Date(), onDateSelected = {}) }
+      AppTheme { EventCalendar(selectedDate = Date(), onDateSelected = {}) }
     }
 
     // Verify calendar container is displayed
@@ -55,7 +55,7 @@ class EventCalendarTest {
   @Test
   fun eventCalendar_withEmptyEvents_isDisplayed() {
     composeTestRule.setContent {
-      AppTheme { EventCalendar(events = emptyList(), selectedDate = null, onDateSelected = {}) }
+      AppTheme { EventCalendar(selectedDate = null, onDateSelected = {}) }
     }
 
     // Verify calendar still displays with empty events
@@ -69,9 +69,7 @@ class EventCalendarTest {
     val selectedDate = Date()
 
     composeTestRule.setContent {
-      AppTheme {
-        EventCalendar(events = mockEvents, selectedDate = selectedDate, onDateSelected = {})
-      }
+      AppTheme { EventCalendar(selectedDate = selectedDate, onDateSelected = {}) }
     }
 
     // Verify calendar displays with selected date
