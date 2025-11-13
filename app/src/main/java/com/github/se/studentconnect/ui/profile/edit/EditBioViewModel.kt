@@ -48,6 +48,9 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
   /**
    * Updates the bio text and character count.
    *
+   * If the new text exceeds the maximum length, a validation error is shown and the text is not
+   * updated.
+   *
    * @param newText The new bio text
    */
   fun updateBioText(newText: String) {
@@ -55,6 +58,8 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
       _bioText.value = newText
       _characterCount.value = newText.length
       _validationError.value = null
+    } else {
+      _validationError.value = ProfileConstants.ERROR_BIO_TOO_LONG
     }
   }
 

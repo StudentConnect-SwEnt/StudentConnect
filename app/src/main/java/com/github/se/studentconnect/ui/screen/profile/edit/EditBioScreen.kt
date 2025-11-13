@@ -17,6 +17,12 @@ import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditBioViewModel
 import kotlinx.coroutines.delay
 
+/** Delay in milliseconds before navigating back after successful save */
+private const val NAVIGATION_DELAY_MS = 500L
+
+/** Standard button height following Material Design guidelines */
+private val BUTTON_HEIGHT = 56.dp
+
 /**
  * Screen for editing user bio. Provides a multi-line text field with character limit and
  * validation.
@@ -48,7 +54,7 @@ fun EditBioScreen(
         snackbarHostState.showSnackbar(state.message)
         viewModel.resetState()
         // Navigate back after successful save
-        delay(500)
+        delay(NAVIGATION_DELAY_MS)
         onNavigateBack()
       }
       is BaseEditViewModel.UiState.Error -> {
@@ -110,7 +116,7 @@ fun EditBioScreen(
               // Save Button
               Button(
                   onClick = { viewModel.saveBio() },
-                  modifier = Modifier.fillMaxWidth().height(56.dp),
+                  modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT),
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&
                           bioText.trim().isNotEmpty() &&

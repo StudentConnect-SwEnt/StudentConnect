@@ -59,18 +59,8 @@ fun BioTextField(
     val textFieldColors =
         colors
             ?: when (style) {
-              BioTextFieldStyle.Outlined ->
-                  OutlinedTextFieldDefaults.colors(
-                      focusedBorderColor = MaterialTheme.colorScheme.primary,
-                      unfocusedBorderColor = MaterialTheme.colorScheme.outline)
-              BioTextFieldStyle.Bordered ->
-                  OutlinedTextFieldDefaults.colors(
-                      focusedBorderColor = MaterialTheme.colorScheme.primary,
-                      unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                      cursorColor = MaterialTheme.colorScheme.primary,
-                      focusedContainerColor = Color.Transparent,
-                      unfocusedContainerColor = Color.Transparent,
-                      disabledContainerColor = Color.Transparent)
+              BioTextFieldStyle.Outlined -> getOutlinedTextFieldColors()
+              BioTextFieldStyle.Bordered -> getBorderedTextFieldColors()
             }
 
     val textFieldModifier =
@@ -134,6 +124,36 @@ fun BioTextField(
       }
     }
   }
+}
+
+/**
+ * Returns the default colors for the outlined text field style.
+ *
+ * This style uses standard Material3 colors with a primary border when focused and outline color
+ * when unfocused.
+ */
+@Composable
+private fun getOutlinedTextFieldColors(): TextFieldColors {
+  return OutlinedTextFieldDefaults.colors(
+      focusedBorderColor = MaterialTheme.colorScheme.primary,
+      unfocusedBorderColor = MaterialTheme.colorScheme.outline)
+}
+
+/**
+ * Returns the default colors for the bordered text field style.
+ *
+ * This style uses a transparent container with a primary-colored border and cursor, designed for
+ * use with an additional border modifier in the signup flow.
+ */
+@Composable
+private fun getBorderedTextFieldColors(): TextFieldColors {
+  return OutlinedTextFieldDefaults.colors(
+      focusedBorderColor = MaterialTheme.colorScheme.primary,
+      unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+      cursorColor = MaterialTheme.colorScheme.primary,
+      focusedContainerColor = Color.Transparent,
+      unfocusedContainerColor = Color.Transparent,
+      disabledContainerColor = Color.Transparent)
 }
 
 /** Style variants for the BioTextField component. */
