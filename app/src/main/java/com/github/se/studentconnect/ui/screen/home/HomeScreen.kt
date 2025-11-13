@@ -176,7 +176,6 @@ fun HomeScreen(
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   // var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
-  val notificationUiState by notificationViewModel.uiState.collectAsState()
   var selectedStory by remember { mutableStateOf<Event?>(null) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
