@@ -245,9 +245,7 @@ class HomeScreenScrollAndTopBarTest {
                   events = listOf(testEvent1, testEvent2),
                   subscribedEventsStories = emptyMap(),
                   scrollToDate = Date()),
-          onClearScrollTarget = {},
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+          onClearScrollTarget = {})
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -265,9 +263,7 @@ class HomeScreenScrollAndTopBarTest {
                   isLoading = false,
                   events = listOf(testEvent1, testEvent2),
                   subscribedEventsStories = emptyMap(),
-                  selectedDate = Date()),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+                  selectedDate = Date()))
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -285,9 +281,7 @@ class HomeScreenScrollAndTopBarTest {
                   isLoading = false,
                   events = listOf(testEvent1, testEvent2),
                   subscribedEventsStories = emptyMap(),
-                  isCalendarVisible = true),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+                  isCalendarVisible = true))
     }
 
     composeTestRule.onNodeWithTag("calendar_modal").assertIsDisplayed()
@@ -306,9 +300,7 @@ class HomeScreenScrollAndTopBarTest {
                   events = emptyList(),
                   subscribedEventsStories = emptyMap(),
                   scrollToDate = Date()),
-          onClearScrollTarget = {},
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+          onClearScrollTarget = {})
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -326,9 +318,7 @@ class HomeScreenScrollAndTopBarTest {
                   isLoading = false,
                   events = listOf(testEvent1, testEvent2),
                   subscribedEventsStories = emptyMap()),
-          favoriteEventIds = setOf("event-1"),
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+          favoriteEventIds = setOf("event-1"))
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
@@ -352,9 +342,7 @@ class HomeScreenScrollAndTopBarTest {
           onCalendarClick = {},
           onApplyFilters = {},
           onFavoriteToggle = {},
-          onClearScrollTarget = {},
-          viewModel = createMockHomePageViewModel(),
-          notificationViewModel = createMockNotificationViewModel())
+          onClearScrollTarget = {})
     }
 
     composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()

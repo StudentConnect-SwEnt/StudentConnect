@@ -196,10 +196,9 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         }
 
         if (event is Event.Private) {
-          val ownerId = doc.getString("ownerId")
-
-          // Owner can always see their own events
-          if (ownerId == currentUserId) {
+          // Owner can always see their own events; use the parsed event.ownerId to avoid an extra
+          // read
+          if (event.ownerId == currentUserId) {
             Log.d(
                 "EventRepositoryFirestore",
                 "Successfully parsed private event (owner): ${event.uid} - ${event.title}")

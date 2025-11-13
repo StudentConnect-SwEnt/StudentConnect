@@ -55,8 +55,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,6 +75,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -94,10 +93,11 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTag
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
+import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.github.se.studentconnect.viewmodel.NotificationUiState
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -111,8 +111,6 @@ private object HomeScreenConstants {
   const val STORIES_ROW_BOTTOM_PADDING_DP = 12
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
-  const val SEARCH_BAR_CORNER_RADIUS_DP = 24
-  const val SEARCH_BAR_END_PADDING_DP = 8
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
 }
@@ -143,7 +141,6 @@ fun HomeScreen(
       onCameraActiveChange = onCameraActiveChange,
       onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
       uiState = uiState,
-      viewModel = viewModel,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,
       onDateSelected = { date -> viewModel.onDateSelected(date) },
@@ -167,8 +164,7 @@ fun HomeScreen(
     onCameraActiveChange: (Boolean) -> Unit = {},
     onClickStory: (Event, Int) -> Unit = { _, _ -> },
     uiState: HomePageUiState = HomePageUiState(),
-    notificationViewModel: NotificationViewModel = viewModel(),
-    viewModel: HomePageViewModel = viewModel(),
+    notificationViewModel: NotificationViewModel? = null,
     favoriteEventIds: Set<String> = emptySet(),
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
@@ -183,6 +179,8 @@ fun HomeScreen(
   val notificationUiState by notificationViewModel.uiState.collectAsState()
   var selectedStory by remember { mutableStateOf<Event?>(null) }
   var showStoryViewer by remember { mutableStateOf(false) }
+  val notificationUiState =
+      notificationViewModel?.uiState?.collectAsState()?.value ?: NotificationUiState()
   val sheetState =
       rememberModalBottomSheetState(
           initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
@@ -192,8 +190,6 @@ fun HomeScreen(
           pageCount = { HomeScreenConstants.PAGER_HOME_PAGE + 1 })
   val coroutineScope = rememberCoroutineScope()
   val listState = rememberLazyListState()
-
-  LaunchedEffect(Unit) { viewModel.refresh() }
 
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
@@ -231,8 +227,10 @@ fun HomeScreen(
                         NotificationCallbacks(
                             onNotificationClick = { showNotifications = !showNotifications },
                             onDismiss = { showNotifications = false },
-                            onNotificationRead = { notificationViewModel.markAsRead(it) },
-                            onNotificationDelete = { notificationViewModel.deleteNotification(it) },
+                            onNotificationRead = { notificationViewModel?.markAsRead(it) },
+                            onNotificationDelete = {
+                              notificationViewModel?.deleteNotification(it)
+                            },
                             onFriendRequestAccept = { notificationId, fromUserId ->
                               coroutineScope.launch {
                                 try {
@@ -240,7 +238,7 @@ fun HomeScreen(
                                   if (userId != null) {
                                     FriendsRepositoryProvider.repository.acceptFriendRequest(
                                         userId, fromUserId)
-                                    notificationViewModel.deleteNotification(notificationId)
+                                    notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
                                   // Handle error silently or show a message
@@ -254,7 +252,7 @@ fun HomeScreen(
                                   if (userId != null) {
                                     FriendsRepositoryProvider.repository.rejectFriendRequest(
                                         userId, fromUserId)
-                                    notificationViewModel.deleteNotification(notificationId)
+                                    notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
                                   // Handle error silently or show a message
@@ -387,27 +385,11 @@ fun HomeTopBar(
 ) {
   TopAppBar(
       title = {
-        TextField(
-            value = "",
-            onValueChange = {},
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(end = HomeScreenConstants.SEARCH_BAR_END_PADDING_DP.dp),
-            placeholder = { Text("Search for events...") },
-            leadingIcon = {
-              Icon(
-                  painter = painterResource(id = R.drawable.ic_search),
-                  contentDescription = "Search Icon",
-              )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(HomeScreenConstants.SEARCH_BAR_CORNER_RADIUS_DP.dp),
-            colors =
-                TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
+        HomeSearchBar(
+            modifier = Modifier.clickable(onClick = { navController.navigate(Route.SEARCH) }),
+            query = "",
+            onQueryChange = {},
+            enabled = false, // only a dummy search bar to navigate to the search screen
         )
       },
       actions = {
@@ -416,27 +398,6 @@ fun HomeTopBar(
             notificationCallbacks = notificationCallbacks,
             navController = navController)
       })
-}
-
-@Composable
-private fun SearchTextField() {
-  TextField(
-      value = "",
-      onValueChange = {},
-      modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-      placeholder = { Text("Search for events...") },
-      leadingIcon = {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_search),
-            contentDescription = "Search Icon")
-      },
-      singleLine = true,
-      shape = RoundedCornerShape(24.dp),
-      colors =
-          TextFieldDefaults.colors(
-              focusedIndicatorColor = Color.Transparent,
-              unfocusedIndicatorColor = Color.Transparent,
-              disabledIndicatorColor = Color.Transparent))
 }
 
 @Composable
@@ -575,12 +536,16 @@ private fun NotificationContent(
     onDelete: () -> Unit
 ) {
   Row(
-      modifier = Modifier.fillMaxWidth().clickable { onClick() },
+      modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
-        NotificationIcon(notification = notification)
-        Spacer(modifier = Modifier.width(12.dp))
-        NotificationMessage(notification = notification, modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.weight(1f).clickable(role = Role.Button) { onClick() },
+            verticalAlignment = Alignment.CenterVertically) {
+              NotificationIcon(notification = notification)
+              Spacer(modifier = Modifier.width(12.dp))
+              NotificationMessage(notification = notification, modifier = Modifier.weight(1f))
+            }
         DeleteButton(notificationId = notification.id, onDelete = onDelete)
       }
 }
@@ -617,7 +582,8 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = fontWeight,
         maxLines = 2,
-        overflow = TextOverflow.Ellipsis)
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.testTag("NotificationMessage_${notification.id}"))
 
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -726,30 +692,30 @@ fun StoryItem(
 ) {
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
-  Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      modifier =
-          Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")
-              .then(if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier)) {
-        Image(
-            painter = painterResource(avatarRes),
-            contentDescription = contentDescription,
-            modifier =
-                Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
-                    .clip(CircleShape)
-                    .border(
-                        width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
-                        color = borderColor,
-                        shape = CircleShape)
-                    .clickable(onClick = onClick))
-        Text(
-            text = name,
-            modifier =
-                Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
-                    .testTag("story_text_$name"),
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1)
-      }
+  Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
+          Image(
+              painter = painterResource(avatarRes),
+              contentDescription = contentDescription,
+              modifier =
+                  Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
+                      .clip(CircleShape)
+                      .border(
+                          width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
+                          color = borderColor,
+                          shape = CircleShape)
+                      .clickable(onClick = onClick))
+          Text(
+              text = name,
+              modifier =
+                  Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
+                      .testTag("story_text_$name"),
+              style = MaterialTheme.typography.bodySmall,
+              maxLines = 1)
+        }
+  }
 }
 
 @Composable
@@ -899,7 +865,7 @@ private suspend fun scrollToDate(
     val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
-    val targetDateHeader = formatDateHeader(Timestamp(targetDate))
+    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
     // Calculate the index to scroll to
     var currentIndex = 0

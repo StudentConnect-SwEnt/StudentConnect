@@ -222,7 +222,6 @@ class HomeScreenQRScannerTest {
                   isLoading = false,
                   events = listOf(testEvent1),
                   subscribedEventsStories = emptyMap()),
-          viewModel = createMockHomePageViewModel(),
           notificationViewModel = createMockNotificationViewModel())
     }
 
@@ -240,7 +239,6 @@ class HomeScreenQRScannerTest {
           uiState =
               HomePageUiState(
                   isLoading = true, events = emptyList(), subscribedEventsStories = emptyMap()),
-          viewModel = createMockHomePageViewModel(),
           notificationViewModel = createMockNotificationViewModel())
     }
 
@@ -257,7 +255,6 @@ class HomeScreenQRScannerTest {
           uiState =
               HomePageUiState(
                   isLoading = false, events = emptyList(), subscribedEventsStories = emptyMap()),
-          viewModel = createMockHomePageViewModel(),
           notificationViewModel = createMockNotificationViewModel())
     }
 
@@ -276,7 +273,6 @@ class HomeScreenQRScannerTest {
                   isLoading = false,
                   events = listOf(testEvent1),
                   subscribedEventsStories = emptyMap()),
-          viewModel = createMockHomePageViewModel(),
           notificationViewModel = createMockNotificationViewModel())
     }
 
