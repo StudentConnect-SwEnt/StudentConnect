@@ -98,7 +98,7 @@ class EditActivitiesScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithText("Search activities...").assertExists()
+    composeTestRule.onNodeWithText("Search activities…").assertExists()
   }
 
   @Test
@@ -288,7 +288,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Type in search box
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("foot")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("foot")
 
     composeTestRule.waitForIdle()
 
@@ -313,7 +313,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Type in uppercase
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("TENNIS")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("TENNIS")
 
     composeTestRule.waitForIdle()
 
@@ -363,7 +363,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Search for Tennis
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("tennis")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("tennis")
     composeTestRule.waitForIdle()
 
     // Select it
@@ -489,7 +489,7 @@ class EditActivitiesScreenTest {
 
     // Activities should be alphabetically sorted
     // Verify by searching for activities that should exist if sorted
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("tennis")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("tennis")
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Tennis").assertExists()
   }
@@ -584,7 +584,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Search for non-existent activity
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("xyz123")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("xyz123")
 
     composeTestRule.waitForIdle()
 

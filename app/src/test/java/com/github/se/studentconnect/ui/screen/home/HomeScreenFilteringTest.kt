@@ -331,10 +331,10 @@ class HomeScreenFilteringTest {
     }
 
     composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithText("Search for events...").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule.onAllNodesWithText("Search for events…").fetchSemanticsNodes().isNotEmpty()
     }
 
-    composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Search for events…").assertIsDisplayed()
   }
 
   @Test

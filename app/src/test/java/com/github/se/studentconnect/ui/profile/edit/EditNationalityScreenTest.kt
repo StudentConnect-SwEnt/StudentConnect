@@ -117,7 +117,7 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Search countries...").assertExists()
+    composeTestRule.onNodeWithText("Search countries…").assertExists()
   }
 
   @Test
