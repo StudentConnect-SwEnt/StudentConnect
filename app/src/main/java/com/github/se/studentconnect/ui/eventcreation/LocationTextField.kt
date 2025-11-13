@@ -74,11 +74,16 @@ class LocationTextFieldViewModel(
   }
 
   fun updateLocationSuggestions(locationString: String) {
+    if (locationString.isBlank()) {
+      _uiState.value =
+          uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
+    }
     queryFlow.value = locationString
+  }
 
-    if (locationString.isBlank())
-        _uiState.value =
-            uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
+  fun clearSuggestions() {
+    _uiState.value =
+        uiState.value.copy(locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
   }
 }
 
@@ -91,16 +96,14 @@ fun LocationTextField(
     initialValue: String = "",
     onLocationChange: (Location?) -> Unit,
     locationTextFieldViewModel: LocationTextFieldViewModel = viewModel(),
-    required: Boolean = false,
 ) {
   val locationTextFieldUiState by locationTextFieldViewModel.uiState.collectAsState()
   val locationSuggestions = locationTextFieldUiState.locationSuggestions
   val isLoadingLocationSuggestions = locationTextFieldUiState.isLoadingLocationSuggestions
 
   var locationHasBeenInteractedWith by remember { mutableStateOf(false) }
-  var locationWasSelected by remember { mutableStateOf(false) }
   val locationDropdownMenuIsExpanded =
-      locationHasBeenInteractedWith && !locationWasSelected && locationSuggestions.isNotEmpty()
+      locationHasBeenInteractedWith && locationSuggestions.isNotEmpty()
 
   var locationFieldValue by remember {
     mutableStateOf(TextFieldValue(initialValue, TextRange(initialValue.length)))
@@ -134,10 +137,7 @@ fun LocationTextField(
   ) {
     ExposedDropdownMenu(
         expanded = locationDropdownMenuIsExpanded,
-        onDismissRequest = {
-          locationHasBeenInteractedWith = false // reset interaction
-          locationWasSelected = false
-        },
+        onDismissRequest = { locationHasBeenInteractedWith = false }, // reset interaction
     ) {
       for (locationSuggestion in locationSuggestions) {
         DropdownMenuItem(
@@ -147,12 +147,11 @@ fun LocationTextField(
                       ?: "(${locationSuggestion.latitude}, ${locationSuggestion.longitude})")
             },
             onClick = {
+              val selectedName = locationSuggestion.name ?: ""
               locationFieldValue =
-                  TextFieldValue(
-                      text = locationSuggestion.name ?: "",
-                      selection = TextRange(locationSuggestion.name?.length ?: 0))
+                  TextFieldValue(text = selectedName, selection = TextRange(selectedName.length))
               locationHasBeenInteractedWith = false // reset interaction
-              locationWasSelected = true // mark as selected to hide suggestions
+              locationTextFieldViewModel.clearSuggestions() // clear stale suggestions
               onLocationChange(locationSuggestion)
             })
       }
@@ -164,14 +163,12 @@ fun LocationTextField(
         onValueChange = {
           locationFieldValue = it
           locationHasBeenInteractedWith = true
-          locationWasSelected = false // reset when user types again
         },
         label = label,
         placeholder = placeholder,
         errorText =
             if (!locationDropdownMenuIsExpanded && locationSuggestions.size > 1)
                 "The location is invalid"
-            else null,
-        required = required)
+            else null)
   }
 }

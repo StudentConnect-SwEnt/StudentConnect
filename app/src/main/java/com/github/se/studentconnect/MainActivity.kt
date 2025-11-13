@@ -55,6 +55,7 @@ import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
+import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -266,6 +267,7 @@ private fun MainAppContent(
                 shouldOpenQRScanner = shouldOpenQRScanner,
                 onQRScannerClosed = { onQRScannerStateChange(false) })
           }
+          composable(Route.SEARCH) { SearchScreen(navController = navController) }
           composable(Route.MAP) { MapScreen() }
           composable(
               Route.MAP_WITH_LOCATION,
