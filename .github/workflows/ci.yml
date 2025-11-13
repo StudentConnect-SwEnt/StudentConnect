@@ -152,6 +152,7 @@ jobs:
         run: npm ci
 
       - name: Upload CI lockfile
+        if: matrix.shard_index == 0 # only upload once
         uses: actions/upload-artifact@v4
         with:
           name: ci-node-lockfile
