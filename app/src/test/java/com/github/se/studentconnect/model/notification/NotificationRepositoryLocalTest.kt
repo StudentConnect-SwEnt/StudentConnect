@@ -135,6 +135,26 @@ class NotificationRepositoryLocalTest {
   }
 
   @Test
+  fun markAsRead_nonExistentId_callsOnFailure() {
+    var successCalled = false
+    var failureCalled = false
+    var error: Exception? = null
+
+    repository.markAsRead(
+        notificationId = "nonexistent",
+        onSuccess = { successCalled = true },
+        onFailure = {
+          failureCalled = true
+          error = it
+        })
+
+    assertFalse(successCalled)
+    assertTrue(failureCalled)
+    assertNotNull(error)
+    assertTrue(error!!.message!!.contains("not found"))
+  }
+
+  @Test
   fun markAllAsRead_callsOnSuccess() {
     repository.createNotification(friendRequestNotification, {}, {})
     repository.createNotification(eventStartingNotification, {}, {})
@@ -172,14 +192,24 @@ class NotificationRepositoryLocalTest {
   }
 
   @Test
-  fun deleteNotification_nonExistentId_doesNotCrash() {
+  fun deleteNotification_nonExistentId_callsOnFailure() {
     repository.createNotification(friendRequestNotification, {}, {})
 
     var successCalled = false
+    var failureCalled = false
+    var error: Exception? = null
     repository.deleteNotification(
-        notificationId = "nonexistent", onSuccess = { successCalled = true }, onFailure = {})
+        notificationId = "nonexistent",
+        onSuccess = { successCalled = true },
+        onFailure = {
+          failureCalled = true
+          error = it
+        })
 
-    assertTrue(successCalled)
+    assertFalse(successCalled)
+    assertTrue(failureCalled)
+    assertNotNull(error)
+    assertTrue(error!!.message!!.contains("not found"))
 
     // Original notification should still exist
     var notifications: List<Notification>? = null
