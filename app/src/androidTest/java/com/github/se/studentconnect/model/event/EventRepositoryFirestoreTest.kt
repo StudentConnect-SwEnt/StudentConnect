@@ -48,7 +48,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
 
       for ((email, password) in users) {
         try {
-          val result = auth.createUserWithEmailAndPassword("$email@test.com", password).await()
+          val result = auth.createUserWithEmailAndPassword("${email}@test.com", password).await()
           // Stocker le vrai UID Firebase
           when (email) {
             "owner" -> ownerId = result.user?.uid ?: ""
@@ -56,9 +56,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
             "invited" -> invitedId = result.user?.uid ?: ""
             "other" -> otherId = result.user?.uid ?: ""
           }
-        } catch (_: FirebaseAuthUserCollisionException) {} catch (
-            e: FirebaseAuthUserCollisionException) {
-          val result = auth.signInWithEmailAndPassword("$email@test.com", password).await()
+        } catch (_: FirebaseAuthUserCollisionException) {
+          // If the account already exists, sign in and get the UID
+          val result = auth.signInWithEmailAndPassword("${email}@test.com", password).await()
           when (email) {
             "owner" -> ownerId = result.user?.uid ?: ""
             "participant" -> participantId = result.user?.uid ?: ""
@@ -67,6 +67,39 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           }
         }
       }
+
+      // Fallback: If any UID is still empty, try explicit sign-in (CI race condition workaround)
+      if (ownerId.isBlank()) {
+        ownerId =
+            auth.signInWithEmailAndPassword("owner@test.com", "123456").await().user?.uid ?: ""
+      }
+      if (participantId.isBlank()) {
+        participantId =
+            auth.signInWithEmailAndPassword("participant@test.com", "123456").await().user?.uid
+                ?: ""
+      }
+      if (invitedId.isBlank()) {
+        invitedId =
+            auth.signInWithEmailAndPassword("invited@test.com", "123456").await().user?.uid ?: ""
+      }
+      if (otherId.isBlank()) {
+        otherId =
+            auth.signInWithEmailAndPassword("other@test.com", "123456").await().user?.uid ?: ""
+      }
+
+      // Validate that all UIDs were successfully obtained
+      val missing = mutableListOf<String>()
+      if (ownerId.isBlank()) missing.add("owner")
+      if (participantId.isBlank()) missing.add("participant")
+      if (invitedId.isBlank()) missing.add("invited")
+      if (otherId.isBlank()) missing.add("other")
+
+      if (missing.isNotEmpty()) {
+        throw IllegalStateException(
+            "Failed to create test users in setUp. Missing UIDs for: ${missing.joinToString(", ")}. " +
+                "This causes 'Invalid document reference' errors with paths like 'events/{id}/invitations' (3 segments).")
+      }
+
       auth.signOut()
     }
   }
