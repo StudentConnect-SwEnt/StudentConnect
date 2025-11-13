@@ -1,6 +1,7 @@
 package com.github.se.studentconnect
 
 import android.content.Intent
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -9,6 +10,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.resources.C
@@ -36,6 +38,10 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
+
   private lateinit var scenario: ActivityScenario<MainActivity>
 
   override fun createInitializedRepository(): EventRepository {
@@ -49,7 +55,8 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     // Create a real test account with email and password BEFORE the activity starts
     // But DON'T create the user profile - we want to test the onboarding flow
     runTest {
-      val testEmail = "e2etest@example.com"
+      // Use a unique email per test run to avoid colliding with an existing account/profile
+      val testEmail = "e2etest${System.currentTimeMillis()}@example.com"
       val testPassword = "TestPassword123"
 
       // Sign in with email/password (or create if doesn't exist)
@@ -108,6 +115,8 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     }
 
     composeTestRule.waitForIdle()
+
+    val uniqueUsername = "johndoe${System.currentTimeMillis()}"
 
     // Fill first name
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
@@ -169,7 +178,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     composeTestRule
         .onNodeWithTag(BasicInfoScreenTestTags.USERNAME_INPUT)
-        .performTextInput("johndoe123")
+        .performTextInput(uniqueUsername)
 
     composeTestRule.waitForIdle()
 
@@ -187,7 +196,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
                 .onNodeWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
                 .fetchSemanticsNode()
                 .config
-                .getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Disabled) == null
+                .getOrNull(SemanticsProperties.Disabled) == null
       } catch (_: Exception) {
         false
       }
@@ -424,89 +433,44 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
           .isNotEmpty()
     }
 
-    composeTestRule.onNode(hasText("Fake EPFL"), useUnmergedTree = true).performClick()
+    // Select the suggestion
+    composeTestRule.onAllNodes(hasText("Fake EPFL"), useUnmergedTree = true).onLast().performClick()
 
+    // Hide keyboard to verify visibility of next elements
+    Espresso.closeSoftKeyboard()
     composeTestRule.waitForIdle()
 
-    // Fill in start date
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule
-          .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
+    // --- FILL START DATE (TEXT INPUT) ---
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
+        .performScrollTo()
+        .performClick()
+        .performTextClearance()
 
     composeTestRule
-        .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-        .onFirst()
+        .onNodeWithTag(CreatePublicEventScreenTestTags.START_DATE_INPUT)
+        .performTextInput("01/01/2026") // Date future
+
+    composeTestRule.waitForIdle()
+
+    // --- FILL END DATE (TEXT INPUT) ---
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
+        .performScrollTo()
         .performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Fill in start time
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule
-          .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
+        .performTextClearance()
 
     composeTestRule
-        .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-        .onFirst()
-        .performClick()
+        .onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT)
+        .performTextInput("01/01/2026")
 
     composeTestRule.waitForIdle()
 
-    // Fill in end date
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_DATE_INPUT).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule
-          .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-        .onFirst()
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Fill in end time
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      composeTestRule
-          .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onAllNodes(hasText("OK") and hasClickAction(), useUnmergedTree = true)
-        .onFirst()
-        .performClick()
-
+    // Ensure keyboard is closed before trying to press Save (sometimes the button can be occluded)
+    Espresso.closeSoftKeyboard()
     composeTestRule.waitForIdle()
 
     // Wait for save button to be enabled
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).performClick()
-
     composeTestRule.waitUntil(timeoutMillis = 15_000) {
       try {
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON).assertIsEnabled()
@@ -527,7 +491,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
       composeTestRule.onAllNodesWithTag("HomePage").fetchSemanticsNodes().isNotEmpty()
     }
 
-    // Verify the event is visible on the home page
+    // Verify the event title appears somewhere on the home page
     composeTestRule.waitUntil(timeoutMillis = 30_000) {
       composeTestRule
           .onAllNodesWithText("E2E Test Event", substring = true)
@@ -535,17 +499,66 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
           .isNotEmpty()
     }
 
-    composeTestRule
-        .onNodeWithText("E2E Test Event", substring = true, useUnmergedTree = true)
-        .assertExists()
+    // Matcher for nodes whose testTag starts with the event card title prefix
+    val titleTagStartsWith =
+        SemanticsMatcher("testTag starts with event_card_title_") { node ->
+          node.config.getOrNull(SemanticsProperties.TestTag)?.startsWith("event_card_title_") ==
+              true
+        }
+
+    // Ensure we target only the event card title (not story text)
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      try {
+        composeTestRule
+            .onAllNodes(
+                hasText("E2E Test Event", substring = true) and titleTagStartsWith,
+                useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+      } catch (_: Exception) {
+        false
+      }
+    }
   }
 
   private fun openEventAndEditTitle() {
-    // Click on the event to open it
-    composeTestRule
-        .onAllNodesWithText("E2E Test Event", substring = true, useUnmergedTree = true)
-        .onFirst()
-        .performClick()
+    // Click on the event to open it. Prefer the event card title node identified by a testTag
+    // that starts with "event_card_title_" to avoid clicking other views that also contain the
+    // same text (stories, etc.). Fall back to clicking any text node if necessary.
+    val titleTagStartsWith =
+        SemanticsMatcher("testTag starts with event_card_title_") { node ->
+          node.config.getOrNull(SemanticsProperties.TestTag)?.startsWith("event_card_title_") ==
+              true
+        }
+
+    try {
+      // Wait until a matching event card title is present
+      composeTestRule.waitUntil(timeoutMillis = 10_000) {
+        try {
+          composeTestRule
+              .onAllNodes(
+                  hasText("E2E Test Event", substring = true) and titleTagStartsWith,
+                  useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        } catch (_: Exception) {
+          false
+        }
+      }
+
+      composeTestRule
+          .onAllNodes(
+              hasText("E2E Test Event", substring = true) and titleTagStartsWith,
+              useUnmergedTree = true)
+          .onFirst()
+          .performClick()
+    } catch (_: Exception) {
+      // Fallback: click the first node that contains the event title text
+      composeTestRule
+          .onAllNodesWithText("E2E Test Event", substring = true, useUnmergedTree = true)
+          .onFirst()
+          .performClick()
+    }
 
     composeTestRule.waitForIdle()
 
@@ -615,7 +628,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
   }
 
   private fun verifyEventInActivities() {
-    // Navigate to Activities tab
+    // 1. Navigate to Activities tab
     composeTestRule.waitUntil(timeoutMillis = 15_000) {
       composeTestRule
           .onAllNodesWithTag(NavigationTestTags.ACTIVITIES_TAB)
@@ -627,30 +640,70 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     composeTestRule.waitForIdle()
 
-    // Wait for activities screen to load
+    // 2. Wait for activities carousel to appear
     composeTestRule.waitUntil(timeoutMillis = 30_000) {
+      composeTestRule
+          .onAllNodesWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // 3. Verify the event is present in the carousel
+    val eventTitle = "E2E Test Event Updated"
+
+    composeTestRule.waitUntil(timeoutMillis = 30_000) {
+      composeTestRule
+          .onAllNodesWithText(eventTitle, substring = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // 4. Click on the Event Card
+    // FIX 1: performScrollTo() ensures the item is fully on screen before clicking
+    composeTestRule
+        .onAllNodesWithText(eventTitle, substring = true, useUnmergedTree = true)
+        .onFirst()
+        .performScrollTo()
+        .performClick()
+
+    composeTestRule.waitForIdle()
+
+    // 5. Wait for Event View to open
+    composeTestRule.waitUntil(timeoutMillis = 30_000) {
+      composeTestRule
+          .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // 6. Verify we are on the event details and Edit button appears
+    // FIX 2: Use waitUntil for the button. The button's visibility depends on
+    // async data fetching (checking owner ID), so it appears slightly after the screen.
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule
+          .onAllNodesWithTag(EventViewTestTags.EDIT_EVENT_BUTTON)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.EDIT_EVENT_BUTTON).assertExists()
+
+    // 7. Go back to Activities
+    composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
+
+    composeTestRule.waitForIdle()
+
+    // 8. Verify we are back on Activities
+    composeTestRule.waitUntil(timeoutMillis = 15_000) {
       composeTestRule
           .onAllNodesWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
-
-    // Verify the event is in the upcoming events
-    composeTestRule.waitUntil(timeoutMillis = 30_000) {
-      composeTestRule
-          .onAllNodesWithText("E2E Test Event Updated", substring = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onAllNodesWithText("E2E Test Event Updated", substring = true, useUnmergedTree = true)
-        .onFirst()
-        .assertExists()
   }
 
   private fun editProfile() {
-    // Navigate to Profile tab
+    // 1. Navigate to Profile tab
     composeTestRule.waitUntil(timeoutMillis = 15_000) {
       composeTestRule
           .onAllNodesWithTag(NavigationTestTags.PROFILE_TAB)
@@ -659,10 +712,9 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     }
 
     composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-
     composeTestRule.waitForIdle()
 
-    // Wait for profile to load
+    // 2. Wait for profile to load (checking for Edit Name button)
     composeTestRule.waitUntil(timeoutMillis = 30_000) {
       composeTestRule
           .onAllNodesWithContentDescription("Edit Name")
@@ -670,9 +722,8 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
           .isNotEmpty()
     }
 
-    // Click on edit name button
+    // --- SECTION 1: EDIT NAME ---
     composeTestRule.onNodeWithContentDescription("Edit Name").performClick()
-
     composeTestRule.waitForIdle()
 
     // Wait for edit name screen
@@ -685,7 +736,6 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Edit first name
     composeTestRule.onAllNodesWithText("First Name", substring = true).onFirst().performClick()
-
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -698,18 +748,15 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule
         .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
         .performTextClearance()
-
     composeTestRule.waitForIdle()
 
     composeTestRule
         .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextInput("John")
-
+        .performTextInput("habibi")
     composeTestRule.waitForIdle()
 
     // Edit last name
     composeTestRule.onAllNodesWithText("Last Name", substring = true).onFirst().performClick()
-
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -722,25 +769,30 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule
         .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
         .performTextClearance()
-
     composeTestRule.waitForIdle()
 
     composeTestRule
         .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
         .performTextInput("Doe")
-
     composeTestRule.waitForIdle()
 
-    // Save changes
+    // Save changes (Name)
+    Espresso.closeSoftKeyboard()
+    composeTestRule.waitForIdle()
+    try {
+      composeTestRule.onRoot(useUnmergedTree = true).performClick()
+      composeTestRule.waitForIdle()
+    } catch (_: Exception) {}
+
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
       composeTestRule
-          .onAllNodes(hasText("Save") and hasClickAction(), useUnmergedTree = true)
+          .onAllNodes(hasText("Save", substring = true), useUnmergedTree = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
     composeTestRule
-        .onAllNodes(hasText("Save") and hasClickAction(), useUnmergedTree = true)
+        .onAllNodes(hasText("Save", substring = true), useUnmergedTree = true)
         .onFirst()
         .performClick()
 
@@ -757,83 +809,89 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     // Verify name was updated
     composeTestRule.waitUntil(timeoutMillis = 20_000) {
       composeTestRule
-          .onAllNodesWithText("John Doe", substring = true)
+          .onAllNodesWithText("habibi Doe", substring = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    // Edit country/nationality
+    // --- SECTION 2: EDIT COUNTRY (NATIONALITY) ---
+
+    // 1. Wait for the pencil icon next to "Country".
+    // The label in ProfileSettingsScreen is "Country", so the icon description is "Edit Country".
     composeTestRule.waitUntil(timeoutMillis = 15_000) {
       composeTestRule
-          .onAllNodesWithContentDescription("Edit Nationality")
+          .onAllNodesWithContentDescription("Edit Country")
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithContentDescription("Edit Nationality").performClick()
+    // 2. Click the pencil icon.
+    // ProfileSettingsScreen IS scrollable, so performScrollTo is required here.
+    composeTestRule.onNodeWithContentDescription("Edit Country").performScrollTo().performClick()
 
     composeTestRule.waitForIdle()
 
-    // Wait for edit nationality screen
+    // 3. Wait for EditNationalityScreen ("Where are you from ?")
     composeTestRule.waitUntil(timeoutMillis = 15_000) {
       composeTestRule
-          .onAllNodesWithText("Nationality", substring = true)
+          .onAllNodesWithText("Where are you from", substring = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
-    // Find and edit country input
-    composeTestRule.waitUntil(timeoutMillis = 15_000) {
-      composeTestRule
-          .onAllNodes(
-              hasSetTextAction() and hasText("Country", substring = true), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onAllNodes(
-            hasSetTextAction() and hasText("Country", substring = true), useUnmergedTree = true)
-        .onFirst()
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
-      composeTestRule
-          .onAllNodes(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextClearance()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextInput("Switzerland")
-
-    composeTestRule.waitForIdle()
-
-    // Save changes
+    // 4. Search for Tunisia (using logic from signup test)
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
       composeTestRule
-          .onAllNodes(hasText("Save") and hasClickAction(), useUnmergedTree = true)
+          .onAllNodesWithText("Search countries", substring = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
 
     composeTestRule
-        .onAllNodes(hasText("Save") and hasClickAction(), useUnmergedTree = true)
-        .onFirst()
+        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
         .performClick()
 
     composeTestRule.waitForIdle()
 
-    // Wait to be back on profile screen
+    composeTestRule
+        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
+        .performTextInput("Tunisia")
+
+    composeTestRule.waitForIdle()
+
+    // 5. Close keyboard to ensure list item and Save button are visible
+    Espresso.closeSoftKeyboard()
+    composeTestRule.waitForIdle()
+
+    // 6. Select Tunisia from the list (wait for filtering)
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule
+          .onAllNodesWithText("Tunisia", substring = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Click on the country item (Using onLast() like in your example, assuming it's the list item)
+    composeTestRule.onAllNodesWithText("Tunisia", substring = true).onLast().performClick()
+
+    composeTestRule.waitForIdle()
+
+    // 7. Click "Save Changes"
+    // In EditNationalityScreen.kt, the button text is specifically "Save Changes"
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+      composeTestRule
+          .onAllNodes(hasText("Save Changes", substring = true) and hasClickAction())
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule
+        .onNode(hasText("Save Changes", substring = true) and hasClickAction())
+        .performClick()
+
+    composeTestRule.waitForIdle()
+
+    // 8. Wait to be back on Profile
     composeTestRule.waitUntil(timeoutMillis = 30_000) {
       composeTestRule
           .onAllNodesWithContentDescription("Edit Name")
@@ -841,10 +899,10 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
           .isNotEmpty()
     }
 
-    // Verify country was updated
+    // 9. Verify Country is updated
     composeTestRule.waitUntil(timeoutMillis = 20_000) {
       composeTestRule
-          .onAllNodesWithText("Switzerland", substring = true)
+          .onAllNodesWithText("Tunisia", substring = true)
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
