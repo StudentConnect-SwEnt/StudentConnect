@@ -122,7 +122,6 @@ fun HomeScreen(
     onQRScannerClosed: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
-  val notificationUiState by notificationViewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
