@@ -372,7 +372,11 @@ class HomeScreenCameraModeTest {
             cameraActive = active
             callCount++
           },
-          viewModel = createMockHomePageViewModel(),
+          uiState =
+              HomePageUiState(
+                  isLoading = false,
+                  events = listOf(testEvent1),
+                  subscribedEventsStories = mapOf(testEvent1 to Pair(0, 3))),
           notificationViewModel = createMockNotificationViewModel())
     }
 
@@ -440,7 +444,11 @@ class HomeScreenCameraModeTest {
           navController = rememberNavController(),
           shouldOpenQRScanner = false,
           onCameraActiveChange = { active -> cameraStates.add(active) },
-          viewModel = createMockHomePageViewModel(),
+          uiState =
+              HomePageUiState(
+                  isLoading = false,
+                  events = listOf(testEvent1),
+                  subscribedEventsStories = mapOf(testEvent1 to Pair(0, 3))),
           notificationViewModel = createMockNotificationViewModel())
     }
 

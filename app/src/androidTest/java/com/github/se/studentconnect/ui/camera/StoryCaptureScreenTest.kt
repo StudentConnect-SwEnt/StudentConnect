@@ -5,6 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -118,6 +121,11 @@ class StoryCaptureScreenPermissionTest {
       AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
     }
 
+    // Wait for the camera to check permissions and display the permission message
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithTag("story_permission").fetchSemanticsNodes().isNotEmpty()
+    }
+
     // The permission message should be displayed when camera access is not granted
     composeTestRule.onNodeWithTag("story_permission").assertIsDisplayed()
     composeTestRule
@@ -129,6 +137,11 @@ class StoryCaptureScreenPermissionTest {
   fun storyCaptureScreen_noPermission_backButtonExists() {
     composeTestRule.setContent {
       AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    // Wait for the permission UI to appear
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithContentDescription("Back").fetchSemanticsNodes().isNotEmpty()
     }
 
     // The back button should be displayed
@@ -143,6 +156,11 @@ class StoryCaptureScreenPermissionTest {
       AppTheme { StoryCaptureScreen(onBackClick = { backClicked = true }, isActive = true) }
     }
 
+    // Wait for the permission UI to appear
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithContentDescription("Back").fetchSemanticsNodes().isNotEmpty()
+    }
+
     // Click the back button
     composeTestRule.onNodeWithContentDescription("Back").performClick()
 
@@ -154,6 +172,14 @@ class StoryCaptureScreenPermissionTest {
   fun storyCaptureScreen_noPermission_permissionTextIsVisible() {
     composeTestRule.setContent {
       AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    // Wait for the permission UI to appear
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithText("Camera permission is required to capture photos.")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
     // Verify the specific permission text is visible
