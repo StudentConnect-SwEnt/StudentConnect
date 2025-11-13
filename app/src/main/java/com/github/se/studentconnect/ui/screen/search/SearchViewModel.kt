@@ -39,7 +39,7 @@ class SearchViewModel(
    * Initializes the ViewModel by fetching all events and users from the repositories. This function
    * should be called once when the ViewModel is created.
    */
-  suspend fun init() {
+  private suspend fun init() {
     setAllEvents(getAllEvents())
     setAllUsers(getAllUsers())
     setQuery("")

@@ -47,9 +47,7 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Screen for editing profile picture. Shows current profile picture and options to change it.
@@ -231,7 +229,7 @@ private suspend fun uploadProfilePicture(
     uri: Uri
 ): String? {
   return try {
-    withContext(Dispatchers.IO) { repository.upload(uri, "users/$userId/profile") }
+    repository.upload(uri, "users/$userId/profile")
   } catch (exception: Exception) {
     android.util.Log.e(
         "EditProfilePictureScreen",

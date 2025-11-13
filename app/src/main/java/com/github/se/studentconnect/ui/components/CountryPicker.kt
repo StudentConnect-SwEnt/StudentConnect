@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.components
 
-import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -149,7 +148,6 @@ fun filterCountries(query: String, countries: List<Country>): List<Country> {
  *
  * @return List of countries sorted by name
  */
-@VisibleForTesting
 fun loadCountries(): List<Country> {
   return Locale.getISOCountries()
       .map { iso ->

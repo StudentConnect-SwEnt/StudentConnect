@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.visitorProfile
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
@@ -35,7 +34,6 @@ data class VisitorProfileUiState(
 class VisitorProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
-    private val context: Context? = null
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(VisitorProfileUiState())

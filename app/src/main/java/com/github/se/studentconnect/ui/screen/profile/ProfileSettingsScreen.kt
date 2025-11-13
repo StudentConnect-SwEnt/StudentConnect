@@ -60,6 +60,7 @@ import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -234,7 +235,7 @@ private fun ProfileHeaderSection(
     user: User,
     onEditPicture: (() -> Unit)? = null,
     onEditName: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
@@ -243,13 +244,13 @@ private fun ProfileHeaderSection(
       produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
         value =
             profileId?.let { id ->
-              runCatching { withContext(Dispatchers.IO) { repository.download(id) } }
+              runCatching { repository.download(id) }
                   .onFailure {
                     android.util.Log.e(
                         "ProfileSettingsScreen", "Failed to download profile image: $id", it)
                   }
                   .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it) }
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
       }
 
@@ -313,8 +314,12 @@ private fun ProfileHeaderSection(
       }
 }
 
-private suspend fun loadBitmapFromUri(context: Context, uri: Uri): ImageBitmap? =
-    withContext(Dispatchers.IO) {
+private suspend fun loadBitmapFromUri(
+    context: Context,
+    uri: Uri,
+    dispatcher: CoroutineDispatcher
+): ImageBitmap? =
+    withContext(dispatcher) {
       try {
         context.contentResolver.openInputStream(uri)?.use { stream ->
           BitmapFactory.decodeStream(stream)?.asImageBitmap()
