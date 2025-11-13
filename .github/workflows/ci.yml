@@ -144,17 +144,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '.github/ci/node/package-lock.json'
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+      - name: Install Node dependencies
+        working-directory: .github/ci/node
+        run: npm ci
+
+      - name: Upload CI lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-node-lockfile
+          path: .github/ci/node/package-lock.json
 
       - name: Start Firebase emulators
+        working-directory: .github/ci/node
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             echo "Starting Firebase emulators for instrumentation tests..."
-            firebase emulators:start --only auth,firestore,storage --project demo-project &
-            # wait until emulators are ready
-            npx wait-on tcp:8080 tcp:9099 tcp:9199
+            npm run start-firebase-emulators &
+            npm run wait-for-firebase
             echo "Firebase emulators started"
           else
             echo "Firebase emulators not configured, skipping emulator startup..."
