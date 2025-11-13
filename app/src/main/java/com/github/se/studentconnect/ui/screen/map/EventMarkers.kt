@@ -165,7 +165,7 @@ object EventMarkers {
    * Real adapter implementation that delegates to Mapbox Style. Kept internal to avoid leaking
    * Mapbox types into tests.
    */
-  private class RealStyleAdapter(private val style: Style) : EventMapStyleAdapter {
+  internal class RealStyleAdapter(private val style: Style) : EventMapStyleAdapter {
     override fun styleSourceExists(id: String): Boolean = style.styleSourceExists(id)
 
     override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {

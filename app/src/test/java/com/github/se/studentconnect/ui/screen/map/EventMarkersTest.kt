@@ -3,6 +3,10 @@ package com.github.se.studentconnect.ui.screen.map
 
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
+import io.mockk.*
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -324,5 +328,108 @@ class EventMarkersTest {
     fun updateCircleRadius(radiusKm: Double)
 
     fun clearCircle()
+  }
+
+  // Tests for RealStyleAdapter to improve code coverage
+  @Test
+  fun realStyleAdapter_styleSourceExists_delegatesToStyle() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.styleSourceExists("test-source") } returns true
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val result = adapter.styleSourceExists("test-source")
+
+    assertTrue(result)
+    verify { mockStyle.styleSourceExists("test-source") }
+  }
+
+  @Test
+  fun realStyleAdapter_styleSourceExists_returnsFalseWhenSourceDoesNotExist() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.styleSourceExists("non-existent") } returns false
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val result = adapter.styleSourceExists("non-existent")
+
+    assertFalse(result)
+    verify { mockStyle.styleSourceExists("non-existent") }
+  }
+
+  @Test
+  fun realStyleAdapter_addGeoJsonSourceWithFeatures_addsSourceToStyle() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.addSource(any()) } just Runs
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val features =
+        listOf(
+            Feature.fromGeometry(Point.fromLngLat(1.0, 2.0)).apply {
+              addStringProperty("test", "value")
+            })
+
+    adapter.addGeoJsonSourceWithFeatures("test-source", features)
+
+    verify { mockStyle.addSource(any()) }
+  }
+
+  @Test
+  fun realStyleAdapter_addLayerForSource_addsCircleLayerToStyle() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.addLayer(any()) } just Runs
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+
+    adapter.addLayerForSource("test-layer", "test-source")
+
+    verify { mockStyle.addLayer(any()) }
+  }
+
+  @Test
+  fun realStyleAdapter_updateSourceFeatures_updatesExistingSource() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    val mockGeoJsonSource =
+        mockk<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(relaxed = true)
+
+    every {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "test-source")
+    } returns mockGeoJsonSource
+    every { mockGeoJsonSource.featureCollection(any()) } returns mockGeoJsonSource
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val features =
+        listOf(
+            Feature.fromGeometry(Point.fromLngLat(3.0, 4.0)).apply {
+              addStringProperty("updated", "true")
+            })
+
+    adapter.updateSourceFeatures("test-source", features)
+
+    verify {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "test-source")
+    }
+    verify { mockGeoJsonSource.featureCollection(any()) }
+  }
+
+  @Test
+  fun realStyleAdapter_updateSourceFeatures_handlesNullSource() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+
+    every {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "non-existent")
+    } returns null
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val features = listOf(Feature.fromGeometry(Point.fromLngLat(5.0, 6.0)))
+
+    // Should not throw exception when source is null
+    adapter.updateSourceFeatures("non-existent", features)
+
+    verify {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "non-existent")
+    }
   }
 }
