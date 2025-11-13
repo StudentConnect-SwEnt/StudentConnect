@@ -49,8 +49,10 @@ class NotificationRepositoryLocal : NotificationRepository {
           }
       notifications[index] = updated
       notifyListeners(getNotificationUserId(updated))
+      onSuccess()
+    } else {
+      onFailure(Exception("Notification with id $notificationId not found"))
     }
-    onSuccess()
   }
 
   override fun markAllAsRead(
@@ -78,10 +80,14 @@ class NotificationRepositoryLocal : NotificationRepository {
       onFailure: (Exception) -> Unit
   ) {
     val notification = notifications.find { it.id == notificationId }
-    val userId = notification?.let { getNotificationUserId(it) }
-    notifications.removeIf { it.id == notificationId }
-    onSuccess()
-    userId?.let { notifyListeners(it) }
+    if (notification != null) {
+      val userId = getNotificationUserId(notification)
+      notifications.removeIf { it.id == notificationId }
+      onSuccess()
+      notifyListeners(userId)
+    } else {
+      onFailure(Exception("Notification with id $notificationId not found"))
+    }
   }
 
   override fun deleteAllNotifications(

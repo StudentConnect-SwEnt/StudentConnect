@@ -7,9 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SearchBarDefaults.inputFieldColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,6 +16,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
+
+private val HOME_SEARCH_BAR_BOTTOM_PADDING = 5.dp
 
 /**
  * The search bar on the home screen.
@@ -36,7 +36,7 @@ fun HomeSearchBar(
     enabled: Boolean = true,
 ) {
   SearchBar(
-      modifier = modifier.fillMaxWidth().padding(0.dp, 0.dp, 0.dp, 5.dp),
+      modifier = modifier.fillMaxWidth().padding(bottom = HOME_SEARCH_BAR_BOTTOM_PADDING),
       inputField = {
         SearchBarDefaults.InputField(
             modifier = Modifier.testTag(C.Tag.search_input_field),
@@ -59,10 +59,6 @@ fun HomeSearchBar(
       },
       expanded = false,
       onExpandedChange = {},
-      colors =
-          SearchBarColors(
-              MaterialTheme.colorScheme.surfaceContainer,
-              MaterialTheme.colorScheme.onSurface,
-              inputFieldColors()),
+      colors = SearchBarDefaults.colors(),
   ) {}
 }
