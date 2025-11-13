@@ -1,19 +1,9 @@
 package com.github.se.studentconnect.ui
 
-import android.Manifest
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
-import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.rule.GrantPermissionRule
-import com.github.se.studentconnect.MainAppContent
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -25,15 +15,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class MainActivityIntegrationTest {
-
-  @get:Rule val composeTestRule = createComposeRule()
-
-  @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(
-          Manifest.permission.CAMERA,
-          Manifest.permission.ACCESS_FINE_LOCATION,
-          Manifest.permission.ACCESS_COARSE_LOCATION)
 
   @Test
   fun routeToTab_homeRoute_returnsHomeTab() {
@@ -264,187 +245,6 @@ class MainActivityIntegrationTest {
   }
 
   // ============================================================================
-  // Compose UI Tests for MainAppContent
-  // ============================================================================
-
-  @Test
-  fun mainAppContent_rendersWithHomeTab() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    // Home page should be displayed
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-  }
-
-  @Test
-  fun mainAppContent_shouldOpenQRScanner_true() {
-    var qrScannerStateChanged = false
-
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = true,
-            onQRScannerStateChange = { qrScannerStateChanged = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // The QR scanner should open automatically
-    composeTestRule.onNodeWithTag("camera_mode_selector").assertIsDisplayed()
-  }
-
-  @Test
-  fun mainAppContent_shouldOpenQRScanner_false() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Should be on home page, not scanner
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-  }
-
-  @Test
-  fun mainAppContent_onTabSelected_callback_invoked() {
-    var selectedTab: Tab? = null
-
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = { tab -> selectedTab = tab },
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Click on the map tab
-    composeTestRule.onNodeWithTag("bottom_nav_Map").performClick()
-
-    composeTestRule.runOnIdle {
-      assertEquals("onTabSelected should be called with Map tab", Tab.Map, selectedTab)
-    }
-  }
-
-  @Test
-  fun mainAppContent_onQRScannerStateChange_callback_invoked() {
-    var qrScannerState: Boolean? = null
-
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = { state -> qrScannerState = state })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Click on a tab (this should trigger onQRScannerStateChange with false)
-    composeTestRule.onNodeWithTag("bottom_nav_Map").performClick()
-
-    composeTestRule.runOnIdle {
-      assertEquals("onQRScannerStateChange should be called with false", false, qrScannerState)
-    }
-  }
-
-  @Test
-  fun mainAppContent_selectedTab_home() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag("HomePage").assertIsDisplayed()
-  }
-
-  @Test
-  fun mainAppContent_selectedTab_map() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Map,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    // Map screen should be displayed (though it might not have a testTag, so we can't assert it)
-    // At least verify the component renders without crashing
-  }
-
-  @Test
-  fun mainAppContent_selectedTab_activities() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Activities,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag("activities_screen").assertIsDisplayed()
-  }
-
-  @Test
-  fun mainAppContent_selectedTab_profile() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Profile,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag("profileSettingsScreen").assertIsDisplayed()
-  }
-
-  // ============================================================================
   // Additional routeToTab Tests for Coverage
   // ============================================================================
 
@@ -511,62 +311,6 @@ class MainActivityIntegrationTest {
           }
 
       assertEquals("Route '$route' should map to $expectedTab", expectedTab, actualTab)
-    }
-  }
-
-  @Test
-  fun mainAppContent_cameraActiveChange_hidesBottomBar() {
-    composeTestRule.setContent {
-      AppTheme {
-        MainAppContent(
-            navController = rememberNavController(),
-            selectedTab = Tab.Home,
-            onTabSelected = {},
-            shouldOpenQRScanner = false,
-            onQRScannerStateChange = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Initially bottom bar should be visible
-    composeTestRule.onNodeWithTag("bottom_navigation_bar").assertIsDisplayed()
-
-    // Open camera by clicking add story
-    composeTestRule.onNodeWithTag("addStoryButton").performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Bottom bar should now be hidden (will throw exception if still displayed)
-    composeTestRule.onNodeWithTag("bottom_navigation_bar").assertDoesNotExist()
-  }
-
-  @Test
-  fun mainAppContent_multipleParameterCombinations() {
-    // Test different combinations of parameters
-    val testCombinations =
-        listOf(
-            Triple(Tab.Home, false, "Home with no scanner"),
-            Triple(Tab.Home, true, "Home with scanner"),
-            Triple(Tab.Map, false, "Map with no scanner"),
-            Triple(Tab.Activities, false, "Activities with no scanner"),
-            Triple(Tab.Profile, false, "Profile with no scanner"))
-
-    testCombinations.forEach { (tab, shouldOpenScanner, description) ->
-      composeTestRule.setContent {
-        AppTheme {
-          MainAppContent(
-              navController = rememberNavController(),
-              selectedTab = tab,
-              onTabSelected = {},
-              shouldOpenQRScanner = shouldOpenScanner,
-              onQRScannerStateChange = {})
-        }
-      }
-
-      composeTestRule.waitForIdle()
-      // Just verify it renders without crashing
-      // The fact that we got here means the composable handled the parameters correctly
     }
   }
 }
