@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -120,7 +121,7 @@ fun EventView(
                   modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back")
+                        contentDescription = stringResource(R.string.content_description_back))
                   }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
@@ -141,7 +142,7 @@ fun EventView(
               verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
                 Icon(
                     imageVector = Icons.Default.Image,
-                    contentDescription = "Event Image",
+                    contentDescription = stringResource(R.string.content_description_event_image),
                     modifier =
                         Modifier.fillMaxWidth()
                             .height(250.dp)
@@ -193,7 +194,9 @@ private fun InfoEvent(
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
         when {
           eventHasStarted && timeLeft <= 0 -> {
-            val text = if (isJoined) "Hurry up! Event has started" else "Event has started"
+            val text =
+                if (isJoined) stringResource(R.string.event_hurry_up_started)
+                else stringResource(R.string.event_has_started)
             Text(
                 modifier =
                     Modifier.align(Alignment.CenterHorizontally)
@@ -224,7 +227,7 @@ private fun InfoEvent(
                 }
           }
         }
-        Text(text = "Description", style = titleTextStyle())
+        Text(text = stringResource(R.string.event_label_description), style = titleTextStyle())
         Text(
             text = event.description,
             modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
@@ -248,13 +251,13 @@ private fun ParticipantsInfo(event: Event, participantCount: Int) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           Icon(
               painter = painterResource(id = R.drawable.ic_group),
-              contentDescription = "Participants",
+              contentDescription = stringResource(R.string.content_description_participants),
               modifier = Modifier.size(24.dp))
           val participantsText =
               if (capacity != null) {
                 "$participantCount / $capacity"
               } else {
-                "$participantCount participants"
+                stringResource(R.string.text_participants_count, participantCount)
               }
           Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
         }
@@ -293,17 +296,17 @@ private fun ChatButton(context: Context = LocalContext.current) {
     ) {
       Column(horizontalAlignment = Alignment.Start, modifier = Modifier.wrapContentHeight()) {
         Text(
-            text = "Event chat",
+            text = stringResource(R.string.event_chat_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer)
         Text(
-            text = "Get The Latest News About The Event",
+            text = stringResource(R.string.event_chat_subtitle),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer)
       }
       Icon(
           painter = painterResource(id = R.drawable.ic_chat_bubble),
-          contentDescription = "Home",
+          contentDescription = stringResource(R.string.content_description_home),
           modifier = Modifier.size(24.dp),
           tint = MaterialTheme.colorScheme.onSecondaryContainer)
     }
@@ -370,10 +373,10 @@ private fun OwnerActionButtons(
           Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
         Icon(
             imageVector = Icons.Default.QrCodeScanner,
-            contentDescription = "Scan icon",
+            contentDescription = stringResource(R.string.content_description_scan_icon),
             modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text("Scan")
+        Text(stringResource(R.string.button_scan))
       }
   Button(
       onClick = { navController.navigate(editRoute) },
@@ -381,10 +384,10 @@ private fun OwnerActionButtons(
           Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
         Icon(
             painter = painterResource(id = R.drawable.ic_add),
-            contentDescription = "Edit icon",
+            contentDescription = stringResource(R.string.content_description_edit_icon),
             modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text("Edit")
+        Text(stringResource(R.string.button_edit))
       }
 }
 
@@ -420,15 +423,15 @@ private fun NonOwnerActionButtons(
               painter =
                   if (joined) painterResource(id = R.drawable.ic_arrow_right)
                   else painterResource(id = R.drawable.ic_add),
-              contentDescription = "action icon",
+              contentDescription = stringResource(R.string.content_description_action_icon),
               modifier = Modifier.size(20.dp))
           Spacer(modifier = Modifier.width(4.dp))
         }
         when {
-          joined -> Text("Leave")
-          isFull -> Text("Full")
-          eventHasStarted -> Text("Started")
-          else -> Text("Join")
+          joined -> Text(stringResource(R.string.button_leave))
+          isFull -> Text(stringResource(R.string.button_full))
+          eventHasStarted -> Text(stringResource(R.string.button_started))
+          else -> Text(stringResource(R.string.button_join))
         }
       }
 }
@@ -470,9 +473,7 @@ private fun CommonActionButtons(
               context.startActivity(intent)
             } catch (_: ActivityNotFoundException) {
               Toast.makeText(
-                      context,
-                      "No application can handle this request. Please install a web browser.",
-                      Toast.LENGTH_LONG)
+                      context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
                   .show()
             }
           }
@@ -497,7 +498,7 @@ private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifi
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
         Icon(
             painter = painterResource(id = id),
-            contentDescription = "Action button",
+            contentDescription = stringResource(R.string.content_description_action_button),
             modifier = Modifier.size(24.dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer)
       }
@@ -566,11 +567,11 @@ private fun ValidationResultOverlay(
                     ValidationMessage(result = result)
 
                     Button(onClick = onScanNext, modifier = Modifier.fillMaxWidth()) {
-                      Text("Scan Next")
+                      Text(stringResource(R.string.event_button_scan_next))
                     }
 
                     OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                      Text("Close Scanner")
+                      Text(stringResource(R.string.event_button_close_scanner))
                     }
                   }
             }
@@ -597,9 +598,10 @@ private fun ValidationIcon(result: TicketValidationResult) {
 private fun ValidationTitle(result: TicketValidationResult) {
   val title =
       when (result) {
-        is TicketValidationResult.Valid -> "Valid Ticket"
-        is TicketValidationResult.Invalid -> "Invalid Ticket"
-        is TicketValidationResult.Error -> "Verification Error"
+        is TicketValidationResult.Valid -> stringResource(R.string.event_validation_valid_ticket)
+        is TicketValidationResult.Invalid ->
+            stringResource(R.string.event_validation_invalid_ticket)
+        is TicketValidationResult.Error -> stringResource(R.string.event_validation_error)
       }
 
   Text(
@@ -612,9 +614,10 @@ private fun ValidationTitle(result: TicketValidationResult) {
 private fun ValidationMessage(result: TicketValidationResult) {
   val message =
       when (result) {
-        is TicketValidationResult.Valid -> "Participant ID: ${result.participantId}"
+        is TicketValidationResult.Valid ->
+            stringResource(R.string.event_validation_participant_id, result.participantId)
         is TicketValidationResult.Invalid ->
-            "User ${result.userId} is not registered for this event"
+            stringResource(R.string.event_validation_user_not_registered, result.userId)
         is TicketValidationResult.Error -> result.message
       }
 

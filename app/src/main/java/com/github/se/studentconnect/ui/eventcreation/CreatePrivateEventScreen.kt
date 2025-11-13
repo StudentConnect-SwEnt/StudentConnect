@@ -31,11 +31,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -99,18 +101,20 @@ fun CreatePrivateEventScreen(
   ) {
     FormTextField(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.TITLE_INPUT),
-        label = "Title",
-        placeholder = "My new event",
+        label = stringResource(R.string.event_label_title),
+        placeholder = stringResource(R.string.event_placeholder_title),
         value = createPrivateEventUiState.title,
         onValueChange = { createPrivateEventViewModel.updateTitle(it) },
         errorText =
-            if (createPrivateEventUiState.title.isBlank()) "Title cannot be blank" else null)
+            if (createPrivateEventUiState.title.isBlank())
+                stringResource(R.string.event_error_title_blank)
+            else null)
 
     FormTextField(
         modifier =
             Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT),
-        label = "Description",
-        placeholder = "Describe your event",
+        label = stringResource(R.string.event_label_description),
+        placeholder = stringResource(R.string.event_placeholder_description),
         value = createPrivateEventUiState.description,
         onValueChange = { createPrivateEventViewModel.updateDescription(it) },
     )
@@ -122,7 +126,7 @@ fun CreatePrivateEventScreen(
               modifier = Modifier.padding(16.dp),
               verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "Event Banner",
+                    text = stringResource(R.string.event_label_banner),
                     style =
                         MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
                 PicturePickerCard(
@@ -135,11 +139,11 @@ fun CreatePrivateEventScreen(
                     onImageSelected = { uri ->
                       createPrivateEventViewModel.updateBannerImageUri(uri)
                     },
-                    placeholderText = "Upload a banner for your event",
-                    overlayText = "Tap to change banner",
-                    imageDescription = "Event banner")
+                    placeholderText = stringResource(R.string.event_placeholder_banner),
+                    overlayText = stringResource(R.string.instruction_tap_to_change_photo),
+                    imageDescription = stringResource(R.string.event_label_banner))
                 Text(
-                    text = "Add a banner so attendees can quickly recognize your event.",
+                    text = stringResource(R.string.event_text_banner_help),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedButton(
@@ -150,15 +154,15 @@ fun CreatePrivateEventScreen(
                     modifier =
                         Modifier.fillMaxWidth()
                             .testTag(CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON)) {
-                      Text("Remove banner")
+                      Text(stringResource(R.string.event_button_remove_banner))
                     }
               }
         }
 
     LocationTextField(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
-        label = "Location",
-        placeholder = "Enter the event's location",
+        label = stringResource(R.string.event_label_location),
+        placeholder = stringResource(R.string.event_placeholder_location),
         initialValue = locationInitial,
         onLocationChange = { createPrivateEventViewModel.updateLocation(it) })
 
@@ -170,8 +174,8 @@ fun CreatePrivateEventScreen(
       DateTextField(
           modifier =
               Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT),
-          label = "Start of the event",
-          placeholder = "DD/MM/YYYY",
+          label = stringResource(R.string.event_label_start_date),
+          placeholder = stringResource(R.string.event_placeholder_date),
           initialValue = startDateInitial,
           onDateChange = { createPrivateEventViewModel.updateStartDate(it) },
       )
@@ -189,8 +193,8 @@ fun CreatePrivateEventScreen(
     ) {
       DateTextField(
           modifier = Modifier.weight(0.7f).testTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT),
-          label = "End of the event",
-          placeholder = "DD/MM/YYYY",
+          label = stringResource(R.string.event_label_end_date),
+          placeholder = stringResource(R.string.event_placeholder_date),
           initialValue = endDateInitial,
           onDateChange = { createPrivateEventViewModel.updateEndDate(it) },
       )
@@ -205,7 +209,7 @@ fun CreatePrivateEventScreen(
         modifier =
             Modifier.fillMaxWidth()
                 .testTag(CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT),
-        label = "Number of participants",
+        label = stringResource(R.string.event_label_participants),
         value = createPrivateEventUiState.numberOfParticipantsString,
         onValueChange = { createPrivateEventViewModel.updateNumberOfParticipantsString(it) },
     )
@@ -219,7 +223,7 @@ fun CreatePrivateEventScreen(
           modifier =
               Modifier.weight(0.7f)
                   .testTag(CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT),
-          label = "Participation fees",
+          label = stringResource(R.string.event_label_fees),
           value = createPrivateEventUiState.participationFeeString,
           onValueChange = { createPrivateEventViewModel.updateParticipationFeeString(it) },
           enabled = createPrivateEventUiState.hasParticipationFee,
@@ -242,7 +246,7 @@ fun CreatePrivateEventScreen(
     ) {
       Text(
           modifier = Modifier.weight(0.7f),
-          text = "Flash Event",
+          text = stringResource(R.string.event_label_flash_event),
       )
 
       val context = LocalContext.current
@@ -260,10 +264,10 @@ fun CreatePrivateEventScreen(
     ) {
       Icon(
           imageVector = Icons.Default.SaveAlt,
-          contentDescription = "Save",
+          contentDescription = stringResource(R.string.content_description_save),
           modifier = Modifier.size(20.dp))
       Spacer(modifier = Modifier.size(6.dp))
-      Text("Save")
+      Text(stringResource(R.string.button_save))
     }
   }
 }
