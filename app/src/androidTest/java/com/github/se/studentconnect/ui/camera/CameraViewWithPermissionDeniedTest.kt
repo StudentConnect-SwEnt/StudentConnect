@@ -30,12 +30,11 @@ class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     val pkg = instrumentation.targetContext.packageName
 
-    // First ensure permission is revoked
+    // Revoke camera permission
     instrumentation.uiAutomation.revokeRuntimePermission(pkg, Manifest.permission.CAMERA)
     instrumentation.waitForIdleSync()
 
     var noPermissionShown = false
-    var errorOccurred = false
 
     composeTestRule.setContent {
       CameraView(
@@ -43,13 +42,13 @@ class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
             Box(modifier = Modifier.testTag("noPermissionBox")) { noPermissionShown = true }
           },
           onImageCaptured = {},
-          onError = { errorOccurred = true })
+          onError = {},
+          requestPermissionAutomatically = false)
     }
 
-    // The noPermission composable should be called since permission is denied
     composeTestRule.waitForIdle()
 
-    // Verify the no permission UI is rendered (either immediately or after permission denial)
+    // Verify the no permission UI is rendered
     composeTestRule.onNodeWithTag("noPermissionBox").assertExists()
     assertTrue("Expected noPermission UI to be shown", noPermissionShown)
   }
