@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,6 @@ import com.github.se.studentconnect.ui.camera.CameraView
 @Composable
 fun StoryCaptureScreen(
     onBackClick: () -> Unit,
-    onCapture: (ByteArray) -> Unit,
     modifier: Modifier = Modifier,
     isActive: Boolean = true
 ) {
@@ -37,26 +37,11 @@ fun StoryCaptureScreen(
             // Capture button does nothing for now
             // TODO: Implement story capture
           },
-          onError = {
-            // Ignore errors for now
-          },
+          onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
           noPermission = { PermissionRequired(onBackClick = onBackClick) })
     } else {
       InactiveCameraBackground()
     }
-
-    // Back button
-    IconButton(
-        onClick = onBackClick,
-        modifier =
-            Modifier.align(Alignment.TopStart)
-                .padding(top = 16.dp, start = 16.dp)
-                .testTag("story_back_button")) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "Back",
-              tint = Color.White)
-        }
 
     // Instructions
     Column(

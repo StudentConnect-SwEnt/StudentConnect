@@ -287,7 +287,7 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryCapture = { imageBytes ->
+                            onStoryCapture = { _ ->
                               // For now, just return to home page
                               // TODO: Implement story upload functionality
                               onQRScannerClosed()

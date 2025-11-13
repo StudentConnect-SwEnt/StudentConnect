@@ -221,16 +221,6 @@ private fun MainAppContent(
 ) {
   var isCameraActive by remember { mutableStateOf(false) }
 
-  val currentBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = currentBackStackEntry?.destination?.route
-
-  // Hide bottom bar for create/edit event screens
-  val hideBottomBar =
-      currentRoute == Route.CREATE_PUBLIC_EVENT ||
-          currentRoute == Route.CREATE_PRIVATE_EVENT ||
-          currentRoute == Route.EDIT_PUBLIC_EVENT ||
-          currentRoute == Route.EDIT_PRIVATE_EVENT
-
   Scaffold(
       bottomBar = {
         if (!isCameraActive) {

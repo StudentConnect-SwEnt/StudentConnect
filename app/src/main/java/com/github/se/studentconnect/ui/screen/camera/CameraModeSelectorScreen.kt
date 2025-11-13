@@ -60,10 +60,7 @@ fun CameraModeSelectorScreen(
     HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
       when (CameraMode.entries[page]) {
         CameraMode.STORY -> {
-          StoryCaptureScreen(
-              onBackClick = onBackClick,
-              onCapture = onStoryCapture,
-              isActive = pagerState.currentPage == page)
+          StoryCaptureScreen(onBackClick = onBackClick, isActive = pagerState.currentPage == page)
         }
         CameraMode.QR_SCAN -> {
           QrScannerScreen(
