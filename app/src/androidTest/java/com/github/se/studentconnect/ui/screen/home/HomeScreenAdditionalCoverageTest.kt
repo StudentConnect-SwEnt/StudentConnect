@@ -277,7 +277,7 @@ class HomeScreenAdditionalCoverageTest {
 
     // Verify the search bar is displayed (don't click it as it requires NavHost)
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Search for events...").assertExists()
+    composeTestRule.onNodeWithText("Search for events…").assertExists()
   }
 
   @Test
