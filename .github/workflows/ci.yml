@@ -23,14 +23,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
 
-      - name: KTFmt Check
+      - name: KTFmt Check and Lint
         run: |
-          ./gradlew ktfmtCheck
-
-      - name: Lint
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew lint --parallel --build-cache
+          ./gradlew ktfmtCheck lint --parallel --build-cache
 
       - name: Upload lint report
         uses: actions/upload-artifact@v4
