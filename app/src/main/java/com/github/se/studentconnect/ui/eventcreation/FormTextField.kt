@@ -73,7 +73,7 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText!!) })
+      supportingText = { if (shouldShowError) Text(text = errorText) })
 }
 
 @Composable
@@ -108,5 +108,5 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText!!) })
+      supportingText = { if (shouldShowError) Text(text = errorText) })
 }

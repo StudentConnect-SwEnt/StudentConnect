@@ -5,7 +5,6 @@ import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,9 +18,7 @@ data class NotificationUiState(
 )
 
 /** ViewModel for managing notifications in the home screen */
-class NotificationViewModel
-@Inject
-constructor(
+class NotificationViewModel(
     private val repository: NotificationRepository = NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
@@ -29,7 +26,6 @@ constructor(
   val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
 
   private var stopListening: (() -> Unit)? = null
-  private var currentUserId: String? = null
 
   init {
     startListeningToNotifications()
@@ -42,9 +38,6 @@ constructor(
     // Stop existing listener if any
     stopListening?.invoke()
     stopListening = null
-
-    // Update current user ID
-    currentUserId = userId
 
     _uiState.update { it.copy(isLoading = true) }
 
@@ -60,14 +53,6 @@ constructor(
   /** Gets the current user ID with proper validation */
   private fun getCurrentUserId(): String? {
     return AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
-  }
-
-  /** Restarts the notification listener (useful after auth changes) */
-  fun restartListener() {
-    val newUserId = getCurrentUserId()
-    if (newUserId != currentUserId) {
-      startListeningToNotifications()
-    }
   }
 
   /**
@@ -197,7 +182,6 @@ constructor(
     super.onCleared()
     stopListening?.invoke()
     stopListening = null
-    currentUserId = null
   }
 
   companion object {

@@ -300,7 +300,7 @@ class MapViewModel(
     }
   }
 
-  suspend fun animateToTarget(
+  fun animateToTarget(
       mapViewportState: MapViewportState,
       latitude: Double,
       longitude: Double,
@@ -319,7 +319,7 @@ class MapViewModel(
         })
   }
 
-  suspend fun animateToUserLocation(mapViewportState: MapViewportState) {
+  fun animateToUserLocation(mapViewportState: MapViewportState) {
     _uiState.value.targetLocation?.let { targetPoint ->
       mapViewportState.flyTo(
           cameraOptions {

@@ -67,7 +67,6 @@ class LocationTextFieldViewModel(
               _uiState.value =
                   uiState.value.copy(
                       locationSuggestions = listOf(), isLoadingLocationSuggestions = false)
-              // TODO: log error somewhere?
             }
           }
     }
