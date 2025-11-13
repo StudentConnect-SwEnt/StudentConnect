@@ -22,6 +22,7 @@ import com.github.se.studentconnect.ui.screen.signup.BasicInfoScreenTestTags
 import com.github.se.studentconnect.ui.screen.signup.SignUpViewModel
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
+import com.github.se.studentconnect.utils.NoAnonymousSignIn
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import java.util.Date
@@ -34,7 +35,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
-class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = false) {
+class EndToEndTest : FirestoreStudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -86,6 +87,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     scenario = ActivityScenario.launch(intent)
   }
 
+  @NoAnonymousSignIn
   @Test
   fun endToEnd_completeUserFlow() {
     composeTestRule.waitForIdle()

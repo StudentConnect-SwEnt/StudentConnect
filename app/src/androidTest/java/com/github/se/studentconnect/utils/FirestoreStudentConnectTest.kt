@@ -9,8 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 
-open class FirestoreStudentConnectTest(signInAnonymouslyIfPossible: Boolean = true) :
-    StudentConnectTest(signInAnonymouslyIfPossible) {
+open class FirestoreStudentConnectTest : StudentConnectTest() {
 
   suspend fun getEventsCount(): Int {
     val user = FirebaseEmulator.auth.currentUser ?: return 0
