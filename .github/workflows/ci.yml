@@ -152,12 +152,13 @@ jobs:
         run: npm ci
 
       - name: Start Firebase emulators
-        working-directory: .github/ci/node
+        env:
+          PREFIX: .github/ci/node
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             echo "Starting Firebase emulators for instrumentation tests..."
-            npm run start-firebase-emulators &
-            npm run wait-for-firebase
+            npm --prefix $PREFIX run start-firebase-emulators &
+            npm --prefix $PREFIX run wait-for-firebase
             echo "Firebase emulators started"
           else
             echo "Firebase emulators not configured, skipping emulator startup..."
