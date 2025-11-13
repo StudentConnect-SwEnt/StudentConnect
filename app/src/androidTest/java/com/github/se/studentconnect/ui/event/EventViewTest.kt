@@ -21,9 +21,6 @@ import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -90,7 +87,6 @@ class EventViewTest {
         // Ignore if event doesn't exist
       }
     }
-    unmockkAll()
   }
 
   @Test
@@ -434,27 +430,29 @@ class EventViewTest {
     val futureEventViewModel = EventViewModel(eventRepository, userRepository)
     runBlocking { futureEventViewModel.fetchEvent(futureEvent.uid) }
 
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "not-owner"
+    AuthenticationProvider.testUserId = "not-owner"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = futureEvent.uid,
-              navController = navController,
-              eventViewModel = futureEventViewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = futureEvent.uid,
+                navController = navController,
+                eventViewModel = futureEventViewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Join").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+      // Clean up
+      runBlocking { eventRepository.deleteEvent(futureEvent.uid) }
     }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Join").assertIsDisplayed()
-
-    // Clean up
-    runBlocking { eventRepository.deleteEvent(futureEvent.uid) }
   }
 
   @Test
@@ -518,346 +516,382 @@ class EventViewTest {
   @Test
   fun eventView_scanQrButton_notDisplayedForNonOwner() {
     // Arrange - set current user to someone other than the owner
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "different-user"
+    AuthenticationProvider.testUserId = "different-user"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    // Assert - scan QR button should not be displayed
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertDoesNotExist()
+      composeTestRule.waitForIdle()
+      // Assert - scan QR button should not be displayed
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_scanQrButton_displayedForOwner() {
     // Arrange - set current user to the event owner
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    // Assert - scan QR button should be displayed
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      // Assert - scan QR button should be displayed
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_scanQrButton_hasCorrectText() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Scan").assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertIsDisplayed()
+      composeTestRule.onNodeWithText("Scan").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_scanQrButton_hasClickAction() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertHasClickAction()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).assertHasClickAction()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_scanQrButton_click_opensQrScanner() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      // Act - click the scan QR button
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      // Assert - QR scanner dialog should be displayed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    // Act - click the scan QR button
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    // Assert - QR scanner dialog should be displayed
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertIsDisplayed()
   }
 
   @Test
   fun eventView_qrScannerDialog_notDisplayedInitially() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    // Assert - QR scanner should not be displayed initially
-    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
+      composeTestRule.waitForIdle()
+      // Assert - QR scanner should not be displayed initially
+      composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_validationResult_valid_displaysCorrectly() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    val participantId = "participant123"
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
-    }
+    try {
+      val participantId = "participant123"
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+      }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      // Act - open scanner and validate participant
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      composeTestRule.waitForIdle()
+      // Simulate validation through ViewModel
+      composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+      // Assert - valid result should be displayed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertIsDisplayed()
+      composeTestRule.onNodeWithText("Valid Ticket").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    // Act - open scanner and validate participant
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-    // Simulate validation through ViewModel
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
-
-    // Assert - valid result should be displayed
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Valid Ticket").assertIsDisplayed()
   }
 
   @Test
   fun eventView_validationResult_invalid_displaysCorrectly() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    val nonParticipantId = "nonparticipant123"
+    try {
+      val nonParticipantId = "nonparticipant123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      // Act - open scanner and validate non-participant
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      composeTestRule.waitForIdle()
+      // Simulate validation through ViewModel
+      composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, nonParticipantId) }
+
+      // Assert - invalid result should be displayed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_INVALID).assertIsDisplayed()
+      composeTestRule.onNodeWithText("Invalid Ticket").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    // Act - open scanner and validate non-participant
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-    // Simulate validation through ViewModel
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, nonParticipantId) }
-
-    // Assert - invalid result should be displayed
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_INVALID).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Invalid Ticket").assertIsDisplayed()
   }
 
   @Test
   fun eventView_validationResult_scanNextButton_clearsResult() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    val participantId = "participant123"
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
-    }
+    try {
+      val participantId = "participant123"
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+      }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      // Act - open scanner and validate participant
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      composeTestRule.waitForIdle()
+      composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+      composeTestRule.waitForIdle()
+      // Click "Scan Next" button
+      composeTestRule.onNodeWithText("Scan Next").performClick()
+
+      // Assert - validation result should be cleared
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    // Act - open scanner and validate participant
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
-
-    composeTestRule.waitForIdle()
-    // Click "Scan Next" button
-    composeTestRule.onNodeWithText("Scan Next").performClick()
-
-    // Assert - validation result should be cleared
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.VALIDATION_RESULT_VALID).assertDoesNotExist()
   }
 
   @Test
   fun eventView_validationResult_closeScannerButton_closesDialog() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    val participantId = "participant123"
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
-    }
+    try {
+      val participantId = "participant123"
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
+      }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      // Act - open scanner and validate participant
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      composeTestRule.waitForIdle()
+      composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+
+      composeTestRule.waitForIdle()
+      // Click "Close Scanner" button
+      composeTestRule.onNodeWithText("Close Scanner").performClick()
+
+      // Assert - dialog should be closed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    // Act - open scanner and validate participant
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
-
-    composeTestRule.waitForIdle()
-    // Click "Close Scanner" button
-    composeTestRule.onNodeWithText("Close Scanner").performClick()
-
-    // Assert - dialog should be closed
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertDoesNotExist()
   }
 
   @Test
   fun eventView_editButton_displayedForOwner() {
     // Arrange
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.EDIT_EVENT_BUTTON).assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.EDIT_EVENT_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_editButton_notDisplayedForNonOwner() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "different-user"
+    AuthenticationProvider.testUserId = "different-user"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.EDIT_EVENT_BUTTON).assertDoesNotExist()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.EDIT_EVENT_BUTTON).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
@@ -954,31 +988,33 @@ class EventViewTest {
       eventRepository.addParticipantToEvent(fullEvent.uid, EventParticipant("user2"))
     }
 
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "different-user"
+    AuthenticationProvider.testUserId = "different-user"
 
-    // Create a new ViewModel for this test to fetch the updated event
-    val fullEventViewModel = EventViewModel(eventRepository, userRepository)
-    runBlocking { fullEventViewModel.fetchEvent(fullEvent.uid) }
+    try {
+      // Create a new ViewModel for this test to fetch the updated event
+      val fullEventViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { fullEventViewModel.fetchEvent(fullEvent.uid) }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = fullEvent.uid,
-              navController = navController,
-              eventViewModel = fullEventViewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = fullEvent.uid,
+                navController = navController,
+                eventViewModel = fullEventViewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Full").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+      // Clean up
+      runBlocking { eventRepository.deleteEvent(fullEvent.uid) }
     }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Full").assertIsDisplayed()
-
-    // Clean up
-    runBlocking { eventRepository.deleteEvent(fullEvent.uid) }
   }
 
   @Test
@@ -988,31 +1024,33 @@ class EventViewTest {
             uid = "started-event", start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0))
     runBlocking { eventRepository.addEvent(pastEvent) }
 
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "different-user"
+    AuthenticationProvider.testUserId = "different-user"
 
-    // Create a new ViewModel for this test
-    val pastEventViewModel = EventViewModel(eventRepository, userRepository)
-    runBlocking { pastEventViewModel.fetchEvent(pastEvent.uid) }
+    try {
+      // Create a new ViewModel for this test
+      val pastEventViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { pastEventViewModel.fetchEvent(pastEvent.uid) }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = pastEvent.uid,
-              navController = navController,
-              eventViewModel = pastEventViewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = pastEvent.uid,
+                navController = navController,
+                eventViewModel = pastEventViewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Started").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+      // Clean up
+      runBlocking { eventRepository.deleteEvent(pastEvent.uid) }
     }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Started").assertIsDisplayed()
-
-    // Clean up
-    runBlocking { eventRepository.deleteEvent(pastEvent.uid) }
   }
 
   @Test
@@ -1027,31 +1065,33 @@ class EventViewTest {
       eventRepository.addParticipantToEvent(startedEvent.uid, EventParticipant("test-user"))
     }
 
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "test-user"
+    AuthenticationProvider.testUserId = "test-user"
 
-    // Create a new ViewModel for this test
-    val startedEventViewModel = EventViewModel(eventRepository, userRepository)
-    runBlocking { startedEventViewModel.fetchEvent(startedEvent.uid) }
+    try {
+      // Create a new ViewModel for this test
+      val startedEventViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { startedEventViewModel.fetchEvent(startedEvent.uid) }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = startedEvent.uid,
-              navController = navController,
-              eventViewModel = startedEventViewModel,
-              hasJoined = true)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = startedEvent.uid,
+                navController = navController,
+                eventViewModel = startedEventViewModel,
+                hasJoined = true)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithText("Hurry up! Event has started").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+      // Clean up
+      runBlocking { eventRepository.deleteEvent(startedEvent.uid) }
     }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Hurry up! Event has started").assertIsDisplayed()
-
-    // Clean up
-    runBlocking { eventRepository.deleteEvent(startedEvent.uid) }
   }
 
   @Test
@@ -1134,52 +1174,58 @@ class EventViewTest {
 
   @Test
   fun eventView_joinButton_canBeClicked() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "test-user"
+    AuthenticationProvider.testUserId = "test-user"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertHasClickAction()
-    composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertHasClickAction()
+      composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).performClick()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_leaveButton_canBeClicked() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "test-user"
+    AuthenticationProvider.testUserId = "test-user"
 
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
-    }
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
+      }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = true)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = true)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).assertHasClickAction()
-    composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).assertHasClickAction()
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).performClick()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
@@ -1281,28 +1327,31 @@ class EventViewTest {
 
   @Test
   fun eventView_scanQrButtonClick_opensQrScanner() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
+
+      // Wait for dialog to appear
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
     }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
-
-    // Wait for dialog to appear
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.QR_SCANNER_DIALOG).assertIsDisplayed()
   }
 
   @Test
@@ -1332,25 +1381,28 @@ class EventViewTest {
 
   @Test
   fun eventView_ownerCannotJoinOwnEvent() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns "owner123"
+    AuthenticationProvider.testUserId = "owner123"
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    // Join button should not exist for owner
-    composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertDoesNotExist()
+      composeTestRule.waitForIdle()
+      // Join button should not exist for owner
+      composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
