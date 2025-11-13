@@ -288,7 +288,7 @@ fun LocationPickerDialog(
 
 private const val EARTH_RADIUS_KM = 6371.0
 
-private fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Double): Point {
+internal fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Double): Point {
   val brng = Math.toRadians(bearing)
   val lat1 = Math.toRadians(center.latitude())
   val lon1 = Math.toRadians(center.longitude())
