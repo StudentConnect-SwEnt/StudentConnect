@@ -215,9 +215,7 @@ class ProfileViewModel(
         _editingField.value = EditingField.None
         _successMessage.value = getSuccessMessage(field)
       } catch (exception: Exception) {
-        _fieldErrors.value =
-            _fieldErrors.value +
-                (field to (R.string.error_unexpected))
+        _fieldErrors.value = _fieldErrors.value + (field to (R.string.error_unexpected))
       } finally {
         setFieldLoading(field, false)
       }
@@ -262,7 +260,8 @@ class ProfileViewModel(
    * @param field The field that was updated
    * @return The success message for the field
    */
-  @StringRes private fun getSuccessMessage(field: EditingField): Int {
+  @StringRes
+  private fun getSuccessMessage(field: EditingField): Int {
     return when (field) {
       EditingField.Name -> R.string.success_name_updated
       EditingField.University -> R.string.success_university_updated
@@ -301,7 +300,8 @@ sealed class EditingField {
    *
    * @return The human-readable name of the field
    */
-  @get:StringRes val displayNameResId: Int
+  @get:StringRes
+  val displayNameResId: Int
     get() =
         when (this) {
           is Name -> R.string.label_name

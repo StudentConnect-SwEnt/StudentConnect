@@ -39,9 +39,7 @@ class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
 
     composeTestRule.setContent {
       CameraView(
-          noPermission = { Box { noPermissionShown = true } },
-          onImageCaptured = {},
-          onError = {})
+          noPermission = { Box { noPermissionShown = true } }, onImageCaptured = {}, onError = {})
     }
 
     composeTestRule.waitForIdle()
