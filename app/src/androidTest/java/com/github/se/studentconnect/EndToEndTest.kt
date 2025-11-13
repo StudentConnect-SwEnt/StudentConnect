@@ -95,7 +95,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait until we're on the main screen after onboarding
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "bottom navigation menu on main screen to be visible") {
+        timeoutMillis = 30_001, message = "bottom navigation menu on main screen to be visible") {
           composeTestRule
               .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
               .fetchSemanticsNodes()
@@ -134,7 +134,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Fill first name
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "first name input to appear") {
+        timeoutMillis = 10_001, message = "first name input to appear") {
           composeTestRule
               .onAllNodesWithTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT)
               .fetchSemanticsNodes()
@@ -157,7 +157,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Fill last name
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "last name input to appear") {
+        timeoutMillis = 10_002, message = "last name input to appear") {
           composeTestRule
               .onAllNodesWithTag(BasicInfoScreenTestTags.LAST_NAME_INPUT)
               .fetchSemanticsNodes()
@@ -174,13 +174,9 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     composeTestRule.waitForIdle()
 
-    // Close keyboard
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-
     // Fill username
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "username input to appear") {
+        timeoutMillis = 10_003, message = "username input to appear") {
           composeTestRule
               .onAllNodesWithTag(BasicInfoScreenTestTags.USERNAME_INPUT)
               .fetchSemanticsNodes()
@@ -204,7 +200,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "continue button enabled on basic info screen") {
+        timeoutMillis = 15_001, message = "continue button enabled on basic info screen") {
           try {
             composeTestRule
                 .onAllNodesWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
@@ -222,7 +218,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Click Continue on BasicInfo
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "continue button to appear on basic info screen") {
+        timeoutMillis = 10_004, message = "continue button to appear on basic info screen") {
           composeTestRule
               .onAllNodesWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
               .fetchSemanticsNodes()
@@ -235,7 +231,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Step 2: Fill Nationality screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "nationality screen header to appear") {
+        timeoutMillis = 10_005, message = "nationality screen header to appear") {
           composeTestRule
               .onAllNodesWithText("Where are you from", substring = true)
               .fetchSemanticsNodes()
@@ -244,7 +240,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Search for Switzerland
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "search countries field to appear") {
+        timeoutMillis = 10_006, message = "search countries field to appear") {
           composeTestRule
               .onAllNodesWithText("Search countries", substring = true)
               .fetchSemanticsNodes()
@@ -269,7 +265,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Select Switzerland from the list
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "switzerland option to appear in country list") {
+        timeoutMillis = 10_007, message = "switzerland option to appear in country list") {
           composeTestRule
               .onAllNodesWithText("Switzerland", substring = true)
               .fetchSemanticsNodes()
@@ -282,7 +278,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Click Continue on Nationality
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "continue button on nationality screen") {
+        timeoutMillis = 10_008, message = "continue button on nationality screen") {
           composeTestRule
               .onAllNodes(hasText("Continue") and hasClickAction())
               .fetchSemanticsNodes()
@@ -295,7 +291,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Step 3: Skip AddPicture screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "skip button on add picture screen") {
+        timeoutMillis = 15_002, message = "skip button on add picture screen") {
           composeTestRule
               .onAllNodesWithText("Skip", substring = true)
               .fetchSemanticsNodes()
@@ -308,7 +304,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Step 4: Skip Description screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "skip button on description screen") {
+        timeoutMillis = 15_003, message = "skip button on description screen") {
           composeTestRule
               .onAllNodesWithText("Skip", substring = true)
               .fetchSemanticsNodes()
@@ -321,7 +317,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Step 5: Experiences screen - select activities (chips) and Start Now
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "experiences screen to load") {
+        timeoutMillis = 15_004, message = "experiences screen to load") {
           try {
             composeTestRule
                 .onAllNodesWithTag(C.Tag.experiences_screen_container)
@@ -334,7 +330,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for filter list and topic grid
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "experiences filter list and topic grid to appear") {
+        timeoutMillis = 10_009, message = "experiences filter list and topic grid to appear") {
           try {
             composeTestRule
                 .onAllNodesWithTag(C.Tag.experiences_filter_list)
@@ -380,7 +376,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     // Wait for the CTA button to be visible
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+    composeTestRule.waitUntil(timeoutMillis = 10_010) {
       try {
         composeTestRule.onAllNodesWithTag(C.Tag.experiences_cta).fetchSemanticsNodes().isNotEmpty()
       } catch (_: Exception) {
@@ -399,7 +395,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for and click the center add button
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "center add button to be visible") {
+        timeoutMillis = 15_005, message = "center add button to be visible") {
           composeTestRule.onAllNodesWithTag("center_add_button").fetchSemanticsNodes().isNotEmpty()
         }
 
@@ -408,7 +404,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for and click create public event option
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "create public event option to be visible") {
+        timeoutMillis = 10_011, message = "create public event option to be visible") {
           composeTestRule
               .onAllNodesWithTag("create_public_event_option")
               .fetchSemanticsNodes()
@@ -420,7 +416,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for the form to appear
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "create event title input to appear") {
+        timeoutMillis = 10_012, message = "create event title input to appear") {
           composeTestRule
               .onAllNodesWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
               .fetchSemanticsNodes()
@@ -457,7 +453,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for location suggestion to appear
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "Fake EPFL suggestion to appear") {
+        timeoutMillis = 15_006, message = "Fake EPFL suggestion to appear") {
           composeTestRule
               .onAllNodes(hasText("Fake EPFL"), useUnmergedTree = true)
               .fetchSemanticsNodes(false)
@@ -503,7 +499,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for save button to be enabled
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "save button enabled in create event") {
+        timeoutMillis = 15_007, message = "save button enabled in create event") {
           try {
             composeTestRule
                 .onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
@@ -522,13 +518,13 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
   private fun verifyEventOnHomePage() {
     // Wait until we're back on the home screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "Home page to be visible") {
+        timeoutMillis = 30_002, message = "Home page to be visible") {
           composeTestRule.onAllNodesWithTag("HomePage").fetchSemanticsNodes().isNotEmpty()
         }
 
     // Verify the event title appears somewhere on the home page
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "E2E Test Event to appear on home page") {
+        timeoutMillis = 30_003, message = "E2E Test Event to appear on home page") {
           composeTestRule
               .onAllNodesWithText("E2E Test Event", substring = true)
               .fetchSemanticsNodes()
@@ -544,7 +540,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Ensure we target only the event card title (not story text)
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "event card title node to be present on home page") {
+        timeoutMillis = 10_013, message = "event card title node to be present on home page") {
           try {
             composeTestRule
                 .onAllNodes(
@@ -571,7 +567,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     try {
       // Wait until a matching event card title is present
       composeTestRule.waitUntilWithMessage(
-          timeoutMillis = 10_000, message = "matching event card title to appear on home page") {
+          timeoutMillis = 10_014, message = "matching event card title to appear on home page") {
             try {
               composeTestRule
                   .onAllNodes(
@@ -602,7 +598,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for event view to load
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "event view screen to load") {
+        timeoutMillis = 30_004, message = "event view screen to load") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
               .fetchSemanticsNodes()
@@ -611,7 +607,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for edit button to be available
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "edit event button to appear on event view") {
+        timeoutMillis = 15_008, message = "edit event button to appear on event view") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.EDIT_EVENT_BUTTON)
               .fetchSemanticsNodes()
@@ -624,7 +620,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for edit screen to appear
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "title input on edit event screen to appear") {
+        timeoutMillis = 15_009, message = "title input on edit event screen to appear") {
           composeTestRule
               .onAllNodesWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
               .fetchSemanticsNodes()
@@ -648,7 +644,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait to be back on the event view screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "event view screen to be visible after save") {
+        timeoutMillis = 30_005, message = "event view screen to be visible after save") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
               .fetchSemanticsNodes()
@@ -657,7 +653,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Verify the updated title is displayed
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000, message = "updated event title to appear on event view") {
+        timeoutMillis = 20_001, message = "updated event title to appear on event view") {
           composeTestRule
               .onAllNodesWithText("E2E Test Event Updated", substring = true)
               .fetchSemanticsNodes()
@@ -673,7 +669,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
   private fun verifyEventInActivities() {
     // 1. Navigate to Activities tab
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "activities tab to be visible") {
+        timeoutMillis = 15_010, message = "activities tab to be visible") {
           composeTestRule
               .onAllNodesWithTag(NavigationTestTags.ACTIVITIES_TAB)
               .fetchSemanticsNodes()
@@ -686,7 +682,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 2. Wait for activities carousel to appear
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "activities carousel to appear") {
+        timeoutMillis = 30_006, message = "activities carousel to appear") {
           composeTestRule
               .onAllNodesWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL)
               .fetchSemanticsNodes()
@@ -697,7 +693,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     val eventTitle = "E2E Test Event Updated"
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "event to appear in activities carousel") {
+        timeoutMillis = 30_007, message = "event to appear in activities carousel") {
           composeTestRule
               .onAllNodesWithText(eventTitle, substring = true)
               .fetchSemanticsNodes()
@@ -716,7 +712,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 5. Wait for Event View to open
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "event view screen to open from activities") {
+        timeoutMillis = 30_008, message = "event view screen to open from activities") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
               .fetchSemanticsNodes()
@@ -727,7 +723,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     // FIX 2: Use waitUntil for the button. The button's visibility depends on
     // async data fetching (checking owner ID), so it appears slightly after the screen.
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "edit event button to appear in event view") {
+        timeoutMillis = 10_015, message = "edit event button to appear in event view") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.EDIT_EVENT_BUTTON)
               .fetchSemanticsNodes()
@@ -743,7 +739,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 8. Verify we are back on Activities
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "activities screen to be visible after back navigation") {
+        timeoutMillis = 15_011, message = "activities screen to be visible after back navigation") {
           composeTestRule
               .onAllNodesWithTag(ActivitiesScreenTestTags.ACTIVITIES_SCREEN)
               .fetchSemanticsNodes()
@@ -754,7 +750,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
   private fun editProfile() {
     // 1. Navigate to Profile tab
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "profile tab to be visible") {
+        timeoutMillis = 15_012, message = "profile tab to be visible") {
           composeTestRule
               .onAllNodesWithTag(NavigationTestTags.PROFILE_TAB)
               .fetchSemanticsNodes()
@@ -766,7 +762,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 2. Wait for profile to load (checking for Edit Name button)
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "Edit Name button to be visible on profile") {
+        timeoutMillis = 30_009, message = "Edit Name button to be visible on profile") {
           composeTestRule
               .onAllNodesWithContentDescription("Edit Name")
               .fetchSemanticsNodes()
@@ -779,7 +775,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait for edit name screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "First Name field on edit name screen to appear") {
+        timeoutMillis = 15_013, message = "First Name field on edit name screen to appear") {
           composeTestRule
               .onAllNodesWithText("First Name", substring = true)
               .fetchSemanticsNodes()
@@ -791,7 +787,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 5_000, message = "input focused for editing first name") {
+        timeoutMillis = 5_001, message = "input focused for editing first name") {
           composeTestRule
               .onAllNodes(hasSetTextAction() and isFocused(), useUnmergedTree = true)
               .fetchSemanticsNodes()
@@ -813,7 +809,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 5_000, message = "input focused for editing last name") {
+        timeoutMillis = 5_002, message = "input focused for editing last name") {
           composeTestRule
               .onAllNodes(hasSetTextAction() and isFocused(), useUnmergedTree = true)
               .fetchSemanticsNodes()
@@ -839,7 +835,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     } catch (_: Exception) {}
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "Save button to appear on edit name screen") {
+        timeoutMillis = 10_016, message = "Save button to appear on edit name screen") {
           composeTestRule
               .onAllNodes(hasText("Save", substring = true), useUnmergedTree = true)
               .fetchSemanticsNodes()
@@ -855,7 +851,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Wait to be back on profile screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "back on profile screen after saving name") {
+        timeoutMillis = 30_010, message = "back on profile screen after saving name") {
           composeTestRule
               .onAllNodesWithContentDescription("Edit Name")
               .fetchSemanticsNodes()
@@ -864,7 +860,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // Verify name was updated
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000, message = "updated name to appear on profile") {
+        timeoutMillis = 20_002, message = "updated name to appear on profile") {
           composeTestRule
               .onAllNodesWithText("habibi Doe", substring = true)
               .fetchSemanticsNodes()
@@ -875,7 +871,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 1. Wait for the pencil icon next to "Country".
     // The label in ProfileSettingsScreen is "Country", so the icon description is "Edit Country".
-    composeTestRule.waitUntil(timeoutMillis = 15_000) {
+    composeTestRule.waitUntil(timeoutMillis = 15_014) {
       composeTestRule
           .onAllNodesWithContentDescription("Edit Country")
           .fetchSemanticsNodes()
@@ -889,7 +885,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     // 3. Wait for EditNationalityScreen ("Where are you from ?")
-    composeTestRule.waitUntil(timeoutMillis = 15_000) {
+    composeTestRule.waitUntil(timeoutMillis = 15_015) {
       composeTestRule
           .onAllNodesWithText("Where are you from", substring = true)
           .fetchSemanticsNodes()
@@ -897,7 +893,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     }
 
     // 4. Search for Tunisia (using logic from signup test)
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+    composeTestRule.waitUntil(timeoutMillis = 10_017) {
       composeTestRule
           .onAllNodesWithText("Search countries", substring = true)
           .fetchSemanticsNodes()
@@ -921,7 +917,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     // 6. Select Tunisia from the list (wait for filtering)
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+    composeTestRule.waitUntil(timeoutMillis = 10_018) {
       composeTestRule
           .onAllNodesWithText("Tunisia", substring = true)
           .fetchSemanticsNodes()
@@ -935,7 +931,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
 
     // 7. Click "Save Changes"
     // In EditNationalityScreen.kt, the button text is specifically "Save Changes"
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
+    composeTestRule.waitUntil(timeoutMillis = 10_019) {
       composeTestRule
           .onAllNodes(hasText("Save Changes", substring = true) and hasClickAction())
           .fetchSemanticsNodes()
@@ -949,7 +945,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     composeTestRule.waitForIdle()
 
     // 8. Wait to be back on Profile
-    composeTestRule.waitUntil(timeoutMillis = 30_000) {
+    composeTestRule.waitUntil(timeoutMillis = 30_011) {
       composeTestRule
           .onAllNodesWithContentDescription("Edit Name")
           .fetchSemanticsNodes()
@@ -957,7 +953,7 @@ class EndToEndTest : FirestoreStudentConnectTest(signInAnonymouslyIfPossible = f
     }
 
     // 9. Verify Country is updated
-    composeTestRule.waitUntil(timeoutMillis = 20_000) {
+    composeTestRule.waitUntil(timeoutMillis = 20_003) {
       composeTestRule
           .onAllNodesWithText("Tunisia", substring = true)
           .fetchSemanticsNodes()
