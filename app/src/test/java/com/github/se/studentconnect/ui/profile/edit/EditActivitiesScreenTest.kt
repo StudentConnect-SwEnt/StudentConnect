@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
@@ -12,8 +11,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class EditActivitiesScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -27,7 +29,7 @@ class EditActivitiesScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Football", "AI", "Piano"),
           bio = "Test bio",
           profilePictureUrl = null,
@@ -417,7 +419,7 @@ class EditActivitiesScreenTest {
   }
 
   @Test
-  fun editActivitiesScreen_showsSuccessMessage() {
+  fun editActivitiesScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditActivitiesScreen(
@@ -432,36 +434,13 @@ class EditActivitiesScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save Activities").performClick()
 
-    // Wait for success message
-    composeTestRule.waitForIdle()
-
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText("Activities updated successfully").assertExists()
-  }
-
-  @Test
-  fun editActivitiesScreen_doesNotNavigateBackAfterSave() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        EditActivitiesScreen(
-            userId = testUser.userId,
-            userRepository = repository,
-            onNavigateBack = { navigatedBack = true })
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
-
-    // Wait for save to complete
+    // Wait for save to complete and navigation
     composeTestRule.waitForIdle()
     Thread.sleep(500) // Give time for save operation
     composeTestRule.waitForIdle()
 
-    // Should NOT navigate back automatically
-    assert(!navigatedBack)
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test

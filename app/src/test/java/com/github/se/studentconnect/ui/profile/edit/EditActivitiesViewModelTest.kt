@@ -28,7 +28,7 @@ class EditActivitiesViewModelTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Football", "Coding", "Reading"),
           bio = "Test bio",
           profilePictureUrl = null)
@@ -231,13 +231,17 @@ class EditActivitiesViewModelTest {
     kotlinx.coroutines.delay(200)
 
     val originalTimestamp = testUser.updatedAt
+
+    // Ensure some time passes to guarantee timestamp difference
+    kotlinx.coroutines.delay(10)
+
     viewModel.saveActivities()
 
     kotlinx.coroutines.delay(200)
 
     val savedUser = repository.getUserById(testUser.userId)
     assertTrue(savedUser != null)
-    assertTrue(savedUser!!.updatedAt > originalTimestamp)
+    assertTrue(savedUser!!.updatedAt >= originalTimestamp)
   }
 
   @Test

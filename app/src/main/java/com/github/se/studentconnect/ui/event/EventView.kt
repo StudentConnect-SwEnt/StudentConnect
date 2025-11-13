@@ -442,20 +442,27 @@ private fun CommonActionButtons(
     context: Context,
     navController: NavHostController
 ) {
-  ButtonIcon(
-      id = R.drawable.ic_location_pin,
-      onClick = {
-        currentEvent.location?.let { location ->
-          val route = Route.mapWithLocation(location.latitude, location.longitude)
-          navController.navigate(route)
-        }
-      },
-      modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-  ButtonIcon(
-      id = R.drawable.ic_web,
-      onClick = {
-        (currentEvent as? Event.Public)?.website?.let { website ->
-          if (website.isNotEmpty()) {
+  // Only show location button if location exists
+  if (currentEvent.location != null) {
+    ButtonIcon(
+        id = R.drawable.ic_location_pin,
+        onClick = {
+          currentEvent.location?.let { location ->
+            val route = Route.mapWithLocation(location.latitude, location.longitude)
+            navController.navigate(route)
+          }
+        },
+        modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+  }
+
+  // Only show website button if event is Public and has a non-empty website
+  val publicEvent = currentEvent as? Event.Public
+  val websiteUrl = publicEvent?.website
+  if (!websiteUrl.isNullOrEmpty()) {
+    ButtonIcon(
+        id = R.drawable.ic_web,
+        onClick = {
+          currentEvent?.website?.let { website ->
             val fixedUrl =
                 if (!website.startsWith("http://") && !website.startsWith("https://")) {
                   "https://$website"
@@ -471,9 +478,10 @@ private fun CommonActionButtons(
                   .show()
             }
           }
-        }
-      },
-      modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+        },
+        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+  }
+
   ButtonIcon(
       id = R.drawable.ic_share,
       onClick = { DialogNotImplemented(context) },

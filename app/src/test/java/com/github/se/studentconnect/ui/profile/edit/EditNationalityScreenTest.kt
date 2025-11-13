@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
@@ -14,8 +13,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class EditNationalityScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -30,7 +32,7 @@ class EditNationalityScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null)
@@ -173,7 +175,7 @@ class EditNationalityScreenTest {
   }
 
   @Test
-  fun editNationalityScreen_showsSuccessMessage() {
+  fun editNationalityScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditNationalityScreen(
@@ -188,17 +190,13 @@ class EditNationalityScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save Changes").performClick()
 
-    // Wait for success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntil(timeoutMillis = 2000) {
-      composeTestRule
-          .onAllNodesWithText("Nationality updated successfully")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
 
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText("Nationality updated successfully").assertExists()
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
@@ -279,7 +277,7 @@ class EditNationalityScreenTest {
     assertEquals(testUser.lastName, savedUser.lastName)
     assertEquals(testUser.email, savedUser.email)
     assertEquals(testUser.university, savedUser.university)
-    assertEquals(testUser.birthday, savedUser.birthday)
+    assertEquals(testUser.birthdate, savedUser.birthdate)
     assertEquals(testUser.hobbies, savedUser.hobbies)
     assertEquals(testUser.bio, savedUser.bio)
   }

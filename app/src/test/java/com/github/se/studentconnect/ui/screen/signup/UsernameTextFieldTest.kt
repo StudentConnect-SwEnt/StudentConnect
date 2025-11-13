@@ -4,8 +4,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
@@ -14,15 +12,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class UsernameTextFieldTest {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
-  @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private lateinit var repository: UserRepositoryLocal
   private var validationState: Pair<Boolean, Boolean?>? = null

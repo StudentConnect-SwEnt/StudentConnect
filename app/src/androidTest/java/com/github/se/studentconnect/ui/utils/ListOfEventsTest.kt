@@ -11,8 +11,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.events.EventCard
-import com.github.se.studentconnect.ui.events.EventListScreen
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import org.junit.Rule

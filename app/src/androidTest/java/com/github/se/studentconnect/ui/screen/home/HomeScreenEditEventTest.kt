@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.espresso.Espresso
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -53,6 +54,10 @@ class HomeScreenEditEventTest : StudentConnectTest() {
 
   @Test
   fun editingPublicEvent_updatesHomeList() {
+    // Use future timestamps to pass temporality filter
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
     val event =
         Event.Public(
             uid = "public-home-test",
@@ -61,8 +66,8 @@ class HomeScreenEditEventTest : StudentConnectTest() {
             description = "Original description",
             imageUrl = null,
             location = Location(46.52, 6.56, "Original Location"),
-            start = Timestamp.fromDate(2025, 4, 9),
-            end = Timestamp.fromDate(2025, 4, 10),
+            start = futureStart,
+            end = futureEnd,
             maxCapacity = null,
             participationFee = null,
             isFlash = false,
@@ -95,11 +100,36 @@ class HomeScreenEditEventTest : StudentConnectTest() {
     titleNode.performScrollTo().performTextClearance()
     titleNode.performTextInput(updatedTitle)
 
+    // Wait for composition to settle after text input
+    composeTestRule.waitForIdle()
+
+    // Press back to dismiss keyboard
+    Espresso.pressBack()
+    composeTestRule.waitForIdle()
+    Thread.sleep(300) // Give time for keyboard to dismiss
+
+    // Press back again to clear focus from the field (triggers BackHandler in
+    // CreatePublicEventScreen)
+    Espresso.pressBack()
+    composeTestRule.waitForIdle()
+
+    // Wait for focus to clear and AnimatedVisibility fade-in animation to complete
+    Thread.sleep(800) // AnimatedVisibility uses fadeIn/fadeOut animations
+
+    // Scroll to bottom to ensure save button is visible in viewport
     composeTestRule
-        .onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+        .onNodeWithTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
         .performScrollTo()
-        .assertIsEnabled()
-        .performClick()
+
+    // Wait for composition after scroll
+    composeTestRule.waitForIdle()
+
+    // Wait until save button exists and is enabled
+    // waitUntilEnabled(CreatePublicEventScreenTestTags.SAVE_BUTTON, timeoutMillis = 10000)
+
+    val saveButton = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+    saveButton.assertIsEnabled()
+    saveButton.performClick()
 
     composeTestRule.waitUntil(5_000) {
       composeTestRule
@@ -111,6 +141,10 @@ class HomeScreenEditEventTest : StudentConnectTest() {
 
   @Test
   fun editingPrivateEvent_updatesHomeList() {
+    // Use future timestamps to pass temporality filter
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
     val event =
         Event.Private(
             uid = "private-home-test",
@@ -119,8 +153,8 @@ class HomeScreenEditEventTest : StudentConnectTest() {
             description = "Original private description",
             imageUrl = null,
             location = Location(46.51, 6.57, "Private Location"),
-            start = Timestamp.fromDate(2025, 5, 1),
-            end = Timestamp.fromDate(2025, 5, 2),
+            start = futureStart,
+            end = futureEnd,
             maxCapacity = 20u,
             participationFee = 5u,
             isFlash = true)

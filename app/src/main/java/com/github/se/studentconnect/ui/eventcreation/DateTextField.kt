@@ -22,6 +22,7 @@ fun DateTextField(
     placeholder: String? = null,
     initialValue: String = "",
     onDateChange: (LocalDate?) -> Unit,
+    required: Boolean = false,
 ) {
   var dateString by remember { mutableStateOf(initialValue) }
   var hasInteractedWithField by remember { mutableStateOf(false) }
@@ -71,6 +72,6 @@ fun DateTextField(
       placeholder = placeholder,
       errorText =
           if (dateString.isEmpty()) "Date cannot be empty"
-          else if (date == null) "Date is invalid" else null // no error
-      )
+          else if (date == null) "Date is invalid" else null, // no error
+      required = required)
 }

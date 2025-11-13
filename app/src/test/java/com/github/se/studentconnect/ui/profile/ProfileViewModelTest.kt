@@ -2,7 +2,6 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -27,7 +26,7 @@ class ProfileViewModelTest {
           email = "john@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Coding"),
           bio = "Test bio")
 
@@ -148,7 +147,7 @@ class ProfileViewModelTest {
     viewModel.updateBirthday("15/06/1995")
     kotlinx.coroutines.delay(200)
 
-    assertEquals("15/06/1995", repository.savedUsers.last().birthday)
+    assertEquals("15/06/1995", repository.savedUsers.last().birthdate)
   }
 
   @Test
@@ -164,7 +163,7 @@ class ProfileViewModelTest {
     viewModel.updateBirthday("")
     kotlinx.coroutines.delay(200)
 
-    assertNull(repository.savedUsers.last().birthday)
+    assertNull(repository.savedUsers.last().birthdate)
   }
 
   @Test
@@ -345,7 +344,7 @@ class ProfileViewModelTest {
             profilePictureUrl = "https://example.com/profile.png",
             bio = "Student at EPFL",
             country = "Switzerland",
-            birthday = "01/01/2000",
+            birthdate = "01/01/2000",
             createdAt = 1_000L,
             updatedAt = 2_000L)
   }

@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -20,8 +19,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class HomeScreenFilteringTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -35,6 +37,8 @@ class HomeScreenFilteringTest {
       title: String,
       tags: List<String> = emptyList()
   ): Event.Public {
+    // Create future timestamp (1 hour from now) to pass temporality filter
+    val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
     return Event.Public(
         uid = uid,
         ownerId = "owner1",
@@ -42,8 +46,8 @@ class HomeScreenFilteringTest {
         description = "Description",
         imageUrl = null,
         location = Location(0.0, 0.0, "Location"),
-        start = Timestamp.now(),
-        end = Timestamp.now(),
+        start = futureTime,
+        end = futureTime,
         maxCapacity = null,
         participationFee = null,
         isFlash = false,

@@ -34,6 +34,7 @@ data class HomePageUiState(
     val isCalendarVisible: Boolean = false,
     val selectedDate: Date? = null,
     val scrollToDate: Date? = null,
+    val showOnlyFavorites: Boolean = false,
 )
 
 /** Coordinates event loading, filtering, favorite handling, and story progress. */
@@ -190,9 +191,16 @@ constructor(
   private fun applyFilters(filters: FilterData, eventsToFilter: List<Event>) {
     _uiState.update { it.copy(isLoading = true) }
 
+    val currentTime = Date()
+
     val filtered =
         eventsToFilter.filter { event ->
           val publicEvent = event as? Event.Public
+
+          // Temporality: only show future or LIVE events
+          val eventEndTime = event.end?.toDate() ?: event.start.toDate()
+          val isFutureOrLive = eventEndTime.after(currentTime) || eventEndTime == currentTime
+          if (!isFutureOrLive) return@filter false
 
           // Favorites
           val favoriteMatch =
@@ -238,7 +246,14 @@ constructor(
 
           locationMatch
         }
-    _uiState.update { it.copy(events = filtered, isLoading = false) }
+    _uiState.update {
+      it.copy(events = filtered, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites)
+    }
+  }
+
+  fun toggleFavoritesFilter() {
+    val newFilters = currentFilters.copy(showOnlyFavorites = !currentFilters.showOnlyFavorites)
+    applyFilters(newFilters)
   }
 
   private fun calculateHaversineDistance(loc1: Location, loc2: Location): Double {

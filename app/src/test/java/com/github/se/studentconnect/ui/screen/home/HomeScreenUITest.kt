@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -25,8 +24,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class HomeScreenUITest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -37,14 +39,17 @@ class HomeScreenUITest {
   private lateinit var viewModel: HomePageViewModel
   private lateinit var notificationViewModel: NotificationViewModel
 
+  // Create future timestamp (1 hour from now) to pass temporality filter
+  private val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+
   private val testEvent1 =
       Event.Public(
           uid = "event-1",
           title = "Summer Festival",
           subtitle = "Best summer event",
           description = "Join us for an amazing summer festival.",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
           website = "https://example.com",
           ownerId = "owner1",
@@ -58,8 +63,8 @@ class HomeScreenUITest {
           title = "Tech Conference",
           subtitle = "Latest in tech",
           description = "Explore the latest technology trends.",
-          start = Timestamp.now(),
-          end = Timestamp.now(),
+          start = futureTime,
+          end = futureTime,
           location = Location(latitude = 46.52, longitude = 6.57, name = "SwissTech"),
           website = "https://example.com",
           ownerId = "owner2",

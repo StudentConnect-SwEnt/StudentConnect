@@ -29,7 +29,7 @@ class EditProfilePictureViewModelTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = "http://example.com/old-pic.jpg")
@@ -198,7 +198,7 @@ class EditProfilePictureViewModelTest {
     assertEquals(testUser.email, savedUser.email)
     assertEquals(testUser.university, savedUser.university)
     assertEquals(testUser.country, savedUser.country)
-    assertEquals(testUser.birthday, savedUser.birthday)
+    assertEquals(testUser.birthdate, savedUser.birthdate)
     assertEquals(testUser.hobbies, savedUser.hobbies)
     assertEquals(testUser.bio, savedUser.bio)
     assertEquals(newUrl, savedUser.profilePictureUrl)
