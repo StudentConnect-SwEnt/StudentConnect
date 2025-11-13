@@ -314,4 +314,154 @@ class HomeScreenCameraModeTest {
 
     composeTestRule.runOnIdle { assertTrue(qrScannerClosed) }
   }
+
+  @Test
+  fun homeScreen_onCameraActiveChange_calledWithFalse_whenOnHomePage() {
+    var cameraActive: Boolean? = null
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          shouldOpenQRScanner = false,
+          onCameraActiveChange = { active -> cameraActive = active },
+          viewModel = createMockHomePageViewModel(),
+          notificationViewModel = createMockNotificationViewModel())
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Should be on home page (page 1), so camera should be inactive
+    composeTestRule.runOnIdle {
+      assertTrue("onCameraActiveChange should be called", cameraActive != null)
+      assertTrue("Camera should be inactive on home page", cameraActive == false)
+    }
+  }
+
+  @Test
+  fun homeScreen_onCameraActiveChange_calledWithTrue_whenOnScannerPage() {
+    var cameraActive: Boolean? = null
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          shouldOpenQRScanner = true,
+          onCameraActiveChange = { active -> cameraActive = active },
+          viewModel = createMockHomePageViewModel(),
+          notificationViewModel = createMockNotificationViewModel())
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Should be on scanner page (page 0), so camera should be active
+    composeTestRule.runOnIdle {
+      assertTrue("onCameraActiveChange should be called", cameraActive != null)
+      assertTrue("Camera should be active on scanner page", cameraActive == true)
+    }
+  }
+
+  @Test
+  fun homeScreen_onCameraActiveChange_updatesWhenNavigatingToScanner() {
+    var cameraActive: Boolean? = null
+    var callCount = 0
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          shouldOpenQRScanner = false,
+          onCameraActiveChange = { active ->
+            cameraActive = active
+            callCount++
+          },
+          viewModel = createMockHomePageViewModel(),
+          notificationViewModel = createMockNotificationViewModel())
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Initially on home page, camera should be inactive
+    composeTestRule.runOnIdle {
+      assertTrue("Camera should initially be inactive", cameraActive == false)
+    }
+
+    // Click add story to navigate to scanner
+    composeTestRule.onNodeWithTag("addStoryButton").performClick()
+
+    composeTestRule.waitForIdle()
+
+    // Should now be on scanner page, camera should be active
+    composeTestRule.runOnIdle {
+      assertTrue("Camera should be active after navigating to scanner", cameraActive == true)
+      assertTrue("Callback should have been called multiple times", callCount >= 2)
+    }
+  }
+
+  @Test
+  fun homeScreen_onCameraActiveChange_updatesWhenNavigatingBackToHome() {
+    var cameraActive: Boolean? = null
+    var callCount = 0
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          shouldOpenQRScanner = true,
+          onCameraActiveChange = { active ->
+            cameraActive = active
+            callCount++
+          },
+          viewModel = createMockHomePageViewModel(),
+          notificationViewModel = createMockNotificationViewModel())
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Initially on scanner page, camera should be active
+    composeTestRule.runOnIdle {
+      assertTrue("Camera should initially be active", cameraActive == true)
+    }
+
+    // Click back button to return to home
+    composeTestRule.onNodeWithTag("camera_mode_back_button").performClick()
+
+    composeTestRule.waitForIdle()
+
+    // Should now be back on home page, camera should be inactive
+    composeTestRule.runOnIdle {
+      assertTrue("Camera should be inactive after returning to home", cameraActive == false)
+      assertTrue("Callback should have been called multiple times", callCount >= 2)
+    }
+  }
+
+  @Test
+  fun homeScreen_onCameraActiveChange_multipleNavigations() {
+    val cameraStates = mutableListOf<Boolean>()
+
+    composeTestRule.setContent {
+      HomeScreen(
+          navController = rememberNavController(),
+          shouldOpenQRScanner = false,
+          onCameraActiveChange = { active -> cameraStates.add(active) },
+          viewModel = createMockHomePageViewModel(),
+          notificationViewModel = createMockNotificationViewModel())
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Navigate to scanner
+    composeTestRule.onNodeWithTag("addStoryButton").performClick()
+    composeTestRule.waitForIdle()
+
+    // Navigate back to home
+    composeTestRule.onNodeWithTag("camera_mode_back_button").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify we captured the state changes
+    composeTestRule.runOnIdle {
+      assertTrue("Should have multiple state changes", cameraStates.size >= 2)
+      assertTrue("Should start with inactive state", cameraStates.first() == false)
+      assertTrue("Should end with inactive state", cameraStates.last() == false)
+      assertTrue(
+          "Should have active state in between",
+          cameraStates.contains(true) || cameraStates.any { it })
+    }
+  }
 }
