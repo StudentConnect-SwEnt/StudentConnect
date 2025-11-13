@@ -33,11 +33,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryListSurface
@@ -143,13 +145,15 @@ fun EditNationalityScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Nationality",
+                  text = stringResource(R.string.title_edit_nationality),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold)
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -164,9 +168,9 @@ fun EditNationalityScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.Start) {
-              TitleText("Where are you from ?")
+              TitleText(stringResource(R.string.instruction_where_are_you_from))
               SmallSpacer()
-              SubtitleText("Helps us connect you with other students and events")
+              SubtitleText(stringResource(R.string.instruction_where_are_you_from_subtitle))
 
               LargeSpacer()
 
@@ -174,9 +178,13 @@ fun EditNationalityScreen(
                   value = query,
                   onValueChange = { query = it },
                   modifier = Modifier.fillMaxWidth(),
-                  placeholder = { Text("Search countries...") },
+                  placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
                   singleLine = true,
-                  trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
+                  trailingIcon = {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = stringResource(R.string.content_description_search))
+                  })
 
               MediumSpacer()
 
@@ -199,7 +207,7 @@ fun EditNationalityScreen(
                           modifier = Modifier.size(16.dp),
                           color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                      Text("Save Changes")
+                      Text(stringResource(R.string.button_save_changes))
                     }
                   }
             }

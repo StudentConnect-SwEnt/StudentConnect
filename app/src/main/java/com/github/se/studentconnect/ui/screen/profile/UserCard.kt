@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -151,7 +152,8 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
           contentAlignment = Alignment.Center) {
             Icon(
                 painter = painterResource(id = R.drawable.studnet_logo),
-                contentDescription = "Student Connect Logo",
+                contentDescription =
+                    stringResource(R.string.content_description_student_connect_logo),
                 modifier = Modifier.size(64.dp, 22.dp),
                 tint = MaterialTheme.colorScheme.primary)
           }
@@ -173,7 +175,8 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                   // Profile picture placeholder (TODO: Add image loading when Coil is available)
                   Icon(
                       imageVector = Icons.Default.Person,
-                      contentDescription = "Profile Picture",
+                      contentDescription =
+                          stringResource(R.string.content_description_profile_picture),
                       modifier = Modifier.fillMaxSize().padding(16.dp),
                       tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -199,7 +202,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text = user.birthdate ?: "Birthday not provided",
+                  text = user.birthdate ?: stringResource(R.string.text_birthday_not_provided),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -216,7 +219,7 @@ private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
           Text(
-              text = "Scan QR code to connect!",
+              text = stringResource(R.string.text_scan_qr_code_to_connect),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.primary,
@@ -232,7 +235,7 @@ private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
           Spacer(modifier = Modifier.height(12.dp))
 
           Text(
-              text = "Scan QR to connect!",
+              text = stringResource(R.string.text_scan_qr_to_connect),
               style = MaterialTheme.typography.bodyMedium,
               fontWeight = FontWeight.Medium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
