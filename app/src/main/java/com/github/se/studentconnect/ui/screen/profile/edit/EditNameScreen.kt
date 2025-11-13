@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditNameViewModel
@@ -130,24 +131,13 @@ fun EditNameScreen(
                   }
 
               // Save Button
-              Button(
+              ProfileSaveButton(
                   onClick = { viewModel.saveName() },
-                  modifier = Modifier.fillMaxWidth().height(56.dp),
+                  isLoading = uiState is BaseEditViewModel.UiState.Loading,
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&
                           firstName.trim().isNotEmpty() &&
-                          lastName.trim().isNotEmpty()) {
-                    if (uiState is BaseEditViewModel.UiState.Loading) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(24.dp),
-                          color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                      Text(
-                          text = "Save",
-                          style = MaterialTheme.typography.bodyLarge,
-                          fontWeight = FontWeight.SemiBold)
-                    }
-                  }
+                          lastName.trim().isNotEmpty())
             }
       }
 }
