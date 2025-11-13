@@ -85,9 +85,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [0, 1, 2, 3, 4, 5]
+        shard_index: [0, 1, 2]
     env:
-      SHARD_COUNT: 6
+      SHARD_COUNT: 3
     steps:
       - uses: actions/checkout@v4
 
