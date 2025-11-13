@@ -1,8 +1,15 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,8 +20,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -108,6 +118,7 @@ fun LocationTextField(
     val initialText = selectedLocation?.toInputLabel().orEmpty()
     mutableStateOf(TextFieldValue(initialText, TextRange(initialText.length)))
   }
+  val focusRequester = remember { FocusRequester() }
 
   LaunchedEffect(selectedLocation) {
     if (selectedLocation != null && selectedLocation != userSelectedLocation) {
@@ -119,7 +130,7 @@ fun LocationTextField(
       locationTextFieldViewModel.clearSuggestions()
     } else if (selectedLocation == null && userSelectedLocation != null && !hasActiveQuery) {
       userSelectedLocation = null
-      locationFieldValue = TextFieldValue("", TextRange(0))
+      locationFieldValue = TextFieldValue("", TextRange.Zero)
       dropdownVisible = false
       locationTextFieldViewModel.clearSuggestions()
     }
@@ -168,7 +179,8 @@ fun LocationTextField(
         }
 
     FormTextField(
-        modifier = modifier.menuAnchor(MenuAnchorType.PrimaryEditable),
+        modifier =
+            modifier.menuAnchor(MenuAnchorType.PrimaryEditable).focusRequester(focusRequester),
         value = locationFieldValue,
         onValueChange = {
           val newText = it.text
@@ -184,7 +196,30 @@ fun LocationTextField(
         label = label,
         placeholder = placeholder,
         errorText =
-            if (userSelectedLocation == null) "Select a location from the suggestions" else null)
+            if (locationFieldValue.text.isNotBlank() && userSelectedLocation == null)
+                "Select a location from the suggestions"
+            else null,
+        trailingIcon = {
+          val shouldShowClear = locationFieldValue.text.isNotBlank() || userSelectedLocation != null
+          if (!shouldShowClear) return@FormTextField
+
+          IconButton(
+              modifier = Modifier.size(32.dp),
+              colors =
+                  IconButtonDefaults.iconButtonColors(
+                      contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+              onClick = {
+                locationFieldValue = TextFieldValue("", TextRange.Zero)
+                dropdownVisible = false
+                hasActiveQuery = false
+                userSelectedLocation = null
+                onLocationChange(null)
+                locationTextFieldViewModel.clearSuggestions()
+                focusRequester.requestFocus()
+              }) {
+                Icon(imageVector = Icons.Filled.Close, contentDescription = "Clear location")
+              }
+        })
   }
 }
 
