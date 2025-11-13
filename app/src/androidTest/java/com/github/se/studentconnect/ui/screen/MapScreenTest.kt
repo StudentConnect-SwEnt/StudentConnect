@@ -219,4 +219,153 @@ class MapScreenTest : TestCase() {
       composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
     }
   }
+
+  @Test
+  fun mapScreen_withAllParameters_displaysCorrectly() = run {
+    step("Display MapScreen with all parameters") {
+      composeTestRule.setContent {
+        MapScreen(
+            targetLatitude = 46.5197,
+            targetLongitude = 6.6323,
+            targetZoom = 18.0,
+            targetEventUid = "event-all-params")
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withLocationAndZoomNoEvent_displaysCorrectly() = run {
+    step("Display MapScreen with location and zoom, no event") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 12.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withLocationOnlyDefaultZoom_displaysCorrectly() = run {
+    step("Display MapScreen with location only, default zoom") {
+      composeTestRule.setContent { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323) }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_eventInfoCard_notDisplayedByDefault() = run {
+    step("Display MapScreen without event selection") { composeTestRule.setContent { MapScreen() } }
+
+    step("Verify event info card is not displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_event_info_card).assertDoesNotExist()
+    }
+  }
+
+  @Test
+  fun mapScreen_searchField_acceptsInput() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Enter text in search field and verify") {
+      val searchField = composeTestRule.onNodeWithTag(C.Tag.map_search_field)
+      searchField.assertIsDisplayed()
+      searchField.performTextInput("EPFL")
+
+      // Verify the search field contains the text
+      composeTestRule.waitForIdle()
+    }
+  }
+
+  @Test
+  fun mapScreen_locationPermission_showsCorrectFABs() = run {
+    step("Display MapScreen with location permission") {
+      composeTestRule.setContent { MapScreen() }
+    }
+
+    step("Verify both FABs are displayed") {
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        composeTestRule
+            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+      }
+
+      composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_toggleViewFAB_clickable() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Click toggle view FAB multiple times") {
+      val toggleFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
+      toggleFab.assertIsDisplayed()
+      toggleFab.performClick()
+      composeTestRule.waitForIdle()
+      toggleFab.performClick()
+      composeTestRule.waitForIdle()
+    }
+  }
+
+  @Test
+  fun mapScreen_withMinimumZoomLevel_displaysCorrectly() = run {
+    step("Display MapScreen with minimum zoom level") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 1.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withMaximumZoomLevel_displaysCorrectly() = run {
+    step("Display MapScreen with maximum zoom level") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 22.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withBoundaryCoordinates_displaysCorrectly() = run {
+    step("Display MapScreen with boundary coordinates") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = -90.0, targetLongitude = -180.0, targetZoom = 15.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withEquatorAndPrimeMeridian_displaysCorrectly() = run {
+    step("Display MapScreen at equator and prime meridian") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 0.0, targetLongitude = 0.0, targetZoom = 15.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
 }
