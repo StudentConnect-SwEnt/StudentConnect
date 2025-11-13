@@ -192,7 +192,7 @@ jobs:
             adb install "$APP_DEBUG_TEST_APK"
 
             # Run tests
-            adb shell am instrument -w -e coverage true -e coverageFile /sdcard/coverage.ec -e numShards $SHARD_COUNT -e shardIndex ${{ env.shard_index }} $TEST_PACKAGE/$TEST_RUNNER
+            adb shell am instrument -w -e coverage true -e coverageFile /sdcard/coverage.ec -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $TEST_PACKAGE/$TEST_RUNNER
 
             # Pull coverage
             adb pull /sdcard/coverage.ec ./coverage.ec
