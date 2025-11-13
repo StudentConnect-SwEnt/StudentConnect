@@ -283,7 +283,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
     // Check if participant already exists
     val participantSnapshot = participantRef.get().await()
-    check(!(participantSnapshot.exists())) {
+    check(!participantSnapshot.exists()) {
       "Participant ${participant.uid} is already in event $eventUid"
     }
 

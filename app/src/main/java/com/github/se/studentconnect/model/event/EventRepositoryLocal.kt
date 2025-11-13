@@ -37,7 +37,7 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun addEvent(event: Event) {
-    require(!(events.any { it.uid == event.uid })) { "Event with UID ${event.uid} already exists." }
+    require(!events.any { it.uid == event.uid }) { "Event with UID ${event.uid} already exists." }
     events.add(event)
     participantsByEvent[event.uid] = mutableListOf()
   }
@@ -61,11 +61,11 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) {
-    require(!(events.none { it.uid == eventUid })) { "Event $eventUid does not exist." }
+    require(!events.none { it.uid == eventUid }) { "Event $eventUid does not exist." }
 
     val participants = participantsByEvent.getOrPut(eventUid) { mutableListOf() }
 
-    check(!(participants.any { it.uid == participant.uid })) {
+    check(!participants.any { it.uid == participant.uid }) {
       "Participant ${participant.uid} is already in event $eventUid."
     }
 
@@ -82,12 +82,12 @@ class EventRepositoryLocal : EventRepository {
           "Cannot invite to a non-existent event. Event with UID $eventUid not found.")
     }
     val participants = participantsByEvent[eventUid] ?: emptyList()
-    check(!(participants.any { it.uid == invitedUserUid })) {
+    check(!participants.any { it.uid == invitedUserUid }) {
       "User $invitedUserUid is already a participant in event $eventUid."
     }
 
     val userInvitations = invitationsByUser.getOrPut(invitedUserUid) { mutableListOf() }
-    check(!(userInvitations.any { it.eventId == eventUid })) {
+    check(!userInvitations.any { it.eventId == eventUid }) {
       "An invitation for event $eventUid has already been sent to user $invitedUserUid."
     }
 
