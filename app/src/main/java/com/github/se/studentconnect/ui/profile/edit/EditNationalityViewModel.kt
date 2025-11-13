@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
@@ -29,7 +30,7 @@ class EditNationalityViewModel(
   val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
   // Success message state
-  private val _successMessage = MutableStateFlow<Int?>(null)
+  @StringRes private val _successMessage = MutableStateFlow<Int?>(null)
   val successMessage: StateFlow<Int?> = _successMessage.asStateFlow()
 
   init {
