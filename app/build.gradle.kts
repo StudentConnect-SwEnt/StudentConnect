@@ -74,7 +74,6 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
-            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
             buildConfigField("Boolean", "USE_FIREBASE_EMULATOR", "false")
 
             signingConfig = signingConfigs.getByName("release")
@@ -82,8 +81,7 @@ android {
         debug {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
-            // Use real map in debug builds, mock map for android tests
-            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
+            // USE_MOCK_MAP is set per flavor
             buildConfigField(
                 "Boolean", "USE_FIREBASE_EMULATOR", useFirebaseEmulator.toString())
         }
@@ -92,11 +90,15 @@ android {
     productFlavors {
         create("normal") {
             dimension = "env"
+            // Use real map in normal builds
+            buildConfigField("Boolean", "USE_MOCK_MAP", "false")
         }
         create("resOverride") {
             dimension = "env"
             // Ensure we reuse dependencies and fallbacks from the normal flavor
             matchingFallbacks += listOf("normal")
+            // Use mock map for all resOverride builds (used in CI tests)
+            buildConfigField("Boolean", "USE_MOCK_MAP", "true")
         }
     }
     compileOptions {
