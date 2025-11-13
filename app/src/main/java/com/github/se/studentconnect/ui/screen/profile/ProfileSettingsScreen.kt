@@ -184,7 +184,7 @@ fun ProfileSettingsScreen(
                           // Birthday Field
                           EditableProfileField(
                               label = "Birthday",
-                              value = currentUser.birthday ?: "",
+                              value = currentUser.birthdate ?: "",
                               isEditing = editingField == EditingField.Birthday,
                               isLoading = loadingFields.contains(EditingField.Birthday),
                               errorMessage = fieldErrors[EditingField.Birthday],

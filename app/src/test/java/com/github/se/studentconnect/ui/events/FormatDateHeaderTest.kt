@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.events
 
+import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import java.util.Date

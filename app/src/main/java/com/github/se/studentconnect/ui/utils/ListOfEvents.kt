@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.events
+package com.github.se.studentconnect.ui.utils
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,6 +35,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
+
+private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
 
 /**
  * The main screen composable that displays a vertical list of event cards.
@@ -195,9 +197,11 @@ fun EventCard(
                 modifier = Modifier.testTag("event_card_title_${event.uid}"))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = event.location?.name ?: "Location not specified",
+                text = formatShortAddress(event.location?.name),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = MAX_LINES_FOR_ADDRESS_TEXT,
+                overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

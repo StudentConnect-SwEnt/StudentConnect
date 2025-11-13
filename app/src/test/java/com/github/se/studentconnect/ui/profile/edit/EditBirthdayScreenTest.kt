@@ -8,20 +8,24 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class EditBirthdayScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -35,7 +39,7 @@ class EditBirthdayScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "15/01/2000",
+          birthdate = "15/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null,
@@ -169,7 +173,7 @@ class EditBirthdayScreenTest {
 
   @Test
   fun editBirthdayScreen_handlesUserWithNoBirthday() {
-    val userWithNoBirthday = testUser.copy(birthday = null)
+    val userWithNoBirthday = testUser.copy(birthdate = null)
     val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
@@ -200,15 +204,17 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
-  fun editBirthdayScreen_showsSuccessMessageAfterSave() {
+  fun editBirthdayScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditBirthdayScreen(
@@ -221,9 +227,13 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Birthday updated successfully").assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test
@@ -332,7 +342,7 @@ class EditBirthdayScreenTest {
   @Test
   fun editBirthdayScreen_saveButtonDisabledWhenNoDateSelected() {
     // Create a repository with user that has no birthday
-    val userWithNoBirthday = testUser.copy(birthday = null)
+    val userWithNoBirthday = testUser.copy(birthdate = null)
     val testRepo = TestableUserRepositoryLocal(userWithNoBirthday)
 
     composeTestRule.setContent {
@@ -351,7 +361,7 @@ class EditBirthdayScreenTest {
 
   @Test
   fun editBirthdayScreen_handlesInvalidBirthdayFormat() {
-    val userWithInvalidBirthday = testUser.copy(birthday = "invalid-date")
+    val userWithInvalidBirthday = testUser.copy(birthdate = "invalid-date")
     val testRepo = TestableUserRepositoryLocal(userWithInvalidBirthday)
 
     composeTestRule.setContent {
@@ -385,15 +395,17 @@ class EditBirthdayScreenTest {
     // Click save to save the current date
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and navigation
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    Thread.sleep(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    // Should navigate back after successful save
+    assert(navigatedBack)
   }
 
   @Test
-  fun editBirthdayScreen_updatesTimestampOnSave() {
+  fun editBirthdayScreen_updatesTimestampOnSave() = runTest {
     val timeBefore = System.currentTimeMillis()
 
     composeTestRule.setContent {
@@ -408,11 +420,15 @@ class EditBirthdayScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for save operation - should show success message
+    // Wait for save operation and verify timestamp was updated
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Birthday updated successfully", useUnmergedTree = true)
-        .assertExists()
+    delay(500) // Give time for save operation
+    composeTestRule.waitForIdle()
+
+    val timeAfter = System.currentTimeMillis()
+    val savedUser = repository.getUserById(testUser.userId)
+    assertNotNull(savedUser)
+    assert(savedUser!!.updatedAt >= timeBefore && savedUser.updatedAt <= timeAfter)
   }
 
   @Test

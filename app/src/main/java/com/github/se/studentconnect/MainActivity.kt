@@ -233,10 +233,20 @@ private fun MainAppContent(
   // Track whether camera mode selector is currently active to conditionally hide bottom nav
   var isCameraActive by remember { mutableStateOf(false) }
 
+  val currentBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = currentBackStackEntry?.destination?.route
+
+  // Hide bottom bar for create/edit event screens
+  val hideBottomBar =
+      currentRoute == Route.CREATE_PUBLIC_EVENT ||
+          currentRoute == Route.CREATE_PRIVATE_EVENT ||
+          currentRoute == Route.EDIT_PUBLIC_EVENT ||
+          currentRoute == Route.EDIT_PRIVATE_EVENT ||
+          isCameraActive
+
   Scaffold(
       bottomBar = {
-        // Only show bottom navigation bar when camera is not active
-        if (!isCameraActive) {
+        if (!hideBottomBar) {
           BottomNavigationBar(
               selectedTab = selectedTab,
               onTabSelected = { tab ->

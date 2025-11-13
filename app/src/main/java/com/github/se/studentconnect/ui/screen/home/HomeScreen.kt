@@ -1,5 +1,11 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -74,6 +80,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -82,14 +89,15 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.ui.calendar.EventCalendar
-import com.github.se.studentconnect.ui.events.EventListScreen
-import com.github.se.studentconnect.ui.events.formatDateHeader
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -140,8 +148,10 @@ fun HomeScreen(
       favoriteEventIds = favoriteEventIds,
       onDateSelected = { date -> viewModel.onDateSelected(date) },
       onCalendarClick = { viewModel.showCalendar() },
+      onCalendarDismiss = { viewModel.hideCalendar() },
       onApplyFilters = viewModel::applyFilters,
       onFavoriteToggle = viewModel::toggleFavorite,
+      onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
       onClearScrollTarget = { viewModel.clearScrollTarget() })
 }
 
@@ -162,13 +172,17 @@ fun HomeScreen(
     favoriteEventIds: Set<String> = emptySet(),
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
+    onCalendarDismiss: () -> Unit = {},
     onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
+    onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   // var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   val notificationUiState by notificationViewModel.uiState.collectAsState()
+  var selectedStory by remember { mutableStateOf<Event?>(null) }
+  var showStoryViewer by remember { mutableStateOf(false) }
   val sheetState =
       rememberModalBottomSheetState(
           initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
@@ -285,7 +299,9 @@ fun HomeScreen(
                               FilterBar(
                                   context = LocalContext.current,
                                   onCalendarClick = onCalendarClick,
-                                  onApplyFilters = onApplyFilters)
+                                  onApplyFilters = onApplyFilters,
+                                  showOnlyFavorites = uiState.showOnlyFavorites,
+                                  onToggleFavorites = onToggleFavoritesFilter)
                               EventListScreen(
                                   navController = navController,
                                   events = uiState.events,
@@ -300,7 +316,11 @@ fun HomeScreen(
                                             pagerState.animateScrollToPage(0)
                                           }
                                         },
-                                        onClick = onClickStory,
+                                        onClick = { event, seenStories ->
+                                          selectedStory = event
+                                          showStoryViewer = true
+                                          onClickStory(event, seenStories)
+                                        },
                                         stories = uiState.subscribedEventsStories)
                                   })
                             }
@@ -310,6 +330,12 @@ fun HomeScreen(
                     }
                   }
             }
+
+        // Story Viewer Overlay
+        selectedStory?.let { story ->
+          StoryViewer(
+              event = story, isVisible = showStoryViewer, onDismiss = { showStoryViewer = false })
+        }
 
         // Handle scroll to date functionality
         LaunchedEffect(uiState.scrollToDate) {
@@ -331,8 +357,7 @@ fun HomeScreen(
         // Handle modal dismissal (when user taps outside or swipes down)
         LaunchedEffect(sheetState.isVisible) {
           if (!sheetState.isVisible && uiState.isCalendarVisible) {
-            // Modal was dismissed by user interaction, update ViewModel state
-            onCalendarClick()
+            onCalendarDismiss()
           }
         }
       }
@@ -700,8 +725,7 @@ fun StoryItem(
     testTag: String = ""
 ) {
   val borderColor =
-      if (viewed) androidx.compose.material3.MaterialTheme.colorScheme.outline
-      else androidx.compose.material3.MaterialTheme.colorScheme.primary
+      if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
   Column(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier =
@@ -723,7 +747,7 @@ fun StoryItem(
             modifier =
                 Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
                     .testTag("story_text_$name"),
-            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             maxLines = 1)
       }
 }
@@ -803,6 +827,59 @@ fun StoriesRow(
       }
 }
 
+@Composable
+fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
+  AnimatedVisibility(
+      visible = isVisible,
+      enter =
+          fadeIn(animationSpec = tween(300)) +
+              scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
+      exit =
+          fadeOut(animationSpec = tween(200)) +
+              scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
+      modifier = Modifier.fillMaxSize().zIndex(1000f)) {
+        Box(
+            modifier =
+                Modifier.fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { onDismiss() }
+                    .testTag("story_viewer")) {
+              // Close button
+              IconButton(
+                  onClick = onDismiss,
+                  modifier =
+                      Modifier.align(Alignment.TopEnd)
+                          .padding(16.dp)
+                          .testTag("story_close_button")) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close story",
+                        tint = Color.White)
+                  }
+
+              // Story content - placeholder image for now
+              Box(
+                  modifier = Modifier.fillMaxSize().padding(vertical = 80.dp),
+                  contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                          Image(
+                              painter = painterResource(id = R.drawable.avatar_12),
+                              contentDescription = "Story content",
+                              modifier =
+                                  Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
+                          Spacer(modifier = Modifier.height(16.dp))
+                          Text(
+                              text = event.title,
+                              color = Color.White,
+                              style = MaterialTheme.typography.headlineSmall)
+                        }
+                  }
+            }
+      }
+}
+
 /**
  * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
  * smoothly.
@@ -822,7 +899,7 @@ private suspend fun scrollToDate(
     val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
-    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+    val targetDateHeader = formatDateHeader(Timestamp(targetDate))
 
     // Calculate the index to scroll to
     var currentIndex = 0

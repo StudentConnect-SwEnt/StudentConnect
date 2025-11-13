@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.espresso.Espresso
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -99,11 +100,36 @@ class HomeScreenEditEventTest : StudentConnectTest() {
     titleNode.performScrollTo().performTextClearance()
     titleNode.performTextInput(updatedTitle)
 
+    // Wait for composition to settle after text input
+    composeTestRule.waitForIdle()
+
+    // Press back to dismiss keyboard
+    Espresso.pressBack()
+    composeTestRule.waitForIdle()
+    Thread.sleep(300) // Give time for keyboard to dismiss
+
+    // Press back again to clear focus from the field (triggers BackHandler in
+    // CreatePublicEventScreen)
+    Espresso.pressBack()
+    composeTestRule.waitForIdle()
+
+    // Wait for focus to clear and AnimatedVisibility fade-in animation to complete
+    Thread.sleep(800) // AnimatedVisibility uses fadeIn/fadeOut animations
+
+    // Scroll to bottom to ensure save button is visible in viewport
     composeTestRule
-        .onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+        .onNodeWithTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
         .performScrollTo()
-        .assertIsEnabled()
-        .performClick()
+
+    // Wait for composition after scroll
+    composeTestRule.waitForIdle()
+
+    // Wait until save button exists and is enabled
+    // waitUntilEnabled(CreatePublicEventScreenTestTags.SAVE_BUTTON, timeoutMillis = 10000)
+
+    val saveButton = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
+    saveButton.assertIsEnabled()
+    saveButton.performClick()
 
     composeTestRule.waitUntil(5_000) {
       composeTestRule

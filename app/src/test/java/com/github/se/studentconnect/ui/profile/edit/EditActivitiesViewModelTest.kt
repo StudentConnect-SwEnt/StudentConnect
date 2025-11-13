@@ -28,7 +28,7 @@ class EditActivitiesViewModelTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Football", "Coding", "Reading"),
           bio = "Test bio",
           profilePictureUrl = null)

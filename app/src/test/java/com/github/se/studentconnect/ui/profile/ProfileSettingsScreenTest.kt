@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
@@ -13,8 +12,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class ProfileSettingsScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -29,7 +31,7 @@ class ProfileSettingsScreenTest {
           email = "john@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Coding"),
           bio = "Test bio")
 
@@ -219,7 +221,7 @@ class ProfileSettingsScreenTest {
 
   @Test
   fun profileSettingsScreen_handlesNullBirthday() {
-    val userWithoutBirthday = testUser.copy(birthday = null)
+    val userWithoutBirthday = testUser.copy(birthdate = null)
     repository = TestUserRepository(userWithoutBirthday)
 
     composeTestRule.setContent {

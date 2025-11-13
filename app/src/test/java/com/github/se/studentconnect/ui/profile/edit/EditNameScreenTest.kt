@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
@@ -13,8 +12,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class EditNameScreenTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -29,7 +31,7 @@ class EditNameScreenTest {
           email = "john.doe@example.com",
           university = "EPFL",
           country = "Switzerland",
-          birthday = "01/01/2000",
+          birthdate = "01/01/2000",
           hobbies = listOf("Reading", "Hiking"),
           bio = "Test bio",
           profilePictureUrl = null)
@@ -287,7 +289,7 @@ class EditNameScreenTest {
   }
 
   @Test
-  fun editNameScreen_showsSuccessMessageBeforeNavigating() {
+  fun editNameScreen_navigatesBackAfterSave() {
     composeTestRule.setContent {
       MaterialTheme {
         EditNameScreen(
@@ -306,11 +308,13 @@ class EditNameScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait a bit for the snackbar to appear
+    // Wait for save operation and navigation
+    composeTestRule.waitForIdle()
+    Thread.sleep(500) // Give time for save operation
     composeTestRule.waitForIdle()
 
-    // Should show success message in snackbar
-    composeTestRule.onNodeWithText(ProfileConstants.SUCCESS_NAME_UPDATED).assertExists()
+    // Should navigate back automatically after successful save
+    assert(navigatedBack)
   }
 
   @Test

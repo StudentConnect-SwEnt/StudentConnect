@@ -3,8 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.github.se.studentconnect.model.User
-import com.google.firebase.Timestamp
-import java.util.Date
+import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -45,7 +44,7 @@ class UserCardTest {
             username = "testuser",
             firstName = TEST_FIRST_NAME,
             lastName = TEST_LAST_NAME,
-            birthdate = Timestamp(Date(1114819200000L)), // 30/04/2005 in milliseconds
+            birthdate = "30/04/2005",
             university = TEST_UNIVERSITY,
             hobbies = listOf("Programming", "Photography"),
             profilePictureUrl = null,
@@ -259,10 +258,10 @@ class UserCardTest {
 
   @Test
   fun `user card handles birthdate formatting correctly`() {
-    val userWithBirthdate = testUser.copy(birthdate = Timestamp(Date(1114819200000L)))
+    val userWithBirthdate = testUser.copy(birthdate = BirthdayFormatter.formatDate(1114819200000L))
     composeUserCard(userWithBirthdate)
 
-    assertNotNull("Birthdate should not be null", userWithBirthdate.birthdate)
+    assertNotNull("Birthday should not be null", userWithBirthdate.birthdate)
   }
 
   @Test
@@ -270,7 +269,7 @@ class UserCardTest {
     val userWithoutBirthdate = testUser.copy(birthdate = null)
     composeUserCard(userWithoutBirthdate)
 
-    assertTrue("UserCard should handle null birthdate", true)
+    assertTrue("UserCard should handle null birthday", true)
   }
 
   @Test
@@ -299,12 +298,7 @@ class UserCardTest {
 
   @Test
   fun `user card handles different birthdate formats`() {
-    val differentDates =
-        listOf(
-            Timestamp(Date(946684800000L)), // 2000-01-01
-            Timestamp(Date(1577836800000L)), // 2020-01-01
-            Timestamp(Date(0L)) // 1970-01-01
-            )
+    val differentDates = listOf("01/01/2000", "01/01/2020", "01/01/1970")
 
     differentDates.forEach { date ->
       val userWithDate = testUser.copy(birthdate = date)

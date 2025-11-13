@@ -114,6 +114,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
   fun tappingProfilePicture_launchesPicker() {
     registryOwner.enqueueResult(tempImageUri)
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists().performClick()
+    selectGalleryOption()
   }
 
   @Test
@@ -123,6 +124,7 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
     registryOwner.enqueueResult(tempImageUri)
     composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    selectGalleryOption()
 
     composeTestRule.waitForIdle()
     saveButton.assertIsEnabled().assertHasClickAction()
@@ -152,12 +154,29 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
     registryOwner.enqueueResult(tempImageUri)
     composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    selectGalleryOption()
     composeTestRule.waitForIdle()
 
     removeButton.assertIsEnabled().performClick()
 
     removeButton.assertIsNotEnabled()
     composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
+  }
+
+  @Test
+  fun takePhotoOption_enablesSaveButton() {
+    val saveButton = composeTestRule.onNodeWithText("Save Changes")
+    saveButton.assertExists().assertIsNotEnabled()
+
+    // Permission result + TakePicture result
+    registryOwner.enqueueResult(true)
+    registryOwner.enqueueResult(true)
+
+    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    selectTakePhotoOption()
+    composeTestRule.waitForIdle()
+
+    saveButton.assertIsEnabled()
   }
 
   private fun createTempImageFile(): File {
@@ -168,6 +187,14 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
     FileOutputStream(file).use { stream -> bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream) }
     bitmap.recycle()
     return file
+  }
+
+  private fun selectGalleryOption() {
+    composeTestRule.onNodeWithText("Choose from gallery").assertExists().performClick()
+  }
+
+  private fun selectTakePhotoOption() {
+    composeTestRule.onNodeWithText("Take photo").assertExists().performClick()
   }
 }
 
