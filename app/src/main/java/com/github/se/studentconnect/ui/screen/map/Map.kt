@@ -253,7 +253,7 @@ fun MapScreen(
  * @param modifier Modifier to be applied to the search bar
  */
 @Composable
-private fun SearchBar(
+internal fun SearchBar(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -306,7 +306,7 @@ private fun SearchBar(
  * @param modifier Modifier to be applied to the container
  */
 @Composable
-private fun MapContainer(
+internal fun MapContainer(
     mapViewportState: MapViewportState,
     hasLocationPermission: Boolean,
     isEventsView: Boolean,
@@ -531,7 +531,7 @@ private fun MapContainer(
  * @param onToggleView Callback to toggle view
  */
 @Composable
-private fun BoxScope.MapActionButtons(
+internal fun BoxScope.MapActionButtons(
     hasLocationPermission: Boolean,
     isEventsView: Boolean,
     onLocateUser: () -> Unit,
@@ -584,7 +584,7 @@ private fun BoxScope.MapActionButtons(
  * @param modifier Modifier to be applied to the card
  */
 @Composable
-private fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
+internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
   Column(
       modifier = modifier.fillMaxWidth(0.85f).semantics { testTag = C.Tag.map_event_info_card },
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -696,7 +696,7 @@ private fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier 
  * @param timestamp The timestamp to format
  * @return Formatted string like "Jan 15, 2025 2:30 PM"
  */
-private fun formatTimestamp(timestamp: Timestamp): String {
+internal fun formatTimestamp(timestamp: Timestamp): String {
   val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
   return dateFormat.format(timestamp.toDate())
 }
@@ -705,7 +705,7 @@ private fun formatTimestamp(timestamp: Timestamp): String {
  * Detects if the app is running in an Android instrumentation test environment. This allows us to
  * use the mock map during Android tests without changing build config.
  */
-private fun isInAndroidTest(): Boolean {
+internal fun isInAndroidTest(): Boolean {
   return try {
     Class.forName("androidx.test.espresso.Espresso")
     true
