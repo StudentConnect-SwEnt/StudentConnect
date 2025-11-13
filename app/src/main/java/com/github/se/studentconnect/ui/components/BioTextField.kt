@@ -18,111 +18,166 @@ import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 
 /**
+ * Configuration class for BioTextField styling and behavior.
+ *
+ * @param placeholder Placeholder text to display when empty
+ * @param showCharacterCount Whether to show the character counter
+ * @param maxCharacters Maximum number of characters allowed
+ * @param minLines Minimum number of lines to display
+ * @param maxLines Maximum number of lines to display
+ * @param style Style variant - Outlined or Bordered
+ * @param colors Custom colors for the text field (if null, uses default based on style)
+ */
+data class BioTextFieldConfig(
+    val placeholder: String = ProfileConstants.PLACEHOLDER_BIO,
+    val showCharacterCount: Boolean = true,
+    val maxCharacters: Int = ProfileConstants.MAX_BIO_LENGTH,
+    val minLines: Int = 6,
+    val maxLines: Int = 8,
+    val style: BioTextFieldStyle = BioTextFieldStyle.Outlined,
+    val colors: TextFieldColors? = null
+)
+
+/**
  * Reusable bio/description text field component with character counter and validation.
  *
  * This component is used in both the signup flow (DescriptionScreen) and the profile editing flow
  * (EditBioScreen) to reduce code duplication.
  *
+ * Example usage:
+ * ```
+ * // In profile edit screen (Outlined style)
+ * var bioText by remember { mutableStateOf("") }
+ * BioTextField(
+ *     value = bioText,
+ *     onValueChange = { bioText = it }
+ * )
+ *
+ * // In signup flow (Bordered style)
+ * BioTextField(
+ *     value = description,
+ *     onValueChange = { description = it },
+ *     config = BioTextFieldConfig(
+ *         showCharacterCount = false,
+ *         style = BioTextFieldStyle.Bordered
+ *     )
+ * )
+ * ```
+ *
  * @param value The current text value
  * @param onValueChange Callback when text changes
  * @param modifier Modifier for the text field
- * @param placeholder Placeholder text to display when empty
  * @param enabled Whether the text field is enabled
  * @param isError Whether to show error styling
  * @param errorMessage Optional error message to display
- * @param showCharacterCount Whether to show the character counter
- * @param maxCharacters Maximum number of characters allowed
- * @param minLines Minimum number of lines to display
- * @param maxLines Maximum number of lines to display
- * @param style Style variant - "outlined" for standard outlined style, "bordered" for custom
- *   bordered style
- * @param colors Custom colors for the text field (if null, uses default Material3 colors based on
- *   style)
+ * @param config Configuration for styling and behavior
  */
 @Composable
 fun BioTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = ProfileConstants.PLACEHOLDER_BIO,
     enabled: Boolean = true,
     isError: Boolean = false,
     errorMessage: String? = null,
-    showCharacterCount: Boolean = true,
-    maxCharacters: Int = ProfileConstants.MAX_BIO_LENGTH,
-    minLines: Int = 6,
-    maxLines: Int = 8,
-    style: BioTextFieldStyle = BioTextFieldStyle.Outlined,
-    colors: TextFieldColors? = null
+    config: BioTextFieldConfig = BioTextFieldConfig()
 ) {
   Column {
     val textFieldColors =
-        colors
-            ?: when (style) {
+        config.colors
+            ?: when (config.style) {
               BioTextFieldStyle.Outlined -> getOutlinedTextFieldColors()
               BioTextFieldStyle.Bordered -> getBorderedTextFieldColors()
             }
 
-    val textFieldModifier =
-        if (style == BioTextFieldStyle.Bordered) {
-          modifier.border(
-              width = 2.dp,
-              color = MaterialTheme.colorScheme.primary,
-              shape = RoundedCornerShape(size = 16.dp))
-        } else {
-          modifier
-        }
+    val textFieldModifier = getTextFieldModifier(modifier, config.style)
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = textFieldModifier,
-        placeholder = {
-          Text(
-              text = placeholder,
-              style = MaterialTheme.typography.bodyMedium,
-              color =
-                  if (style == BioTextFieldStyle.Bordered) {
-                    MaterialTheme.colorScheme.outline
-                  } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                  })
-        },
+        placeholder = { PlaceholderText(config.placeholder, config.style) },
         isError = isError,
-        supportingText =
-            if (errorMessage != null) {
-              { Text(text = errorMessage, color = MaterialTheme.colorScheme.error) }
-            } else {
-              null
-            },
+        supportingText = errorMessage?.let { { ErrorText(it) } },
         enabled = enabled,
         colors = textFieldColors,
         shape = RoundedCornerShape(16.dp),
-        textStyle =
-            MaterialTheme.typography.bodyMedium.copy(
-                color =
-                    if (style == BioTextFieldStyle.Bordered) {
-                      MaterialTheme.colorScheme.outline
-                    } else {
-                      MaterialTheme.colorScheme.onSurface
-                    }),
-        minLines = minLines,
-        maxLines = maxLines)
+        textStyle = getTextStyle(config.style),
+        minLines = config.minLines,
+        maxLines = config.maxLines)
 
-    // Character counter
-    if (showCharacterCount) {
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        Text(
-            text = "${value.length} / $maxCharacters",
-            style = MaterialTheme.typography.bodySmall,
-            color =
-                if (value.length > maxCharacters) {
-                  MaterialTheme.colorScheme.error
-                } else {
-                  MaterialTheme.colorScheme.onSurfaceVariant
-                })
-      }
+    if (config.showCharacterCount) {
+      CharacterCounter(value.length, config.maxCharacters)
     }
+  }
+}
+
+/**
+ * Returns the modifier for the text field based on style.
+ *
+ * @param modifier Base modifier
+ * @param style The style variant
+ */
+@Composable
+private fun getTextFieldModifier(modifier: Modifier, style: BioTextFieldStyle): Modifier {
+  return if (style == BioTextFieldStyle.Bordered) {
+    modifier.border(
+        width = 2.dp,
+        color = MaterialTheme.colorScheme.primary,
+        shape = RoundedCornerShape(size = 16.dp))
+  } else {
+    modifier
+  }
+}
+
+/**
+ * Returns the text style based on style variant.
+ *
+ * @param style The style variant
+ */
+@Composable
+private fun getTextStyle(style: BioTextFieldStyle) =
+    MaterialTheme.typography.bodyMedium.copy(
+        color =
+            if (style == BioTextFieldStyle.Bordered) {
+              MaterialTheme.colorScheme.outline
+            } else {
+              MaterialTheme.colorScheme.onSurface
+            })
+
+/** Composable for placeholder text with style-based coloring. */
+@Composable
+private fun PlaceholderText(text: String, style: BioTextFieldStyle) {
+  Text(
+      text = text,
+      style = MaterialTheme.typography.bodyMedium,
+      color =
+          if (style == BioTextFieldStyle.Bordered) {
+            MaterialTheme.colorScheme.outline
+          } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+          })
+}
+
+/** Composable for error message text. */
+@Composable
+private fun ErrorText(message: String) {
+  Text(text = message, color = MaterialTheme.colorScheme.error)
+}
+
+/** Composable for character counter display. */
+@Composable
+private fun CharacterCounter(currentLength: Int, maxLength: Int) {
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+    Text(
+        text = "$currentLength / $maxLength",
+        style = MaterialTheme.typography.bodySmall,
+        color =
+            if (currentLength > maxLength) {
+              MaterialTheme.colorScheme.error
+            } else {
+              MaterialTheme.colorScheme.onSurfaceVariant
+            })
   }
 }
 

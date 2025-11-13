@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.BioTextField
-import com.github.se.studentconnect.ui.components.BioTextFieldStyle
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditBioViewModel
@@ -61,7 +60,9 @@ fun EditBioScreen(
         snackbarHostState.showSnackbar(state.message)
         viewModel.resetState()
       }
-      else -> {}
+      else -> {
+        /* Nothing */
+      }
     }
   }
 
@@ -104,13 +105,9 @@ fun EditBioScreen(
                         value = bioText,
                         onValueChange = { newText -> viewModel.updateBioText(newText) },
                         modifier = Modifier.fillMaxWidth().weight(1f),
-                        placeholder = ProfileConstants.PLACEHOLDER_BIO,
                         enabled = uiState !is BaseEditViewModel.UiState.Loading,
                         isError = validationError != null,
-                        errorMessage = validationError,
-                        showCharacterCount = true,
-                        maxCharacters = ProfileConstants.MAX_BIO_LENGTH,
-                        style = BioTextFieldStyle.Outlined)
+                        errorMessage = validationError)
                   }
 
               // Save Button

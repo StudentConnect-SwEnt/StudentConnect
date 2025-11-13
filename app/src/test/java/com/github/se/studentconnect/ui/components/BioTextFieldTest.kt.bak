@@ -53,12 +53,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_displaysCharacterCount() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(
-            value = "Hello",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
-      }
+      MaterialTheme { BioTextField(value = "Hello", onValueChange = {}, showCharacterCount = true) }
     }
 
     composeTestRule.onNodeWithText("5 / ${ProfileConstants.MAX_BIO_LENGTH}").assertExists()
@@ -68,10 +63,7 @@ class BioTextFieldTest {
   fun bioTextField_hidesCharacterCountWhenDisabled() {
     composeTestRule.setContent {
       MaterialTheme {
-        BioTextField(
-            value = "Hello",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = false))
+        BioTextField(value = "Hello", onValueChange = {}, showCharacterCount = false)
       }
     }
 
@@ -117,10 +109,7 @@ class BioTextFieldTest {
     composeTestRule.setContent {
       var value by remember { mutableStateOf("") }
       MaterialTheme {
-        BioTextField(
-            value = value,
-            onValueChange = { value = it },
-            config = BioTextFieldConfig(showCharacterCount = true))
+        BioTextField(value = value, onValueChange = { value = it }, showCharacterCount = true)
       }
     }
 
@@ -158,9 +147,7 @@ class BioTextFieldTest {
     composeTestRule.setContent {
       MaterialTheme {
         BioTextField(
-            value = "Test",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true, maxCharacters = 100))
+            value = "Test", onValueChange = {}, showCharacterCount = true, maxCharacters = 100)
       }
     }
 
@@ -174,7 +161,8 @@ class BioTextFieldTest {
         BioTextField(
             value = "A".repeat(50),
             onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true, maxCharacters = 10))
+            showCharacterCount = true,
+            maxCharacters = 10)
       }
     }
 
@@ -186,10 +174,7 @@ class BioTextFieldTest {
   fun bioTextField_outlinedStyleWorks() {
     composeTestRule.setContent {
       MaterialTheme {
-        BioTextField(
-            value = "Test",
-            onValueChange = {},
-            config = BioTextFieldConfig(style = BioTextFieldStyle.Outlined))
+        BioTextField(value = "Test", onValueChange = {}, style = BioTextFieldStyle.Outlined)
       }
     }
 
@@ -200,10 +185,7 @@ class BioTextFieldTest {
   fun bioTextField_borderedStyleWorks() {
     composeTestRule.setContent {
       MaterialTheme {
-        BioTextField(
-            value = "Test",
-            onValueChange = {},
-            config = BioTextFieldConfig(style = BioTextFieldStyle.Bordered))
+        BioTextField(value = "Test", onValueChange = {}, style = BioTextFieldStyle.Bordered)
       }
     }
 
@@ -252,9 +234,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_respectsMinLines() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(value = "Short", onValueChange = {}, config = BioTextFieldConfig(minLines = 6))
-      }
+      MaterialTheme { BioTextField(value = "Short", onValueChange = {}, minLines = 6) }
     }
 
     // Component should render (specific height is internal implementation)
@@ -264,9 +244,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_respectsMaxLines() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(value = "Text", onValueChange = {}, config = BioTextFieldConfig(maxLines = 8))
-      }
+      MaterialTheme { BioTextField(value = "Text", onValueChange = {}, maxLines = 8) }
     }
 
     // Component should render
@@ -294,10 +272,7 @@ class BioTextFieldTest {
     composeTestRule.setContent {
       var value by remember { mutableStateOf("Initial text") }
       MaterialTheme {
-        BioTextField(
-            value = value,
-            onValueChange = { value = it },
-            config = BioTextFieldConfig(showCharacterCount = true))
+        BioTextField(value = value, onValueChange = { value = it }, showCharacterCount = true)
       }
     }
 
@@ -322,10 +297,7 @@ class BioTextFieldTest {
   fun bioTextField_displaysCorrectCharacterCountWithUnicode() {
     composeTestRule.setContent {
       MaterialTheme {
-        BioTextField(
-            value = "Hello 👋",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
+        BioTextField(value = "Hello 👋", onValueChange = {}, showCharacterCount = true)
       }
     }
 
@@ -339,12 +311,7 @@ class BioTextFieldTest {
   @Test
   fun bioTextField_handlesWhitespaceOnly() {
     composeTestRule.setContent {
-      MaterialTheme {
-        BioTextField(
-            value = "   ",
-            onValueChange = {},
-            config = BioTextFieldConfig(showCharacterCount = true))
-      }
+      MaterialTheme { BioTextField(value = "   ", onValueChange = {}, showCharacterCount = true) }
     }
 
     composeTestRule.onNodeWithText("3 / ${ProfileConstants.MAX_BIO_LENGTH}").assertExists()

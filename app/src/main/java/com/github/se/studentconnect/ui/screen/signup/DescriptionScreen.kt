@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.testTag
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.BioTextField
+import com.github.se.studentconnect.ui.components.BioTextFieldConfig
 import com.github.se.studentconnect.ui.components.BioTextFieldStyle
 
 @Composable
@@ -98,11 +99,11 @@ fun DescriptionContent(
                     onValueChange = onDescriptionChange,
                     modifier =
                         Modifier.fillMaxSize().semantics { testTag = C.Tag.description_input },
-                    placeholder = "What should other students know about you?",
-                    showCharacterCount = false,
-                    minLines = 6,
-                    maxLines = 8,
-                    style = BioTextFieldStyle.Bordered)
+                    config =
+                        BioTextFieldConfig(
+                            placeholder = "What should other students know about you?",
+                            showCharacterCount = false,
+                            style = BioTextFieldStyle.Bordered))
               }
 
           Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))

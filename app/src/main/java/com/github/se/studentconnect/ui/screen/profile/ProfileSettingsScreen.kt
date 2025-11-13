@@ -91,7 +91,6 @@ fun ProfileSettingsScreen(
     onNavigateToEditActivities: ((String) -> Unit)? = null,
     onNavigateToEditBirthday: ((String) -> Unit)? = null,
     onNavigateToEditNationality: ((String) -> Unit)? = null,
-    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()

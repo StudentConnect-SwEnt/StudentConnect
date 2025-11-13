@@ -291,9 +291,6 @@ private fun MainAppContent(
                 },
                 onNavigateToEditNationality = { userId ->
                   navController.navigate(ProfileRoutes.editNationality(userId))
-                },
-                onNavigateBack = {
-                  // No back navigation needed since this is the main profile view
                 })
           }
 
