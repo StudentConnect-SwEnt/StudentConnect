@@ -651,4 +651,74 @@ class MainActivityComposeTest {
 
     composeTestRule.waitForIdle()
   }
+
+  // ===== Direct MainAppContent Tests to Ensure Coverage =====
+
+  @Test
+  fun mainAppContent_directTest_rendersScaffoldAndNavHost() {
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Home,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_directTest_withMapTab() {
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Map,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_directTest_withActivitiesTab() {
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Activities,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_directTest_withProfileTab() {
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Profile,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
 }

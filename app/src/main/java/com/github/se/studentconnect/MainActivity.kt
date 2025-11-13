@@ -225,7 +225,7 @@ fun MainContent() {
  * @param onQRScannerStateChange Callback to notify when QR scanner state changes
  */
 @Composable
-private fun MainAppContent(
+internal fun MainAppContent(
     navController: NavHostController,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
