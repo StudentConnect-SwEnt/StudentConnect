@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -211,19 +212,19 @@ private fun EmptyState(selectedTab: EventTab, onNavigate: () -> Unit) {
 
         when (selectedTab) {
           EventTab.Upcoming -> {
-            title = "No upcoming events"
-            description = "You haven't joined any events yet. Explore to find some!"
-            buttonText = "Explore"
+            title = stringResource(R.string.text_no_upcoming_events)
+            description = stringResource(R.string.text_empty_upcoming_description)
+            buttonText = stringResource(R.string.button_explore)
           }
           EventTab.Invitations -> {
-            title = "No new invitations"
-            description = "You have no new event invitations at the moment."
-            buttonText = "Explore"
+            title = stringResource(R.string.text_no_new_invitations)
+            description = stringResource(R.string.text_empty_invitations_description)
+            buttonText = stringResource(R.string.button_explore)
           }
           EventTab.Past -> {
-            title = "No past events"
-            description = "Events you have attended will appear here."
-            buttonText = "Explore"
+            title = stringResource(R.string.text_no_past_events)
+            description = stringResource(R.string.text_empty_past_description)
+            buttonText = stringResource(R.string.button_explore)
           }
         }
 
@@ -245,11 +246,14 @@ private fun EmptyState(selectedTab: EventTab, onNavigate: () -> Unit) {
 /** Tab row for switching between event categories. */
 @Composable
 private fun ActivitiesTab(selectedTab: EventTab, onTabSelected: (EventTab) -> Unit) {
+  val upcomingTitle = stringResource(R.string.tab_upcoming)
+  val invitationsTitle = stringResource(R.string.tab_invitations)
+  val archivedTitle = stringResource(R.string.tab_archived)
   val tabs =
       mapOf(
-          EventTab.Upcoming to "Upcoming",
-          EventTab.Invitations to "Invitations",
-          EventTab.Past to "Archived")
+          EventTab.Upcoming to upcomingTitle,
+          EventTab.Invitations to invitationsTitle,
+          EventTab.Past to archivedTitle)
   val selectedIndex = tabs.keys.indexOf(selectedTab)
   TabRow(
       selectedTabIndex = selectedIndex,
