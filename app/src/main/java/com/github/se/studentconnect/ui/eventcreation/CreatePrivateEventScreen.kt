@@ -75,8 +75,6 @@ fun CreatePrivateEventScreen(
 
   val startDateInitial = createPrivateEventUiState.startDate?.format(dateFormatter) ?: ""
   val endDateInitial = createPrivateEventUiState.endDate?.format(dateFormatter) ?: ""
-  val locationInitial =
-      createPrivateEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
 
   val canSave =
       createPrivateEventUiState.title.isNotBlank() &&
@@ -159,7 +157,7 @@ fun CreatePrivateEventScreen(
         modifier = Modifier.fillMaxWidth().testTag(CreatePrivateEventScreenTestTags.LOCATION_INPUT),
         label = "Location",
         placeholder = "Enter the event's location",
-        initialValue = locationInitial,
+        selectedLocation = createPrivateEventUiState.location,
         onLocationChange = { createPrivateEventViewModel.updateLocation(it) })
 
     Row(

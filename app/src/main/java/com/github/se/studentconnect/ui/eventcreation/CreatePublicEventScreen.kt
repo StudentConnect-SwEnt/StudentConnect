@@ -118,9 +118,6 @@ fun CreatePublicEventScreen(
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val startDateInitial = createPublicEventUiState.startDate?.format(dateFormatter) ?: ""
   val endDateInitial = createPublicEventUiState.endDate?.format(dateFormatter) ?: ""
-  val locationInitial =
-      createPublicEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
-
   val canSave =
       createPublicEventUiState.title.isNotBlank() &&
           createPublicEventUiState.startDate != null &&
@@ -279,7 +276,7 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
                 label = "Location",
                 placeholder = "Enter the event's location",
-                initialValue = locationInitial,
+                selectedLocation = createPublicEventUiState.location,
                 onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
             val wideFieldWeight =
