@@ -323,7 +323,11 @@ fun HomeScreen(
         // Handle scroll to date functionality
         LaunchedEffect(uiState.scrollToDate) {
           uiState.scrollToDate?.let { targetDate ->
-            scrollToDate(listState, uiState.events, targetDate)
+            scrollToDate(
+                listState = listState,
+                events = uiState.events,
+                targetDate = targetDate,
+                topContentItemCount = 1)
             onClearScrollTarget()
           }
         }
@@ -832,13 +836,16 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 /**
- * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
- * smoothly.
+ * Scrolls to the specified date in the event list. Finds the date header and scrolls to it smoothly
+ * while keeping any static content (e.g., stories row) into account.
+ *
+ * @param topContentItemCount Number of list items that appear before the first date header.
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
     events: List<com.github.se.studentconnect.model.event.Event>,
-    targetDate: Date
+    targetDate: Date,
+    topContentItemCount: Int = 0
 ) {
   try {
     // Handle empty events list
@@ -847,13 +854,14 @@ private suspend fun scrollToDate(
     }
 
     // Group events by date header to find the target section
-    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
+    val groupedEvents =
+        events.sortedBy { it.start }.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
     // Calculate the index to scroll to
-    var currentIndex = 0
+    var currentIndex = topContentItemCount
     for ((dateHeader, eventsOnDate) in groupedEvents) {
       if (dateHeader == targetDateHeader) {
         // Found the target date, scroll to it with bounds checking
