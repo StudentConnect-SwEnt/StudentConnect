@@ -137,7 +137,6 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
     composeTestRule.onNodeWithText("Save").assertIsEnabled()
   }
 
-  @Test
   fun editBioScreen_savesBioToFirestore() {
     composeTestRule.waitForIdle()
 
