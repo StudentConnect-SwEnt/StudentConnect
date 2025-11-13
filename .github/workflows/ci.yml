@@ -151,13 +151,6 @@ jobs:
         working-directory: .github/ci/node
         run: npm ci
 
-      - name: Upload CI lockfile
-        if: matrix.shard_index == 0 # only upload once
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-node-lockfile
-          path: .github/ci/node/package-lock.json
-
       - name: Start Firebase emulators
         working-directory: .github/ci/node
         run: |
