@@ -1113,7 +1113,19 @@ class EventViewTest {
       }
     }
 
+    // Wait for initial composition and state stabilization
     composeTestRule.waitForIdle()
+    // Add a small delay to let countdown timer stabilize
+    Thread.sleep(100)
+    composeTestRule.waitForIdle()
+
+    // Use waitUntil to handle timing issues with rapidly updating countdown
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.COUNTDOWN_TIMER))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
     composeTestRule.onNodeWithTag(EventViewTestTags.COUNTDOWN_TIMER).assertIsDisplayed()
 
     // Clean up
