@@ -177,7 +177,7 @@ jobs:
         env:
           APP_DEBUG_APK: app/build/outputs/apk/resOverride/debug/app-resOverride-debug.apk
           APP_DEBUG_TEST_APK: app/build/outputs/apk/androidTest/resOverride/debug/app-resOverride-debug-androidTest.apk
-          TEST_PACKAGE: com.github.se.studentconnect.test
+          PACKAGE: com.github.se.studentconnect
           TEST_RUNNER: androidx.test.runner.AndroidJUnitRunner
         with:
           api-level: 34
@@ -192,10 +192,10 @@ jobs:
             adb install "$APP_DEBUG_TEST_APK"
 
             # Run tests
-            adb shell am instrument -w -e coverage true -e coverageFile /sdcard/coverage.ec -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $TEST_PACKAGE/$TEST_RUNNER
+            adb shell am instrument -w -e coverage true -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $PACKAGE.test/$TEST_RUNNER
 
             # Pull coverage
-            adb pull /sdcard/coverage.ec ./coverage.ec
+            adb exec-out run-as $PACKAGE cat files/coverage.ec > coverage.ec
 
       - name: Upload android ec for this shard
         uses: actions/upload-artifact@v4
