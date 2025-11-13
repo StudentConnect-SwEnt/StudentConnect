@@ -368,4 +368,266 @@ class MapScreenTest : TestCase() {
       composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
     }
   }
+
+  @Test
+  fun mapScreen_toggleBetweenEventsAndFriendsView() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Toggle to friends view") {
+      val toggleFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
+      toggleFab.assertIsDisplayed()
+      toggleFab.performClick()
+      composeTestRule.waitForIdle()
+    }
+
+    step("Toggle back to events view") {
+      val toggleFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
+      toggleFab.performClick()
+      composeTestRule.waitForIdle()
+    }
+
+    step("Verify map is still displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_locateUserButton_triggersLocationRequest() = run {
+    step("Display MapScreen with location permission") {
+      composeTestRule.setContent { MapScreen() }
+    }
+
+    step("Wait for location FAB and click it") {
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        composeTestRule
+            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+      }
+
+      val locateFab = composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab)
+      locateFab.assertIsDisplayed()
+      locateFab.performClick()
+      composeTestRule.waitForIdle()
+    }
+
+    step("Verify map is still displayed after location request") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withTargetLatitudeOnly_displaysCorrectly() = run {
+    step("Display MapScreen with only target latitude") {
+      composeTestRule.setContent { MapScreen(targetLatitude = 46.5197) }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withTargetLongitudeOnly_displaysCorrectly() = run {
+    step("Display MapScreen with only target longitude") {
+      composeTestRule.setContent { MapScreen(targetLongitude = 6.6323) }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_searchField_clearAndReEnterText() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Enter text in search field") {
+      val searchField = composeTestRule.onNodeWithTag(C.Tag.map_search_field)
+      searchField.performTextInput("First search")
+      composeTestRule.waitForIdle()
+    }
+
+    step("Enter more text") {
+      val searchField = composeTestRule.onNodeWithTag(C.Tag.map_search_field)
+      searchField.performTextInput(" Second search")
+      composeTestRule.waitForIdle()
+    }
+
+    step("Verify search field is still functional") {
+      composeTestRule.onNodeWithTag(C.Tag.map_search_field).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_multipleToggleClicks_maintainsStability() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Click toggle view FAB multiple times rapidly") {
+      val toggleFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
+
+      repeat(5) {
+        toggleFab.performClick()
+        composeTestRule.waitForIdle()
+      }
+    }
+
+    step("Verify map is still stable and displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withCustomZoomAndEventUid_displaysCorrectly() = run {
+    step("Display MapScreen with custom zoom and event UID") {
+      composeTestRule.setContent {
+        MapScreen(
+            targetLatitude = 46.5197,
+            targetLongitude = 6.6323,
+            targetZoom = 16.5,
+            targetEventUid = "custom-event")
+      }
+    }
+
+    step("Verify all components are displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_highZoomLevel_displaysCorrectly() = run {
+    step("Display MapScreen with very high zoom level") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 20.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_lowZoomLevel_displaysCorrectly() = run {
+    step("Display MapScreen with very low zoom level") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 2.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_negativeCoordinates_displaysCorrectly() = run {
+    step("Display MapScreen with negative coordinates") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = -33.8688, targetLongitude = -151.2093, targetZoom = 12.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_positiveCoordinates_displaysCorrectly() = run {
+    step("Display MapScreen with positive coordinates") {
+      composeTestRule.setContent {
+        MapScreen(targetLatitude = 51.5074, targetLongitude = 0.1278, targetZoom = 12.0)
+      }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_searchField_multipleInputs() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Enter multiple search queries") {
+      val searchField = composeTestRule.onNodeWithTag(C.Tag.map_search_field)
+
+      searchField.performTextInput("Location 1")
+      composeTestRule.waitForIdle()
+
+      searchField.performTextInput(" Location 2")
+      composeTestRule.waitForIdle()
+
+      searchField.performTextInput(" Location 3")
+      composeTestRule.waitForIdle()
+    }
+
+    step("Verify search field is still functional") {
+      composeTestRule.onNodeWithTag(C.Tag.map_search_field).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_componentsLayout_isCorrect() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Verify all layout components are present") {
+      composeTestRule.onNodeWithTag(C.Tag.map_top_app_bar).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_search_field).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_container).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab).assertIsDisplayed()
+
+      // Wait for location FAB if permission is granted
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        composeTestRule
+            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+      }
+      composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_withTargetEventUidOnly_displaysCorrectly() = run {
+    step("Display MapScreen with only event UID, no location") {
+      composeTestRule.setContent { MapScreen(targetEventUid = "solo-event-uid") }
+    }
+
+    step("Verify map screen is displayed") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
+
+  @Test
+  fun mapScreen_rapidFABClicks_maintainsStability() = run {
+    step("Display MapScreen") { composeTestRule.setContent { MapScreen() } }
+
+    step("Rapidly click both FABs") {
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        composeTestRule
+            .onAllNodes(hasTestTag(C.Tag.map_locate_user_fab))
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+      }
+
+      val toggleFab = composeTestRule.onNodeWithTag(C.Tag.map_toggle_view_fab)
+      val locateFab = composeTestRule.onNodeWithTag(C.Tag.map_locate_user_fab)
+
+      repeat(3) {
+        toggleFab.performClick()
+        composeTestRule.waitForIdle()
+        locateFab.performClick()
+        composeTestRule.waitForIdle()
+      }
+    }
+
+    step("Verify map is still stable") {
+      composeTestRule.onNodeWithTag(C.Tag.map_screen).assertIsDisplayed()
+    }
+  }
 }
