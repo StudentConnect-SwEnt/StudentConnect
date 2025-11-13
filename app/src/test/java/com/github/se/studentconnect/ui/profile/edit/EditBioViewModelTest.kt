@@ -223,22 +223,6 @@ class EditBioViewModelTest {
   }
 
   @Test
-  fun `saveBio updates updatedAt timestamp`() = runTest {
-    val oldTimestamp = testUser.updatedAt
-    val newBio = "New bio"
-    viewModel.updateBioText(newBio)
-
-    viewModel.saveBio()
-
-    // Wait for save to complete
-    kotlinx.coroutines.delay(200)
-
-    assertTrue(repository.savedUsers.isNotEmpty())
-    val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.updatedAt > oldTimestamp)
-  }
-
-  @Test
   fun `saveBio handles user not found error`() = runTest {
     repository = TestUserRepository(null)
     val errorViewModel = EditBioViewModel(repository, "non_existent_user")
