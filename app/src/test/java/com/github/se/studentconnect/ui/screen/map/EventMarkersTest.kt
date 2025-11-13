@@ -83,6 +83,160 @@ class EventMarkersTest {
   }
 
   @Test
+  fun addClickMarker_withMultipleCalls_updatesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+    var callCount = 0
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = callCount > 0
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            callCount++
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {
+            // Layer added on first call
+          }
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {
+            callCount++
+            capturedFeatures = features
+          }
+        }
+
+    // First call - should create source
+    val point1 = Point.fromLngLat(1.0, 2.0)
+    EventMarkers.addClickMarker(fake, point1, "First", "uid-1")
+    assertEquals(1, callCount)
+
+    // Second call - should update source
+    val point2 = Point.fromLngLat(3.0, 4.0)
+    EventMarkers.addClickMarker(fake, point2, "Second", "uid-2")
+    assertEquals(2, callCount)
+
+    // Verify last feature has correct data
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertEquals("Second", feature.getStringProperty(EventMarkerConfig.PROP_TITLE))
+    assertEquals("uid-2", feature.getStringProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_withPartialNullProperties_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with title but no uid
+    val point = Point.fromLngLat(5.0, 6.0)
+    EventMarkers.addClickMarker(fake, point, "Only Title", null)
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertEquals("Only Title", feature.getStringProperty(EventMarkerConfig.PROP_TITLE))
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_withUidButNoTitle_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with uid but no title
+    val point = Point.fromLngLat(7.0, 8.0)
+    EventMarkers.addClickMarker(fake, point, null, "only-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_TITLE))
+    assertEquals("only-uid", feature.getStringProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_preservesGeometry() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    val point = Point.fromLngLat(10.123, 20.456)
+    EventMarkers.addClickMarker(fake, point, "Test", "test-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    val geometry = feature.geometry() as? Point
+
+    assertNotNull(geometry)
+    assertEquals(10.123, geometry!!.longitude(), 0.0001)
+    assertEquals(20.456, geometry.latitude(), 0.0001)
+  }
+
+  @Test
+  fun addClickMarker_withExtremeCoordinates_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with extreme valid coordinates
+    val point = Point.fromLngLat(-179.999, 89.999)
+    EventMarkers.addClickMarker(fake, point, "Extreme", "extreme-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    val geometry = feature.geometry() as? Point
+
+    assertNotNull(geometry)
+    assertEquals(-179.999, geometry!!.longitude(), 0.0001)
+    assertEquals(89.999, geometry.latitude(), 0.0001)
+  }
+
+  @Test
   fun mapWithCircleAndSlider_displaysCircleAndRadius_whenPointSelected() {
     // Simulate a user selecting a point on the map
     val selectedPoint = Point.fromLngLat(6.5668, 46.5191) // EPFL coordinates
@@ -133,6 +287,34 @@ class EventMarkersTest {
     // Clear the circle
     mockMapAdapter.clearCircle()
     assertTrue(capturedCircles.isEmpty())
+  }
+
+  @Test
+  fun mapCircleAdapter_supportsMultipleCircles() {
+    val capturedCircles = mutableListOf<Pair<Point, Double>>()
+
+    val mockMapAdapter =
+        object : MapCircleAdapter {
+          override fun drawCircle(center: Point, radiusKm: Double) {
+            capturedCircles.add(Pair(center, radiusKm))
+          }
+
+          override fun updateCircleRadius(radiusKm: Double) {}
+
+          override fun clearCircle() {
+            capturedCircles.clear()
+          }
+        }
+
+    // Draw multiple circles
+    mockMapAdapter.drawCircle(Point.fromLngLat(0.0, 0.0), 5.0)
+    mockMapAdapter.drawCircle(Point.fromLngLat(1.0, 1.0), 10.0)
+    mockMapAdapter.drawCircle(Point.fromLngLat(2.0, 2.0), 15.0)
+
+    assertEquals(3, capturedCircles.size)
+    assertEquals(5.0, capturedCircles[0].second, 0.001)
+    assertEquals(10.0, capturedCircles[1].second, 0.001)
+    assertEquals(15.0, capturedCircles[2].second, 0.001)
   }
 
   // Interface for testing map circle interactions

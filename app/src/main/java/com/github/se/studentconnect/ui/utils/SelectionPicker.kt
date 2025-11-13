@@ -288,7 +288,7 @@ fun LocationPickerDialog(
 
 private const val EARTH_RADIUS_KM = 6371.0
 
-internal fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Double): Point {
+fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Double): Point {
   val brng = Math.toRadians(bearing)
   val lat1 = Math.toRadians(center.latitude())
   val lon1 = Math.toRadians(center.longitude())
@@ -300,7 +300,7 @@ internal fun getDestinationPoint(center: Point, bearing: Double, distanceKm: Dou
   return Point.fromLngLat(Math.toDegrees(lon2), Math.toDegrees(lat2))
 }
 
-private fun createCirclePoints(center: Point, radiusKm: Double, steps: Int = 64): List<Point> {
+fun createCirclePoints(center: Point, radiusKm: Double, steps: Int = 64): List<Point> {
   return (0..steps).map { i ->
     val bearing = (360.0 / steps) * i
     getDestinationPoint(center, bearing, radiusKm)
