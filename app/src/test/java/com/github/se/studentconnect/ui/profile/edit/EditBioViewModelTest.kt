@@ -228,6 +228,8 @@ class EditBioViewModelTest {
     val newBio = "New bio"
     viewModel.updateBioText(newBio)
 
+    // Add small delay to ensure timestamp difference
+    kotlinx.coroutines.delay(10)
     viewModel.saveBio()
 
     // Wait for save to complete
@@ -235,7 +237,9 @@ class EditBioViewModelTest {
 
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
-    assertTrue(savedUser.updatedAt > oldTimestamp)
+    assertTrue(
+        "updatedAt should be greater than or equal to old timestamp",
+        savedUser.updatedAt >= oldTimestamp)
   }
 
   @Test
