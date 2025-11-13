@@ -165,7 +165,7 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
   }
 
   @Test
-  fun editBioScreen_showsSuccessSnackbar() {
+  fun editBioScreen_navigatesBackOnSuccessfulSave() {
     composeTestRule.waitForIdle()
 
     // Edit bio
@@ -175,16 +175,8 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for snackbar
-    composeTestRule.waitForIdle()
-
-    // Success message should appear
-    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
-      composeTestRule
-          .onAllNodesWithText(ProfileConstants.SUCCESS_BIO_UPDATED)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
+    // Should navigate back once save succeeds
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) { navigatedBack }
   }
 
   @Test
