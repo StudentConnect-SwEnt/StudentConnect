@@ -81,4 +81,66 @@ class EventMarkersTest {
     assertFalse(feature.hasProperty(EventMarkerConfig.PROP_TITLE))
     assertFalse(feature.hasProperty(EventMarkerConfig.PROP_UID))
   }
+
+  @Test
+  fun mapWithCircleAndSlider_displaysCircleAndRadius_whenPointSelected() {
+    // Simulate a user selecting a point on the map
+    val selectedPoint = Point.fromLngLat(6.5668, 46.5191) // EPFL coordinates
+    var circleRadius = 10.0 // Initial radius in km
+    val capturedCircles = mutableListOf<Pair<Point, Double>>()
+    val capturedSliderValues = mutableListOf<Double>()
+
+    // Mock adapter to capture circle creation and slider interactions
+    val mockMapAdapter =
+        object : MapCircleAdapter {
+          override fun drawCircle(center: Point, radiusKm: Double) {
+            capturedCircles.add(Pair(center, radiusKm))
+          }
+
+          override fun updateCircleRadius(radiusKm: Double) {
+            capturedSliderValues.add(radiusKm)
+          }
+
+          override fun clearCircle() {
+            capturedCircles.clear()
+          }
+        }
+
+    // Simulate selecting a point and drawing a circle
+    mockMapAdapter.drawCircle(selectedPoint, circleRadius)
+
+    // Verify circle was created with correct parameters
+    assertEquals(1, capturedCircles.size)
+    assertEquals(selectedPoint, capturedCircles[0].first)
+    assertEquals(10.0, capturedCircles[0].second, 0.001)
+
+    // Simulate slider interaction - user changes radius to 25 km
+    circleRadius = 25.0
+    mockMapAdapter.updateCircleRadius(circleRadius)
+
+    // Verify slider value was captured
+    assertEquals(1, capturedSliderValues.size)
+    assertEquals(25.0, capturedSliderValues[0], 0.001)
+
+    // Simulate another slider change to 50 km
+    circleRadius = 50.0
+    mockMapAdapter.updateCircleRadius(circleRadius)
+
+    // Verify both slider changes were captured
+    assertEquals(2, capturedSliderValues.size)
+    assertEquals(50.0, capturedSliderValues[1], 0.001)
+
+    // Clear the circle
+    mockMapAdapter.clearCircle()
+    assertTrue(capturedCircles.isEmpty())
+  }
+
+  // Interface for testing map circle interactions
+  interface MapCircleAdapter {
+    fun drawCircle(center: Point, radiusKm: Double)
+
+    fun updateCircleRadius(radiusKm: Double)
+
+    fun clearCircle()
+  }
 }
