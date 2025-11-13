@@ -50,10 +50,12 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.EditBioScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
+import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -268,6 +270,7 @@ private fun MainAppContent(
                 onQRScannerClosed = { onQRScannerStateChange(false) },
                 onCameraActiveChange = { isActive -> isCameraActive = isActive })
           }
+          composable(Route.SEARCH) { SearchScreen(navController = navController) }
           composable(Route.MAP) { MapScreen() }
           composable(
               Route.MAP_WITH_LOCATION,
@@ -305,9 +308,6 @@ private fun MainAppContent(
                 },
                 onNavigateToEditNationality = { userId ->
                   navController.navigate(ProfileRoutes.editNationality(userId))
-                },
-                onNavigateBack = {
-                  // No back navigation needed since this is the main profile view
                 })
           }
 
@@ -357,13 +357,24 @@ private fun MainAppContent(
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })
               }
-
           composable(
               route = ProfileRoutes.EDIT_ACTIVITIES,
               arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
                 EditActivitiesScreen(
+                    userId = userId,
+                    userRepository = userRepository,
+                    onNavigateBack = { navController.popBackStack() })
+              }
+
+          // Edit Bio Screen
+          composable(
+              route = ProfileRoutes.EDIT_BIO,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                EditBioScreen(
                     userId = userId,
                     userRepository = userRepository,
                     onNavigateBack = { navController.popBackStack() })

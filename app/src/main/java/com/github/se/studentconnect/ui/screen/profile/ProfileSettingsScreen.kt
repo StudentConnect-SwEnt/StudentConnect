@@ -91,7 +91,6 @@ fun ProfileSettingsScreen(
     onNavigateToEditActivities: ((String) -> Unit)? = null,
     onNavigateToEditBirthday: ((String) -> Unit)? = null,
     onNavigateToEditNationality: ((String) -> Unit)? = null,
-    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()
@@ -210,7 +209,7 @@ fun ProfileSettingsScreen(
                               isEditing = editingField == EditingField.Bio,
                               isLoading = loadingFields.contains(EditingField.Bio),
                               errorMessage = fieldErrors[EditingField.Bio],
-                              onEditClick = { /*Disabled for now*/},
+                              onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
                               onSave = { newValue -> viewModel.updateBio(newValue) },
                               onCancel = { viewModel.cancelEditing() })
                         }

@@ -93,15 +93,34 @@ class ActivitiesViewModel(
       val items: List<CarouselDisplayItem> =
           when (uiState.value.selectedTab) {
             EventTab.Upcoming -> {
-              val joinedEvents = userRepository.getJoinedEvents(userUid)
-              joinedEvents
-                  .mapNotNull { eventId ->
+              val joinedEventIds = userRepository.getJoinedEvents(userUid)
+
+              val allVisibleEvents =
+                  try {
+                    eventRepository.getAllVisibleEvents()
+                  } catch (e: Exception) {
+                    _uiState.update {
+                      it.copy(
+                          errorMessage = "Failed to load events: ${e.message ?: "Unknown error"}")
+                    }
+                    emptyList()
+                  }
+
+              val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
+              val joinedOnlyIds =
+                  joinedEventIds.filterNot { id -> allVisibleEvents.any { it.uid == id } }
+
+              val joinedEvents =
+                  joinedOnlyIds.mapNotNull { eventId ->
                     try {
                       eventRepository.getEvent(eventId)
                     } catch (_: Exception) {
                       null
                     }
                   }
+
+              val now = Timestamp.now()
+              (ownedEvents + joinedEvents)
                   .filter { event ->
                     val endTime =
                         event.end
