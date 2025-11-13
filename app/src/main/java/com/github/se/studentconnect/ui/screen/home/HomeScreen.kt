@@ -128,7 +128,6 @@ fun HomeScreen(
     onQRScannerClosed: () -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
-  val notificationUiState by notificationViewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
 
   LaunchedEffect(Unit) { viewModel.refresh() }
@@ -197,10 +196,7 @@ fun HomeScreen(
       modifier = Modifier.testTag("calendar_modal"),
       sheetState = sheetState,
       sheetContent = {
-        EventCalendar(
-            events = uiState.events,
-            selectedDate = uiState.selectedDate,
-            onDateSelected = onDateSelected)
+        EventCalendar(selectedDate = uiState.selectedDate, onDateSelected = onDateSelected)
       }) {
         Scaffold(
             modifier = Modifier.fillMaxSize().testTag("HomePage"),

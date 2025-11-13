@@ -96,14 +96,10 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
     // Validate that recipient user exists
     val toUserDoc = db.collection(USERS_COLLECTION).document(toUserId).get().await()
 
-    if (!toUserDoc.exists()) {
-      throw IllegalArgumentException("Recipient user not found: $toUserId")
-    }
+    require(toUserDoc.exists()) { "Recipient user not found: $toUserId" }
 
     // Check if users are the same
-    if (fromUserId == toUserId) {
-      throw IllegalArgumentException("Cannot send friend request to yourself")
-    }
+    require(fromUserId != toUserId) { "Cannot send friend request to yourself" }
 
     // Check if already friends (check from sender's perspective)
     val friendDoc =
@@ -114,9 +110,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (friendDoc.exists()) {
-      throw IllegalArgumentException("Users are already friends")
-    }
+    require(!friendDoc.exists()) { "Users are already friends" }
 
     // Check if request already exists (check from sender's sent requests)
     val sentRequestDoc =
@@ -127,9 +121,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (sentRequestDoc.exists()) {
-      throw IllegalArgumentException("Friend request already sent")
-    }
+    require(!sentRequestDoc.exists()) { "Friend request already sent" }
 
     // Check if reverse request exists (check from sender's pending requests)
     val reverseRequestDoc =
@@ -140,9 +132,8 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (reverseRequestDoc.exists()) {
-      throw IllegalArgumentException(
-          "A friend request from the recipient already exists. Accept their request instead.")
+    require(!reverseRequestDoc.exists()) {
+      "A friend request from the recipient already exists. Accept their request instead."
     }
 
     val timestamp = FieldValue.serverTimestamp()
@@ -208,9 +199,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (!requestDoc.exists()) {
-      throw IllegalArgumentException("No pending friend request from user: $fromUserId")
-    }
+    require(requestDoc.exists()) { "No pending friend request from user: $fromUserId" }
 
     val timestamp = FieldValue.serverTimestamp()
     val friendData = mapOf("timestamp" to timestamp)
@@ -272,9 +261,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (!requestDoc.exists()) {
-      throw IllegalArgumentException("No pending friend request from user: $fromUserId")
-    }
+    require(requestDoc.exists()) { "No pending friend request from user: $fromUserId" }
 
     try {
       // Remove from recipient's pending requests (current user can delete their own data)
@@ -312,9 +299,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (!requestDoc.exists()) {
-      throw IllegalArgumentException("No sent friend request to user: $toUserId")
-    }
+    require(requestDoc.exists()) { "No sent friend request to user: $toUserId" }
 
     try {
       // Remove from sender's sent requests
@@ -352,9 +337,7 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
             .get()
             .await()
 
-    if (!friendDoc.exists()) {
-      throw IllegalArgumentException("Users are not friends")
-    }
+    require(friendDoc.exists()) { "Users are not friends" }
 
     try {
       // Remove from both users' friends lists

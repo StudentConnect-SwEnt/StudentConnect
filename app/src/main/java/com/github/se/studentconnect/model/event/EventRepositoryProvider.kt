@@ -36,6 +36,7 @@ object EventRepositoryProvider {
   }
 
   fun createFakeEvents(): List<Event> {
+    val liveAtEpfl = "Live at EPFL!"
     return listOf(
         // Event 1
         Event.Public(
@@ -47,7 +48,7 @@ object EventRepositoryProvider {
             start = date(300),
             isFlash = false,
             participationFee = 12u,
-            subtitle = "Live at EPFL!"),
+            subtitle = liveAtEpfl),
         // Event 2
         Event.Public(
             uid = "event-sql-workshop-02",
@@ -58,7 +59,7 @@ object EventRepositoryProvider {
             start = date(86400),
             isFlash = false,
             participationFee = 12u,
-            subtitle = "Live at EPFL!"),
+            subtitle = liveAtEpfl),
         // Event 3
         Event.Public(
             uid = "event-balelec-03",
@@ -68,7 +69,7 @@ object EventRepositoryProvider {
             location = Location(46.5191, 6.5668, "EPFL, Lausanne"),
             start = date(1_209_600),
             isFlash = false,
-            subtitle = "Live at EPFL!"),
+            subtitle = liveAtEpfl),
         // Event 4
         Event.Public(
             uid = "event-rlc-study-04",
@@ -78,7 +79,7 @@ object EventRepositoryProvider {
             location = ROLEX_LOCATION,
             start = date(604_800),
             isFlash = false,
-            subtitle = "Live at EPFL!"),
+            subtitle = liveAtEpfl),
         // Event 5
         Event.Public(
             uid = "event-to-join",
@@ -88,7 +89,7 @@ object EventRepositoryProvider {
             location = ROLEX_LOCATION,
             start = date(8000),
             isFlash = false,
-            subtitle = "Live at EPFL!"),
+            subtitle = liveAtEpfl),
     )
   }
 

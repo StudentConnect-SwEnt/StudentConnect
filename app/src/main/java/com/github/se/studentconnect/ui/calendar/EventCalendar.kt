@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.*
 
@@ -26,7 +25,6 @@ object EventCalendarTestTags {
  * - Date selection for navigating to events
  * - Clean, simple interface
  *
- * @param events List of events (not used for visualization, just for compatibility)
  * @param selectedDate Currently selected date (optional)
  * @param onDateSelected Callback when a date is selected
  * @param modifier Modifier for the calendar container
@@ -35,7 +33,6 @@ object EventCalendarTestTags {
 @Composable
 fun EventCalendar(
     modifier: Modifier = Modifier,
-    events: List<Event>,
     selectedDate: Date? = null,
     onDateSelected: (Date) -> Unit
 ) {
@@ -68,5 +65,5 @@ fun EventCalendar(
 @Preview(showBackground = true)
 @Composable
 fun EventCalendarPreview() {
-  AppTheme { EventCalendar(events = emptyList(), selectedDate = Date(), onDateSelected = {}) }
+  AppTheme { EventCalendar(selectedDate = Date(), onDateSelected = {}) }
 }

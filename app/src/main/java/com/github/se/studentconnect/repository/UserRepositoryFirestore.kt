@@ -164,9 +164,9 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     val joinedRef = userDoc.collection(JOINED_EVENT).document(eventId)
 
     val snapshot = invitationRef.get().await()
-    if (!snapshot.exists())
-        throw IllegalArgumentException(
-            "No invitation " + "found to event with ID : ${eventId} for user ID: $userId")
+    require(snapshot.exists()) {
+      "No invitation " + "found to event with ID : ${eventId} for user ID: $userId"
+    }
     joinedRef.set(mapOf("eventId" to eventId, "timestamp" to FieldValue.serverTimestamp())).await()
     invitationRef.delete().await()
   }
@@ -189,8 +189,8 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
 
   override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {
     val event = db.collection(EVENTS_COLLECTION_PATH).document(eventId).get().await()
-    if (event.getString("ownerId") != fromUserId) {
-      throw IllegalArgumentException("User $fromUserId is not the owner of event $eventId")
+    require(event.getString("ownerId") == fromUserId) {
+      "User $fromUserId is not the owner of event $eventId"
     }
     val invitationData =
         Invitation(eventId, fromUserId, InvitationStatus.Pending, timestamp = Timestamp.now())

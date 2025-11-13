@@ -14,6 +14,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
 
+private const val ONLY_OWNER_CAN_PERFORM_THIS_ACTION =
+    "Only the owner of the event can perform this action"
+
 /**
  * Implementation of [EventRepository] using Firebase Firestore.
  *
@@ -130,9 +133,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
   private suspend fun getEventDocument(eventUid: String): DocumentSnapshot {
     val documentSnapshot = db.collection(EVENTS_COLLECTION_PATH).document(eventUid).get().await()
-    if (!documentSnapshot.exists()) {
-      throw IllegalArgumentException("Event $eventUid does not exist")
-    }
+    require(documentSnapshot.exists()) { "Event $eventUid does not exist" }
     return documentSnapshot
   }
 
@@ -146,7 +147,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val currentUserId = getCurrentUserId()
     Log.e("EventRepositoryFirestore", "OwnerId: $ownerId, CurrentUserId: $currentUserId")
     if (ownerId != currentUserId) {
-      throw IllegalAccessException("Only the owner of the event can perform this action")
+      throw IllegalAccessException(ONLY_OWNER_CAN_PERFORM_THIS_ACTION)
     }
   }
 
@@ -282,7 +283,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
     val currentUserId = getCurrentUserId()
     if (newEvent.ownerId != currentUserId) {
-      throw IllegalAccessException("Only the owner of the event can perform this action")
+      throw IllegalAccessException(ONLY_OWNER_CAN_PERFORM_THIS_ACTION)
     }
 
     try {
@@ -293,15 +294,13 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
       db.collection(EVENTS_COLLECTION_PATH).document(eventUid).set(data).await()
     } catch (e: FirebaseFirestoreException) {
       if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
-        throw IllegalAccessException("Only the owner of the event can perform this action")
+        throw IllegalAccessException(ONLY_OWNER_CAN_PERFORM_THIS_ACTION)
       }
       throw e
     }
   }
 
   override suspend fun deleteEvent(eventUid: String) {
-    val currentUserId = getCurrentUserId()
-
     try {
       val eventSnapshot = getEventDocument(eventUid)
       ensureUserIsOwner(eventSnapshot)
@@ -309,7 +308,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     } catch (e: FirebaseFirestoreException) {
       when (e.code) {
         FirebaseFirestoreException.Code.PERMISSION_DENIED -> {
-          throw IllegalAccessException("Only the owner of the event can perform this action")
+          throw IllegalAccessException(ONLY_OWNER_CAN_PERFORM_THIS_ACTION)
         }
         FirebaseFirestoreException.Code.NOT_FOUND -> {
           throw IllegalArgumentException("Event $eventUid does not exist")
@@ -323,14 +322,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
     val eventSnapshot = eventRef.get().await()
 
-    if (!eventSnapshot.exists()) throw IllegalArgumentException("Event $eventUid does not exist")
+    require(eventSnapshot.exists()) { "Event $eventUid does not exist" }
 
     val participantRef = eventRef.collection(PARTICIPANTS_COLLECTION_PATH).document(participant.uid)
 
     // Check if participant already exists
     val participantSnapshot = participantRef.get().await()
-    if (participantSnapshot.exists()) {
-      throw IllegalStateException("Participant ${participant.uid} is already in event $eventUid")
+    check(!participantSnapshot.exists()) {
+      "Participant ${participant.uid} is already in event $eventUid"
     }
 
     val participantData = mapOf("uid" to participant.uid, "joinedAt" to participant.joinedAt)
@@ -339,14 +338,12 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
       participantRef.set(participantData).await()
       // Verify the participant was actually added by checking again
       val verifySnapshot = participantRef.get().await()
-      if (!verifySnapshot.exists()) {
-        throw IllegalStateException(
-            "Failed to add participant ${participant.uid} to event $eventUid")
+      check(verifySnapshot.exists()) {
+        "Failed to add participant ${participant.uid} to event $eventUid"
       }
     } catch (e: FirebaseFirestoreException) {
-      if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
-        throw IllegalStateException(
-            "Participant ${participant.uid} is already in event $eventUid or permission denied")
+      check(e.code != FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+        "Participant ${participant.uid} is already in event $eventUid or permission denied"
       }
       throw e
     }
@@ -359,7 +356,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   ) {
     val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
     val eventSnapshot = eventRef.get().await()
-    if (!eventSnapshot.exists()) throw IllegalArgumentException("Event $eventUid does not exist")
+    require(eventSnapshot.exists()) { "Event $eventUid does not exist" }
 
     val owner = eventSnapshot.getString("ownerId")
     if (owner != currentUserId)

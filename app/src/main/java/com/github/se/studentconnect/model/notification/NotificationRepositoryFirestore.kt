@@ -1,7 +1,5 @@
 package com.github.se.studentconnect.model.notification
 
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -22,13 +20,6 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
 
   companion object {
     private const val NOTIFICATIONS_COLLECTION = "notifications"
-  }
-
-  /** Gets the currently authenticated user ID */
-  /* This function will be used in the future to get the current user ID in testing */
-  // TODO: Implement this function
-  private fun getCurrentUserId(): String? {
-    return Firebase.auth.currentUser?.uid
   }
 
   override fun getNotifications(
