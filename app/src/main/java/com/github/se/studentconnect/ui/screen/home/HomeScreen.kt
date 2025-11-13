@@ -90,7 +90,8 @@ import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
-import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.screen.camera.CameraMode
+import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
@@ -115,6 +116,7 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** DI-friendly overload that wires default view models and exposes callback hooks. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -126,6 +128,7 @@ fun HomeScreen(
     notificationViewModel: NotificationViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
     onQRScannerClosed: () -> Unit = {},
+    onCameraActiveChange: (Boolean) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
@@ -136,6 +139,7 @@ fun HomeScreen(
       navController = navController,
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
+      onCameraActiveChange = onCameraActiveChange,
       onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
@@ -149,6 +153,7 @@ fun HomeScreen(
       onClearScrollTarget = { viewModel.clearScrollTarget() })
 }
 
+/** Core Home screen implementation containing pager, filters, notifications, and stories. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -158,6 +163,7 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     shouldOpenQRScanner: Boolean = false,
     onQRScannerClosed: () -> Unit = {},
+    onCameraActiveChange: (Boolean) -> Unit = {},
     onClickStory: (Event, Int) -> Unit = { _, _ -> },
     uiState: HomePageUiState = HomePageUiState(),
     notificationViewModel: NotificationViewModel? = null,
@@ -171,6 +177,7 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
+  var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   var selectedStory by remember { mutableStateOf<Event?>(null) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
@@ -190,6 +197,11 @@ fun HomeScreen(
     if (shouldOpenQRScanner && pagerState.currentPage != HomeScreenConstants.PAGER_SCANNER_PAGE) {
       pagerState.animateScrollToPage(HomeScreenConstants.PAGER_SCANNER_PAGE)
     }
+  }
+
+  // Notify parent about camera active state
+  LaunchedEffect(pagerState.currentPage) {
+    onCameraActiveChange(pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
   }
 
   ModalBottomSheetLayout(
@@ -253,10 +265,11 @@ fun HomeScreen(
                   userScrollEnabled = true) { page ->
                     when (page) {
                       HomeScreenConstants.PAGER_SCANNER_PAGE -> {
-                        // QR Scanner page
-                        QrScannerScreen(
+                        // Camera Mode Selector page (Story/QR Scanner)
+                        CameraModeSelectorScreen(
                             onBackClick = {
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
                                 pagerState.animateScrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
@@ -264,13 +277,22 @@ fun HomeScreen(
                             onProfileDetected = { userId ->
                               // Navigate to visitor profile and return to home page
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               navController.navigate(Route.visitorProfile(userId))
                               coroutineScope.launch {
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            isActive =
-                                pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
+                            onStoryCapture = { _ ->
+                              // For now, just return to home page
+                              // TODO: Implement story upload functionality
+                              onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
+                              coroutineScope.launch {
+                                pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
+                              }
+                            },
+                            initialMode = cameraMode)
                       }
                       HomeScreenConstants.PAGER_HOME_PAGE -> {
                         // Home content page
@@ -295,8 +317,10 @@ fun HomeScreen(
                                   topContent = {
                                     StoriesRow(
                                         onAddStoryClick = {
+                                          cameraMode = CameraMode.STORY
                                           coroutineScope.launch {
-                                            pagerState.animateScrollToPage(0)
+                                            pagerState.animateScrollToPage(
+                                                HomeScreenConstants.PAGER_SCANNER_PAGE)
                                           }
                                         },
                                         onClick = { event, seenStories ->
@@ -350,12 +374,14 @@ fun HomeScreen(
       }
 }
 
+/** Aggregates notification UI state that feeds badge and dropdown rendering. */
 data class NotificationState(
     val showNotifications: Boolean,
     val notifications: List<Notification> = emptyList(),
     val unreadCount: Int = 0
 )
 
+/** Callbacks emitted from the notification dropdown interactions. */
 data class NotificationCallbacks(
     val onNotificationClick: () -> Unit,
     val onDismiss: () -> Unit,
@@ -365,6 +391,7 @@ data class NotificationCallbacks(
     val onFriendRequestReject: (String, String) -> Unit = { _, _ -> }
 )
 
+/** Search bar plus notification icon row shown at the top of the Home page. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
@@ -389,6 +416,7 @@ fun HomeTopBar(
       })
 }
 
+/** Wraps the notification bell button and the dropdown that lists notifications. */
 @Composable
 private fun NotificationDropdown(
     notificationState: NotificationState,
@@ -482,6 +510,7 @@ private fun handleNotificationClick(
   onDismiss()
 }
 
+/** Single notification card with optional friend request controls. */
 @Composable
 fun NotificationItem(
     notification: Notification,
@@ -670,6 +699,7 @@ private fun FriendRequestActions(
   }
 }
 
+/** Renders a single story bubble with seen/unseen styling. */
 @Composable
 fun StoryItem(
     name: String,
@@ -707,6 +737,7 @@ fun StoryItem(
   }
 }
 
+/** Horizontal list of story bubbles with a leading "Add Story" affordance. */
 @Composable
 fun StoriesRow(
     onAddStoryClick: () -> Unit,

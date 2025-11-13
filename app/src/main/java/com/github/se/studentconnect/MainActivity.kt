@@ -219,19 +219,11 @@ private fun MainAppContent(
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit
 ) {
-  val currentBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = currentBackStackEntry?.destination?.route
-
-  // Hide bottom bar for create/edit event screens
-  val hideBottomBar =
-      currentRoute == Route.CREATE_PUBLIC_EVENT ||
-          currentRoute == Route.CREATE_PRIVATE_EVENT ||
-          currentRoute == Route.EDIT_PUBLIC_EVENT ||
-          currentRoute == Route.EDIT_PRIVATE_EVENT
+  var isCameraActive by remember { mutableStateOf(false) }
 
   Scaffold(
       bottomBar = {
-        if (!hideBottomBar) {
+        if (!isCameraActive) {
           BottomNavigationBar(
               selectedTab = selectedTab,
               onTabSelected = { tab ->
@@ -265,7 +257,8 @@ private fun MainAppContent(
             HomeScreen(
                 navController = navController,
                 shouldOpenQRScanner = shouldOpenQRScanner,
-                onQRScannerClosed = { onQRScannerStateChange(false) })
+                onQRScannerClosed = { onQRScannerStateChange(false) },
+                onCameraActiveChange = { isActive -> isCameraActive = isActive })
           }
           composable(Route.SEARCH) { SearchScreen(navController = navController) }
           composable(Route.MAP) { MapScreen() }

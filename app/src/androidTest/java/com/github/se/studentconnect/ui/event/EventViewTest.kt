@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.Manifest
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -11,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -34,6 +36,9 @@ import org.junit.runner.RunWith
 class EventViewTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
@@ -651,7 +656,7 @@ class EventViewTest {
 
   @Test
   fun eventView_validationResult_valid_displaysCorrectly() {
-    // Arrange
+    // Arrange - mock before creating ViewModel
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "owner123"
 
@@ -660,6 +665,10 @@ class EventViewTest {
       eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
     }
 
+    // Create a new ViewModel with mock in place
+    val testViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { testViewModel.fetchEvent(testEvent.uid) }
+
     composeTestRule.setContent {
       val navController = rememberNavController()
       NavHost(navController = navController, startDestination = "event") {
@@ -667,7 +676,7 @@ class EventViewTest {
           EventView(
               eventUid = testEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
+              eventViewModel = testViewModel,
               hasJoined = false)
         }
       }
@@ -679,7 +688,7 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     // Simulate validation through ViewModel
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+    composeTestRule.runOnIdle { testViewModel.validateParticipant(testEvent.uid, participantId) }
 
     // Assert - valid result should be displayed
     composeTestRule.waitForIdle()
@@ -689,11 +698,15 @@ class EventViewTest {
 
   @Test
   fun eventView_validationResult_invalid_displaysCorrectly() {
-    // Arrange
+    // Arrange - mock before creating ViewModel
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "owner123"
 
     val nonParticipantId = "nonparticipant123"
+
+    // Create a new ViewModel with mock in place
+    val testViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { testViewModel.fetchEvent(testEvent.uid) }
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -702,7 +715,7 @@ class EventViewTest {
           EventView(
               eventUid = testEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
+              eventViewModel = testViewModel,
               hasJoined = false)
         }
       }
@@ -714,7 +727,7 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     // Simulate validation through ViewModel
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, nonParticipantId) }
+    composeTestRule.runOnIdle { testViewModel.validateParticipant(testEvent.uid, nonParticipantId) }
 
     // Assert - invalid result should be displayed
     composeTestRule.waitForIdle()
@@ -724,7 +737,7 @@ class EventViewTest {
 
   @Test
   fun eventView_validationResult_scanNextButton_clearsResult() {
-    // Arrange
+    // Arrange - mock before creating ViewModel
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "owner123"
 
@@ -733,6 +746,10 @@ class EventViewTest {
       eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
     }
 
+    // Create a new ViewModel with mock in place
+    val testViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { testViewModel.fetchEvent(testEvent.uid) }
+
     composeTestRule.setContent {
       val navController = rememberNavController()
       NavHost(navController = navController, startDestination = "event") {
@@ -740,7 +757,7 @@ class EventViewTest {
           EventView(
               eventUid = testEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
+              eventViewModel = testViewModel,
               hasJoined = false)
         }
       }
@@ -751,7 +768,7 @@ class EventViewTest {
     composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
 
     composeTestRule.waitForIdle()
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+    composeTestRule.runOnIdle { testViewModel.validateParticipant(testEvent.uid, participantId) }
 
     composeTestRule.waitForIdle()
     // Click "Scan Next" button
@@ -764,7 +781,7 @@ class EventViewTest {
 
   @Test
   fun eventView_validationResult_closeScannerButton_closesDialog() {
-    // Arrange
+    // Arrange - mock before creating ViewModel
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns "owner123"
 
@@ -773,6 +790,10 @@ class EventViewTest {
       eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(participantId))
     }
 
+    // Create a new ViewModel with mock in place
+    val testViewModel = EventViewModel(eventRepository, userRepository)
+    runBlocking { testViewModel.fetchEvent(testEvent.uid) }
+
     composeTestRule.setContent {
       val navController = rememberNavController()
       NavHost(navController = navController, startDestination = "event") {
@@ -780,7 +801,7 @@ class EventViewTest {
           EventView(
               eventUid = testEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
+              eventViewModel = testViewModel,
               hasJoined = false)
         }
       }
@@ -791,7 +812,7 @@ class EventViewTest {
     composeTestRule.onNodeWithTag(EventViewTestTags.SCAN_QR_BUTTON).performClick()
 
     composeTestRule.waitForIdle()
-    composeTestRule.runOnIdle { viewModel.validateParticipant(testEvent.uid, participantId) }
+    composeTestRule.runOnIdle { testViewModel.validateParticipant(testEvent.uid, participantId) }
 
     composeTestRule.waitForIdle()
     // Click "Close Scanner" button
