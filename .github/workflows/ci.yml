@@ -95,7 +95,6 @@ jobs:
       SHARD_COUNT: 6
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-gradle
 
       - name: Decode secrets
         uses: ./.github/actions/decode-secrets
