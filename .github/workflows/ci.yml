@@ -192,7 +192,13 @@ jobs:
             adb install "$APP_DEBUG_TEST_APK"
 
             # Run tests
-            adb shell am instrument -w -r -e coverage true -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $PACKAGE.test/$TEST_RUNNER
+            adb shell am instrument -w -r -e coverage true -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $PACKAGE.test/$TEST_RUNNER | tee instrument-output.txt
+
+            # Fail the step if "FAILURES!!!" or "INSTRUMENTATION_CODE: -1" appears
+            if grep -q "FAILURES!!!" instrument-output.txt || grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt; then
+              echo "Instrumentation tests failed"
+              exit 1
+            fi
 
             # Pull coverage
             adb exec-out run-as $PACKAGE cat files/coverage.ec > coverage.ec
