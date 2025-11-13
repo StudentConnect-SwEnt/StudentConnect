@@ -39,7 +39,11 @@ class CameraViewWithPermissionDeniedTest : StudentConnectTest() {
 
     composeTestRule.setContent {
       CameraView(
-          noPermission = { Box { noPermissionShown = true } }, onImageCaptured = {}, onError = {})
+          noPermission = { Box { noPermissionShown = true } },
+          onImageCaptured = {},
+          onError = {},
+          autoRequestPermission = false // Skip auto-request to avoid permission dialog crash in tests
+      )
     }
 
     composeTestRule.waitForIdle()
