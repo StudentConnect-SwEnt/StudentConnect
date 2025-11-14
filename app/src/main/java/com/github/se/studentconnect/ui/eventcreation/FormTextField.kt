@@ -56,6 +56,36 @@ private fun FormTextFieldState(errorText: String?): Triple<Modifier, Boolean, ()
 }
 
 @Composable
+private fun FormTextFieldCommonParams(
+    modifier: Modifier,
+    focusModifier: Modifier,
+    label: String?,
+    required: Boolean,
+    placeholder: String?,
+    enabled: Boolean,
+    shouldShowError: Boolean,
+    errorText: String?,
+    trailingIcon: (@Composable () -> Unit)?,
+): Quadruple<
+    Modifier, (@Composable () -> Unit)?, (@Composable () -> Unit)?, (@Composable () -> Unit)?> {
+  val labelComposable = createLabelComposable(label, required)
+  val placeholderComposable = placeholder?.let { { Text(it) } }
+  val supportingTextComposable: (@Composable () -> Unit)? =
+      if (shouldShowError) {
+        { Text(text = errorText ?: "") }
+      } else {
+        null
+      }
+  return Quadruple(
+      modifier.then(focusModifier),
+      labelComposable,
+      placeholderComposable,
+      supportingTextComposable)
+}
+
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+
+@Composable
 fun FormTextField(
     modifier: Modifier = Modifier,
     value: String,
@@ -68,21 +98,31 @@ fun FormTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
-  val labelComposable = createLabelComposable(label, required)
+  val (finalModifier, labelComposable, placeholderComposable, supportingText) =
+      FormTextFieldCommonParams(
+          modifier,
+          focusModifier,
+          label,
+          required,
+          placeholder,
+          enabled,
+          shouldShowError,
+          errorText,
+          trailingIcon)
 
   OutlinedTextField(
-      modifier = modifier.then(focusModifier),
+      modifier = finalModifier,
       value = value,
       onValueChange = {
         markInteracted()
         onValueChange(it)
       },
       label = labelComposable,
-      placeholder = placeholder?.let { { Text(it) } },
+      placeholder = placeholderComposable,
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
+      supportingText = supportingText,
       trailingIcon = trailingIcon)
 }
 
@@ -99,20 +139,30 @@ fun FormTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
-  val labelComposable = createLabelComposable(label, required)
+  val (finalModifier, labelComposable, placeholderComposable, supportingText) =
+      FormTextFieldCommonParams(
+          modifier,
+          focusModifier,
+          label,
+          required,
+          placeholder,
+          enabled,
+          shouldShowError,
+          errorText,
+          trailingIcon)
 
   OutlinedTextField(
-      modifier = modifier.then(focusModifier),
+      modifier = finalModifier,
       value = value,
       onValueChange = {
         markInteracted()
         onValueChange(it)
       },
       label = labelComposable,
-      placeholder = placeholder?.let { { Text(it) } },
+      placeholder = placeholderComposable,
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
+      supportingText = supportingText,
       trailingIcon = trailingIcon)
 }
