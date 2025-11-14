@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Reusable birthday picker dialog component.
@@ -74,12 +76,28 @@ object BirthdayFormatter {
   /**
    * Parses a birthday string to milliseconds.
    *
+   * DatePicker expects milliseconds representing the start of the day in UTC.
+   *
    * @param dateString The date string in dd/MM/yyyy format
    * @return Date in milliseconds, or null if parsing fails
    */
   fun parseDate(dateString: String): Long? {
     return try {
-      dateFormatter.parse(dateString)?.time
+      val parsedDate = dateFormatter.parse(dateString) ?: return null
+
+      // Extract date components and create midnight UTC (DatePicker expects UTC)
+      val local = Calendar.getInstance().apply { time = parsedDate }
+      Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+          .apply {
+            set(Calendar.YEAR, local.get(Calendar.YEAR))
+            set(Calendar.MONTH, local.get(Calendar.MONTH))
+            set(Calendar.DAY_OF_MONTH, local.get(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+          }
+          .timeInMillis
     } catch (e: Exception) {
       null
     }
