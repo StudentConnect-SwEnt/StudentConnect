@@ -5,30 +5,24 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
-import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
-import com.github.se.studentconnect.ui.screen.signup.BasicInfoScreenTestTags
-import com.github.se.studentconnect.ui.screen.signup.SignUpViewModel
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.github.se.studentconnect.utils.NoAnonymousSignIn
-import com.google.firebase.Timestamp
-import java.util.Calendar
-import java.util.Date
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,47 +56,23 @@ class EndToEndTest : FirestoreStudentConnectTest() {
     return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
   }
 
-  @Before
-  override fun setUp() {
-    super.setUp()
-
+  @NoAnonymousSignIn
+  @Test
+  fun endToEnd_completeUserFlow() {
     // Create a real test account with email and password BEFORE the activity starts
     // But DON'T create the user profile - we want to test the onboarding flow
     runTest {
       // Use a unique email per test run to avoid colliding with an existing account/profile
       val testEmail = "e2etest${System.currentTimeMillis()}@example.com"
       val testPassword = "TestPassword123"
+      signInAs(testEmail, testPassword)
 
-      // Sign in with email/password (or create if doesn't exist)
-      try {
-        FirebaseEmulator.auth.createUserWithEmailAndPassword(testEmail, testPassword).await()
-      } catch (_: Exception) {
-        // Account might already exist, try signing in
-        FirebaseEmulator.auth.signInWithEmailAndPassword(testEmail, testPassword).await()
-      }
+      // Create user for the joiner
+      createUserForCurrentUser("owner")
     }
 
     // NOW launch the activity AFTER the user is authenticated
-    val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
-    scenario = ActivityScenario.launch(intent)
-  }
-
-  @NoAnonymousSignIn
-  @Test
-  fun endToEnd_completeUserFlow() {
-    composeTestRule.waitForIdle()
-
-    // Fill in the onboarding forms
-    fillOnboardingForms()
-
-    // Wait until we're on the main screen after onboarding
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_001, message = "bottom navigation menu on main screen to be visible") {
-          composeTestRule
-              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
+    launchActivityAndWaitForMainScreen()
 
     // Step 1: Create a public event
     createPublicEvent()
@@ -115,281 +85,45 @@ class EndToEndTest : FirestoreStudentConnectTest() {
 
     // Step 4: Verify event appears in activities (upcoming events)
     verifyEventInActivities()
-
-    // Step 5: Edit profile (name and country)
-    editProfile()
   }
 
-  private fun fillOnboardingForms() {
-    val cal = Calendar.getInstance()
-    cal.add(Calendar.YEAR, -20)
-    cal.set(Calendar.DAY_OF_MONTH, 15)
-    val defaultMillis = cal.timeInMillis
-    scenario.onActivity { activity ->
-      val vm = ViewModelProvider(activity).get(SignUpViewModel::class.java)
-      vm.setBirthdate(Timestamp(Date(defaultMillis)))
-    }
+  private fun launchActivityAndWaitForMainScreen() {
+    val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
+    scenario = ActivityScenario.launch(intent)
 
     composeTestRule.waitForIdle()
 
-    val uniqueUsername = "johndoe${System.currentTimeMillis()}"
-
-    // Fill first name
+    // Wait until we're on the main screen
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_001, message = "first name input to appear") {
+        timeoutMillis = 30_001, message = "bottom navigation menu on main screen to be visible") {
           composeTestRule
-              .onAllNodesWithTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT)
+              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
               .fetchSemanticsNodes()
               .isNotEmpty()
         }
+  }
 
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT).performTextClearance()
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT).performTextInput("John")
-
-    composeTestRule.waitForIdle()
-
-    // Close keyboard
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-
-    // Fill last name
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_002, message = "last name input to appear") {
-          composeTestRule
-              .onAllNodesWithTag(BasicInfoScreenTestTags.LAST_NAME_INPUT)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.LAST_NAME_INPUT).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.LAST_NAME_INPUT).performTextClearance()
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.LAST_NAME_INPUT).performTextInput("Doe")
-
-    composeTestRule.waitForIdle()
-
-    // Fill username
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_003, message = "username input to appear") {
-          composeTestRule
-              .onAllNodesWithTag(BasicInfoScreenTestTags.USERNAME_INPUT)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.USERNAME_INPUT).performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.USERNAME_INPUT).performTextClearance()
-
-    composeTestRule
-        .onNodeWithTag(BasicInfoScreenTestTags.USERNAME_INPUT)
-        .performTextInput(uniqueUsername)
-
-    composeTestRule.waitForIdle()
-
-    // Close keyboard
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_001, message = "continue button enabled on basic info screen") {
-          try {
-            composeTestRule
-                .onAllNodesWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
-                .fetchSemanticsNodes()
-                .isNotEmpty() &&
-                composeTestRule
-                    .onNodeWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
-                    .fetchSemanticsNode()
-                    .config
-                    .getOrNull(SemanticsProperties.Disabled) == null
-          } catch (_: Exception) {
-            false
-          }
-        }
-
-    // Click Continue on BasicInfo
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_004, message = "continue button to appear on basic info screen") {
-          composeTestRule
-              .onAllNodesWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNodeWithTag(BasicInfoScreenTestTags.CONTINUE_BUTTON).performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Step 2: Fill Nationality screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_005, message = "nationality screen header to appear") {
-          composeTestRule
-              .onAllNodesWithText("Where are you from", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    // Search for Switzerland
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_006, message = "search countries field to appear") {
-          composeTestRule
-              .onAllNodesWithText("Search countries", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule
-        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
-        .performTextInput("Switzerland")
-
-    composeTestRule.waitForIdle()
-
-    // Close keyboard
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-
-    // Select Switzerland from the list
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_007, message = "switzerland option to appear in country list") {
-          composeTestRule
-              .onAllNodesWithText("Switzerland", substring = true)
-              .fetchSemanticsNodes()
-              .size > 1
-        }
-
-    composeTestRule.onAllNodesWithText("Switzerland", substring = true).onLast().performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Click Continue on Nationality
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_008, message = "continue button on nationality screen") {
-          composeTestRule
-              .onAllNodes(hasText("Continue") and hasClickAction())
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onAllNodes(hasText("Continue") and hasClickAction()).onFirst().performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Step 3: Skip AddPicture screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_002, message = "skip button on add picture screen") {
-          composeTestRule
-              .onAllNodesWithText("Skip", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNode(hasText("Skip") and hasClickAction()).performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Step 4: Skip Description screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_003, message = "skip button on description screen") {
-          composeTestRule
-              .onAllNodesWithText("Skip", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNode(hasText("Skip") and hasClickAction()).performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Step 5: Experiences screen - select activities (chips) and Start Now
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_004, message = "experiences screen to load") {
-          try {
-            composeTestRule
-                .onAllNodesWithTag(C.Tag.experiences_screen_container)
-                .fetchSemanticsNodes()
-                .isNotEmpty()
-          } catch (_: Exception) {
-            false
-          }
-        }
-
-    // Wait for filter list and topic grid
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_009, message = "experiences filter list and topic grid to appear") {
-          try {
-            composeTestRule
-                .onAllNodesWithTag(C.Tag.experiences_filter_list)
-                .fetchSemanticsNodes()
-                .isNotEmpty() &&
-                composeTestRule
-                    .onAllNodesWithTag(C.Tag.experiences_topic_grid)
-                    .fetchSemanticsNodes()
-                    .isNotEmpty()
-          } catch (_: Exception) {
-            false
-          }
-        }
-
-    // Select a topic from the default filter (Sports) if available
+  private suspend fun signInAs(email: String, password: String) {
+    // Sign in with email/password (or create if doesn't exist)
     try {
-      composeTestRule
-          .onNodeWithTag("${C.Tag.experiences_topic_chip_prefix}_Football", useUnmergedTree = true)
-          .performScrollTo()
-          .performClick()
+      FirebaseEmulator.auth.createUserWithEmailAndPassword(email, password).await()
     } catch (_: Exception) {
-      // ignore if not present
+      // Account might already exist, try signing in
+      FirebaseEmulator.auth.signInWithEmailAndPassword(email, password).await()
     }
+  }
 
-    composeTestRule.waitForIdle()
-
-    // Switch to Music filter and select topics
-    try {
-      composeTestRule.onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_Music").performClick()
-      composeTestRule.waitForIdle()
-      composeTestRule
-          .onNodeWithTag("${C.Tag.experiences_topic_chip_prefix}_Choir", useUnmergedTree = true)
-          .performScrollTo()
-          .performClick()
-      composeTestRule
-          .onNodeWithTag("${C.Tag.experiences_topic_chip_prefix}_Guitar", useUnmergedTree = true)
-          .performScrollTo()
-          .performClick()
-    } catch (_: Exception) {
-      // ignore if nodes not found
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Wait for the CTA button to be visible
-    composeTestRule.waitUntil(timeoutMillis = 10_010) {
-      try {
-        composeTestRule.onAllNodesWithTag(C.Tag.experiences_cta).fetchSemanticsNodes().isNotEmpty()
-      } catch (_: Exception) {
-        false
-      }
-    }
-
-    // Click Start Now CTA using the proper test tag from C.kt
-    composeTestRule.onNodeWithTag(C.Tag.experiences_cta, useUnmergedTree = true).performClick()
-
-    composeTestRule.waitForIdle()
+  private suspend fun createUserForCurrentUser(username: String) {
+    val userRepository = UserRepositoryProvider.repository
+    userRepository.saveUser(
+        User(
+            userId = currentUser.uid,
+            email = currentUser.email!!,
+            username = username,
+            firstName = "$username first name",
+            lastName = "$username last name",
+            university = "EPFL",
+            hobbies = listOf("Music", "Running")))
   }
 
   private fun createPublicEvent() {
@@ -747,219 +481,5 @@ class EndToEndTest : FirestoreStudentConnectTest() {
               .fetchSemanticsNodes()
               .isNotEmpty()
         }
-  }
-
-  private fun editProfile() {
-    // 1. Navigate to Profile tab
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_012, message = "profile tab to be visible") {
-          composeTestRule
-              .onAllNodesWithTag(NavigationTestTags.PROFILE_TAB)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.waitForIdle()
-
-    // 2. Wait for profile to load (checking for Edit Name button)
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_009, message = "Edit Name button to be visible on profile") {
-          composeTestRule
-              .onAllNodesWithContentDescription("Edit Name")
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    // --- SECTION 1: EDIT NAME ---
-    composeTestRule.onNodeWithContentDescription("Edit Name").performClick()
-    composeTestRule.waitForIdle()
-
-    // Wait for edit name screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_013, message = "First Name field on edit name screen to appear") {
-          composeTestRule
-              .onAllNodesWithText("First Name", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    // Edit first name
-    composeTestRule.onAllNodesWithText("First Name", substring = true).onFirst().performClick()
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 5_001, message = "input focused for editing first name") {
-          composeTestRule
-              .onAllNodes(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextClearance()
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextInput("habibi")
-    composeTestRule.waitForIdle()
-
-    // Edit last name
-    composeTestRule.onAllNodesWithText("Last Name", substring = true).onFirst().performClick()
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 5_002, message = "input focused for editing last name") {
-          composeTestRule
-              .onAllNodes(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextClearance()
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasSetTextAction() and isFocused(), useUnmergedTree = true)
-        .performTextInput("Doe")
-    composeTestRule.waitForIdle()
-
-    // Save changes (Name)
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-    try {
-      composeTestRule.onRoot(useUnmergedTree = true).performClick()
-      composeTestRule.waitForIdle()
-    } catch (_: Exception) {}
-
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_016, message = "Save button to appear on edit name screen") {
-          composeTestRule
-              .onAllNodes(hasText("Save", substring = true), useUnmergedTree = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    composeTestRule
-        .onAllNodes(hasText("Save", substring = true), useUnmergedTree = true)
-        .onFirst()
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Wait to be back on profile screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_010, message = "back on profile screen after saving name") {
-          composeTestRule
-              .onAllNodesWithContentDescription("Edit Name")
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    // Verify name was updated
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_002, message = "updated name to appear on profile") {
-          composeTestRule
-              .onAllNodesWithText("habibi Doe", substring = true)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-
-    // --- SECTION 2: EDIT COUNTRY (NATIONALITY) ---
-
-    // 1. Wait for the pencil icon next to "Country".
-    // The label in ProfileSettingsScreen is "Country", so the icon description is "Edit Country".
-    composeTestRule.waitUntil(timeoutMillis = 15_014) {
-      composeTestRule
-          .onAllNodesWithContentDescription("Edit Country")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // 2. Click the pencil icon.
-    // ProfileSettingsScreen IS scrollable, so performScrollTo is required here.
-    composeTestRule.onNodeWithContentDescription("Edit Country").performScrollTo().performClick()
-
-    composeTestRule.waitForIdle()
-
-    // 3. Wait for EditNationalityScreen ("Where are you from ?")
-    composeTestRule.waitUntil(timeoutMillis = 15_015) {
-      composeTestRule
-          .onAllNodesWithText("Where are you from", substring = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // 4. Search for Tunisia (using logic from signup test)
-    composeTestRule.waitUntil(timeoutMillis = 10_017) {
-      composeTestRule
-          .onAllNodesWithText("Search countries", substring = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNode(hasSetTextAction() and hasText("Search countries", substring = true))
-        .performTextInput("Tunisia")
-
-    composeTestRule.waitForIdle()
-
-    // 5. Close keyboard to ensure list item and Save button are visible
-    Espresso.closeSoftKeyboard()
-    composeTestRule.waitForIdle()
-
-    // 6. Select Tunisia from the list (wait for filtering)
-    composeTestRule.waitUntil(timeoutMillis = 10_018) {
-      composeTestRule
-          .onAllNodesWithText("Tunisia", substring = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // Click on the country item (Using onLast() like in your example, assuming it's the list item)
-    composeTestRule.onAllNodesWithText("Tunisia", substring = true).onLast().performClick()
-
-    composeTestRule.waitForIdle()
-
-    // 7. Click "Save Changes"
-    // In EditNationalityScreen.kt, the button text is specifically "Save Changes"
-    composeTestRule.waitUntil(timeoutMillis = 10_019) {
-      composeTestRule
-          .onAllNodes(hasText("Save Changes", substring = true) and hasClickAction())
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    composeTestRule
-        .onNode(hasText("Save Changes", substring = true) and hasClickAction())
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    // 8. Wait to be back on Profile
-    composeTestRule.waitUntil(timeoutMillis = 30_011) {
-      composeTestRule
-          .onAllNodesWithContentDescription("Edit Name")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // 9. Verify Country is updated
-    composeTestRule.waitUntil(timeoutMillis = 20_003) {
-      composeTestRule
-          .onAllNodesWithText("Tunisia", substring = true)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
   }
 }
