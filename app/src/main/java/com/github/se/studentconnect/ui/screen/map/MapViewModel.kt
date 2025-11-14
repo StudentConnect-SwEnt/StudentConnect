@@ -33,7 +33,10 @@ data class MapUiState(
     val targetLocation: Point? = null,
     val shouldAnimateToLocation: Boolean = false,
     val events: List<Event> = emptyList(),
-    val friendLocations: Map<String, FriendLocation> = emptyMap()
+    val friendLocations: Map<String, FriendLocation> = emptyMap(),
+    val selectedEvent: Event? = null,
+    val selectedEventLocation: Point? = null,
+    val shouldAnimateToSelectedEvent: Boolean = false
 )
 
 object MapConfiguration {
@@ -71,12 +74,16 @@ sealed class MapViewEvent {
 
   object ClearLocationAnimation : MapViewEvent()
 
+  object ClearEventSelectionAnimation : MapViewEvent()
+
   data class UpdateSearchText(val text: String) : MapViewEvent()
 
   data class SetLocationPermission(val granted: Boolean) : MapViewEvent()
 
   data class SetTargetLocation(val latitude: Double, val longitude: Double, val zoom: Double) :
       MapViewEvent()
+
+  data class SelectEvent(val eventUid: String?) : MapViewEvent()
 }
 
 class MapViewModel(
@@ -236,6 +243,22 @@ class MapViewModel(
         val targetPoint = Point.fromLngLat(event.longitude, event.latitude)
         _uiState.value = _uiState.value.copy(targetLocation = targetPoint)
       }
+      is MapViewEvent.SelectEvent -> {
+        val selectedEvent =
+            event.eventUid?.let { uid -> _uiState.value.events.find { it.uid == uid } }
+        val selectedLocation =
+            selectedEvent?.location?.let { location ->
+              Point.fromLngLat(location.longitude, location.latitude)
+            }
+        _uiState.value =
+            _uiState.value.copy(
+                selectedEvent = selectedEvent,
+                selectedEventLocation = selectedLocation,
+                shouldAnimateToSelectedEvent = selectedLocation != null)
+      }
+      is MapViewEvent.ClearEventSelectionAnimation -> {
+        _uiState.value = _uiState.value.copy(shouldAnimateToSelectedEvent = false)
+      }
     }
   }
 
@@ -307,6 +330,22 @@ class MapViewModel(
           },
           MapAnimationOptions.mapAnimationOptions {
             duration(MapConfiguration.Animation.LOCATE_USER_DURATION_MS)
+          })
+    }
+  }
+
+  suspend fun animateToSelectedEvent(mapViewportState: MapViewportState) {
+    _uiState.value.selectedEventLocation?.let { eventLocation ->
+      mapViewportState.flyTo(
+          cameraOptions {
+            center(eventLocation)
+            // Use a comfortable zoom level for viewing event details (15.0)
+            zoom(15.0)
+            bearing(MapConfiguration.Camera.BEARING)
+            pitch(MapConfiguration.Camera.PITCH)
+          },
+          MapAnimationOptions.mapAnimationOptions {
+            duration(800L) // Shorter animation for event selection
           })
     }
   }

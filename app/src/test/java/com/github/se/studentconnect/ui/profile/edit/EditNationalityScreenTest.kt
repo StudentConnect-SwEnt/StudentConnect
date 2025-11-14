@@ -132,7 +132,7 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -147,8 +147,8 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    // After loading, the button should be enabled because user has a country
-    composeTestRule.onNodeWithText("Save Changes").assertIsEnabled()
+    // Button should be disabled when preselected country matches current user's country
+    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 
   @Test
@@ -164,14 +164,27 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Click save with current country
-    composeTestRule.onNodeWithText("Save Changes").performClick()
+    // Search for a different country
+    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("France")
+    composeTestRule.waitForIdle()
+
+    // Wait for country list to update and select France (exclude the search input)
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("France", substring = false).fetchSemanticsNodes().size >=
+          2
+    }
+    composeTestRule.onAllNodesWithText("France", substring = false)[1].performClick()
+    composeTestRule.waitForIdle()
+
+    // Now save button should be enabled
+    composeTestRule.onNodeWithText("Save").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save
     composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }
 
-    // Verify Switzerland was saved
-    assertEquals("Switzerland", repository.savedUsers.last().country)
+    // Verify France was saved
+    assertEquals("France", repository.savedUsers.last().country)
   }
 
   @Test
@@ -187,8 +200,18 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
+    // Select a different country
+    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Germany")
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("Germany", substring = false).fetchSemanticsNodes().size >=
+          2
+    }
+    composeTestRule.onAllNodesWithText("Germany", substring = false)[1].performClick()
+    composeTestRule.waitForIdle()
+
     // Click save
-    composeTestRule.onNodeWithText("Save Changes").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save operation and navigation
     composeTestRule.waitForIdle()
@@ -214,8 +237,17 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
+    // Select a different country
+    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Italy")
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("Italy", substring = false).fetchSemanticsNodes().size >= 2
+    }
+    composeTestRule.onAllNodesWithText("Italy", substring = false)[1].performClick()
+    composeTestRule.waitForIdle()
+
     // Click save
-    composeTestRule.onNodeWithText("Save Changes").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for error message
     composeTestRule.waitForIdle()
@@ -245,10 +277,10 @@ class EditNationalityScreenTest {
 
     // Should still display the screen properly
     composeTestRule.onNodeWithText("Edit Nationality").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
 
     // Save button should be disabled when no country is selected
-    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 
   @Test
@@ -264,8 +296,17 @@ class EditNationalityScreenTest {
 
     composeTestRule.waitForIdle()
 
-    // Save current country
-    composeTestRule.onNodeWithText("Save Changes").performClick()
+    // Select a different country
+    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Spain")
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("Spain", substring = false).fetchSemanticsNodes().size >= 2
+    }
+    composeTestRule.onAllNodesWithText("Spain", substring = false)[1].performClick()
+    composeTestRule.waitForIdle()
+
+    // Save
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save
     composeTestRule.waitUntil(timeoutMillis = 2000) { repository.savedUsers.isNotEmpty() }

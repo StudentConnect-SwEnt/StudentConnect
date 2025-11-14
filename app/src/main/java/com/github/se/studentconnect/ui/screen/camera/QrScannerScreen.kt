@@ -45,10 +45,12 @@ import com.github.se.studentconnect.ui.camera.QrCodeAnalyzer
 
 private val ANALYSIS_TARGET_RESOLUTION = Size(720, 720)
 
+/** Factory for providing an [ImageAnalysis.Analyzer] configured with callbacks and ROI metadata. */
 typealias AnalyzerProvider =
     ((String) -> Unit, (Throwable) -> Unit, RectF?) -> ImageAnalysis.Analyzer?
 
 @SuppressLint("SuspiciousIndentation")
+/** Full-screen QR scanner that manages analyzer lifecycle, ROI, and error messaging. */
 @Composable
 fun QrScannerScreen(
     onBackClick: () -> Unit,
@@ -166,7 +168,7 @@ fun QrScannerScreen(
         Column(
             modifier =
                 Modifier.Companion.align(Alignment.Companion.BottomCenter)
-                    .padding(horizontal = 32.dp, vertical = 48.dp)
+                    .padding(horizontal = 32.dp, vertical = 160.dp)
                     .semantics { testTag = C.Tag.qr_scanner_instructions },
             horizontalAlignment = Alignment.Companion.CenterHorizontally) {
               Text(
@@ -202,6 +204,7 @@ fun QrScannerScreen(
       }
 }
 
+/** Draws the translucent square that indicates the scanning focus area. */
 @Composable
 private fun ScannerFocusFrame(modifier: Modifier = Modifier.Companion, size: Dp = 240.dp) {
   Box(
@@ -216,6 +219,7 @@ private fun ScannerFocusFrame(modifier: Modifier = Modifier.Companion, size: Dp 
               .semantics { testTag = C.Tag.qr_scanner_focus })
 }
 
+/** Shown when camera permissions are missing, prompting the user to navigate back. */
 @Composable
 private fun ScannerPermissionRequired(
     onBackClick: () -> Unit,
@@ -242,6 +246,7 @@ private fun ScannerPermissionRequired(
       }
 }
 
+/** Simple placeholder displayed when the scanner page is inactive in the pager. */
 @Composable
 private fun InactiveScannerBackground(modifier: Modifier = Modifier.Companion) {
   Box(

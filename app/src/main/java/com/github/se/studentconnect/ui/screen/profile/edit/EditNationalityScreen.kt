@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +40,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryListSurface
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.components.filterCountries
 import com.github.se.studentconnect.ui.components.loadCountries
 import com.github.se.studentconnect.ui.profile.edit.EditNationalityViewModel
@@ -134,10 +132,11 @@ fun EditNationalityScreen(
   val filteredCountries = remember(query, countries) { filterCountries(query, countries) }
 
   var selectedCountry by remember { mutableStateOf<Country?>(null) }
+  val currentUserCountry = user?.country
 
-  LaunchedEffect(user?.country) {
+  LaunchedEffect(currentUserCountry) {
     // Find the country by name from the list
-    selectedCountry = countries.find { it.name == user?.country }
+    selectedCountry = countries.find { it.name == currentUserCountry }
   }
 
   Scaffold(
@@ -196,20 +195,17 @@ fun EditNationalityScreen(
 
               LargeSpacer()
 
-              Button(
+              ProfileSaveButton(
                   onClick = {
                     selectedCountry?.let { country -> viewModel.updateNationality(country.name) }
                   },
-                  modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                  enabled = selectedCountry != null && !isLoading) {
-                    if (isLoading) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(16.dp),
-                          color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                      Text(stringResource(R.string.button_save_changes))
-                    }
-                  }
+                  isLoading = isLoading,
+                  enabled =
+                      selectedCountry != null &&
+                          !isLoading &&
+                          selectedCountry?.name != currentUserCountry,
+                  text = stringResource(R.string.button_save),
+                  modifier = Modifier.align(Alignment.CenterHorizontally))
             }
       }
 }

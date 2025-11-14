@@ -322,7 +322,7 @@ class EditBioScreenTest {
   }
 
   @Test
-  fun editBioScreen_showsSnackbarOnSuccessfulSave() {
+  fun editBioScreen_navigatesBackOnSuccessfulSaveWithoutSnackbar() {
     composeTestRule.setContent {
       MaterialTheme {
         EditBioScreen(
@@ -341,12 +341,10 @@ class EditBioScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for snackbar to appear
-    composeTestRule.waitForIdle()
-    Thread.sleep(200)
+    composeTestRule.waitUntil(timeoutMillis = 2_000) { navigatedBack }
 
-    // Should show success message
-    composeTestRule.onNodeWithText(ProfileConstants.SUCCESS_BIO_UPDATED).assertExists()
+    // Success snackbar should not be shown anymore
+    composeTestRule.onAllNodesWithText(ProfileConstants.SUCCESS_BIO_UPDATED).assertCountEquals(0)
   }
 
   @Test

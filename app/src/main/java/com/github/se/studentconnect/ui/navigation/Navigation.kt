@@ -13,7 +13,7 @@ object Route {
 
   const val HOME = "home"
   const val MAP = "map"
-  const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}"
+  const val MAP_WITH_LOCATION = "map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}"
   const val ACTIVITIES = "activities"
   const val PROFILE = "profile"
   const val SEARCH = "search"
@@ -32,8 +32,14 @@ object Route {
   // Added route for the event view, with eventUid as an argument
   const val EVENT_VIEW = "eventView/{eventUid}"
 
-  fun mapWithLocation(latitude: Double, longitude: Double, zoom: Double = 15.0): String {
-    return "map/$latitude/$longitude/$zoom"
+  fun mapWithLocation(
+      latitude: Double,
+      longitude: Double,
+      zoom: Double = 15.0,
+      eventUid: String? = null
+  ): String {
+    val baseRoute = "map/$latitude/$longitude/$zoom"
+    return if (eventUid != null) "$baseRoute?eventUid=$eventUid" else baseRoute
   }
 
   fun eventView(eventUid: String, hasJoined: Boolean): String {

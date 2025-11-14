@@ -75,6 +75,7 @@ object EventViewTestTags {
   const val PARTICIPANTS_INFO = "event_view_participants_info"
 }
 
+/** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(
@@ -175,6 +176,7 @@ fun EventView(
 
 private const val DAY_IN_SECONDS = 86400
 
+/** Shows countdown, description, and attendance information for the given event. */
 @Composable
 private fun InfoEvent(
     timeLeft: Long,
@@ -457,7 +459,11 @@ private fun CommonActionButtons(
         id = R.drawable.ic_location_pin,
         onClick = {
           currentEvent.location?.let { location ->
-            val route = Route.mapWithLocation(location.latitude, location.longitude)
+            // Navigate to map with location and event UID to automatically select and display the
+            // event
+            val route =
+                Route.mapWithLocation(
+                    location.latitude, location.longitude, eventUid = currentEvent.uid)
             navController.navigate(route)
           }
         },

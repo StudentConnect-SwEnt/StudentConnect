@@ -92,9 +92,9 @@ class EditActivitiesViewModel(
           return@launch
         }
 
-        // Use updateUser to avoid race conditions and ensure atomic updates
-        val updates = mapOf("hobbies" to _selectedActivities.value.toList())
-        userRepository.updateUser(userId, updates)
+        // not using userRepository.updateUser, as it doesn't work
+        val updatedUser = user.copy(hobbies = _selectedActivities.value.toList())
+        userRepository.saveUser(updatedUser)
         _uiState.value = UiState.Success(R.string.success_activities_updated.toString())
       } catch (e: Exception) {
         _uiState.value =

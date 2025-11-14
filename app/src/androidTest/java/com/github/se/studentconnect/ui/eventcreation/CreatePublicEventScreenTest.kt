@@ -352,6 +352,14 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
   @Test
   fun disablingParticipationFeeSwitch_disablesAndClearsInput() {
     waitForTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
+
+    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SCROLL_COLUMN).performTouchInput {
+      swipeUp()
+      swipeUp()
+    }
+
+    composeTestRule.waitForIdle()
+
     val switch =
         composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH)
     val input =
