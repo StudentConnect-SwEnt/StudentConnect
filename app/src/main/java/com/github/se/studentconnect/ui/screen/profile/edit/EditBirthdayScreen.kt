@@ -115,32 +115,6 @@ fun EditBirthdayScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp))
 
-                    // Current birthday display
-                    if (birthdayString != null) {
-                      Card(
-                          modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                          colors =
-                              CardDefaults.cardColors(
-                                  containerColor = MaterialTheme.colorScheme.primaryContainer)) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally) {
-                                  Text(
-                                      text = stringResource(R.string.text_current_birthday),
-                                      style = MaterialTheme.typography.labelMedium,
-                                      color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                  Spacer(modifier = Modifier.height(4.dp))
-                                  Text(
-                                      text = birthdayString!!,
-                                      style = MaterialTheme.typography.headlineSmall,
-                                      fontWeight = FontWeight.Bold,
-                                      color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                }
-                          }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // DatePicker
                     DatePicker(
                         state = datePickerState,
