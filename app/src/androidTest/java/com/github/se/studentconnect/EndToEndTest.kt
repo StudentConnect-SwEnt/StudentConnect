@@ -11,9 +11,12 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
+import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.navigation.NavigationTestTags
@@ -21,6 +24,8 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTag
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.github.se.studentconnect.utils.NoAnonymousSignIn
+import com.google.firebase.Timestamp
+import java.util.Date
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -87,6 +92,37 @@ class EndToEndTest : FirestoreStudentConnectTest() {
     verifyEventInActivities()
   }
 
+  @NoAnonymousSignIn
+  @Test
+  fun endToEnd_completeEventJoiningFlow() {
+    // Create an event made by another user
+    val joinEventTitle = "Join Flow Event"
+    val joinEventUid = createEventMadeByOtherUser(joinEventTitle)
+
+    // Sign in as the joiner
+    runTest {
+      val uniqueSuffix = System.currentTimeMillis()
+      val testEmail = "e2etest${uniqueSuffix}@example.com"
+      val testPassword = "TestPassword123"
+      signInAs(testEmail, testPassword)
+
+      // Create user for the joiner
+      createUserForCurrentUser("owner")
+    }
+
+    // Launch MainActivity now
+    launchActivityAndWaitForMainScreen()
+
+    // Step 1: Search for event in search screen
+    searchForEventInSearchScreen(joinEventTitle)
+
+    // Step 2: Open event in home screen
+    openEventInHomeScreen(joinEventUid)
+
+    // Step 3: Join the event and check the leave button
+    joinOpenEvent()
+  }
+
   private fun launchActivityAndWaitForMainScreen() {
     val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
     scenario = ActivityScenario.launch(intent)
@@ -124,6 +160,131 @@ class EndToEndTest : FirestoreStudentConnectTest() {
             lastName = "$username last name",
             university = "EPFL",
             hobbies = listOf("Music", "Running")))
+  }
+
+  private fun createEventMadeByOtherUser(eventTitle: String): String {
+    val eventUid = repository.getNewUid()
+
+    runTest {
+      val uniqueSuffix = System.currentTimeMillis()
+      val ownerEmail = "owner${uniqueSuffix}@example.com"
+      val ownerPassword = "OwnerPassword123"
+      signInAs(ownerEmail, ownerPassword)
+
+      // Create user for the owner
+      createUserForCurrentUser("owner")
+
+      // Create an event
+      val startDate = Date(System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000)
+      val endDate = Date(startDate.time + 2L * 60 * 60 * 1000)
+
+      repository.addEvent(
+          Event.Public(
+              uid = eventUid,
+              ownerId = currentUser.uid,
+              title = "$eventTitle $uniqueSuffix",
+              description = "Instrumentation event used to validate join flow",
+              location = Location(latitude = 46.5191, longitude = 6.5668, name = "EPFL Campus"),
+              start = Timestamp(startDate),
+              end = Timestamp(endDate),
+              maxCapacity = 50u,
+              participationFee = 0u,
+              isFlash = false,
+              subtitle = "Join Flow",
+              tags = listOf("campus", "music")))
+    }
+
+    return eventUid
+  }
+
+  private fun searchForEventInSearchScreen(eventTitle: String) {
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_016, message = "home search bar to become visible") {
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.search_input_field, useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule
+        .onAllNodesWithTag(C.Tag.search_input_field, useUnmergedTree = true)
+        .onFirst()
+        .performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_017, message = "search screen to open from home search bar") {
+          composeTestRule.onAllNodesWithTag(C.Tag.search_screen).fetchSemanticsNodes().isNotEmpty()
+        }
+
+    val searchField =
+        composeTestRule
+            .onAllNodesWithTag(C.Tag.search_input_field, useUnmergedTree = true)
+            .onFirst()
+    searchField.performTextClearance()
+    searchField.performTextInput(eventTitle)
+
+    Espresso.closeSoftKeyboard()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_018, message = "seeded event to appear in search results") {
+          composeTestRule
+              .onAllNodesWithText(eventTitle, substring = true, useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+  }
+
+  private fun openEventInHomeScreen(eventUid: String) {
+    composeTestRule.onNodeWithTag(C.Tag.back_button).performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 30_017, message = "home screen to be visible after leaving search") {
+          composeTestRule.onAllNodesWithTag("HomePage").fetchSemanticsNodes().isNotEmpty()
+        }
+
+    val eventCardTag = "event_card_title_$eventUid"
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 30_018, message = "join flow event card to be visible on home screen") {
+          composeTestRule
+              .onAllNodesWithTag(eventCardTag, useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule
+        .onNodeWithTag(eventCardTag, useUnmergedTree = true)
+        .performScrollTo()
+        .performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 30_019, message = "event view to open from the home event list") {
+          composeTestRule
+              .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+  }
+
+  private fun joinOpenEvent() {
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_019, message = "join button to become visible on event view") {
+          composeTestRule
+              .onAllNodesWithTag(EventViewTestTags.JOIN_BUTTON)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_020, message = "leave button to appear after joining the event") {
+          composeTestRule
+              .onAllNodesWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
   }
 
   private fun createPublicEvent() {
