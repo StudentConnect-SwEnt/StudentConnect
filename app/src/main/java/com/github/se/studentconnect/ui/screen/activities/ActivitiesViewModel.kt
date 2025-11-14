@@ -107,17 +107,21 @@ class ActivitiesViewModel(
                   }
 
               val eventsFromAllVisible =
-                  allVisibleEvents.filter { ev -> ev.ownerId == userUid || joinedEventIds.contains(ev.uid) }
+                  allVisibleEvents.filter { ev ->
+                    ev.ownerId == userUid || joinedEventIds.contains(ev.uid)
+                  }
 
-              val joinedOnlyIds = joinedEventIds.filterNot { id -> eventsFromAllVisible.any { it.uid == id } }
+              val joinedOnlyIds =
+                  joinedEventIds.filterNot { id -> eventsFromAllVisible.any { it.uid == id } }
 
-              val joinedEvents = joinedOnlyIds.mapNotNull { eventId ->
-                try {
-                  eventRepository.getEvent(eventId)
-                } catch (_: Exception) {
-                  null
-                }
-              }
+              val joinedEvents =
+                  joinedOnlyIds.mapNotNull { eventId ->
+                    try {
+                      eventRepository.getEvent(eventId)
+                    } catch (_: Exception) {
+                      null
+                    }
+                  }
 
               val now = Timestamp.now()
               (eventsFromAllVisible + joinedEvents)
