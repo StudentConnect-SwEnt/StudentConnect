@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,17 @@ import com.github.se.studentconnect.ui.components.BirthdayPickerDialog
 import com.google.firebase.Timestamp
 import java.util.Date
 import kotlinx.coroutines.delay
+
+object BasicInfoScreenTestTags {
+  const val SCREEN = "basic_info_screen"
+  const val FIRST_NAME_INPUT = "basic_info_first_name_input"
+  const val LAST_NAME_INPUT = "basic_info_last_name_input"
+  const val USERNAME_INPUT = "basic_info_username_input"
+  const val BIRTHDATE_BUTTON = "basic_info_birthdate_button"
+  const val CONTINUE_BUTTON = "basic_info_continue_button"
+  const val BACK_BUTTON = "basic_info_back_button"
+  const val AVATAR_BANNER = "basic_info_avatar_banner"
+}
 
 /**
  * Collects and persists the user's core profile details (names and birthdate) while controlling
@@ -118,11 +130,13 @@ fun BasicInfoScreen(
   Column(
       modifier =
           Modifier.fillMaxSize()
+              .testTag(BasicInfoScreenTestTags.SCREEN)
               .padding(
                   horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
                   vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
-        SignUpBackButton(onClick = onBack)
+        SignUpBackButton(
+            onClick = onBack, modifier = Modifier.testTag(BasicInfoScreenTestTags.BACK_BUTTON))
 
         SignUpMediumSpacer()
 
@@ -133,6 +147,7 @@ fun BasicInfoScreen(
         SignUpLargeSpacer()
 
         AvatarBanner(
+            modifier = Modifier.testTag(BasicInfoScreenTestTags.AVATAR_BANNER),
             avatarResIds = listOf(R.drawable.avatar_12, R.drawable.avatar_13, R.drawable.avatar_23))
 
         Spacer(Modifier.height(32.dp))
@@ -140,7 +155,7 @@ fun BasicInfoScreen(
         OutlinedTextField(
             value = firstNameText,
             onValueChange = { text -> viewModel.setFirstName(text) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(BasicInfoScreenTestTags.FIRST_NAME_INPUT),
             label = { Text(stringResource(R.string.signup_label_first_name)) },
             placeholder = { Text(stringResource(R.string.placeholder_enter_first_name)) },
             singleLine = true)
@@ -150,7 +165,7 @@ fun BasicInfoScreen(
         OutlinedTextField(
             value = lastNameText,
             onValueChange = { text -> viewModel.setLastName(text) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(BasicInfoScreenTestTags.LAST_NAME_INPUT),
             label = { Text(stringResource(R.string.signup_label_last_name)) },
             placeholder = { Text(stringResource(R.string.placeholder_enter_last_name)) },
             singleLine = true)
@@ -166,13 +181,13 @@ fun BasicInfoScreen(
               isUsernameFormatValid = isValid
               isUsernameAvailable = available
             },
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth().testTag(BasicInfoScreenTestTags.USERNAME_INPUT))
 
         Spacer(Modifier.height(16.dp))
 
         Button(
             onClick = { dialogState.value = true },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(BasicInfoScreenTestTags.BIRTHDATE_BUTTON),
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
@@ -213,7 +228,9 @@ fun BasicInfoScreen(
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
             enabled = isContinueEnabled,
-            modifier = Modifier.align(Alignment.CenterHorizontally))
+            modifier =
+                Modifier.align(Alignment.CenterHorizontally)
+                    .testTag(BasicInfoScreenTestTags.CONTINUE_BUTTON))
       }
 }
 
