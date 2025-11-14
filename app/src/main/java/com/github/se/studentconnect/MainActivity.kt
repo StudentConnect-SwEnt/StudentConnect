@@ -211,15 +211,40 @@ fun MainContent() {
   }
 }
 
+/**
+ * Main app content composable that contains the scaffold with bottom navigation and main screens.
+ *
+ * This composable manages the bottom navigation bar visibility and handles navigation between
+ * different screens. The bottom navigation bar is conditionally hidden when the camera mode
+ * selector is active to provide a full-screen camera experience.
+ *
+ * @param navController The navigation controller for handling navigation between screens
+ * @param selectedTab The currently selected bottom navigation tab
+ * @param onTabSelected Callback invoked when a tab is selected
+ * @param shouldOpenQRScanner Whether the QR scanner should be opened automatically
+ * @param onQRScannerStateChange Callback to notify when QR scanner state changes
+ */
 @Composable
-private fun MainAppContent(
+internal fun MainAppContent(
     navController: NavHostController,
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit
 ) {
+  // Track whether camera mode selector is currently active to conditionally hide bottom nav
   var isCameraActive by remember { mutableStateOf(false) }
+
+  val currentBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = currentBackStackEntry?.destination?.route
+
+  // Hide bottom bar for create/edit event screens
+  val hideBottomBar =
+      currentRoute == Route.CREATE_PUBLIC_EVENT ||
+          currentRoute == Route.CREATE_PRIVATE_EVENT ||
+          currentRoute == Route.EDIT_PUBLIC_EVENT ||
+          currentRoute == Route.EDIT_PRIVATE_EVENT ||
+          isCameraActive
 
   Scaffold(
       bottomBar = {
@@ -268,11 +293,21 @@ private fun MainAppContent(
                   listOf(
                       navArgument("latitude") { type = NavType.StringType },
                       navArgument("longitude") { type = NavType.StringType },
-                      navArgument("zoom") { type = NavType.StringType })) { backStackEntry ->
+                      navArgument("zoom") { type = NavType.StringType },
+                      navArgument("eventUid") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                      })) { backStackEntry ->
                 val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
                 val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
                 val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
-                MapScreen(targetLatitude = latitude, targetLongitude = longitude, targetZoom = zoom)
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                MapScreen(
+                    targetLatitude = latitude,
+                    targetLongitude = longitude,
+                    targetZoom = zoom,
+                    targetEventUid = eventUid)
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
 

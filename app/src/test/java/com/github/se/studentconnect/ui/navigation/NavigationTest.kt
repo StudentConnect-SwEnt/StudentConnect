@@ -24,7 +24,7 @@ class NavigationTest {
 
   @Test
   fun route_mapWithLocationConstant_hasCorrectValue() {
-    assertEquals("map/{latitude}/{longitude}/{zoom}", Route.MAP_WITH_LOCATION)
+    assertEquals("map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}", Route.MAP_WITH_LOCATION)
   }
 
   @Test
@@ -123,6 +123,36 @@ class NavigationTest {
   fun route_mapWithLocation_handlesSmallZoomValue() {
     val result = Route.mapWithLocation(51.5074, -0.1278, 0.5)
     assertEquals("map/51.5074/-0.1278/0.5", result)
+  }
+
+  @Test
+  fun route_mapWithLocation_withEventUid_generatesCorrectRoute() {
+    val result = Route.mapWithLocation(46.5197, 6.6323, eventUid = "event123")
+    assertEquals("map/46.5197/6.6323/15.0?eventUid=event123", result)
+  }
+
+  @Test
+  fun route_mapWithLocation_withEventUidAndCustomZoom_generatesCorrectRoute() {
+    val result = Route.mapWithLocation(46.5197, 6.6323, 12.0, "event456")
+    assertEquals("map/46.5197/6.6323/12.0?eventUid=event456", result)
+  }
+
+  @Test
+  fun route_mapWithLocation_withNullEventUid_generatesRouteWithoutQueryParam() {
+    val result = Route.mapWithLocation(46.5197, 6.6323, eventUid = null)
+    assertEquals("map/46.5197/6.6323/15.0", result)
+  }
+
+  @Test
+  fun route_mapWithLocation_withEventUidContainingSpecialCharacters_generatesCorrectRoute() {
+    val result = Route.mapWithLocation(46.5197, 6.6323, eventUid = "event-123_abc")
+    assertEquals("map/46.5197/6.6323/15.0?eventUid=event-123_abc", result)
+  }
+
+  @Test
+  fun route_mapWithLocation_withEmptyEventUid_generatesRouteWithEmptyParam() {
+    val result = Route.mapWithLocation(46.5197, 6.6323, eventUid = "")
+    assertEquals("map/46.5197/6.6323/15.0?eventUid=", result)
   }
 
   // Route.eventView() function tests

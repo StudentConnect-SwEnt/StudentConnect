@@ -488,4 +488,54 @@ class MainActivityTest {
 
     HttpClientProvider.client = original
   }
+
+  /** Test to verify that MAP_WITH_LOCATION route supports eventUid parameter. */
+  @Test
+  fun route_mapWithLocation_supportsEventUidParameter() {
+    val route = Route.mapWithLocation(46.5197, 6.6323, eventUid = "test-event-123")
+    assertTrue(route.contains("eventUid=test-event-123"))
+    assertTrue(route.contains("46.5197"))
+    assertTrue(route.contains("6.6323"))
+    assertEquals("map/46.5197/6.6323/15.0?eventUid=test-event-123", route)
+  }
+
+  /** Test to verify that MAP_WITH_LOCATION route handles null eventUid. */
+  @Test
+  fun route_mapWithLocation_handlesNullEventUid() {
+    val route = Route.mapWithLocation(46.5197, 6.6323, eventUid = null)
+    assertTrue(route.contains("46.5197"))
+    assertTrue(route.contains("6.6323"))
+    assertFalse(route.contains("eventUid"))
+  }
+
+  /** Test to verify that MAP_WITH_LOCATION route defaults zoom parameter. */
+  @Test
+  fun route_mapWithLocation_defaultsZoomParameter() {
+    val route = Route.mapWithLocation(46.5197, 6.6323)
+    // Default zoom is 15.0, check it's in the route
+    assertTrue(route.contains("15.0"))
+    assertEquals("map/46.5197/6.6323/15.0", route)
+  }
+
+  /** Test to verify that create and edit event routes are defined. */
+  @Test
+  fun route_eventCreationAndEditing_routesExist() {
+    assertFalse(Route.CREATE_PUBLIC_EVENT.isEmpty())
+    assertFalse(Route.CREATE_PRIVATE_EVENT.isEmpty())
+    assertTrue(Route.EDIT_PUBLIC_EVENT.contains("{eventUid}"))
+    assertTrue(Route.EDIT_PRIVATE_EVENT.contains("{eventUid}"))
+  }
+
+  /** Test to verify that edit event route functions work correctly. */
+  @Test
+  fun route_editEventFunctions_generateCorrectRoutes() {
+    val testEventUid = "test-event-123"
+    val publicEditRoute = Route.editPublicEvent(testEventUid)
+    val privateEditRoute = Route.editPrivateEvent(testEventUid)
+
+    assertTrue(publicEditRoute.contains(testEventUid))
+    assertTrue(privateEditRoute.contains(testEventUid))
+    assertEquals("edit_public_event/$testEventUid", publicEditRoute)
+    assertEquals("edit_private_event/$testEventUid", privateEditRoute)
+  }
 }

@@ -187,6 +187,231 @@ class MapViewModelTest {
     viewModel.animateToUserLocation(mapViewportState)
     coVerify(exactly = 0) { mapViewportState.flyTo(any(), any()) }
   }
+
+  @Test
+  fun selectEvent_withValidEventUid_updatesSelectedEventAndLocation() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+
+    val state = viewModel.uiState.value
+    assertNotNull(state.selectedEvent)
+    assertEquals("event123", state.selectedEvent?.uid)
+    assertEquals("Test Event", state.selectedEvent?.title)
+    assertNotNull(state.selectedEventLocation)
+    assertEquals(6.6323, state.selectedEventLocation!!.longitude(), 0.0001)
+    assertEquals(46.5197, state.selectedEventLocation!!.latitude(), 0.0001)
+    assertTrue(state.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun selectEvent_withNullEventUid_clearsSelection() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+    assertNotNull(viewModel.uiState.value.selectedEvent)
+
+    viewModel.onEvent(MapViewEvent.SelectEvent(null))
+
+    val state = viewModel.uiState.value
+    assertNull(state.selectedEvent)
+    assertNull(state.selectedEventLocation)
+    assertFalse(state.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun selectEvent_withInvalidEventUid_doesNotSelectEvent() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("nonexistent"))
+
+    val state = viewModel.uiState.value
+    assertNull(state.selectedEvent)
+    assertNull(state.selectedEventLocation)
+    assertFalse(state.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun selectEvent_withEventWithoutLocation_doesNotSetLocation() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location = null,
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+
+    val state = viewModel.uiState.value
+    assertNotNull(state.selectedEvent)
+    assertEquals("event123", state.selectedEvent?.uid)
+    assertNull(state.selectedEventLocation)
+    assertFalse(state.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun clearEventSelectionAnimation_resetsShouldAnimateFlag() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+    assertTrue(viewModel.uiState.value.shouldAnimateToSelectedEvent)
+
+    viewModel.onEvent(MapViewEvent.ClearEventSelectionAnimation)
+    assertFalse(viewModel.uiState.value.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun animateToSelectedEvent_withSelectedEventLocation_callsMapViewportStateFlyTo() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+
+    val mapViewportState = mockk<MapViewportState>(relaxed = true)
+    coEvery { mapViewportState.flyTo(any(), any()) } just Runs
+
+    viewModel.animateToSelectedEvent(mapViewportState)
+
+    coVerify { mapViewportState.flyTo(any(), any()) }
+  }
+
+  @Test
+  fun animateToSelectedEvent_withoutSelectedEventLocation_doesNotCallFlyTo() = runTest {
+    val mapViewportState = mockk<MapViewportState>(relaxed = true)
+    coEvery { mapViewportState.flyTo(any(), any()) } just Runs
+
+    viewModel.animateToSelectedEvent(mapViewportState)
+
+    coVerify(exactly = 0) { mapViewportState.flyTo(any(), any()) }
+  }
+
+  @Test
+  fun animateToSelectedEvent_usesCorrectZoomLevel() = runTest {
+    val event =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "event123",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Test Description",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Test Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Test Subtitle")
+
+    coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
+    viewModel =
+        MapViewModel(
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+    advanceUntilIdle()
+
+    viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
+
+    val mapViewportState = mockk<MapViewportState>(relaxed = true)
+    val cameraOptionsSlot = slot<com.mapbox.maps.CameraOptions>()
+    coEvery { mapViewportState.flyTo(capture(cameraOptionsSlot), any()) } just Runs
+
+    viewModel.animateToSelectedEvent(mapViewportState)
+
+    // Verify zoom level is 15.0
+    val capturedOptions = cameraOptionsSlot.captured
+    assertEquals(15.0, capturedOptions.zoom!!, 0.001)
+  }
 }
 
 class MapConfigurationTest {
@@ -256,6 +481,42 @@ class MapUiStateTest {
     assertEquals(1, customState.events.size)
     assertEquals("Test Event", customState.events[0].title)
   }
+
+  @Test
+  fun mapUiState_selectedEventFields_workCorrectly() {
+    val selectedEvent =
+        com.github.se.studentconnect.model.event.Event.Public(
+            uid = "selected123",
+            ownerId = "owner1",
+            title = "Selected Event",
+            description = "Selected",
+            location =
+                com.github.se.studentconnect.model.location.Location(
+                    46.5197, 6.6323, "Selected Location"),
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Selected")
+    val selectedLocation = Point.fromLngLat(6.6323, 46.5197)
+
+    val state =
+        MapUiState(
+            selectedEvent = selectedEvent,
+            selectedEventLocation = selectedLocation,
+            shouldAnimateToSelectedEvent = true)
+
+    assertEquals("selected123", state.selectedEvent?.uid)
+    assertEquals("Selected Event", state.selectedEvent?.title)
+    assertEquals(selectedLocation, state.selectedEventLocation)
+    assertTrue(state.shouldAnimateToSelectedEvent)
+  }
+
+  @Test
+  fun mapUiState_defaultSelectedEventFields_areNull() {
+    val state = MapUiState()
+    assertNull(state.selectedEvent)
+    assertNull(state.selectedEventLocation)
+    assertFalse(state.shouldAnimateToSelectedEvent)
+  }
 }
 
 class MapViewEventTest {
@@ -265,6 +526,9 @@ class MapViewEventTest {
     assertTrue(MapViewEvent.ToggleView is MapViewEvent.ToggleView)
     assertTrue(MapViewEvent.LocateUser is MapViewEvent.LocateUser)
     assertTrue(MapViewEvent.ClearError is MapViewEvent.ClearError)
+    assertTrue(MapViewEvent.ClearLocationAnimation is MapViewEvent.ClearLocationAnimation)
+    assertTrue(
+        MapViewEvent.ClearEventSelectionAnimation is MapViewEvent.ClearEventSelectionAnimation)
 
     // UpdateSearchText
     val searchEvent = MapViewEvent.UpdateSearchText("Test search")
@@ -282,5 +546,15 @@ class MapViewEventTest {
     assertEquals(46.5089, targetEvent.latitude, 0.0001)
     assertEquals(6.6283, targetEvent.longitude, 0.0001)
     assertEquals(10.0, targetEvent.zoom, 0.0001)
+
+    // SelectEvent with eventUid
+    val selectEvent = MapViewEvent.SelectEvent("event123")
+    assertTrue(selectEvent is MapViewEvent.SelectEvent)
+    assertEquals("event123", selectEvent.eventUid)
+
+    // SelectEvent with null
+    val clearSelectEvent = MapViewEvent.SelectEvent(null)
+    assertTrue(clearSelectEvent is MapViewEvent.SelectEvent)
+    assertNull(clearSelectEvent.eventUid)
   }
 }

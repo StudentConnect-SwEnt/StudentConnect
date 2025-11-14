@@ -456,7 +456,11 @@ private fun CommonActionButtons(
         id = R.drawable.ic_location_pin,
         onClick = {
           currentEvent.location?.let { location ->
-            val route = Route.mapWithLocation(location.latitude, location.longitude)
+            // Navigate to map with location and event UID to automatically select and display the
+            // event
+            val route =
+                Route.mapWithLocation(
+                    location.latitude, location.longitude, eventUid = currentEvent.uid)
             navController.navigate(route)
           }
         },
