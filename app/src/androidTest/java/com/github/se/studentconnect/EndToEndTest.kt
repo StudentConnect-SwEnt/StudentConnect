@@ -25,12 +25,12 @@ import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.github.se.studentconnect.utils.NoAnonymousSignIn
 import com.google.firebase.Timestamp
+import java.util.Date
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.Date
 
 @RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalTestApi::class)
@@ -111,18 +111,7 @@ class EndToEndTest : FirestoreStudentConnectTest() {
     }
 
     // Launch MainActivity now
-    val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
-    scenario = ActivityScenario.launch(intent)
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_016, message = "bottom navigation menu to appear after relaunch") {
-          composeTestRule
-              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
+    launchActivityAndWaitForMainScreen()
 
     // Step 1: Search for event in search screen
     searchForEventInSearchScreen(joinEventTitle)
@@ -132,6 +121,22 @@ class EndToEndTest : FirestoreStudentConnectTest() {
 
     // Step 3: Join the event and check the leave button
     joinOpenEvent()
+  }
+
+  private fun launchActivityAndWaitForMainScreen() {
+    val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
+    scenario = ActivityScenario.launch(intent)
+
+    composeTestRule.waitForIdle()
+
+    // Wait until we're on the main screen
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 30_001, message = "bottom navigation menu on main screen to be visible") {
+          composeTestRule
+              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
   }
 
   private suspend fun signInAs(email: String, password: String) {
@@ -277,22 +282,6 @@ class EndToEndTest : FirestoreStudentConnectTest() {
         timeoutMillis = 15_020, message = "leave button to appear after joining the event") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-        }
-  }
-
-  private fun launchActivityAndWaitForMainScreen() {
-    val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java)
-    scenario = ActivityScenario.launch(intent)
-
-    composeTestRule.waitForIdle()
-
-    // Wait until we're on the main screen
-    composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_001, message = "bottom navigation menu on main screen to be visible") {
-          composeTestRule
-              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
               .fetchSemanticsNodes()
               .isNotEmpty()
         }
