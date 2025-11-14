@@ -248,7 +248,7 @@ internal fun MainAppContent(
 
   Scaffold(
       bottomBar = {
-        if (!hideBottomBar) {
+        if (!isCameraActive) {
           BottomNavigationBar(
               selectedTab = selectedTab,
               onTabSelected = { tab ->

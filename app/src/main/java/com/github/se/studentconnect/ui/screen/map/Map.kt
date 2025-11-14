@@ -707,9 +707,11 @@ internal fun formatTimestamp(timestamp: Timestamp): String {
  */
 internal fun isInAndroidTest(): Boolean {
   return try {
-    Class.forName("androidx.test.espresso.Espresso")
-    true
-  } catch (e: ClassNotFoundException) {
+    // Check if we're actually running in a test, not just if test classes exist
+    val testClass = Class.forName("androidx.test.platform.app.InstrumentationRegistry")
+    val method = testClass.getMethod("getInstrumentation")
+    method.invoke(null) != null
+  } catch (e: Exception) {
     false
   }
 }
