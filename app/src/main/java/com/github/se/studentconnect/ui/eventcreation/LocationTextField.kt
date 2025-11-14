@@ -54,7 +54,7 @@ class LocationTextFieldViewModel(
 
   private val queryFlow = MutableStateFlow("")
 
-  private val numLocationSuggestions = 10
+  private val numLocationSuggestions = 5
   private val stopTypingTime: Long = 500
 
   init {
