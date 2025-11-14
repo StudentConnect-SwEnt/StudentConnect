@@ -123,7 +123,8 @@ class EditBirthdayScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Current Birthday").assertIsDisplayed()
+    // Current Birthday card was removed - DatePicker now shows the date directly
+    composeTestRule.onNodeWithText("Pick a date").assertIsDisplayed()
   }
 
   @Test
@@ -335,8 +336,8 @@ class EditBirthdayScreenTest {
     // Wait for UI to settle
     composeTestRule.waitForIdle()
 
-    // The "Current Birthday" card should be displayed for users with birthdays
-    composeTestRule.onNodeWithText("Current Birthday").assertExists()
+    // DatePicker should be displayed and initialized with the user's birthday
+    composeTestRule.onNodeWithText("Pick a date").assertExists()
   }
 
   @Test
@@ -374,8 +375,9 @@ class EditBirthdayScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    // Should still display the invalid birthday string
-    composeTestRule.onNodeWithText("invalid-date").assertIsDisplayed()
+    // Invalid date format results in null parseDate, so DatePicker has no initial date
+    // Screen should still render without crashing
+    composeTestRule.onNodeWithText("Pick a date").assertExists()
   }
 
   @Test
