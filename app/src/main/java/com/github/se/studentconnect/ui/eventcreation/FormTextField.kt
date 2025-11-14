@@ -42,6 +42,20 @@ private fun createLabelComposable(label: String?, required: Boolean): (@Composab
 }
 
 @Composable
+private fun FormTextFieldState(errorText: String?): Triple<Modifier, Boolean, () -> Unit> {
+  var hasBeenFocused by remember { mutableStateOf(false) }
+  var hasBeenInteractedWith by remember { mutableStateOf(false) }
+  val shouldShowError = hasBeenInteractedWith && errorText != null
+  val modifier =
+      Modifier.onFocusChanged {
+        if (it.isFocused) hasBeenFocused = true
+        else if (hasBeenFocused) hasBeenInteractedWith = true
+      }
+  val markInteracted = { hasBeenInteractedWith = true }
+  return Triple(modifier, shouldShowError, markInteracted)
+}
+
+@Composable
 fun FormTextField(
     modifier: Modifier = Modifier,
     value: String,
@@ -53,20 +67,14 @@ fun FormTextField(
     required: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
-  var hasBeenFocused by remember { mutableStateOf(false) }
-  var hasBeenInteractedWith by remember { mutableStateOf(false) }
-  val shouldShowError = hasBeenInteractedWith && errorText != null
+  val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
   val labelComposable = createLabelComposable(label, required)
 
   OutlinedTextField(
-      modifier =
-          modifier.onFocusChanged {
-            if (it.isFocused) hasBeenFocused = true
-            else if (hasBeenFocused) hasBeenInteractedWith = true
-          },
+      modifier = modifier.then(focusModifier),
       value = value,
       onValueChange = {
-        hasBeenInteractedWith = true
+        markInteracted()
         onValueChange(it)
       },
       label = labelComposable,
@@ -74,7 +82,7 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText) },
+      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
       trailingIcon = trailingIcon)
 }
 
@@ -90,20 +98,14 @@ fun FormTextField(
     required: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
-  var hasBeenFocused by remember { mutableStateOf(false) }
-  var hasBeenInteractedWith by remember { mutableStateOf(false) }
-  val shouldShowError = hasBeenInteractedWith && errorText != null
+  val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
   val labelComposable = createLabelComposable(label, required)
 
   OutlinedTextField(
-      modifier =
-          modifier.onFocusChanged {
-            if (it.isFocused) hasBeenFocused = true
-            else if (hasBeenFocused) hasBeenInteractedWith = true
-          },
+      modifier = modifier.then(focusModifier),
       value = value,
       onValueChange = {
-        hasBeenInteractedWith = true
+        markInteracted()
         onValueChange(it)
       },
       label = labelComposable,
@@ -111,6 +113,6 @@ fun FormTextField(
       shape = RoundedCornerShape(50.dp),
       enabled = enabled,
       isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText) },
+      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
       trailingIcon = trailingIcon)
 }
