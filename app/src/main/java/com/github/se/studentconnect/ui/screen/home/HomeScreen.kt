@@ -174,7 +174,6 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
-  // var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   var selectedStory by remember { mutableStateOf<Event?>(null) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
@@ -194,12 +193,6 @@ fun HomeScreen(
     if (shouldOpenQRScanner && pagerState.currentPage != HomeScreenConstants.PAGER_SCANNER_PAGE) {
       pagerState.animateScrollToPage(HomeScreenConstants.PAGER_SCANNER_PAGE)
     }
-  }
-
-  // Notify parent when camera mode selector becomes active/inactive to control bottom nav
-  // visibility
-  LaunchedEffect(pagerState.currentPage) {
-    onCameraActiveChange(pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
   }
 
   ModalBottomSheetLayout(
