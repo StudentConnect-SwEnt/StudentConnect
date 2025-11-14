@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -98,7 +99,7 @@ class EditNationalityViewModelTest {
     // Verify the viewModel state is updated
     assertEquals(newCountry, viewModel.user.value?.country)
     assertFalse(viewModel.isLoading.value)
-    assertEquals("Nationality updated successfully", viewModel.successMessage.value)
+    assertEquals(R.string.success_nationality_updated, viewModel.successMessage.value)
     assertNull(viewModel.errorMessage.value)
   }
 
@@ -167,7 +168,7 @@ class EditNationalityViewModelTest {
     assertTrue(repository.savedUsers.isNotEmpty())
     val savedUser = repository.savedUsers.last()
     assertEquals(specialCountry, savedUser.country)
-    assertEquals("Nationality updated successfully", viewModel.successMessage.value)
+    assertEquals(R.string.success_nationality_updated, viewModel.successMessage.value)
   }
 
   @Test
@@ -337,7 +338,7 @@ class EditNationalityViewModelTest {
     // Should still save even if country is the same
     assertTrue(repository.savedUsers.isNotEmpty())
     assertEquals(originalCountry, repository.savedUsers.last().country)
-    assertEquals("Nationality updated successfully", viewModel.successMessage.value)
+    assertEquals(R.string.success_nationality_updated, viewModel.successMessage.value)
   }
 
   private class TestUserRepository(

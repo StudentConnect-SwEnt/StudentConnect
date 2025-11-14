@@ -117,7 +117,7 @@ class EditNationalityScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Search countries...").assertExists()
+    composeTestRule.onNodeWithText("Search countries…").assertExists()
   }
 
   @Test
@@ -165,7 +165,7 @@ class EditNationalityScreenTest {
     composeTestRule.waitForIdle()
 
     // Search for a different country
-    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("France")
+    composeTestRule.onNodeWithText("Search countries…").performTextReplacement("France")
     composeTestRule.waitForIdle()
 
     // Wait for country list to update and select France (exclude the search input)
@@ -201,7 +201,7 @@ class EditNationalityScreenTest {
     composeTestRule.waitForIdle()
 
     // Select a different country
-    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Germany")
+    composeTestRule.onNodeWithText("Search countries…").performTextReplacement("Germany")
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule.onAllNodesWithText("Germany", substring = false).fetchSemanticsNodes().size >=
@@ -238,7 +238,7 @@ class EditNationalityScreenTest {
     composeTestRule.waitForIdle()
 
     // Select a different country
-    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Italy")
+    composeTestRule.onNodeWithText("Search countries…").performTextReplacement("Italy")
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule.onAllNodesWithText("Italy", substring = false).fetchSemanticsNodes().size >= 2
@@ -297,7 +297,7 @@ class EditNationalityScreenTest {
     composeTestRule.waitForIdle()
 
     // Select a different country
-    composeTestRule.onNodeWithText("Search countries...").performTextReplacement("Spain")
+    composeTestRule.onNodeWithText("Search countries…").performTextReplacement("Spain")
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 3000) {
       composeTestRule.onAllNodesWithText("Spain", substring = false).fetchSemanticsNodes().size >= 2

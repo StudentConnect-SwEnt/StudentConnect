@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.profile
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import java.text.SimpleDateFormat
@@ -38,12 +40,12 @@ class ProfileViewModel(
   val loadingFields: StateFlow<Set<EditingField>> = _loadingFields.asStateFlow()
 
   // Error states for individual fields
-  private val _fieldErrors = MutableStateFlow<Map<EditingField, String>>(emptyMap())
-  val fieldErrors: StateFlow<Map<EditingField, String>> = _fieldErrors.asStateFlow()
+  private val _fieldErrors = MutableStateFlow<Map<EditingField, Int>>(emptyMap())
+  val fieldErrors: StateFlow<Map<EditingField, Int>> = _fieldErrors.asStateFlow()
 
   // Success message state
-  private val _successMessage = MutableStateFlow<String?>(null)
-  val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+  private val _successMessage = MutableStateFlow<Int?>(null)
+  val successMessage: StateFlow<Int?> = _successMessage.asStateFlow()
 
   init {
     loadUserProfile()
@@ -56,8 +58,7 @@ class ProfileViewModel(
         val loadedUser = userRepository.getUserById(currentUserId)
         _user.value = loadedUser
       } catch (exception: Exception) {
-        _fieldErrors.value =
-            mapOf(EditingField.None to (exception.message ?: "Failed to load profile"))
+        _fieldErrors.value = mapOf(EditingField.None to R.string.error_failed_to_load_profile)
       }
     }
   }
@@ -86,8 +87,7 @@ class ProfileViewModel(
    */
   fun updateName(firstName: String, lastName: String) {
     if (firstName.isBlank() || lastName.isBlank()) {
-      _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Name to ProfileConstants.ERROR_NAME_EMPTY)
+      _fieldErrors.value = _fieldErrors.value + (EditingField.Name to R.string.error_name_empty)
       return
     }
 
@@ -110,7 +110,7 @@ class ProfileViewModel(
   fun updateUniversity(university: String) {
     if (university.isBlank()) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.University to ProfileConstants.ERROR_UNIVERSITY_EMPTY)
+          _fieldErrors.value + (EditingField.University to R.string.error_university_empty)
       return
     }
 
@@ -146,7 +146,7 @@ class ProfileViewModel(
   fun updateBirthday(birthday: String) {
     if (birthday.isNotBlank() && !isValidDateFormat(birthday)) {
       _fieldErrors.value =
-          _fieldErrors.value + (EditingField.Birthday to ProfileConstants.ERROR_DATE_FORMAT)
+          _fieldErrors.value + (EditingField.Birthday to R.string.error_date_format)
       return
     }
 
@@ -215,9 +215,7 @@ class ProfileViewModel(
         _editingField.value = EditingField.None
         _successMessage.value = getSuccessMessage(field)
       } catch (exception: Exception) {
-        _fieldErrors.value =
-            _fieldErrors.value +
-                (field to (exception.message ?: "Failed to update ${field.displayName}"))
+        _fieldErrors.value = _fieldErrors.value + (field to (R.string.error_unexpected))
       } finally {
         setFieldLoading(field, false)
       }
@@ -251,7 +249,7 @@ class ProfileViewModel(
       format.isLenient = false
       format.parse(date)
       true
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       false
     }
   }
@@ -262,15 +260,16 @@ class ProfileViewModel(
    * @param field The field that was updated
    * @return The success message for the field
    */
-  private fun getSuccessMessage(field: EditingField): String {
+  @StringRes
+  private fun getSuccessMessage(field: EditingField): Int {
     return when (field) {
-      EditingField.Name -> ProfileConstants.SUCCESS_NAME_UPDATED
-      EditingField.University -> ProfileConstants.SUCCESS_UNIVERSITY_UPDATED
-      EditingField.Country -> ProfileConstants.SUCCESS_COUNTRY_UPDATED
-      EditingField.Birthday -> ProfileConstants.SUCCESS_BIRTHDAY_UPDATED
-      EditingField.Activities -> ProfileConstants.SUCCESS_ACTIVITIES_UPDATED
-      EditingField.Bio -> ProfileConstants.SUCCESS_BIO_UPDATED
-      EditingField.None -> ProfileConstants.SUCCESS_PROFILE_UPDATED
+      EditingField.Name -> R.string.success_name_updated
+      EditingField.University -> R.string.success_university_updated
+      EditingField.Country -> R.string.success_country_updated
+      EditingField.Birthday -> R.string.success_birthday_updated
+      EditingField.Activities -> R.string.success_activities_updated
+      EditingField.Bio -> R.string.success_bio_updated
+      EditingField.None -> R.string.success_profile_updated
     }
   }
 }
@@ -301,15 +300,16 @@ sealed class EditingField {
    *
    * @return The human-readable name of the field
    */
-  val displayName: String
+  @get:StringRes
+  val displayNameResId: Int
     get() =
         when (this) {
-          is Name -> "Name"
-          is University -> "University"
-          is Country -> "Country"
-          is Birthday -> "Birthday"
-          is Activities -> "Activities"
-          is Bio -> "Bio"
-          is None -> "Profile"
+          is Name -> R.string.label_name
+          is University -> R.string.label_university
+          is Country -> R.string.label_country
+          is Birthday -> R.string.label_birthday
+          is Activities -> R.string.label_activities
+          is Bio -> R.string.label_bio
+          is None -> R.string.label_profile
         }
 }

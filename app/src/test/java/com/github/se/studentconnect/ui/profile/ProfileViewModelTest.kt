@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -89,7 +90,7 @@ class ProfileViewModelTest {
     viewModel.updateName("", "Doe")
     kotlinx.coroutines.delay(100)
 
-    assertEquals(ProfileConstants.ERROR_NAME_EMPTY, viewModel.fieldErrors.value[EditingField.Name])
+    assertEquals(R.string.error_name_empty, viewModel.fieldErrors.value[EditingField.Name])
   }
 
   @Test
@@ -97,7 +98,7 @@ class ProfileViewModelTest {
     viewModel.updateName("John", "")
     kotlinx.coroutines.delay(100)
 
-    assertEquals(ProfileConstants.ERROR_NAME_EMPTY, viewModel.fieldErrors.value[EditingField.Name])
+    assertEquals(R.string.error_name_empty, viewModel.fieldErrors.value[EditingField.Name])
   }
 
   @Test
@@ -243,14 +244,14 @@ class ProfileViewModelTest {
   }
 
   @Test
-  fun `EditingField displayName returns correct values`() {
-    assertEquals("Name", EditingField.Name.displayName)
-    assertEquals("University", EditingField.University.displayName)
-    assertEquals("Country", EditingField.Country.displayName)
-    assertEquals("Birthday", EditingField.Birthday.displayName)
-    assertEquals("Activities", EditingField.Activities.displayName)
-    assertEquals("Bio", EditingField.Bio.displayName)
-    assertEquals("Profile", EditingField.None.displayName)
+  fun `EditingField displayNameResId returns correct resource IDs`() {
+    assertEquals(R.string.label_name, EditingField.Name.displayNameResId)
+    assertEquals(R.string.label_university, EditingField.University.displayNameResId)
+    assertEquals(R.string.label_country, EditingField.Country.displayNameResId)
+    assertEquals(R.string.label_birthday, EditingField.Birthday.displayNameResId)
+    assertEquals(R.string.label_activities, EditingField.Activities.displayNameResId)
+    assertEquals(R.string.label_bio, EditingField.Bio.displayNameResId)
+    assertEquals(R.string.label_profile, EditingField.None.displayNameResId)
   }
 
   private class TestUserRepository(

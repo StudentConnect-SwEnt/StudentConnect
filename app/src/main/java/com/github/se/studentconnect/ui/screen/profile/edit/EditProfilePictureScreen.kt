@@ -34,10 +34,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
@@ -70,6 +73,7 @@ fun EditProfilePictureScreen(
   val isLoading by viewModel.isLoading.collectAsState()
   val user by viewModel.user.collectAsState()
 
+  val context = LocalContext.current
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
   var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -90,13 +94,15 @@ fun EditProfilePictureScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Profile Picture",
+                  text = stringResource(R.string.title_edit_profile_picture),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold)
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -131,16 +137,19 @@ fun EditProfilePictureScreen(
                                 selectedImageUri = uri
                                 userModified = true
                               },
-                              placeholderText = "Upload/Take your profile photo",
-                              overlayText = "Tap to change photo",
-                              imageDescription = "Profile Picture")
+                              placeholderText =
+                                  stringResource(R.string.placeholder_upload_profile_photo),
+                              overlayText =
+                                  stringResource(R.string.instruction_tap_to_change_photo),
+                              imageDescription =
+                                  stringResource(R.string.content_description_profile_picture))
 
                           Text(
                               text =
                                   if (hasPhoto) {
-                                    "Preview of your new profile picture"
+                                    stringResource(R.string.instruction_preview_profile_picture)
                                   } else {
-                                    "Tap above to choose a profile photo"
+                                    stringResource(R.string.instruction_choose_profile_photo)
                                   },
                               style = MaterialTheme.typography.bodyMedium,
                               color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -167,7 +176,7 @@ fun EditProfilePictureScreen(
                                       !isUploading &&
                                       (selectedImageUri != null || currentImagePath != null),
                               modifier = Modifier.fillMaxWidth()) {
-                                Text("Remove Photo")
+                                Text(stringResource(R.string.button_remove_photo))
                               }
 
                           // Save Button
@@ -198,7 +207,9 @@ fun EditProfilePictureScreen(
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
-                                        snackbarHostState.showSnackbar("Failed to upload photo")
+                                        snackbarHostState.showSnackbar(
+                                            context.getString(
+                                                R.string.error_failed_to_upload_photo))
                                       }
                                     }
                                   } finally {
@@ -208,7 +219,7 @@ fun EditProfilePictureScreen(
                               },
                               isLoading = isLoading || isUploading,
                               enabled = !isLoading && !isUploading && userModified,
-                              text = "Save")
+                              text = stringResource(R.string.button_save))
                         }
                   }
             }

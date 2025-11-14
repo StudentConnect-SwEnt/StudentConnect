@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditActivitiesViewModel
@@ -66,13 +68,15 @@ fun EditActivitiesScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Select Your Activities",
+                  text = stringResource(R.string.title_select_activities),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.SemiBold)
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -87,15 +91,22 @@ fun EditActivitiesScreen(
               value = searchQuery,
               onValueChange = { viewModel.updateSearchQuery(it) },
               modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("searchField"),
-              placeholder = { Text("Search activities...") },
-              leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+              placeholder = { Text(stringResource(R.string.placeholder_search_activities)) },
+              leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = stringResource(R.string.content_description_search))
+              },
               singleLine = true,
               shape = RoundedCornerShape(24.dp))
 
           if (selectedActivities.isNotEmpty()) {
-            val activityText = if (selectedActivities.size == 1) "activity" else "activities"
             Text(
-                text = "${selectedActivities.size} $activityText selected",
+                text =
+                    stringResource(
+                        if (selectedActivities.size == 1) R.string.text_activities_selected
+                        else R.string.text_activities_selected_plural,
+                        selectedActivities.size),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
@@ -120,7 +131,7 @@ fun EditActivitiesScreen(
               onClick = { viewModel.saveActivities() },
               isLoading = isLoading,
               enabled = !isLoading,
-              text = "Save",
+              text = stringResource(R.string.button_save),
               modifier = Modifier.padding(16.dp).testTag("saveButton"))
         }
       }
@@ -162,7 +173,7 @@ private fun ActivityItem(
               if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.content_description_selected),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp))
               }

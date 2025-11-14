@@ -118,7 +118,7 @@ class HomeScreenUITest {
           notificationViewModel = notificationViewModel)
     }
 
-    composeTestRule.onNodeWithText("Search for events...").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Search for events…").assertIsDisplayed()
   }
 
   @Test
@@ -936,7 +936,7 @@ class HomeScreenUITest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Search for events...").assertHasClickAction()
+    composeTestRule.onNodeWithText("Search for events…").assertHasClickAction()
   }
 
   @Test
@@ -957,7 +957,7 @@ class HomeScreenUITest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Search for events...").performClick()
+    composeTestRule.onNodeWithText("Search for events…").performClick()
     composeTestRule.waitForIdle()
   }
 

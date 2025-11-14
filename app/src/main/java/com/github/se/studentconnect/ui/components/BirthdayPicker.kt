@@ -8,6 +8,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.github.se.studentconnect.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,10 +49,12 @@ fun BirthdayPickerDialog(
                 }
                 onDismiss()
               }) {
-                Text("OK")
+                Text(stringResource(R.string.button_ok))
               }
         },
-        dismissButton = { Button(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = {
+          Button(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+        },
         modifier = modifier) {
           DatePicker(state = datePickerState)
         }

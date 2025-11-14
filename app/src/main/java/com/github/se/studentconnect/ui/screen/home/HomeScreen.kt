@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -438,7 +439,7 @@ private fun NotificationDropdown(
                 .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
           Panel<Notification>(
               items = notificationState.notifications,
-              title = "Notifications",
+              title = stringResource(R.string.title_notifications),
               itemContent = { notification ->
                 NotificationItem(
                     notification = notification,
@@ -470,7 +471,9 @@ private fun NotificationBadge(unreadCount: Int) {
           Badge { Text(unreadCount.toString()) }
         }
       }) {
-        Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notifications")
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = stringResource(R.string.content_description_notifications))
       }
 }
 
@@ -656,7 +659,7 @@ private fun DeleteButton(notificationId: String, onDelete: () -> Unit) {
       modifier = Modifier.size(24.dp).testTag("DeleteNotificationButton_$notificationId")) {
         Icon(
             imageVector = Icons.Default.Close,
-            contentDescription = "Delete",
+            contentDescription = stringResource(R.string.content_description_delete),
             modifier = Modifier.size(16.dp))
       }
 }
@@ -685,7 +688,7 @@ private fun FriendRequestActions(
         },
         modifier = Modifier.weight(1f).testTag("AcceptFriendRequestButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-          Text("Accept")
+          Text(stringResource(R.string.button_accept))
         }
     Button(
         onClick = {
@@ -694,7 +697,7 @@ private fun FriendRequestActions(
         },
         modifier = Modifier.weight(1f).testTag("RejectFriendRequestButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-          Text("Reject")
+          Text(stringResource(R.string.button_reject))
         }
   }
 }
@@ -706,9 +709,11 @@ fun StoryItem(
     avatarRes: Int,
     viewed: Boolean,
     onClick: () -> Unit,
-    contentDescription: String = "Story for $name",
+    contentDescription: String? = null,
     testTag: String = ""
 ) {
+  val defaultContentDescription = stringResource(R.string.content_description_story_for, name)
+  val finalContentDescription = contentDescription ?: defaultContentDescription
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
@@ -717,7 +722,7 @@ fun StoryItem(
         modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
           Image(
               painter = painterResource(avatarRes),
-              contentDescription = contentDescription,
+              contentDescription = finalContentDescription,
               modifier =
                   Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
                       .clip(CircleShape)
@@ -786,13 +791,14 @@ fun StoriesRow(
                     contentAlignment = Alignment.Center) {
                       Icon(
                           imageVector = Icons.Default.Add,
-                          contentDescription = "Add Story",
+                          contentDescription =
+                              stringResource(R.string.content_description_add_story),
                           tint = primaryColor,
                           modifier = Modifier.size(32.dp))
                     }
                 Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_PADDING_TOP_DP.dp))
                 Text(
-                    text = "Add Story",
+                    text = stringResource(R.string.content_description_add_story),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface)
               }
@@ -807,7 +813,7 @@ fun StoriesRow(
               avatarRes = R.drawable.avatar_12, // Default avatar for now
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
-              contentDescription = "Event Story",
+              contentDescription = stringResource(R.string.content_description_event_story),
               testTag = "story_item_${event.uid}")
         }
       }
@@ -839,7 +845,8 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
                           .testTag("story_close_button")) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close story",
+                        contentDescription =
+                            stringResource(R.string.content_description_close_story),
                         tint = Color.White)
                   }
 
@@ -852,7 +859,8 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
                         verticalArrangement = Arrangement.Center) {
                           Image(
                               painter = painterResource(id = R.drawable.avatar_12),
-                              contentDescription = "Story content",
+                              contentDescription =
+                                  stringResource(R.string.content_description_story_content),
                               modifier =
                                   Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
                           Spacer(modifier = Modifier.height(16.dp))
