@@ -20,8 +20,6 @@ import org.junit.*
 class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-  @get:Rule
-  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
