@@ -17,6 +17,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
+private val FormTextFieldShape = RoundedCornerShape(50.dp)
+
 /**
  * Creates a composable label for form text fields with optional required indicator.
  *
@@ -56,6 +58,47 @@ private fun FormTextFieldState(errorText: String?): Triple<Modifier, Boolean, ()
 }
 
 @Composable
+private fun FormTextFieldCommonParams(
+    modifier: Modifier,
+    focusModifier: Modifier,
+    label: String?,
+    required: Boolean,
+    placeholder: String?,
+    enabled: Boolean,
+    shouldShowError: Boolean,
+    errorText: String?,
+    trailingIcon: (@Composable () -> Unit)?,
+): Pair<Modifier, FormTextFieldParams> {
+  val labelComposable = createLabelComposable(label, required)
+  val placeholderComposable: (@Composable () -> Unit)? =
+      placeholder?.let { placeHolderText -> { Text(placeHolderText) } }
+  val supportingText: (@Composable () -> Unit)? =
+      if (shouldShowError) {
+        { Text(text = errorText ?: "") }
+      } else {
+        null
+      }
+  return Pair(
+      modifier.then(focusModifier),
+      FormTextFieldParams(
+          labelComposable,
+          placeholderComposable,
+          supportingText,
+          enabled,
+          shouldShowError,
+          trailingIcon))
+}
+
+private data class FormTextFieldParams(
+    val label: (@Composable () -> Unit)?,
+    val placeholder: (@Composable () -> Unit)?,
+    val supportingText: (@Composable () -> Unit)?,
+    val enabled: Boolean,
+    val isError: Boolean,
+    val trailingIcon: (@Composable () -> Unit)?
+)
+
+@Composable
 fun FormTextField(
     modifier: Modifier = Modifier,
     value: String,
@@ -68,24 +111,32 @@ fun FormTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
-  val labelComposable = createLabelComposable(label, required)
-  val placeholderComposable: (@Composable () -> Unit)? =
-      placeholder?.let { placeHolderText -> { Text(placeHolderText) } }
+  val (finalModifier, params) =
+      FormTextFieldCommonParams(
+          modifier,
+          focusModifier,
+          label,
+          required,
+          placeholder,
+          enabled,
+          shouldShowError,
+          errorText,
+          trailingIcon)
 
   OutlinedTextField(
-      modifier = modifier.then(focusModifier),
+      modifier = finalModifier,
       value = value,
       onValueChange = { newValue: String ->
         markInteracted()
         onValueChange(newValue)
       },
-      label = labelComposable,
-      placeholder = placeholderComposable,
-      shape = RoundedCornerShape(50.dp),
-      enabled = enabled,
-      isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
-      trailingIcon = trailingIcon)
+      label = params.label,
+      placeholder = params.placeholder,
+      shape = FormTextFieldShape,
+      enabled = params.enabled,
+      isError = params.isError,
+      supportingText = params.supportingText,
+      trailingIcon = params.trailingIcon)
 }
 
 @Composable
@@ -101,22 +152,30 @@ fun FormTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
-  val labelComposable = createLabelComposable(label, required)
-  val placeholderComposable: (@Composable () -> Unit)? =
-      placeholder?.let { placeHolderText -> { Text(placeHolderText) } }
+  val (finalModifier, params) =
+      FormTextFieldCommonParams(
+          modifier,
+          focusModifier,
+          label,
+          required,
+          placeholder,
+          enabled,
+          shouldShowError,
+          errorText,
+          trailingIcon)
 
   OutlinedTextField(
-      modifier = modifier.then(focusModifier),
+      modifier = finalModifier,
       value = value,
       onValueChange = { newValue: TextFieldValue ->
         markInteracted()
         onValueChange(newValue)
       },
-      label = labelComposable,
-      placeholder = placeholderComposable,
-      shape = RoundedCornerShape(50.dp),
-      enabled = enabled,
-      isError = shouldShowError,
-      supportingText = { if (shouldShowError) Text(text = errorText ?: "") },
-      trailingIcon = trailingIcon)
+      label = params.label,
+      placeholder = params.placeholder,
+      shape = FormTextFieldShape,
+      enabled = params.enabled,
+      isError = params.isError,
+      supportingText = params.supportingText,
+      trailingIcon = params.trailingIcon)
 }
