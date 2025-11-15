@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   static-checks:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -34,7 +34,7 @@ jobs:
           path: app/build/reports/lint-*
 
   unit-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -63,7 +63,7 @@ jobs:
           path: app/build/test-results/testResOverrideDebugUnitTest/
 
   build-test-apks:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -205,7 +205,7 @@ jobs:
           path: ./coverage.ec
 
   build-release-apk:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -242,7 +242,7 @@ jobs:
 
   sonar:
     needs: [static-checks, unit-tests, build-test-apks, connected-tests]
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
