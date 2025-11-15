@@ -12,13 +12,19 @@ runs:
         distribution: "temurin"
         java-version: "17"
 
-    - name: Cache Gradle packages
+    - name: Cache Gradle wrapper
       uses: actions/cache@v4
       with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle/libs.versions.toml') }}
+        path: ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+        restore-keys: ${{ runner.os }}-gradle-wrapper-
+
+    - name: Cache Gradle caches
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('gradle/libs.versions.toml', '**/build.gradle*', '**/settings.gradle*') }}
+        restore-keys: ${{ runner.os }}-gradle-caches-
 
     - name: Grant execute permission for gradlew
       shell: bash
