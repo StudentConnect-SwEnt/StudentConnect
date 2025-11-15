@@ -113,7 +113,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-34
+          key: ${{ runner.os }}-avd-34
 
       # If the cache does not hit, create the Android emulator
       - name: Create AVD and generate snapshot for caching
@@ -257,7 +257,6 @@ jobs:
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       - name: Download unit exec
         uses: actions/download-artifact@v4
