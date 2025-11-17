@@ -324,7 +324,7 @@ private fun ProfileHeaderSection(
       }
 }
 
-private suspend fun loadBitmapFromUri(
+suspend fun loadBitmapFromUri(
     context: Context,
     uri: Uri,
     dispatcher: CoroutineDispatcher
