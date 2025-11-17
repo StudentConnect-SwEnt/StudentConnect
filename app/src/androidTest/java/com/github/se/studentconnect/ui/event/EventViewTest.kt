@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.Manifest
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -24,9 +25,6 @@ import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -52,8 +50,7 @@ class EventViewTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
@@ -1819,74 +1816,83 @@ class EventViewTest {
 
   @Test
   fun eventView_attendeeListShowsAllAttendees() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns currentUser.userId
+    AuthenticationProvider.testUserId = currentUser.userId
 
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
-      eventRepository.addParticipantToEvent(
-          testEvent.uid, EventParticipant(testEventAttendee.userId))
-    }
+    try {
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
+        eventRepository.addParticipantToEvent(
+            testEvent.uid, EventParticipant(testEventAttendee.userId))
+      }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+          .performScrollTo()
+          .performClick()
+      composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER)
+          .assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_attendeeListDoesNotShowCurrentUserWhenIsOwner() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns testEventOwner.userId
+    AuthenticationProvider.testUserId = "owner123"
 
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
-      eventRepository.addParticipantToEvent(
-          testEvent.uid, EventParticipant(testEventAttendee.userId))
-    }
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
+        eventRepository.addParticipantToEvent(
+            testEvent.uid, EventParticipant(testEventAttendee.userId))
+      }
 
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = viewModel,
+                hasJoined = false)
+          }
         }
       }
-    }
 
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER)
-        .assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+          .performScrollTo()
+          .performClick()
+      composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER)
+          .assertIsNotDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
-  fun eventView_attendeeeListReturnIsDisplayed() {
+  fun eventView_attendeesListReturnIsDisplayed() {
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -1909,7 +1915,7 @@ class EventViewTest {
   }
 
   @Test
-  fun eventView_attendeeeListReturnIsClickable() {
+  fun eventView_attendeesListReturnIsClickable() {
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -1932,7 +1938,7 @@ class EventViewTest {
   }
 
   @Test
-  fun eventView_attendeeeListReturnDoesNotCrash() {
+  fun eventView_attendeesListReturnDoesNotCrash() {
 
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -1955,170 +1961,7 @@ class EventViewTest {
   }
 
   @Test
-  fun eventView_attendeeeListReturnToEvent() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).performClick()
-
-    composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST).assertIsNotDisplayed()
-  }
-
-  @Test
-  fun eventView_attendeeListShowsAllAttendees() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns currentUser.userId
-
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
-      eventRepository.addParticipantToEvent(
-          testEvent.uid, EventParticipant(testEventAttendee.userId))
-    }
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_attendeeListDoesNotShowCurrentUserWhenIsOwner() {
-    mockkObject(AuthenticationProvider)
-    every { AuthenticationProvider.currentUser } returns testEventOwner.userId
-
-    runBlocking {
-      eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUser.userId))
-      eventRepository.addParticipantToEvent(
-          testEvent.uid, EventParticipant(testEventAttendee.userId))
-    }
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_OWNER).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER)
-        .assertIsNotDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_attendeeeListReturnIsDisplayed() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_attendeeeListReturnIsClickable() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).assertHasClickAction()
-  }
-
-  @Test
-  fun eventView_attendeeeListReturnDoesNotCrash() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).performClick()
-  }
-
-  @Test
-  fun eventView_attendeeeListReturnToEvent() {
+  fun eventView_attendeesListReturnToEvent() {
 
     composeTestRule.setContent {
       val navController = rememberNavController()
