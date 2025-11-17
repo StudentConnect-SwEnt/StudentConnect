@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.profile
+package com.github.se.studentconnect.ui.profile.components
 
 // import androidx.compose.ui.tooling.preview.Preview
 // import com.github.se.studentconnect.ui.theme.AppTheme

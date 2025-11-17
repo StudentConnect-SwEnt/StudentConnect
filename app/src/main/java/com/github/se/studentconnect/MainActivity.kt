@@ -48,7 +48,9 @@ import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
+import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
+import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBioScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
@@ -283,8 +285,25 @@ private fun MainAppContent(
               }
           composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
 
-          // Profile Settings Screen (Main Profile View)
+          // Profile Screen (Main Profile View)
           composable(Route.PROFILE) {
+            ProfileScreen(
+                currentUserId = currentUserId,
+                userRepository = userRepository,
+                onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
+                onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) })
+          }
+
+          // User Card Screen
+          composable(ProfileRoutes.USER_CARD) {
+            UserCardScreen(
+                currentUserId = currentUserId,
+                userRepository = userRepository,
+                onNavigateBack = { navController.popBackStack() })
+          }
+
+          // Profile Settings Screen (Edit Profile View)
+          composable(ProfileRoutes.SETTINGS) {
             ProfileSettingsScreen(
                 currentUserId = currentUserId,
                 userRepository = userRepository,
@@ -305,7 +324,8 @@ private fun MainAppContent(
                 },
                 onNavigateToEditNationality = { userId ->
                   navController.navigate(ProfileRoutes.editNationality(userId))
-                })
+                },
+                onNavigateBack = { navController.popBackStack() })
           }
 
           // Edit Profile Picture Screen
