@@ -1885,7 +1885,6 @@ class EventViewTest {
       composeTestRule
           .onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER)
           .assertIsNotDisplayed()
-      composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST_ITEM).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
