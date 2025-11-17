@@ -179,7 +179,7 @@ fun EventCard(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .background(color = Color.Black.copy(alpha = 0.3f), shape = CircleShape)
+                        .background(color = Color.White.copy(alpha = 0.6f), shape = CircleShape)
                         .clip(CircleShape)) {
                   IconButton(
                       onClick = {
@@ -192,7 +192,8 @@ fun EventCard(
                                 if (localFavorite) Icons.Filled.Favorite
                                 else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            tint = if (localFavorite) Color.Red else Color.Black,
+                        )
                       }
                 }
 
