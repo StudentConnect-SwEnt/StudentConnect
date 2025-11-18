@@ -9,9 +9,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -56,6 +59,8 @@ import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import com.google.firebase.Timestamp
@@ -171,133 +176,28 @@ fun EventView(
           userScrollEnabled = false,
       ) { page ->
         when (page) {
-          0 -> {
-            Scaffold(
-                modifier =
-                    Modifier.fillMaxSize()
-                        .padding(paddingValues)
-                        .testTag(EventViewTestTags.ATTENDEE_LIST),
-                bottomBar = {
-                  Button(
-                      onClick = { coroutineScope.launch { pagerState.scrollToPage(1) } },
-                      content = { Text(stringResource(R.string.event_button_return)) },
-                      modifier =
-                          Modifier.fillMaxWidth()
-                              .padding(screenPadding)
-                              .testTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON),
-                  )
-                },
-            ) { paddingValues ->
-              LazyColumn(
-                  horizontalAlignment = Alignment.Start,
-                  verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-                  modifier = Modifier.fillMaxSize().padding(paddingValues),
-              ) {
-                if (isJoined && user != null && user != owner) {
-                  item {
-                    AttendeeItem(
-                        user,
-                        false,
-                        { DialogNotImplemented(context = context) },
-                        modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
-                  }
-                }
-                if (owner != null) {
-                  item {
-                    AttendeeItem(
-                        owner,
-                        true,
-                        { DialogNotImplemented(context = context) },
-                        modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
-                  }
-                }
-
-                items(attendees) { a ->
-                  if (a != user && a != owner)
-                      AttendeeItem(
-                          a,
-                          false,
-                          { DialogNotImplemented(context = context) },
-                          modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
-                }
-              }
-            }
-          }
-          1 -> {val context = LocalContext.current
-              val repository = MediaRepositoryProvider.repository
-              val profileId = event.imageUrl
-              val imageBitmap by
-              produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-                  value =
-                      profileId?.let { id ->
-                          runCatching { repository.download(id) }
-                              .onFailure {
-                                  android.util.Log.e(
-                                      "eventViewImage", "Failed to download event image: $id", it)
-                              }
-                              .getOrNull()
-                              ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-                      }
-              }
-              Column(
-                  modifier =
-                      Modifier.fillMaxSize()
-                          .padding(paddingValues)
-                          .verticalScroll(rememberScrollState())
-                          .testTag(EventViewTestTags.BASE_SCREEN)
-                          .testTag(EventViewTestTags.BASE_SCREEN),
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
-                  val configuration = LocalConfiguration.current
-                  val screenHeight = configuration.screenHeightDp.dp
-                  val boxHeight = screenHeight * 0.3f
-                  val boxModifier =
-                      Modifier.fillMaxWidth()
-                          .height(boxHeight)
-                          .padding(horizontal = screenPadding)
-                          .clip(RoundedCornerShape(16.dp))
-                          .background(MaterialTheme.colorScheme.secondaryContainer)
-                          .testTag(EventViewTestTags.EVENT_IMAGE)
-                  Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
-                      if (imageBitmap != null) {
-                          Image(
-                              bitmap = imageBitmap!!,
-                              contentDescription =
-                                  stringResource(R.string.content_description_event_image),
-                              modifier = Modifier.fillMaxSize(),
-                              contentScale = ContentScale.Crop)
-                      } else {
-                          Icon(
-                              imageVector = Icons.Default.Image,
-                              contentDescription =
-                                  stringResource(R.string.content_description_event_image),
-                              modifier = Modifier.size(60.dp),
-                              tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
-                  }
-
-              EventActionButtons(
-                  joined = isJoined,
-                  isFull = isFull,
-                  currentEvent = event,
-                  eventViewModel = eventViewModel,
-                  modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                  navController = navController)
-
-              InfoEvent(
-                  timeLeft = timeLeft,
-                  event = event,
+          0 ->
+              AttendeesList(
+                  paddingValues = paddingValues,
+                  pagerState = pagerState,
+                  coroutineScope = coroutineScope,
                   isJoined = isJoined,
+                  user = user,
+                  owner = owner,
+                  attendees = attendees,
+                  context = context)
+          1 ->
+              BaseEventView(
+                  paddingValues = paddingValues,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  event = event,
+                  eventViewModel = eventViewModel,
+                  navController = navController,
+                  timeLeft = timeLeft,
                   participantCount = participantCount,
-                  onClickParticipants = {
-                    coroutineScope.launch { pagerState.scrollToPage(0) }
-                    coroutineScope.launch { eventViewModel.fetchAttendees() }
-                  },
-                  modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
-
-              ChatButton()
-            }
-          }
+                  coroutineScope = coroutineScope,
+                  pagerState = pagerState)
         }
       }
     }
@@ -305,6 +205,158 @@ fun EventView(
 }
 
 private const val DAY_IN_SECONDS = 86400
+
+@Composable
+private fun BaseEventView(
+    paddingValues: PaddingValues,
+    isJoined: Boolean,
+    isFull: Boolean,
+    event: Event,
+    eventViewModel: EventViewModel,
+    navController: NavHostController,
+    timeLeft: Long,
+    participantCount: Int,
+    coroutineScope: CoroutineScope,
+    pagerState: PagerState
+) {
+    val context = LocalContext.current
+    val repository = MediaRepositoryProvider.repository
+    val profileId = event.imageUrl
+    val imageBitmap by
+    produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+                runCatching { repository.download(id) }
+                    .onFailure {
+                        android.util.Log.e(
+                            "eventViewImage", "Failed to download event image: $id", it)
+                    }
+                    .getOrNull()
+                    ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+    }
+    Column(
+            modifier =
+                Modifier.fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .testTag(EventViewTestTags.BASE_SCREEN)
+                    .testTag(EventViewTestTags.BASE_SCREEN),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
+      val configuration = LocalConfiguration.current
+      val screenHeight = configuration.screenHeightDp.dp
+      val boxHeight = screenHeight * 0.3f
+      val boxModifier =
+          Modifier.fillMaxWidth()
+              .height(boxHeight)
+              .padding(horizontal = screenPadding)
+              .clip(RoundedCornerShape(16.dp))
+              .background(MaterialTheme.colorScheme.secondaryContainer)
+              .testTag(EventViewTestTags.EVENT_IMAGE)
+      Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
+          if (imageBitmap != null) {
+              Image(
+                  bitmap = imageBitmap!!,
+                  contentDescription =
+                      stringResource(R.string.content_description_event_image),
+                  modifier = Modifier.fillMaxSize(),
+                  contentScale = ContentScale.Crop)
+          } else {
+              Icon(
+                  imageVector = Icons.Default.Image,
+                  contentDescription =
+                      stringResource(R.string.content_description_event_image),
+                  modifier = Modifier.size(60.dp),
+                  tint = MaterialTheme.colorScheme.onSurfaceVariant)
+          }
+      }
+
+    EventActionButtons(
+        joined = isJoined,
+        isFull = isFull,
+        currentEvent = event,
+        eventViewModel = eventViewModel,
+        modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+        navController = navController)
+
+    InfoEvent(
+        timeLeft = timeLeft,
+        event = event,
+        isJoined = isJoined,
+        participantCount = participantCount,
+        onClickParticipants = {
+          coroutineScope.launch { pagerState.scrollToPage(0) }
+          coroutineScope.launch { eventViewModel.fetchAttendees() }
+        },
+        modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+
+    ChatButton()
+  }
+}
+
+@Composable
+private fun AttendeesList(
+    paddingValues: PaddingValues,
+    pagerState: PagerState,
+    coroutineScope: CoroutineScope,
+    isJoined: Boolean,
+    user: User?,
+    owner: User?,
+    attendees: List<User>,
+    context: Context
+) {
+  Scaffold(
+      modifier =
+          Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.ATTENDEE_LIST),
+      bottomBar = {
+        Button(
+            onClick = { coroutineScope.launch { pagerState.scrollToPage(1) } },
+            content = { Text(stringResource(R.string.event_button_return)) },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(screenPadding)
+                    .testTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON),
+        )
+      },
+  ) { paddingValues ->
+    LazyColumn(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
+    ) {
+      if (isJoined && user != null && user != owner) {
+        item {
+          AttendeeItem(
+              user,
+              false,
+              { DialogNotImplemented(context = context) },
+              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
+        }
+      }
+      if (owner != null) {
+        item {
+          AttendeeItem(
+              owner,
+              true,
+              { DialogNotImplemented(context = context) },
+              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
+        }
+      }
+
+      items(attendees) { a ->
+        if (a != user && a != owner)
+            AttendeeItem(
+                a,
+                false,
+                { DialogNotImplemented(context = context) },
+                modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
+      }
+    }
+  }
+}
+
+
 
 /** Shows countdown, description, and attendance information for the given event. */
 @Composable
