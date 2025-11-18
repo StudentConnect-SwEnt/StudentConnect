@@ -104,6 +104,9 @@ class EventViewTest {
     runBlocking {
       try {
         eventRepository.deleteEvent(testEvent.uid)
+        userRepository.deleteUser(testEventOwner.userId)
+        userRepository.deleteUser(currentUser.userId)
+        userRepository.deleteUser(testEventAttendee.userId)
       } catch (e: Exception) {
         // Ignore if event doesn't exist
       }
