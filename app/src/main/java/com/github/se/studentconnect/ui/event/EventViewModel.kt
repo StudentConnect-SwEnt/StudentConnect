@@ -73,6 +73,11 @@ class EventViewModel(
             participantCount = participantCount,
             isFull = isFull)
       }
+
+      // Fetch active polls if user is already a participant
+      if (finalIsJoined) {
+        fetchActivePolls(eventUid)
+      }
     }
   }
 

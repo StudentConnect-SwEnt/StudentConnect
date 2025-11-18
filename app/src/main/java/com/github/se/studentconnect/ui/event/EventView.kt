@@ -100,10 +100,7 @@ fun EventView(
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
-  LaunchedEffect(key1 = eventUid) {
-    eventViewModel.fetchEvent(eventUid)
-    eventViewModel.fetchActivePolls(eventUid)
-  }
+  LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
