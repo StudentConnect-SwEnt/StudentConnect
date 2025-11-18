@@ -117,7 +117,6 @@ jobs:
         if: steps.android-sdk.outputs.cache-hit != 'true'
         run: |
           set -e
-          set -o pipefail
 
           mkdir -p "$HOME/android-sdk"
 
