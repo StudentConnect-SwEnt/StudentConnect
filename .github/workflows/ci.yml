@@ -170,6 +170,49 @@ jobs:
           name: test-apks
           path: ./app/build/outputs/apk/
 
+      # Create the script for the next step (this script only works in the next step)
+      - name: Create script for pretty printing tests
+        run: |
+          # Define test script (to be able to have multiline commands)
+          cat << 'EOF' > pretty-instrument.sh
+          #!/usr/bin/env bash
+          set -e
+          set -o pipefail
+
+          # ANSI colors
+          yellow="\033[33m"
+          green="\033[32m"
+          red="\033[31m"
+          reset="\033[0m"
+
+          adb shell am instrument -w -r \
+            -e coverage true \
+            -e numShards $SHARD_COUNT \
+            -e shardIndex ${{ matrix.shard_index }} \
+            $PACKAGE.test/$TEST_RUNNER \
+            | tee instrument-output.txt \
+            | awk -v y="$yellow" -v g="$green" -v r="$red" -v x="$reset" '
+              /INSTRUMENTATION_STATUS: class=/ {
+                class=$0;
+                sub("INSTRUMENTATION_STATUS: class=", "", class);
+              }
+              /INSTRUMENTATION_STATUS: test=/ {
+                test=$0;
+                sub("INSTRUMENTATION_STATUS: test=", "", test);
+              }
+              /INSTRUMENTATION_STATUS_CODE:/ {
+                code=$0;
+                sub("INSTRUMENTATION_STATUS_CODE: ", "", code);
+
+                if (code == 1)  printf("%s[RUN]%s   %s#%s\n", y, x, class, test);
+                if (code == 0)  printf("%s[PASS]%s  %s#%s\n", g, x, class, test);
+                if (code == -2) printf("%s[FAIL]%s  %s#%s\n", r, x, class, test);
+              }
+            '
+          EOF
+
+          chmod +x pretty-instrument.sh
+
       - name: Run connected tests (shard ${{ matrix.shard_index }})
         uses: reactivecircus/android-emulator-runner@v2
         env:
@@ -185,15 +228,14 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
           script: |
+            set -e
+
             # Install apks on device
             adb install -t "$APP_DEBUG_APK"
             adb install "$APP_DEBUG_TEST_APK"
 
             # Run tests
-            adb shell am instrument -w -r -e coverage true -e numShards $SHARD_COUNT -e shardIndex ${{ matrix.shard_index }} $PACKAGE.test/$TEST_RUNNER | tee instrument-output.txt
-
-            # Fail the step if "FAILURES!!!" or "INSTRUMENTATION_CODE: 0" appears
-            if grep -q "FAILURES!!!" instrument-output.txt || grep -q "INSTRUMENTATION_CODE: 0" instrument-output.txt; then echo "Instrumentation tests failed"; exit 1; fi
+            ./pretty-instrument.sh
 
             # Pull coverage
             adb exec-out run-as $PACKAGE cat files/coverage.ec > coverage.ec
