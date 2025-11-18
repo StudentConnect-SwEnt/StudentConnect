@@ -148,35 +148,26 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
     }
   }
 
-  override suspend fun submitVote(vote: PollVote) {
+  override suspend fun submitVote(eventUid: String, vote: PollVote) {
     val currentUserId = getCurrentUserId()
     require(vote.userId == currentUserId) { "Can only submit votes for yourself" }
 
-    // First, we need to find the poll - but we need eventUid
-    // Since PollVote doesn't contain eventUid, we need to get it from the poll document
-    // We'll need to search through events or store eventUid in the vote
-    // For now, let's get the poll's parent event by reading the poll document
-    val pollDoc =
-        db.collectionGroup(POLLS_COLLECTION_PATH)
-            .whereEqualTo("uid", vote.pollUid)
-            .get()
-            .await()
-            .documents
-            .firstOrNull()
-    requireNotNull(pollDoc) { "Poll ${vote.pollUid} not found" }
-
-    val poll = pollFromDocumentSnapshot(pollDoc)
-    require(poll.isActive) { "Poll is no longer active" }
-
-    ensureUserIsParticipant(poll.eventUid, currentUserId)
-
-    val voteRef =
+    val pollRef =
         db.collection(EVENTS_COLLECTION_PATH)
-            .document(poll.eventUid)
+            .document(eventUid)
             .collection(POLLS_COLLECTION_PATH)
             .document(vote.pollUid)
-            .collection(VOTES_COLLECTION_PATH)
-            .document(currentUserId)
+
+    val pollDoc = pollRef.get().await()
+    check(pollDoc.exists()) { "Poll ${vote.pollUid} not found" }
+
+    val poll = pollFromDocumentSnapshot(pollDoc)
+    require(poll.eventUid == eventUid) { "Poll ${vote.pollUid} does not belong to event $eventUid" }
+    require(poll.isActive) { "Poll is no longer active" }
+
+    ensureUserIsParticipant(eventUid, currentUserId)
+
+    val voteRef = pollRef.collection(VOTES_COLLECTION_PATH).document(currentUserId)
 
     // Check if user has already voted
     val existingVote = voteRef.get().await()
@@ -187,15 +178,7 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
     // Submit vote and increment option count
     try {
       db.runTransaction { transaction ->
-            val pollRef =
-                db.collection(EVENTS_COLLECTION_PATH)
-                    .document(poll.eventUid)
-                    .collection(POLLS_COLLECTION_PATH)
-                    .document(vote.pollUid)
-
-            transaction.set(voteRef, vote.toMap())
-
-            // Increment vote count for the selected option
+            // Read poll data before performing any writes
             val pollSnapshot = transaction.get(pollRef)
             val currentOptions =
                 pollSnapshot.get("options") as? List<Map<String, Any>> ?: emptyList()
@@ -209,6 +192,7 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
                   }
                 }
 
+            transaction.set(voteRef, vote.toMap())
             transaction.update(pollRef, "options", updatedOptions)
           }
           .await()

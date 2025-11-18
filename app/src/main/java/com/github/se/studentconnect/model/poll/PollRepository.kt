@@ -42,11 +42,12 @@ interface PollRepository {
   /**
    * Submits a vote for a poll. Only event participants can vote.
    *
+   * @param eventUid The event the poll belongs to
    * @param vote The vote to submit
    * @throws IllegalAccessException if the user is not a participant
    * @throws IllegalStateException if the user has already voted
    */
-  suspend fun submitVote(vote: PollVote)
+  suspend fun submitVote(eventUid: String, vote: PollVote)
 
   /**
    * Retrieves the current user's vote for a specific poll.

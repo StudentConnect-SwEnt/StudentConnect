@@ -164,7 +164,7 @@ class PollViewModel(
                 optionId = selectedOptionId,
                 votedAt = Timestamp.now())
 
-        pollRepository.submitVote(vote)
+        pollRepository.submitVote(eventUid, vote)
 
         // Refresh the poll to get updated vote counts
         val updatedPoll = pollRepository.getPoll(eventUid, pollUid)
