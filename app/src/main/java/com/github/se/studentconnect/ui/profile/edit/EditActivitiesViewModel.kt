@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +48,8 @@ class EditActivitiesViewModel(
         _selectedActivities.value = user?.hobbies?.toSet() ?: emptySet()
         _uiState.value = UiState.Idle
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to load activities")
+        _uiState.value =
+            UiState.Error(e.message ?: R.string.error_failed_to_load_activities.toString())
       }
     }
   }
@@ -86,16 +88,17 @@ class EditActivitiesViewModel(
         // Verify user exists before updating
         val user = userRepository.getUserById(userId)
         if (user == null) {
-          _uiState.value = UiState.Error("User not found")
+          _uiState.value = UiState.Error(R.string.error_user_not_found.toString())
           return@launch
         }
 
         // not using userRepository.updateUser, as it doesn't work
         val updatedUser = user.copy(hobbies = _selectedActivities.value.toList())
         userRepository.saveUser(updatedUser)
-        _uiState.value = UiState.Success("Activities updated successfully")
+        _uiState.value = UiState.Success(R.string.success_activities_updated.toString())
       } catch (e: Exception) {
-        _uiState.value = UiState.Error(e.message ?: "Failed to save activities")
+        _uiState.value =
+            UiState.Error(e.message ?: R.string.error_failed_to_save_activities.toString())
       }
     }
   }

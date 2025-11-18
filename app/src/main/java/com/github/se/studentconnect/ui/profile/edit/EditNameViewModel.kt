@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.ui.profile.ProfileConstants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,12 +80,12 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
     var hasError = false
 
     if (trimmedFirstName.isEmpty()) {
-      _firstNameError.value = ProfileConstants.ERROR_FIRST_NAME_EMPTY
+      _firstNameError.value = R.string.error_first_name_empty.toString()
       hasError = true
     }
 
     if (trimmedLastName.isEmpty()) {
-      _lastNameError.value = ProfileConstants.ERROR_LAST_NAME_EMPTY
+      _lastNameError.value = R.string.error_last_name_empty.toString()
       hasError = true
     }
 
@@ -103,7 +103,7 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
                   updatedAt = System.currentTimeMillis())
           userRepository.saveUser(updatedUser)
         },
-        onSuccess = { setSuccess(ProfileConstants.SUCCESS_NAME_UPDATED) })
+        onSuccess = { setSuccess(R.string.success_name_updated.toString()) })
   }
 
   /** Clears validation errors. */

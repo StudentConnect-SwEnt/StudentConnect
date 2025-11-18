@@ -8,6 +8,7 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseUser
+import java.lang.reflect.Method
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -17,11 +18,42 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 
 const val UI_WAIT_TIMEOUT = 5_000L
 
+/**
+ * Custom annotation to disable anonymous sign in for a test.
+ *
+ * Example:
+ * ```
+ * @Test
+ * @NoAnonymousSignIn
+ * fun my_test() {
+ *   // ...
+ * }
+ * ```
+ */
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class NoAnonymousSignIn
+
+/** Rule for the NoAnonymousSignIn annotation. */
+private class MethodInfoRule : TestWatcher() {
+  var method: Method? = null
+
+  override fun starting(description: Description) {
+    method = description.testClass.getMethod(description.methodName)
+  }
+}
+
 /** Base class for all StudentConnect tests, providing common setup and utility functions. */
-abstract class StudentConnectTest() {
+abstract class StudentConnectTest {
+
+  // rule for NoAnonymousSignIn annotation
+  @get:Rule private val methodInfo = MethodInfoRule()
 
   abstract fun createInitializedRepository(): EventRepository
 
@@ -32,8 +64,6 @@ abstract class StudentConnectTest() {
 
   val httpClient
     get() = HttpClientProvider.client
-
-  val shouldSignInAnounymously: Boolean = FirebaseEmulator.isRunning
 
   val currentUser: FirebaseUser
     get() = FirebaseEmulator.auth.currentUser!!
@@ -46,7 +76,13 @@ abstract class StudentConnectTest() {
   open fun setUp() {
     EventRepositoryProvider.repository = createInitializedRepository()
     HttpClientProvider.client = initializeHTTPClient()
-    if (shouldSignInAnounymously) {
+
+    // check if @NoAnonymousSignIn is present
+    val annotated = methodInfo.method?.isAnnotationPresent(NoAnonymousSignIn::class.java) == true
+
+    val shouldSignInAnonymously = FirebaseEmulator.isRunning && !annotated
+
+    if (shouldSignInAnonymously) {
       runTest { FirebaseEmulator.auth.signInAnonymously().await() }
     }
   }

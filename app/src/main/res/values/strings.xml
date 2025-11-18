@@ -1,4 +1,266 @@
 <resources>
     <string name="app_name">StudentConnect</string>
     <string name="default_web_client_id">1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com</string>
+    
+    <!-- Error messages -->
+    <string name="error_network">Network error</string>
+    <string name="error_unexpected">An unexpected error occurred</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_profile_not_found">Profile not found</string>
+    <string name="error_failed_to_load_profile">Failed to load profile</string>
+    <string name="error_failed_to_save_name">Failed to save name</string>
+    <string name="error_failed_to_save_bio">Failed to save bio</string>
+    <string name="error_failed_to_update_nationality">Failed to update nationality</string>
+    <string name="error_failed_to_save_activities">Failed to save activities</string>
+    <string name="error_failed_to_load_activities">Failed to load activities</string>
+    <string name="error_first_name_empty">First name cannot be empty</string>
+    <string name="error_last_name_empty">Last name cannot be empty</string>
+    <string name="error_name_empty">First name and last name cannot be empty</string>
+    <string name="error_university_empty">University cannot be empty</string>
+    <string name="error_bio_empty">Bio cannot be empty</string>
+    <string name="error_bio_too_long">Bio exceeds %d characters</string>
+    <string name="error_date_format">Please use DD/MM/YYYY format</string>
+    <string name="error_failed_to_upload_photo">Failed to upload photo</string>
+    <string name="error_username_length">Username must be 3-20 characters long</string>
+    <string name="error_username_format">Only alphanumeric characters, underscores, hyphens, and periods are allowed</string>
+    <string name="error_username_taken">This username is already taken</string>
+    <string name="error_failed_to_save_birthday">Failed to save birthday</string>
+    <string name="error_failed_to_load_birthday">Failed to load birthday</string>
+    <string name="error_failed_to_remove_birthday">Failed to remove birthday</string>
+    
+    <!-- Success messages -->
+    <string name="success_name_updated">Name updated successfully</string>
+    <string name="success_university_updated">University updated successfully</string>
+    <string name="success_country_updated">Country updated successfully</string>
+    <string name="success_nationality_updated">Nationality updated successfully</string>
+    <string name="success_birthday_updated">Birthday updated successfully</string>
+    <string name="success_activities_updated">Activities updated successfully</string>
+    <string name="success_bio_updated">Bio updated successfully</string>
+    <string name="success_profile_updated">Profile updated successfully</string>
+    <string name="success_profile_picture_updated">Profile picture updated successfully</string>
+    <string name="success_birthday_removed">Birthday removed successfully</string>
+    
+    <!-- Field labels -->
+    <string name="label_first_name">First Name</string>
+    <string name="label_last_name">Last Name</string>
+    <string name="label_university">University</string>
+    <string name="label_country">Country</string>
+    <string name="label_birthday">Birthday</string>
+    <string name="label_activities">Favourite Activities</string>
+    <string name="label_bio">More About Me</string>
+    <string name="label_name">Name</string>
+    <string name="label_profile">Profile</string>
+    
+    <!-- Placeholders -->
+    <string name="placeholder_first_name">John</string>
+    <string name="placeholder_last_name">Doe</string>
+    <string name="placeholder_bio">Tell us about yourself…</string>
+    <string name="placeholder_not_specified">Not specified</string>
+    <string name="placeholder_search_countries">Search countries…</string>
+    <string name="placeholder_search_activities">Search activities…</string>
+    <string name="placeholder_search_events">Search for events…</string>
+    <string name="placeholder_enter_first_name">Enter your first name</string>
+    <string name="placeholder_enter_last_name">Enter your last name</string>
+    <string name="placeholder_choose_username">Choose a unique username</string>
+    <string name="placeholder_select_birthdate">Select your birthdate</string>
+    <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
+    
+    <!-- Instructions -->
+    <string name="instruction_enter_name">Enter your full name</string>
+    <string name="instruction_tell_about_yourself">Tell us about yourself</string>
+    <string name="instruction_where_are_you_from">Where are you from ?</string>
+    <string name="instruction_where_are_you_from_subtitle">Helps us connect you with other students and events</string>
+    <string name="instruction_who_are_you">Who are you ?</string>
+    <string name="instruction_who_are_you_subtitle">Let others know who you are !</string>
+    <string name="instruction_select_date_of_birth">Select your date of birth</string>
+    <string name="instruction_pick_date">Pick a date</string>
+    <string name="instruction_preview_profile_picture">Preview of your new profile picture</string>
+    <string name="instruction_choose_profile_photo">Tap above to choose a profile photo</string>
+    <string name="instruction_tap_to_change_photo">Tap to change photo</string>
+    
+    <!-- Screen titles -->
+    <string name="title_edit_nationality">Edit Nationality</string>
+    <string name="title_edit_name">Edit Name</string>
+    <string name="title_edit_birthday">Edit Birthday</string>
+    <string name="title_edit_profile_picture">Edit Profile Picture</string>
+    <string name="title_select_activities">Select Your Activities</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_create_public_event">Create Public Event</string>
+    <string name="title_edit_public_event">Edit Public Event</string>
+    
+    <!-- Buttons -->
+    <string name="button_back">Back</string>
+    <string name="button_save">Save</string>
+    <string name="button_save_changes">Save Changes</string>
+    <string name="button_save_activities">Save Activities</string>
+    <string name="button_continue">Continue</string>
+    <string name="button_skip">Skip</string>
+    <string name="button_remove_photo">Remove Photo</string>
+    <string name="button_accept">Accept</string>
+    <string name="button_reject">Reject</string>
+    <string name="button_get_started_with_google">Get Started With Google</string>
+    <string name="button_start_now">Start Now</string>
+    
+    <!-- Content descriptions -->
+    <string name="content_description_back">Back</string>
+    <string name="content_description_profile_picture">Profile Picture</string>
+    <string name="content_description_edit_profile_picture">Edit Profile Picture</string>
+    <string name="content_description_edit_name">Edit Name</string>
+    <string name="content_description_search">Search</string>
+    <string name="content_description_selected">Selected</string>
+    <string name="content_description_notifications">Notifications</string>
+    <string name="content_description_delete">Delete</string>
+    <string name="content_description_available">Available</string>
+    <string name="content_description_taken">Taken</string>
+    <string name="content_description_avatar">Avatar</string>
+    <string name="content_description_google_logo">Google logo</string>
+    <string name="content_description_studentconnect_logo">StudentConnect logo</string>
+    <string name="content_description_add_story">Add Story</string>
+    <string name="content_description_event_story">Event Story</string>
+    <string name="content_description_close_story">Close story</string>
+    <string name="content_description_story_content">Story content</string>
+    <string name="content_description_story_for">Story for %s</string>
+    <string name="content_description_search_icon">Search Icon</string>
+    <string name="content_description_student_connect_logo">Student Connect Logo</string>
+    <string name="content_description_favorite">Favorite</string>
+    <string name="content_description_live_icon">Live Icon</string>
+    <string name="content_description_event_image">Event Image</string>
+    <string name="content_description_participants">Participants</string>
+    <string name="content_description_home">Home</string>
+    <string name="content_description_scan_icon">Scan icon</string>
+    <string name="content_description_edit_icon">Edit icon</string>
+    <string name="content_description_action_icon">action icon</string>
+    <string name="content_description_action_button">Action button</string>
+    <string name="content_description_close_filters">Close Filters</string>
+    <string name="content_description_selected_photo">Selected photo</string>
+    <string name="content_description_upload_photo">Upload photo</string>
+    <string name="content_description_owner">Owner</string>
+    <string name="content_description_accept">Accept</string>
+    <string name="content_description_decline">Decline</string>
+    <string name="content_description_center_on_my_location">Center on my location</string>
+    <string name="content_description_public_event">Public Event</string>
+    <string name="content_description_private_event">Private Event</string>
+    <string name="content_description_save">Save</string>
+    
+    <!-- Other UI text -->
+    <string name="text_current_birthday">Current Birthday</string>
+    <string name="text_never_miss_out_again">Never miss out again.</string>
+    <string name="text_activities_selected">%d activity selected</string>
+    <string name="text_activities_selected_plural">%d activities selected</string>
+    <string name="text_connect">Connect</string>
+    <string name="text_discover">Discover</string>
+    <string name="text_belong">Belong</string>
+    <string name="text_birthday_not_provided">Birthday not provided</string>
+    <string name="text_scan_qr_code_to_connect">Scan QR code to connect!</string>
+    <string name="text_scan_qr_to_connect">Scan QR to connect!</string>
+    <string name="text_no_events_found">No events found matching your criteria.</string>
+    <string name="text_my_activities">MyActivities</string>
+    <string name="text_no_upcoming_events">No upcoming events</string>
+    <string name="text_no_new_invitations">No new invitations</string>
+    <string name="text_no_past_events">No past events</string>
+    <string name="text_pinned_events">Pinned Events</string>
+    <string name="text_participants_count">%d participants</string>
+    <string name="text_empty_upcoming_description">You haven\'t joined any events yet. Explore to find some!</string>
+    <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>
+    <string name="text_empty_past_description">Events you have attended will appear here.</string>
+    
+    <!-- Common buttons -->
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_scan">Scan</string>
+    <string name="button_edit">Edit</string>
+    <string name="button_leave">Leave</string>
+    <string name="button_join">Join</string>
+    <string name="button_full">Full</string>
+    <string name="button_started">Started</string>
+    <string name="button_scan_next">Scan Next</string>
+    <string name="button_close_scanner">Close Scanner</string>
+    <string name="button_apply">Apply</string>
+    <string name="button_apply_filters">Apply Filters</string>
+    <string name="button_reset_filters">Reset Filters</string>
+    <string name="button_choose_from_gallery">Choose from gallery</string>
+    <string name="button_take_photo">Take photo</string>
+    <string name="button_add">Add</string>
+    <string name="button_capture">Capture</string>
+    <string name="button_decline">Decline</string>
+    <string name="button_explore">Explore</string>
+    <string name="button_filters">Filters</string>
+    <string name="button_favorites">Favorites</string>
+    
+    <!-- Tabs -->
+    <string name="tab_upcoming">Upcoming</string>
+    <string name="tab_invitations">Invitations</string>
+    <string name="tab_archived">Archived</string>
+    
+    <!-- Toast messages -->
+    <string name="toast_camera_closed">Camera closed without capturing a photo</string>
+    <string name="toast_camera_permission_denied">Camera permission denied</string>
+    <string name="toast_camera_storage_error">Unable to access camera storage</string>
+    
+    <!-- Signup screen labels -->
+    <string name="signup_label_first_name">First name</string>
+    <string name="signup_label_last_name">Last name</string>
+    <string name="signup_label_birthday">Birthday</string>
+    <string name="signup_label_username">Username</string>
+    
+    <!-- Picture picker -->
+    <string name="picture_picker_title">Add a photo</string>
+    <string name="picture_picker_text">Choose how you want to add your picture.</string>
+    
+    <!-- Filter bar -->
+    <string name="filter_title">Filter Events</string>
+    <string name="filter_categories_tags">Categories &amp; Tags</string>
+    <string name="filter_location">Location</string>
+    <string name="filter_price">Price (€)</string>
+    <string name="filter_price_min">Min: %d€</string>
+    <string name="filter_price_max">Max: %d€</string>
+    <string name="filter_select_location">Select Location</string>
+    <string name="filter_radius">Radius: %d km</string>
+    <string name="content_description_location">Location</string>
+    
+    <!-- Time picker -->
+    <string name="time_picker_title">Select Time</string>
+    
+    <!-- Event view -->
+    <string name="event_button_scan_next">Scan Next</string>
+    <string name="event_button_close_scanner">Close Scanner</string>
+    <string name="event_validation_valid_ticket">Valid Ticket</string>
+    <string name="event_validation_invalid_ticket">Invalid Ticket</string>
+    <string name="event_validation_error">Verification Error</string>
+    <string name="event_validation_participant_id">Participant ID: %s</string>
+    <string name="event_validation_user_not_registered">User %s is not registered for this event</string>
+    <string name="event_chat_title">Event chat</string>
+    <string name="event_chat_subtitle">Get The Latest News About The Event</string>
+    <string name="event_has_started">Event has started</string>
+    <string name="event_hurry_up_started">Hurry up! Event has started</string>
+    <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
+    
+    <!-- Event creation -->
+    <string name="event_label_title">Title</string>
+    <string name="event_placeholder_title">My new event</string>
+    <string name="event_error_title_blank">Title cannot be blank</string>
+    <string name="event_label_subtitle">Subtitle</string>
+    <string name="event_placeholder_subtitle">Optional supporting text</string>
+    <string name="event_label_description">Description</string>
+    <string name="event_placeholder_description">Describe your event</string>
+    <string name="event_label_banner">Event Banner</string>
+    <string name="event_placeholder_banner">Upload a banner for your event page</string>
+    <string name="event_text_banner_help">A banner makes your public event stand out in search results.</string>
+    <string name="event_button_remove_banner">Remove banner</string>
+    <string name="event_label_location">Location</string>
+    <string name="event_placeholder_location">Enter the event\'s location</string>
+    <string name="event_error_location_invalid">The location is invalid</string>
+    <string name="event_label_start_date">Start of the event</string>
+    <string name="event_placeholder_date">DD/MM/YYYY</string>
+    <string name="event_label_end_date">End of the event</string>
+    <string name="event_error_date_empty">Date cannot be empty</string>
+    <string name="event_error_date_invalid">Date is invalid</string>
+    <string name="event_label_participants">Number of participants</string>
+    <string name="event_label_website">Event website</string>
+    <string name="event_label_fees">Participation fees</string>
+    <string name="event_label_flash_event">Flash Event</string>
+    <string name="event_label_username">Username</string>
+    
+    <!-- Date format -->
+    <string name="date_format">dd/MM/yyyy</string>
 </resources>

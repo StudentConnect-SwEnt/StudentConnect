@@ -7,10 +7,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
 
 /**
@@ -81,13 +84,15 @@ fun EditBirthdayScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Birthday",
+                  text = stringResource(R.string.title_edit_birthday),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.SemiBold)
             },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -105,61 +110,29 @@ fun EditBirthdayScreen(
                   horizontalAlignment = Alignment.CenterHorizontally) {
                     // Instructions
                     Text(
-                        text = "Select your date of birth",
+                        text = stringResource(R.string.instruction_select_date_of_birth),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp))
 
-                    // Current birthday display
-                    if (birthdayString != null) {
-                      Card(
-                          modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                          colors =
-                              CardDefaults.cardColors(
-                                  containerColor = MaterialTheme.colorScheme.primaryContainer)) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally) {
-                                  Text(
-                                      text = "Current Birthday",
-                                      style = MaterialTheme.typography.labelMedium,
-                                      color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                  Spacer(modifier = Modifier.height(4.dp))
-                                  Text(
-                                      text = birthdayString!!,
-                                      style = MaterialTheme.typography.headlineSmall,
-                                      fontWeight = FontWeight.Bold,
-                                      color = MaterialTheme.colorScheme.onPrimaryContainer)
-                                }
-                          }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // DatePicker
                     DatePicker(
                         state = datePickerState,
-                        title = { Text(text = "Pick a date", modifier = Modifier.padding(16.dp)) })
+                        title = {
+                          Text(
+                              text = stringResource(R.string.instruction_pick_date),
+                              modifier = Modifier.padding(16.dp))
+                        })
                   }
 
               // Save Button
-              Button(
+              ProfileSaveButton(
                   onClick = { viewModel.saveBirthday() },
-                  modifier = Modifier.fillMaxWidth().height(56.dp),
+                  isLoading = uiState is EditBirthdayViewModel.UiState.Loading,
                   enabled =
                       uiState !is EditBirthdayViewModel.UiState.Loading &&
-                          datePickerState.selectedDateMillis != null) {
-                    if (uiState is EditBirthdayViewModel.UiState.Loading) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(24.dp),
-                          color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                      Text(
-                          text = "Save",
-                          style = MaterialTheme.typography.bodyLarge,
-                          fontWeight = FontWeight.SemiBold)
-                    }
-                  }
+                          datePickerState.selectedDateMillis != null,
+                  text = stringResource(R.string.button_save))
             }
       }
 }

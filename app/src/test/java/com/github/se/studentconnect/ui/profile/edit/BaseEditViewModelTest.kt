@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -118,7 +119,7 @@ class BaseEditViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    assertEquals("An unexpected error occurred", errorMessage)
+    assertEquals(R.string.error_unexpected.toString(), errorMessage)
   }
 
   @Test

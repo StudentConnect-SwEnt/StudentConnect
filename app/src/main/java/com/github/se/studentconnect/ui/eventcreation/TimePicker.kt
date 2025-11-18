@@ -6,6 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.github.se.studentconnect.R
 import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +31,7 @@ fun TimePicker(modifier: Modifier = Modifier, time: LocalTime, onTimeChange: (Lo
 
   if (showDialog) {
     TimePickerDialog(
-        title = { Text("Select Time") },
+        title = { Text(stringResource(R.string.time_picker_title)) },
         onDismissRequest = { showDialog = false },
         confirmButton = {
           TextButton(
@@ -37,10 +39,14 @@ fun TimePicker(modifier: Modifier = Modifier, time: LocalTime, onTimeChange: (Lo
                 showDialog = false
                 onTimeChange(LocalTime.of(timePickerState.hour, timePickerState.minute))
               }) {
-                Text("OK")
+                Text(stringResource(R.string.button_ok))
               }
         },
-        dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } },
+        dismissButton = {
+          TextButton(onClick = { showDialog = false }) {
+            Text(stringResource(R.string.button_cancel))
+          }
+        },
     ) {
       TimePicker(state = timePickerState)
     }

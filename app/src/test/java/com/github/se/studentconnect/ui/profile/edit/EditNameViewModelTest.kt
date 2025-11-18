@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -85,7 +86,9 @@ class EditNameViewModelTest {
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
+    assertTrue(
+        viewModel.firstNameError.value?.contains(R.string.error_first_name_empty.toString()) ==
+            true)
     assertNull(viewModel.lastNameError.value)
     assertTrue(repository.savedUsers.isEmpty())
   }
@@ -100,7 +103,8 @@ class EditNameViewModelTest {
     kotlinx.coroutines.delay(200)
 
     assertNull(viewModel.firstNameError.value)
-    assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
+    assertTrue(
+        viewModel.lastNameError.value?.contains(R.string.error_last_name_empty.toString()) == true)
     assertTrue(repository.savedUsers.isEmpty())
   }
 
@@ -113,8 +117,11 @@ class EditNameViewModelTest {
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
-    assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
+    assertTrue(
+        viewModel.firstNameError.value?.contains(R.string.error_first_name_empty.toString()) ==
+            true)
+    assertTrue(
+        viewModel.lastNameError.value?.contains(R.string.error_last_name_empty.toString()) == true)
     assertTrue(repository.savedUsers.isEmpty())
   }
 
@@ -127,8 +134,11 @@ class EditNameViewModelTest {
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
 
-    assertTrue(viewModel.firstNameError.value?.contains("First name cannot be empty") == true)
-    assertTrue(viewModel.lastNameError.value?.contains("Last name cannot be empty") == true)
+    assertTrue(
+        viewModel.firstNameError.value?.contains(R.string.error_first_name_empty.toString()) ==
+            true)
+    assertTrue(
+        viewModel.lastNameError.value?.contains(R.string.error_last_name_empty.toString()) == true)
     assertTrue(repository.savedUsers.isEmpty())
   }
 

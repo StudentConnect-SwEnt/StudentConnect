@@ -50,10 +50,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
@@ -118,9 +120,6 @@ fun CreatePublicEventScreen(
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val startDateInitial = createPublicEventUiState.startDate?.format(dateFormatter) ?: ""
   val endDateInitial = createPublicEventUiState.endDate?.format(dateFormatter) ?: ""
-  val locationInitial =
-      createPublicEventUiState.location?.let { it.name ?: "${it.latitude}, ${it.longitude}" } ?: ""
-
   val canSave =
       createPublicEventUiState.title.isNotBlank() &&
           createPublicEventUiState.startDate != null &&
@@ -174,7 +173,9 @@ fun CreatePublicEventScreen(
               title = {
                 Text(
                     text =
-                        if (existingEventId != null) "Edit Public Event" else "Create Public Event")
+                        if (existingEventId != null)
+                            stringResource(R.string.title_edit_public_event)
+                        else stringResource(R.string.title_create_public_event))
               },
               navigationIcon = {
                 IconButton(
@@ -182,7 +183,7 @@ fun CreatePublicEventScreen(
                     onClick = { navController?.popBackStack() }) {
                       Icon(
                           imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = "Back")
+                          contentDescription = stringResource(R.string.content_description_back))
                     }
               })
         }) { paddingValues ->
@@ -201,12 +202,14 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth()
                         .testTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
                         .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                label = "Title",
-                placeholder = "My new event",
+                label = stringResource(R.string.event_label_title),
+                placeholder = stringResource(R.string.event_placeholder_title),
                 value = createPublicEventUiState.title,
                 onValueChange = { createPublicEventViewModel.updateTitle(it) },
                 errorText =
-                    if (createPublicEventUiState.title.isBlank()) "Title cannot be blank" else null,
+                    if (createPublicEventUiState.title.isBlank())
+                        stringResource(R.string.event_error_title_blank)
+                    else null,
                 required = true)
 
             FormTextField(
@@ -214,8 +217,8 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth()
                         .testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
                         .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                label = "Subtitle",
-                placeholder = "Optional supporting text",
+                label = stringResource(R.string.event_label_subtitle),
+                placeholder = stringResource(R.string.event_placeholder_subtitle),
                 value = createPublicEventUiState.subtitle,
                 onValueChange = { createPublicEventViewModel.updateSubtitle(it) },
             )
@@ -225,8 +228,8 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth()
                         .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
                         .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                label = "Description",
-                placeholder = "Describe your event",
+                label = stringResource(R.string.event_label_description),
+                placeholder = stringResource(R.string.event_placeholder_description),
                 value = createPublicEventUiState.description,
                 onValueChange = { createPublicEventViewModel.updateDescription(it) },
             )
@@ -239,7 +242,7 @@ fun CreatePublicEventScreen(
                       modifier = Modifier.padding(16.dp),
                       verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "Event Banner",
+                            text = stringResource(R.string.event_label_banner),
                             style =
                                 MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.SemiBold))
@@ -253,11 +256,11 @@ fun CreatePublicEventScreen(
                             onImageSelected = { uri ->
                               createPublicEventViewModel.updateBannerImageUri(uri)
                             },
-                            placeholderText = "Upload a banner for your event page",
-                            overlayText = "Tap to change banner",
-                            imageDescription = "Event banner")
+                            placeholderText = stringResource(R.string.event_placeholder_banner),
+                            overlayText = stringResource(R.string.instruction_tap_to_change_photo),
+                            imageDescription = stringResource(R.string.event_label_banner))
                         Text(
-                            text = "A banner makes your public event stand out in search results.",
+                            text = stringResource(R.string.event_text_banner_help),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         OutlinedButton(
@@ -269,7 +272,7 @@ fun CreatePublicEventScreen(
                                 Modifier.fillMaxWidth()
                                     .testTag(
                                         CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON)) {
-                              Text("Remove banner")
+                              Text(stringResource(R.string.event_button_remove_banner))
                             }
                       }
                 }
@@ -277,9 +280,9 @@ fun CreatePublicEventScreen(
             LocationTextField(
                 modifier =
                     Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.LOCATION_INPUT),
-                label = "Location",
-                placeholder = "Enter the event's location",
-                initialValue = locationInitial,
+                label = stringResource(R.string.event_label_location),
+                placeholder = stringResource(R.string.event_placeholder_location),
+                selectedLocation = createPublicEventUiState.location,
                 onLocationChange = { createPublicEventViewModel.updateLocation(it) })
 
             val wideFieldWeight =
@@ -294,8 +297,8 @@ fun CreatePublicEventScreen(
                   modifier =
                       Modifier.weight(wideFieldWeight)
                           .testTag(CreatePublicEventScreenTestTags.START_DATE_INPUT),
-                  label = "Start of the event",
-                  placeholder = "DD/MM/YYYY",
+                  label = stringResource(R.string.event_label_start_date),
+                  placeholder = stringResource(R.string.event_placeholder_date),
                   initialValue = startDateInitial,
                   onDateChange = { createPublicEventViewModel.updateStartDate(it) },
                   required = true)
@@ -315,8 +318,8 @@ fun CreatePublicEventScreen(
                   modifier =
                       Modifier.weight(wideFieldWeight)
                           .testTag(CreatePublicEventScreenTestTags.END_DATE_INPUT),
-                  label = "End of the event",
-                  placeholder = "DD/MM/YYYY",
+                  label = stringResource(R.string.event_label_end_date),
+                  placeholder = stringResource(R.string.event_placeholder_date),
                   initialValue = endDateInitial,
                   onDateChange = { createPublicEventViewModel.updateEndDate(it) },
                   required = true)
@@ -332,7 +335,7 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth()
                         .testTag(CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT)
                         .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                label = "Number of participants",
+                label = stringResource(R.string.event_label_participants),
                 value = createPublicEventUiState.numberOfParticipantsString,
                 onValueChange = { createPublicEventViewModel.updateNumberOfParticipantsString(it) },
             )
@@ -342,7 +345,7 @@ fun CreatePublicEventScreen(
                     Modifier.fillMaxWidth()
                         .testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
                         .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                label = "Event website",
+                label = stringResource(R.string.event_label_website),
                 value = createPublicEventUiState.website,
                 onValueChange = { createPublicEventViewModel.updateWebsite(it) },
             )
@@ -357,7 +360,7 @@ fun CreatePublicEventScreen(
                       Modifier.weight(wideFieldWeight)
                           .testTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
                           .onFocusChanged { isAnyFieldFocused = it.isFocused },
-                  label = "Participation fees",
+                  label = stringResource(R.string.event_label_fees),
                   value = createPublicEventUiState.participationFeeString,
                   onValueChange = { createPublicEventViewModel.updateParticipationFeeString(it) },
                   enabled = createPublicEventUiState.hasParticipationFee,
@@ -381,7 +384,7 @@ fun CreatePublicEventScreen(
             ) {
               Text(
                   modifier = Modifier.weight(wideFieldWeight),
-                  text = "Flash Event",
+                  text = stringResource(R.string.event_label_flash_event),
               )
 
               val context = LocalContext.current
@@ -428,7 +431,7 @@ fun CreatePublicEventScreen(
                             tint = MaterialTheme.colorScheme.onPrimary)
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            "Save",
+                            stringResource(R.string.button_save),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimary)
                       }

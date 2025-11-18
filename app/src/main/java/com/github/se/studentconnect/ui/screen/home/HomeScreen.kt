@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,7 +91,8 @@ import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
-import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.screen.camera.CameraMode
+import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
@@ -115,6 +117,7 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** DI-friendly overload that wires default view models and exposes callback hooks. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -126,6 +129,7 @@ fun HomeScreen(
     notificationViewModel: NotificationViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
     onQRScannerClosed: () -> Unit = {},
+    onCameraActiveChange: (Boolean) -> Unit = {},
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val favoriteEventIds by viewModel.favoriteEventIds.collectAsState()
@@ -136,6 +140,7 @@ fun HomeScreen(
       navController = navController,
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
+      onCameraActiveChange = onCameraActiveChange,
       onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
@@ -149,6 +154,7 @@ fun HomeScreen(
       onClearScrollTarget = { viewModel.clearScrollTarget() })
 }
 
+/** Core Home screen implementation containing pager, filters, notifications, and stories. */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,
@@ -158,6 +164,7 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     shouldOpenQRScanner: Boolean = false,
     onQRScannerClosed: () -> Unit = {},
+    onCameraActiveChange: (Boolean) -> Unit = {},
     onClickStory: (Event, Int) -> Unit = { _, _ -> },
     uiState: HomePageUiState = HomePageUiState(),
     notificationViewModel: NotificationViewModel? = null,
@@ -171,6 +178,7 @@ fun HomeScreen(
     onClearScrollTarget: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
+  var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   var selectedStory by remember { mutableStateOf<Event?>(null) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
@@ -190,6 +198,11 @@ fun HomeScreen(
     if (shouldOpenQRScanner && pagerState.currentPage != HomeScreenConstants.PAGER_SCANNER_PAGE) {
       pagerState.animateScrollToPage(HomeScreenConstants.PAGER_SCANNER_PAGE)
     }
+  }
+
+  // Notify parent about camera active state
+  LaunchedEffect(pagerState.currentPage) {
+    onCameraActiveChange(pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
   }
 
   ModalBottomSheetLayout(
@@ -253,10 +266,11 @@ fun HomeScreen(
                   userScrollEnabled = true) { page ->
                     when (page) {
                       HomeScreenConstants.PAGER_SCANNER_PAGE -> {
-                        // QR Scanner page
-                        QrScannerScreen(
+                        // Camera Mode Selector page (Story/QR Scanner)
+                        CameraModeSelectorScreen(
                             onBackClick = {
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
                                 pagerState.animateScrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
@@ -264,13 +278,22 @@ fun HomeScreen(
                             onProfileDetected = { userId ->
                               // Navigate to visitor profile and return to home page
                               onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
                               navController.navigate(Route.visitorProfile(userId))
                               coroutineScope.launch {
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            isActive =
-                                pagerState.currentPage == HomeScreenConstants.PAGER_SCANNER_PAGE)
+                            onStoryCapture = { _ ->
+                              // For now, just return to home page
+                              // TODO: Implement story upload functionality
+                              onQRScannerClosed()
+                              cameraMode = CameraMode.QR_SCAN
+                              coroutineScope.launch {
+                                pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
+                              }
+                            },
+                            initialMode = cameraMode)
                       }
                       HomeScreenConstants.PAGER_HOME_PAGE -> {
                         // Home content page
@@ -295,8 +318,10 @@ fun HomeScreen(
                                   topContent = {
                                     StoriesRow(
                                         onAddStoryClick = {
+                                          cameraMode = CameraMode.STORY
                                           coroutineScope.launch {
-                                            pagerState.animateScrollToPage(0)
+                                            pagerState.animateScrollToPage(
+                                                HomeScreenConstants.PAGER_SCANNER_PAGE)
                                           }
                                         },
                                         onClick = { event, seenStories ->
@@ -323,7 +348,11 @@ fun HomeScreen(
         // Handle scroll to date functionality
         LaunchedEffect(uiState.scrollToDate) {
           uiState.scrollToDate?.let { targetDate ->
-            scrollToDate(listState, uiState.events, targetDate)
+            scrollToDate(
+                listState = listState,
+                events = uiState.events,
+                targetDate = targetDate,
+                topContentItemCount = 1)
             onClearScrollTarget()
           }
         }
@@ -346,12 +375,14 @@ fun HomeScreen(
       }
 }
 
+/** Aggregates notification UI state that feeds badge and dropdown rendering. */
 data class NotificationState(
     val showNotifications: Boolean,
     val notifications: List<Notification> = emptyList(),
     val unreadCount: Int = 0
 )
 
+/** Callbacks emitted from the notification dropdown interactions. */
 data class NotificationCallbacks(
     val onNotificationClick: () -> Unit,
     val onDismiss: () -> Unit,
@@ -361,6 +392,7 @@ data class NotificationCallbacks(
     val onFriendRequestReject: (String, String) -> Unit = { _, _ -> }
 )
 
+/** Search bar plus notification icon row shown at the top of the Home page. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
@@ -385,6 +417,7 @@ fun HomeTopBar(
       })
 }
 
+/** Wraps the notification bell button and the dropdown that lists notifications. */
 @Composable
 private fun NotificationDropdown(
     notificationState: NotificationState,
@@ -406,7 +439,7 @@ private fun NotificationDropdown(
                 .testTag(ActivitiesScreenTestTags.INVITATIONS_POPOVER)) {
           Panel<Notification>(
               items = notificationState.notifications,
-              title = "Notifications",
+              title = stringResource(R.string.title_notifications),
               itemContent = { notification ->
                 NotificationItem(
                     notification = notification,
@@ -438,7 +471,9 @@ private fun NotificationBadge(unreadCount: Int) {
           Badge { Text(unreadCount.toString()) }
         }
       }) {
-        Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notifications")
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = stringResource(R.string.content_description_notifications))
       }
 }
 
@@ -478,6 +513,7 @@ private fun handleNotificationClick(
   onDismiss()
 }
 
+/** Single notification card with optional friend request controls. */
 @Composable
 fun NotificationItem(
     notification: Notification,
@@ -623,7 +659,7 @@ private fun DeleteButton(notificationId: String, onDelete: () -> Unit) {
       modifier = Modifier.size(24.dp).testTag("DeleteNotificationButton_$notificationId")) {
         Icon(
             imageVector = Icons.Default.Close,
-            contentDescription = "Delete",
+            contentDescription = stringResource(R.string.content_description_delete),
             modifier = Modifier.size(16.dp))
       }
 }
@@ -652,7 +688,7 @@ private fun FriendRequestActions(
         },
         modifier = Modifier.weight(1f).testTag("AcceptFriendRequestButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-          Text("Accept")
+          Text(stringResource(R.string.button_accept))
         }
     Button(
         onClick = {
@@ -661,20 +697,23 @@ private fun FriendRequestActions(
         },
         modifier = Modifier.weight(1f).testTag("RejectFriendRequestButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-          Text("Reject")
+          Text(stringResource(R.string.button_reject))
         }
   }
 }
 
+/** Renders a single story bubble with seen/unseen styling. */
 @Composable
 fun StoryItem(
     name: String,
     avatarRes: Int,
     viewed: Boolean,
     onClick: () -> Unit,
-    contentDescription: String = "Story for $name",
+    contentDescription: String? = null,
     testTag: String = ""
 ) {
+  val defaultContentDescription = stringResource(R.string.content_description_story_for, name)
+  val finalContentDescription = contentDescription ?: defaultContentDescription
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
@@ -683,7 +722,7 @@ fun StoryItem(
         modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
           Image(
               painter = painterResource(avatarRes),
-              contentDescription = contentDescription,
+              contentDescription = finalContentDescription,
               modifier =
                   Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
                       .clip(CircleShape)
@@ -703,6 +742,7 @@ fun StoryItem(
   }
 }
 
+/** Horizontal list of story bubbles with a leading "Add Story" affordance. */
 @Composable
 fun StoriesRow(
     onAddStoryClick: () -> Unit,
@@ -751,13 +791,14 @@ fun StoriesRow(
                     contentAlignment = Alignment.Center) {
                       Icon(
                           imageVector = Icons.Default.Add,
-                          contentDescription = "Add Story",
+                          contentDescription =
+                              stringResource(R.string.content_description_add_story),
                           tint = primaryColor,
                           modifier = Modifier.size(32.dp))
                     }
                 Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_PADDING_TOP_DP.dp))
                 Text(
-                    text = "Add Story",
+                    text = stringResource(R.string.content_description_add_story),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface)
               }
@@ -772,7 +813,7 @@ fun StoriesRow(
               avatarRes = R.drawable.avatar_12, // Default avatar for now
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
-              contentDescription = "Event Story",
+              contentDescription = stringResource(R.string.content_description_event_story),
               testTag = "story_item_${event.uid}")
         }
       }
@@ -804,7 +845,8 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
                           .testTag("story_close_button")) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close story",
+                        contentDescription =
+                            stringResource(R.string.content_description_close_story),
                         tint = Color.White)
                   }
 
@@ -817,7 +859,8 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
                         verticalArrangement = Arrangement.Center) {
                           Image(
                               painter = painterResource(id = R.drawable.avatar_12),
-                              contentDescription = "Story content",
+                              contentDescription =
+                                  stringResource(R.string.content_description_story_content),
                               modifier =
                                   Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
                           Spacer(modifier = Modifier.height(16.dp))
@@ -832,13 +875,16 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 /**
- * Scrolls to the specified date in the event list. Finds the date header and scrolls to it
- * smoothly.
+ * Scrolls to the specified date in the event list. Finds the date header and scrolls to it smoothly
+ * while keeping any static content (e.g., stories row) into account.
+ *
+ * @param topContentItemCount Number of list items that appear before the first date header.
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
     events: List<com.github.se.studentconnect.model.event.Event>,
-    targetDate: Date
+    targetDate: Date,
+    topContentItemCount: Int = 0
 ) {
   try {
     // Handle empty events list
@@ -847,13 +893,14 @@ private suspend fun scrollToDate(
     }
 
     // Group events by date header to find the target section
-    val groupedEvents = events.groupBy { event -> formatDateHeader(event.start) }
+    val groupedEvents =
+        events.sortedBy { it.start }.groupBy { event -> formatDateHeader(event.start) }
 
     // Find the target date header
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
     // Calculate the index to scroll to
-    var currentIndex = 0
+    var currentIndex = topContentItemCount
     for ((dateHeader, eventsOnDate) in groupedEvents) {
       if (dateHeader == targetDateHeader) {
         // Found the target date, scroll to it with bounds checking

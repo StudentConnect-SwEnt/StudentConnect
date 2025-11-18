@@ -1,13 +1,20 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.delay
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,6 +28,22 @@ class EditProfilePictureScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var repository: TestUserRepository
+  private lateinit var fakeMediaRepository: FakeMediaRepository
+
+  companion object {
+    @BeforeClass
+    @JvmStatic
+    fun setUpClass() {
+      // Initialize Firebase before accessing MediaRepositoryProvider
+      val context = ApplicationProvider.getApplicationContext<Context>()
+      if (FirebaseApp.getApps(context).isEmpty()) {
+        FirebaseApp.initializeApp(context)
+      }
+      // Initialize MediaRepositoryProvider with a fake repository
+      MediaRepositoryProvider.repository = FakeMediaRepository()
+    }
+  }
+
   private val testUser =
       User(
           userId = "test_user",
@@ -43,6 +66,8 @@ class EditProfilePictureScreenTest {
   fun setUp() {
     repository = TestUserRepository(testUser)
     navigatedBack = false
+    fakeMediaRepository = FakeMediaRepository()
+    MediaRepositoryProvider.repository = fakeMediaRepository
   }
 
   @Test
@@ -131,7 +156,7 @@ class EditProfilePictureScreenTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Remove Photo").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -177,8 +202,8 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Save").assertExists()
+    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 
   @Test
@@ -225,8 +250,8 @@ class EditProfilePictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Save").assertExists()
+    composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
   }
 
   @Test
@@ -323,7 +348,7 @@ class EditProfilePictureScreenTest {
 
     // All action buttons should be visible at the same time
     composeTestRule.onNodeWithText("Remove Photo").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -398,7 +423,7 @@ class EditProfilePictureScreenTest {
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists()
     composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
     composeTestRule.onNodeWithText("Remove Photo").assertExists()
-    composeTestRule.onNodeWithText("Save Changes").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -501,5 +526,20 @@ class EditProfilePictureScreenTest {
     override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
+  }
+
+  private class FakeMediaRepository : MediaRepository {
+    val uploads = mutableListOf<Pair<Uri, String?>>()
+    var lastUploadPath: String? = null
+
+    override suspend fun upload(uri: Uri, path: String?): String {
+      uploads += uri to path
+      lastUploadPath = path ?: "generated/${uploads.size}"
+      return lastUploadPath!!
+    }
+
+    override suspend fun download(id: String): Uri = Uri.parse("file:///$id")
+
+    override suspend fun delete(id: String) = Unit
   }
 }

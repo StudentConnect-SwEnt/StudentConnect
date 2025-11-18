@@ -51,11 +51,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.github.se.studentconnect.BuildConfig
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import java.io.File
 import java.io.InputStream
@@ -113,7 +115,8 @@ fun PicturePickerCard(
         if (success) {
           pendingCameraUri?.let(onImageSelected)
         } else {
-          Toast.makeText(context, "Camera closed without capturing a photo", Toast.LENGTH_SHORT)
+          Toast.makeText(
+                  context, context.getString(R.string.toast_camera_closed), Toast.LENGTH_SHORT)
               .show()
         }
         pendingCameraUri = null
@@ -124,7 +127,11 @@ fun PicturePickerCard(
           if (granted) {
             launchCamera(context, takePictureLauncher) { uri -> pendingCameraUri = uri }
           } else {
-            Toast.makeText(context, "Camera permission denied", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                    context,
+                    context.getString(R.string.toast_camera_permission_denied),
+                    Toast.LENGTH_LONG)
+                .show()
           }
         }
         shouldOpenCameraAfterPermission = false
@@ -216,8 +223,8 @@ fun PicturePickerCard(
   if (showSourceDialog) {
     AlertDialog(
         onDismissRequest = { showSourceDialog = false },
-        title = { Text("Add a photo") },
-        text = { Text("Choose how you want to add your picture.") },
+        title = { Text(stringResource(R.string.picture_picker_title)) },
+        text = { Text(stringResource(R.string.picture_picker_text)) },
         confirmButton = {
           Column(horizontalAlignment = Alignment.End) {
             TextButton(
@@ -226,18 +233,22 @@ fun PicturePickerCard(
                   pickMediaLauncher.launch(
                       PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }) {
-                  Text("Choose from gallery")
+                  Text(stringResource(R.string.button_choose_from_gallery))
                 }
             TextButton(
                 onClick = {
                   showSourceDialog = false
                   openCameraOrRequestPermission()
                 }) {
-                  Text("Take photo")
+                  Text(stringResource(R.string.button_take_photo))
                 }
           }
         },
-        dismissButton = { TextButton(onClick = { showSourceDialog = false }) { Text("Cancel") } })
+        dismissButton = {
+          TextButton(onClick = { showSourceDialog = false }) {
+            Text(stringResource(R.string.button_cancel))
+          }
+        })
   }
 }
 
@@ -283,7 +294,9 @@ private fun launchCamera(
 ) {
   val uri = createTempImageUri(context)
   if (uri == null) {
-    Toast.makeText(context, "Unable to access camera storage", Toast.LENGTH_LONG).show()
+    Toast.makeText(
+            context, context.getString(R.string.toast_camera_storage_error), Toast.LENGTH_LONG)
+        .show()
     onUriCreated(null)
     return
   }

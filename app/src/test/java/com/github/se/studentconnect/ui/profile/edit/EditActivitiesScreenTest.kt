@@ -98,7 +98,7 @@ class EditActivitiesScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithText("Search activities...").assertExists()
+    composeTestRule.onNodeWithText("Search activities…").assertExists()
   }
 
   @Test
@@ -127,7 +127,7 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Save Activities").assertExists()
+    composeTestRule.onNodeWithText("Save").assertExists()
   }
 
   @Test
@@ -143,7 +143,7 @@ class EditActivitiesScreenTest {
 
     composeTestRule.waitForIdle()
     // User already has activities selected
-    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save").assertIsEnabled()
   }
 
   @Test
@@ -162,9 +162,7 @@ class EditActivitiesScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithText("Save Activities")
-        .assertIsEnabled() // Now enabled with empty selection
+    composeTestRule.onNodeWithText("Save").assertIsEnabled() // Now enabled with empty selection
   }
 
   @Test
@@ -288,7 +286,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Type in search box
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("foot")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("foot")
 
     composeTestRule.waitForIdle()
 
@@ -313,7 +311,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Type in uppercase
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("TENNIS")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("TENNIS")
 
     composeTestRule.waitForIdle()
 
@@ -363,7 +361,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Search for Tennis
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("tennis")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("tennis")
     composeTestRule.waitForIdle()
 
     // Select it
@@ -400,7 +398,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save to complete
     composeTestRule.waitForIdle()
@@ -432,7 +430,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Click save
-    composeTestRule.onNodeWithText("Save Activities").performClick()
+    composeTestRule.onNodeWithText("Save").performClick()
 
     // Wait for save to complete and navigation
     composeTestRule.waitForIdle()
@@ -489,7 +487,7 @@ class EditActivitiesScreenTest {
 
     // Activities should be alphabetically sorted
     // Verify by searching for activities that should exist if sorted
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("tennis")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("tennis")
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Tennis").assertExists()
   }
@@ -584,7 +582,7 @@ class EditActivitiesScreenTest {
     composeTestRule.waitForIdle()
 
     // Search for non-existent activity
-    composeTestRule.onNodeWithText("Search activities...").performTextInput("xyz123")
+    composeTestRule.onNodeWithText("Search activities…").performTextInput("xyz123")
 
     composeTestRule.waitForIdle()
 
@@ -662,6 +660,6 @@ class EditActivitiesScreenTest {
 
     // With user not found, should still show empty state
     // Save button should be enabled even with no selection (allows saving empty list)
-    composeTestRule.onNodeWithText("Save Activities").assertIsEnabled()
+    composeTestRule.onNodeWithText("Save").assertIsEnabled()
   }
 }

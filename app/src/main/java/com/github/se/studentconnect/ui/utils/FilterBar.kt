@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,9 +110,11 @@ fun FilterBar(
         FilterChip(
             icon = R.drawable.ic_calendar, onClick = onCalendarClick, testTag = "calendar_button")
         FilterChip(
-            text = "Filters", icon = R.drawable.ic_filter, onClick = { showBottomSheet = true })
+            text = stringResource(R.string.button_filters),
+            icon = R.drawable.ic_filter,
+            onClick = { showBottomSheet = true })
         FilterChipWithHighlight(
-            text = "Favorites",
+            text = stringResource(R.string.button_favorites),
             icon = R.drawable.ic_heart,
             isSelected = localShowOnlyFavorites,
             onClick = {
@@ -142,10 +145,13 @@ fun FilterBar(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
-                  Text("Filter Events", style = MaterialTheme.typography.headlineSmall)
+                  Text(
+                      stringResource(R.string.filter_title),
+                      style = MaterialTheme.typography.headlineSmall)
                   Icon(
                       imageVector = Icons.Default.Close,
-                      contentDescription = "Close Filters",
+                      contentDescription =
+                          stringResource(R.string.content_description_close_filters),
                       modifier =
                           Modifier.size(24.dp).clickable {
                             scope
@@ -165,7 +171,9 @@ fun FilterBar(
                         .weight(1f)
                         .verticalScroll(scrollState)
                         .testTag("filter_bottom_sheet_scroll")) {
-                  Text("Categories & Tags", style = MaterialTheme.typography.titleMedium)
+                  Text(
+                      stringResource(R.string.filter_categories_tags),
+                      style = MaterialTheme.typography.titleMedium)
                   Spacer(modifier = Modifier.height(8.dp))
                   FlowRow(
                       modifier = Modifier.fillMaxWidth(),
@@ -213,22 +221,27 @@ fun FilterBar(
                       }
                   Spacer(modifier = Modifier.height(24.dp))
 
-                  Text("Location", style = MaterialTheme.typography.titleMedium)
+                  Text(
+                      stringResource(R.string.filter_location),
+                      style = MaterialTheme.typography.titleMedium)
                   Spacer(modifier = Modifier.height(8.dp))
                   Row(
                       verticalAlignment = Alignment.CenterVertically,
                       modifier = Modifier.fillMaxWidth()) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Location",
+                            contentDescription =
+                                stringResource(R.string.content_description_location),
                             modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(onClick = { showLocationPicker = true }) {
-                          Text(selectedLocation?.name ?: "Select Location")
+                          Text(
+                              selectedLocation?.name
+                                  ?: stringResource(R.string.filter_select_location))
                         }
                       }
                   Text(
-                      "Radius: ${searchRadius.toInt()} km",
+                      stringResource(R.string.filter_radius, searchRadius.toInt()),
                       modifier = Modifier.padding(top = 8.dp),
                       color =
                           if (selectedLocation == null)
@@ -243,7 +256,9 @@ fun FilterBar(
                       enabled = selectedLocation != null)
                   Spacer(modifier = Modifier.height(24.dp))
 
-                  Text("Price (€)", style = MaterialTheme.typography.titleMedium)
+                  Text(
+                      stringResource(R.string.filter_price),
+                      style = MaterialTheme.typography.titleMedium)
                   Spacer(modifier = Modifier.height(8.dp))
                   RangeSlider(
                       value = priceRange,
@@ -255,8 +270,10 @@ fun FilterBar(
                   Row(
                       modifier = Modifier.fillMaxWidth(),
                       horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Min: ${priceRange.start.toInt()}€")
-                        Text("Max: ${priceRange.endInclusive.toInt()}€")
+                        Text(stringResource(R.string.filter_price_min, priceRange.start.toInt()))
+                        Text(
+                            stringResource(
+                                R.string.filter_price_max, priceRange.endInclusive.toInt()))
                       }
                   Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -280,7 +297,7 @@ fun FilterBar(
                       }
                 },
                 modifier = Modifier.fillMaxWidth()) {
-                  Text("Apply Filters")
+                  Text(stringResource(R.string.button_apply_filters))
                 }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -301,7 +318,7 @@ fun FilterBar(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors()) {
-                  Text("Reset Filters")
+                  Text(stringResource(R.string.button_reset_filters))
                 }
           }
     }

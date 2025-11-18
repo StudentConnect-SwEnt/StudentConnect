@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,7 +84,7 @@ abstract class BaseEditViewModel(
         operation()
         onSuccess()
       } catch (e: Exception) {
-        onError(e.message ?: "An unexpected error occurred")
+        onError(e.message ?: R.string.error_unexpected.toString())
       }
     }
   }

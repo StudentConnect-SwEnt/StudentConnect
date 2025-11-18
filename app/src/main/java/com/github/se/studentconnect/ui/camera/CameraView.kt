@@ -44,6 +44,7 @@ fun CameraView(
     onImageCaptured: (Uri) -> Unit = {},
     onCameraPermissionDenied: () -> Unit = {},
     onError: (Throwable) -> Unit = {},
+    requestPermissionAutomatically: Boolean = true,
 ) {
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
@@ -63,7 +64,7 @@ fun CameraView(
       }
 
   LaunchedEffect(Unit) {
-    if (!hasCameraPermission) {
+    if (!hasCameraPermission && requestPermissionAutomatically) {
       permissionLauncher.launch(Manifest.permission.CAMERA)
     }
   }

@@ -48,11 +48,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
@@ -104,13 +106,14 @@ fun ProfileSettingsScreen(
   val fieldErrors by viewModel.fieldErrors.collectAsState()
   val successMessage by viewModel.successMessage.collectAsState()
 
+  val context = LocalContext.current
   val snackbarHostState = remember { SnackbarHostState() }
   val lifecycleOwner = LocalLifecycleOwner.current
 
   // Show success messages
   LaunchedEffect(successMessage) {
-    successMessage?.let { message ->
-      snackbarHostState.showSnackbar(message)
+    successMessage?.let { messageResId ->
+      snackbarHostState.showSnackbar(context.getString(messageResId))
       viewModel.clearSuccessMessage()
     }
   }
@@ -188,11 +191,14 @@ fun ProfileSettingsScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)) {
                               // University Field
                               EditableProfileField(
-                                  label = "University",
+                                  label = stringResource(R.string.label_university),
                                   value = currentUser.university,
                                   isEditing = editingField == EditingField.University,
                                   isLoading = loadingFields.contains(EditingField.University),
-                                  errorMessage = fieldErrors[EditingField.University],
+                                  errorMessage =
+                                      fieldErrors[EditingField.University]?.let {
+                                        stringResource(it)
+                                      },
                                   onEditClick = { /* disabled */},
                                   onSave = { newValue -> viewModel.updateUniversity(newValue) },
                                   onCancel = { viewModel.cancelEditing() },
@@ -200,11 +206,12 @@ fun ProfileSettingsScreen(
 
                               // Country Field
                               EditableProfileField(
-                                  label = "Country",
+                                  label = stringResource(R.string.label_country),
                                   value = currentUser.country ?: "",
                                   isEditing = editingField == EditingField.Country,
                                   isLoading = loadingFields.contains(EditingField.Country),
-                                  errorMessage = fieldErrors[EditingField.Country],
+                                  errorMessage =
+                                      fieldErrors[EditingField.Country]?.let { stringResource(it) },
                                   onEditClick = {
                                     onNavigateToEditNationality?.invoke(currentUserId)
                                   },
@@ -213,22 +220,28 @@ fun ProfileSettingsScreen(
 
                               // Birthday Field
                               EditableProfileField(
-                                  label = "Birthday",
+                                  label = stringResource(R.string.label_birthday),
                                   value = currentUser.birthdate ?: "",
                                   isEditing = editingField == EditingField.Birthday,
                                   isLoading = loadingFields.contains(EditingField.Birthday),
-                                  errorMessage = fieldErrors[EditingField.Birthday],
+                                  errorMessage =
+                                      fieldErrors[EditingField.Birthday]?.let {
+                                        stringResource(it)
+                                      },
                                   onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
                                   onSave = { newValue -> viewModel.updateBirthday(newValue) },
                                   onCancel = { viewModel.cancelEditing() })
 
                               // Activities Field
                               EditableProfileFieldMultiline(
-                                  label = "Favourite Activities",
+                                  label = stringResource(R.string.label_activities),
                                   value = currentUser.hobbies.joinToString(", "),
                                   isEditing = editingField == EditingField.Activities,
                                   isLoading = loadingFields.contains(EditingField.Activities),
-                                  errorMessage = fieldErrors[EditingField.Activities],
+                                  errorMessage =
+                                      fieldErrors[EditingField.Activities]?.let {
+                                        stringResource(it)
+                                      },
                                   onEditClick = {
                                     onNavigateToEditActivities?.invoke(currentUserId)
                                   },
@@ -237,11 +250,12 @@ fun ProfileSettingsScreen(
 
                               // Bio Field
                               EditableProfileFieldMultiline(
-                                  label = "More About Me",
+                                  label = stringResource(R.string.label_bio),
                                   value = currentUser.bio ?: "",
                                   isEditing = editingField == EditingField.Bio,
                                   isLoading = loadingFields.contains(EditingField.Bio),
-                                  errorMessage = fieldErrors[EditingField.Bio],
+                                  errorMessage =
+                                      fieldErrors[EditingField.Bio]?.let { stringResource(it) },
                                   onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
                                   onSave = { newValue -> viewModel.updateBio(newValue) },
                                   onCancel = { viewModel.cancelEditing() })
@@ -300,13 +314,15 @@ private fun ProfileHeaderSection(
                 if (imageBitmap != null) {
                   Image(
                       bitmap = imageBitmap!!,
-                      contentDescription = "Profile Picture",
+                      contentDescription =
+                          stringResource(R.string.content_description_profile_picture),
                       modifier = Modifier.fillMaxSize(),
                       contentScale = ContentScale.Crop)
                 } else {
                   Icon(
                       imageVector = Icons.Default.Person,
-                      contentDescription = "Profile Picture",
+                      contentDescription =
+                          stringResource(R.string.content_description_profile_picture),
                       modifier = Modifier.size(60.dp),
                       tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -320,7 +336,8 @@ private fun ProfileHeaderSection(
                       .background(MaterialTheme.colorScheme.surface, CircleShape)) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Profile Picture",
+                    contentDescription =
+                        stringResource(R.string.content_description_edit_profile_picture),
                     tint = MaterialTheme.colorScheme.onSurface)
               }
         }
@@ -338,7 +355,7 @@ private fun ProfileHeaderSection(
               IconButton(onClick = { onEditName?.invoke() }) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Name",
+                    contentDescription = stringResource(R.string.content_description_edit_name),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
               }
             }

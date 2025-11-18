@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
@@ -179,7 +180,7 @@ class EditBirthdayViewModelTest {
 
     assertTrue(errorViewModel.uiState.value is EditBirthdayViewModel.UiState.Error)
     val errorState = errorViewModel.uiState.value as EditBirthdayViewModel.UiState.Error
-    assertTrue(errorState.message.contains("User not found"))
+    assertTrue(errorState.message.contains(R.string.error_user_not_found.toString()))
   }
 
   @Test
@@ -248,7 +249,7 @@ class EditBirthdayViewModelTest {
 
     assertTrue(errorViewModel.uiState.value is EditBirthdayViewModel.UiState.Error)
     val errorState = errorViewModel.uiState.value as EditBirthdayViewModel.UiState.Error
-    assertTrue(errorState.message.contains("User not found"))
+    assertTrue(errorState.message.contains(R.string.error_user_not_found.toString()))
   }
 
   @Test
@@ -404,7 +405,7 @@ class EditBirthdayViewModelTest {
 
     assertTrue(viewModel.uiState.value is EditBirthdayViewModel.UiState.Success)
     val successState = viewModel.uiState.value as EditBirthdayViewModel.UiState.Success
-    assertEquals("Birthday updated successfully", successState.message)
+    assertEquals(R.string.success_birthday_updated.toString(), successState.message)
   }
 
   @Test
@@ -416,7 +417,7 @@ class EditBirthdayViewModelTest {
 
     assertTrue(viewModel.uiState.value is EditBirthdayViewModel.UiState.Success)
     val successState = viewModel.uiState.value as EditBirthdayViewModel.UiState.Success
-    assertEquals("Birthday removed successfully", successState.message)
+    assertEquals(R.string.success_birthday_removed.toString(), successState.message)
   }
 
   /**

@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,14 +30,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryListSurface
+import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.components.filterCountries
 import com.github.se.studentconnect.ui.components.loadCountries
 import com.github.se.studentconnect.ui.profile.edit.EditNationalityViewModel
@@ -132,10 +132,11 @@ fun EditNationalityScreen(
   val filteredCountries = remember(query, countries) { filterCountries(query, countries) }
 
   var selectedCountry by remember { mutableStateOf<Country?>(null) }
+  val currentUserCountry = user?.country
 
-  LaunchedEffect(user?.country) {
+  LaunchedEffect(currentUserCountry) {
     // Find the country by name from the list
-    selectedCountry = countries.find { it.name == user?.country }
+    selectedCountry = countries.find { it.name == currentUserCountry }
   }
 
   Scaffold(
@@ -143,13 +144,15 @@ fun EditNationalityScreen(
         TopAppBar(
             title = {
               Text(
-                  text = "Edit Nationality",
+                  text = stringResource(R.string.title_edit_nationality),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold)
             },
             navigationIcon = {
               IconButton(onClick = { onNavigateBack?.invoke() }) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -164,9 +167,9 @@ fun EditNationalityScreen(
                     .padding(paddingValues)
                     .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.Start) {
-              TitleText("Where are you from ?")
+              TitleText(stringResource(R.string.instruction_where_are_you_from))
               SmallSpacer()
-              SubtitleText("Helps us connect you with other students and events")
+              SubtitleText(stringResource(R.string.instruction_where_are_you_from_subtitle))
 
               LargeSpacer()
 
@@ -174,9 +177,13 @@ fun EditNationalityScreen(
                   value = query,
                   onValueChange = { query = it },
                   modifier = Modifier.fillMaxWidth(),
-                  placeholder = { Text("Search countries...") },
+                  placeholder = { Text(stringResource(R.string.placeholder_search_countries)) },
                   singleLine = true,
-                  trailingIcon = { Icon(Icons.Filled.Search, contentDescription = null) })
+                  trailingIcon = {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = stringResource(R.string.content_description_search))
+                  })
 
               MediumSpacer()
 
@@ -188,20 +195,17 @@ fun EditNationalityScreen(
 
               LargeSpacer()
 
-              Button(
+              ProfileSaveButton(
                   onClick = {
                     selectedCountry?.let { country -> viewModel.updateNationality(country.name) }
                   },
-                  modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-                  enabled = selectedCountry != null && !isLoading) {
-                    if (isLoading) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(16.dp),
-                          color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                      Text("Save Changes")
-                    }
-                  }
+                  isLoading = isLoading,
+                  enabled =
+                      selectedCountry != null &&
+                          !isLoading &&
+                          selectedCountry?.name != currentUserCountry,
+                  text = stringResource(R.string.button_save),
+                  modifier = Modifier.align(Alignment.CenterHorizontally))
             }
       }
 }

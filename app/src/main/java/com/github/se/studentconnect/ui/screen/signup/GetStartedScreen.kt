@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
@@ -102,18 +103,22 @@ fun GetStartedScreen(
         // Studnet Logo
         Image(
             painter = painterResource(id = R.drawable.studnet_logo),
-            contentDescription = "StudentConnect logo",
+            contentDescription = stringResource(R.string.content_description_studentconnect_logo),
             modifier = Modifier.size(96.dp))
 
         // Carousel with Connect, Discover, Belong pictures
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().weight(1f)) {
-          val items = remember {
-            listOf(
-                CarouselItem(0, R.drawable.fond, "Connect"),
-                CarouselItem(1, R.drawable.fond, "Discover"),
-                CarouselItem(2, R.drawable.fond, "Belong"),
-            )
-          }
+          val connectText = stringResource(R.string.text_connect)
+          val discoverText = stringResource(R.string.text_discover)
+          val belongText = stringResource(R.string.text_belong)
+          val items =
+              remember(connectText, discoverText, belongText) {
+                listOf(
+                    CarouselItem(0, R.drawable.fond, connectText),
+                    CarouselItem(1, R.drawable.fond, discoverText),
+                    CarouselItem(2, R.drawable.fond, belongText),
+                )
+              }
 
           HorizontalMultiBrowseCarousel(
               state = rememberCarouselState { items.size },
@@ -136,7 +141,7 @@ fun GetStartedScreen(
 
         // Tagline with "Never miss out again."
         Text(
-            text = "Never miss out again.",
+            text = stringResource(R.string.text_never_miss_out_again),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp))
@@ -184,10 +189,12 @@ private fun SignInButton(
             horizontalArrangement = Arrangement.Center) {
               Image(
                   painter = painterResource(id = R.drawable.google_logo),
-                  contentDescription = "Google logo",
+                  contentDescription = stringResource(R.string.content_description_google_logo),
                   modifier = Modifier.size(24.dp))
               Spacer(Modifier.width(12.dp))
-              Text("Get Started With Google", style = MaterialTheme.typography.titleMedium)
+              Text(
+                  stringResource(R.string.button_get_started_with_google),
+                  style = MaterialTheme.typography.titleMedium)
             }
       }
 }
