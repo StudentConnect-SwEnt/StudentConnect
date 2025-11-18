@@ -188,33 +188,39 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
     }
 
     // Submit vote and increment option count
-    db.runTransaction { transaction ->
-          val pollRef =
-              db.collection(EVENTS_COLLECTION_PATH)
-                  .document(poll.eventUid)
-                  .collection(POLLS_COLLECTION_PATH)
-                  .document(vote.pollUid)
+    try {
+      db.runTransaction { transaction ->
+            val pollRef =
+                db.collection(EVENTS_COLLECTION_PATH)
+                    .document(poll.eventUid)
+                    .collection(POLLS_COLLECTION_PATH)
+                    .document(vote.pollUid)
 
-          transaction.set(voteRef, vote.toMap())
+            transaction.set(voteRef, vote.toMap())
 
-          // Increment vote count for the selected option
-          val pollSnapshot = transaction.get(pollRef)
-          val currentOptions = pollSnapshot.get("options") as? List<Map<String, Any>> ?: emptyList()
-          val updatedOptions =
-              currentOptions.map { optionMap ->
-                if (optionMap["optionId"] == vote.optionId) {
-                  val currentCount = (optionMap["voteCount"] as? Long)?.toInt() ?: 0
-                  optionMap + ("voteCount" to currentCount + 1)
-                } else {
-                  optionMap
+            // Increment vote count for the selected option
+            val pollSnapshot = transaction.get(pollRef)
+            val currentOptions =
+                pollSnapshot.get("options") as? List<Map<String, Any>> ?: emptyList()
+            val updatedOptions =
+                currentOptions.map { optionMap ->
+                  if (optionMap["optionId"] == vote.optionId) {
+                    val currentCount = (optionMap["voteCount"] as? Long)?.toInt() ?: 0
+                    optionMap + ("voteCount" to currentCount + 1)
+                  } else {
+                    optionMap
+                  }
                 }
-              }
 
-          transaction.update(pollRef, "options", updatedOptions)
-        }
-        .await()
+            transaction.update(pollRef, "options", updatedOptions)
+          }
+          .await()
 
-    Log.d("PollRepositoryFirestore", "User $currentUserId voted on poll ${vote.pollUid}")
+      Log.d("PollRepositoryFirestore", "User $currentUserId voted on poll ${vote.pollUid}")
+    } catch (e: Exception) {
+      Log.e("PollRepositoryFirestore", "Failed to submit vote: ${e.message}", e)
+      throw IllegalStateException("Failed to submit vote: ${e.message}", e)
+    }
   }
 
   override suspend fun getUserVote(eventUid: String, pollUid: String, userId: String): PollVote? {
