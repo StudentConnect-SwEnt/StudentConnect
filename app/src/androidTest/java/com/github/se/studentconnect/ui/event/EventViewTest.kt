@@ -245,8 +245,11 @@ class EventViewTest {
       }
     }
     composeTestRule.waitUntilAtLeastOneExists(
-        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 120_000)
-    composeTestRule.onNodeWithTag(EventViewTestTags.DESCRIPTION_TEXT).assertIsDisplayed()
+        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 30_000)
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.DESCRIPTION_TEXT)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @OptIn(ExperimentalTestApi::class)
@@ -266,8 +269,8 @@ class EventViewTest {
     }
 
     composeTestRule.waitUntilAtLeastOneExists(
-        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 120_000)
-    composeTestRule.onNodeWithText(testEvent.description).assertIsDisplayed()
+        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 30_000)
+    composeTestRule.onNodeWithText(testEvent.description).performScrollTo().assertIsDisplayed()
   }
 
   @Test
