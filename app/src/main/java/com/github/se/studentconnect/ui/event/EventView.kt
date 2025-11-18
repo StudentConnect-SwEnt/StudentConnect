@@ -39,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -180,7 +179,7 @@ fun EventView(
                 bottomBar = {
                   Button(
                       onClick = { coroutineScope.launch { pagerState.scrollToPage(1) } },
-                      content = { Text("Return to Event") },
+                      content = { Text(stringResource(R.string.event_button_return)) },
                       modifier =
                           Modifier.fillMaxWidth()
                               .padding(screenPadding)
@@ -813,12 +812,12 @@ private fun AttendeeItem(
         contentDescription = "attendee image",
         Modifier.size(48.dp),
     )
-    if (owner) {
-      Column {
-        Text(attendee.firstName + " " + attendee.lastName, fontSize = 24.sp)
-        Text("Owner")
-      }
-    } else Text(attendee.firstName + " " + attendee.lastName, fontSize = 24.sp)
+    Column {
+      Text(
+          attendee.firstName + " " + attendee.lastName,
+          fontSize = MaterialTheme.typography.headlineMedium.fontSize)
+      if (owner) Text(stringResource(R.string.event_label_owner))
+    }
   }
 }
 
