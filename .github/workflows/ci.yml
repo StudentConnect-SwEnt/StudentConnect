@@ -206,7 +206,6 @@ jobs:
           set -o pipefail
 
           # ANSI colors
-          yellow="\033[33m"
           green="\033[32m"
           red="\033[31m"
           gray="\033[38;5;250m"
@@ -218,21 +217,88 @@ jobs:
             -e shardIndex ${{ matrix.shard_index }} \
             $PACKAGE.test/$TEST_RUNNER \
             | tee instrument-output.txt \
-            | awk -v y="$yellow" -v g="$green" -v r="$red" -v gr="$gray" -v x="$reset" '
-              /INSTRUMENTATION_STATUS: class=/ {
-                class=$0;
-                sub("INSTRUMENTATION_STATUS: class=", "", class);
+            | awk -v g="$green" -v r="$red" -v gr="$gray" -v x="$reset" '
+              # Remember class
+              /^INSTRUMENTATION_STATUS: class=/ {
+                class = $0
+                sub("INSTRUMENTATION_STATUS: class=", "", class)
+                next
               }
-              /INSTRUMENTATION_STATUS: test=/ {
-                test=$0;
-                sub("INSTRUMENTATION_STATUS: test=", "", test);
-              }
-              /INSTRUMENTATION_STATUS_CODE:/ {
-                code=$0;
-                sub("INSTRUMENTATION_STATUS_CODE: ", "", code);
 
-                if (code == 0)  printf("%s[PASS]%s  %s%s#%s%s\n", g, x, class, gr, test, x);
-                if (code == -2) printf("%s[FAIL]%s  %s%s#%s%s\n", r, x, class, gr, test, x);
+              # Remember test
+              /^INSTRUMENTATION_STATUS: test=/ {
+                test = $0
+                sub("INSTRUMENTATION_STATUS: test=", "", test)
+                next
+              }
+
+              # Start capturing a potential error stream
+              /^INSTRUMENTATION_STATUS: stream=/ {
+                capturing = 1
+                stream = ""
+                next
+              }
+
+              # While capturing, collect lines that belong to the stream block
+              capturing && !/^INSTRUMENTATION_STATUS:/ && !/^INSTRUMENTATION_STATUS_CODE:/ {
+                stream = (stream == "" ? $0 : stream "\n" $0)
+                next
+              }
+
+              # Stop capturing when we hit next status line
+              capturing && /^INSTRUMENTATION_STATUS:/ {
+                capturing = 0
+                next
+              }
+
+              # When we see the status code, output based on pass/fail
+              /^INSTRUMENTATION_STATUS_CODE:/ {
+                code = $0
+                sub("INSTRUMENTATION_STATUS_CODE: ", "", code)
+
+                if (code == 0) {
+                  # PASS
+                  printf("%s[PASS]%s  %s%s#%s%s\n", g, x, class, gr, test, x)
+                } else if (code == -2) {
+                  # FAIL: print captured error stream (if any), then FAIL line
+                  if (stream != "") {
+                    printf("\n%s%s%s\n", gr, stream, x)
+                  }
+                  printf("%s[FAIL]%s  %s%s#%s%s\n", r, x, class, gr, test, x)
+                }
+
+                # reset for next test
+                capturing = 0
+                stream = ""
+                next
+              }
+
+              # Start capturing a final result stream
+              /^INSTRUMENTATION_RESULT: stream=/ {
+                capturing_result = 1
+                result_stream = ""
+                next
+              }
+
+              # Skip other INSTRUMENTATION_RESULT header lines
+              capturing_result && /^INSTRUMENTATION_RESULT:/ {
+                next
+              }
+
+              # While capturing summary, accumulate lines
+              capturing_result && !/^INSTRUMENTATION_CODE:/ {
+                result_stream = (result_stream == "" ? $0 : result_stream "\n" $0)
+                next
+              }
+
+              # When we hit INSTRUMENTATION_CODE, print the summary and stop
+              /^INSTRUMENTATION_CODE:/ {
+                if (result_stream != "") {
+                  printf("\n%s\n", result_stream)
+                }
+                capturing_result = 0
+                result_stream = ""
+                next
               }
             '
           EOF
