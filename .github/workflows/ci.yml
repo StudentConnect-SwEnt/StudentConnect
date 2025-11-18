@@ -171,6 +171,7 @@ jobs:
           yellow="\033[33m"
           green="\033[32m"
           red="\033[31m"
+          gray="\033[90m"
           reset="\033[0m"
 
           adb shell am instrument -w -r \
@@ -179,7 +180,7 @@ jobs:
             -e shardIndex ${{ matrix.shard_index }} \
             $PACKAGE.test/$TEST_RUNNER \
             | tee instrument-output.txt \
-            | awk -v y="$yellow" -v g="$green" -v r="$red" -v x="$reset" '
+            | awk -v y="$yellow" -v g="$green" -v r="$red" -v gr="$gray" -v x="$reset" '
               /INSTRUMENTATION_STATUS: class=/ {
                 class=$0;
                 sub("INSTRUMENTATION_STATUS: class=", "", class);
@@ -192,9 +193,8 @@ jobs:
                 code=$0;
                 sub("INSTRUMENTATION_STATUS_CODE: ", "", code);
 
-                if (code == 1)  printf("%s[RUN]%s   %s#%s\n", y, x, class, test);
-                if (code == 0)  printf("%s[PASS]%s  %s#%s\n", g, x, class, test);
-                if (code == -2) printf("%s[FAIL]%s  %s#%s\n", r, x, class, test);
+                if (code == 0)  printf("%s[PASS]%s  %s#%s%s%s\n", g, x, class, gr, test, x);
+                if (code == -2) printf("%s[FAIL]%s  %s#%s%s%s\n", r, x, class, gr, test, x);
               }
             '
           EOF
