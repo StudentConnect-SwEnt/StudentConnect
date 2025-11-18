@@ -289,4 +289,5 @@
     <string name="poll_status_active">Active</string>
     <string name="poll_status_closed">Closed</string>
     <string name="poll_owner_cannot_vote">As the event organizer, you can view poll results but cannot vote.</string>
+    <string name="content_description_add_poll">Add poll</string>
 </resources>

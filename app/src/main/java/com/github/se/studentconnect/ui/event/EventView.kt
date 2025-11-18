@@ -142,6 +142,19 @@ fun EventView(
                         contentDescription = stringResource(R.string.content_description_back))
                   }
             },
+            actions = {
+              event?.let { currentEvent ->
+                val currentUserId = AuthenticationProvider.currentUser
+                val isOwner = currentUserId == currentEvent.ownerId
+                if (isOwner) {
+                  TextButton(
+                      onClick = { navController.navigate(Route.pollsListScreen(currentEvent.uid)) },
+                      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
+                        Text(stringResource(R.string.button_view_polls))
+                      }
+                }
+              }
+            },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
       }) { paddingValues ->
         if (isLoading) {
@@ -403,17 +416,17 @@ private fun OwnerActionButtons(
         modifier = Modifier.testTag("event_view_invite_friends_button"))
   }
 
-  // Use icon button for View Polls to save space
-  ButtonIcon(
-      id = R.drawable.ic_poll,
-      onClick = { navController.navigate(Route.pollsListScreen(currentEvent.uid)) },
-      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON))
-
-  // Use icon button for Create Poll to save space
-  ButtonIcon(
-      id = R.drawable.ic_add,
+  Button(
       onClick = { eventViewModel.showCreatePollDialog() },
-      modifier = Modifier.testTag(EventViewTestTags.CREATE_POLL_BUTTON))
+      modifier =
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.CREATE_POLL_BUTTON)) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_poll),
+            contentDescription = stringResource(R.string.content_description_add_poll),
+            modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(stringResource(R.string.button_create_poll))
+      }
 
   Button(
       onClick = { eventViewModel.showQrScanner() },
