@@ -1,9 +1,11 @@
 package com.github.se.studentconnect.ui.event
 
 import android.Manifest
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -227,6 +229,7 @@ class EventViewTest {
     composeTestRule.onNodeWithTag(EventViewTestTags.EVENT_IMAGE).assertIsDisplayed()
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun eventView_descriptionText_isDisplayed() {
     composeTestRule.setContent {
@@ -241,11 +244,12 @@ class EventViewTest {
         }
       }
     }
-
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilAtLeastOneExists(
+        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 120_000)
     composeTestRule.onNodeWithTag(EventViewTestTags.DESCRIPTION_TEXT).assertIsDisplayed()
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun eventView_descriptionContent_isCorrect() {
     composeTestRule.setContent {
@@ -261,7 +265,8 @@ class EventViewTest {
       }
     }
 
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilAtLeastOneExists(
+        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 120_000)
     composeTestRule.onNodeWithText(testEvent.description).assertIsDisplayed()
   }
 
@@ -1254,7 +1259,7 @@ class EventViewTest {
     // Use waitUntil to handle timing issues with rapidly updating countdown
     composeTestRule.waitUntil(timeoutMillis = 5000) {
       composeTestRule
-          .onAllNodes(androidx.compose.ui.test.hasTestTag(EventViewTestTags.COUNTDOWN_TIMER))
+          .onAllNodes(hasTestTag(EventViewTestTags.COUNTDOWN_TIMER))
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
