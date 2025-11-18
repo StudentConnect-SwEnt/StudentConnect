@@ -110,7 +110,7 @@ jobs:
         uses: actions/cache@v4
         id: android-sdk
         with:
-          path: $HOME/android-sdk
+          path: ~/android-sdk
           key: ${{ runner.os }}-android-sdk-a34-googleapis-x86_64-bt35.0.0
 
       - name: Install Android SDK (if not cached)
