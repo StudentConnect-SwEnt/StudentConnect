@@ -748,7 +748,7 @@ private fun PollNotificationCard(
                   horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                   modifier = Modifier.fillMaxWidth()) {
                     Button(
-                        onClick = { navController.navigate(Route.pollScreen(eventUid, poll.uid)) },
+                        onClick = { navController.navigate(Route.pollsListScreen(eventUid)) },
                         colors =
                             ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary)) {
