@@ -39,6 +39,7 @@ import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
@@ -73,6 +74,9 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
   const val JOIN_BUTTON = "event_view_join_button"
   const val PARTICIPANTS_INFO = "event_view_participants_info"
+  const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
+  const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
+  const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
 }
 
 /** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
@@ -96,7 +100,10 @@ fun EventView(
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
-  LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
+  LaunchedEffect(key1 = eventUid) {
+    eventViewModel.fetchEvent(eventUid)
+    eventViewModel.fetchActivePolls(eventUid)
+  }
 
   LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
@@ -107,6 +114,16 @@ fun EventView(
         eventViewModel = eventViewModel,
         onDismiss = { eventViewModel.hideQrScanner() },
         validationResult = validationResult)
+  }
+
+  // Create Poll Dialog
+  if (uiState.showCreatePollDialog && event != null) {
+    CreatePollDialog(
+        eventUid = event.uid,
+        onDismiss = {
+          eventViewModel.hideCreatePollDialog()
+          eventViewModel.fetchActivePolls(event.uid)
+        })
   }
 
   Scaffold(
@@ -167,6 +184,15 @@ fun EventView(
                     isJoined = isJoined,
                     participantCount = participantCount,
                     modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+
+                // Poll notification for participants with unvoted polls
+                if (isJoined && uiState.hasUnvotedPolls && uiState.activePolls.isNotEmpty()) {
+                  PollNotificationCard(
+                      poll = uiState.activePolls.first(),
+                      eventUid = event.uid,
+                      navController = navController,
+                      modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+                }
 
                 ChatButton()
               }
@@ -376,6 +402,18 @@ private fun OwnerActionButtons(
         onClick = { DialogNotImplemented(context) },
         modifier = Modifier.testTag("event_view_invite_friends_button"))
   }
+
+  // Use icon button for View Polls to save space
+  ButtonIcon(
+      id = R.drawable.ic_poll,
+      onClick = { navController.navigate(Route.pollsListScreen(currentEvent.uid)) },
+      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON))
+
+  // Use icon button for Create Poll to save space
+  ButtonIcon(
+      id = R.drawable.ic_add,
+      onClick = { eventViewModel.showCreatePollDialog() },
+      modifier = Modifier.testTag(EventViewTestTags.CREATE_POLL_BUTTON))
 
   Button(
       onClick = { eventViewModel.showQrScanner() },
@@ -663,3 +701,50 @@ private fun getValidationTestTag(result: TicketValidationResult) =
       is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
       is TicketValidationResult.Error -> EventViewTestTags.VALIDATION_RESULT_ERROR
     }
+
+@Composable
+private fun PollNotificationCard(
+    poll: com.github.se.studentconnect.model.poll.Poll,
+    eventUid: String,
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
+  Card(
+      modifier = modifier.fillMaxWidth().padding(horizontal = screenPadding),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_add),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.poll_notification_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+              }
+
+              Text(
+                  text = stringResource(R.string.poll_notification_message),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onPrimaryContainer)
+
+              Row(
+                  horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                  modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { navController.navigate(Route.pollScreen(eventUid, poll.uid)) },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary)) {
+                          Text(stringResource(R.string.poll_notification_vote))
+                        }
+                  }
+            }
+      }
+}

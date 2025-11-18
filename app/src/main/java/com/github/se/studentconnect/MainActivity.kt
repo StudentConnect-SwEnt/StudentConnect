@@ -44,6 +44,8 @@ import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
+import com.github.se.studentconnect.ui.poll.PollScreen
+import com.github.se.studentconnect.ui.poll.PollsListScreen
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
@@ -437,6 +439,26 @@ internal fun MainAppContent(
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
                 requireNotNull(eventUid) { "Event UID is required to edit a public event." }
                 CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
+              }
+          composable(
+              Route.POLL_SCREEN,
+              arguments =
+                  listOf(
+                      navArgument("eventUid") { type = NavType.StringType },
+                      navArgument("pollUid") { type = NavType.StringType })) { backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                val pollUid = backStackEntry.arguments?.getString("pollUid")
+                requireNotNull(eventUid) { "Event UID is required." }
+                requireNotNull(pollUid) { "Poll UID is required." }
+                PollScreen(eventUid = eventUid, pollUid = pollUid, navController = navController)
+              }
+          composable(
+              Route.POLLS_LIST_SCREEN,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required." }
+                PollsListScreen(eventUid = eventUid, navController = navController)
               }
         }
       }

@@ -32,6 +32,12 @@ object Route {
   // Added route for the event view, with eventUid as an argument
   const val EVENT_VIEW = "eventView/{eventUid}"
 
+  // Route for poll screen
+  const val POLL_SCREEN = "poll/{eventUid}/{pollUid}"
+
+  // Route for polls list screen (for organizers)
+  const val POLLS_LIST_SCREEN = "pollsList/{eventUid}"
+
   fun mapWithLocation(
       latitude: Double,
       longitude: Double,
@@ -49,6 +55,10 @@ object Route {
   fun editPublicEvent(eventUid: String): String = "edit_public_event/$eventUid"
 
   fun editPrivateEvent(eventUid: String): String = "edit_private_event/$eventUid"
+
+  fun pollScreen(eventUid: String, pollUid: String): String = "poll/$eventUid/$pollUid"
+
+  fun pollsListScreen(eventUid: String): String = "pollsList/$eventUid"
 }
 
 sealed class Screen(
@@ -79,6 +89,10 @@ sealed class Screen(
 
   // Added screen for the event view
   object EventView : Screen(route = Route.EVENT_VIEW, name = "Event Details")
+
+  object PollScreen : Screen(route = Route.POLL_SCREEN, name = "Poll")
+
+  object PollsListScreen : Screen(route = Route.POLLS_LIST_SCREEN, name = "Polls List")
 
   object Search : Screen(route = Route.SEARCH, name = "Search")
 }

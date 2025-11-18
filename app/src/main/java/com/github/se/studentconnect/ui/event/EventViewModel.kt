@@ -6,6 +6,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.poll.Poll
+import com.github.se.studentconnect.model.poll.PollRepository
+import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
@@ -22,7 +25,10 @@ data class EventUiState(
     val showQrScanner: Boolean = false,
     val ticketValidationResult: TicketValidationResult? = null,
     val participantCount: Int = 0,
-    val isFull: Boolean = false
+    val isFull: Boolean = false,
+    val activePolls: List<Poll> = emptyList(),
+    val hasUnvotedPolls: Boolean = false,
+    val showCreatePollDialog: Boolean = false
 )
 
 sealed class TicketValidationResult {
@@ -36,6 +42,7 @@ sealed class TicketValidationResult {
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val pollRepository: PollRepository = PollRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
@@ -146,5 +153,35 @@ class EventViewModel(
 
   fun clearValidationResult() {
     _uiState.update { it.copy(ticketValidationResult = null) }
+  }
+
+  fun fetchActivePolls(eventUid: String) {
+    viewModelScope.launch {
+      try {
+        val polls = pollRepository.getActivePolls(eventUid)
+        val currentUserUid = AuthenticationProvider.currentUser
+
+        var hasUnvoted = false
+        for (poll in polls) {
+          val vote = pollRepository.getUserVote(eventUid, poll.uid, currentUserUid)
+          if (vote == null) {
+            hasUnvoted = true
+            break
+          }
+        }
+
+        _uiState.update { it.copy(activePolls = polls, hasUnvotedPolls = hasUnvoted) }
+      } catch (e: Exception) {
+        // Silently fail for polls, don't disrupt main event view
+      }
+    }
+  }
+
+  fun showCreatePollDialog() {
+    _uiState.update { it.copy(showCreatePollDialog = true) }
+  }
+
+  fun hideCreatePollDialog() {
+    _uiState.update { it.copy(showCreatePollDialog = false) }
   }
 }
