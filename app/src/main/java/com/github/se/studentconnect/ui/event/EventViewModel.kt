@@ -115,6 +115,11 @@ class EventViewModel(
       _uiState.update {
         it.copy(isJoined = actualIsJoined, participantCount = participantCount, isFull = isFull)
       }
+
+      // Fetch active polls after joining
+      if (actualIsJoined) {
+        fetchActivePolls(eventUid)
+      }
     }
   }
 
