@@ -26,11 +26,8 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
   }
 
   override fun getNewUid(): String {
-    return db.collection(EVENTS_COLLECTION_PATH)
-        .document("temp")
-        .collection(POLLS_COLLECTION_PATH)
-        .document()
-        .id
+    // Generate a unique ID without creating any documents
+    return db.collection(POLLS_COLLECTION_PATH).document().id
   }
 
   private fun getCurrentUserId(): String {
