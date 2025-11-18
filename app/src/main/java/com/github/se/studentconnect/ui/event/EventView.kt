@@ -57,6 +57,7 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 
@@ -617,7 +618,7 @@ private fun CommonActionButtons(
                   "https://$website"
                 } else website
             try {
-              val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
+              val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
               context.startActivity(intent)
             } catch (_: ActivityNotFoundException) {
               Toast.makeText(
