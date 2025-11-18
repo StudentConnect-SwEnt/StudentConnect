@@ -90,10 +90,15 @@ service cloud.firestore {
                             get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                             isParticipant(eventId) ||
                             isInvited(eventId));
-        
-        // Allow create/update/delete only for event owner
-        allow create, update, delete: if request.auth != null &&
-                                         get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
+
+        // Allow create/delete only for event owner
+        allow create, delete: if request.auth != null &&
+                                 get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
+
+        // Allow update for event owner OR participants (for vote count increments)
+        allow update: if request.auth != null &&
+                         (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                          isParticipant(eventId));
         
         // Subcollection: votes
         match /votes/{userId} {
