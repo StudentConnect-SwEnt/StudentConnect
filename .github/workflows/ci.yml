@@ -209,7 +209,7 @@ jobs:
           yellow="\033[33m"
           green="\033[32m"
           red="\033[31m"
-          gray="\033[90m"
+          gray="\033[38;5;250m"
           reset="\033[0m"
 
           adb shell am instrument -w -r \
@@ -231,8 +231,8 @@ jobs:
                 code=$0;
                 sub("INSTRUMENTATION_STATUS_CODE: ", "", code);
 
-                if (code == 0)  printf("%s[PASS]%s  %s#%s%s%s\n", g, x, class, gr, test, x);
-                if (code == -2) printf("%s[FAIL]%s  %s#%s%s%s\n", r, x, class, gr, test, x);
+                if (code == 0)  printf("%s[PASS]%s  %s%s#%s%s\n", g, x, class, gr, test, x);
+                if (code == -2) printf("%s[FAIL]%s  %s%s#%s%s\n", r, x, class, gr, test, x);
               }
             '
           EOF
