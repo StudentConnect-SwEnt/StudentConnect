@@ -412,7 +412,6 @@ internal fun MainAppContent(
                       navArgument("eventUid") { type = NavType.StringType },
                       navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
-                val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController)
               }
