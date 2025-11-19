@@ -356,6 +356,14 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     })
 }
 
+// Debug to check files given to Jacoco
+tasks.named<JacocoReport>("jacocoTestReport") {
+    doFirst {
+        println("=== Jacoco executionData files ===")
+        executionData.files.forEach { println(it.absolutePath) }
+    }
+}
+
 configurations.forEach { configuration ->
     // Exclude protobuf-lite from all configurations
     // This fixes a fatal exception for tests interacting with Cloud Firestore
