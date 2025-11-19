@@ -35,7 +35,6 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.screen.profile.loadBitmapFromUri
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
