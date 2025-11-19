@@ -335,7 +335,7 @@ fun UsernameTextField(
 }
 
 @Composable
-private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
+fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
   val primary = MaterialTheme.colorScheme.primary
   val borderColor =
       remember(primary) {
@@ -361,7 +361,7 @@ private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>)
 }
 
 @Composable
-private fun AvatarItem(@DrawableRes avatarResId: Int) {
+fun AvatarItem(@DrawableRes avatarResId: Int) {
   Surface(
       modifier = Modifier.size(82.dp),
       shape = CircleShape,
@@ -375,17 +375,3 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
             contentScale = ContentScale.Crop)
       }
 }
-
-// @SuppressLint("ViewModelConstructorInComposable")
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Preview(showBackground = true)
-// @Composable
-// private fun BasicInfoScreenPreview() {
-//  AppTheme {
-//    BasicInfoScreen(
-//        viewModel = SignUpViewModel(),
-//        userRepository = UserRepositoryLocal(),
-//        onContinue = {},
-//        onBack = {})
-//  }
-// }
