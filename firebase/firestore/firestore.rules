@@ -26,7 +26,7 @@ service cloud.firestore {
     }
 
     // EVENTS COLLECTION
-
+    
     match /events/{eventId} {
       // Allow read access to:
       // - Public events (anyone authenticated)
@@ -81,10 +81,52 @@ service cloud.firestore {
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           request.auth.uid == userId);
       }
+
+      // Subcollection: polls
+      match /polls/{pollId} {
+        // Allow read if user can read the parent event
+        allow get, list: if request.auth != null &&
+                           (get(/databases/$(database)/documents/events/$(eventId)).data.type == "public" ||
+                            get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                            isParticipant(eventId) ||
+                            isInvited(eventId));
+
+        // Allow create/delete only for event owner
+        allow create, delete: if request.auth != null &&
+                                 get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
+
+        // Allow update for event owner OR participants (for vote count increments)
+        allow update: if request.auth != null &&
+                         (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                          isParticipant(eventId));
+        
+        // Subcollection: votes
+        match /votes/{userId} {
+          // Allow read own vote or if user is event owner
+          allow get: if request.auth != null &&
+                       (userId == request.auth.uid ||
+                        get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid);
+
+          // Allow list only for event owner
+          allow list: if request.auth != null &&
+                         get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
+
+          // Allow create own vote only if:
+          // 1. User is authenticated
+          // 2. Vote userId matches authenticated user (verified in both path and data)
+          // Note: Participant check is done in application code before calling this
+          allow create: if request.auth != null &&
+                          userId == request.auth.uid &&
+                          request.resource.data.userId == request.auth.uid;
+
+          // Prevent updates and deletes (votes are immutable)
+          allow update, delete: if false;
+        }
+      }
     }
 
     // USERS COLLECTION
-
+    
     match /users/{userId} {
       // Allow users to read their own profile and other users' profiles
       allow get, list: if request.auth != null;
@@ -137,9 +179,9 @@ service cloud.firestore {
       }
     }
 
-
+    
     // NOTIFICATIONS COLLECTION
-
+    
     match /notifications/{notificationId} {
       // Allow read access only if the logged-in user owns the notification
       allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -150,19 +192,5 @@ service cloud.firestore {
       // Allow updating/deleting only for the owner
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
-    // Rules for notifications
-      match /notifications/{notificationId} {
-        // Allow read access only if the logged-in user owns the notification
-        allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
-
-        // Allow users to create notifications for themselves
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-
-        // Allow updating only for the owner (for example, marking as read)
-        allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-
-        // Allow deleting only for the owner
-        allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
-}
   }
 }
