@@ -48,8 +48,8 @@ import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
-import com.github.se.studentconnect.ui.screen.profile.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 
