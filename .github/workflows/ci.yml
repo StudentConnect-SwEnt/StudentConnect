@@ -432,9 +432,10 @@ jobs:
         run: |
           mkdir -p $BASE
 
-          for i in $(seq 0 $((SHARD_COUNT - 1))); do
-            mkdir -p "$BASE/shard-$i"
-            mv android-ec-$i/**/coverage.ec "$BASE/shard-$i/"
+          for dir in android-ec-*; do
+            shard="${dir##android-ec-}"
+            mkdir -p "$BASE/shard-$shard"
+            mv "$dir"/coverage.ec "$BASE/shard-$shard/"
           done
 
       - name: Download lint report
