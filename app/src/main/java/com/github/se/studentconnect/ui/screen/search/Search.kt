@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,13 +30,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -47,9 +56,12 @@ import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
 
 /**
  * The Search screen of the app, allowing users to search for people and events.
@@ -159,6 +171,21 @@ private fun People(viewModel: SearchViewModel, screenWidth: Dp) {
 
 @Composable
 private fun UserCard(user: User, screenWidth: Dp) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
   Box(
       modifier =
           Modifier.clickable(onClick = {})
@@ -167,11 +194,20 @@ private fun UserCard(user: User, screenWidth: Dp) {
               .padding(16.dp),
   ) {
     Column {
-      Image(
-          painterResource(R.drawable.ic_user),
-          contentDescription = null,
-          modifier = Modifier.size(screenWidth * 0.3f),
-      )
+      if (imageBitmap != null) {
+
+        Image(
+            bitmap = imageBitmap!!,
+            contentDescription = "User Profile Picture",
+            modifier = Modifier.clip(CircleShape).size(screenWidth * 0.3f),
+            contentScale = ContentScale.Crop)
+      } else {
+        Image(
+            painter = painterResource(R.drawable.ic_user),
+            contentDescription = "User Profile Picture",
+            modifier = Modifier.size(screenWidth * 0.3f))
+      }
+
       Spacer(Modifier.height(8.dp))
       Text(
           text = user.firstName + " " + user.lastName,
@@ -235,16 +271,41 @@ private fun EventCard(
     navController: NavHostController,
     screenWidth: Dp
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = event.imageUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
   Row(
       modifier =
           Modifier.clickable(
               onClick = { navController.navigate(Route.eventView(eventUid = event.uid, true)) }),
       verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painterResource(R.drawable.ic_ticket),
-            contentDescription = null,
-            modifier = Modifier.size(screenWidth * 0.3f),
-        )
+        if (imageBitmap != null) {
+          Image(
+              imageBitmap!!,
+              contentDescription = "Event Image",
+              modifier =
+                  Modifier.size(screenWidth * 0.3f).clip(RoundedCornerShape(screenWidth * 0.03f)),
+              contentScale = ContentScale.Crop)
+        } else {
+          Image(
+              Icons.Default.Image,
+              contentDescription = "Event Image",
+              modifier =
+                  Modifier.size(screenWidth * 0.3f).clip(RoundedCornerShape(screenWidth * 0.03f)),
+              contentScale = ContentScale.Crop)
+        }
         Spacer(Modifier.size(10.dp))
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
