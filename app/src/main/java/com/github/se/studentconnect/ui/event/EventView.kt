@@ -109,7 +109,6 @@ fun EventView(
     eventUid: String,
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
-    hasJoined: Boolean,
 ) {
   val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()

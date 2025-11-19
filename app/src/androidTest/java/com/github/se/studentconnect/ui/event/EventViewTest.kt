@@ -122,10 +122,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -141,10 +138,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -160,10 +154,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -179,10 +170,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -198,10 +186,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -217,10 +202,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -237,10 +219,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -260,10 +239,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -280,10 +256,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -302,10 +275,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -322,10 +292,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -341,10 +308,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -360,10 +324,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -379,10 +340,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -398,10 +356,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -417,10 +372,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -436,10 +388,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -472,8 +421,7 @@ class EventViewTest {
             EventView(
                 eventUid = futureEvent.uid,
                 navController = navController,
-                eventViewModel = futureEventViewModel,
-                hasJoined = false)
+                eventViewModel = futureEventViewModel)
           }
         }
       }
@@ -494,10 +442,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -513,10 +458,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -532,10 +474,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -556,10 +495,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -583,10 +519,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -610,10 +543,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -637,10 +567,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -663,10 +590,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -694,10 +618,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -726,10 +647,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -764,10 +682,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -805,10 +720,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -848,10 +760,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -886,10 +795,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -911,10 +817,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -933,10 +836,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -966,8 +866,7 @@ class EventViewTest {
           EventView(
               eventUid = testEvent.uid,
               navController = navController,
-              eventViewModel = testViewModel,
-              hasJoined = false)
+              eventViewModel = testViewModel)
         }
       }
     }
@@ -995,8 +894,7 @@ class EventViewTest {
           EventView(
               eventUid = eventWithoutCapacity.uid,
               navController = navController,
-              eventViewModel = newViewModel,
-              hasJoined = false)
+              eventViewModel = newViewModel)
         }
       }
     }
@@ -1018,10 +916,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1040,10 +935,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1062,10 +954,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1102,8 +991,7 @@ class EventViewTest {
             EventView(
                 eventUid = fullEvent.uid,
                 navController = navController,
-                eventViewModel = fullEventViewModel,
-                hasJoined = false)
+                eventViewModel = fullEventViewModel)
           }
         }
       }
@@ -1138,8 +1026,7 @@ class EventViewTest {
             EventView(
                 eventUid = pastEvent.uid,
                 navController = navController,
-                eventViewModel = pastEventViewModel,
-                hasJoined = false)
+                eventViewModel = pastEventViewModel)
           }
         }
       }
@@ -1179,8 +1066,7 @@ class EventViewTest {
             EventView(
                 eventUid = startedEvent.uid,
                 navController = navController,
-                eventViewModel = startedEventViewModel,
-                hasJoined = true)
+                eventViewModel = startedEventViewModel)
           }
         }
       }
@@ -1214,8 +1100,7 @@ class EventViewTest {
           EventView(
               eventUid = futureEvent.uid,
               navController = navController,
-              eventViewModel = futureEventViewModel,
-              hasJoined = false)
+              eventViewModel = futureEventViewModel)
         }
       }
     }
@@ -1247,8 +1132,7 @@ class EventViewTest {
           EventView(
               eventUid = soonEvent.uid,
               navController = navController,
-              eventViewModel = soonEventViewModel,
-              hasJoined = false)
+              eventViewModel = soonEventViewModel)
         }
       }
     }
@@ -1282,10 +1166,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1312,10 +1193,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = true)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1350,8 +1228,7 @@ class EventViewTest {
           EventView(
               eventUid = privateEvent.uid,
               navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventViewModel = viewModel)
         }
       }
     }
@@ -1370,10 +1247,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1389,10 +1263,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1409,10 +1280,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
         composable("map/{lat}/{lon}/{zoom}") {
           // Placeholder for map screen
@@ -1435,10 +1303,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1463,10 +1328,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1489,10 +1351,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1530,8 +1389,7 @@ class EventViewTest {
           EventView(
               eventUid = privateEvent.uid,
               navController = navController,
-              eventViewModel = privateViewModel,
-              hasJoined = false)
+              eventViewModel = privateViewModel)
         }
       }
     }
@@ -1557,8 +1415,7 @@ class EventViewTest {
           EventView(
               eventUid = publicEventNoWebsite.uid,
               navController = navController,
-              eventViewModel = noWebsiteViewModel,
-              hasJoined = false)
+              eventViewModel = noWebsiteViewModel)
         }
       }
     }
@@ -1584,8 +1441,7 @@ class EventViewTest {
           EventView(
               eventUid = publicEventEmptyWebsite.uid,
               navController = navController,
-              eventViewModel = emptyWebsiteViewModel,
-              hasJoined = false)
+              eventViewModel = emptyWebsiteViewModel)
         }
       }
     }
@@ -1612,8 +1468,7 @@ class EventViewTest {
           EventView(
               eventUid = publicEventWithWebsite.uid,
               navController = navController,
-              eventViewModel = withWebsiteViewModel,
-              hasJoined = false)
+              eventViewModel = withWebsiteViewModel)
         }
       }
     }
@@ -1640,8 +1495,7 @@ class EventViewTest {
           EventView(
               eventUid = publicEventWithWebsite.uid,
               navController = navController,
-              eventViewModel = websiteViewModel,
-              hasJoined = false)
+              eventViewModel = websiteViewModel)
         }
       }
     }
@@ -1668,8 +1522,7 @@ class EventViewTest {
           EventView(
               eventUid = eventNoLocation.uid,
               navController = navController,
-              eventViewModel = noLocationViewModel,
-              hasJoined = false)
+              eventViewModel = noLocationViewModel)
         }
       }
     }
@@ -1698,8 +1551,7 @@ class EventViewTest {
           EventView(
               eventUid = eventWithLocation.uid,
               navController = navController,
-              eventViewModel = withLocationViewModel,
-              hasJoined = false)
+              eventViewModel = withLocationViewModel)
         }
       }
     }
@@ -1732,8 +1584,7 @@ class EventViewTest {
           EventView(
               eventUid = eventWithLocation.uid,
               navController = navController,
-              eventViewModel = withLocationViewModel,
-              hasJoined = false)
+              eventViewModel = withLocationViewModel)
         }
         composable(
             "map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}",
@@ -1787,8 +1638,7 @@ class EventViewTest {
           EventView(
               eventUid = eventWithLocation.uid,
               navController = navController,
-              eventViewModel = withLocationViewModel,
-              hasJoined = false)
+              eventViewModel = withLocationViewModel)
         }
         composable(
             "map/{latitude}/{longitude}/{zoom}?eventUid={eventUid}",
@@ -1842,10 +1692,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1880,10 +1727,7 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
-                navController = navController,
-                eventViewModel = viewModel,
-                hasJoined = false)
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
         }
       }
@@ -1909,10 +1753,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1932,10 +1773,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1955,10 +1793,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }
@@ -1978,10 +1813,7 @@ class EventViewTest {
       NavHost(navController = navController, startDestination = "event") {
         composable("event") {
           EventView(
-              eventUid = testEvent.uid,
-              navController = navController,
-              eventViewModel = viewModel,
-              hasJoined = false)
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
         }
       }
     }

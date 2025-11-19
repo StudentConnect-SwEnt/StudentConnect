@@ -414,7 +414,7 @@ internal fun MainAppContent(
                 val eventUid = backStackEntry.arguments?.getString("eventUid")
                 val hasJoined = backStackEntry.arguments?.getBoolean("hasJoined") ?: false
                 requireNotNull(eventUid) { "Event UID is required." }
-                EventView(eventUid = eventUid, navController = navController, hasJoined = hasJoined)
+                EventView(eventUid = eventUid, navController = navController)
               }
           composable(Route.CREATE_PRIVATE_EVENT) {
             CreatePrivateEventScreen(navController = navController)
