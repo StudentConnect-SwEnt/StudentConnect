@@ -301,6 +301,10 @@ jobs:
                 next
               }
             '
+
+          # Fail if "FAILURES!!!" or "INSTRUMENTATION_CODE: 0" appears
+          if grep -q "FAILURES!!!" instrument-output.txt || grep -q "INSTRUMENTATION_CODE: 0" instrument-output.txt; then echo "Instrumentation tests failed"; exit 1; fi
+
           EOF
 
           chmod +x pretty-instrument.sh
