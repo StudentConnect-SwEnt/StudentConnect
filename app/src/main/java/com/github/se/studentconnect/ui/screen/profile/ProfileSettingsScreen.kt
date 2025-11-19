@@ -1,8 +1,5 @@
 package com.github.se.studentconnect.ui.screen.profile
 
-import android.content.Context
-import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -60,11 +56,10 @@ import com.github.se.studentconnect.ui.profile.EditableProfileField
 import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
 import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * Profile Settings screen showing user information with edit functionality. This is the detailed
@@ -323,18 +318,3 @@ private fun ProfileHeaderSection(
             }
       }
 }
-
-private suspend fun loadBitmapFromUri(
-    context: Context,
-    uri: Uri,
-    dispatcher: CoroutineDispatcher
-): ImageBitmap? =
-    withContext(dispatcher) {
-      try {
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-          BitmapFactory.decodeStream(stream)?.asImageBitmap()
-        }
-      } catch (_: Exception) {
-        null
-      }
-    }

@@ -104,6 +104,7 @@
     <!-- Content descriptions -->
     <string name="content_description_back">Back</string>
     <string name="content_description_profile_picture">Profile Picture</string>
+    <string name="content_description_event_card_picture">Event Card Picture</string>
     <string name="content_description_edit_profile_picture">Edit Profile Picture</string>
     <string name="content_description_edit_name">Edit Name</string>
     <string name="content_description_search">Search</string>

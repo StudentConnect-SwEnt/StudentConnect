@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -35,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
@@ -44,7 +49,9 @@ import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.Dispatchers
 
 private val screenPadding = 25.dp
 
@@ -134,6 +141,22 @@ fun EventView(
                 CircularProgressIndicator()
               }
         } else if (event != null) {
+          val context = LocalContext.current
+          val repository = MediaRepositoryProvider.repository
+          val profileId = event.imageUrl
+          val imageBitmap by
+              produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+                value =
+                    profileId?.let { id ->
+                      runCatching { repository.download(id) }
+                          .onFailure {
+                            android.util.Log.e(
+                                "eventViewImage", "Failed to download event image: $id", it)
+                          }
+                          .getOrNull()
+                          ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+                    }
+              }
           Column(
               modifier =
                   Modifier.fillMaxSize()
@@ -141,18 +164,33 @@ fun EventView(
                       .verticalScroll(rememberScrollState()),
               horizontalAlignment = Alignment.CenterHorizontally,
               verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
-                Icon(
-                    imageVector = Icons.Default.Image,
-                    contentDescription = stringResource(R.string.content_description_event_image),
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .height(250.dp)
-                            .padding(horizontal = screenPadding)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .testTag(EventViewTestTags.EVENT_IMAGE),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer)
-
+                val configuration = LocalConfiguration.current
+                val screenHeight = configuration.screenHeightDp.dp
+                val boxHeight = screenHeight * 0.3f
+                val boxModifier =
+                    Modifier.fillMaxWidth()
+                        .height(boxHeight)
+                        .padding(horizontal = screenPadding)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .testTag(EventViewTestTags.EVENT_IMAGE)
+                Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
+                  if (imageBitmap != null) {
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription =
+                            stringResource(R.string.content_description_event_image),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop)
+                  } else {
+                    Icon(
+                        imageVector = Icons.Default.Image,
+                        contentDescription =
+                            stringResource(R.string.content_description_event_image),
+                        modifier = Modifier.size(60.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                  }
+                }
                 EventActionButtons(
                     joined = isJoined,
                     isFull = isFull,

@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.utils
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,14 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.navigation.Route
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -35,6 +41,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 
 private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
 
@@ -126,6 +133,19 @@ fun EventCard(
           }
   val isLive = now >= event.start && now < endTime
 
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = event.imageUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("EventCardImage", "Failed to download event image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
@@ -135,19 +155,30 @@ fun EventCard(
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.fillMaxWidth()) {
           Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
-            Image(
-                imageVector = Icons.Default.Image,
-                contentDescription = event.title,
-                modifier =
-                    Modifier.fillMaxSize()
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop)
+            if (imageBitmap != null) {
+              Image(
+                  bitmap = imageBitmap!!,
+                  contentDescription =
+                      stringResource(R.string.content_description_event_card_picture),
+                  modifier =
+                      Modifier.fillMaxSize()
+                          .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                  contentScale = ContentScale.Crop)
+            } else {
+              Image(
+                  imageVector = Icons.Default.Image,
+                  contentDescription = event.title,
+                  modifier =
+                      Modifier.fillMaxSize()
+                          .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                  contentScale = ContentScale.Crop)
+            }
 
             Box(
                 modifier =
                     Modifier.align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .background(color = Color.Black.copy(alpha = 0.3f), shape = CircleShape)
+                        .background(color = Color.White.copy(alpha = 0.6f), shape = CircleShape)
                         .clip(CircleShape)) {
                   IconButton(
                       onClick = {
@@ -160,7 +191,8 @@ fun EventCard(
                                 if (localFavorite) Icons.Filled.Favorite
                                 else Icons.Outlined.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            tint = if (localFavorite) Color.Red else Color.Black,
+                        )
                       }
                 }
 
