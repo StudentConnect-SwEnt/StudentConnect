@@ -41,7 +41,7 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
 
     require(eventDoc.exists()) { "Event $eventUid does not exist" }
 
-    val ownerId = eventDoc.getString("ownerId")
+    val ownerId = eventDoc["ownerId"] as? String
     if (ownerId != currentUserId) {
       throw IllegalAccessException("Only the event owner can perform this action")
     }
@@ -63,17 +63,19 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
 
   private fun pollFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Poll {
     val uid = documentSnapshot.id
-    val eventUid = checkNotNull(documentSnapshot.getString("eventUid"))
-    val question = checkNotNull(documentSnapshot.getString("question"))
-    val createdAt = documentSnapshot.getTimestamp("createdAt") ?: Timestamp.now()
-    val isActive = documentSnapshot.getBoolean("isActive") ?: true
+    val eventUid = checkNotNull(documentSnapshot["eventUid"] as? String)
+    val question = checkNotNull(documentSnapshot["question"] as? String)
+    val createdAt = documentSnapshot["createdAt"] as? Timestamp ?: Timestamp.now()
+    val isActive = documentSnapshot["isActive"] as? Boolean ?: true
 
-    val optionsData = documentSnapshot.get("options") as? List<Map<String, Any>> ?: emptyList()
+    @Suppress("UNCHECKED_CAST")
+    val optionsData = documentSnapshot["options"] as? List<Map<String, Any>> ?: emptyList()
     val options =
         optionsData.map { optionMap ->
           PollOption(
-              optionId = optionMap["optionId"] as String,
-              text = optionMap["text"] as String,
+              optionId = optionMap["optionId"] as? String ?: error("Missing optionId"),
+              text = optionMap["text"] as? String ?: error("Missing text"),
+              // Firestore stores numbers as Long, safe cast to Int
               voteCount = (optionMap["voteCount"] as? Long)?.toInt() ?: 0)
         }
 
@@ -88,9 +90,9 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
 
   private fun pollVoteFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): PollVote {
     val userId = documentSnapshot.id
-    val pollUid = checkNotNull(documentSnapshot.getString("pollUid"))
-    val optionId = checkNotNull(documentSnapshot.getString("optionId"))
-    val votedAt = documentSnapshot.getTimestamp("votedAt") ?: Timestamp.now()
+    val pollUid = checkNotNull(documentSnapshot["pollUid"] as? String)
+    val optionId = checkNotNull(documentSnapshot["optionId"] as? String)
+    val votedAt = documentSnapshot["votedAt"] as? Timestamp ?: Timestamp.now()
 
     return PollVote(userId = userId, pollUid = pollUid, optionId = optionId, votedAt = votedAt)
   }
@@ -171,20 +173,19 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
 
     // Check if user has already voted
     val existingVote = voteRef.get().await()
-    if (existingVote.exists()) {
-      throw IllegalStateException("User has already voted on this poll")
-    }
+    check(!existingVote.exists()) { "User has already voted on this poll" }
 
     // Submit vote and increment option count
     try {
       db.runTransaction { transaction ->
             // Read poll data before performing any writes
-            val pollSnapshot = transaction.get(pollRef)
-            val currentOptions =
-                pollSnapshot.get("options") as? List<Map<String, Any>> ?: emptyList()
+            val pollSnapshot = transaction[pollRef]
+            @Suppress("UNCHECKED_CAST")
+            val currentOptions = pollSnapshot["options"] as? List<Map<String, Any>> ?: emptyList()
             val updatedOptions =
                 currentOptions.map { optionMap ->
                   if (optionMap["optionId"] == vote.optionId) {
+                    // Firestore stores numbers as Long, safe cast to Int
                     val currentCount = (optionMap["voteCount"] as? Long)?.toInt() ?: 0
                     optionMap + ("voteCount" to currentCount + 1)
                   } else {
@@ -192,7 +193,7 @@ class PollRepositoryFirestore(private val db: FirebaseFirestore) : PollRepositor
                   }
                 }
 
-            transaction.set(voteRef, vote.toMap())
+            transaction[voteRef] = vote.toMap()
             transaction.update(pollRef, "options", updatedOptions)
           }
           .await()
