@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.activities
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -61,11 +60,8 @@ import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import androidx.core.net.toUri
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
 
@@ -201,22 +197,21 @@ private fun BaseEventView(
   val isFull = uiState.isFull
   val participantCount = uiState.participantCount
 
-    val context = LocalContext.current
-    val repository = MediaRepositoryProvider.repository
-    val profileId = event.imageUrl
-    val imageBitmap by
-    produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = event.imageUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
         value =
             profileId?.let { id ->
-                runCatching { repository.download(id) }
-                    .onFailure {
-                        android.util.Log.e(
-                            "eventViewImage", "Failed to download event image: $id", it)
-                    }
-                    .getOrNull()
-                    ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
-    }
+      }
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -230,55 +225,53 @@ private fun BaseEventView(
               .testTag(EventViewTestTags.BASE_SCREEN),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
-      val configuration = LocalConfiguration.current
-      val screenHeight = configuration.screenHeightDp.dp
-      val boxHeight = screenHeight * 0.3f
-      val boxModifier =
-          Modifier.fillMaxWidth()
-              .height(boxHeight)
-              .padding(horizontal = screenPadding)
-              .clip(RoundedCornerShape(16.dp))
-              .background(MaterialTheme.colorScheme.secondaryContainer)
-              .testTag(EventViewTestTags.EVENT_IMAGE)
-      Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val boxHeight = screenHeight * 0.3f
+        val boxModifier =
+            Modifier.fillMaxWidth()
+                .height(boxHeight)
+                .padding(horizontal = screenPadding)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .testTag(EventViewTestTags.EVENT_IMAGE)
+        Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
           if (imageBitmap != null) {
-              Image(
-                  bitmap = imageBitmap!!,
-                  contentDescription =
-                      stringResource(R.string.content_description_event_image),
-                  modifier = Modifier.fillMaxSize(),
-                  contentScale = ContentScale.Crop)
+            Image(
+                bitmap = imageBitmap!!,
+                contentDescription = stringResource(R.string.content_description_event_image),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop)
           } else {
-              Icon(
-                  imageVector = Icons.Default.Image,
-                  contentDescription =
-                      stringResource(R.string.content_description_event_image),
-                  modifier = Modifier.size(60.dp),
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(
+                imageVector = Icons.Default.Image,
+                contentDescription = stringResource(R.string.content_description_event_image),
+                modifier = Modifier.size(60.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant)
           }
+        }
+
+        EventActionButtons(
+            joined = isJoined,
+            isFull = isFull,
+            currentEvent = event,
+            eventViewModel = eventViewModel,
+            modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+            navController = navController)
+
+        InfoEvent(
+            timeLeft = timeLeft,
+            event = event,
+            isJoined = isJoined,
+            participantCount = participantCount,
+            onClickParticipants = {
+              coroutineScope.launch { pagerState.scrollToPage(0) }
+              coroutineScope.launch { eventViewModel.fetchAttendees() }
+            },
+            modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+
+        ChatButton()
       }
-
-    EventActionButtons(
-        joined = isJoined,
-        isFull = isFull,
-        currentEvent = event,
-        eventViewModel = eventViewModel,
-        modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-        navController = navController)
-
-    InfoEvent(
-        timeLeft = timeLeft,
-        event = event,
-        isJoined = isJoined,
-        participantCount = participantCount,
-        onClickParticipants = {
-          coroutineScope.launch { pagerState.scrollToPage(0) }
-          coroutineScope.launch { eventViewModel.fetchAttendees() }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
-
-    ChatButton()
-  }
 }
 
 @Composable
@@ -343,8 +336,6 @@ private fun AttendeesList(
     }
   }
 }
-
-
 
 /** Shows countdown, description, and attendance information for the given event. */
 @Composable
@@ -434,7 +425,7 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
                   if (capacity != null) {
                     "$participantCount / $capacity"
                   } else {
-                      stringResource(R.string.text_participants_count, participantCount)
+                    stringResource(R.string.text_participants_count, participantCount)
                   }
               Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
             }
