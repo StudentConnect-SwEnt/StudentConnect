@@ -50,6 +50,7 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
@@ -111,27 +112,15 @@ fun EventView(
     hasJoined: Boolean,
 ) {
   val context = LocalContext.current
-  val coroutineScope = rememberCoroutineScope()
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
-  val isJoined = uiState.isJoined
   val showQrScanner = uiState.showQrScanner
   val validationResult = uiState.ticketValidationResult
-  val isFull = uiState.isFull
-  val participantCount = uiState.participantCount
-  val attendees = uiState.attendees
-  val user = uiState.currentUser
-  val owner = uiState.owner
-
-  val countDownViewModel: CountDownViewModel = viewModel()
-  val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
 
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
-
-  LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
@@ -180,23 +169,14 @@ fun EventView(
               AttendeesList(
                   paddingValues = paddingValues,
                   pagerState = pagerState,
-                  coroutineScope = coroutineScope,
-                  isJoined = isJoined,
-                  user = user,
-                  owner = owner,
-                  attendees = attendees,
-                  context = context)
+                  context = context,
+                  uiState = uiState)
           1 ->
               BaseEventView(
                   paddingValues = paddingValues,
-                  isJoined = isJoined,
-                  isFull = isFull,
-                  event = event,
                   eventViewModel = eventViewModel,
+                  event = event,
                   navController = navController,
-                  timeLeft = timeLeft,
-                  participantCount = participantCount,
-                  coroutineScope = coroutineScope,
                   pagerState = pagerState)
         }
       }
@@ -209,16 +189,17 @@ private const val DAY_IN_SECONDS = 86400
 @Composable
 private fun BaseEventView(
     paddingValues: PaddingValues,
-    isJoined: Boolean,
-    isFull: Boolean,
-    event: Event,
     eventViewModel: EventViewModel,
+    event: Event,
     navController: NavHostController,
-    timeLeft: Long,
-    participantCount: Int,
-    coroutineScope: CoroutineScope,
     pagerState: PagerState
 ) {
+  val coroutineScope = rememberCoroutineScope()
+  val uiState by eventViewModel.uiState.collectAsState()
+  val isJoined = uiState.isJoined
+  val isFull = uiState.isFull
+  val participantCount = uiState.participantCount
+
     val context = LocalContext.current
     val repository = MediaRepositoryProvider.repository
     val profileId = event.imageUrl
@@ -235,13 +216,17 @@ private fun BaseEventView(
                     ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
     }
-    Column(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .testTag(EventViewTestTags.BASE_SCREEN)
-                    .testTag(EventViewTestTags.BASE_SCREEN),
+
+  val countDownViewModel: CountDownViewModel = viewModel()
+  val timeLeft by countDownViewModel.timeLeft.collectAsState()
+
+  LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
+  Column(
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(paddingValues)
+              .verticalScroll(rememberScrollState())
+              .testTag(EventViewTestTags.BASE_SCREEN),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
       val configuration = LocalConfiguration.current
@@ -299,13 +284,15 @@ private fun BaseEventView(
 private fun AttendeesList(
     paddingValues: PaddingValues,
     pagerState: PagerState,
-    coroutineScope: CoroutineScope,
-    isJoined: Boolean,
-    user: User?,
-    owner: User?,
-    attendees: List<User>,
-    context: Context
+    context: Context,
+    uiState: EventUiState
 ) {
+  val coroutineScope = rememberCoroutineScope()
+  val isJoined = uiState.isJoined
+  val attendees = uiState.attendees
+  val user = uiState.currentUser
+  val owner = uiState.owner
+
   Scaffold(
       modifier =
           Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.ATTENDEE_LIST),
