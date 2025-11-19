@@ -272,9 +272,9 @@ jobs:
                   # PASS
                   printf("%s[PASS]%s  %s%s#%s%s\n", g, x, class, gr, test, x)
                 } else if (code == -2) {
-                  # FAIL: print captured error stream (if any), then FAIL line
+                  # on fail, print captured error stream
                   if (stream != "") {
-                    printf("\n%s%s%s\n", gr, stream, x)
+                    printf("\n%s\n", stream)
                   }
                   printf("%s[FAIL]%s  %s%s#%s%s\n", r, x, class, gr, test, x)
                 }
