@@ -20,10 +20,8 @@ import org.junit.*
 class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
   @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   override fun createInitializedRepository(): EventRepository {
     // Unused for camera tests but required by StudentConnectTest

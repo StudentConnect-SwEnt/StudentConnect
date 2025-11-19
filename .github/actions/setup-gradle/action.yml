@@ -1,33 +1,20 @@
-name: Setup gradle
-description: Setup JDK, cache Gradle packages, and make gradlew executable
+name: 'Setup Gradle Environment'
+description: 'Setup JDK and cache Gradle packages'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - uses: actions/checkout@v4
-
     - name: Setup JDK
       uses: actions/setup-java@v4
       with:
-        distribution: "temurin"
-        java-version: "17"
+        distribution: 'temurin'
+        java-version: '17'
 
-    - name: Cache Gradle wrapper
+    - name: Cache Gradle packages
       uses: actions/cache@v4
       with:
-        path: ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-        restore-keys: ${{ runner.os }}-gradle-wrapper-
-
-    - name: Cache Gradle caches
-      uses: actions/cache@v4
-      with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('gradle/libs.versions.toml', '**/build.gradle*', '**/settings.gradle*') }}
-        restore-keys: ${{ runner.os }}-gradle-caches-
-
-    - name: Grant execute permission for gradlew
-      shell: bash
-      run: |
-        chmod +x ./gradlew
-
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: ${{ runner.os }}-gradle

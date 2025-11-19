@@ -12,148 +12,60 @@ on:
       - synchronize
       - reopened
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  static-checks:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-gradle
-
-      - name: KTFmt Check and Lint
-        run: |
-          ./gradlew ktfmtCheck lint --parallel --build-cache
-
-      - name: Upload lint report
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: app/build/reports/lint-*
-
-  unit-tests:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-gradle
-
-      - name: Decode secrets
-        uses: ./.github/actions/decode-secrets
-        with:
-          google_services: ${{ secrets.GOOGLE_SERVICES }}
-          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
-
-      - name: Run unit tests
-        run: |
-          # To run the CI with debug information, add --info
-          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
-
-      - name: Upload unit exec
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-exec
-          path: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/testResOverrideDebugUnitTest.exec
-
-      - name: Upload unit test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-results
-          path: app/build/test-results/testResOverrideDebugUnitTest/
-
-  build-test-apks:
+  ci:
+    name: CI
+    # Execute the CI on the course's runners
     runs-on: blacksmith-4vcpu-ubuntu-2404
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-gradle
-
-      - name: Assemble app and androidTest APKs
-        run: ./gradlew assembleResOverrideDebug assembleResOverrideDebugAndroidTest --parallel --build-cache
-
-      - name: Upload test APKs
-        uses: actions/upload-artifact@v4
+      # First step : Checkout the repository on the runner
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: test-apks
-          path: |
-            app/build/outputs/apk/resOverride/debug/*.apk
-            app/build/outputs/apk/androidTest/resOverride/debug/*.apk
+          submodules: recursive
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis (if we use Sonar Later)
 
-  connected-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: build-test-apks
-    strategy:
-      fail-fast: false
-      matrix:
-        shard_index: [0, 1, 2]
-    env:
-      SHARD_COUNT: 3
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Decode secrets
-        uses: ./.github/actions/decode-secrets
-        with:
-          google_services: ${{ secrets.GOOGLE_SERVICES }}
-          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
-
-      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux
-      # Enabling it allows the Android emulator to run faster
+      # Kernel-based Virtual Machine (KVM) is an open source virtualization technology built into Linux. Enabling it allows the Android emulator to run faster.
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # Cache a user-local Android SDK instead of /usr/local/lib/android/sdk
-      - name: Cache Android SDK
-        uses: actions/cache@v4
-        id: android-sdk
+      - name: Setup JDK
+        uses: actions/setup-java@v4
         with:
-          path: ~/android-sdk
-          key: ${{ runner.os }}-android-sdk-a34-googleapis-x86_64-bt35.0.0
+          distribution: "temurin"
+          java-version: "17"
 
-      - name: Install Android SDK (if not cached)
-        if: steps.android-sdk.outputs.cache-hit != 'true'
+      # Cache the gradle folder
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
         run: |
-          set -e
+          chmod +x ./gradlew
 
-          mkdir -p "$HOME/android-sdk"
-
-          # Try to find sdkmanager from any preinstalled SDK
-          if command -v sdkmanager >/dev/null 2>&1; then
-            SDKMANAGER="sdkmanager"
-          elif [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ]; then
-            SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
-          else
-            echo "sdkmanager not found on this runner"
-            exit 1
-          fi
-
-          yes | "$SDKMANAGER" --sdk_root="$HOME/android-sdk" \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;35.0.0" \
-            "system-images;android-34;google_apis;x86_64" \
-            "emulator"
-
-      - name: Export Android SDK env
+      # Check formatting
+      - name: KTFmt Check
         run: |
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> "$GITHUB_ENV"
-          echo "ANDROID_HOME=$HOME/android-sdk" >> "$GITHUB_ENV"
-          echo "$HOME/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          ./gradlew ktfmtCheck
 
-      # Cache the Android emulator
-      - name: Cache AVD
+      # Cache the Emulator, if the cache does not hit, create the emulator
+      - name: AVD cache
         uses: actions/cache@v4
         id: avd-cache
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: ${{ runner.os }}-avd-34
+          key: avd-34
 
-      # If the cache does not hit, create the Android emulator
       - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -166,168 +78,74 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
+      - name: Decode google-services.json from secrets
+        env:
+          GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES" ]; then
+            echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES secret is not set. google-services.json will not be created."
+          fi
+
+      - name: Decode local.properties from secrets
+        env:
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: |
+          if [ -n "$LOCAL_PROPERTIES" ]; then
+            echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
+          else
+            echo "::warning::LOCAL_PROPERTIES secret is not set. local.properties will not be created."
+          fi
+
+      - name: Decode release keystore from secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            mkdir -p ~/.android
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ~/.android/release.keystore
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set. ~/.android/release.keystore will not be created."
+          fi
+
+      - name: Lint
+        run: |
+          # To run the CI with debug information, add --info
+          ./gradlew lint --parallel --build-cache
+
+      # Install NodeJS (for Firebase CLI)
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-          cache-dependency-path: '.github/ci/node/package-lock.json'
 
-      - name: Install Node dependencies
-        working-directory: .github/ci/node
-        run: npm ci
+      # Install Firebase CLI
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
-      # Cache Firebase emulators (firestore emulator, storage emulator, etc.)
-      - name: Get Firebase CLI version
-        id: firebase
-        run: echo "version=$(firebase --version)" >> $GITHUB_OUTPUT
-
-      - name: Cache Firebase emulators
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/firebase/emulators
-          key: ${{ runner.os }}-firebase-emulators-${{ steps.firebase.outputs.version }}-${{ hashFiles('firebase.json') }}
-          restore-keys: ${{ runner.os }}-firebase-emulators-
-
+      # Start Firebase emulators for instrumentation tests
       - name: Start Firebase emulators
-        env:
-          PREFIX: .github/ci/node
         run: |
           if [ -e "firebase.json" ] && jq -e '.emulators' firebase.json >/dev/null; then
             echo "Starting Firebase emulators for instrumentation tests..."
-            npm --prefix $PREFIX run start-firebase-emulators &
-            npm --prefix $PREFIX run wait-for-firebase
+            firebase emulators:start --only auth,firestore,storage --project demo-project &
+            # wait until emulators are ready
+            npx wait-on tcp:8080 tcp:9099 tcp:9199
             echo "Firebase emulators started"
           else
             echo "Firebase emulators not configured, skipping emulator startup..."
           fi
 
-      - name: Download test APKs
-        uses: actions/download-artifact@v4
-        with:
-          name: test-apks
-          path: ./app/build/outputs/apk/
-
-      # Create the script for the next step (this script only works in the next step)
-      - name: Create script for pretty printing tests
+      # Run Unit tests
+      - name: Run unit tests
         run: |
-          # Define test script (to be able to have multiline commands)
-          cat << 'EOF' > pretty-instrument.sh
-          #!/usr/bin/env bash
-          set -e
-          set -o pipefail
+          # To run the CI with debug information, add --info
+          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
 
-          # ANSI colors
-          green="\033[32m"
-          red="\033[31m"
-          gray="\033[38;5;250m"
-          reset="\033[0m"
-
-          adb shell am instrument -w -r \
-            -e coverage true \
-            -e numShards $SHARD_COUNT \
-            -e shardIndex ${{ matrix.shard_index }} \
-            $PACKAGE.test/$TEST_RUNNER \
-            | tee instrument-output.txt \
-            | awk -v g="$green" -v r="$red" -v gr="$gray" -v x="$reset" '
-              # Remember class
-              /^INSTRUMENTATION_STATUS: class=/ {
-                class = $0
-                sub("INSTRUMENTATION_STATUS: class=", "", class)
-                next
-              }
-
-              # Remember test
-              /^INSTRUMENTATION_STATUS: test=/ {
-                test = $0
-                sub("INSTRUMENTATION_STATUS: test=", "", test)
-                next
-              }
-
-              # Start capturing a potential error stream
-              /^INSTRUMENTATION_STATUS: stream=/ {
-                capturing = 1
-                stream = ""
-                next
-              }
-
-              # While capturing, collect lines that belong to the stream block
-              capturing && !/^INSTRUMENTATION_STATUS:/ && !/^INSTRUMENTATION_STATUS_CODE:/ {
-                stream = (stream == "" ? $0 : stream "\n" $0)
-                next
-              }
-
-              # Stop capturing when we hit next status line
-              capturing && /^INSTRUMENTATION_STATUS:/ {
-                capturing = 0
-                next
-              }
-
-              # When we see the status code, output based on pass/fail
-              /^INSTRUMENTATION_STATUS_CODE:/ {
-                code = $0
-                sub("INSTRUMENTATION_STATUS_CODE: ", "", code)
-
-                if (code == 0) {
-                  # PASS
-                  printf("%s[PASS]%s  %s%s#%s%s\n", g, x, class, gr, test, x)
-                } else if (code == -2) {
-                  # on fail, print captured error stream
-                  if (stream != "") {
-                    printf("\n%s\n", stream)
-                  }
-                  printf("%s[FAIL]%s  %s%s#%s%s\n", r, x, class, gr, test, x)
-                }
-
-                # reset for next test
-                capturing = 0
-                stream = ""
-                next
-              }
-
-              # Start capturing a final result stream
-              /^INSTRUMENTATION_RESULT: stream=/ {
-                capturing_result = 1
-                result_stream = ""
-                next
-              }
-
-              # Skip other INSTRUMENTATION_RESULT header lines
-              capturing_result && /^INSTRUMENTATION_RESULT:/ {
-                next
-              }
-
-              # While capturing summary, accumulate lines
-              capturing_result && !/^INSTRUMENTATION_CODE:/ {
-                result_stream = (result_stream == "" ? $0 : result_stream "\n" $0)
-                next
-              }
-
-              # When we hit INSTRUMENTATION_CODE, print the summary and stop
-              /^INSTRUMENTATION_CODE:/ {
-                if (result_stream != "") {
-                  printf("\n%s\n", result_stream)
-                }
-                capturing_result = 0
-                result_stream = ""
-                next
-              }
-            '
-
-          # Fail if "FAILURES!!!" or "INSTRUMENTATION_CODE: 0" appears
-          if grep -q "FAILURES!!!" instrument-output.txt || grep -q "INSTRUMENTATION_CODE: 0" instrument-output.txt; then echo "Instrumentation tests failed"; exit 1; fi
-
-          EOF
-
-          chmod +x pretty-instrument.sh
-
-      - name: Run connected tests (shard ${{ matrix.shard_index }})
+      # Run connected tests on the emulator
+      - name: Run connected tests
         uses: reactivecircus/android-emulator-runner@v2
-        env:
-          APP_DEBUG_APK: app/build/outputs/apk/resOverride/debug/app-resOverride-debug.apk
-          APP_DEBUG_TEST_APK: app/build/outputs/apk/androidTest/resOverride/debug/app-resOverride-debug-androidTest.apk
-          PACKAGE: com.github.se.studentconnect
-          TEST_RUNNER: androidx.test.runner.AndroidJUnitRunner
         with:
           api-level: 34
           target: google_apis
@@ -335,44 +153,47 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
           disable-animations: true
-          script: |
-            set -e
+          script: ./gradlew connectedResOverrideDebugAndroidTest --parallel --build-cache
 
-            # Install apks on device
-            adb install -t "$APP_DEBUG_APK"
-            adb install "$APP_DEBUG_TEST_APK"
+      # This step generates the coverage report which will be uploaded to sonar
+      - name: Generate Coverage Report
+        run: |
+          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
 
-            # Run tests
-            ./pretty-instrument.sh
-
-            # Pull coverage
-            adb exec-out run-as $PACKAGE cat files/coverage.ec > coverage.ec
-
-      - name: Upload android ec for this shard
+      - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: android-ec-${{ matrix.shard_index }}
-          path: ./coverage.ec
+          name: Coverage report
+          path: app/build/reports/jacoco/jacocoTestReport
 
-  build-release-apk:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-gradle
-
-      - name: Decode secrets
-        uses: ./.github/actions/decode-secrets
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
         with:
-          google_services: ${{ secrets.GOOGLE_SERVICES }}
-          local_properties: ${{ secrets.LOCAL_PROPERTIES }}
-          android_keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
+      # Upload the various reports to sonar
+      - name: Upload report to SonarCloud
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+
+      # Assemble Release APK
       - name: Assemble APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           ./gradlew assembleNormalRelease --parallel --build-cache \
             -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: app/build/outputs/apk/normal/release/*.apk
 
       - name: Print signing cert SHA-1 (from keystore)
         env:
@@ -383,84 +204,4 @@ jobs:
             -keystore ~/.android/release.keystore \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
             | grep -E "SHA( |-)?1:"
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: app/build/outputs/apk/normal/release/*.apk
-
-  sonar:
-    needs: [static-checks, unit-tests, build-test-apks, connected-tests]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
-
-      - uses: ./.github/actions/setup-gradle
-
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      - name: Download unit exec
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-exec
-          path: app/build/outputs/unit_test_code_coverage/resOverrideDebugUnitTest/
-
-      - name: Download unit test results
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-test-results
-          path: app/build/test-results/
-
-      - name: Download android ec for all shards
-        uses: actions/download-artifact@v4
-        with:
-          pattern: android-ec-*
-          path: .
-
-      - name: Arrange android ec files
-        env:
-          BASE: app/build/outputs/code_coverage/resOverrideDebugAndroidTest/connected
-        run: |
-          mkdir -p $BASE
-
-          for i in $(seq 0 $((SHARD_COUNT - 1))); do
-            mkdir -p "$BASE/shard-$i"
-            mv android-ec-$i/**/coverage.ec "$BASE/shard-$i/"
-          done
-
-      - name: Download lint report
-        uses: actions/download-artifact@v4
-        with:
-          name: lint-report
-          path: app/build/reports/
-
-      # This step is needed so the compiled classes are available to JaCoCo
-      # We can't upload them as artifacts as they can be very big
-      - name: Materialize class files (from cache)
-        run: ./gradlew compileResOverrideDebugSources --build-cache --parallel
-
-      - name: Generate coverage report
-        run: |
-          ./gradlew jacocoTestReport -PcoverageFlavor=resOverride
-
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-test-report
-          path: app/build/reports/jacoco/jacocoTestReport
-
-      - name: Upload reports to SonarCloud
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
 

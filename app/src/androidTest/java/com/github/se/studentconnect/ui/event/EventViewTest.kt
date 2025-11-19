@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.Manifest
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -47,8 +48,7 @@ class EventViewTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @get:Rule
-  val permissionRule: GrantPermissionRule =
-      GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
 
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
