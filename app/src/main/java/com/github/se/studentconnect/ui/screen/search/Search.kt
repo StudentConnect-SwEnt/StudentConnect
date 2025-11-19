@@ -33,11 +33,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -63,6 +65,10 @@ fun SearchScreen(
     viewModel: SearchViewModel = viewModel(),
 ) {
   val focusManager = LocalFocusManager.current
+  val screenWidth =
+      with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+  val screenHeight =
+      with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() }
 
   Scaffold(
       topBar = { SearchTopBar(viewModel, navController) },
@@ -76,8 +82,8 @@ fun SearchScreen(
     Column(
         modifier = modifier.padding(innerPadding),
     ) {
-        People(viewModel = viewModel, navController = navController)
-      Events(viewModel, navController)
+        People(viewModel = viewModel, navController = navController, screenWidth = screenWidth)
+      Events(viewModel, navController, screenWidth = screenWidth, screenHeight = screenHeight)
     }
   }
 }
@@ -125,7 +131,7 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun People(viewModel: SearchViewModel, navController: NavHostController) {
+private fun People(viewModel: SearchViewModel, navController: NavHostController, screenWidth: Dp) {
   if (viewModel.hasUsers())
       Column {
         Text(
@@ -134,7 +140,7 @@ private fun People(viewModel: SearchViewModel, navController: NavHostController)
             fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
             modifier =
                 Modifier.padding(
-                        LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                        screenWidth * 0.05f,
                         0.dp,
                         0.dp,
                         0.dp,
@@ -143,16 +149,16 @@ private fun People(viewModel: SearchViewModel, navController: NavHostController)
         )
         LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
           items(viewModel.state.value.shownUsers) { user ->
-            Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f))
-            UserCard(user = user, navController = navController)
+            Spacer(Modifier.size(screenWidth * 0.02f))
+            UserCard(user, navController = navController, screenWidth = screenWidth)
           }
-          item { Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f)) }
+          item { Spacer(Modifier.size(screenWidth * 0.05f)) }
         }
       }
 }
 
 @Composable
-private fun UserCard(user: User, navController: NavHostController) {
+private fun UserCard(user: User, navController: NavHostController, screenWidth: Dp) {
   Box(
       modifier =
           Modifier.clickable(
@@ -165,7 +171,7 @@ private fun UserCard(user: User, navController: NavHostController) {
       Image(
           painterResource(R.drawable.ic_user),
           contentDescription = null,
-          modifier = Modifier.size(128.dp),
+          modifier = Modifier.size(screenWidth * 0.3f),
       )
       Spacer(Modifier.height(8.dp))
       Text(
@@ -178,7 +184,12 @@ private fun UserCard(user: User, navController: NavHostController) {
 }
 
 @Composable
-private fun Events(viewModel: SearchViewModel, navController: NavHostController) {
+private fun Events(
+    viewModel: SearchViewModel,
+    navController: NavHostController,
+    screenWidth: Dp,
+    screenHeight: Dp
+) {
 
   if (viewModel.hasEvents())
       Text(
@@ -187,8 +198,8 @@ private fun Events(viewModel: SearchViewModel, navController: NavHostController)
           fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
           modifier =
               Modifier.padding(
-                      LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-                      LocalConfiguration.current.screenHeightDp.dp * 0.01f,
+                      screenWidth * 0.05f,
+                      screenHeight * 0.01f,
                       0.dp,
                       0.dp,
                   )
@@ -197,9 +208,9 @@ private fun Events(viewModel: SearchViewModel, navController: NavHostController)
   LazyColumn(
       modifier =
           Modifier.padding(
-                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                  screenWidth * 0.05f,
                   0.dp,
-                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+                  screenWidth * 0.05f,
                   0.dp,
               )
               .testTag(C.Tag.event_search_result),
@@ -210,59 +221,70 @@ private fun Events(viewModel: SearchViewModel, navController: NavHostController)
           event = event,
           ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
           participantCount = viewModel.eventParticipantCount(eventUid = event.uid),
-          navController = navController)
+          navController = navController,
+          screenWidth = screenWidth)
       Spacer(Modifier.size(8.dp))
     }
   }
 }
 
 @Composable
-private fun EventCard(event: Event, ownerUsername: String, participantCount: Int, navController: NavHostController) {
-  Row(modifier = Modifier.clickable(onClick = {navController.navigate(Route.eventView(eventUid = event.uid, true))}), verticalAlignment = Alignment.CenterVertically) {
-    Image(
-        painterResource(R.drawable.ic_ticket),
-        contentDescription = null,
-        modifier = Modifier.size(128.dp),
-    )
-    Spacer(Modifier.size(10.dp))
-    Column(
-        verticalArrangement = Arrangement.SpaceEvenly,
-    ) {
-      Text(
-          text = event.title,
-          fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
-          fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis)
-      Text(
-          text = ownerUsername,
-          fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-          fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      )
-      event.location?.name?.let {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(painterResource(R.drawable.ic_location), contentDescription = null)
+private fun EventCard(
+    event: Event,
+    ownerUsername: String,
+    participantCount: Int,
+    navController: NavHostController,
+    screenWidth: Dp
+) {
+  Row(
+      modifier =
+          Modifier.clickable(
+              onClick = { navController.navigate(Route.eventView(eventUid = event.uid, true)) }),
+      verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            painterResource(R.drawable.ic_ticket),
+            contentDescription = null,
+            modifier = Modifier.size(screenWidth * 0.3f),
+        )
+        Spacer(Modifier.size(10.dp))
+        Column(
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
           Text(
-              text = it,
-              fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-              fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+              text = event.title,
+              fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
+              fontSize = MaterialTheme.typography.headlineMedium.fontSize,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis)
+          Text(
+              text = ownerUsername,
+              fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
+              fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+          )
+          event.location?.name?.let {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(painterResource(R.drawable.ic_location), contentDescription = null)
+              Text(
+                  text = it,
+                  fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
+                  fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis)
+            }
+          }
+          if (event.maxCapacity != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+              Spacer(Modifier.size(8.dp))
+              Text(text = "$participantCount/${event.maxCapacity}")
+            }
+          } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+              Spacer(Modifier.size(8.dp))
+              Text(text = "$participantCount")
+            }
+          }
         }
       }
-      if (event.maxCapacity != null) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(painterResource(R.drawable.ic_users), contentDescription = null)
-          Spacer(Modifier.size(8.dp))
-          Text(text = "$participantCount/${event.maxCapacity}")
-        }
-      } else {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(painterResource(R.drawable.ic_users), contentDescription = null)
-          Spacer(Modifier.size(8.dp))
-          Text(text = "$participantCount")
-        }
-      }
-    }
-  }
 }
