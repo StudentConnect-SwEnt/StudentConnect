@@ -138,13 +138,15 @@ fun EventView(
               event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             },
             navigationIcon = {
-              IconButton(
-                  onClick = { navController.popBackStack() },
-                  modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.content_description_back))
-                  }
+              if (pagerState.currentPage == 1) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
+                      Icon(
+                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                          contentDescription = stringResource(R.string.content_description_back))
+                    }
+              }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
         )
