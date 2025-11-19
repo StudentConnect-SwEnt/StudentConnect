@@ -281,4 +281,12 @@
     <string name="org_profile_tab_members">Members</string>
     <string name="org_profile_no_events">No events yet</string>
     <string name="org_profile_no_members">No members yet</string>
+
+    <!-- Organization screen strings -->
+    <string name="organization_type_association">Association</string>
+    <string name="organization_type_student_club">Student Club</string>
+    <string name="organization_type_company">Company</string>
+    <string name="organization_type_ngo">NGO</string>
+    <string name="organization_type_other">Other</string>
+    <string name="organization_label_name">Organization name</string>
 </resources>
