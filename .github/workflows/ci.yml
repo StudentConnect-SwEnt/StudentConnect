@@ -177,6 +177,18 @@ jobs:
         working-directory: .github/ci/node
         run: npm ci
 
+      # Cache Firebase emulators (firestore emulator, storage emulator, etc.)
+      - name: Get Firebase CLI version
+        id: firebase
+        run: echo "version=$(firebase --version)" >> $GITHUB_OUTPUT
+
+      - name: Cache Firebase emulators
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: ${{ runner.os }}-firebase-emulators-${{ steps.firebase.outputs.version }}-${{ hashFiles('firebase.json') }}
+          restore-keys: ${{ runner.os }}-firebase-emulators-
+
       - name: Start Firebase emulators
         env:
           PREFIX: .github/ci/node
