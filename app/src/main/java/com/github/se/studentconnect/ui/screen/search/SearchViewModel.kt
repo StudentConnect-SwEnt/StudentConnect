@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.search
 
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -86,13 +87,31 @@ class SearchViewModel(
 
   private fun getUsersForQuery(query: String) =
       if (query.isBlank()) _state.value.allUsers
-      else _state.value.allUsers.filter { it.userId.startsWith(query, ignoreCase = true) }
+      else _state.value.allUsers.filter { it.username.startsWith(query, ignoreCase = true) }
 
   /** Checks if there are any events to show. */
   fun hasEvents() = state.value.shownEvents.isNotEmpty()
 
   /** Checks if there are any users to show. */
   fun hasUsers() = state.value.shownUsers.isNotEmpty()
+
+  /** Get a user from its userId. */
+  fun getUser(userId: String): User? {
+    return state.value.allUsers.find { user -> user.userId == userId }
+  }
+
+  /** Get the number of participants of an event */
+  fun eventParticipantCount(eventUid: String): Int {
+    val count = mutableIntStateOf(0)
+    viewModelScope.launch {
+      count.intValue =
+          eventRepository
+              .getEventParticipants(eventUid)
+              .filter { it.uid != eventRepository.getEvent(eventUid).ownerId }
+              .size
+    }
+    return count.intValue
+  }
 
   /** Resets the search query to an empty string. */
   fun reset() = setQuery("")
