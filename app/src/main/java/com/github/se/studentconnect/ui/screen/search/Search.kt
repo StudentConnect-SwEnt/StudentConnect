@@ -76,8 +76,8 @@ fun SearchScreen(
     Column(
         modifier = modifier.padding(innerPadding),
     ) {
-      People(viewModel = viewModel, navController = navController)
-      Events(viewModel)
+        People(viewModel = viewModel, navController = navController)
+      Events(viewModel, navController)
     }
   }
 }
@@ -178,7 +178,7 @@ private fun UserCard(user: User, navController: NavHostController) {
 }
 
 @Composable
-private fun Events(viewModel: SearchViewModel) {
+private fun Events(viewModel: SearchViewModel, navController: NavHostController) {
 
   if (viewModel.hasEvents())
       Text(
@@ -209,15 +209,16 @@ private fun Events(viewModel: SearchViewModel) {
       EventCard(
           event = event,
           ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
-          participantCount = viewModel.eventParticipantCount(eventUid = event.uid))
+          participantCount = viewModel.eventParticipantCount(eventUid = event.uid),
+          navController = navController)
       Spacer(Modifier.size(8.dp))
     }
   }
 }
 
 @Composable
-private fun EventCard(event: Event, ownerUsername: String, participantCount: Int) {
-  Row(modifier = Modifier.clickable(onClick = {}), verticalAlignment = Alignment.CenterVertically) {
+private fun EventCard(event: Event, ownerUsername: String, participantCount: Int, navController: NavHostController) {
+  Row(modifier = Modifier.clickable(onClick = {navController.navigate(Route.eventView(eventUid = event.uid, true))}), verticalAlignment = Alignment.CenterVertically) {
     Image(
         painterResource(R.drawable.ic_ticket),
         contentDescription = null,
