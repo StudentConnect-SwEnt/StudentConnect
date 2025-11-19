@@ -3,12 +3,12 @@ package com.github.se.studentconnect.ui.screen.search
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,10 +25,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +62,7 @@ fun SearchScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: SearchViewModel = viewModel(),
 ) {
+  val focusManager = LocalFocusManager.current
 
   Scaffold(
       topBar = { SearchTopBar(viewModel, navController) },
@@ -63,7 +70,8 @@ fun SearchScreen(
           modifier
               .fillMaxSize()
               .background(MaterialTheme.colorScheme.surface)
-              .testTag(C.Tag.search_screen),
+              .testTag(C.Tag.search_screen)
+              .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
   ) { innerPadding ->
     Column(
         modifier = modifier.padding(innerPadding),
@@ -80,12 +88,14 @@ private fun SearchTopBar(
     viewModel: SearchViewModel,
     navController: NavHostController,
 ) {
+  val focusRequester = remember { FocusRequester() }
+  LaunchedEffect(Unit) { focusRequester.requestFocus() }
   CenterAlignedTopAppBar(
       title = {
         HomeSearchBar(
             query = viewModel.state.value.query,
             onQueryChange = { viewModel.setQuery(it) },
-            modifier = Modifier)
+            modifier = Modifier.focusRequester(focusRequester))
       },
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
@@ -104,13 +114,13 @@ private fun SearchTopBar(
             modifier = Modifier.testTag(C.Tag.back_button),
         )
       },
-      windowInsets =
-          WindowInsets(
-              0.dp,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
-              LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
-          ),
+      //      windowInsets =
+      //          WindowInsets(
+      //              0.dp,
+      //              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
+      //              LocalConfiguration.current.screenWidthDp.dp * 0.02f,
+      //              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
+      //          ),
   )
 }
 
@@ -178,7 +188,7 @@ private fun Events(viewModel: SearchViewModel) {
           modifier =
               Modifier.padding(
                       LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-                      0.dp,
+                      LocalConfiguration.current.screenHeightDp.dp * 0.01f,
                       0.dp,
                       0.dp,
                   )
@@ -189,7 +199,7 @@ private fun Events(viewModel: SearchViewModel) {
           Modifier.padding(
                   LocalConfiguration.current.screenWidthDp.dp * 0.02f,
                   0.dp,
-                  0.dp,
+                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
                   0.dp,
               )
               .testTag(C.Tag.event_search_result),
@@ -215,7 +225,6 @@ private fun EventCard(event: Event, ownerUsername: String, participantCount: Int
     )
     Spacer(Modifier.size(10.dp))
     Column(
-        modifier = Modifier.size(256.dp, 128.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
     ) {
       Text(
