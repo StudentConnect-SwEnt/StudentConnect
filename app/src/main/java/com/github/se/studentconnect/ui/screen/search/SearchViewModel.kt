@@ -47,7 +47,10 @@ class SearchViewModel(
     setQuery("")
   }
 
-  private suspend fun getAllEvents() = eventRepository.getAllVisibleEvents().filter { event -> event.end?.let { it > Timestamp.now() } != false }
+  private suspend fun getAllEvents() =
+      eventRepository.getAllVisibleEvents().filter { event ->
+        event.end?.let { it > Timestamp.now() } != false
+      }
 
   private suspend fun getAllUsers() = userRepository.getAllUsers()
 
