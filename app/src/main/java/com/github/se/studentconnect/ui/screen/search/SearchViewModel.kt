@@ -11,6 +11,7 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 
 /** Represents the state of the search screen. */
@@ -46,7 +47,7 @@ class SearchViewModel(
     setQuery("")
   }
 
-  private suspend fun getAllEvents() = eventRepository.getAllVisibleEvents()
+  private suspend fun getAllEvents() = eventRepository.getAllVisibleEvents().filter { event -> event.end?.let { it > Timestamp.now() } != false }
 
   private suspend fun getAllUsers() = userRepository.getAllUsers()
 
