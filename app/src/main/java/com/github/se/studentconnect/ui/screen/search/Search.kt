@@ -31,6 +31,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 
 /**
