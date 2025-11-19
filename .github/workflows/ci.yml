@@ -63,7 +63,7 @@ jobs:
           path: app/build/test-results/testResOverrideDebugUnitTest/
 
   build-test-apks:
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -80,7 +80,7 @@ jobs:
             app/build/outputs/apk/androidTest/resOverride/debug/*.apk
 
   connected-tests:
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: build-test-apks
     strategy:
       fail-fast: false
