@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -83,7 +84,7 @@ private fun SearchTopBar(
         HomeSearchBar(
             query = viewModel.state.value.query,
             onQueryChange = { viewModel.setQuery(it) },
-        )
+            modifier = Modifier)
       },
       modifier = Modifier.fillMaxWidth(),
       navigationIcon = {
@@ -159,7 +160,7 @@ private fun UserCard(user: User) {
           text = user.firstName + " " + user.lastName,
           fontSize = MaterialTheme.typography.bodyLarge.fontSize,
       )
-      Text(user.userId)
+      Text(user.username)
     }
   }
 }
@@ -192,22 +193,25 @@ private fun Events(viewModel: SearchViewModel) {
               .testTag(C.Tag.event_search_result),
   ) {
     items(viewModel.state.value.shownEvents.size) { index ->
+      val event = viewModel.state.value.shownEvents[index]
       EventCard(
-          viewModel.state.value.shownEvents[index],
-      )
+          event = event,
+          ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
+          participantCount = viewModel.eventParticipantCount(eventUid = event.uid))
       Spacer(Modifier.size(8.dp))
     }
   }
 }
 
 @Composable
-private fun EventCard(event: Event) {
+private fun EventCard(event: Event, ownerUsername: String, participantCount: Int) {
   Row(modifier = Modifier.clickable(onClick = {}), verticalAlignment = Alignment.CenterVertically) {
     Image(
         painterResource(R.drawable.ic_ticket),
         contentDescription = null,
         modifier = Modifier.size(128.dp),
     )
+    Spacer(Modifier.size(10.dp))
     Column(
         modifier = Modifier.size(256.dp, 128.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
@@ -216,9 +220,10 @@ private fun EventCard(event: Event) {
           text = event.title,
           fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
           fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-      )
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis)
       Text(
-          text = event.ownerId,
+          text = ownerUsername,
           fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
           fontSize = MaterialTheme.typography.bodyLarge.fontSize,
       )
@@ -229,10 +234,23 @@ private fun EventCard(event: Event) {
               text = it,
               fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
               fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-          )
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis)
         }
       }
-      Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+      if (event.maxCapacity != null) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+          Spacer(Modifier.size(8.dp))
+          Text(text = "$participantCount/${event.maxCapacity}")
+        }
+      } else {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+          Spacer(Modifier.size(8.dp))
+          Text(text = "$participantCount")
+        }
+      }
     }
   }
 }
