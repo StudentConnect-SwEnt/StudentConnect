@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.io.File
 import java.io.FileOutputStream
@@ -31,6 +32,7 @@ class AddPictureScreenTest {
   @Test
   fun addPictureScreen_initialState_disablesContinueButton() {
     val viewModel = SignUpViewModel()
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
     composeTestRule.setContent {
       AppTheme {
@@ -38,13 +40,16 @@ class AddPictureScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithText("Upload/Take your profile photo").assertExists()
-    composeTestRule.onNodeWithText("Continue").assertIsNotEnabled()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.placeholder_upload_profile_photo))
+        .assertExists()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsNotEnabled()
   }
 
   @Test
   fun addPictureScreen_selectingPhoto_enablesContinueAndShowsSelectionHint() {
     val viewModel = SignUpViewModel()
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
     composeTestRule.setContent {
       AppTheme {
@@ -57,8 +62,8 @@ class AddPictureScreenTest {
     }
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Photo selected").assertExists()
-    composeTestRule.onNodeWithText("Continue").assertIsEnabled()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
   }
 
   @Test
@@ -72,14 +77,18 @@ class AddPictureScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithText("Photo selected").assertExists()
-    composeTestRule.onNodeWithContentDescription("Upload photo").assertExists()
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule
+        .onNodeWithContentDescription(ctx.getString(R.string.content_description_upload_photo))
+        .assertExists()
   }
 
   @Test
   fun skipButton_setsPlaceholderAndInvokesCallback() {
     val viewModel = SignUpViewModel()
     var skipped = false
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
     composeTestRule.setContent {
       AppTheme {
@@ -88,18 +97,19 @@ class AddPictureScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithText("Skip").performClick()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_skip)).performClick()
     composeTestRule.waitForIdle()
 
     assertTrue(skipped)
     assertEquals(DEFAULT_PLACEHOLDER, viewModel.state.value.profilePictureUri)
-    composeTestRule.onNodeWithText("Continue").assertIsEnabled()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
   }
 
   @Test
   fun continueButton_invokesCallbackWhenEnabled() {
     val viewModel = SignUpViewModel()
     var continued = false
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
     composeTestRule.setContent {
       AppTheme {
@@ -113,7 +123,7 @@ class AddPictureScreenTest {
     }
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Continue").performClick()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).performClick()
     assertTrue(continued)
   }
 
@@ -130,7 +140,10 @@ class AddPictureScreenTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Tap to change photo", useUnmergedTree = true).assertExists()
+    composeTestRule
+        .onNodeWithText(
+            context.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
+        .assertExists()
 
     tempFile.delete()
   }
