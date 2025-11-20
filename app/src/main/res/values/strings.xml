@@ -264,4 +264,30 @@
     
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
+
+    <!-- Poll strings -->
+    <string name="poll_create_title">Create Poll</string>
+    <string name="poll_create_question_label">Poll Question</string>
+    <string name="poll_create_options_label">Options</string>
+    <string name="poll_create_option_label">Option %1$d</string>
+    <string name="poll_create_remove_option">Remove option</string>
+    <string name="poll_create_add_option">Add Option</string>
+    <string name="poll_create_button">Create Poll</string>
+    <string name="poll_screen_title">Poll</string>
+    <string name="poll_error_generic">An error occurred</string>
+    <string name="poll_closed_message">This poll is closed</string>
+    <string name="poll_owner_cannot_vote">As the event organizer, you cannot vote on this poll</string>
+    <string name="poll_results_title">Results</string>
+    <string name="poll_total_votes">%1$d total votes</string>
+    <string name="poll_submit_vote_button">Submit Vote</string>
+    <string name="poll_status_active">Active</string>
+    <string name="poll_status_closed">Closed</string>
+    <string name="poll_notification_title">New Poll Available</string>
+    <string name="poll_notification_message">There are active polls for this event</string>
+    <string name="poll_notification_vote">Vote Now</string>
+    <string name="button_view_polls">View Polls</string>
+    <string name="button_create_poll">Create Poll</string>
+    <string name="content_description_add_poll">Create new poll</string>
+    <string name="polls_list_screen_title">Event Polls</string>
+    <string name="polls_list_no_polls">No polls available for this event</string>
 </resources>
