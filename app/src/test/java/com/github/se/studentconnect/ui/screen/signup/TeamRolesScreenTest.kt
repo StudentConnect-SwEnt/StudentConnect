@@ -75,17 +75,17 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles = testRoles,
+            state = TeamRolesState(roleName = "", roleDescription = "", roles = testRoles),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -102,17 +102,17 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles = testRoles,
+            state = TeamRolesState(roleName = "", roleDescription = "", roles = testRoles),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -128,17 +128,19 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles = listOf(TeamRole(id = "1", name = "President", description = null)),
+            state =
+                TeamRolesState(
+                    roleName = "", roleDescription = "", roles = listOf(TeamRole(id = "1", name = "President", description = null))),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -160,19 +162,23 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles =
-                listOf(
-                    TeamRole(id = "1", name = "President", description = "Oversees organization")),
+            state =
+                TeamRolesState(
+                    roleName = "",
+                    roleDescription = "",
+                    roles =
+                        listOf(
+                            TeamRole(id = "1", name = "President", description = "Oversees organization"))),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -194,17 +200,19 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles = listOf(TeamRole(id = "1", name = "President", description = null)),
+            state =
+                TeamRolesState(
+                    roleName = "", roleDescription = "", roles = listOf(TeamRole(id = "1", name = "President", description = null))),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -226,20 +234,24 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles =
-                listOf(
-                    TeamRole(id = "1", name = "President", description = null),
-                    TeamRole(id = "2", name = "Treasurer", description = null)),
+            state =
+                TeamRolesState(
+                    roleName = "",
+                    roleDescription = "",
+                    roles =
+                        listOf(
+                            TeamRole(id = "1", name = "President", description = null),
+                            TeamRole(id = "2", name = "Treasurer", description = null))),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -261,17 +273,17 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            roleName = "",
-            roleDescription = "",
-            roles = emptyList(),
+            state = TeamRolesState(roleName = "", roleDescription = "", roles = emptyList()),
             suggestions = emptyList(),
-            onRoleNameChange = {},
-            onRoleDescriptionChange = {},
-            onAddRole = {},
-            onRemoveRole = {},
-            onBackClick = {},
-            onSkipClick = {},
-            onContinueClick = {},
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
             modifier = androidx.compose.ui.Modifier)
       }
     }
@@ -281,6 +293,111 @@ class TeamRolesScreenTest {
     composeRule.waitUntil(timeoutMillis = 5000) {
       try {
         composeRule.onNodeWithText(emptyStateText)
+        true
+      } catch (e: Exception) {
+        false
+      }
+    }
+  }
+
+  @Test
+  fun rolesFormCard_displaysFormFields() {
+    composeRule.setContent {
+      AppTheme {
+        TeamRolesContent(
+            state = TeamRolesState(roleName = "Test", roleDescription = "Desc", roles = emptyList()),
+            suggestions = listOf("President", "Treasurer"),
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
+            modifier = androidx.compose.ui.Modifier)
+      }
+    }
+
+    composeRule.waitForIdle()
+    val addSectionText = composeRule.activity.getString(R.string.team_roles_add_section_title)
+    composeRule.onNodeWithText(addSectionText).assertIsDisplayed()
+  }
+
+  @Test
+  fun addRoleButton_disabledWhenRoleNameEmpty() {
+    composeRule.setContent {
+      AppTheme {
+        TeamRolesScreen()
+      }
+    }
+
+    composeRule.waitForIdle()
+    val addButtonText = composeRule.activity.getString(R.string.team_roles_add_button)
+    composeRule.onNodeWithText(addButtonText).assertIsNotEnabled()
+  }
+
+  @Test
+  fun currentRolesSection_displaysTitle() {
+    composeRule.setContent {
+      AppTheme {
+        TeamRolesContent(
+            state = TeamRolesState(roleName = "", roleDescription = "", roles = emptyList()),
+            suggestions = emptyList(),
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
+            modifier = androidx.compose.ui.Modifier)
+      }
+    }
+
+    composeRule.waitForIdle()
+    val currentRolesText = composeRule.activity.getString(R.string.team_roles_current_section_title)
+    composeRule.waitUntil(timeoutMillis = 3000) {
+      try {
+        composeRule.onNodeWithText(currentRolesText)
+        true
+      } catch (e: Exception) {
+        false
+      }
+    }
+  }
+
+  @Test
+  fun roleCard_withBlankDescription_hidesDescription() {
+    composeRule.setContent {
+      AppTheme {
+        TeamRolesContent(
+            state =
+                TeamRolesState(
+                    roleName = "",
+                    roleDescription = "",
+                    roles = listOf(TeamRole(id = "1", name = "President", description = ""))),
+            suggestions = emptyList(),
+            callbacks =
+                TeamRolesCallbacks(
+                    onRoleNameChange = {},
+                    onRoleDescriptionChange = {},
+                    onAddRole = {},
+                    onRemoveRole = {},
+                    onBackClick = {},
+                    onSkipClick = {},
+                    onContinueClick = {}),
+            modifier = androidx.compose.ui.Modifier)
+      }
+    }
+
+    composeRule.waitForIdle()
+    composeRule.waitUntil(timeoutMillis = 5000) {
+      try {
+        composeRule.onNodeWithText("President")
         true
       } catch (e: Exception) {
         false

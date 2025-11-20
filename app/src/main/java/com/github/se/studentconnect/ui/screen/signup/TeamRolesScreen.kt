@@ -46,6 +46,22 @@ import java.util.UUID
 
 data class TeamRole(val id: String, val name: String, val description: String?)
 
+data class TeamRolesState(
+    val roleName: String,
+    val roleDescription: String,
+    val roles: List<TeamRole>
+)
+
+data class TeamRolesCallbacks(
+    val onRoleNameChange: (String) -> Unit,
+    val onRoleDescriptionChange: (String) -> Unit,
+    val onAddRole: () -> Unit,
+    val onRemoveRole: (TeamRole) -> Unit,
+    val onBackClick: () -> Unit,
+    val onSkipClick: () -> Unit,
+    val onContinueClick: () -> Unit
+)
+
 @Composable
 fun TeamRolesScreen(
     modifier: Modifier = Modifier,
@@ -69,52 +85,45 @@ fun TeamRolesScreen(
           stringResource(R.string.team_roles_suggestion_operations_lead))
 
   TeamRolesContent(
-      roleName = roleName,
-      roleDescription = roleDescription,
-      roles = roles,
+      state =
+          TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
       suggestions = suggestions,
-      onRoleNameChange = { roleName = it },
-      onRoleDescriptionChange = { roleDescription = it },
-      onAddRole = {
-        val trimmedName = roleName.trim()
-        if (trimmedName.isNotEmpty()) {
-          val newRole =
-              TeamRole(
-                  id = UUID.randomUUID().toString(),
-                  name = trimmedName,
-                  description = roleDescription.trim().ifBlank { null })
-          roles = listOf(newRole) + roles
-          roleName = ""
-          roleDescription = ""
-        }
-      },
-      onRemoveRole = { role -> roles = roles.filterNot { it.id == role.id } },
-      onBackClick = onBackClick,
-      onSkipClick = onSkipClick,
-      onContinueClick = { onContinueClick(roles) },
+      callbacks =
+          TeamRolesCallbacks(
+              onRoleNameChange = { roleName = it },
+              onRoleDescriptionChange = { roleDescription = it },
+              onAddRole = {
+                val trimmedName = roleName.trim()
+                if (trimmedName.isNotEmpty()) {
+                  val newRole =
+                      TeamRole(
+                          id = UUID.randomUUID().toString(),
+                          name = trimmedName,
+                          description = roleDescription.trim().ifBlank { null })
+                  roles = listOf(newRole) + roles
+                  roleName = ""
+                  roleDescription = ""
+                }
+              },
+              onRemoveRole = { role -> roles = roles.filterNot { it.id == role.id } },
+              onBackClick = onBackClick,
+              onSkipClick = onSkipClick,
+              onContinueClick = { onContinueClick(roles) }),
       modifier = modifier)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun TeamRolesContent(
-    roleName: String,
-    roleDescription: String,
-    roles: List<TeamRole>,
+    state: TeamRolesState,
     suggestions: List<String>,
-    onRoleNameChange: (String) -> Unit,
-    onRoleDescriptionChange: (String) -> Unit,
-    onAddRole: () -> Unit,
-    onRemoveRole: (TeamRole) -> Unit,
-    onBackClick: () -> Unit,
-    onSkipClick: () -> Unit,
-    onContinueClick: () -> Unit,
+    callbacks: TeamRolesCallbacks,
     modifier: Modifier = Modifier
 ) {
   val rolesListState = rememberLazyListState()
 
-  LaunchedEffect(roles.size) {
-    if (roles.isNotEmpty()) {
+  LaunchedEffect(state.roles.size) {
+    if (state.roles.isNotEmpty()) {
       rolesListState.animateScrollToItem(0)
     }
   }
@@ -131,9 +140,9 @@ internal fun TeamRolesContent(
               modifier = Modifier.fillMaxWidth(),
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.SpaceBetween) {
-                SignUpBackButton(onClick = onBackClick)
+                SignUpBackButton(onClick = callbacks.onBackClick)
 
-                SignUpSkipButton(onClick = onSkipClick)
+                SignUpSkipButton(onClick = callbacks.onSkipClick)
               }
 
           SignUpMediumSpacer()
@@ -145,12 +154,12 @@ internal fun TeamRolesContent(
           SignUpLargeSpacer()
 
           RolesFormCard(
-              roleName = roleName,
-              roleDescription = roleDescription,
+              roleName = state.roleName,
+              roleDescription = state.roleDescription,
               suggestions = suggestions,
-              onRoleNameChange = onRoleNameChange,
-              onRoleDescriptionChange = onRoleDescriptionChange,
-              onAddRole = onAddRole)
+              onRoleNameChange = callbacks.onRoleNameChange,
+              onRoleDescriptionChange = callbacks.onRoleDescriptionChange,
+              onAddRole = callbacks.onAddRole)
 
           Spacer(modifier = Modifier.height(SignUpScreenConstants.ROLES_FORM_TO_LIST_SPACING))
 
@@ -165,7 +174,7 @@ internal fun TeamRolesContent(
 
           Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             AnimatedContent(
-                targetState = roles.isEmpty(),
+                targetState = state.roles.isEmpty(),
                 label = "roles_list_state",
             ) { isEmpty ->
               if (isEmpty) {
@@ -180,8 +189,8 @@ internal fun TeamRolesContent(
                         Arrangement.spacedBy(SignUpScreenConstants.ROLE_ITEM_SPACING),
                     contentPadding =
                         PaddingValues(bottom = SignUpScreenConstants.ROLES_LIST_BOTTOM_PADDING)) {
-                      items(items = roles, key = { it.id }) { role ->
-                        RoleCard(role = role, onRemoveRole = onRemoveRole)
+                      items(items = state.roles, key = { it.id }) { role ->
+                        RoleCard(role = role, onRemoveRole = callbacks.onRemoveRole)
                       }
                     }
               }
@@ -193,8 +202,8 @@ internal fun TeamRolesContent(
           SignUpPrimaryButton(
               text = stringResource(R.string.button_start_now),
               iconRes = R.drawable.ic_arrow_forward,
-              onClick = onContinueClick,
-              enabled = roles.isNotEmpty(),
+              onClick = callbacks.onContinueClick,
+              enabled = state.roles.isNotEmpty(),
               modifier = Modifier.align(Alignment.CenterHorizontally))
         }
   }
@@ -309,17 +318,19 @@ private fun RoleNameDropdownField(
         }
       }
 
+  val shouldShowDropdown = filteredSuggestions.isNotEmpty() && !exactMatch
+
   LaunchedEffect(isFocused, value, exactMatch) {
-    when {
-      // Don't open if value exactly matches a suggestion (item was selected)
-      exactMatch -> expanded = false
-      isFocused && filteredSuggestions.isNotEmpty() -> expanded = true
-      !isFocused && value.isBlank() -> expanded = false
+    expanded = when {
+      exactMatch -> false
+      isFocused && shouldShowDropdown -> true
+      !isFocused && value.isBlank() -> false
+      else -> expanded
     }
   }
 
   ExposedDropdownMenuBox(
-      expanded = expanded && filteredSuggestions.isNotEmpty(),
+      expanded = expanded && shouldShowDropdown,
       onExpandedChange = { expanded = it }) {
         OutlinedTextField(
             value = value,
@@ -327,17 +338,13 @@ private fun RoleNameDropdownField(
               onValueChange(newValue)
               val newNormalized = newValue.trim()
               val isExactMatch = suggestions.any { it.equals(newNormalized, ignoreCase = true) }
-              if (filteredSuggestions.isNotEmpty() && !isExactMatch) {
-                expanded = true
-              } else {
-                expanded = false
-              }
+              expanded = newNormalized.isNotBlank() && !isExactMatch && filteredSuggestions.isNotEmpty()
             },
             modifier =
                 modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).onFocusChanged {
                     focusState ->
                   isFocused = focusState.isFocused
-                  if (focusState.isFocused && filteredSuggestions.isNotEmpty() && !exactMatch) {
+                  if (focusState.isFocused && shouldShowDropdown) {
                     expanded = true
                   }
                 },
@@ -350,7 +357,7 @@ private fun RoleNameDropdownField(
             })
 
         ExposedDropdownMenu(
-            expanded = expanded && filteredSuggestions.isNotEmpty(),
+            expanded = expanded && shouldShowDropdown,
             onDismissRequest = { expanded = false }) {
               filteredSuggestions.forEach { suggestion ->
                 DropdownMenuItem(

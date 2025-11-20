@@ -220,7 +220,6 @@
     <string name="team_roles_name_label">Role name</string>
     <string name="team_roles_name_helper">Select from popular roles or type a custom name</string>
     <string name="team_roles_description_label">Role description</string>
-    <string name="team_roles_suggestions_label">Popular roles</string>
     <string name="team_roles_add_button">+ Add role</string>
     <string name="team_roles_current_section_title">Current roles</string>
     <string name="team_roles_empty_state_title">No roles defined yet.</string>
