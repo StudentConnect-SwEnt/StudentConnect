@@ -6,28 +6,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -60,6 +52,8 @@ import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScr
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
+import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
+import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -321,6 +315,41 @@ internal fun MainAppContent(
                 onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
                 onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) })
           }
+
+          // Visitor Profile Screen (shown when clicking on other users)
+          composable(
+              route = Route.VISITOR_PROFILE,
+              arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG) ?: ""
+                val vm: VisitorProfileViewModel = viewModel()
+                // Load profile when userId changes
+                LaunchedEffect(userId) { if (userId.isNotEmpty()) vm.loadProfile(userId) }
+
+                val uiState by vm.uiState.collectAsState()
+
+                when {
+                  uiState.isLoading -> {
+                    // simple loading indicator
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                      CircularProgressIndicator()
+                    }
+                  }
+                  uiState.user != null -> {
+                    VisitorProfileScreen(
+                        user = uiState.user!!,
+                        onBackClick = { navController.popBackStack() },
+                        onAddFriendClick = { vm.sendFriendRequest() },
+                        friendRequestStatus = uiState.friendRequestStatus)
+                  }
+                  else -> {
+                    // show an error state
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                      Text(text = uiState.errorMessage ?: "Profile not found")
+                    }
+                  }
+                }
+              }
 
           // User Card Screen
           composable(ProfileRoutes.USER_CARD) {
