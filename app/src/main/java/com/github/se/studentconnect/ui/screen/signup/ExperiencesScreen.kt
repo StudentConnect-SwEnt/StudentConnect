@@ -204,9 +204,21 @@ internal fun ExperiencesContent(
   }
 }
 
-@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+/**
+ * A filter chip used in the Experiences screen to select experience categories.
+ *
+ * @param label The text label of the chip.
+ * @param selected Whether the chip is currently selected.
+ * @param onClick Callback invoked when the chip is clicked.
+ * @param icon Optional composable icon to display alongside the label.
+ */
 @Composable
-internal fun ExperienceFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+internal fun ExperienceFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: @Composable (() -> Unit)? = null
+) {
   val contentColor = if (selected) Color.White else Variables.FilterChipContent
   val backgroundColor = if (selected) Variables.ColorOnClick else Variables.FilterChipBackground
 
@@ -221,11 +233,15 @@ internal fun ExperienceFilterChip(label: String, selected: Boolean, onClick: () 
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically) {
-              Icon( // PLACEHOLDER FOR NOW
-                  imageVector = Icons.Outlined.Star,
-                  contentDescription = null,
-                  modifier = Modifier.size(20.dp),
-                  tint = contentColor)
+              if (icon != null) {
+                icon()
+              } else {
+                Icon( // TODO PLACEHOLDER FOR NOW
+                    imageVector = Icons.Outlined.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = contentColor)
+              }
               Text(text = label, style = MaterialTheme.typography.labelLarge, color = contentColor)
             }
       }
