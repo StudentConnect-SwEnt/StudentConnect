@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,14 +27,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
 
 /** Data class holding profile statistics */
 data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
@@ -59,6 +68,22 @@ fun ProfileHeader(
     onUserCardClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("ProfileHeader", "Failed to download profile image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Column(modifier = modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.Start) {
     // Top Row: Profile Picture + Stats
     Row(
@@ -73,11 +98,19 @@ fun ProfileHeader(
                       .background(MaterialTheme.colorScheme.secondaryContainer)
                       .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
               contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.primary)
+                if (imageBitmap != null) {
+                  Image(
+                      bitmap = imageBitmap!!,
+                      contentDescription = "Profile Picture",
+                      modifier = Modifier.size(100.dp).clip(CircleShape),
+                      contentScale = ContentScale.Crop)
+                } else {
+                  Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = "Profile Picture",
+                      modifier = Modifier.size(60.dp),
+                      tint = MaterialTheme.colorScheme.primary)
+                }
               }
 
           Spacer(modifier = Modifier.width(32.dp))
