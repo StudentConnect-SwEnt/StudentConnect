@@ -35,24 +35,23 @@ class AccountTypeSelectionScreenTest {
     continueText = activity.getString(R.string.button_continue)
     regularFeatureStrings =
         listOf(
-            R.string.account_type_regular_user_feature_events,
-            R.string.account_type_regular_user_feature_friends,
-            R.string.account_type_regular_user_feature_create_event)
+                R.string.account_type_regular_user_feature_events,
+                R.string.account_type_regular_user_feature_friends,
+                R.string.account_type_regular_user_feature_create_event)
             .map(activity::getString)
     organizationFeatureStrings =
         listOf(
-            R.string.account_type_organization_feature_promote,
-            R.string.account_type_organization_feature_analytics,
-            R.string.account_type_organization_feature_hire,
-            R.string.account_type_organization_feature_operations)
+                R.string.account_type_organization_feature_promote,
+                R.string.account_type_organization_feature_analytics,
+                R.string.account_type_organization_feature_hire,
+                R.string.account_type_organization_feature_operations)
             .map(activity::getString)
   }
 
   private fun setScreen(onContinue: (AccountTypeOption) -> Unit = {}) {
     composeTestRule.setContent {
       MaterialTheme {
-        AccountTypeSelectionScreen(
-            viewModel = viewModel, onContinue = onContinue, onBack = {})
+        AccountTypeSelectionScreen(viewModel = viewModel, onContinue = onContinue, onBack = {})
       }
     }
   }

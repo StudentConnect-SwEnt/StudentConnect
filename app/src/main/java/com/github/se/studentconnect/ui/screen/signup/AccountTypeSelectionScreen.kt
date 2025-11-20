@@ -47,10 +47,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import com.github.se.studentconnect.R
 import kotlin.math.max
 import kotlinx.coroutines.delay
@@ -161,14 +161,16 @@ private fun AccountTypeAnimatedCard(
         otherSelected -> metrics.collapsedSize
         else -> metrics.mediumHeight
       }
-  val alpha by animateFloatAsState(
-      targetValue = if (otherSelected) 0.9f else 1f,
-      animationSpec = tween(400),
-      label = "alpha")
-  val scale by animateFloatAsState(
-      targetValue = if (isSelected) 1f else if (otherSelected) 0.9f else 0.96f,
-      animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-      label = "scale")
+  val alpha by
+      animateFloatAsState(
+          targetValue = if (otherSelected) 0.9f else 1f,
+          animationSpec = tween(400),
+          label = "alpha")
+  val scale by
+      animateFloatAsState(
+          targetValue = if (isSelected) 1f else if (otherSelected) 0.9f else 0.96f,
+          animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+          label = "scale")
 
   BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
     val desiredWidth =
@@ -177,14 +179,16 @@ private fun AccountTypeAnimatedCard(
           otherSelected -> metrics.collapsedSize
           else -> maxWidth
         }
-    val animatedWidth by animateDpAsState(
-        targetValue = desiredWidth,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "width")
-    val animatedHeight by animateDpAsState(
-        targetValue = targetHeight,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "height")
+    val animatedWidth by
+        animateDpAsState(
+            targetValue = desiredWidth,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            label = "width")
+    val animatedHeight by
+        animateDpAsState(
+            targetValue = targetHeight,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            label = "height")
 
     val cardContentDescription = stringResource(option.contentDescriptionRes)
 
@@ -199,11 +203,9 @@ private fun AccountTypeAnimatedCard(
                 }
                 .clip(shape)
                 .semantics { contentDescription = cardContentDescription }
-                .clickable(
-                    enabled = true,
-                    interactionSource = interactionSource) {
-                      onSelect(option)
-                    },
+                .clickable(enabled = true, interactionSource = interactionSource) {
+                  onSelect(option)
+                },
         shape = shape,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
@@ -227,11 +229,9 @@ private fun AccountTypeAnimatedCard(
 
 @Composable
 private fun SmallIconOnlyContent(option: AccountTypeOption, metrics: AccountTypeMetrics) {
-  Box(
-      modifier = Modifier.fillMaxSize(),
-      contentAlignment = Alignment.Center) {
-        Text(text = stringResource(option.iconRes), fontSize = metrics.compactIconSize)
-      }
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Text(text = stringResource(option.iconRes), fontSize = metrics.compactIconSize)
+  }
 }
 
 @Composable
@@ -241,10 +241,11 @@ private fun ExpandedCardContent(
     metrics: AccountTypeMetrics,
     accentColor: Color
 ) {
-  val iconScale by animateFloatAsState(
-      targetValue = if (isSelected) 1.1f else 1f,
-      animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-      label = "iconScale")
+  val iconScale by
+      animateFloatAsState(
+          targetValue = if (isSelected) 1.1f else 1f,
+          animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+          label = "iconScale")
   val featureAnimations = remember(option) { option.featureRes.map { Animatable(0f) } }
 
   LaunchedEffect(isSelected) {
@@ -283,9 +284,7 @@ private fun ExpandedCardContent(
           val offsetY = (1f - alpha) * 12f
           Row(
               modifier =
-                  Modifier.fillMaxWidth()
-                      .graphicsLayer { translationY = offsetY }
-                      .alpha(alpha)) {
+                  Modifier.fillMaxWidth().graphicsLayer { translationY = offsetY }.alpha(alpha)) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = null,
@@ -294,7 +293,8 @@ private fun ExpandedCardContent(
                 Spacer(Modifier.width(metrics.featureIconTextSpacing))
                 Text(
                     text = stringResource(option.featureRes[index]),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+                    style =
+                        MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
               }
         }
       }
@@ -366,6 +366,5 @@ private fun rememberAccountTypeMetrics(): AccountTypeMetrics {
 @Composable
 private fun AccountTypeSelectionPreview() {
   val previewViewModel = remember { SignUpViewModel() }
-  AccountTypeSelectionScreen(
-      viewModel = previewViewModel, onContinue = {}, onBack = {})
+  AccountTypeSelectionScreen(viewModel = previewViewModel, onContinue = {}, onBack = {})
 }

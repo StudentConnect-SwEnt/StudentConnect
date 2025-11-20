@@ -58,8 +58,9 @@ class SignUpViewModel : ViewModel() {
 
   fun setUsername(username: String) = update { it.copy(username = username.trim().lowercase()) }
 
-  fun setAccountTypeSelection(selection: AccountTypeOption?) =
-      update { it.copy(accountTypeSelection = selection) }
+  fun setAccountTypeSelection(selection: AccountTypeOption?) = update {
+    it.copy(accountTypeSelection = selection)
+  }
 
   fun setBirthdate(birthdate: Timestamp?) = update { it.copy(birthdate = birthdate) }
 
