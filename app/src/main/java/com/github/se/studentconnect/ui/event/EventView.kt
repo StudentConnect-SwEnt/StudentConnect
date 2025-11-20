@@ -195,7 +195,8 @@ fun EventView(
                   paddingValues = paddingValues,
                   pagerState = pagerState,
                   context = context,
-                  uiState = uiState)
+                  uiState = uiState,
+                  navController = navController)
           1 ->
               BaseEventView(
                   paddingValues = paddingValues,
@@ -317,7 +318,8 @@ private fun AttendeesList(
     paddingValues: PaddingValues,
     pagerState: PagerState,
     context: Context,
-    uiState: EventUiState
+    uiState: EventUiState,
+    navController: NavHostController,
 ) {
   val coroutineScope = rememberCoroutineScope()
   val isJoined = uiState.isJoined
@@ -349,7 +351,7 @@ private fun AttendeesList(
           AttendeeItem(
               user,
               false,
-              { DialogNotImplemented(context = context) },
+              { navController.navigate(Route.visitorProfile(user.userId)) },
               modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
         }
       }
@@ -358,7 +360,7 @@ private fun AttendeesList(
           AttendeeItem(
               owner,
               true,
-              { DialogNotImplemented(context = context) },
+              { navController.navigate(Route.visitorProfile(owner.userId)) },
               modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
         }
       }
@@ -368,7 +370,7 @@ private fun AttendeesList(
             AttendeeItem(
                 a,
                 false,
-                { DialogNotImplemented(context = context) },
+                { navController.navigate(Route.visitorProfile(a.userId)) },
                 modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
       }
     }
