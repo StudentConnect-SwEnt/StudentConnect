@@ -29,12 +29,16 @@ data class OrganizationProfileUiState(
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
  */
+// TODO: Inject a repository interface (e.g., OrganizationRepository) to fetch real data
+// instead of using mock data. This will avoid a large refactor later when implementing
+// the backend integration.
 class OrganizationProfileViewModel(private val organizationId: String? = null) : ViewModel() {
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
 
   init {
+    // TODO: Replace mock data loading with repository call when backend is implemented
     // Load mock data for now
     loadOrganizationData()
   }

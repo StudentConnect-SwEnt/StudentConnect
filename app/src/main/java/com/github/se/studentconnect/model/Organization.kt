@@ -23,9 +23,18 @@ data class Organization(
   init {
     require(organizationId.isNotBlank()) { "Organization ID cannot be blank" }
     require(name.isNotBlank()) { "Organization name cannot be blank" }
-    require(name.length <= 200) { "Organization name cannot exceed 200 characters" }
+    require(name.length <= MAX_NAME_LENGTH) {
+      "Organization name cannot exceed $MAX_NAME_LENGTH characters"
+    }
     require(description.isNotBlank()) { "Organization description cannot be blank" }
-    require(description.length <= 1000) { "Organization description cannot exceed 1000 characters" }
+    require(description.length <= MAX_DESCRIPTION_LENGTH) {
+      "Organization description cannot exceed $MAX_DESCRIPTION_LENGTH characters"
+    }
+  }
+
+  companion object {
+    const val MAX_NAME_LENGTH = 200
+    const val MAX_DESCRIPTION_LENGTH = 1000
   }
 }
 
@@ -73,8 +82,17 @@ data class OrganizationMember(
   init {
     require(memberId.isNotBlank()) { "Member ID cannot be blank" }
     require(name.isNotBlank()) { "Member name cannot be blank" }
-    require(name.length <= 100) { "Member name cannot exceed 100 characters" }
+    require(name.length <= MAX_NAME_LENGTH) {
+      "Member name cannot exceed $MAX_NAME_LENGTH characters"
+    }
     require(role.isNotBlank()) { "Member role cannot be blank" }
-    require(role.length <= 50) { "Member role cannot exceed 50 characters" }
+    require(role.length <= MAX_ROLE_LENGTH) {
+      "Member role cannot exceed $MAX_ROLE_LENGTH characters"
+    }
+  }
+
+  companion object {
+    const val MAX_NAME_LENGTH = 100
+    const val MAX_ROLE_LENGTH = 50
   }
 }

@@ -98,5 +98,7 @@ object C {
     const val org_profile_event_card_prefix = "org_profile_event_card"
     const val org_profile_members_grid = "org_profile_members_grid"
     const val org_profile_member_card_prefix = "org_profile_member_card"
+    const val org_profile_events_empty = "org_profile_events_empty"
+    const val org_profile_members_empty = "org_profile_members_empty"
   }
 }

@@ -51,8 +51,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -107,6 +109,7 @@ private object OrganizationProfileConstants {
   const val DESCRIPTION_FONT_SIZE = 16
   const val DESCRIPTION_LINE_HEIGHT = 20
   const val DESCRIPTION_LETTER_SPACING = 0
+  const val DESCRIPTION_MAX_LINES = 4
 }
 
 /**
@@ -311,6 +314,8 @@ private fun OrganizationInfoBlock(
                     letterSpacing = OrganizationProfileConstants.DESCRIPTION_LETTER_SPACING.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
+            maxLines = OrganizationProfileConstants.DESCRIPTION_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
             modifier =
                 Modifier.padding(
                         horizontal = OrganizationProfileConstants.HORIZONTAL_PADDING_DESCRIPTION.dp)
@@ -328,7 +333,9 @@ private fun OrganizationInfoBlock(
                 Modifier.padding(top = OrganizationProfileConstants.BUTTON_TOP_PADDING.dp)
                     .testTag(C.Tag.org_profile_follow_button)) {
               Text(
-                  text = if (organization.isFollowing) "Following" else "Follow",
+                  text =
+                      if (organization.isFollowing) stringResource(R.string.org_profile_following)
+                      else stringResource(R.string.org_profile_follow),
                   style = MaterialTheme.typography.labelLarge)
             }
       }
@@ -367,7 +374,7 @@ private fun AboutSection(
               modifier = Modifier.testTag(C.Tag.org_profile_tab_events),
               text = {
                 Text(
-                    text = "Events",
+                    text = stringResource(R.string.org_profile_tab_events),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight =
                         if (selectedTab == OrganizationTab.EVENTS) FontWeight.SemiBold
@@ -383,7 +390,7 @@ private fun AboutSection(
               modifier = Modifier.testTag(C.Tag.org_profile_tab_members),
               text = {
                 Text(
-                    text = "Members",
+                    text = stringResource(R.string.org_profile_tab_members),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight =
                         if (selectedTab == OrganizationTab.MEMBERS) FontWeight.SemiBold
@@ -414,7 +421,21 @@ private fun EventsTab(events: List<OrganizationEvent>, modifier: Modifier = Modi
       modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_events_list),
       verticalArrangement =
           Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp)) {
-        events.forEachIndexed { index, event -> EventRow(event = event, index = index) }
+        if (events.isEmpty()) {
+          Box(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(vertical = 32.dp)
+                      .testTag(C.Tag.org_profile_events_empty),
+              contentAlignment = Alignment.Center) {
+                Text(
+                    text = stringResource(R.string.org_profile_no_events),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+        } else {
+          events.forEachIndexed { index, event -> EventRow(event = event, index = index) }
+        }
       }
 }
 
@@ -509,19 +530,34 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
  */
 @Composable
 private fun MembersTab(members: List<OrganizationMember>, modifier: Modifier = Modifier) {
-  LazyVerticalGrid(
-      columns = GridCells.Fixed(GRID_COLUMNS),
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .height(MEMBERS_GRID_HEIGHT.dp)
-              .testTag(C.Tag.org_profile_members_grid),
-      horizontalArrangement =
-          Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
-      verticalArrangement =
-          Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
-        items(members) { member -> MemberCard(member = member, index = members.indexOf(member)) }
-      }
+  if (members.isEmpty()) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = 32.dp)
+                .testTag(C.Tag.org_profile_members_empty),
+        contentAlignment = Alignment.Center) {
+          Text(
+              text = stringResource(R.string.org_profile_no_members),
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+  } else {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(GRID_COLUMNS),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(MEMBERS_GRID_HEIGHT.dp)
+                .testTag(C.Tag.org_profile_members_grid),
+        horizontalArrangement =
+            Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
+        verticalArrangement =
+            Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
+          items(members) { member -> MemberCard(member = member, index = members.indexOf(member)) }
+        }
+  }
 }
 
 /**
@@ -628,11 +664,4 @@ private fun getDrawableIdFromName(name: String): Int? {
 @Composable
 private fun OrganizationProfileScreenPreview() {
   AppTheme { OrganizationProfileScreen() }
-}
-
-/** Preview for the organization profile screen in dark mode. */
-@Preview(showBackground = true)
-@Composable
-private fun OrganizationProfileScreenDarkPreview() {
-  AppTheme(darkTheme = true) { OrganizationProfileScreen() }
 }
