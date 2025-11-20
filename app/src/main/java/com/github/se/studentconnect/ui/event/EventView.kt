@@ -416,7 +416,6 @@ private fun InfoEvent(
 @Composable
 private fun EventTagsRow(tags: List<String>, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth().testTag(EventViewTestTags.TAGS_SECTION)) {
-    Text(text = stringResource(R.string.event_label_tags), style = titleTextStyle())
     Spacer(modifier = Modifier.height(8.dp))
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
