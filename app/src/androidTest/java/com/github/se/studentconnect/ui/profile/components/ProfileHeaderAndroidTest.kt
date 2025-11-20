@@ -331,5 +331,4 @@ class ProfileHeaderAndroidTest {
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
     composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
   }
-
 }
