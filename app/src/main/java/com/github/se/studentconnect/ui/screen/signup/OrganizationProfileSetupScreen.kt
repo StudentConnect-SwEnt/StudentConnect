@@ -307,7 +307,6 @@ private fun FormSectionLabel(text: String) {
 /**
  * Base composable for selectable chips with common styling and behavior.
  *
- * @param text The text to display in the chip
  * @param selected Whether the chip is currently selected
  * @param enabled Whether the chip can be clicked (defaults to true)
  * @param onClick Callback when the chip is clicked
@@ -319,7 +318,6 @@ private fun FormSectionLabel(text: String) {
  */
 @Composable
 private fun SelectableChip(
-    text: String,
     selected: Boolean,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -362,7 +360,6 @@ private fun DomainChip(
     onClick: () -> Unit
 ) {
   SelectableChip(
-      text = text,
       selected = selected,
       enabled = enabled,
       onClick = onClick,
@@ -391,10 +388,7 @@ private fun DomainChip(
 
 @Composable
 private fun SimpleSelectableChip(text: String, selected: Boolean, onClick: () -> Unit) {
-  val contentColor =
-      if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
   SelectableChip(
-      text = text,
       selected = selected,
       enabled = true,
       onClick = onClick,
@@ -405,8 +399,7 @@ private fun SimpleSelectableChip(text: String, selected: Boolean, onClick: () ->
         Text(
             text = text,
             style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.Medium, color = contentColor),
+                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
             modifier =
                 Modifier.padding(
                     horizontal = SignUpScreenConstants.BUTTON_HORIZONTAL_PADDING / 2,
