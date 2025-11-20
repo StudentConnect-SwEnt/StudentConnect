@@ -290,4 +290,11 @@
     <string name="content_description_add_poll">Create new poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
+    <!-- Organization profile -->
+    <string name="org_profile_follow">Follow</string>
+    <string name="org_profile_following">Following</string>
+    <string name="org_profile_tab_events">Events</string>
+    <string name="org_profile_tab_members">Members</string>
+    <string name="org_profile_no_events">No events yet</string>
+    <string name="org_profile_no_members">No members yet</string>
 </resources>
