@@ -21,16 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Celebration
-import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.Memory
-import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.PeopleAlt
-import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material.icons.outlined.SportsScore
-import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -50,29 +41,14 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
-
-private data class DomainOption(
-    val key: String,
-    @StringRes val labelRes: Int,
-    val icon: ImageVector
-)
+import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.ui.theme.AppTheme
 
 private data class SimpleOption(val key: String, @StringRes val labelRes: Int)
-
-private val domainOptions =
-    listOf(
-        DomainOption("sport", R.string.domain_sport, Icons.Outlined.SportsScore),
-        DomainOption("social", R.string.domain_social, Icons.Outlined.PeopleAlt),
-        DomainOption("music", R.string.domain_music, Icons.Outlined.LibraryMusic),
-        DomainOption("culture", R.string.domain_culture, Icons.Outlined.StarBorder),
-        DomainOption("science", R.string.domain_science, Icons.Outlined.Science),
-        DomainOption("career", R.string.domain_career, Icons.Outlined.WorkOutline),
-        DomainOption("tech", R.string.domain_tech, Icons.Outlined.Memory),
-        DomainOption("parties", R.string.domain_parties, Icons.Outlined.Celebration),
-        DomainOption("other", R.string.domain_other, Icons.Outlined.MoreHoriz))
 
 private val ageRangeOptions =
     listOf(
@@ -169,18 +145,18 @@ fun OrganizationProfileSetupScreen(
               FlowRow(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
-                    domainOptions.forEach { option ->
-                      val isSelected = option.key in selectedDomains
+                    Activities.domainOptions.forEach { category ->
+                      val isSelected = category.key in selectedDomains
                       val canSelectMore = isSelected || selectedDomains.size < MAX_DOMAIN_SELECTION
                       DomainChip(
-                          text = stringResource(option.labelRes),
-                          icon = option.icon,
+                          text = category.labelRes?.let { stringResource(it) } ?: category.label,
+                          icon = category.icon,
                           selected = isSelected,
                           enabled = canSelectMore,
                           onClick = {
                             selectedDomains =
-                                if (isSelected) selectedDomains - option.key
-                                else selectedDomains + option.key
+                                if (isSelected) selectedDomains - category.key
+                                else selectedDomains + category.key
                           })
                     }
                   }
@@ -406,3 +382,14 @@ private val DropdownMaxHeight = SignUpScreenConstants.BUTTON_HEIGHT * 6
 private val DropdownSurfaceElevation = SignUpScreenConstants.BUTTON_VERTICAL_PADDING / 2
 private val ChipContentSpacing = SignUpScreenConstants.ICON_SPACING * (2f / 3f)
 private val OutlineWidth = 1.dp
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun OrganizationProfileSetupScreenPreview() {
+  AppTheme {
+    OrganizationProfileSetupScreen(
+        onBack = {},
+        onStartNow = {}
+    )
+  }
+}
