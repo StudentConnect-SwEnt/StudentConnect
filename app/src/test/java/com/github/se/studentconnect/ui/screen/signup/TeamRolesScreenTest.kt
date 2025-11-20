@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -28,7 +29,8 @@ class TeamRolesScreenTest {
     composeRule.setContent { AppTheme { TeamRolesScreen() } }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Set up your team roles").assertIsDisplayed()
+    val title = composeRule.activity.getString(R.string.team_roles_title)
+    composeRule.onNodeWithText(title).assertIsDisplayed()
   }
 
   @Test
@@ -38,7 +40,8 @@ class TeamRolesScreenTest {
     composeRule.setContent { AppTheme { TeamRolesScreen(onBackClick = { backClicked = true }) } }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithContentDescription("Back").performClick()
+    val backDesc = composeRule.activity.getString(R.string.content_description_back)
+    composeRule.onNodeWithContentDescription(backDesc).performClick()
 
     composeRule.runOnIdle { Assert.assertTrue(backClicked) }
   }
@@ -50,7 +53,8 @@ class TeamRolesScreenTest {
     composeRule.setContent { AppTheme { TeamRolesScreen(onSkipClick = { skipClicked = true }) } }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Skip").performClick()
+    val skipText = composeRule.activity.getString(R.string.button_skip)
+    composeRule.onNodeWithText(skipText).performClick()
 
     composeRule.runOnIdle { Assert.assertTrue(skipClicked) }
   }
@@ -60,7 +64,8 @@ class TeamRolesScreenTest {
     composeRule.setContent { AppTheme { TeamRolesScreen() } }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Start Now").assertIsNotEnabled()
+    val startNowText = composeRule.activity.getString(R.string.button_start_now)
+    composeRule.onNodeWithText(startNowText).assertIsNotEnabled()
   }
 
   @Test
@@ -86,7 +91,8 @@ class TeamRolesScreenTest {
     }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Start Now").assertIsEnabled()
+    val startNowText = composeRule.activity.getString(R.string.button_start_now)
+    composeRule.onNodeWithText(startNowText).assertIsEnabled()
   }
 
   @Test
@@ -112,8 +118,9 @@ class TeamRolesScreenTest {
     }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Start Now").assertIsEnabled()
-    composeRule.onNodeWithText("Start Now").assertHasClickAction()
+    val startNowText = composeRule.activity.getString(R.string.button_start_now)
+    composeRule.onNodeWithText(startNowText).assertIsEnabled()
+    composeRule.onNodeWithText(startNowText).assertHasClickAction()
   }
 
   @Test
@@ -203,9 +210,10 @@ class TeamRolesScreenTest {
     }
 
     composeRule.waitForIdle()
+    val removeText = composeRule.activity.getString(R.string.team_roles_remove_button)
     composeRule.waitUntil(timeoutMillis = 5000) {
       try {
-        composeRule.onNodeWithText("Remove")
+        composeRule.onNodeWithText(removeText)
         true
       } catch (e: Exception) {
         false
@@ -269,9 +277,10 @@ class TeamRolesScreenTest {
     }
 
     composeRule.waitForIdle()
+    val emptyStateText = composeRule.activity.getString(R.string.team_roles_empty_state_title)
     composeRule.waitUntil(timeoutMillis = 5000) {
       try {
-        composeRule.onNodeWithText("No roles defined yet.")
+        composeRule.onNodeWithText(emptyStateText)
         true
       } catch (e: Exception) {
         false

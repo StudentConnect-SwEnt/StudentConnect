@@ -321,4 +321,11 @@
     <string name="organization_type_ngo">NGO</string>
     <string name="organization_type_other">Other</string>
     <string name="organization_label_name">Organization name</string>
+    
+    <!-- Organization profile setup strings -->
+    <string name="org_profile_setup_title">Where and what do you organize ?</string>
+    <string name="org_profile_setup_main_location">Main Location</string>
+    <string name="org_profile_setup_search_locations">Search locations…</string>
+    <string name="org_profile_setup_main_domains">Main domains</string>
+    <string name="org_profile_setup_select_domains">Select up to 3 domains</string>
 </resources>
