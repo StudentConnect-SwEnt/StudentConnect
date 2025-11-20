@@ -10,8 +10,8 @@ import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PeopleAlt
 import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SportsScore
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.github.se.studentconnect.R
@@ -51,19 +51,66 @@ object Activities {
   private val allCategories: List<Category> =
       listOf(
           // Activity categories (used for user interests)
-          // Note: Keys use plural form ("Sports") to match filterOptions, but labelRes uses singular ("Sport") for org domains
-          Category("Sports", "Sports", R.string.domain_sport, Icons.Outlined.SportsScore, isActivityCategory = true),
-          Category("Science", "Science", R.string.domain_science, Icons.Outlined.Science, isActivityCategory = true),
-          Category("Music", "Music", R.string.domain_music, Icons.Outlined.LibraryMusic, isActivityCategory = true),
-          Category("Language", "Language", null, Icons.Outlined.Language, isActivityCategory = true),
+          // Note: Keys use plural form ("Sports") to match filterOptions, but labelRes uses
+          // singular ("Sport") for org domains
+          Category(
+              "Sports",
+              "Sports",
+              R.string.domain_sport,
+              Icons.Outlined.SportsScore,
+              isActivityCategory = true),
+          Category(
+              "Science",
+              "Science",
+              R.string.domain_science,
+              Icons.Outlined.Science,
+              isActivityCategory = true),
+          Category(
+              "Music",
+              "Music",
+              R.string.domain_music,
+              Icons.Outlined.LibraryMusic,
+              isActivityCategory = true),
+          Category(
+              "Language", "Language", null, Icons.Outlined.Language, isActivityCategory = true),
           Category("Art", "Art", null, Icons.Outlined.Brush, isActivityCategory = true),
-          Category("Tech", "Tech", R.string.domain_tech, Icons.Outlined.Memory, isActivityCategory = true),
+          Category(
+              "Tech",
+              "Tech",
+              R.string.domain_tech,
+              Icons.Outlined.Memory,
+              isActivityCategory = true),
           // Organization-specific domains
-          Category("social", "Social", R.string.domain_social, Icons.Outlined.PeopleAlt, isActivityCategory = false),
-          Category("culture", "Culture", R.string.domain_culture, Icons.Outlined.StarBorder, isActivityCategory = false),
-          Category("career", "Career", R.string.domain_career, Icons.Outlined.WorkOutline, isActivityCategory = false),
-          Category("parties", "Parties", R.string.domain_parties, Icons.Outlined.Celebration, isActivityCategory = false),
-          Category("other", "Other", R.string.domain_other, Icons.Outlined.MoreHoriz, isActivityCategory = false))
+          Category(
+              "social",
+              "Social",
+              R.string.domain_social,
+              Icons.Outlined.PeopleAlt,
+              isActivityCategory = false),
+          Category(
+              "culture",
+              "Culture",
+              R.string.domain_culture,
+              Icons.Outlined.StarBorder,
+              isActivityCategory = false),
+          Category(
+              "career",
+              "Career",
+              R.string.domain_career,
+              Icons.Outlined.WorkOutline,
+              isActivityCategory = false),
+          Category(
+              "parties",
+              "Parties",
+              R.string.domain_parties,
+              Icons.Outlined.Celebration,
+              isActivityCategory = false),
+          Category(
+              "other",
+              "Other",
+              R.string.domain_other,
+              Icons.Outlined.MoreHoriz,
+              isActivityCategory = false))
 
   /** Filter options for categorizing activities (backward compatible - returns list of strings) */
   val filterOptions: List<String> = allCategories.filter { it.isActivityCategory }.map { it.key }
@@ -170,9 +217,9 @@ object Activities {
   val allActivities: List<String> by lazy { experienceTopics.values.flatten().distinct().sorted() }
 
   /**
-   * All available categories for organization domains.
-   * Includes both activity categories and organization-specific domains.
-   * This unified list allows organizations to select from the same categories that users use for activities.
+   * All available categories for organization domains. Includes both activity categories and
+   * organization-specific domains. This unified list allows organizations to select from the same
+   * categories that users use for activities.
    */
   val domainOptions: List<Category> = allCategories
 }

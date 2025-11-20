@@ -345,8 +345,7 @@ private fun SelectableChip(
       contentColor = contentColor,
       border =
           BorderStroke(
-              width = OutlineWidth,
-              color = primary.copy(alpha = if (selected) 0.7f else 0.4f))) {
+              width = OutlineWidth, color = primary.copy(alpha = if (selected) 0.7f else 0.4f))) {
         content()
       }
 }
@@ -398,8 +397,7 @@ private fun SimpleSelectableChip(text: String, selected: Boolean, onClick: () ->
       unselectedContentColor = MaterialTheme.colorScheme.primary) {
         Text(
             text = text,
-            style =
-                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
             modifier =
                 Modifier.padding(
                     horizontal = SignUpScreenConstants.BUTTON_HORIZONTAL_PADDING / 2,
@@ -416,10 +414,5 @@ private val OutlineWidth = 1.dp
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun OrganizationProfileSetupScreenPreview() {
-  AppTheme {
-    OrganizationProfileSetupScreen(
-        onBack = {},
-        onStartNow = {}
-    )
-  }
+  AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
 }
