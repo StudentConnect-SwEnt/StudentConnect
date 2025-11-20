@@ -457,6 +457,31 @@ internal fun MainAppContent(
                 requireNotNull(eventUid) { "Event UID is required to edit a public event." }
                 CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
               }
+
+          // Poll screens
+          composable(
+              Route.POLLS_LIST,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required for polls list." }
+                com.github.se.studentconnect.ui.poll.PollsListScreen(
+                    eventUid = eventUid, navController = navController)
+              }
+
+          composable(
+              Route.POLL_SCREEN,
+              arguments =
+                  listOf(
+                      navArgument("eventUid") { type = NavType.StringType },
+                      navArgument("pollUid") { type = NavType.StringType })) { backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                val pollUid = backStackEntry.arguments?.getString("pollUid")
+                requireNotNull(eventUid) { "Event UID is required for poll screen." }
+                requireNotNull(pollUid) { "Poll UID is required for poll screen." }
+                com.github.se.studentconnect.ui.poll.PollScreen(
+                    eventUid = eventUid, pollUid = pollUid, navController = navController)
+              }
         }
       }
 }

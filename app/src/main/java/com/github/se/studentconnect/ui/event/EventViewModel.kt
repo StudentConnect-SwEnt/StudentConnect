@@ -7,6 +7,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.poll.Poll
+import com.github.se.studentconnect.model.poll.PollRepository
+import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
@@ -26,7 +29,9 @@ data class EventUiState(
     val currentUser: User? = null,
     val owner: User? = null,
     val participantCount: Int = 0,
-    val isFull: Boolean = false
+    val isFull: Boolean = false,
+    val activePolls: List<Poll> = emptyList(),
+    val showCreatePollDialog: Boolean = false
 )
 
 sealed class TicketValidationResult {
@@ -40,6 +45,7 @@ sealed class TicketValidationResult {
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val pollRepository: PollRepository = PollRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
@@ -69,6 +75,11 @@ class EventViewModel(
             isJoined = finalIsJoined,
             participantCount = participantCount,
             isFull = isFull)
+      }
+
+      // Fetch active polls if user is already a participant
+      if (finalIsJoined) {
+        fetchActivePolls(eventUid)
       }
     }
   }
@@ -112,6 +123,11 @@ class EventViewModel(
       _uiState.update {
         it.copy(isJoined = actualIsJoined, participantCount = participantCount, isFull = isFull)
       }
+
+      // Fetch active polls after joining
+      if (actualIsJoined) {
+        fetchActivePolls(eventUid)
+      }
     }
   }
 
@@ -150,6 +166,26 @@ class EventViewModel(
 
   fun clearValidationResult() {
     _uiState.update { it.copy(ticketValidationResult = null) }
+  }
+
+  fun fetchActivePolls(eventUid: String) {
+    viewModelScope.launch {
+      try {
+        val polls = pollRepository.getActivePolls(eventUid)
+        _uiState.update { it.copy(activePolls = polls) }
+      } catch (e: Exception) {
+        // Log error but don't fail the UI
+        android.util.Log.e("EventViewModel", "Failed to fetch active polls: ${e.message}", e)
+      }
+    }
+  }
+
+  fun showCreatePollDialog() {
+    _uiState.update { it.copy(showCreatePollDialog = true) }
+  }
+
+  fun hideCreatePollDialog() {
+    _uiState.update { it.copy(showCreatePollDialog = false) }
   }
 
   fun fetchAttendees() {
