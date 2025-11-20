@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.event
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
@@ -21,6 +22,9 @@ data class EventUiState(
     val isJoined: Boolean = false,
     val showQrScanner: Boolean = false,
     val ticketValidationResult: TicketValidationResult? = null,
+    val attendees: List<User> = emptyList(),
+    val currentUser: User? = null,
+    val owner: User? = null,
     val participantCount: Int = 0,
     val isFull: Boolean = false
 )
@@ -146,5 +150,28 @@ class EventViewModel(
 
   fun clearValidationResult() {
     _uiState.update { it.copy(ticketValidationResult = null) }
+  }
+
+  fun fetchAttendees() {
+    val event = uiState.value.event
+    val currentUserUid = AuthenticationProvider.currentUser
+    if (event != null) {
+      _uiState.update { it.copy(isLoading = true) }
+
+      viewModelScope.launch {
+        val userList = mutableListOf<User>()
+        val currentUser = userRepository.getUserById(currentUserUid)
+        val ownerId = event.ownerId
+        val owner = userRepository.getUserById(ownerId)
+
+        eventRepository.getEventParticipants(event.uid).forEach { eventParticipant ->
+          val participant = userRepository.getUserById(eventParticipant.uid)
+          if (participant != null) userList.add(participant)
+        }
+        _uiState.update {
+          it.copy(isLoading = false, attendees = userList, currentUser = currentUser, owner = owner)
+        }
+      }
+    }
   }
 }

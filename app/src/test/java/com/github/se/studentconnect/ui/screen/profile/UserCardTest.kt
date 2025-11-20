@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
+import com.github.se.studentconnect.ui.profile.components.UserCard
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -39,6 +39,7 @@ object ProfileConstants {
   const val ERROR_DATE_FORMAT = "Please use DD/MM/YYYY format"
   const val ERROR_USER_NOT_FOUND = "User not found"
   const val ERROR_LOAD_PROFILE = "Failed to load profile"
+  const val ERROR_LOAD_USER = "Failed to load user"
   const val ERROR_SAVE_NAME = "Failed to save name"
   const val ERROR_SAVE_BIO = "Failed to save bio"
   const val ERROR_UNEXPECTED = "An unexpected error occurred"

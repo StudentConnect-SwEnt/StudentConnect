@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -52,7 +54,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
+val DEFAULT_PLACEHOLDER = "ic_user".toUri()
 
 /**
  * Screen for adding a profile picture during the signup flow.
@@ -65,13 +67,17 @@ private val DEFAULT_PLACEHOLDER = "ic_user".toUri()
  * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
  * @param onContinue Callback invoked when the user wants to proceed to the next step
  * @param onBack Callback invoked when the user wants to go back to the previous step
+ * @param titleRes String resource id for the title text
+ * @param subtitleRes String resource id for the subtitle text
  */
 @Composable
 fun AddPictureScreen(
     viewModel: SignUpViewModel,
     onSkip: () -> Unit,
     onContinue: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    @StringRes titleRes: Int = R.string.title_add_profile_picture,
+    @StringRes subtitleRes: Int = R.string.subtitle_add_profile_picture
 ) {
   val signUpState by viewModel.state
   var profileUri by remember { mutableStateOf(signUpState.profilePictureUri) }
@@ -79,6 +85,8 @@ fun AddPictureScreen(
   LaunchedEffect(signUpState.profilePictureUri) { profileUri = signUpState.profilePictureUri }
 
   val canContinue = profileUri != null
+  val titleText = stringResource(id = titleRes)
+  val subtitleText = stringResource(id = subtitleRes)
 
   Column(
       modifier =
@@ -100,9 +108,9 @@ fun AddPictureScreen(
 
         SignUpMediumSpacer()
 
-        SignUpTitle(text = "Add a profile picture")
+        SignUpTitle(text = titleText)
         SignUpSmallSpacer()
-        SignUpSubtitle(text = "Let others know what you look like !")
+        SignUpSubtitle(text = subtitleText)
 
         SignUpLargeSpacer()
 
@@ -119,7 +127,7 @@ fun AddPictureScreen(
 
         SignUpPrimaryButton(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            text = "Continue",
+            text = stringResource(id = R.string.button_continue),
             iconRes = R.drawable.ic_arrow_forward,
             onClick = onContinue,
             enabled = canContinue)
@@ -165,11 +173,11 @@ private fun UploadCard(
         if (imageBitmap != null) {
           Image(
               bitmap = imageBitmap!!,
-              contentDescription = "Selected photo",
+              contentDescription = stringResource(id = R.string.content_description_selected_photo),
               modifier = Modifier.fillMaxSize(),
               contentScale = ContentScale.Crop)
           Text(
-              text = "Tap to change photo",
+              text = stringResource(id = R.string.instruction_tap_to_change_photo),
               style =
                   MaterialTheme.typography.bodyMedium.copy(
                       color = MaterialTheme.colorScheme.onSurfaceVariant),
@@ -192,13 +200,16 @@ private fun UploadCard(
                       Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_camera),
-                            contentDescription = "Upload photo",
+                            contentDescription =
+                                stringResource(id = R.string.content_description_upload_photo),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
                       }
                     }
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = if (hasSelection) "Photo selected" else "Upload/Take your profile photo",
+                    text =
+                        if (hasSelection) stringResource(id = R.string.text_photo_selected)
+                        else stringResource(id = R.string.placeholder_upload_profile_photo),
                     style =
                         MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant))

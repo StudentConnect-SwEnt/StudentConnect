@@ -2,6 +2,8 @@ package com.github.se.studentconnect.ui.profile
 
 /** Navigation routes for Profile-related screens. */
 object ProfileRoutes {
+  const val SETTINGS = "profile_settings"
+  const val USER_CARD = "user_card"
   const val EDIT_PICTURE = "edit_profile_picture/{userId}"
   const val EDIT_BIO = "edit_bio/{userId}"
   const val EDIT_ACTIVITIES = "edit_activities/{userId}"

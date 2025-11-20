@@ -77,7 +77,12 @@
     <string name="instruction_preview_profile_picture">Preview of your new profile picture</string>
     <string name="instruction_choose_profile_photo">Tap above to choose a profile photo</string>
     <string name="instruction_tap_to_change_photo">Tap to change photo</string>
-    
+    <string name="title_add_profile_picture">Add a profile picture</string>
+    <string name="subtitle_add_profile_picture">Let others know what you look like !</string>
+    <string name="title_upload_logo">Upload a logo</string>
+    <string name="subtitle_upload_org_logo">Upload your organization logo</string>
+    <string name="text_photo_selected">Photo selected</string>
+
     <!-- Screen titles -->
     <string name="title_edit_nationality">Edit Nationality</string>
     <string name="title_edit_name">Edit Name</string>
@@ -197,6 +202,16 @@
     <string name="toast_camera_closed">Camera closed without capturing a photo</string>
     <string name="toast_camera_permission_denied">Camera permission denied</string>
     <string name="toast_camera_storage_error">Unable to access camera storage</string>
+    <string name="toast_friends_list_coming_soon">Friends list coming soon</string>
+    <string name="toast_event_history_coming_soon">Event history coming soon</string>
+    <string name="toast_edit_profile">Edit Profile</string>
+    <string name="toast_user_card">User Card</string>
+
+    <!-- Profile error messages -->
+    <string name="error_unknown">Unknown error</string>
+
+    <!-- User card -->
+    <string name="user_card_tap_to_flip">Tap the card to flip it</string>
 
     <!-- Team roles onboarding -->
     <string name="team_roles_title">Set up your team roles</string>
@@ -259,6 +274,8 @@
     <string name="event_has_started">Event has started</string>
     <string name="event_hurry_up_started">Hurry up! Event has started</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
+    <string name="event_label_owner">Owner</string>
+    <string name="event_button_return">Return to Event</string>
     
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
@@ -285,7 +302,7 @@
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
-    
+
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
 
@@ -296,4 +313,12 @@
     <string name="org_profile_tab_members">Members</string>
     <string name="org_profile_no_events">No events yet</string>
     <string name="org_profile_no_members">No members yet</string>
+
+    <!-- Organization screen strings -->
+    <string name="organization_type_association">Association</string>
+    <string name="organization_type_student_club">Student Club</string>
+    <string name="organization_type_company">Company</string>
+    <string name="organization_type_ngo">NGO</string>
+    <string name="organization_type_other">Other</string>
+    <string name="organization_label_name">Organization name</string>
 </resources>

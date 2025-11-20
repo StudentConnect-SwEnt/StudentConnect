@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
@@ -112,18 +113,25 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun tappingProfilePicture_launchesPicker() {
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
     registryOwner.enqueueResult(tempImageUri)
-    composeTestRule.onNodeWithContentDescription("Profile Picture").assertExists().performClick()
+    composeTestRule
+        .onNodeWithContentDescription(ctx.getString(R.string.content_description_profile_picture))
+        .assertExists()
+        .performClick()
     selectGalleryOption()
   }
 
   @Test
   fun saveButton_becomesClickableAfterSelectingPhoto() {
-    val saveButton = composeTestRule.onNodeWithText("Save")
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    val saveButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_save))
     saveButton.assertExists().assertIsNotEnabled()
 
     registryOwner.enqueueResult(tempImageUri)
-    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    composeTestRule
+        .onNodeWithContentDescription(ctx.getString(R.string.content_description_profile_picture))
+        .performClick()
     selectGalleryOption()
 
     composeTestRule.waitForIdle()
@@ -149,31 +157,39 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun removePhotoButton_clearsSelectionAndDisablesItself() {
-    val removeButton = composeTestRule.onNodeWithText("Remove Photo")
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    val removeButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_remove_photo))
     removeButton.assertExists().assertIsNotEnabled()
 
     registryOwner.enqueueResult(tempImageUri)
-    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    composeTestRule
+        .onNodeWithContentDescription(ctx.getString(R.string.content_description_profile_picture))
+        .performClick()
     selectGalleryOption()
     composeTestRule.waitForIdle()
 
     removeButton.assertIsEnabled().performClick()
 
     removeButton.assertIsNotEnabled()
-    composeTestRule.onNodeWithText("Tap above to choose a profile photo").assertExists()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.instruction_choose_profile_photo))
+        .assertExists()
   }
 
   @Test
   fun takePhotoOption_enablesSaveButton() {
     composeTestRule.waitForIdle()
-    val saveButton = composeTestRule.onNodeWithText("Save")
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    val saveButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_save))
     saveButton.assertExists().assertIsNotEnabled()
 
     // Permission result + TakePicture result
     registryOwner.enqueueResult(true)
     registryOwner.enqueueResult(true)
 
-    composeTestRule.onNodeWithContentDescription("Profile Picture").performClick()
+    composeTestRule
+        .onNodeWithContentDescription(ctx.getString(R.string.content_description_profile_picture))
+        .performClick()
     selectTakePhotoOption()
     composeTestRule.waitForIdle()
 
@@ -191,11 +207,19 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
   }
 
   private fun selectGalleryOption() {
-    composeTestRule.onNodeWithText("Choose from gallery").assertExists().performClick()
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.button_choose_from_gallery))
+        .assertExists()
+        .performClick()
   }
 
   private fun selectTakePhotoOption() {
-    composeTestRule.onNodeWithText("Take photo").assertExists().performClick()
+    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.button_take_photo))
+        .assertExists()
+        .performClick()
   }
 }
 
