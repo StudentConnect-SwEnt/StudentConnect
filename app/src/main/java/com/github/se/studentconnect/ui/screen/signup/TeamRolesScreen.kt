@@ -17,14 +17,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,15 +57,16 @@ fun TeamRolesScreen(
   var roleDescription by remember { mutableStateOf("") }
   var roles by remember { mutableStateOf<List<TeamRole>>(emptyList()) }
 
-  val suggestions = listOf(
-      stringResource(R.string.team_roles_suggestion_president),
-      stringResource(R.string.team_roles_suggestion_vice_president),
-      stringResource(R.string.team_roles_suggestion_treasurer),
-      stringResource(R.string.team_roles_suggestion_secretary),
-      stringResource(R.string.team_roles_suggestion_event_manager),
-      stringResource(R.string.team_roles_suggestion_community_manager),
-      stringResource(R.string.team_roles_suggestion_marketing_lead),
-      stringResource(R.string.team_roles_suggestion_operations_lead))
+  val suggestions =
+      listOf(
+          stringResource(R.string.team_roles_suggestion_president),
+          stringResource(R.string.team_roles_suggestion_vice_president),
+          stringResource(R.string.team_roles_suggestion_treasurer),
+          stringResource(R.string.team_roles_suggestion_secretary),
+          stringResource(R.string.team_roles_suggestion_event_manager),
+          stringResource(R.string.team_roles_suggestion_community_manager),
+          stringResource(R.string.team_roles_suggestion_marketing_lead),
+          stringResource(R.string.team_roles_suggestion_operations_lead))
 
   TeamRolesContent(
       roleName = roleName,
@@ -168,17 +169,17 @@ internal fun TeamRolesContent(
                 label = "roles_list_state",
             ) { isEmpty ->
               if (isEmpty) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center) {
-                      EmptyRolesState(modifier = Modifier.fillMaxWidth())
-                    }
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                  EmptyRolesState(modifier = Modifier.fillMaxWidth())
+                }
               } else {
                 LazyColumn(
                     state = rolesListState,
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ROLE_ITEM_SPACING),
-                    contentPadding = PaddingValues(bottom = SignUpScreenConstants.ROLES_LIST_BOTTOM_PADDING)) {
+                    verticalArrangement =
+                        Arrangement.spacedBy(SignUpScreenConstants.ROLE_ITEM_SPACING),
+                    contentPadding =
+                        PaddingValues(bottom = SignUpScreenConstants.ROLES_LIST_BOTTOM_PADDING)) {
                       items(items = roles, key = { it.id }) { role ->
                         RoleCard(role = role, onRemoveRole = onRemoveRole)
                       }
@@ -217,68 +218,71 @@ private fun RolesFormCard(
         Column(
             modifier = Modifier.fillMaxWidth().padding(SignUpScreenConstants.FORM_CARD_PADDING),
             verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.FORM_FIELD_SPACING)) {
-          Text(
-              text = stringResource(R.string.team_roles_add_section_title),
-              style =
-                  MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-              color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Text(
+                  text = stringResource(R.string.team_roles_add_section_title),
+                  style =
+                      MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                  color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-          Column {
-            RoleNameDropdownField(
-              value = roleName,
-              onValueChange = onRoleNameChange,
-                suggestions = suggestions,
-                modifier = Modifier.fillMaxWidth())
-            
-            Spacer(modifier = Modifier.height(SignUpScreenConstants.TITLE_TO_SUBTITLE_SPACING))
-            
-            Text(
-                text = stringResource(R.string.team_roles_name_helper),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.padding(horizontal = SignUpScreenConstants.HELPER_TEXT_HORIZONTAL_PADDING))
-          }
+              Column {
+                RoleNameDropdownField(
+                    value = roleName,
+                    onValueChange = onRoleNameChange,
+                    suggestions = suggestions,
+                    modifier = Modifier.fillMaxWidth())
 
-          OutlinedTextField(
-              value = roleDescription,
-              onValueChange = onRoleDescriptionChange,
-              modifier = Modifier.fillMaxWidth(),
-              label = { Text(stringResource(R.string.team_roles_description_label)) },
-              minLines = 2,
-              maxLines = 3,
-              singleLine = false)
+                Spacer(modifier = Modifier.height(SignUpScreenConstants.TITLE_TO_SUBTITLE_SPACING))
 
-          Button(
-              onClick = onAddRole,
-              enabled = roleName.isNotBlank(),
-              modifier = Modifier.fillMaxWidth()) {
-                Text(text = stringResource(R.string.team_roles_add_button))
+                Text(
+                    text = stringResource(R.string.team_roles_name_helper),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier =
+                        Modifier.padding(
+                            horizontal = SignUpScreenConstants.HELPER_TEXT_HORIZONTAL_PADDING))
               }
-        }
+
+              OutlinedTextField(
+                  value = roleDescription,
+                  onValueChange = onRoleDescriptionChange,
+                  modifier = Modifier.fillMaxWidth(),
+                  label = { Text(stringResource(R.string.team_roles_description_label)) },
+                  minLines = 2,
+                  maxLines = 3,
+                  singleLine = false)
+
+              Button(
+                  onClick = onAddRole,
+                  enabled = roleName.isNotBlank(),
+                  modifier = Modifier.fillMaxWidth()) {
+                    Text(text = stringResource(R.string.team_roles_add_button))
+                  }
+            }
       }
 }
 
 @Composable
 private fun EmptyRolesState(modifier: Modifier = Modifier) {
-        Column(
+  Column(
       modifier = modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-              Text(
-                  text = stringResource(R.string.team_roles_empty_state_title),
-                  style =
-                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Normal),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center) {
+        Text(
+            text = stringResource(R.string.team_roles_empty_state_title),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Normal),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                  textAlign = TextAlign.Center)
+            textAlign = TextAlign.Center)
 
-        Spacer(modifier = Modifier.height(SignUpScreenConstants.EMPTY_STATE_TITLE_TO_SUBTITLE_SPACING))
+        Spacer(
+            modifier = Modifier.height(SignUpScreenConstants.EMPTY_STATE_TITLE_TO_SUBTITLE_SPACING))
 
-              Text(
-                  text = stringResource(R.string.team_roles_empty_state_subtitle),
+        Text(
+            text = stringResource(R.string.team_roles_empty_state_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                  textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = SignUpScreenConstants.EMPTY_STATE_HORIZONTAL_PADDING))
+            textAlign = TextAlign.Center,
+            modifier =
+                Modifier.padding(horizontal = SignUpScreenConstants.EMPTY_STATE_HORIZONTAL_PADDING))
       }
 }
 
@@ -292,17 +296,18 @@ private fun RoleNameDropdownField(
 ) {
   var expanded by remember { mutableStateOf(false) }
   var isFocused by remember { mutableStateOf(false) }
-  
+
   val normalized = value.trim()
   val exactMatch = suggestions.any { it.equals(normalized, ignoreCase = true) }
-  
-  val filteredSuggestions = remember(normalized, suggestions) {
-    if (normalized.isBlank()) {
-      suggestions
-    } else {
-      suggestions.filter { it.contains(normalized, ignoreCase = true) }
-    }
-  }
+
+  val filteredSuggestions =
+      remember(normalized, suggestions) {
+        if (normalized.isBlank()) {
+          suggestions
+        } else {
+          suggestions.filter { it.contains(normalized, ignoreCase = true) }
+        }
+      }
 
   LaunchedEffect(isFocused, value, exactMatch) {
     when {
@@ -328,9 +333,9 @@ private fun RoleNameDropdownField(
                 expanded = false
               }
             },
-            modifier = modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable)
-                .onFocusChanged { focusState ->
+            modifier =
+                modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).onFocusChanged {
+                    focusState ->
                   isFocused = focusState.isFocused
                   if (focusState.isFocused && filteredSuggestions.isNotEmpty() && !exactMatch) {
                     expanded = true
@@ -354,9 +359,9 @@ private fun RoleNameDropdownField(
                       onValueChange(suggestion)
                       expanded = false
                     })
-          }
-        }
-  }
+              }
+            }
+      }
 }
 
 @Composable
@@ -371,40 +376,43 @@ private fun RoleCard(
       tonalElevation = SignUpScreenConstants.SURFACE_TONAL_ELEVATION,
       shadowElevation = SignUpScreenConstants.SURFACE_SHADOW_ELEVATION,
       color = MaterialTheme.colorScheme.surface) {
-        Column(modifier = Modifier.fillMaxWidth().padding(SignUpScreenConstants.ROLE_CARD_PADDING)) {
-          Text(
-              text = role.name,
-              style =
-                  MaterialTheme.typography.titleMedium.copy(
-                      fontWeight = FontWeight.SemiBold,
-                      color = MaterialTheme.colorScheme.onSurface))
-
-          if (!role.description.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(SignUpScreenConstants.ROLE_NAME_TO_DESCRIPTION_SPACING))
-            Text(
-                text = role.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-          }
-
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.ROLE_DESCRIPTION_TO_BUTTON_SPACING))
-
-          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = { onRemoveRole(role) }) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(SignUpScreenConstants.ROLE_CARD_PADDING)) {
               Text(
-                  text = stringResource(R.string.team_roles_remove_button),
-                  color = MaterialTheme.colorScheme.error,
-                  style = MaterialTheme.typography.labelLarge)
+                  text = role.name,
+                  style =
+                      MaterialTheme.typography.titleMedium.copy(
+                          fontWeight = FontWeight.SemiBold,
+                          color = MaterialTheme.colorScheme.onSurface))
+
+              if (!role.description.isNullOrBlank()) {
+                Spacer(
+                    modifier =
+                        Modifier.height(SignUpScreenConstants.ROLE_NAME_TO_DESCRIPTION_SPACING))
+                Text(
+                    text = role.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+
+              Spacer(
+                  modifier =
+                      Modifier.height(SignUpScreenConstants.ROLE_DESCRIPTION_TO_BUTTON_SPACING))
+
+              Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { onRemoveRole(role) }) {
+                  Text(
+                      text = stringResource(R.string.team_roles_remove_button),
+                      color = MaterialTheme.colorScheme.error,
+                      style = MaterialTheme.typography.labelLarge)
+                }
+              }
             }
-          }
-        }
       }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun TeamRolesScreenPreview() {
-  AppTheme {
-    TeamRolesScreen()
-  }
+  AppTheme { TeamRolesScreen() }
 }

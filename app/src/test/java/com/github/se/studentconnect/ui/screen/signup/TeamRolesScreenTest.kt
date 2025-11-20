@@ -25,11 +25,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun screen_rendersTitleAndSubtitle() {
-    composeRule.setContent {
-      AppTheme {
-        TeamRolesScreen()
-      }
-    }
+    composeRule.setContent { AppTheme { TeamRolesScreen() } }
 
     composeRule.waitForIdle()
     composeRule.onNodeWithText("Set up your team roles").assertIsDisplayed()
@@ -39,45 +35,29 @@ class TeamRolesScreenTest {
   fun backButton_invokesCallback() {
     var backClicked = false
 
-    composeRule.setContent {
-      AppTheme {
-        TeamRolesScreen(onBackClick = { backClicked = true })
-      }
-    }
+    composeRule.setContent { AppTheme { TeamRolesScreen(onBackClick = { backClicked = true }) } }
 
     composeRule.waitForIdle()
     composeRule.onNodeWithContentDescription("Back").performClick()
 
-    composeRule.runOnIdle {
-      Assert.assertTrue(backClicked)
-    }
+    composeRule.runOnIdle { Assert.assertTrue(backClicked) }
   }
 
   @Test
   fun skipButton_invokesCallback() {
     var skipClicked = false
 
-    composeRule.setContent {
-      AppTheme {
-        TeamRolesScreen(onSkipClick = { skipClicked = true })
-      }
-    }
+    composeRule.setContent { AppTheme { TeamRolesScreen(onSkipClick = { skipClicked = true }) } }
 
     composeRule.waitForIdle()
     composeRule.onNodeWithText("Skip").performClick()
 
-    composeRule.runOnIdle {
-      Assert.assertTrue(skipClicked)
-    }
+    composeRule.runOnIdle { Assert.assertTrue(skipClicked) }
   }
 
   @Test
   fun continueButton_disabledWhenNoRoles() {
-    composeRule.setContent {
-      AppTheme {
-        TeamRolesScreen()
-      }
-    }
+    composeRule.setContent { AppTheme { TeamRolesScreen() } }
 
     composeRule.waitForIdle()
     composeRule.onNodeWithText("Start Now").assertIsNotEnabled()
@@ -177,8 +157,7 @@ class TeamRolesScreenTest {
             roleDescription = "",
             roles =
                 listOf(
-                    TeamRole(
-                        id = "1", name = "President", description = "Oversees organization")),
+                    TeamRole(id = "1", name = "President", description = "Oversees organization")),
             suggestions = emptyList(),
             onRoleNameChange = {},
             onRoleDescriptionChange = {},
