@@ -77,7 +77,12 @@
     <string name="instruction_preview_profile_picture">Preview of your new profile picture</string>
     <string name="instruction_choose_profile_photo">Tap above to choose a profile photo</string>
     <string name="instruction_tap_to_change_photo">Tap to change photo</string>
-    
+    <string name="title_add_profile_picture">Add a profile picture</string>
+    <string name="subtitle_add_profile_picture">Let others know what you look like !</string>
+    <string name="title_upload_logo">Upload a logo</string>
+    <string name="subtitle_upload_org_logo">Upload your organization logo</string>
+    <string name="text_photo_selected">Photo selected</string>
+
     <!-- Screen titles -->
     <string name="title_edit_nationality">Edit Nationality</string>
     <string name="title_edit_name">Edit Name</string>
