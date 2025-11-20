@@ -85,8 +85,7 @@ fun TeamRolesScreen(
           stringResource(R.string.team_roles_suggestion_operations_lead))
 
   TeamRolesContent(
-      state =
-          TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
+      state = TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
       suggestions = suggestions,
       callbacks =
           TeamRolesCallbacks(
@@ -321,24 +320,25 @@ private fun RoleNameDropdownField(
   val shouldShowDropdown = filteredSuggestions.isNotEmpty() && !exactMatch
 
   LaunchedEffect(isFocused, value, exactMatch) {
-    expanded = when {
-      exactMatch -> false
-      isFocused && shouldShowDropdown -> true
-      !isFocused && value.isBlank() -> false
-      else -> expanded
-    }
+    expanded =
+        when {
+          exactMatch -> false
+          isFocused && shouldShowDropdown -> true
+          !isFocused && value.isBlank() -> false
+          else -> expanded
+        }
   }
 
   ExposedDropdownMenuBox(
-      expanded = expanded && shouldShowDropdown,
-      onExpandedChange = { expanded = it }) {
+      expanded = expanded && shouldShowDropdown, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
             value = value,
             onValueChange = { newValue ->
               onValueChange(newValue)
               val newNormalized = newValue.trim()
               val isExactMatch = suggestions.any { it.equals(newNormalized, ignoreCase = true) }
-              expanded = newNormalized.isNotBlank() && !isExactMatch && filteredSuggestions.isNotEmpty()
+              expanded =
+                  newNormalized.isNotBlank() && !isExactMatch && filteredSuggestions.isNotEmpty()
             },
             modifier =
                 modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).onFocusChanged {
@@ -357,8 +357,7 @@ private fun RoleNameDropdownField(
             })
 
         ExposedDropdownMenu(
-            expanded = expanded && shouldShowDropdown,
-            onDismissRequest = { expanded = false }) {
+            expanded = expanded && shouldShowDropdown, onDismissRequest = { expanded = false }) {
               filteredSuggestions.forEach { suggestion ->
                 DropdownMenuItem(
                     text = { Text(suggestion) },

@@ -130,7 +130,9 @@ class TeamRolesScreenTest {
         TeamRolesContent(
             state =
                 TeamRolesState(
-                    roleName = "", roleDescription = "", roles = listOf(TeamRole(id = "1", name = "President", description = null))),
+                    roleName = "",
+                    roleDescription = "",
+                    roles = listOf(TeamRole(id = "1", name = "President", description = null))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -168,7 +170,10 @@ class TeamRolesScreenTest {
                     roleDescription = "",
                     roles =
                         listOf(
-                            TeamRole(id = "1", name = "President", description = "Oversees organization"))),
+                            TeamRole(
+                                id = "1",
+                                name = "President",
+                                description = "Oversees organization"))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -202,7 +207,9 @@ class TeamRolesScreenTest {
         TeamRolesContent(
             state =
                 TeamRolesState(
-                    roleName = "", roleDescription = "", roles = listOf(TeamRole(id = "1", name = "President", description = null))),
+                    roleName = "",
+                    roleDescription = "",
+                    roles = listOf(TeamRole(id = "1", name = "President", description = null))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -305,7 +312,8 @@ class TeamRolesScreenTest {
     composeRule.setContent {
       AppTheme {
         TeamRolesContent(
-            state = TeamRolesState(roleName = "Test", roleDescription = "Desc", roles = emptyList()),
+            state =
+                TeamRolesState(roleName = "Test", roleDescription = "Desc", roles = emptyList()),
             suggestions = listOf("President", "Treasurer"),
             callbacks =
                 TeamRolesCallbacks(
@@ -327,11 +335,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun addRoleButton_disabledWhenRoleNameEmpty() {
-    composeRule.setContent {
-      AppTheme {
-        TeamRolesScreen()
-      }
-    }
+    composeRule.setContent { AppTheme { TeamRolesScreen() } }
 
     composeRule.waitForIdle()
     val addButtonText = composeRule.activity.getString(R.string.team_roles_add_button)
