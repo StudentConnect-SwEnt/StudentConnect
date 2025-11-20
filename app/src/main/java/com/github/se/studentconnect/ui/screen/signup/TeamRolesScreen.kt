@@ -320,13 +320,7 @@ private fun RoleNameDropdownField(
   val shouldShowDropdown = filteredSuggestions.isNotEmpty() && !exactMatch
 
   LaunchedEffect(isFocused, value, exactMatch) {
-    expanded =
-        when {
-          exactMatch -> false
-          isFocused && shouldShowDropdown -> true
-          !isFocused && value.isBlank() -> false
-          else -> expanded
-        }
+    expanded = calculateExpandedState(exactMatch, isFocused, shouldShowDropdown, value.isBlank(), expanded)
   }
 
   ExposedDropdownMenuBox(
@@ -335,10 +329,7 @@ private fun RoleNameDropdownField(
             value = value,
             onValueChange = { newValue ->
               onValueChange(newValue)
-              val newNormalized = newValue.trim()
-              val isExactMatch = suggestions.any { it.equals(newNormalized, ignoreCase = true) }
-              expanded =
-                  newNormalized.isNotBlank() && !isExactMatch && filteredSuggestions.isNotEmpty()
+              expanded = shouldExpandOnTextChange(newValue, suggestions, filteredSuggestions)
             },
             modifier =
                 modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable).onFocusChanged {
@@ -368,6 +359,31 @@ private fun RoleNameDropdownField(
               }
             }
       }
+}
+
+private fun calculateExpandedState(
+    exactMatch: Boolean,
+    isFocused: Boolean,
+    shouldShowDropdown: Boolean,
+    isValueBlank: Boolean,
+    currentExpanded: Boolean
+): Boolean {
+  return when {
+    exactMatch -> false
+    isFocused && shouldShowDropdown -> true
+    !isFocused && isValueBlank -> false
+    else -> currentExpanded
+  }
+}
+
+private fun shouldExpandOnTextChange(
+    newValue: String,
+    suggestions: List<String>,
+    filteredSuggestions: List<String>
+): Boolean {
+  val newNormalized = newValue.trim()
+  val isExactMatch = suggestions.any { it.equals(newNormalized, ignoreCase = true) }
+  return newNormalized.isNotBlank() && !isExactMatch && filteredSuggestions.isNotEmpty()
 }
 
 @Composable
