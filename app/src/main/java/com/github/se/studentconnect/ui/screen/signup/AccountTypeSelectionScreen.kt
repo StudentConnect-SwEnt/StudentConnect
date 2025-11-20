@@ -54,12 +54,30 @@ import com.github.se.studentconnect.R
 import kotlin.math.max
 import kotlinx.coroutines.delay
 
+/**
+ * Represents the available account types that users can select during onboarding.
+ *
+ * Each account type has associated UI resources for display:
+ * - [titleRes]: The main title displayed on the account type card
+ * - [featureRes]: List of feature descriptions shown when the card is expanded
+ * - [contentDescriptionRes]: Accessibility content description for screen readers
+ * - [iconRes]: Emoji or icon resource displayed on the card
+ *
+ * @property titleRes String resource ID for the account type title
+ * @property featureRes List of string resource IDs describing the account type features
+ * @property contentDescriptionRes String resource ID for accessibility content description
+ * @property iconRes String resource ID for the account type icon/emoji
+ */
 enum class AccountTypeOption(
     @StringRes val titleRes: Int,
     val featureRes: List<Int>,
     @StringRes val contentDescriptionRes: Int,
     @StringRes val iconRes: Int
 ) {
+  /**
+   * Regular user account type for individual students.
+   * Allows users to see, join, and save events, add friends, and create public/private events.
+   */
   RegularUser(
       titleRes = R.string.account_type_regular_user,
       featureRes =
@@ -69,6 +87,11 @@ enum class AccountTypeOption(
               R.string.account_type_regular_user_feature_create_event),
       contentDescriptionRes = R.string.content_description_select_regular_user,
       iconRes = R.string.account_type_regular_user_icon),
+
+  /**
+   * Organization account type for institutions, clubs, or companies.
+   * Provides features for event promotion, analytics, staff management, and centralized operations.
+   */
   Organization(
       titleRes = R.string.account_type_organization,
       featureRes =
@@ -295,8 +318,8 @@ private fun ExpandedCardContent(
                     style =
                         MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
               }
-        }
       }
+    }
 }
 
 private fun Color.darken(factor: Float): Color {
