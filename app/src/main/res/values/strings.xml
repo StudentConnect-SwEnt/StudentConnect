@@ -264,4 +264,12 @@
     
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
+
+    <!-- Organization profile -->
+    <string name="org_profile_follow">Follow</string>
+    <string name="org_profile_following">Following</string>
+    <string name="org_profile_tab_events">Events</string>
+    <string name="org_profile_tab_members">Members</string>
+    <string name="org_profile_no_events">No events yet</string>
+    <string name="org_profile_no_members">No members yet</string>
 </resources>

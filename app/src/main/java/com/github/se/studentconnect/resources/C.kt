@@ -81,5 +81,24 @@ object C {
     const val qr_scanner_error = "qr_scanner_error"
     const val qr_scanner_permission = "qr_scanner_permission"
     const val qr_scanner_placeholder = "qr_scanner_placeholder"
+
+    // Organization profile test tags
+    const val org_profile_screen = "org_profile_screen"
+    const val org_profile_header = "org_profile_header"
+    const val org_profile_avatar_banner = "org_profile_avatar_banner"
+    const val org_profile_avatar = "org_profile_avatar"
+    const val org_profile_title = "org_profile_title"
+    const val org_profile_description = "org_profile_description"
+    const val org_profile_follow_button = "org_profile_follow_button"
+    const val org_profile_about_section = "org_profile_about_section"
+    const val org_profile_tab_events = "org_profile_tab_events"
+    const val org_profile_tab_members = "org_profile_tab_members"
+    const val org_profile_events_list = "org_profile_events_list"
+    const val org_profile_event_row_prefix = "org_profile_event_row"
+    const val org_profile_event_card_prefix = "org_profile_event_card"
+    const val org_profile_members_grid = "org_profile_members_grid"
+    const val org_profile_member_card_prefix = "org_profile_member_card"
+    const val org_profile_events_empty = "org_profile_events_empty"
+    const val org_profile_members_empty = "org_profile_members_empty"
   }
 }
