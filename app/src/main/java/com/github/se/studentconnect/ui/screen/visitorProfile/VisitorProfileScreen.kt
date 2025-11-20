@@ -74,7 +74,7 @@ internal fun VisitorProfileContent(
                 .padding(horizontal = 24.dp, vertical = 32.dp)
                 .semantics { testTag = C.Tag.visitor_profile_screen },
         verticalArrangement = Arrangement.spacedBy(24.dp)) {
-          VisitorProfileTopBar(user.userId, onBackClick = onBackClick)
+          VisitorProfileTopBar(user.username, onBackClick = onBackClick)
 
           VisitorProfileInfoCard(
               user = user,
@@ -88,7 +88,7 @@ internal fun VisitorProfileContent(
 
 @VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
 @Composable
-internal fun VisitorProfileTopBar(userId: String, onBackClick: () -> Unit) {
+internal fun VisitorProfileTopBar(username: String, onBackClick: () -> Unit) {
   Box(
       modifier =
           Modifier.Companion.fillMaxWidth().semantics { testTag = C.Tag.visitor_profile_top_bar }) {
@@ -105,7 +105,7 @@ internal fun VisitorProfileTopBar(userId: String, onBackClick: () -> Unit) {
             }
 
         Text(
-            text = "@${userId}",
+            text = "@${username}",
             style =
                 MaterialTheme.typography.titleLarge.copy(
                     fontSize = 18.sp,
@@ -135,7 +135,7 @@ internal fun VisitorProfileInfoCard(
                   listOf(user.firstName, user.lastName)
                       .mapNotNull { it.firstOrNull()?.toString() }
                       .joinToString("")
-                      .ifBlank { user.userId.take(2) }
+                      .ifBlank { user.username.take(2) }
                       .uppercase(Locale.getDefault())
 
               Surface(
@@ -169,7 +169,7 @@ internal fun VisitorProfileInfoCard(
                         Modifier.Companion.semantics { testTag = C.Tag.visitor_profile_user_name })
 
                 Text(
-                    text = user.userId,
+                    text = user.username,
                     style =
                         MaterialTheme.typography.bodyMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant),
