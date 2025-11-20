@@ -41,3 +41,62 @@ data class OrganizationRole(
   }
 }
 
+/**
+ * Represents social media and web links for an organization.
+ *
+ * @property website Optional website URL.
+ * @property instagram Optional Instagram profile URL.
+ * @property x Optional X (Twitter) profile URL.
+ * @property linkedin Optional LinkedIn profile URL.
+ */
+data class SocialLinks(
+    val website: String? = null,
+    val instagram: String? = null,
+    val x: String? = null,
+    val linkedin: String? = null
+) {
+  init {
+    website?.let {
+      require(it.isNotBlank()) { "Website URL cannot be blank" }
+      require(isValidUrl(it)) { "Website URL must be valid" }
+      require(it.length <= MAX_URL_LENGTH) {
+        "Website URL cannot exceed $MAX_URL_LENGTH characters"
+      }
+    }
+    instagram?.let {
+      require(it.isNotBlank()) { "Instagram URL cannot be blank" }
+      require(isValidUrl(it)) { "Instagram URL must be valid" }
+      require(it.length <= MAX_URL_LENGTH) {
+        "Instagram URL cannot exceed $MAX_URL_LENGTH characters"
+      }
+    }
+    x?.let {
+      require(it.isNotBlank()) { "X URL cannot be blank" }
+      require(isValidUrl(it)) { "X URL must be valid" }
+      require(it.length <= MAX_URL_LENGTH) {
+        "X URL cannot exceed $MAX_URL_LENGTH characters"
+      }
+    }
+    linkedin?.let {
+      require(it.isNotBlank()) { "LinkedIn URL cannot be blank" }
+      require(isValidUrl(it)) { "LinkedIn URL must be valid" }
+      require(it.length <= MAX_URL_LENGTH) {
+        "LinkedIn URL cannot exceed $MAX_URL_LENGTH characters"
+      }
+    }
+  }
+
+  companion object {
+    const val MAX_URL_LENGTH = 500
+
+    private fun isValidUrl(url: String): Boolean {
+      return try {
+        val uri = java.net.URI(url)
+        uri.scheme != null && (uri.scheme == "http" || uri.scheme == "https")
+      } catch (e: Exception) {
+        false
+      }
+    }
+  }
+}
+
