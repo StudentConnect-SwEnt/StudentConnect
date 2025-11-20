@@ -76,8 +76,7 @@ class PollViewModelTest {
   @Test
   fun `fetchPoll updates state with poll and no vote when user has not voted`() = runTest {
     coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns testPoll
-    coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } returns
-        null as PollVote?
+    coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } answers { null }
 
     viewModel.fetchPoll(testEventUid, testPollUid)
     advanceUntilIdle()
@@ -92,7 +91,7 @@ class PollViewModelTest {
 
   @Test
   fun `fetchPoll updates state with error when poll not found`() = runTest {
-    coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns null as Poll?
+    coEvery { pollRepository.getPoll(testEventUid, testPollUid) } answers { null }
 
     viewModel.fetchPoll(testEventUid, testPollUid)
     advanceUntilIdle()
@@ -118,13 +117,14 @@ class PollViewModelTest {
 
   @Test
   fun `fetchPoll handles null user when fetching vote`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null as String?
+    every { AuthenticationProvider.currentUser } returns ""
+    val nullUserViewModel = PollViewModel(pollRepository)
     coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns testPoll
 
-    viewModel.fetchPoll(testEventUid, testPollUid)
+    nullUserViewModel.fetchPoll(testEventUid, testPollUid)
     advanceUntilIdle()
 
-    val state = viewModel.pollUiState.value
+    val state = nullUserViewModel.pollUiState.value
     assert(!state.isLoading)
     assert(state.poll == testPoll)
     assert(state.userVote == null)
@@ -139,8 +139,7 @@ class PollViewModelTest {
 
     coEvery { pollRepository.getActivePolls(testEventUid) } returns polls
     coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } returns testVote
-    coEvery { pollRepository.getUserVote(testEventUid, "poll456", testUserId) } returns
-        null as PollVote?
+    coEvery { pollRepository.getUserVote(testEventUid, "poll456", testUserId) } answers { null }
 
     viewModel.fetchAllPolls(testEventUid)
     advanceUntilIdle()
@@ -155,14 +154,15 @@ class PollViewModelTest {
 
   @Test
   fun `fetchAllPolls updates state with empty votes when user is null`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null as String?
+    every { AuthenticationProvider.currentUser } returns ""
+    val nullUserViewModel = PollViewModel(pollRepository)
     val polls = listOf(testPoll)
     coEvery { pollRepository.getActivePolls(testEventUid) } returns polls
 
-    viewModel.fetchAllPolls(testEventUid)
+    nullUserViewModel.fetchAllPolls(testEventUid)
     advanceUntilIdle()
 
-    val state = viewModel.pollsListUiState.value
+    val state = nullUserViewModel.pollsListUiState.value
     assert(!state.isLoading)
     assert(state.polls == polls)
     assert(state.userVotes.isEmpty())
@@ -200,9 +200,10 @@ class PollViewModelTest {
 
   @Test
   fun `submitVote does nothing when user is null`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null as String?
+    every { AuthenticationProvider.currentUser } returns ""
+    val nullUserViewModel = PollViewModel(pollRepository)
 
-    viewModel.submitVote(testEventUid, testPollUid, "opt1")
+    nullUserViewModel.submitVote(testEventUid, testPollUid, "opt1")
     advanceUntilIdle()
 
     coVerify(exactly = 0) { pollRepository.submitVote(any(), any()) }

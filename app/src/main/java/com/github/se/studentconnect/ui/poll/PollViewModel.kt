@@ -43,7 +43,7 @@ class PollViewModel(
     viewModelScope.launch {
       try {
         val poll = pollRepository.getPoll(eventUid, pollUid)
-        val currentUserId = AuthenticationProvider.currentUser
+        val currentUserId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
         val userVote = currentUserId?.let { pollRepository.getUserVote(eventUid, pollUid, it) }
 
         _pollUiState.update {
@@ -67,7 +67,7 @@ class PollViewModel(
     viewModelScope.launch {
       try {
         val polls = pollRepository.getActivePolls(eventUid)
-        val currentUserId = AuthenticationProvider.currentUser
+        val currentUserId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
         val userVotes = mutableMapOf<String, PollVote>()
 
         currentUserId?.let { userId ->
@@ -91,7 +91,8 @@ class PollViewModel(
   fun submitVote(eventUid: String, pollUid: String, optionId: String) {
     viewModelScope.launch {
       try {
-        val currentUserId = AuthenticationProvider.currentUser ?: return@launch
+        val currentUserId =
+            AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() } ?: return@launch
         val vote = PollVote(userId = currentUserId, pollUid = pollUid, optionId = optionId)
 
         pollRepository.submitVote(eventUid, vote)
