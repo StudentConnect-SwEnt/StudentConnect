@@ -68,7 +68,7 @@ class GetStartedScreenBranchTest {
     runOnIdle()
 
     stateFlow.value = AuthUIState(errorMsg = error)
-    runOnIdle()
+    waitFor { reported != null && stateFlow.value.errorMsg == null }
 
     assertEquals(error, reported)
     assertNull(stateFlow.value.errorMsg)
@@ -91,7 +91,7 @@ class GetStartedScreenBranchTest {
     runOnIdle()
 
     stateFlow.value = AuthUIState(user = fakeUser)
-    runOnIdle()
+    waitFor { received != null }
 
     assertEquals("uid-42", received)
   }
@@ -99,6 +99,15 @@ class GetStartedScreenBranchTest {
   private fun runOnIdle() {
     Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+  }
+
+  private fun waitFor(timeoutMillis: Long = 2000, condition: () -> Boolean) {
+    val start = System.currentTimeMillis()
+    while (!condition()) {
+      if (System.currentTimeMillis() - start > timeoutMillis) break
+      runOnIdle()
+      Thread.sleep(10)
+    }
   }
 
   private class NoopAuthRepository : AuthRepository {

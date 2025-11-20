@@ -76,7 +76,8 @@ class GetStartedScreenTest {
     runOnIdle()
 
     viewModel.signIn(controller.get(), credentialManager)
-    runOnIdle()
+
+    waitFor { capturedUid != null }
 
     assertEquals("uid-123", capturedUid)
     assertEquals(credential, repository.recordedCredential)
@@ -104,7 +105,8 @@ class GetStartedScreenTest {
     runOnIdle()
 
     viewModel.signIn(controller.get(), credentialManager)
-    runOnIdle()
+
+    waitFor { reportedError != null }
 
     assertEquals("Network down", reportedError)
     assertEquals(credential, repository.recordedCredential)
@@ -113,6 +115,15 @@ class GetStartedScreenTest {
   private fun runOnIdle() {
     Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+  }
+
+  private fun waitFor(timeoutMillis: Long = 2000, condition: () -> Boolean) {
+    val start = System.currentTimeMillis()
+    while (!condition()) {
+      if (System.currentTimeMillis() - start > timeoutMillis) break
+      runOnIdle()
+      Thread.sleep(10)
+    }
   }
 
   private class RecordingAuthRepository(private val result: Result<FirebaseUser>) : AuthRepository {
