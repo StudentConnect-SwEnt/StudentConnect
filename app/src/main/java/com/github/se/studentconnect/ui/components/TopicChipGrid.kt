@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.components
 
-import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -215,10 +214,10 @@ fun TopicFilterChip(
                 icon()
               } else {
                 Icon(
-                  imageVector = Icons.Outlined.Star,
-                  contentDescription = null,
-                  modifier = Modifier.size(20.dp),
-                  tint = contentColor)
+                    imageVector = Icons.Outlined.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = contentColor)
               }
               Text(text = label, style = MaterialTheme.typography.labelLarge, color = contentColor)
             }
