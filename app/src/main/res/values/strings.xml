@@ -249,6 +249,8 @@
     <string name="event_has_started">Event has started</string>
     <string name="event_hurry_up_started">Hurry up! Event has started</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
+    <string name="event_label_owner">Owner</string>
+    <string name="event_button_return">Return to Event</string>
     
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
@@ -275,7 +277,7 @@
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
-    
+
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
 
