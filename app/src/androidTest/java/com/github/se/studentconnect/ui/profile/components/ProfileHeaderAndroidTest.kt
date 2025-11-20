@@ -35,8 +35,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 42,
-          eventsCount = 15,
+          stats = ProfileStats(friendsCount = 42, eventsCount = 15),
           onFriendsClick = {},
           onEventsClick = {},
           onEditClick = {},
@@ -73,8 +72,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = { friendsClicked = true },
           onEventsClick = {})
     }
@@ -90,8 +88,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = { eventsClicked = true })
     }
@@ -107,8 +104,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onEditClick = { editClicked = true })
@@ -125,8 +121,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onUserCardClick = { cardClicked = true })
@@ -141,8 +136,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onEditClick = null,
@@ -158,8 +152,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onEditClick = {},
@@ -177,8 +170,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = userWithoutBio,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -195,8 +187,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = userWithoutCountry,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -214,8 +205,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 0,
-          eventsCount = 0,
+          stats = ProfileStats(friendsCount = 0, eventsCount = 0),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -230,8 +220,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 999,
-          eventsCount = 500,
+          stats = ProfileStats(friendsCount = 999, eventsCount = 500),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -245,8 +234,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -259,8 +247,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -273,8 +260,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onEditClick = {})
@@ -288,8 +274,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = testUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
           onUserCardClick = {})
@@ -305,8 +290,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = specialUser,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }
@@ -322,8 +306,7 @@ class ProfileHeaderAndroidTest {
     composeTestRule.setContent {
       ProfileHeader(
           user = userWithLongUni,
-          friendsCount = 10,
-          eventsCount = 5,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {})
     }

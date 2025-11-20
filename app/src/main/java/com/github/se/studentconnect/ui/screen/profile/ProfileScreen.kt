@@ -17,11 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
@@ -29,6 +29,7 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
+import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import com.google.firebase.firestore.FirebaseFirestore
 
 /**
@@ -100,8 +101,7 @@ fun ProfileScreen(
               // Profile Header Section (Profile Picture + Stats + User Info)
               ProfileHeader(
                   user = currentUser,
-                  friendsCount = friendsCount,
-                  eventsCount = eventsCount,
+                  stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
                   onFriendsClick = {
                     // Here we'll implement the view of the list of friend
                     Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
@@ -111,18 +111,12 @@ fun ProfileScreen(
                     Toast.makeText(context, eventHistoryComingSoon, Toast.LENGTH_SHORT).show()
                   },
                   onEditClick = {
-                    if (onNavigateToSettings != null) {
-                      onNavigateToSettings()
-                    } else {
-                      Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
-                    }
+                    onNavigateToSettings?.invoke()
+                        ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
                   },
                   onUserCardClick = {
-                    if (onNavigateToUserCard != null) {
-                      onNavigateToUserCard()
-                    } else {
-                      Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                    }
+                    onNavigateToUserCard?.invoke()
+                        ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
                   })
             }
       }

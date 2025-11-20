@@ -35,12 +35,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.User
 
+/** Data class holding profile statistics */
+data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
+
 /**
  * Profile header component showing user profile picture, stats, and user information.
  *
  * @param user The user whose profile is being displayed
- * @param friendsCount Number of friends the user has
- * @param eventsCount Number of events the user has joined
+ * @param stats Profile statistics (friends count and events count)
  * @param onFriendsClick Callback when friends count is clicked
  * @param onEventsClick Callback when events count is clicked
  * @param onEditClick Callback when edit button is clicked
@@ -50,8 +52,7 @@ import com.github.se.studentconnect.model.User
 @Composable
 fun ProfileHeader(
     user: User,
-    friendsCount: Int,
-    eventsCount: Int,
+    stats: ProfileStats,
     onFriendsClick: () -> Unit,
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
@@ -87,10 +88,10 @@ fun ProfileHeader(
               horizontalArrangement = Arrangement.SpaceEvenly,
               verticalAlignment = Alignment.CenterVertically) {
                 // Friends Count
-                StatItem(count = friendsCount, label = "Friends", onClick = onFriendsClick)
+                StatItem(count = stats.friendsCount, label = "Friends", onClick = onFriendsClick)
 
                 // Events Count
-                StatItem(count = eventsCount, label = "Events", onClick = onEventsClick)
+                StatItem(count = stats.eventsCount, label = "Events", onClick = onEventsClick)
               }
         }
 
