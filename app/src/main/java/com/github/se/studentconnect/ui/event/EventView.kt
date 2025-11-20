@@ -3,11 +3,17 @@ package com.github.se.studentconnect.ui.activities
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,12 +41,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
@@ -53,6 +62,7 @@ import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
 
@@ -79,8 +89,14 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
   const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
+  const val RETURN_TO_EVENT_BUTTON = "event_view_return_to_event_button"
+  const val ATTENDEE_LIST_ITEM = "event_view_attendee_list_item"
+  const val ATTENDEE_LIST_OWNER = "event_view_attendee_list_owner"
+  const val ATTENDEE_LIST_CURRENT_USER = "event_view_attendee_list_current_user"
+  const val ATTENDEE_LIST = "event_view_attendee_list"
   const val JOIN_BUTTON = "event_view_join_button"
   const val PARTICIPANTS_INFO = "event_view_participants_info"
+  const val BASE_SCREEN = "event_view_base_screen"
   const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
   const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
   const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
@@ -93,23 +109,18 @@ fun EventView(
     eventUid: String,
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
-    hasJoined: Boolean,
 ) {
+  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
   val isJoined = uiState.isJoined
   val showQrScanner = uiState.showQrScanner
   val validationResult = uiState.ticketValidationResult
-  val isFull = uiState.isFull
-  val participantCount = uiState.participantCount
 
-  val countDownViewModel: CountDownViewModel = viewModel()
-  val timeLeft by countDownViewModel.timeLeft.collectAsState()
+  val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
 
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
-
-  LaunchedEffect(event) { event?.let { countDownViewModel.startCountdown(it.start) } }
 
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
@@ -136,13 +147,15 @@ fun EventView(
               event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             },
             navigationIcon = {
-              IconButton(
-                  onClick = { navController.popBackStack() },
-                  modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.content_description_back))
-                  }
+              if (pagerState.currentPage == 1) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
+                      Icon(
+                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                          contentDescription = stringResource(R.string.content_description_back))
+                    }
+              }
             },
             actions = {
               // View Polls button - only show if user is joined or is owner
@@ -159,97 +172,208 @@ fun EventView(
                     }
               }
             },
-            modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR))
-      }) { paddingValues ->
-        if (isLoading) {
-          Box(
-              modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
-              contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-              }
-        } else if (event != null) {
-          val context = LocalContext.current
-          val repository = MediaRepositoryProvider.repository
-          val profileId = event.imageUrl
-          val imageBitmap by
-              produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-                value =
-                    profileId?.let { id ->
-                      runCatching { repository.download(id) }
-                          .onFailure {
-                            android.util.Log.e(
-                                "eventViewImage", "Failed to download event image: $id", it)
-                          }
-                          .getOrNull()
-                          ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-                    }
-              }
-          Column(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .padding(paddingValues)
-                      .verticalScroll(rememberScrollState()),
-              horizontalAlignment = Alignment.CenterHorizontally,
-              verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
-                val configuration = LocalConfiguration.current
-                val screenHeight = configuration.screenHeightDp.dp
-                val boxHeight = screenHeight * 0.3f
-                val boxModifier =
-                    Modifier.fillMaxWidth()
-                        .height(boxHeight)
-                        .padding(horizontal = screenPadding)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .testTag(EventViewTestTags.EVENT_IMAGE)
-                Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
-                  if (imageBitmap != null) {
-                    Image(
-                        bitmap = imageBitmap!!,
-                        contentDescription =
-                            stringResource(R.string.content_description_event_image),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop)
-                  } else {
-                    Icon(
-                        imageVector = Icons.Default.Image,
-                        contentDescription =
-                            stringResource(R.string.content_description_event_image),
-                        modifier = Modifier.size(60.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                  }
-                }
-                EventActionButtons(
-                    joined = isJoined,
-                    isFull = isFull,
-                    currentEvent = event,
-                    eventViewModel = eventViewModel,
-                    modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                    navController = navController)
-
-                InfoEvent(
-                    timeLeft = timeLeft,
-                    event = event,
-                    isJoined = isJoined,
-                    participantCount = participantCount,
-                    modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
-
-                // Poll notification for participants (not organizers)
-                if (isJoined &&
-                    uiState.activePolls.isNotEmpty() &&
-                    AuthenticationProvider.currentUser != event.ownerId) {
-                  PollNotificationCard(
-                      onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                      onDismissClick = { /* TODO: Add dismiss functionality if needed */},
-                      modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-                }
-
-                ChatButton()
-              }
+            modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
+        )
+      },
+  ) { paddingValues ->
+    if (isLoading) {
+      Box(
+          modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
+          contentAlignment = Alignment.Center,
+      ) {
+        CircularProgressIndicator()
+      }
+    } else if (event != null) {
+      HorizontalPager(
+          state = pagerState,
+          modifier = Modifier.fillMaxSize().padding(paddingValues),
+          userScrollEnabled = false,
+      ) { page ->
+        when (page) {
+          0 ->
+              AttendeesList(
+                  paddingValues = paddingValues,
+                  pagerState = pagerState,
+                  context = context,
+                  uiState = uiState)
+          1 ->
+              BaseEventView(
+                  paddingValues = paddingValues,
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState)
         }
       }
+    }
+  }
 }
 
 private const val DAY_IN_SECONDS = 86400
+
+@Composable
+private fun BaseEventView(
+    paddingValues: PaddingValues,
+    eventViewModel: EventViewModel,
+    event: Event,
+    navController: NavHostController,
+    pagerState: PagerState
+) {
+  val coroutineScope = rememberCoroutineScope()
+  val uiState by eventViewModel.uiState.collectAsState()
+  val isJoined = uiState.isJoined
+  val isFull = uiState.isFull
+  val participantCount = uiState.participantCount
+
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = event.imageUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
+  val countDownViewModel: CountDownViewModel = viewModel()
+  val timeLeft by countDownViewModel.timeLeft.collectAsState()
+
+  LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
+  Column(
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(paddingValues)
+              .verticalScroll(rememberScrollState())
+              .testTag(EventViewTestTags.BASE_SCREEN),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val boxHeight = screenHeight * 0.3f
+        val boxModifier =
+            Modifier.fillMaxWidth()
+                .height(boxHeight)
+                .padding(horizontal = screenPadding)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .testTag(EventViewTestTags.EVENT_IMAGE)
+        Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
+          if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap!!,
+                contentDescription = stringResource(R.string.content_description_event_image),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop)
+          } else {
+            Icon(
+                imageVector = Icons.Default.Image,
+                contentDescription = stringResource(R.string.content_description_event_image),
+                modifier = Modifier.size(60.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+          }
+        }
+
+        EventActionButtons(
+            joined = isJoined,
+            isFull = isFull,
+            currentEvent = event,
+            eventViewModel = eventViewModel,
+            modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+            navController = navController)
+
+        InfoEvent(
+            timeLeft = timeLeft,
+            event = event,
+            isJoined = isJoined,
+            participantCount = participantCount,
+            onClickParticipants = {
+              coroutineScope.launch { pagerState.scrollToPage(0) }
+              coroutineScope.launch { eventViewModel.fetchAttendees() }
+            },
+            modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+
+        // Poll notification for participants (not organizers)
+        if (isJoined &&
+            uiState.activePolls.isNotEmpty() &&
+            AuthenticationProvider.currentUser != event.ownerId) {
+          PollNotificationCard(
+              onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+              onDismissClick = { /* TODO: Add dismiss functionality if needed */},
+              modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+        }
+
+        ChatButton()
+      }
+}
+
+@Composable
+private fun AttendeesList(
+    paddingValues: PaddingValues,
+    pagerState: PagerState,
+    context: Context,
+    uiState: EventUiState
+) {
+  val coroutineScope = rememberCoroutineScope()
+  val isJoined = uiState.isJoined
+  val attendees = uiState.attendees
+  val user = uiState.currentUser
+  val owner = uiState.owner
+
+  Scaffold(
+      modifier =
+          Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.ATTENDEE_LIST),
+      bottomBar = {
+        Button(
+            onClick = { coroutineScope.launch { pagerState.scrollToPage(1) } },
+            content = { Text(stringResource(R.string.event_button_return)) },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(screenPadding)
+                    .testTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON),
+        )
+      },
+  ) { paddingValues ->
+    LazyColumn(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
+    ) {
+      if (isJoined && user != null && user != owner) {
+        item {
+          AttendeeItem(
+              user,
+              false,
+              { DialogNotImplemented(context = context) },
+              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
+        }
+      }
+      if (owner != null) {
+        item {
+          AttendeeItem(
+              owner,
+              true,
+              { DialogNotImplemented(context = context) },
+              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
+        }
+      }
+
+      items(attendees) { a ->
+        if (a != user && a != owner)
+            AttendeeItem(
+                a,
+                false,
+                { DialogNotImplemented(context = context) },
+                modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
+      }
+    }
+  }
+}
 
 /** Shows countdown, description, and attendance information for the given event. */
 @Composable
@@ -258,6 +382,7 @@ private fun InfoEvent(
     event: Event,
     isJoined: Boolean,
     participantCount: Int,
+    onClickParticipants: () -> Unit,
     modifier: Modifier = Modifier
 ) {
   val now = Timestamp.now()
@@ -309,49 +434,53 @@ private fun InfoEvent(
             text = event.description,
             modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
         Spacer(modifier = Modifier.height(10.dp))
-        ParticipantsInfo(event = event, participantCount = participantCount)
+        ParticipantsInfo(event = event, participantCount = participantCount, onClickParticipants)
       }
 }
 
 @Composable
-private fun ParticipantsInfo(event: Event, participantCount: Int) {
+private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () -> Unit) {
   val capacity =
       when (event) {
         is Event.Public -> event.maxCapacity
         is Event.Private -> event.maxCapacity
       }
 
-  Column(modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.PARTICIPANTS_INFO)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          Icon(
-              painter = painterResource(id = R.drawable.ic_group),
-              contentDescription = stringResource(R.string.content_description_participants),
-              modifier = Modifier.size(24.dp))
-          val participantsText =
-              if (capacity != null) {
-                "$participantCount / $capacity"
-              } else {
-                stringResource(R.string.text_participants_count, participantCount)
-              }
-          Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+  Column(
+      modifier =
+          Modifier.fillMaxWidth()
+              .testTag(EventViewTestTags.PARTICIPANTS_INFO)
+              .clickable(onClick = onClick)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              Icon(
+                  painter = painterResource(id = R.drawable.ic_group),
+                  contentDescription = stringResource(R.string.content_description_participants),
+                  modifier = Modifier.size(24.dp))
+              val participantsText =
+                  if (capacity != null) {
+                    "$participantCount / $capacity"
+                  } else {
+                    stringResource(R.string.text_participants_count, participantCount)
+                  }
+              Text(text = participantsText, style = MaterialTheme.typography.bodyLarge)
+            }
+        capacity?.let { maxCap ->
+          val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
+          Spacer(modifier = Modifier.height(8.dp))
+          LinearProgressIndicator(
+              progress = { progress },
+              modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
+              color =
+                  if (progress < 0.75f) MaterialTheme.colorScheme.primary
+                  else MaterialTheme.colorScheme.error,
+              trackColor = MaterialTheme.colorScheme.surfaceVariant,
+              strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+          )
         }
-    capacity?.let { maxCap ->
-      val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
-      Spacer(modifier = Modifier.height(8.dp))
-      LinearProgressIndicator(
-          progress = { progress },
-          modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
-          color =
-              if (progress < 0.75f) MaterialTheme.colorScheme.primary
-              else MaterialTheme.colorScheme.error,
-          trackColor = MaterialTheme.colorScheme.surfaceVariant,
-          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-      )
-    }
-  }
+      }
 }
 
 @Composable
@@ -571,7 +700,7 @@ private fun CommonActionButtons(
                   "https://$website"
                 } else website
             try {
-              val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
+              val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
               context.startActivity(intent)
             } catch (_: ActivityNotFoundException) {
               Toast.makeText(
@@ -744,6 +873,36 @@ private fun getValidationContentColor(result: TicketValidationResult) =
       is TicketValidationResult.Invalid -> MaterialTheme.colorScheme.onErrorContainer
       is TicketValidationResult.Error -> MaterialTheme.colorScheme.onSecondaryContainer
     }
+
+@Composable
+private fun AttendeeItem(
+    attendee: User,
+    owner: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Row(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, end = screenPadding)
+              .clickable(onClick = onClick),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Image(
+        painter = painterResource(R.drawable.ic_user),
+        contentDescription = "attendee image",
+        Modifier.size(48.dp),
+    )
+    Column {
+      Text(
+          attendee.firstName + " " + attendee.lastName,
+          fontSize = MaterialTheme.typography.headlineMedium.fontSize)
+      if (owner) Text(stringResource(R.string.event_label_owner))
+    }
+  }
+}
 
 private fun getValidationTestTag(result: TicketValidationResult) =
     when (result) {

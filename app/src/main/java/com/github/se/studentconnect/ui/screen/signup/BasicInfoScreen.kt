@@ -234,7 +234,15 @@ fun BasicInfoScreen(
       }
 }
 
-/** Text field for username input with real-time validation and availability checking. */
+/**
+ * Text field for username input with real-time validation and availability checking.
+ *
+ * @param username Current username input value
+ * @param onUsernameChange Callback when the username input changes
+ * @param userRepository Repository to check username availability
+ * @param onValidationStateChange Callback to report validation state changes (isValid, isAvailable)
+ * @param modifier Optional modifier for the text field
+ */
 @Composable
 fun UsernameTextField(
     username: String,
@@ -334,8 +342,14 @@ fun UsernameTextField(
                   else MaterialTheme.colorScheme.onSurface))
 }
 
+/**
+ * Displays a banner with avatar images in a horizontal row.
+ *
+ * @param modifier Modifier to be applied to the banner
+ * @param avatarResIds List of drawable resource IDs for the avatars to display
+ */
 @Composable
-private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
+fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
   val primary = MaterialTheme.colorScheme.primary
   val borderColor =
       remember(primary) {
@@ -361,7 +375,7 @@ private fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>)
 }
 
 @Composable
-private fun AvatarItem(@DrawableRes avatarResId: Int) {
+fun AvatarItem(@DrawableRes avatarResId: Int) {
   Surface(
       modifier = Modifier.size(82.dp),
       shape = CircleShape,
@@ -375,17 +389,3 @@ private fun AvatarItem(@DrawableRes avatarResId: Int) {
             contentScale = ContentScale.Crop)
       }
 }
-
-// @SuppressLint("ViewModelConstructorInComposable")
-// @OptIn(ExperimentalMaterial3Api::class)
-// @Preview(showBackground = true)
-// @Composable
-// private fun BasicInfoScreenPreview() {
-//  AppTheme {
-//    BasicInfoScreen(
-//        viewModel = SignUpViewModel(),
-//        userRepository = UserRepositoryLocal(),
-//        onContinue = {},
-//        onBack = {})
-//  }
-// }
