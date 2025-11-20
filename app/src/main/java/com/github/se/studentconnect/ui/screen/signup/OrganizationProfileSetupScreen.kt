@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -45,9 +45,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,10 +62,7 @@ private data class DomainOption(
     val icon: ImageVector
 )
 
-private data class SimpleOption(
-    val key: String,
-    @StringRes val labelRes: Int
-)
+private data class SimpleOption(val key: String, @StringRes val labelRes: Int)
 
 private val domainOptions =
     listOf(
@@ -119,7 +116,10 @@ private val locationOptions =
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OrganizationProfileSetupScreen(
-    onBack: () -> Unit, onStartNow: () -> Unit, modifier: Modifier = Modifier) {
+    onBack: () -> Unit,
+    onStartNow: () -> Unit,
+    modifier: Modifier = Modifier
+) {
   var selectedLocation by rememberSaveable { mutableStateOf("") }
   var isDropdownExpanded by remember { mutableStateOf(false) }
   var selectedDomains by rememberSaveable { mutableStateOf(listOf<String>()) }
@@ -171,57 +171,55 @@ fun OrganizationProfileSetupScreen(
               FlowRow(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
-                domainOptions.forEach { option ->
-                  val isSelected = option.key in selectedDomains
-                  val canSelectMore =
-                      isSelected || selectedDomains.size < MAX_DOMAIN_SELECTION
-                  DomainChip(
-                      text = stringResource(option.labelRes),
-                      icon = option.icon,
-                      selected = isSelected,
-                      enabled = canSelectMore,
-                      onClick = {
-                        selectedDomains =
-                            if (isSelected) selectedDomains - option.key
-                            else selectedDomains + option.key
-                      })
-                }
-              }
+                    domainOptions.forEach { option ->
+                      val isSelected = option.key in selectedDomains
+                      val canSelectMore = isSelected || selectedDomains.size < MAX_DOMAIN_SELECTION
+                      DomainChip(
+                          text = stringResource(option.labelRes),
+                          icon = option.icon,
+                          selected = isSelected,
+                          enabled = canSelectMore,
+                          onClick = {
+                            selectedDomains =
+                                if (isSelected) selectedDomains - option.key
+                                else selectedDomains + option.key
+                          })
+                    }
+                  }
 
               FormSectionLabel(text = stringResource(R.string.org_setup_age_range_label))
               FlowRow(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
-                ageRangeOptions.forEach { option ->
-                  val isSelected = option.key in selectedAgeRanges
-                  SimpleSelectableChip(
-                      text = stringResource(option.labelRes),
-                      selected = isSelected,
-                      onClick = {
-                        selectedAgeRanges =
-                            if (isSelected) selectedAgeRanges - option.key
-                            else selectedAgeRanges + option.key
-                      })
-                }
-              }
+                    ageRangeOptions.forEach { option ->
+                      val isSelected = option.key in selectedAgeRanges
+                      SimpleSelectableChip(
+                          text = stringResource(option.labelRes),
+                          selected = isSelected,
+                          onClick = {
+                            selectedAgeRanges =
+                                if (isSelected) selectedAgeRanges - option.key
+                                else selectedAgeRanges + option.key
+                          })
+                    }
+                  }
 
               FormSectionLabel(text = stringResource(R.string.org_setup_event_size_label))
               FlowRow(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
-                eventSizeOptions.forEach { option ->
-                  val isSelected = option.key == selectedEventSize
-                  SimpleSelectableChip(
-                      text = stringResource(option.labelRes),
-                      selected = isSelected,
-                      onClick = { selectedEventSize = option.key })
-                }
-              }
+                    eventSizeOptions.forEach { option ->
+                      val isSelected = option.key == selectedEventSize
+                      SimpleSelectableChip(
+                          text = stringResource(option.labelRes),
+                          selected = isSelected,
+                          onClick = { selectedEventSize = option.key })
+                    }
+                  }
 
               Text(
                   text = stringResource(R.string.org_setup_event_size_hint),
-                  style =
-                      MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                  style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
@@ -259,7 +257,9 @@ private fun LocationDropdownField(
         Row(
             modifier =
                 Modifier.fillMaxWidth()
-                    .padding(horizontal = horizontalPadding, vertical = SignUpScreenConstants.BUTTON_VERTICAL_PADDING),
+                    .padding(
+                        horizontal = horizontalPadding,
+                        vertical = SignUpScreenConstants.BUTTON_VERTICAL_PADDING),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween) {
               Row(verticalAlignment = Alignment.CenterVertically) {
@@ -277,8 +277,7 @@ private fun LocationDropdownField(
               }
               Icon(
                   imageVector = Icons.Outlined.ArrowDropDown,
-                  contentDescription =
-                      stringResource(R.string.content_description_open_dropdown),
+                  contentDescription = stringResource(R.string.content_description_open_dropdown),
                   tint = primary)
             }
       }
@@ -313,8 +312,7 @@ private fun LocationDropdownField(
                               MaterialTheme.typography.bodyLarge.copy(
                                   fontWeight =
                                       if (isSelected) FontWeight.Bold else FontWeight.Normal),
-                          color =
-                              if (isSelected) primary else MaterialTheme.colorScheme.onSurface)
+                          color = if (isSelected) primary else MaterialTheme.colorScheme.onSurface)
                     }
               }
             }
@@ -358,8 +356,7 @@ private fun DomainChip(
       color = backgroundColor,
       contentColor = contentColor,
       border =
-          if (selected)
-              BorderStroke(width = OutlineWidth, color = primary.copy(alpha = 0.7f))
+          if (selected) BorderStroke(width = OutlineWidth, color = primary.copy(alpha = 0.7f))
           else BorderStroke(width = OutlineWidth, color = primary.copy(alpha = 0.4f))) {
         Row(
             modifier =
@@ -388,8 +385,7 @@ private fun SimpleSelectableChip(text: String, selected: Boolean, onClick: () ->
           if (selected) primary else MaterialTheme.colorScheme.surface, label = "chipBackground")
   val contentColor =
       if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
-  val chipModifier =
-      Modifier.semantics(mergeDescendants = true) { this.selected = selected }
+  val chipModifier = Modifier.semantics(mergeDescendants = true) { this.selected = selected }
   Surface(
       shape = MaterialTheme.shapes.large,
       border = BorderStroke(OutlineWidth, primary.copy(alpha = if (selected) 0.7f else 0.4f)),
@@ -416,7 +412,5 @@ private val OutlineWidth = 1.dp
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 private fun OrganizationProfileSetupScreenPreview() {
-  AppTheme {
-    OrganizationProfileSetupScreen(onBack = {}, onStartNow = {})
-  }
+  AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
 }

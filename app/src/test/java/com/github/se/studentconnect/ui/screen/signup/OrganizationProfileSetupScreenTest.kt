@@ -2,7 +2,6 @@ package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -69,11 +68,7 @@ class OrganizationProfileSetupScreenTest {
     var startNowClicks = 0
 
     composeRule.setContent {
-      AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {},
-            onStartNow = { startNowClicks++ })
-      }
+      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = { startNowClicks++ }) }
     }
 
     composeRule.waitForIdle()
@@ -128,7 +123,7 @@ class OrganizationProfileSetupScreenTest {
     // Deselecting one should work
     composeRule.onNodeWithText("Sport").performClick()
     composeRule.waitForIdle()
-    
+
     // Verify we can still interact with other domains
     composeRule.onNodeWithText("Music").performClick()
     composeRule.waitForIdle()
@@ -155,11 +150,7 @@ class OrganizationProfileSetupScreenTest {
     var backClicks = 0
 
     composeRule.setContent {
-      AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = { backClicks++ },
-            onStartNow = {})
-      }
+      AppTheme { OrganizationProfileSetupScreen(onBack = { backClicks++ }, onStartNow = {}) }
     }
 
     composeRule.waitForIdle()
@@ -195,7 +186,7 @@ class OrganizationProfileSetupScreenTest {
     composeRule.waitForIdle()
     composeRule.onNodeWithText("Music").performClick()
     composeRule.waitForIdle()
-    
+
     // Verify selected domains are still accessible
     composeRule.onNodeWithText("Sport").assertIsDisplayed()
     composeRule.onNodeWithText("Music").assertIsDisplayed()
