@@ -40,7 +40,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel, onNavigateBack = {}) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = testUser.userId, viewModel = viewModel, onNavigateBack = {})
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithContentDescription("Back").assertIsDisplayed()
@@ -53,7 +55,10 @@ class UserCardScreenAndroidTest {
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
 
     composeTestRule.setContent {
-      UserCardScreen(viewModel = viewModel, onNavigateBack = { backButtonClicked = true })
+      UserCardScreen(
+          currentUserId = testUser.userId,
+          viewModel = viewModel,
+          onNavigateBack = { backButtonClicked = true })
     }
 
     composeTestRule.waitForIdle()
@@ -67,7 +72,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Tap the card to flip it").assertIsDisplayed()
@@ -93,7 +100,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = "complete123")
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = "complete123", viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -119,7 +128,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = "minimal123")
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = "minimal123", viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -133,7 +144,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -150,7 +163,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = "special123")
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = "special123", viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -164,7 +179,9 @@ class UserCardScreenAndroidTest {
     val viewModel =
         UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
 
-    composeTestRule.setContent { UserCardScreen(viewModel = viewModel, onNavigateBack = {}) }
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = testUser.userId, viewModel = viewModel, onNavigateBack = {})
+    }
 
     composeTestRule.waitForIdle()
 

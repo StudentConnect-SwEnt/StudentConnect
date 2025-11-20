@@ -47,7 +47,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -75,7 +77,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -96,7 +100,10 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel, onNavigateToSettings = {}) }
+    composeTestRule.setContent {
+      ProfileScreen(
+          currentUserId = testUser.userId, viewModel = viewModel, onNavigateToSettings = {})
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Edit").assertIsDisplayed()
@@ -110,7 +117,10 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel, onNavigateToUserCard = {}) }
+    composeTestRule.setContent {
+      ProfileScreen(
+          currentUserId = testUser.userId, viewModel = viewModel, onNavigateToUserCard = {})
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Card").assertIsDisplayed()
@@ -128,7 +138,9 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.setContent {
       ProfileScreen(
-          viewModel = viewModel, onNavigateToSettings = { navigateToSettingsCalled = true })
+          currentUserId = testUser.userId,
+          viewModel = viewModel,
+          onNavigateToSettings = { navigateToSettingsCalled = true })
     }
 
     composeTestRule.waitForIdle()
@@ -149,7 +161,9 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.setContent {
       ProfileScreen(
-          viewModel = viewModel, onNavigateToUserCard = { navigateToUserCardCalled = true })
+          currentUserId = testUser.userId,
+          viewModel = viewModel,
+          onNavigateToUserCard = { navigateToUserCardCalled = true })
     }
 
     composeTestRule.waitForIdle()
@@ -166,7 +180,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
@@ -180,7 +196,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithContentDescription("Location").assertIsDisplayed()
@@ -197,7 +215,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -217,7 +237,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -238,7 +260,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
@@ -258,7 +282,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("0").assertIsDisplayed()
@@ -273,7 +299,9 @@ class ProfileScreenAndroidTest {
             friendsRepository = mockFriendsRepository,
             currentUserId = testUser.userId)
 
-    composeTestRule.setContent { ProfileScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
 
     composeTestRule.waitForIdle()
 
