@@ -204,6 +204,14 @@ internal fun ExperiencesContent(
   }
 }
 
+/**
+ * A filter chip used in the Experiences screen to select experience categories.
+ *
+ * @param label The text label of the chip.
+ * @param selected Whether the chip is currently selected.
+ * @param onClick Callback invoked when the chip is clicked.
+ * @param icon Optional composable icon to display alongside the label.
+ */
 @Composable
 internal fun ExperienceFilterChip(
     label: String,

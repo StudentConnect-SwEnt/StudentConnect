@@ -234,7 +234,15 @@ fun BasicInfoScreen(
       }
 }
 
-/** Text field for username input with real-time validation and availability checking. */
+/**
+ * Text field for username input with real-time validation and availability checking.
+ *
+ * @param username Current username input value
+ * @param onUsernameChange Callback when the username input changes
+ * @param userRepository Repository to check username availability
+ * @param onValidationStateChange Callback to report validation state changes (isValid, isAvailable)
+ * @param modifier Optional modifier for the text field
+ */
 @Composable
 fun UsernameTextField(
     username: String,
@@ -334,6 +342,12 @@ fun UsernameTextField(
                   else MaterialTheme.colorScheme.onSurface))
 }
 
+/**
+ * Displays a banner with avatar images in a horizontal row.
+ *
+ * @param modifier Modifier to be applied to the banner
+ * @param avatarResIds List of drawable resource IDs for the avatars to display
+ */
 @Composable
 fun AvatarBanner(modifier: Modifier = Modifier, avatarResIds: List<Int>) {
   val primary = MaterialTheme.colorScheme.primary
