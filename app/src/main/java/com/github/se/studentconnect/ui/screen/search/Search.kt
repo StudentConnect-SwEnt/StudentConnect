@@ -45,9 +45,9 @@ fun SearchScreen(
     viewModel: SearchViewModel = viewModel(),
 ) {
   val focusManager = LocalFocusManager.current
-  val screenWidth =
+  screenWidth.value =
       with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
-  val screenHeight =
+  screenHeight.value =
       with(LocalDensity.current) { LocalWindowInfo.current.containerSize.height.toDp() }
   val hasUsers = viewModel.hasUsers()
   val hasEvents = viewModel.hasEvents()
@@ -66,20 +66,18 @@ fun SearchScreen(
     ) {
       if (hasUsers) {
         People(
-            screenWidth = screenWidth,
-            navController = navController,
-            screenHeight = screenHeight,
             alone = !hasEvents,
-            users = viewModel.state.value.shownUsers)
+            users = viewModel.state.value.shownUsers,
+            navController = navController)
       }
       if (hasEvents) {
-        Events(
-            viewModel,
-            navController,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            !hasUsers,
-            events = viewModel.state.value.shownEvents)
+        Events(viewModel, navController, !hasUsers, events = viewModel.state.value.shownEvents)
+      }
+      if ((hasEvents && hasUsers) || (!hasEvents && !hasUsers)) {
+        Organizations(
+            alone = (!hasEvents),
+            fakeOrgaCount = 15,
+        )
       }
     }
   }
