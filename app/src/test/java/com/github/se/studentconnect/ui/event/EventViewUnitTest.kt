@@ -14,7 +14,6 @@ import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
-import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import java.io.File
 import java.util.Base64
@@ -81,7 +80,7 @@ class EventViewUnitTest {
             tags = emptyList(),
             website = null)
 
-    val eventRepo = com.github.se.studentconnect.model.event.EventRepositoryLocal()
+    val eventRepo = EventRepositoryLocal()
     kotlinx.coroutines.runBlocking { eventRepo.addEvent(event) }
     val localUserRepo = UserRepositoryLocal()
 
@@ -90,7 +89,7 @@ class EventViewUnitTest {
     composeTestRule.setContent {
       MaterialTheme {
         val nav = rememberNavController()
-        EventView(eventUid = event.uid, navController = nav, eventViewModel = vm, hasJoined = false)
+        EventView(eventUid = event.uid, navController = nav, eventViewModel = vm)
       }
     }
 
@@ -143,7 +142,7 @@ class EventViewUnitTest {
     composeTestRule.setContent {
       MaterialTheme {
         val nav = rememberNavController()
-        EventView(eventUid = event.uid, navController = nav, eventViewModel = vm, hasJoined = false)
+        EventView(eventUid = event.uid, navController = nav, eventViewModel = vm)
       }
     }
 
