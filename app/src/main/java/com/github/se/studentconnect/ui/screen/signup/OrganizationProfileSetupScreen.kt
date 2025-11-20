@@ -304,21 +304,37 @@ private fun FormSectionLabel(text: String) {
               fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant))
 }
 
+/**
+ * Base composable for selectable chips with common styling and behavior.
+ *
+ * @param text The text to display in the chip
+ * @param selected Whether the chip is currently selected
+ * @param enabled Whether the chip can be clicked (defaults to true)
+ * @param onClick Callback when the chip is clicked
+ * @param selectedBackgroundColor Background color when selected
+ * @param unselectedBackgroundColor Background color when not selected
+ * @param selectedContentColor Content color when selected
+ * @param unselectedContentColor Content color when not selected
+ * @param content The content to display inside the chip
+ */
 @Composable
-private fun DomainChip(
+private fun SelectableChip(
     text: String,
-    icon: ImageVector,
     selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    selectedBackgroundColor: androidx.compose.ui.graphics.Color,
+    unselectedBackgroundColor: androidx.compose.ui.graphics.Color,
+    selectedContentColor: androidx.compose.ui.graphics.Color,
+    unselectedContentColor: androidx.compose.ui.graphics.Color,
+    content: @Composable () -> Unit
 ) {
   val primary = MaterialTheme.colorScheme.primary
-  val unselected = MaterialTheme.colorScheme.primaryContainer
   val backgroundColor by
-      animateColorAsState(if (selected) primary else unselected, label = "domainChipColor")
-  val contentColor =
-      if (selected) MaterialTheme.colorScheme.onPrimary
-      else MaterialTheme.colorScheme.onPrimaryContainer
+      animateColorAsState(
+          if (selected) selectedBackgroundColor else unselectedBackgroundColor,
+          label = "chipBackground")
+  val contentColor = if (selected) selectedContentColor else unselectedContentColor
   val chipModifier =
       Modifier.semantics(mergeDescendants = true) {
         this.selected = selected
@@ -330,8 +346,30 @@ private fun DomainChip(
       color = backgroundColor,
       contentColor = contentColor,
       border =
-          if (selected) BorderStroke(width = OutlineWidth, color = primary.copy(alpha = 0.7f))
-          else BorderStroke(width = OutlineWidth, color = primary.copy(alpha = 0.4f))) {
+          BorderStroke(
+              width = OutlineWidth,
+              color = primary.copy(alpha = if (selected) 0.7f else 0.4f))) {
+        content()
+      }
+}
+
+@Composable
+private fun DomainChip(
+    text: String,
+    icon: ImageVector,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+  SelectableChip(
+      text = text,
+      selected = selected,
+      enabled = enabled,
+      onClick = onClick,
+      selectedBackgroundColor = MaterialTheme.colorScheme.primary,
+      unselectedBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+      selectedContentColor = MaterialTheme.colorScheme.onPrimary,
+      unselectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
         Row(
             modifier =
                 Modifier.padding(
@@ -353,18 +391,17 @@ private fun DomainChip(
 
 @Composable
 private fun SimpleSelectableChip(text: String, selected: Boolean, onClick: () -> Unit) {
-  val primary = MaterialTheme.colorScheme.primary
-  val backgroundColor by
-      animateColorAsState(
-          if (selected) primary else MaterialTheme.colorScheme.surface, label = "chipBackground")
   val contentColor =
       if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
-  val chipModifier = Modifier.semantics(mergeDescendants = true) { this.selected = selected }
-  Surface(
-      shape = MaterialTheme.shapes.large,
-      border = BorderStroke(OutlineWidth, primary.copy(alpha = if (selected) 0.7f else 0.4f)),
-      color = backgroundColor,
-      modifier = chipModifier.clickable(onClick = onClick)) {
+  SelectableChip(
+      text = text,
+      selected = selected,
+      enabled = true,
+      onClick = onClick,
+      selectedBackgroundColor = MaterialTheme.colorScheme.primary,
+      unselectedBackgroundColor = MaterialTheme.colorScheme.surface,
+      selectedContentColor = MaterialTheme.colorScheme.onPrimary,
+      unselectedContentColor = MaterialTheme.colorScheme.primary) {
         Text(
             text = text,
             style =
