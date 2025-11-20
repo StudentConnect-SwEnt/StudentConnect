@@ -119,6 +119,7 @@ fun AccountTypeSelectionScreen(
 ) {
   val state by viewModel.state
   val selectedType = state.accountTypeSelection
+  // Calculate responsive sizing/spacing metrics for animated card transitions
   val metrics = rememberAccountTypeMetrics()
   val accentColor = MaterialTheme.colorScheme.primary
 
@@ -321,6 +322,31 @@ private fun ExpandedCardContent(
     }
 }
 
+/**
+ * Container for all sizing and spacing measurements used in the animated account type selection cards.
+ *
+ * "Metrics" here refers to the dimensional measurements (sizes, spacing, padding, etc.) that control
+ * the layout and animation behavior of the account type cards. These values are calculated responsively
+ * based on screen dimensions to ensure consistent proportions across different device sizes.
+ *
+ * Used by [AccountTypeAnimatedCard], [ExpandedCardContent], and [SmallIconOnlyContent] to determine
+ * card heights, corner radii, spacing, and icon sizes during the animated transitions between selected
+ * and unselected states.
+ *
+ * @property collapsedSize Size of the card when it's collapsed (when another card is selected)
+ * @property mediumHeight Default height of an unselected card
+ * @property expandedHeight Height of the card when it's selected and expanded
+ * @property selectedCornerRadius Corner radius for the selected card
+ * @property defaultCornerRadius Corner radius for unselected cards
+ * @property interCardSpacing Vertical spacing between account type cards
+ * @property cardContentHorizontalPadding Horizontal padding inside the card content
+ * @property cardContentVerticalPadding Vertical padding inside the card content
+ * @property featureSpacing Vertical spacing between feature list items
+ * @property featureIconTopPadding Top padding for feature icons
+ * @property featureIconTextSpacing Horizontal spacing between feature icon and text
+ * @property compactIconSize Font size for the icon when card is collapsed
+ * @property heroIconSize Font size for the icon when card is expanded
+ */
 private data class AccountTypeMetrics(
     val collapsedSize: Dp,
     val mediumHeight: Dp,
@@ -337,6 +363,13 @@ private data class AccountTypeMetrics(
     val heroIconSize: TextUnit
 )
 
+/**
+ * Calculates responsive sizing and spacing metrics for account type selection cards.
+ *
+ * All measurements are computed as percentages of screen dimensions to ensure consistent
+ * proportions across different device sizes. These metrics are used to control the animated
+ * transitions between card states (collapsed, medium, expanded).
+ */
 @Composable
 private fun rememberAccountTypeMetrics(): AccountTypeMetrics {
   val windowInfo = LocalWindowInfo.current
