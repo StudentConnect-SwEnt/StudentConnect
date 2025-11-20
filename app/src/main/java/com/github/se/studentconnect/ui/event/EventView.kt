@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -74,6 +76,7 @@ object EventViewTestTags {
   const val INFO_SECTION = "event_view_info_section"
   const val COUNTDOWN_TIMER = "event_view_countdown_timer"
   const val COUNTDOWN_DAYS = "event_view_countdown_days"
+  const val TAGS_SECTION = "event_view_tags"
   const val DESCRIPTION_TEXT = "event_view_description_text"
   const val CHAT_BUTTON = "event_view_chat_button"
   const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
@@ -391,6 +394,9 @@ private fun InfoEvent(
                 }
           }
         }
+        if (event is Event.Public && event.tags.isNotEmpty()) {
+          EventTagsRow(tags = event.tags)
+        }
         Text(text = stringResource(R.string.event_label_description), style = titleTextStyle())
         Text(
             text = event.description,
@@ -398,6 +404,38 @@ private fun InfoEvent(
         Spacer(modifier = Modifier.height(10.dp))
         ParticipantsInfo(event = event, participantCount = participantCount, onClickParticipants)
       }
+}
+
+/**
+ * Displays the tags associated with a public event using pill-shaped chips.
+ *
+ * @param tags List of tag labels to display
+ * @param modifier Modifier applied to the row container
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EventTagsRow(tags: List<String>, modifier: Modifier = Modifier) {
+  Column(modifier = modifier.fillMaxWidth().testTag(EventViewTestTags.TAGS_SECTION)) {
+    Text(text = stringResource(R.string.event_label_tags), style = titleTextStyle())
+    Spacer(modifier = Modifier.height(8.dp))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          tags.forEach { tag ->
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer) {
+                  Text(
+                      text = tag,
+                      style = MaterialTheme.typography.bodyMedium,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                }
+          }
+        }
+  }
 }
 
 @Composable
