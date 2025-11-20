@@ -21,11 +21,12 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.screen.signup.ExperienceFilterChip
+import com.github.se.studentconnect.ui.components.TopicChip
+import com.github.se.studentconnect.ui.components.TopicChipGridTestTags
+import com.github.se.studentconnect.ui.components.TopicFilterChip
 import com.github.se.studentconnect.ui.screen.signup.ExperiencesContent
 import com.github.se.studentconnect.ui.screen.signup.ExperiencesScreen
 import com.github.se.studentconnect.ui.screen.signup.PrimaryCtaButton
-import com.github.se.studentconnect.ui.screen.signup.TopicChip
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -75,7 +76,7 @@ class ExperiencesScreenTest {
         .assertIsDisplayed()
         .assertTextEquals("For an experience beyond Expectations")
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_Sports", useUnmergedTree = true)
+        .onNodeWithTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Sports", useUnmergedTree = true)
         .assertExists()
         .assertHasClickAction()
 
@@ -117,10 +118,11 @@ class ExperiencesScreenTest {
     val filters = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
     filters.forEach { filter ->
       composeRule
-          .onNodeWithTag(C.Tag.experiences_filter_list)
-          .performScrollToNode(hasTestTag("${C.Tag.experiences_filter_chip_prefix}_$filter"))
+          .onNodeWithTag(TopicChipGridTestTags.FILTER_ROW)
+          .performScrollToNode(hasTestTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_$filter"))
       composeRule
-          .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_$filter", useUnmergedTree = true)
+          .onNodeWithTag(
+              "${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_$filter", useUnmergedTree = true)
           .assertExists()
     }
   }
@@ -141,20 +143,21 @@ class ExperiencesScreenTest {
     }
 
     composeRule
-        .onNodeWithTag(C.Tag.experiences_filter_list)
-        .performScrollToNode(hasTestTag("${C.Tag.experiences_filter_chip_prefix}_Science"))
+        .onNodeWithTag(TopicChipGridTestTags.FILTER_ROW)
+        .performScrollToNode(hasTestTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Science"))
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_Science", useUnmergedTree = true)
+        .onNodeWithTag(
+            "${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Science", useUnmergedTree = true)
         .performClick()
 
     composeRule.onNodeWithText("Astronomy").assertExists()
     composeRule.onNodeWithText("Basketball").assertDoesNotExist()
 
     composeRule
-        .onNodeWithTag(C.Tag.experiences_filter_list)
-        .performScrollToNode(hasTestTag("${C.Tag.experiences_filter_chip_prefix}_Tech"))
+        .onNodeWithTag(TopicChipGridTestTags.FILTER_ROW)
+        .performScrollToNode(hasTestTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Tech"))
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_Tech", useUnmergedTree = true)
+        .onNodeWithTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Tech", useUnmergedTree = true)
         .performClick()
 
     composeRule.onNodeWithText("AI").assertExists()
@@ -206,10 +209,10 @@ class ExperiencesScreenTest {
     }
 
     composeRule
-        .onNodeWithTag(C.Tag.experiences_filter_list)
-        .performScrollToNode(hasTestTag("${C.Tag.experiences_filter_chip_prefix}_Music"))
+        .onNodeWithTag(TopicChipGridTestTags.FILTER_ROW)
+        .performScrollToNode(hasTestTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Music"))
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_Music", useUnmergedTree = true)
+        .onNodeWithTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_Music", useUnmergedTree = true)
         .performClick()
     composeRule.runOnIdle { Assert.assertEquals("Music", latestFilter) }
 
@@ -218,21 +221,26 @@ class ExperiencesScreenTest {
 
     // Verify a topic chip test tag exists for the rendered topic
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_topic_chip_prefix}_Choir", useUnmergedTree = true)
+        .onNodeWithTag("${TopicChipGridTestTags.TAG_CHIP_PREFIX}_Choir", useUnmergedTree = true)
         .assertExists()
   }
 
   @Test
-  fun experienceFilterChipClickInvokesCallback() {
+  fun topicFilterChipClickInvokesCallback() {
     var clicks = 0
     composeRule.setContent {
       AppTheme {
-        ExperienceFilterChip(label = "ChipTest", selected = false, onClick = { clicks++ })
+        TopicFilterChip(
+            label = "ChipTest",
+            selected = false,
+            onClick = { clicks++ },
+            modifier = Modifier.testTag("${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_ChipTest"))
       }
     }
 
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_ChipTest", useUnmergedTree = true)
+        .onNodeWithTag(
+            "${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_ChipTest", useUnmergedTree = true)
         .performClick()
 
     composeRule.runOnIdle { Assert.assertEquals(1, clicks) }
@@ -241,11 +249,17 @@ class ExperiencesScreenTest {
   @Test
   fun topicChipExposesSemanticsTag() {
     composeRule.setContent {
-      AppTheme { TopicChip(label = "Sample", selected = false, onClick = {}) }
+      AppTheme {
+        TopicChip(
+            label = "Sample",
+            selected = false,
+            onClick = {},
+            modifier = Modifier.testTag("${TopicChipGridTestTags.TAG_CHIP_PREFIX}_Sample"))
+      }
     }
 
     composeRule
-        .onNodeWithTag("${C.Tag.experiences_topic_chip_prefix}_Sample", useUnmergedTree = true)
+        .onNodeWithTag("${TopicChipGridTestTags.TAG_CHIP_PREFIX}_Sample", useUnmergedTree = true)
         .assertExists()
     composeRule.onNodeWithText("Sample").assertIsDisplayed()
   }
@@ -287,7 +301,7 @@ class ExperiencesScreenTest {
       }
     }
 
-    val chipTag = "${C.Tag.experiences_topic_chip_prefix}_Bowling"
+    val chipTag = "${TopicChipGridTestTags.TAG_CHIP_PREFIX}_Bowling"
     composeRule.onNodeWithTag(chipTag, useUnmergedTree = true).performClick()
 
     composeRule.runOnIdle { Assert.assertTrue(selectedTopics.value.contains("Bowling")) }
@@ -319,7 +333,7 @@ class ExperiencesScreenTest {
       }
     }
 
-    val chipTag = "${C.Tag.experiences_topic_chip_prefix}_Bowling"
+    val chipTag = "${TopicChipGridTestTags.TAG_CHIP_PREFIX}_Bowling"
     composeRule.onNodeWithTag(chipTag, useUnmergedTree = true).performClick()
     composeRule.onNodeWithTag(chipTag, useUnmergedTree = true).performClick()
 

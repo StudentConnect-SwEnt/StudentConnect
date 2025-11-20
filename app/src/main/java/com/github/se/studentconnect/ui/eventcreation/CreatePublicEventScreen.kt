@@ -41,6 +41,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,8 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
+import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.format.DateTimeFormatter
 
@@ -83,6 +86,7 @@ object CreatePublicEventScreenTestTags {
   const val SAVE_BUTTON = "saveButton"
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
+  const val TAG_SELECTOR = "tagSelector"
 }
 
 // Extracted UI sizing constants
@@ -163,6 +167,9 @@ fun CreatePublicEventScreen(
           targetValue = if (isAtBottom) 0.9f else 0.35f,
           animationSpec = tween(durationMillis = 300),
           label = "buttonWidthFraction")
+
+  var selectedTagCategory by rememberSaveable { mutableStateOf(Activities.filterOptions.first()) }
+  val availableTagOptions = Activities.experienceTopics[selectedTagCategory] ?: emptyList()
 
   Box(modifier = modifier.fillMaxSize()) {
     Scaffold(
@@ -275,6 +282,30 @@ fun CreatePublicEventScreen(
                               Text(stringResource(R.string.event_button_remove_banner))
                             }
                       }
+                }
+
+            Column(
+                modifier =
+                    Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TAG_SELECTOR),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                  Text(
+                      text = stringResource(R.string.event_label_tags),
+                      style = MaterialTheme.typography.titleMedium,
+                      color = MaterialTheme.colorScheme.onSurface)
+                  TopicChipGrid(
+                      tags = availableTagOptions,
+                      selectedTags = createPublicEventUiState.tags.toSet(),
+                      onTagToggle = { tag ->
+                        val currentTags = createPublicEventUiState.tags
+                        val updatedTags =
+                            if (currentTags.contains(tag)) currentTags.filterNot { it == tag }
+                            else currentTags + tag
+                        createPublicEventViewModel.updateTags(updatedTags)
+                      },
+                      modifier = Modifier.fillMaxWidth(),
+                      filterOptions = Activities.filterOptions,
+                      selectedFilter = selectedTagCategory,
+                      onFilterSelected = { selectedTagCategory = it })
                 }
 
             LocationTextField(
