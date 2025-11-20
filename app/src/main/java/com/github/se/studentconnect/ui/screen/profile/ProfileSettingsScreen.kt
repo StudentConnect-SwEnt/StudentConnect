@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -27,6 +28,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -89,6 +92,7 @@ fun ProfileSettingsScreen(
     onNavigateToEditActivities: ((String) -> Unit)? = null,
     onNavigateToEditBirthday: ((String) -> Unit)? = null,
     onNavigateToEditNationality: ((String) -> Unit)? = null,
+    onNavigateBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()
@@ -123,105 +127,134 @@ fun ProfileSettingsScreen(
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = modifier) { paddingValues
-    ->
-    when (val currentUser = user) {
-      null -> {
-        // Loading state
-        Box(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentAlignment = Alignment.Center) {
-              CircularProgressIndicator()
-            }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = {},
+            navigationIcon = {
+              onNavigateBack?.let { callback ->
+                IconButton(onClick = callback) {
+                  Icon(
+                      imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                      contentDescription = "Back",
+                      tint = MaterialTheme.colorScheme.onSurface)
+                }
+              }
+            },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface))
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+      modifier = modifier) { paddingValues ->
+        when (val currentUser = user) {
+          null -> {
+            // Loading state
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center) {
+                  CircularProgressIndicator()
+                }
+          }
+          else -> {
+            Column(
+                modifier =
+                    Modifier.fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                  // Profile Picture and Name Section
+                  ProfileHeaderSection(
+                      user = currentUser,
+                      onEditPicture = { onNavigateToEditPicture?.invoke(currentUserId) },
+                      onEditName = { onNavigateToEditName?.invoke(currentUserId) })
+
+                  // Profile Details Card
+                  Card(
+                      modifier = Modifier.fillMaxWidth(),
+                      colors =
+                          CardDefaults.cardColors(
+                              containerColor = MaterialTheme.colorScheme.surface)) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                              // University Field
+                              EditableProfileField(
+                                  label = stringResource(R.string.label_university),
+                                  value = currentUser.university,
+                                  isEditing = editingField == EditingField.University,
+                                  isLoading = loadingFields.contains(EditingField.University),
+                                  errorMessage =
+                                      fieldErrors[EditingField.University]?.let {
+                                        stringResource(it)
+                                      },
+                                  onEditClick = { /* disabled */},
+                                  onSave = { newValue -> viewModel.updateUniversity(newValue) },
+                                  onCancel = { viewModel.cancelEditing() },
+                                  isEditable = false)
+
+                              // Country Field
+                              EditableProfileField(
+                                  label = stringResource(R.string.label_country),
+                                  value = currentUser.country ?: "",
+                                  isEditing = editingField == EditingField.Country,
+                                  isLoading = loadingFields.contains(EditingField.Country),
+                                  errorMessage =
+                                      fieldErrors[EditingField.Country]?.let { stringResource(it) },
+                                  onEditClick = {
+                                    onNavigateToEditNationality?.invoke(currentUserId)
+                                  },
+                                  onSave = { newValue -> viewModel.updateCountry(newValue) },
+                                  onCancel = { viewModel.cancelEditing() })
+
+                              // Birthday Field
+                              EditableProfileField(
+                                  label = stringResource(R.string.label_birthday),
+                                  value = currentUser.birthdate ?: "",
+                                  isEditing = editingField == EditingField.Birthday,
+                                  isLoading = loadingFields.contains(EditingField.Birthday),
+                                  errorMessage =
+                                      fieldErrors[EditingField.Birthday]?.let {
+                                        stringResource(it)
+                                      },
+                                  onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
+                                  onSave = { newValue -> viewModel.updateBirthday(newValue) },
+                                  onCancel = { viewModel.cancelEditing() })
+
+                              // Activities Field
+                              EditableProfileFieldMultiline(
+                                  label = stringResource(R.string.label_activities),
+                                  value = currentUser.hobbies.joinToString(", "),
+                                  isEditing = editingField == EditingField.Activities,
+                                  isLoading = loadingFields.contains(EditingField.Activities),
+                                  errorMessage =
+                                      fieldErrors[EditingField.Activities]?.let {
+                                        stringResource(it)
+                                      },
+                                  onEditClick = {
+                                    onNavigateToEditActivities?.invoke(currentUserId)
+                                  },
+                                  onSave = { newValue -> viewModel.updateActivities(newValue) },
+                                  onCancel = { viewModel.cancelEditing() })
+
+                              // Bio Field
+                              EditableProfileFieldMultiline(
+                                  label = stringResource(R.string.label_bio),
+                                  value = currentUser.bio ?: "",
+                                  isEditing = editingField == EditingField.Bio,
+                                  isLoading = loadingFields.contains(EditingField.Bio),
+                                  errorMessage =
+                                      fieldErrors[EditingField.Bio]?.let { stringResource(it) },
+                                  onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
+                                  onSave = { newValue -> viewModel.updateBio(newValue) },
+                                  onCancel = { viewModel.cancelEditing() })
+                            }
+                      }
+                }
+          }
+        }
       }
-      else -> {
-        Column(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)) {
-              // Profile Picture and Name Section
-              ProfileHeaderSection(
-                  user = currentUser,
-                  onEditPicture = { onNavigateToEditPicture?.invoke(currentUserId) },
-                  onEditName = { onNavigateToEditName?.invoke(currentUserId) })
-
-              // Profile Details Card
-              Card(
-                  modifier = Modifier.fillMaxWidth(),
-                  colors =
-                      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                          // University Field
-                          EditableProfileField(
-                              label = stringResource(R.string.label_university),
-                              value = currentUser.university,
-                              isEditing = editingField == EditingField.University,
-                              isLoading = loadingFields.contains(EditingField.University),
-                              errorMessage =
-                                  fieldErrors[EditingField.University]?.let { stringResource(it) },
-                              onEditClick = { /* disabled */},
-                              onSave = { newValue -> viewModel.updateUniversity(newValue) },
-                              onCancel = { viewModel.cancelEditing() },
-                              isEditable = false)
-
-                          // Country Field
-                          EditableProfileField(
-                              label = stringResource(R.string.label_country),
-                              value = currentUser.country ?: "",
-                              isEditing = editingField == EditingField.Country,
-                              isLoading = loadingFields.contains(EditingField.Country),
-                              errorMessage =
-                                  fieldErrors[EditingField.Country]?.let { stringResource(it) },
-                              onEditClick = { onNavigateToEditNationality?.invoke(currentUserId) },
-                              onSave = { newValue -> viewModel.updateCountry(newValue) },
-                              onCancel = { viewModel.cancelEditing() })
-
-                          // Birthday Field
-                          EditableProfileField(
-                              label = stringResource(R.string.label_birthday),
-                              value = currentUser.birthdate ?: "",
-                              isEditing = editingField == EditingField.Birthday,
-                              isLoading = loadingFields.contains(EditingField.Birthday),
-                              errorMessage =
-                                  fieldErrors[EditingField.Birthday]?.let { stringResource(it) },
-                              onEditClick = { onNavigateToEditBirthday?.invoke(currentUserId) },
-                              onSave = { newValue -> viewModel.updateBirthday(newValue) },
-                              onCancel = { viewModel.cancelEditing() })
-
-                          // Activities Field
-                          EditableProfileFieldMultiline(
-                              label = stringResource(R.string.label_activities),
-                              value = currentUser.hobbies.joinToString(", "),
-                              isEditing = editingField == EditingField.Activities,
-                              isLoading = loadingFields.contains(EditingField.Activities),
-                              errorMessage =
-                                  fieldErrors[EditingField.Activities]?.let { stringResource(it) },
-                              onEditClick = { onNavigateToEditActivities?.invoke(currentUserId) },
-                              onSave = { newValue -> viewModel.updateActivities(newValue) },
-                              onCancel = { viewModel.cancelEditing() })
-
-                          // Bio Field
-                          EditableProfileFieldMultiline(
-                              label = stringResource(R.string.label_bio),
-                              value = currentUser.bio ?: "",
-                              isEditing = editingField == EditingField.Bio,
-                              isLoading = loadingFields.contains(EditingField.Bio),
-                              errorMessage =
-                                  fieldErrors[EditingField.Bio]?.let { stringResource(it) },
-                              onEditClick = { onNavigateToEditBio?.invoke(currentUserId) },
-                              onSave = { newValue -> viewModel.updateBio(newValue) },
-                              onCancel = { viewModel.cancelEditing() })
-                        }
-                  }
-            }
-      }
-    }
-  }
 }
 
 /**
