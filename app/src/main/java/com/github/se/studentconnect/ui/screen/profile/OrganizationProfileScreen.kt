@@ -70,9 +70,9 @@ import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Comp
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.EVENT_CARD_HEIGHT
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.EVENT_CARD_WIDTH
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.GRID_COLUMNS
+import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBERS_GRID_HEIGHT
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_AVATAR_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_ICON_SIZE
-import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBERS_GRID_HEIGHT
 import com.github.se.studentconnect.ui.profile.OrganizationTab
 import com.github.se.studentconnect.ui.theme.AppTheme
 
@@ -122,8 +122,9 @@ private object OrganizationProfileConstants {
 fun OrganizationProfileScreen(
     organizationId: String? = null,
     onBackClick: () -> Unit = {},
-    viewModel: OrganizationProfileViewModel =
-        viewModel { OrganizationProfileViewModel(organizationId) },
+    viewModel: OrganizationProfileViewModel = viewModel {
+      OrganizationProfileViewModel(organizationId)
+    },
     modifier: Modifier = Modifier
 ) {
   val uiState by viewModel.uiState.collectAsState()
@@ -188,15 +189,13 @@ private fun OrganizationProfileContent(
                   bottom = OrganizationProfileConstants.SCREEN_BOTTOM_PADDING.dp),
       verticalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.SECTION_SPACING.dp)) {
         // Top Bar with back button
-        OrganizationTopBar(
-            organizationName = organization.name, onBackClick = onBackClick)
+        OrganizationTopBar(organizationName = organization.name, onBackClick = onBackClick)
 
         // Avatar Banner
         AvatarBanner()
 
         // Organization Info Block
-        OrganizationInfoBlock(
-            organization = organization, onFollowClick = onFollowClick)
+        OrganizationInfoBlock(organization = organization, onFollowClick = onFollowClick)
 
         // About Section with Tabs
         AboutSection(selectedTab = selectedTab, onTabSelected = onTabSelected)
@@ -314,8 +313,7 @@ private fun OrganizationInfoBlock(
             textAlign = TextAlign.Center,
             modifier =
                 Modifier.padding(
-                        horizontal =
-                            OrganizationProfileConstants.HORIZONTAL_PADDING_DESCRIPTION.dp)
+                        horizontal = OrganizationProfileConstants.HORIZONTAL_PADDING_DESCRIPTION.dp)
                     .testTag(C.Tag.org_profile_description))
 
         // Follow button
@@ -349,61 +347,59 @@ private fun AboutSection(
     onTabSelected: (OrganizationTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Column(
-      modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_about_section)) {
-        // Tab bar
-        val selectedIndex = if (selectedTab == OrganizationTab.EVENTS) 0 else 1
-        TabRow(
-            selectedTabIndex = selectedIndex,
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.primary,
-            indicator = { tabPositions ->
-              TabRowDefaults.Indicator(
-                  Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
-                  color = MaterialTheme.colorScheme.primary,
-                  height = OrganizationProfileConstants.TAB_INDICATOR_HEIGHT.dp)
-            },
-            divider = {}) {
-              Tab(
-                  selected = selectedTab == OrganizationTab.EVENTS,
-                  onClick = { onTabSelected(OrganizationTab.EVENTS) },
-                  modifier = Modifier.testTag(C.Tag.org_profile_tab_events),
-                  text = {
-                    Text(
-                        text = "Events",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight =
-                            if (selectedTab == OrganizationTab.EVENTS) FontWeight.SemiBold
-                            else FontWeight.Normal,
-                        color =
-                            if (selectedTab == OrganizationTab.EVENTS)
-                                MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant)
-                  })
+  Column(modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_about_section)) {
+    // Tab bar
+    val selectedIndex = if (selectedTab == OrganizationTab.EVENTS) 0 else 1
+    TabRow(
+        selectedTabIndex = selectedIndex,
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.primary,
+        indicator = { tabPositions ->
+          TabRowDefaults.Indicator(
+              Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+              color = MaterialTheme.colorScheme.primary,
+              height = OrganizationProfileConstants.TAB_INDICATOR_HEIGHT.dp)
+        },
+        divider = {}) {
+          Tab(
+              selected = selectedTab == OrganizationTab.EVENTS,
+              onClick = { onTabSelected(OrganizationTab.EVENTS) },
+              modifier = Modifier.testTag(C.Tag.org_profile_tab_events),
+              text = {
+                Text(
+                    text = "Events",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight =
+                        if (selectedTab == OrganizationTab.EVENTS) FontWeight.SemiBold
+                        else FontWeight.Normal,
+                    color =
+                        if (selectedTab == OrganizationTab.EVENTS) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant)
+              })
 
-              Tab(
-                  selected = selectedTab == OrganizationTab.MEMBERS,
-                  onClick = { onTabSelected(OrganizationTab.MEMBERS) },
-                  modifier = Modifier.testTag(C.Tag.org_profile_tab_members),
-                  text = {
-                    Text(
-                        text = "Members",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight =
-                            if (selectedTab == OrganizationTab.MEMBERS) FontWeight.SemiBold
-                            else FontWeight.Normal,
-                        color =
-                            if (selectedTab == OrganizationTab.MEMBERS)
-                                MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant)
-                  })
-            }
+          Tab(
+              selected = selectedTab == OrganizationTab.MEMBERS,
+              onClick = { onTabSelected(OrganizationTab.MEMBERS) },
+              modifier = Modifier.testTag(C.Tag.org_profile_tab_members),
+              text = {
+                Text(
+                    text = "Members",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight =
+                        if (selectedTab == OrganizationTab.MEMBERS) FontWeight.SemiBold
+                        else FontWeight.Normal,
+                    color =
+                        if (selectedTab == OrganizationTab.MEMBERS)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant)
+              })
+        }
 
-        Divider(
-            color = MaterialTheme.colorScheme.outlineVariant,
-            thickness = 1.dp,
-            modifier = Modifier.fillMaxWidth())
-      }
+    Divider(
+        color = MaterialTheme.colorScheme.outlineVariant,
+        thickness = 1.dp,
+        modifier = Modifier.fillMaxWidth())
+  }
 }
 
 /**
@@ -416,7 +412,8 @@ private fun AboutSection(
 private fun EventsTab(events: List<OrganizationEvent>, modifier: Modifier = Modifier) {
   Column(
       modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_events_list),
-      verticalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp)) {
+      verticalArrangement =
+          Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp)) {
         events.forEachIndexed { index, event -> EventRow(event = event, index = index) }
       }
 }
@@ -436,7 +433,8 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
               .fillMaxWidth()
               .padding(vertical = OrganizationProfileConstants.EVENT_ROW_VERTICAL_PADDING.dp)
               .testTag("${C.Tag.org_profile_event_row_prefix}_$index"),
-      horizontalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp),
+      horizontalArrangement =
+          Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp),
       verticalAlignment = Alignment.CenterVertically) {
         // Event card with gradient
         Box(
@@ -451,7 +449,8 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
                             colors =
                                 listOf(
                                     MaterialTheme.colorScheme.primaryContainer.copy(
-                                        alpha = OrganizationProfileConstants.PRIMARY_GRADIENT_ALPHA),
+                                        alpha =
+                                            OrganizationProfileConstants.PRIMARY_GRADIENT_ALPHA),
                                     MaterialTheme.colorScheme.primary)))
                     .testTag("${C.Tag.org_profile_event_card_prefix}_$index")) {
               // Location icon
@@ -519,10 +518,9 @@ private fun MembersTab(members: List<OrganizationMember>, modifier: Modifier = M
               .testTag(C.Tag.org_profile_members_grid),
       horizontalArrangement =
           Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
-      verticalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
-        items(members) { member ->
-          MemberCard(member = member, index = members.indexOf(member))
-        }
+      verticalArrangement =
+          Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
+        items(members) { member -> MemberCard(member = member, index = members.indexOf(member)) }
       }
 }
 
@@ -536,8 +534,7 @@ private fun MembersTab(members: List<OrganizationMember>, modifier: Modifier = M
 @Composable
 private fun MemberCard(member: OrganizationMember, index: Int, modifier: Modifier = Modifier) {
   Card(
-      modifier =
-          modifier.fillMaxWidth().testTag("${C.Tag.org_profile_member_card_prefix}_$index"),
+      modifier = modifier.fillMaxWidth().testTag("${C.Tag.org_profile_member_card_prefix}_$index"),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
         Column(
@@ -600,7 +597,8 @@ private fun MemberAvatarPlaceholder(modifier: Modifier = Modifier) {
                           listOf(
                               MaterialTheme.colorScheme.primaryContainer,
                               MaterialTheme.colorScheme.primary.copy(
-                                  alpha = OrganizationProfileConstants.PRIMARY_GRADIENT_END_ALPHA)))),
+                                  alpha =
+                                      OrganizationProfileConstants.PRIMARY_GRADIENT_END_ALPHA)))),
       contentAlignment = Alignment.Center) {
         Icon(
             imageVector = Icons.Outlined.Person,
@@ -625,18 +623,14 @@ private fun getDrawableIdFromName(name: String): Int? {
   }
 }
 
-/**
- * Preview for the organization profile screen.
- */
+/** Preview for the organization profile screen. */
 @Preview(showBackground = true)
 @Composable
 private fun OrganizationProfileScreenPreview() {
   AppTheme { OrganizationProfileScreen() }
 }
 
-/**
- * Preview for the organization profile screen in dark mode.
- */
+/** Preview for the organization profile screen in dark mode. */
 @Preview(showBackground = true)
 @Composable
 private fun OrganizationProfileScreenDarkPreview() {
