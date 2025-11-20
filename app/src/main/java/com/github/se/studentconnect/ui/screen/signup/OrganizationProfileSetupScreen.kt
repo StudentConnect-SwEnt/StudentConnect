@@ -50,11 +50,9 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 private data class DomainOption(
     val key: String,
@@ -408,9 +406,3 @@ private val DropdownMaxHeight = SignUpScreenConstants.BUTTON_HEIGHT * 6
 private val DropdownSurfaceElevation = SignUpScreenConstants.BUTTON_VERTICAL_PADDING / 2
 private val ChipContentSpacing = SignUpScreenConstants.ICON_SPACING * (2f / 3f)
 private val OutlineWidth = 1.dp
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-private fun OrganizationProfileSetupScreenPreview() {
-  AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
-}
