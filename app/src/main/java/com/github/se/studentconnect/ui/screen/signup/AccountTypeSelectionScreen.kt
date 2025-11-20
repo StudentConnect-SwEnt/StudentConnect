@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
-import kotlin.math.max
 import kotlinx.coroutines.delay
 
 /**
@@ -235,7 +234,7 @@ private fun AccountTypeAnimatedCard(
             if (isSelected) accentColor.copy(alpha = 0.15f)
             else MaterialTheme.colorScheme.surfaceVariant,
         contentColor =
-            if (isSelected) accentColor.darken(0.1f) else MaterialTheme.colorScheme.onSurface) {
+            if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface) {
           if (otherSelected) {
             SmallIconOnlyContent(option = option, metrics = metrics)
           } else {
@@ -320,11 +319,6 @@ private fun ExpandedCardContent(
               }
       }
     }
-}
-
-private fun Color.darken(factor: Float): Color {
-  val amount = max(0f, 1f - factor)
-  return Color(red * amount, green * amount, blue * amount, alpha)
 }
 
 private data class AccountTypeMetrics(
