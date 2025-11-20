@@ -68,6 +68,7 @@ private fun FormTextFieldCommonParams(
     shouldShowError: Boolean,
     errorText: String?,
     trailingIcon: (@Composable () -> Unit)?,
+    leadingIcon: (@Composable () -> Unit)?
 ): Pair<Modifier, FormTextFieldParams> {
   val labelComposable = createLabelComposable(label, required)
   val placeholderComposable: (@Composable () -> Unit)? =
@@ -86,7 +87,8 @@ private fun FormTextFieldCommonParams(
           supportingText,
           enabled,
           shouldShowError,
-          trailingIcon))
+          trailingIcon,
+          leadingIcon))
 }
 
 private data class FormTextFieldParams(
@@ -95,7 +97,8 @@ private data class FormTextFieldParams(
     val supportingText: (@Composable () -> Unit)?,
     val enabled: Boolean,
     val isError: Boolean,
-    val trailingIcon: (@Composable () -> Unit)?
+    val trailingIcon: (@Composable () -> Unit)?,
+    val leadingIcon: (@Composable () -> Unit)?
 )
 
 @Composable
@@ -109,6 +112,7 @@ fun FormTextField(
     errorText: String? = null,
     required: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
   val (finalModifier, params) =
@@ -121,7 +125,8 @@ fun FormTextField(
           enabled,
           shouldShowError,
           errorText,
-          trailingIcon)
+          trailingIcon,
+          leadingIcon)
 
   OutlinedTextField(
       modifier = finalModifier,
@@ -136,7 +141,8 @@ fun FormTextField(
       enabled = params.enabled,
       isError = params.isError,
       supportingText = params.supportingText,
-      trailingIcon = params.trailingIcon)
+      trailingIcon = params.trailingIcon,
+      leadingIcon = params.leadingIcon)
 }
 
 @Composable
@@ -150,6 +156,7 @@ fun FormTextField(
     errorText: String? = null,
     required: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
 ) {
   val (focusModifier, shouldShowError, markInteracted) = FormTextFieldState(errorText)
   val (finalModifier, params) =
@@ -162,7 +169,8 @@ fun FormTextField(
           enabled,
           shouldShowError,
           errorText,
-          trailingIcon)
+          trailingIcon,
+          leadingIcon)
 
   OutlinedTextField(
       modifier = finalModifier,
@@ -177,5 +185,6 @@ fun FormTextField(
       enabled = params.enabled,
       isError = params.isError,
       supportingText = params.supportingText,
-      trailingIcon = params.trailingIcon)
+      trailingIcon = params.trailingIcon,
+      leadingIcon = params.leadingIcon)
 }
