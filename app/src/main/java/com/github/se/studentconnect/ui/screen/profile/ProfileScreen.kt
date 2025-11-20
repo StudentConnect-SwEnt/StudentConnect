@@ -18,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
@@ -41,7 +43,7 @@ import com.google.firebase.firestore.FirebaseFirestore
  */
 @Composable
 fun ProfileScreen(
-    currentUserId: String = "mock_user_123",
+    currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
     viewModel: ProfileScreenViewModel = viewModel {
       ProfileScreenViewModel(
@@ -59,6 +61,12 @@ fun ProfileScreen(
 
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
+
+  // Pre-fetch string resources for use in callbacks
+  val friendsListComingSoon = stringResource(R.string.toast_friends_list_coming_soon)
+  val eventHistoryComingSoon = stringResource(R.string.toast_event_history_coming_soon)
+  val editProfileText = stringResource(R.string.toast_edit_profile)
+  val userCardText = stringResource(R.string.toast_user_card)
 
   // Reload data when screen becomes visible again
   DisposableEffect(lifecycleOwner) {
@@ -96,24 +104,24 @@ fun ProfileScreen(
                   eventsCount = eventsCount,
                   onFriendsClick = {
                     // Here we'll implement the view of the list of friend
-                    Toast.makeText(context, "Friends list coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
                   },
                   onEventsClick = {
                     // Here we'll implement the view of all the events the user joined
-                    Toast.makeText(context, "Event history coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, eventHistoryComingSoon, Toast.LENGTH_SHORT).show()
                   },
                   onEditClick = {
                     if (onNavigateToSettings != null) {
                       onNavigateToSettings()
                     } else {
-                      Toast.makeText(context, "Edit Profile", Toast.LENGTH_SHORT).show()
+                      Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
                     }
                   },
                   onUserCardClick = {
                     if (onNavigateToUserCard != null) {
                       onNavigateToUserCard()
                     } else {
-                      Toast.makeText(context, "User Card", Toast.LENGTH_SHORT).show()
+                      Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
                     }
                   })
             }

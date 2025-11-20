@@ -21,9 +21,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.UserCardViewModel
@@ -43,7 +44,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserCardScreen(
-    currentUserId: String = "mock_user_123",
+    currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
     viewModel: UserCardViewModel = viewModel {
       UserCardViewModel(userRepository = userRepository, currentUserId = currentUserId)
@@ -58,12 +59,7 @@ fun UserCardScreen(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = {
-              Text(
-                  text = "",
-                  style = MaterialTheme.typography.titleLarge,
-                  fontWeight = FontWeight.Bold)
-            },
+            title = {},
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -83,7 +79,7 @@ fun UserCardScreen(
                 }
                 error != null -> {
                   Text(
-                      text = error ?: "Unknown error",
+                      text = error ?: stringResource(R.string.error_unknown),
                       color = MaterialTheme.colorScheme.error,
                       style = MaterialTheme.typography.bodyLarge)
                 }
@@ -97,7 +93,7 @@ fun UserCardScreen(
 
                         // Optional: Add instruction text
                         Text(
-                            text = "Tap the card to flip it",
+                            text = stringResource(R.string.user_card_tap_to_flip),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 24.dp))

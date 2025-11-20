@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
@@ -23,6 +24,10 @@ class ProfileScreenViewModel(
     private val friendsRepository: FriendsRepository,
     private val currentUserId: String
 ) : ViewModel() {
+
+  companion object {
+    private const val TAG = "ProfileScreenViewModel"
+  }
 
   // User data state
   private val _user = MutableStateFlow<User?>(null)
@@ -70,7 +75,8 @@ class ProfileScreenViewModel(
 
         _error.value = null
       } catch (exception: Exception) {
-        _error.value = exception.message ?: "Failed to load profile"
+        Log.e(TAG, "Failed to load profile for user: $currentUserId", exception)
+        _error.value = exception.message ?: ProfileConstants.ERROR_LOAD_PROFILE
       } finally {
         _isLoading.value = false
       }
@@ -83,6 +89,7 @@ class ProfileScreenViewModel(
       val friends = friendsRepository.getFriends(currentUserId)
       _friendsCount.value = friends.size
     } catch (exception: Exception) {
+      Log.e(TAG, "Failed to load friends count for user: $currentUserId", exception)
       // If friends loading fails, set count to 0
       _friendsCount.value = 0
     }
@@ -94,6 +101,7 @@ class ProfileScreenViewModel(
       val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
       _eventsCount.value = joinedEventIds.size
     } catch (exception: Exception) {
+      Log.e(TAG, "Failed to load events count for user: $currentUserId", exception)
       // If events loading fails, set count to 0
       _eventsCount.value = 0
     }

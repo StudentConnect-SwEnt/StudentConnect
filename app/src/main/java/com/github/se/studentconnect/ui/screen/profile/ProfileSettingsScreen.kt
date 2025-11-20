@@ -135,12 +135,7 @@ fun ProfileSettingsScreen(
   Scaffold(
       topBar = {
         TopAppBar(
-            title = {
-              Text(
-                  text = "",
-                  style = MaterialTheme.typography.titleLarge,
-                  fontWeight = FontWeight.Bold)
-            },
+            title = {},
             navigationIcon = {
               onNavigateBack?.let { callback ->
                 IconButton(onClick = callback) {

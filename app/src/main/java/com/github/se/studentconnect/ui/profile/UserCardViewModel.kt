@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
@@ -21,6 +22,10 @@ class UserCardViewModel(
     private val userRepository: UserRepository,
     private val currentUserId: String
 ) : ViewModel() {
+
+  companion object {
+    private const val TAG = "UserCardViewModel"
+  }
 
   // User data state
   private val _user = MutableStateFlow<User?>(null)
@@ -47,7 +52,8 @@ class UserCardViewModel(
         _user.value = loadedUser
         _error.value = null
       } catch (exception: Exception) {
-        _error.value = exception.message ?: "Failed to load user"
+        Log.e(TAG, "Failed to load user: $currentUserId", exception)
+        _error.value = exception.message ?: ProfileConstants.ERROR_LOAD_USER
       } finally {
         _isLoading.value = false
       }

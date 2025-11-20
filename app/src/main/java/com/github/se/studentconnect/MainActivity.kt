@@ -418,7 +418,7 @@ internal fun MainAppContent(
               route = ProfileRoutes.EDIT_BIO,
               arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
                   backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: "mock_user_123"
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
                 EditBioScreen(
                     userId = userId,
                     userRepository = userRepository,

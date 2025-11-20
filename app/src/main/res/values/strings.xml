@@ -196,6 +196,20 @@
     <string name="toast_camera_closed">Camera closed without capturing a photo</string>
     <string name="toast_camera_permission_denied">Camera permission denied</string>
     <string name="toast_camera_storage_error">Unable to access camera storage</string>
+    <string name="toast_friends_list_coming_soon">Friends list coming soon</string>
+    <string name="toast_event_history_coming_soon">Event history coming soon</string>
+    <string name="toast_edit_profile">Edit Profile</string>
+    <string name="toast_user_card">User Card</string>
+
+    <!-- Profile error messages -->
+    <string name="error_failed_to_load_user">Failed to load user</string>
+    <string name="error_failed_to_update_profile_picture">Failed to update profile picture</string>
+    <string name="error_unknown">Unknown error</string>
+
+    <!-- User card -->
+    <string name="user_card_tap_to_flip">Tap the card to flip it</string>
+    <string name="title_user_card">User Card</string>
+    <string name="title_edit_profile">Edit Profile</string>
     
     <!-- Signup screen labels -->
     <string name="signup_label_first_name">First name</string>

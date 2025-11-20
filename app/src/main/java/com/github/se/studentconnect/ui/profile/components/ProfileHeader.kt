@@ -69,14 +69,14 @@ fun ProfileHeader(
               modifier =
                   Modifier.size(100.dp)
                       .clip(CircleShape)
-                      .background(Color(0xFFD6CBEA))
+                      .background(MaterialTheme.colorScheme.secondaryContainer)
                       .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
               contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Profile Picture",
                     modifier = Modifier.size(60.dp),
-                    tint = Color(0xFF5E548E))
+                    tint = MaterialTheme.colorScheme.primary)
               }
 
           Spacer(modifier = Modifier.width(32.dp))
@@ -102,7 +102,7 @@ fun ProfileHeader(
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        color = Color.Black)
+        color = MaterialTheme.colorScheme.onSurface)
 
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -112,7 +112,7 @@ fun ProfileHeader(
           text = user.bio ?: "",
           style = MaterialTheme.typography.bodyMedium,
           fontSize = 14.sp,
-          color = Color.Black,
+          color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier.fillMaxWidth())
 
       Spacer(modifier = Modifier.height(4.dp))
@@ -123,7 +123,7 @@ fun ProfileHeader(
         text = user.university,
         style = MaterialTheme.typography.bodyMedium,
         fontSize = 14.sp,
-        color = Color.Black)
+        color = MaterialTheme.colorScheme.onSurface)
 
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -134,7 +134,7 @@ fun ProfileHeader(
             imageVector = Icons.Default.LocationOn,
             contentDescription = "Location",
             modifier = Modifier.size(16.dp),
-            tint = Color.Black)
+            tint = MaterialTheme.colorScheme.onSurface)
 
         Spacer(modifier = Modifier.width(4.dp))
 
@@ -142,7 +142,7 @@ fun ProfileHeader(
             text = user.country,
             style = MaterialTheme.typography.bodyMedium,
             fontSize = 14.sp,
-            color = Color.Black)
+            color = MaterialTheme.colorScheme.onSurface)
       }
     }
 
@@ -157,7 +157,8 @@ fun ProfileHeader(
             modifier = Modifier.weight(1f).height(48.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6B5C94), contentColor = Color.White),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp)) {
               Icon(
                   imageVector = Icons.Default.Edit,
@@ -175,7 +176,8 @@ fun ProfileHeader(
             modifier = Modifier.weight(1f).height(48.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6B5C94), contentColor = Color.White),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp)) {
               Icon(
                   imageVector = Icons.Default.CreditCard,
@@ -212,12 +214,12 @@ private fun StatItem(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             fontSize = 22.sp,
-            color = Color.Black)
+            color = MaterialTheme.colorScheme.onSurface)
 
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             fontSize = 14.sp,
-            color = Color.Black)
+            color = MaterialTheme.colorScheme.onSurface)
       }
 }
