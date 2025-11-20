@@ -74,8 +74,8 @@ enum class AccountTypeOption(
     @StringRes val iconRes: Int
 ) {
   /**
-   * Regular user account type for individual students.
-   * Allows users to see, join, and save events, add friends, and create public/private events.
+   * Regular user account type for individual students. Allows users to see, join, and save events,
+   * add friends, and create public/private events.
    */
   RegularUser(
       titleRes = R.string.account_type_regular_user,
@@ -88,8 +88,8 @@ enum class AccountTypeOption(
       iconRes = R.string.account_type_regular_user_icon),
 
   /**
-   * Organization account type for institutions, clubs, or companies.
-   * Provides features for event promotion, analytics, staff management, and centralized operations.
+   * Organization account type for institutions, clubs, or companies. Provides features for event
+   * promotion, analytics, staff management, and centralized operations.
    */
   Organization(
       titleRes = R.string.account_type_organization,
@@ -235,7 +235,8 @@ private fun AccountTypeAnimatedCard(
             if (isSelected) accentColor.copy(alpha = 0.15f)
             else MaterialTheme.colorScheme.surfaceVariant,
         contentColor =
-            if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface) {
+            if (isSelected) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onSurface) {
           if (otherSelected) {
             SmallIconOnlyContent(option = option, metrics = metrics)
           } else {
@@ -318,20 +319,22 @@ private fun ExpandedCardContent(
                     style =
                         MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
               }
+        }
       }
-    }
 }
 
 /**
- * Container for all sizing and spacing measurements used in the animated account type selection cards.
+ * Container for all sizing and spacing measurements used in the animated account type selection
+ * cards.
  *
- * "Metrics" here refers to the dimensional measurements (sizes, spacing, padding, etc.) that control
- * the layout and animation behavior of the account type cards. These values are calculated responsively
- * based on screen dimensions to ensure consistent proportions across different device sizes.
+ * "Metrics" here refers to the dimensional measurements (sizes, spacing, padding, etc.) that
+ * control the layout and animation behavior of the account type cards. These values are calculated
+ * responsively based on screen dimensions to ensure consistent proportions across different device
+ * sizes.
  *
  * Used by [AccountTypeAnimatedCard], [ExpandedCardContent], and [SmallIconOnlyContent] to determine
- * card heights, corner radii, spacing, and icon sizes during the animated transitions between selected
- * and unselected states.
+ * card heights, corner radii, spacing, and icon sizes during the animated transitions between
+ * selected and unselected states.
  *
  * @property collapsedSize Size of the card when it's collapsed (when another card is selected)
  * @property mediumHeight Default height of an unselected card
