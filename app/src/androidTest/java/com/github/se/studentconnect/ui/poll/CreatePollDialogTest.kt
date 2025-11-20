@@ -109,8 +109,8 @@ class CreatePollDialogTest {
       composeTestRule.waitForIdle()
     }
 
-    // Should now have 6 options
-    composeTestRule.onNodeWithText("Option 6").assertIsDisplayed()
+    // Should now have 6 options (use assertExists since it might be scrolled off-screen)
+    composeTestRule.onNodeWithText("Option 6").assertExists()
 
     // Add option button should not be visible anymore
     composeTestRule.onNodeWithText("Add Option").assertDoesNotExist()
