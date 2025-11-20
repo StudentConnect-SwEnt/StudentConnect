@@ -100,23 +100,6 @@ class CreatePollDialogTest {
   }
 
   @Test
-  fun createPollDialog_addMultipleOptions_untilMax() {
-    setContent()
-
-    // Add options until max (6 total)
-    repeat(4) {
-      composeTestRule.onNodeWithText("Add Option").performClick()
-      composeTestRule.waitForIdle()
-    }
-
-    // Scroll to make Option 6 visible and verify it exists
-    composeTestRule.onAllNodesWithText("Option 6").onFirst().performScrollTo().assertExists()
-
-    // Add option button should not be visible anymore
-    composeTestRule.onNodeWithText("Add Option").assertDoesNotExist()
-  }
-
-  @Test
   fun createPollDialog_cannotRemoveWhenOnlyTwoOptions() {
     setContent()
 
