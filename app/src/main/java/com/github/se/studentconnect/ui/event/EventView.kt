@@ -238,7 +238,6 @@ fun EventView(
                     uiState.activePolls.isNotEmpty() &&
                     AuthenticationProvider.currentUser != event.ownerId) {
                   PollNotificationCard(
-                      pollCount = uiState.activePolls.size,
                       onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
                       onDismissClick = { /* TODO: Add dismiss functionality if needed */},
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
@@ -755,7 +754,6 @@ private fun getValidationTestTag(result: TicketValidationResult) =
 
 @Composable
 private fun PollNotificationCard(
-    pollCount: Int,
     onVoteNowClick: () -> Unit,
     onDismissClick: () -> Unit,
     modifier: Modifier = Modifier

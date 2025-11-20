@@ -40,8 +40,13 @@ fun PollScreen(
   // Fetch event to check if user is owner
   LaunchedEffect(eventUid) {
     scope.launch {
-      val event = EventRepositoryProvider.repository.getEvent(eventUid)
-      isOwner = currentUserId == event.ownerId
+      try {
+        val event = EventRepositoryProvider.repository.getEvent(eventUid)
+        isOwner = currentUserId == event.ownerId
+      } catch (e: Exception) {
+        android.util.Log.e("PollScreen", "Failed to fetch event: $eventUid", e)
+        isOwner = false
+      }
     }
   }
 

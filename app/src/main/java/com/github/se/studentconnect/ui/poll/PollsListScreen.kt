@@ -17,7 +17,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.poll.Poll
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +27,6 @@ fun PollsListScreen(
     pollViewModel: PollViewModel = viewModel()
 ) {
   val uiState by pollViewModel.pollsListUiState.collectAsState()
-  val currentUserId = AuthenticationProvider.currentUser
 
   LaunchedEffect(eventUid) { pollViewModel.fetchAllPolls(eventUid) }
 
@@ -129,7 +127,7 @@ private fun PollCard(poll: Poll, hasVoted: Boolean, onClick: () -> Unit) {
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${poll.options.size} options",
+                    text = stringResource(R.string.poll_options_count, poll.options.size),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -142,7 +140,7 @@ private fun PollCard(poll: Poll, hasVoted: Boolean, onClick: () -> Unit) {
                         tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Voted",
+                        text = stringResource(R.string.poll_voted_indicator),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary)
                   }
