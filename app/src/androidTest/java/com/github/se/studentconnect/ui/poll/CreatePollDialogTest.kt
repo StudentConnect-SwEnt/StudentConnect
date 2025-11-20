@@ -109,8 +109,8 @@ class CreatePollDialogTest {
       composeTestRule.waitForIdle()
     }
 
-    // Verify we have 6 options by scrolling and checking the last one exists
-    composeTestRule.onAllNodesWithText("Option 6").onFirst().assertExists()
+    // Scroll to make Option 6 visible and verify it exists
+    composeTestRule.onAllNodesWithText("Option 6").onFirst().performScrollTo().assertExists()
 
     // Add option button should not be visible anymore
     composeTestRule.onNodeWithText("Add Option").assertDoesNotExist()
