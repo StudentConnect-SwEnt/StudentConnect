@@ -76,7 +76,8 @@ class PollViewModelTest {
   @Test
   fun `fetchPoll updates state with poll and no vote when user has not voted`() = runTest {
     coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns testPoll
-    coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } returns null
+    coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } returns
+        null as PollVote?
 
     viewModel.fetchPoll(testEventUid, testPollUid)
     advanceUntilIdle()
@@ -91,7 +92,7 @@ class PollViewModelTest {
 
   @Test
   fun `fetchPoll updates state with error when poll not found`() = runTest {
-    coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns null
+    coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns null as Poll?
 
     viewModel.fetchPoll(testEventUid, testPollUid)
     advanceUntilIdle()
@@ -117,7 +118,7 @@ class PollViewModelTest {
 
   @Test
   fun `fetchPoll handles null user when fetching vote`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null
+    every { AuthenticationProvider.currentUser } returns null as String?
     coEvery { pollRepository.getPoll(testEventUid, testPollUid) } returns testPoll
 
     viewModel.fetchPoll(testEventUid, testPollUid)
@@ -138,7 +139,8 @@ class PollViewModelTest {
 
     coEvery { pollRepository.getActivePolls(testEventUid) } returns polls
     coEvery { pollRepository.getUserVote(testEventUid, testPollUid, testUserId) } returns testVote
-    coEvery { pollRepository.getUserVote(testEventUid, "poll456", testUserId) } returns null
+    coEvery { pollRepository.getUserVote(testEventUid, "poll456", testUserId) } returns
+        null as PollVote?
 
     viewModel.fetchAllPolls(testEventUid)
     advanceUntilIdle()
@@ -153,7 +155,7 @@ class PollViewModelTest {
 
   @Test
   fun `fetchAllPolls updates state with empty votes when user is null`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null
+    every { AuthenticationProvider.currentUser } returns null as String?
     val polls = listOf(testPoll)
     coEvery { pollRepository.getActivePolls(testEventUid) } returns polls
 
@@ -198,7 +200,7 @@ class PollViewModelTest {
 
   @Test
   fun `submitVote does nothing when user is null`() = runTest {
-    every { AuthenticationProvider.currentUser } returns null
+    every { AuthenticationProvider.currentUser } returns null as String?
 
     viewModel.submitVote(testEventUid, testPollUid, "opt1")
     advanceUntilIdle()

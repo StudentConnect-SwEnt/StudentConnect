@@ -21,7 +21,7 @@ class PollRepositoryLocal : PollRepository {
     return polls.values.filter { it.eventUid == eventUid && it.isActive }
   }
 
-  override suspend fun updatePoll(poll: Poll) {
+  suspend fun updatePoll(poll: Poll) {
     if (polls.containsKey(poll.uid)) {
       polls[poll.uid] = poll
     }
