@@ -1,15 +1,18 @@
 package com.github.se.studentconnect.ui.profile
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.resources.TestResourceProvider
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.visitorProfile.FriendRequestStatus
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -24,6 +27,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class VisitorProfileViewModelTest {
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
+  // Resource provider reads app/src/main/res/values/strings.xml so tests use the same messages.
+  private val rp = TestResourceProvider()
 
   @Before
   fun setup() {
@@ -50,7 +55,8 @@ class VisitorProfileViewModelTest {
             updatedAt = 2,
             createdAt = 1)
 
-    val viewModel = VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository())
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -63,7 +69,8 @@ class VisitorProfileViewModelTest {
 
   @Test
   fun loadProfile_notFound_setsError() = runTest {
-    val viewModel = VisitorProfileViewModel(fakeRepository { null }, fakeFriendsRepository())
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { null }, fakeFriendsRepository(), rp::getString)
 
     viewModel.loadProfile("missing-user")
     advanceUntilIdle()
@@ -71,14 +78,16 @@ class VisitorProfileViewModelTest {
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
     assertNull(state.user)
-    assertEquals("Profile not found.", state.errorMessage)
+    assertEquals(rp.getString(R.string.error_profile_not_found), state.errorMessage)
   }
 
   @Test
   fun loadProfile_failure_setsErrorMessage() = runTest {
     val viewModel =
         VisitorProfileViewModel(
-            fakeRepository { throw IllegalStateException("boom") }, fakeFriendsRepository())
+            fakeRepository { throw IllegalStateException("boom") },
+            fakeFriendsRepository(),
+            rp::getString)
 
     viewModel.loadProfile("user-2")
     advanceUntilIdle()
@@ -186,7 +195,8 @@ class VisitorProfileViewModelTest {
           sentRequests.contains(toUserId)
 
       override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
-        TODO("Not yet implemented")
+        // Simple test implementation: emit whether the two users are friends at subscription time.
+        return flow { emit(friends.contains(otherUserId)) }
       }
     }
   }
@@ -211,7 +221,8 @@ class VisitorProfileViewModelTest {
               calls += 1
               user
             },
-            fakeFriendsRepository())
+            fakeFriendsRepository(),
+            rp::getString)
 
     viewModel.loadProfile("user-cache")
     advanceUntilIdle()
@@ -243,7 +254,8 @@ class VisitorProfileViewModelTest {
               calls += 1
               user
             },
-            fakeFriendsRepository())
+            fakeFriendsRepository(),
+            rp::getString)
 
     viewModel.loadProfile("user-refresh")
     advanceUntilIdle()
@@ -276,7 +288,8 @@ class VisitorProfileViewModelTest {
               calls += 1
               resultSequence.removeAt(0)
             },
-            fakeFriendsRepository())
+            fakeFriendsRepository(),
+            rp::getString)
 
     // First call -> not found (error)
     viewModel.loadProfile("user-retry")
@@ -309,7 +322,8 @@ class VisitorProfileViewModelTest {
                   updatedAt = 2,
                   createdAt = 1)
             },
-            fakeFriendsRepository())
+            fakeFriendsRepository(),
+            rp::getString)
 
     viewModel.loadProfile("user-a")
     advanceUntilIdle()
@@ -337,7 +351,8 @@ class VisitorProfileViewModelTest {
     val viewModel =
         VisitorProfileViewModel(
             fakeRepository { user },
-            fakeFriendsRepository(onSendRequest = { _, _ -> requestSent = true }))
+            fakeFriendsRepository(onSendRequest = { _, _ -> requestSent = true }),
+            rp::getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -348,7 +363,7 @@ class VisitorProfileViewModelTest {
     val state = viewModel.uiState.value
     assertTrue(requestSent)
     assertEquals(FriendRequestStatus.SENT, state.friendRequestStatus)
-    assertEquals("Friend request sent successfully!", state.friendRequestMessage)
+    assertEquals(rp.getString(R.string.friend_request_sent_success), state.friendRequestMessage)
   }
 
   @Test
@@ -366,7 +381,9 @@ class VisitorProfileViewModelTest {
 
     val viewModel =
         VisitorProfileViewModel(
-            fakeRepository { user }, fakeFriendsRepository(friends = listOf("user-1")))
+            fakeRepository { user },
+            fakeFriendsRepository(friends = listOf("user-1")),
+            rp::getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -390,7 +407,9 @@ class VisitorProfileViewModelTest {
 
     val viewModel =
         VisitorProfileViewModel(
-            fakeRepository { user }, fakeFriendsRepository(sentRequests = listOf("user-1")))
+            fakeRepository { user },
+            fakeFriendsRepository(sentRequests = listOf("user-1")),
+            rp::getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
