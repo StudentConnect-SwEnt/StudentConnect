@@ -64,6 +64,14 @@
     <string name="placeholder_choose_username">Choose a unique username</string>
     <string name="placeholder_select_birthdate">Select your birthdate</string>
     <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
+    <string name="org_setup_title">Where and what do you organize ?</string>
+    <string name="org_setup_main_location_label">Main Location</string>
+    <string name="org_setup_main_location_placeholder">Search locations...</string>
+    <string name="org_setup_age_range_label">Age range</string>
+    <string name="org_setup_event_size_label">Typical event size</string>
+    <string name="org_setup_main_domains_label">Main domains</string>
+    <string name="org_setup_event_size_hint">You\'ll be able to refine this later for each event.</string>
+    <string name="org_setup_main_domains_hint">Select up to 3 domains</string>
     
     <!-- Instructions -->
     <string name="instruction_enter_name">Enter your full name</string>
@@ -162,6 +170,8 @@
     <string name="content_description_public_event">Public Event</string>
     <string name="content_description_private_event">Private Event</string>
     <string name="content_description_save">Save</string>
+    <string name="content_description_clear_text">Clear text</string>
+    <string name="content_description_open_dropdown">Toggle dropdown</string>
     
     <!-- Other UI text -->
     <string name="text_current_birthday">Current Birthday</string>
@@ -207,6 +217,43 @@
     <string name="button_explore">Explore</string>
     <string name="button_filters">Filters</string>
     <string name="button_favorites">Favorites</string>
+    <string name="domain_sport">Sport</string>
+    <string name="domain_music">Music</string>
+    <string name="domain_science">Science</string>
+    <string name="domain_career">Career</string>
+    <string name="domain_social">Social</string>
+    <string name="domain_tech">Tech</string>
+    <string name="domain_culture">Culture</string>
+    <string name="domain_parties">Parties</string>
+    <string name="domain_other">Other</string>
+    <string name="org_location_epfl">EPFL</string>
+    <string name="org_location_ethz">ETH Zurich</string>
+    <string name="org_location_unige">University of Geneva (UniGe)</string>
+    <string name="org_location_unil">University of Lausanne (UNIL)</string>
+    <string name="org_location_unibe">University of Bern (UniBe)</string>
+    <string name="org_location_uzh">University of Zurich (UZH)</string>
+    <string name="org_location_unibasel">University of Basel</string>
+    <string name="org_location_hsg">University of St. Gallen (HSG)</string>
+    <string name="org_location_lausanne">Lausanne</string>
+    <string name="org_location_geneva">Geneva</string>
+    <string name="org_location_zurich">Zurich</string>
+    <string name="org_location_bern">Bern</string>
+    <string name="org_location_basel">Basel</string>
+    <string name="org_location_lugano">Lugano</string>
+    <string name="org_location_lucerne">Lucerne</string>
+    <string name="org_location_neuchatel">Neuchâtel</string>
+    <string name="org_location_fribourg">Fribourg</string>
+    <string name="org_location_winterthur">Winterthur</string>
+    <string name="org_location_other">Other</string>
+    <string name="age_range_under_18">&lt;18</string>
+    <string name="age_range_18_22">18-22</string>
+    <string name="age_range_23_25">23-25</string>
+    <string name="age_range_26_30">26-30</string>
+    <string name="age_range_30_plus">30+</string>
+    <string name="event_size_small">&lt; 20</string>
+    <string name="event_size_medium">20-50</string>
+    <string name="event_size_large">50-150</string>
+    <string name="event_size_extra_large">150+</string>
     
     <!-- Tabs -->
     <string name="tab_upcoming">Upcoming</string>
