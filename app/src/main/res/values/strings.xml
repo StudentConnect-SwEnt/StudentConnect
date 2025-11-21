@@ -274,6 +274,30 @@
 
     <!-- User card -->
     <string name="user_card_tap_to_flip">Tap the card to flip it</string>
+
+    <!-- Team roles onboarding -->
+    <string name="team_roles_title">Set up your team roles</string>
+    <string name="team_roles_subtitle">Define the positions in your organization. You\'ll assign members to these roles later.</string>
+    <string name="team_roles_add_section_title">Add a role</string>
+    <string name="team_roles_name_label">Role name</string>
+    <string name="team_roles_name_helper">Select from popular roles or type a custom name</string>
+    <string name="team_roles_description_label">Role description</string>
+    <string name="team_roles_add_button">+ Add role</string>
+    <string name="team_roles_current_section_title">Current roles</string>
+    <string name="team_roles_empty_state_title">No roles defined yet.</string>
+    <string name="team_roles_empty_state_subtitle">Add roles to see them listed here.</string>
+    <string name="team_roles_remove_button">Remove</string>
+    
+    <!-- Team roles suggestions -->
+    <string name="team_roles_suggestion_president">President</string>
+    <string name="team_roles_suggestion_vice_president">Vice President</string>
+    <string name="team_roles_suggestion_treasurer">Treasurer</string>
+    <string name="team_roles_suggestion_secretary">Secretary</string>
+    <string name="team_roles_suggestion_event_manager">Event Manager</string>
+    <string name="team_roles_suggestion_community_manager">Community Manager</string>
+    <string name="team_roles_suggestion_marketing_lead">Marketing Lead</string>
+    <string name="team_roles_suggestion_operations_lead">Operations Lead</string>
+    
     <!-- Signup screen labels -->
     <string name="signup_label_first_name">First name</string>
     <string name="signup_label_last_name">Last name</string>
@@ -385,4 +409,4 @@
     <string name="organization_type_ngo">NGO</string>
     <string name="organization_type_other">Other</string>
     <string name="organization_label_name">Organization name</string>
-</resources>
+    </resources>

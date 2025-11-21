@@ -77,6 +77,73 @@ object SignUpScreenConstants {
 
   /** Spacing between button text and icon */
   val ICON_SPACING = 12.dp
+
+  // Team Roles Screen constants
+  /** Spacing between form card and roles list section */
+  val ROLES_FORM_TO_LIST_SPACING = 24.dp
+
+  /** Spacing between section title and content */
+  val SECTION_TITLE_TO_CONTENT_SPACING = 12.dp
+
+  /** Spacing between roles in the list */
+  val ROLE_ITEM_SPACING = 12.dp
+
+  /** Padding at bottom of roles list */
+  val ROLES_LIST_BOTTOM_PADDING = 12.dp
+
+  /** Corner radius for form cards */
+  val FORM_CARD_CORNER_RADIUS = 24.dp
+
+  /** Padding inside form cards */
+  val FORM_CARD_PADDING = 12.dp
+
+  /** Spacing between form fields */
+  val FORM_FIELD_SPACING = 8.dp
+
+  /** Corner radius for empty state card */
+  val EMPTY_STATE_CORNER_RADIUS = 24.dp
+
+  /** Vertical padding for empty state */
+  val EMPTY_STATE_VERTICAL_PADDING = 32.dp
+
+  /** Horizontal padding for empty state text */
+  val EMPTY_STATE_HORIZONTAL_PADDING = 32.dp
+
+  /** Spacing between empty state title and subtitle */
+  val EMPTY_STATE_TITLE_TO_SUBTITLE_SPACING = 4.dp
+
+  /** Horizontal padding for helper text */
+  val HELPER_TEXT_HORIZONTAL_PADDING = 4.dp
+
+  /** Spacing between suggestion items */
+  val SUGGESTION_ITEM_SPACING = 8.dp
+
+  /** Corner radius for suggestion chips */
+  val SUGGESTION_CHIP_CORNER_RADIUS = 16.dp
+
+  /** Horizontal padding for suggestion chips */
+  val SUGGESTION_CHIP_HORIZONTAL_PADDING = 12.dp
+
+  /** Vertical padding for suggestion chips */
+  val SUGGESTION_CHIP_VERTICAL_PADDING = 6.dp
+
+  /** Corner radius for role cards */
+  val ROLE_CARD_CORNER_RADIUS = 20.dp
+
+  /** Padding inside role cards */
+  val ROLE_CARD_PADDING = 16.dp
+
+  /** Spacing between role name and description */
+  val ROLE_NAME_TO_DESCRIPTION_SPACING = 4.dp
+
+  /** Spacing between role description and remove button */
+  val ROLE_DESCRIPTION_TO_BUTTON_SPACING = 12.dp
+
+  /** Shadow elevation for elevated surfaces */
+  val SURFACE_SHADOW_ELEVATION = 4.dp
+
+  /** Tonal elevation for surfaces */
+  val SURFACE_TONAL_ELEVATION = 1.dp
 }
 
 /**
