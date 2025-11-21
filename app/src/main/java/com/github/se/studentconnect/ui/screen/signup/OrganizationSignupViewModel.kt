@@ -5,9 +5,12 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.organization.OrganizationModel
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.organization.SocialLinks
+import com.github.se.studentconnect.repository.OrganizationRepository
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,6 +72,12 @@ class OrganizationSignupViewModel : ViewModel() {
 
   private val _uploadError = MutableStateFlow<String?>(null)
   val uploadError: StateFlow<String?> = _uploadError.asStateFlow()
+
+  private val _isSubmitting = MutableStateFlow(false)
+  val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
+
+  private val _submissionError = MutableStateFlow<String?>(null)
+  val submissionError: StateFlow<String?> = _submissionError.asStateFlow()
 
   private fun update(block: (OrganizationSignupState) -> OrganizationSignupState) {
     _state.value = block(_state.value)
@@ -505,6 +514,104 @@ class OrganizationSignupViewModel : ViewModel() {
     }
 
     return errors
+  }
+
+  /**
+   * Submits the organization signup data to Firebase.
+   *
+   * This method:
+   * 1. Validates all required fields
+   * 2. Uploads the logo image if provided
+   * 3. Creates an OrganizationModel from the signup state
+   * 4. Saves the organization to Firestore
+   *
+   * @param organizationRepository The repository to use for saving the organization.
+   * @param mediaRepository The media repository to use for uploading the logo.
+   * @return The created OrganizationModel.
+   * @throws IllegalStateException if validation fails or required fields are missing.
+   * @throws Exception if upload or save operations fail.
+   */
+  suspend fun submitOrganization(
+      organizationRepository: OrganizationRepository,
+      mediaRepository: MediaRepository
+  ): OrganizationModel {
+    _isSubmitting.value = true
+    _submissionError.value = null
+
+    try {
+      // Validate before submission
+      if (!isValidForSubmission()) {
+        val errors = getValidationErrors()
+        val errorMessage = "Validation failed: ${errors.joinToString("; ")}"
+        android.util.Log.e("OrganizationSignupViewModel", errorMessage)
+        _submissionError.value = errorMessage
+        throw IllegalStateException(errorMessage)
+      }
+
+      val s = state.value
+      val createdBy = s.createdBy
+          ?: throw IllegalStateException("Cannot submit: createdBy user ID is not set")
+
+      android.util.Log.d(
+          "OrganizationSignupViewModel", "Submitting organization: ${s.name}")
+
+      // Get a new organization ID
+      val organizationId = organizationRepository.getNewOrganizationId()
+      android.util.Log.d(
+          "OrganizationSignupViewModel", "Generated organization ID: $organizationId")
+
+      // Upload logo if provided
+      val logoUrl =
+          if (s.logoUri != null) {
+            android.util.Log.d(
+                "OrganizationSignupViewModel", "Uploading logo for organization: $organizationId")
+            uploadLogo(mediaRepository, organizationId)
+          } else {
+            null
+          }
+
+      // Create SocialLinks object
+      val socialLinks =
+          SocialLinks(
+              website = s.website,
+              instagram = s.instagram,
+              x = s.x,
+              linkedin = s.linkedin)
+
+      // Create OrganizationModel
+      val organization =
+          OrganizationModel(
+              id = organizationId,
+              name = s.name,
+              type = s.type!!, // Safe to use !! since validation passed
+              description = s.description,
+              logoUrl = logoUrl,
+              bannerUrl = null, // No banner support
+              location = s.location,
+              mainDomains = s.mainDomains,
+              ageRanges = s.ageRanges,
+              typicalEventSize = s.typicalEventSize,
+              roles = s.roles,
+              socialLinks = socialLinks,
+              createdAt = Timestamp.now(),
+              createdBy = createdBy,
+              members = listOf(createdBy) // Creator is the first member
+          )
+
+      // Save to Firestore
+      organizationRepository.saveOrganization(organization)
+      android.util.Log.d(
+          "OrganizationSignupViewModel",
+          "Organization saved successfully: ${organization.id}")
+
+      return organization
+    } catch (e: Exception) {
+      android.util.Log.e("OrganizationSignupViewModel", "Failed to submit organization", e)
+      _submissionError.value = "Failed to submit organization: ${e.message}"
+      throw e
+    } finally {
+      _isSubmitting.value = false
+    }
   }
 
   fun reset() = update { OrganizationSignupState() }
