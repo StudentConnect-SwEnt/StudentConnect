@@ -1,13 +1,9 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.annotation.VisibleForTesting
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
@@ -32,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,13 +33,12 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.resources.Variables
+import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 @Composable
@@ -75,7 +65,6 @@ fun ExperiencesScreen(
       modifier = modifier.fillMaxWidth())
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun ExperiencesContent(
@@ -132,52 +121,19 @@ internal fun ExperiencesContent(
           Column(
               modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(scrollState),
               horizontalAlignment = Alignment.CenterHorizontally) {
-                LazyRow(
-                    modifier =
-                        Modifier.fillMaxWidth().semantics {
-                          testTag = C.Tag.experiences_filter_list
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)) {
-                      items(Activities.filterOptions) { filter ->
-                        val isSelected = filter == selectedFilter
-                        ExperienceFilterChip(
-                            label = filter,
-                            selected = isSelected,
-                            onClick = { onFilterSelected(filter) })
-                      }
-                    }
-
-                Spacer(modifier = Modifier.height(70.dp))
-
                 Box(
                     modifier =
                         Modifier.fillMaxWidth().semantics {
                           testTag = C.Tag.experiences_topic_grid
                         }) {
-                      val columns = 3
-                      val spacing = 16.dp
-                      FlowRow(
+                      TopicChipGrid(
+                          tags = topics,
+                          selectedTags = selectedTopics,
+                          onTagToggle = onTopicToggle,
                           modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement =
-                              Arrangement.spacedBy(
-                                  spacing, alignment = Alignment.CenterHorizontally),
-                          verticalArrangement = Arrangement.spacedBy(spacing),
-                          maxItemsInEachRow = columns) {
-                            if (topics.isEmpty()) {
-                              Text(
-                                  text = "No topics yet",
-                                  style = MaterialTheme.typography.bodyMedium,
-                                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                            } else {
-                              topics.forEach { topic ->
-                                TopicChip(
-                                    label = topic,
-                                    selected = topic in selectedTopics,
-                                    onClick = { onTopicToggle(topic) })
-                              }
-                            }
-                          }
+                          filterOptions = Activities.filterOptions,
+                          selectedFilter = selectedFilter,
+                          onFilterSelected = onFilterSelected)
                     }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -202,93 +158,6 @@ internal fun ExperiencesContent(
                   Modifier.align(Alignment.CenterHorizontally).testTag(C.Tag.experiences_cta))
         }
   }
-}
-
-/**
- * A filter chip used in the Experiences screen to select experience categories.
- *
- * @param label The text label of the chip.
- * @param selected Whether the chip is currently selected.
- * @param onClick Callback invoked when the chip is clicked.
- * @param icon Optional composable icon to display alongside the label.
- */
-@Composable
-internal fun ExperienceFilterChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: @Composable (() -> Unit)? = null
-) {
-  val contentColor = if (selected) Color.White else Variables.FilterChipContent
-  val backgroundColor = if (selected) Variables.ColorOnClick else Variables.FilterChipBackground
-
-  Surface(
-      onClick = onClick,
-      color = backgroundColor,
-      contentColor = contentColor,
-      shape = RoundedCornerShape(24.dp),
-      modifier =
-          Modifier.semantics { testTag = "${C.Tag.experiences_filter_chip_prefix}_$label" }) {
-        Row(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically) {
-              if (icon != null) {
-                icon()
-              } else {
-                Icon( // TODO PLACEHOLDER FOR NOW
-                    imageVector = Icons.Outlined.Star,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = contentColor)
-              }
-              Text(text = label, style = MaterialTheme.typography.labelLarge, color = contentColor)
-            }
-      }
-}
-
-@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-@Composable
-internal fun TopicChip(
-    label: String,
-    width: Dp = topicChipWidth,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-  val targetBackground =
-      if (selected) MaterialTheme.colorScheme.primaryContainer else Variables.TopicChipBackground
-  val targetContent =
-      if (selected) MaterialTheme.colorScheme.onPrimaryContainer else Variables.TopicChipContent
-  val targetBorder =
-      if (selected) MaterialTheme.colorScheme.primary
-      else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-
-  val backgroundColor by animateColorAsState(targetValue = targetBackground, label = "topicChipBg")
-  val contentColor by animateColorAsState(targetValue = targetContent, label = "topicChipFg")
-  val borderColor by animateColorAsState(targetValue = targetBorder, label = "topicChipBorder")
-
-  val borderStroke =
-      if (selected) BorderStroke(2.dp, borderColor) else BorderStroke(1.dp, borderColor)
-
-  Surface(
-      onClick = onClick,
-      color = backgroundColor,
-      contentColor = contentColor,
-      shape = RoundedCornerShape(22.dp),
-      border = borderStroke,
-      modifier =
-          modifier.width(width).semantics {
-            testTag = "${C.Tag.experiences_topic_chip_prefix}_$label"
-          }) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            textAlign = TextAlign.Center,
-            color = contentColor)
-      }
 }
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -331,8 +200,6 @@ internal fun PrimaryCtaButton(
         }
   }
 }
-
-private val topicChipWidth = 100.dp
 
 @Preview(showBackground = true)
 @Composable

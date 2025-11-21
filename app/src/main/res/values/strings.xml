@@ -357,11 +357,15 @@
     <string name="event_error_date_empty">Date cannot be empty</string>
     <string name="event_error_date_invalid">Date is invalid</string>
     <string name="event_label_participants">Number of participants</string>
+    <string name="event_label_tags">Tags</string>
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
 
+    <!-- Experience tags -->
+    <string name="topic_selector_empty">No topics yet</string>
+    
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
 
