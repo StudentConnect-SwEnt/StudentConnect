@@ -168,7 +168,9 @@ fun CreatePublicEventScreen(
           animationSpec = tween(durationMillis = 300),
           label = "buttonWidthFraction")
 
-  var selectedTagCategory by rememberSaveable { mutableStateOf(Activities.filterOptions.first()) }
+  var selectedTagCategory by rememberSaveable {
+    mutableStateOf(Activities.filterOptions.firstOrNull() ?: "")
+  }
   val availableTagOptions = Activities.experienceTopics[selectedTagCategory] ?: emptyList()
 
   Box(modifier = modifier.fillMaxSize()) {
@@ -292,9 +294,15 @@ fun CreatePublicEventScreen(
                       text = stringResource(R.string.event_label_tags),
                       style = MaterialTheme.typography.titleMedium,
                       color = MaterialTheme.colorScheme.onSurface)
+
+                  val selectedTags =
+                      remember(createPublicEventUiState.tags) {
+                        createPublicEventUiState.tags.toSet()
+                      }
+
                   TopicChipGrid(
                       tags = availableTagOptions,
-                      selectedTags = createPublicEventUiState.tags.toSet(),
+                      selectedTags = selectedTags,
                       onTagToggle = { tag ->
                         val currentTags = createPublicEventUiState.tags
                         val updatedTags =
