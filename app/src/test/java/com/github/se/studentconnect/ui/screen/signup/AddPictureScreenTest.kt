@@ -1,8 +1,11 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.net.toUri
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,6 +38,7 @@ class AddPictureScreenTest {
 
   @Before
   fun setUp() {
+    MediaRepositoryProvider.repository = NoopMediaRepository
     controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     viewModel = SignUpViewModel()
   }
@@ -315,5 +319,13 @@ class AddPictureScreenTest {
   private fun runOnIdle() {
     Robolectric.flushForegroundThreadScheduler()
     ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+  }
+
+  private object NoopMediaRepository : MediaRepository {
+    override suspend fun upload(uri: Uri, path: String?): String = path ?: uri.toString()
+
+    override suspend fun download(id: String): Uri = Uri.parse(id)
+
+    override suspend fun delete(id: String) {}
   }
 }

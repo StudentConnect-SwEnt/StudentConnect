@@ -104,7 +104,6 @@
     <string name="subtitle_add_profile_picture">Let others know what you look like !</string>
     <string name="title_upload_logo">Upload a logo</string>
     <string name="subtitle_upload_org_logo">Upload your organization logo</string>
-    <string name="text_photo_selected">Photo selected</string>
 
     <!-- Screen titles -->
     <string name="title_edit_nationality">Edit Nationality</string>
@@ -161,7 +160,6 @@
     <string name="content_description_action_icon">action icon</string>
     <string name="content_description_action_button">Action button</string>
     <string name="content_description_close_filters">Close Filters</string>
-    <string name="content_description_selected_photo">Selected photo</string>
     <string name="content_description_upload_photo">Upload photo</string>
     <string name="content_description_owner">Owner</string>
     <string name="content_description_accept">Accept</string>
