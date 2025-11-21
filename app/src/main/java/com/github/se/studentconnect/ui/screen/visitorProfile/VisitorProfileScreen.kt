@@ -44,32 +44,38 @@ fun VisitorProfileScreen(
     user: User,
     onBackClick: () -> Unit,
     onAddFriendClick: () -> Unit,
+    onCancelFriendClick: () -> Unit = {},
+    onRemoveFriendClick: () -> Unit = {},
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
   VisitorProfileContent(
       user = user,
       onBackClick = onBackClick,
       onAddFriendClick = onAddFriendClick,
+      onCancelFriendClick = onCancelFriendClick,
+      onRemoveFriendClick = onRemoveFriendClick,
       friendRequestStatus = friendRequestStatus,
       modifier = modifier)
 }
 
-@VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun VisitorProfileContent(
     user: User,
     onBackClick: () -> Unit,
     onAddFriendClick: () -> Unit,
+    onCancelFriendClick: () -> Unit = {},
+    onRemoveFriendClick: () -> Unit = {},
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
   val scrollState = rememberScrollState()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
         modifier =
-            Modifier.Companion.fillMaxSize()
+            Modifier.fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp, vertical = 32.dp)
                 .semantics { testTag = C.Tag.visitor_profile_screen },
@@ -79,6 +85,8 @@ internal fun VisitorProfileContent(
           VisitorProfileInfoCard(
               user = user,
               onAddFriendClick = onAddFriendClick,
+              onCancelFriendClick = onCancelFriendClick,
+              onRemoveFriendClick = onRemoveFriendClick,
               friendRequestStatus = friendRequestStatus)
 
           VisitorProfileEventSection(title = "Pinned Events")
@@ -86,131 +94,159 @@ internal fun VisitorProfileContent(
   }
 }
 
-@VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun VisitorProfileTopBar(username: String, onBackClick: () -> Unit) {
-  Box(
-      modifier =
-          Modifier.Companion.fillMaxWidth().semantics { testTag = C.Tag.visitor_profile_top_bar }) {
-        IconButton(
-            onClick = onBackClick,
-            modifier =
-                Modifier.Companion.align(Alignment.Companion.TopStart).semantics {
-                  testTag = C.Tag.visitor_profile_back
-                }) {
-              Icon(
-                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                  contentDescription = "Back",
-                  tint = MaterialTheme.colorScheme.onSurface)
-            }
+  Box(modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.visitor_profile_top_bar }) {
+    IconButton(
+        onClick = onBackClick,
+        modifier =
+            Modifier.align(Alignment.TopStart).semantics { testTag = C.Tag.visitor_profile_back }) {
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = "Back",
+              tint = MaterialTheme.colorScheme.onSurface)
+        }
 
-        Text(
-            text = "@${username}",
-            style =
-                MaterialTheme.typography.titleLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Companion.Light,
-                    fontStyle = FontStyle.Companion.Italic),
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.Companion.align(Alignment.Companion.Center))
-      }
+    Text(
+        text = "@${username}",
+        style =
+            MaterialTheme.typography.titleLarge.copy(
+                fontSize = 18.sp, fontWeight = FontWeight.Light, fontStyle = FontStyle.Italic),
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.align(Alignment.Center))
+  }
 }
 
-@VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun VisitorProfileInfoCard(
     user: User,
     onAddFriendClick: () -> Unit,
+    onCancelFriendClick: () -> Unit = {},
+    onRemoveFriendClick: () -> Unit = {},
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
 
-  Column(
-      modifier = Modifier.Companion.fillMaxWidth(),
-      verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        Row(
-            modifier = Modifier.Companion.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Companion.CenterVertically) {
-              val initials =
-                  listOf(user.firstName, user.lastName)
-                      .mapNotNull { it.firstOrNull()?.toString() }
-                      .joinToString("")
-                      .ifBlank { user.username.take(2) }
-                      .uppercase(Locale.getDefault())
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically) {
+          val initials =
+              listOf(user.firstName, user.lastName)
+                  .mapNotNull { it.firstOrNull()?.toString() }
+                  .joinToString("")
+                  .ifBlank { user.username.take(2) }
+                  .uppercase(Locale.getDefault())
 
-              Surface(
+          Surface(
+              modifier = Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
+              shape = CircleShape,
+              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+              tonalElevation = 0.dp) {
+                Box(contentAlignment = Alignment.Center) {
+                  Text(
+                      text = initials,
+                      style =
+                          MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                      color = MaterialTheme.colorScheme.primary)
+                }
+              }
+
+          Spacer(modifier = Modifier.width(16.dp))
+
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = user.getFullName(),
+                style =
+                    MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_user_name })
+
+            Text(
+                text = user.username,
+                style =
+                    MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant),
+                modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_user_id })
+          }
+        }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      Text(
+          modifier = Modifier.padding(start = 10.dp),
+          text = "Bio",
+          style =
+              MaterialTheme.typography.titleSmall.copy(
+                  fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary))
+
+      val bio = user.bio?.takeIf { it.isNotBlank() } ?: "No biography available yet."
+      val bioColor =
+          if (user.bio.isNullOrBlank()) MaterialTheme.colorScheme.onSurfaceVariant
+          else MaterialTheme.colorScheme.onSurface
+
+      Text(
+          text = bio,
+          style = MaterialTheme.typography.bodyMedium,
+          color = bioColor,
+          modifier =
+              Modifier.padding(start = 10.dp).semantics { testTag = C.Tag.visitor_profile_bio })
+
+      Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+        when (friendRequestStatus) {
+          FriendRequestStatus.SENT,
+          FriendRequestStatus.ALREADY_SENT -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              Button(
+                  onClick = onCancelFriendClick,
                   modifier =
-                      Modifier.Companion.size(72.dp).semantics {
-                        testTag = C.Tag.visitor_profile_avatar
+                      Modifier.weight(1f).semantics {
+                        testTag = C.Tag.visitor_profile_cancel_friend
                       },
-                  shape = CircleShape,
-                  color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                  tonalElevation = 0.dp) {
-                    Box(contentAlignment = Alignment.Companion.Center) {
-                      Text(
-                          text = initials,
-                          style =
-                              MaterialTheme.typography.titleLarge.copy(
-                                  fontWeight = FontWeight.Companion.Bold),
-                          color = MaterialTheme.colorScheme.primary)
-                    }
+                  colors =
+                      ButtonDefaults.buttonColors(
+                          containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                          contentColor = MaterialTheme.colorScheme.onSurface),
+                  shape = RoundedCornerShape(10.dp)) {
+                    Text(text = "Cancel", style = MaterialTheme.typography.labelLarge)
                   }
 
-              Spacer(modifier = Modifier.Companion.width(16.dp))
-
-              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = user.getFullName(),
-                    style =
-                        MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Companion.Bold,
-                            color = MaterialTheme.colorScheme.onSurface),
-                    modifier =
-                        Modifier.Companion.semantics { testTag = C.Tag.visitor_profile_user_name })
-
-                Text(
-                    text = user.username,
-                    style =
-                        MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant),
-                    modifier =
-                        Modifier.Companion.semantics { testTag = C.Tag.visitor_profile_user_id })
-              }
+              Button(
+                  onClick = {},
+                  enabled = false,
+                  modifier = Modifier.weight(1f),
+                  colors =
+                      ButtonDefaults.buttonColors(
+                          containerColor = MaterialTheme.colorScheme.primary,
+                          contentColor = MaterialTheme.colorScheme.onPrimary),
+                  shape = RoundedCornerShape(10.dp)) {
+                    Text(text = "Request Sent", style = MaterialTheme.typography.labelLarge)
+                  }
             }
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-          Text(
-              modifier = Modifier.Companion.padding(start = 10.dp),
-              text = "Bio",
-              style =
-                  MaterialTheme.typography.titleSmall.copy(
-                      fontWeight = FontWeight.Companion.Medium,
-                      color = MaterialTheme.colorScheme.primary))
-
-          val bio = user.bio?.takeIf { it.isNotBlank() } ?: "No biography available yet."
-          val bioColor =
-              if (user.bio.isNullOrBlank()) {
-                MaterialTheme.colorScheme.onSurfaceVariant
-              } else {
-                MaterialTheme.colorScheme.onSurface
-              }
-
-          Text(
-              text = bio,
-              style = MaterialTheme.typography.bodyMedium,
-              color = bioColor,
-              modifier =
-                  Modifier.Companion.padding(start = 10.dp).semantics {
-                    testTag = C.Tag.visitor_profile_bio
-                  })
-
-          Box(modifier = Modifier.Companion.padding(horizontal = 8.dp)) {
+          }
+          FriendRequestStatus.ALREADY_FRIENDS -> {
+            // Show a prominent remove button when already friends
+            Button(
+                onClick = onRemoveFriendClick,
+                modifier =
+                    Modifier.fillMaxWidth().semantics {
+                      testTag = C.Tag.visitor_profile_remove_friend
+                    },
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface),
+                shape = RoundedCornerShape(10.dp)) {
+                  Text(text = "Remove Friend", style = MaterialTheme.typography.labelLarge)
+                }
+          }
+          else -> {
             val buttonText =
                 when (friendRequestStatus) {
                   FriendRequestStatus.SENDING -> "Sending..."
-                  FriendRequestStatus.SENT -> "Request Sent"
                   FriendRequestStatus.ALREADY_FRIENDS -> "Already Friends"
-                  FriendRequestStatus.ALREADY_SENT -> "Request Pending"
+                  FriendRequestStatus.ERROR -> "Try Again"
                   else -> "Add Friend"
                 }
 
@@ -222,7 +258,7 @@ internal fun VisitorProfileInfoCard(
                 onClick = onAddFriendClick,
                 enabled = buttonEnabled,
                 modifier =
-                    Modifier.Companion.fillMaxWidth().semantics {
+                    Modifier.fillMaxWidth().semantics {
                       testTag = C.Tag.visitor_profile_add_friend
                     },
                 colors =
@@ -238,40 +274,37 @@ internal fun VisitorProfileInfoCard(
           }
         }
       }
+    }
+  }
 }
 
-@VisibleForTesting(otherwise = VisibleForTesting.Companion.PRIVATE)
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun VisitorProfileEventSection(title: String) {
   Column(
       modifier =
-          Modifier.Companion.fillMaxWidth().semantics {
-            testTag = C.Tag.visitor_profile_pinned_section
-          },
+          Modifier.fillMaxWidth().semantics { testTag = C.Tag.visitor_profile_pinned_section },
       verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = title,
             style =
                 MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Companion.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface))
+                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface))
 
         Surface(
-            modifier = Modifier.Companion.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLow) {
               Column(
-                  modifier = Modifier.Companion.fillMaxWidth().padding(24.dp),
+                  modifier = Modifier.fillMaxWidth().padding(24.dp),
                   verticalArrangement = Arrangement.spacedBy(8.dp),
-                  horizontalAlignment = Alignment.Companion.CenterHorizontally) {
+                  horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Nothing to display yet",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier =
-                            Modifier.Companion.semantics {
-                              testTag = C.Tag.visitor_profile_empty_state
-                            })
+                            Modifier.semantics { testTag = C.Tag.visitor_profile_empty_state })
                   }
             }
       }
@@ -292,6 +325,9 @@ private fun VisitorProfileScreenPreview() {
                 university = "EPFL",
                 bio = "Curious learner, exploring new connections."),
         onBackClick = {},
-        onAddFriendClick = {})
+        onAddFriendClick = {},
+        onCancelFriendClick = {},
+        onRemoveFriendClick = {},
+    )
   }
 }
