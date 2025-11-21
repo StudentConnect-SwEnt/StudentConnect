@@ -31,12 +31,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
 import java.util.Locale
 
 @Composable
@@ -308,26 +306,4 @@ internal fun VisitorProfileEventSection(title: String) {
                   }
             }
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun VisitorProfileScreenPreview() {
-  AppTheme {
-    VisitorProfileScreen(
-        user =
-            User(
-                userId = "user-123",
-                email = "sample@studentconnect.ch",
-                username = "alexxxxx",
-                firstName = "Alex",
-                lastName = "Martin",
-                university = "EPFL",
-                bio = "Curious learner, exploring new connections."),
-        onBackClick = {},
-        onAddFriendClick = {},
-        onCancelFriendClick = {},
-        onRemoveFriendClick = {},
-    )
-  }
 }

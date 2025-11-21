@@ -487,4 +487,293 @@ class VisitorProfileViewModelTest {
     val areStillFriends = friendsRepo.areFriends(currentUser, targetUser)
     assertFalse(areStillFriends)
   }
+
+  @Test
+  fun subscribeToFriendshipUpdates_observerEmitsTrue_updatesUiState() = runTest {
+    val user =
+        User(
+            userId = "user-obs-2",
+            email = "obs2@studentconnect.ch",
+            username = "obs2",
+            firstName = "O2",
+            lastName = "B2",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    // Use the local friends repository and establish a friendship with the current test user
+    val friendsRepo = FriendsRepositoryLocal()
+    // Make other user send a request to the current test user and accept it to establish friendship
+    friendsRepo.sendFriendRequest(user.userId, AuthenticationProvider.currentUser)
+    friendsRepo.acceptFriendRequest(AuthenticationProvider.currentUser, user.userId)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo)
+
+    viewModel.loadProfile("user-obs-2")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ALREADY_FRIENDS, state.friendRequestStatus)
+    assertEquals("Already friends", state.friendRequestMessage)
+  }
+
+  @Test
+  fun subscribeToFriendshipUpdates_notLoggedIn_doesNotObserve() = runTest {
+    // Simulate not logged in by setting empty test user id
+    AuthenticationProvider.testUserId = ""
+
+    val user =
+        User(
+            userId = "user-obs",
+            email = "obs@studentconnect.ch",
+            username = "obs",
+            firstName = "O",
+            lastName = "B",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    // Use the local repository and pre-create a friendship between the real test user id and the
+    // visited user.
+    val localRepo = FriendsRepositoryLocal()
+    // Create friendship between the usual test user and the observed user.
+    // Do not rely on AuthenticationProvider here as it is set to empty string.
+
+    // 1. "test-user-id" sends a request to the profile user
+    localRepo.sendFriendRequest("test-user-id", user.userId)
+
+    // 2. The profile user accepts the request from "test-user-id"
+    // FIX: Pass the correct userId (receiver) and fromUserId (sender)
+    localRepo.acceptFriendRequest(user.userId, "test-user-id")
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, localRepo)
+
+    viewModel.loadProfile("user-obs")
+    advanceUntilIdle()
+
+    // Because currentUser is empty, subscribeToFriendshipUpdates should return early and not change
+    // friend status
+    val state = viewModel.uiState.value
+
+    //
+    assertEquals(FriendRequestStatus.IDLE, state.friendRequestStatus)
+
+    // restore test user
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
+
+  @Test
+  fun subscribeToFriendshipUpdates_observerThrows_isHandled() = runTest {
+    val user =
+        User(
+            userId = "user-obs-3",
+            email = "obs3@studentconnect.ch",
+            username = "obs3",
+            firstName = "O3",
+            lastName = "B3",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val friendsRepo =
+        object : FriendsRepository {
+          override suspend fun getFriends(userId: String): List<String> = emptyList()
+
+          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) = Unit
+
+          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) = Unit
+
+          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) = Unit
+
+          override suspend fun removeFriend(userId: String, friendId: String) = Unit
+
+          override suspend fun cancelFriendRequest(userId: String, toUserId: String) = Unit
+
+          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
+              false
+
+          override fun observeFriendship(userId: String, otherUserId: String) =
+              kotlinx.coroutines.flow.flow<Boolean> { throw Exception("observer boom") }
+        }
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo)
+
+    viewModel.loadProfile("user-obs-3")
+    // Should not throw even if observer throws
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    // Observer error ignored - ensure we still have the loaded user
+    assertEquals("user-obs-3", state.user?.userId)
+  }
+
+  @Test
+  fun sendFriendRequest_notLoggedIn_setsError() = runTest {
+    AuthenticationProvider.testUserId = ""
+
+    val user =
+        User(
+            userId = "user-send-1",
+            email = "send1@studentconnect.ch",
+            username = "send1",
+            firstName = "S",
+            lastName = "One",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository())
+
+    viewModel.loadProfile("user-send-1")
+    advanceUntilIdle()
+
+    viewModel.sendFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertTrue(state.friendRequestMessage?.contains("logged in") == true)
+
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
+
+  @Test
+  fun sendFriendRequest_toSelf_setsError() = runTest {
+    AuthenticationProvider.testUserId = "self-user"
+
+    val user =
+        User(
+            userId = "self-user",
+            email = "self@studentconnect.ch",
+            username = "self",
+            firstName = "Me",
+            lastName = "Self",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository())
+
+    viewModel.loadProfile("self-user")
+    advanceUntilIdle()
+
+    viewModel.sendFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertEquals("Cannot send friend request to yourself", state.friendRequestMessage)
+
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
+
+  @Test
+  fun sendFriendRequest_repoThrows_illegalArgument_mapsToStatus() = runTest {
+    val user =
+        User(
+            userId = "user-send-2",
+            email = "send2@studentconnect.ch",
+            username = "send2",
+            firstName = "S2",
+            lastName = "Two",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    var thrownMessage: String? = null
+    val friendsRepo =
+        fakeFriendsRepository(
+            onSendRequest = { _, _ -> throw IllegalArgumentException("already friends") })
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo)
+
+    viewModel.loadProfile("user-send-2")
+    advanceUntilIdle()
+
+    viewModel.sendFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ALREADY_FRIENDS, state.friendRequestStatus)
+    assertTrue(state.friendRequestMessage?.contains("already friends") == true)
+
+    // Now test already sent
+    val friendsRepo2 =
+        fakeFriendsRepository(
+            onSendRequest = { _, _ -> throw IllegalArgumentException("already sent") })
+    val viewModel2 = VisitorProfileViewModel(fakeRepository { user }, friendsRepo2)
+    viewModel2.loadProfile("user-send-2")
+    advanceUntilIdle()
+    viewModel2.sendFriendRequest()
+    advanceUntilIdle()
+    val state2 = viewModel2.uiState.value
+    assertEquals(FriendRequestStatus.ALREADY_SENT, state2.friendRequestStatus)
+    assertTrue(state2.friendRequestMessage?.contains("already sent") == true)
+  }
+
+  @Test
+  fun cancelFriendRequest_notLoggedIn_setsError() = runTest {
+    AuthenticationProvider.testUserId = ""
+
+    val user =
+        User(
+            userId = "user-cancel-1",
+            email = "cancel1@studentconnect.ch",
+            username = "cancel1",
+            firstName = "C",
+            lastName = "One",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository())
+
+    viewModel.loadProfile("user-cancel-1")
+    advanceUntilIdle()
+
+    viewModel.cancelFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertTrue(state.friendRequestMessage?.contains("logged in") == true)
+
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
+
+  @Test
+  fun removeFriend_notLoggedIn_setsError() = runTest {
+    AuthenticationProvider.testUserId = ""
+
+    val user =
+        User(
+            userId = "user-remove-1",
+            email = "remove1@studentconnect.ch",
+            username = "remove1",
+            firstName = "R",
+            lastName = "One",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository())
+
+    viewModel.loadProfile("user-remove-1")
+    advanceUntilIdle()
+
+    viewModel.removeFriend()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertTrue(state.friendRequestMessage?.contains("logged in") == true)
+
+    AuthenticationProvider.testUserId = "test-user-id"
+  }
 }
