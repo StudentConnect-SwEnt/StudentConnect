@@ -65,10 +65,7 @@ class BrandOrganizationScreenTest {
 
     controller.get().setContent {
       BrandOrganizationScreen(
-          viewModel = viewModel,
-          onSkip = { skipCount++ },
-          onContinue = { continueCount++ },
-          onBack = { backCount++ })
+          onSkip = { skipCount++ }, onContinue = { continueCount++ }, onBack = { backCount++ })
     }
 
     // After composition counters must remain zero (no clicks performed), but composition path

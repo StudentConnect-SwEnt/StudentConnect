@@ -18,7 +18,15 @@ import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.eventcreation.FormTextField
 
-/** Small, reusable social link field that reuses FormTextField to avoid duplication. */
+/**
+ * Composable for a social link input field with optional leading icon.
+ *
+ * @param label The label for the text field.
+ * @param value The current value of the text field.
+ * @param onValueChange Callback when the text field value changes.
+ * @param modifier Modifier for the text field.
+ * @param leadingIcon Optional leading icon composable.
+ */
 @Composable
 fun SocialLinkField(
     label: String,
@@ -35,6 +43,22 @@ fun SocialLinkField(
       leadingIcon = leadingIcon)
 }
 
+/**
+ * Composable for the Brand/Organization sign-up screen content.
+ *
+ * @param modifier Modifier for the content layout.
+ * @param website Current value of the website field.
+ * @param onWebsiteChange Callback when the website field value changes.
+ * @param insta Current value of the Instagram field.
+ * @param onInstaChange Callback when the Instagram field value changes.
+ * @param x Current value of the X (Twitter) field.
+ * @param onXChange Callback when the X (Twitter) field value changes.
+ * @param linkedin Current value of the LinkedIn field.
+ * @param onLinkedinChange Callback when the LinkedIn field value changes.
+ * @param onBack Callback when the back button is pressed.
+ * @param onSkip Callback when the skip button is pressed.
+ * @param onContinue Callback when the continue button is pressed.
+ */
 @Composable
 fun BrandOrganizationContent(
     modifier: Modifier = Modifier,
@@ -42,7 +66,7 @@ fun BrandOrganizationContent(
     onWebsiteChange: (String) -> Unit,
     insta: String,
     onInstaChange: (String) -> Unit,
-    x: String,
+    x: String, // Twitter rebranded to X
     onXChange: (String) -> Unit,
     linkedin: String,
     onLinkedinChange: (String) -> Unit,
@@ -124,13 +148,15 @@ fun BrandOrganizationContent(
       }
 }
 
+/**
+ * Composable for the Brand/Organization sign-up screen.
+ *
+ * @param onSkip Callback when the skip button is pressed.
+ * @param onContinue Callback when the continue button is pressed.
+ * @param onBack Callback when the back button is pressed.
+ */
 @Composable
-fun BrandOrganizationScreen(
-    viewModel: SignUpViewModel,
-    onSkip: () -> Unit,
-    onContinue: () -> Unit,
-    onBack: () -> Unit
-) {
+fun BrandOrganizationScreen(onSkip: () -> Unit, onContinue: () -> Unit, onBack: () -> Unit) {
   BrandOrganizationContent(
       website = "",
       onWebsiteChange = { /* TODO: hook to viewModel when fields exist */},
