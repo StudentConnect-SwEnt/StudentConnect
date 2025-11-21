@@ -340,6 +340,8 @@ internal fun MainAppContent(
                         user = uiState.user!!,
                         onBackClick = { navController.popBackStack() },
                         onAddFriendClick = { vm.sendFriendRequest() },
+                        onCancelFriendClick = { vm.cancelFriendRequest() },
+                        onRemoveFriendClick = { vm.removeFriend() },
                         friendRequestStatus = uiState.friendRequestStatus)
                   }
                   else -> {
