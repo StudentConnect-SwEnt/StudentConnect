@@ -81,7 +81,6 @@
     <string name="subtitle_add_profile_picture">Let others know what you look like !</string>
     <string name="title_upload_logo">Upload a logo</string>
     <string name="subtitle_upload_org_logo">Upload your organization logo</string>
-    <string name="text_photo_selected">Photo selected</string>
 
     <!-- Screen titles -->
     <string name="title_edit_nationality">Edit Nationality</string>
