@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.Invitation
@@ -9,6 +10,8 @@ import com.github.se.studentconnect.ui.screen.visitorProfile.FriendRequestStatus
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -183,6 +186,10 @@ class VisitorProfileViewModelTest {
 
       override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
           sentRequests.contains(toUserId)
+
+      override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> = flow {
+        emit(friends.contains(otherUserId))
+      }
     }
   }
 
@@ -392,5 +399,92 @@ class VisitorProfileViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals(FriendRequestStatus.ALREADY_SENT, state.friendRequestStatus)
+  }
+
+  @Test
+  fun cancelFriendRequest_withLocalRepo_removesSentRequest_andUpdatesUi() = runTest {
+    val user =
+        User(
+            userId = "user-local-1",
+            email = "local1@studentconnect.ch",
+            username = "local1",
+            firstName = "Local",
+            lastName = "User",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    // Use the local friends repository to set up a sent request from current test user
+    val friendsRepo = FriendsRepositoryLocal()
+    val currentUser = AuthenticationProvider.currentUser
+    val targetUser = user.userId
+
+    // currentUser sends a friend request to targetUser
+    friendsRepo.sendFriendRequest(currentUser, targetUser)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo)
+
+    // Load profile should detect the already-sent status
+    viewModel.loadProfile(targetUser)
+    advanceUntilIdle()
+
+    var state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ALREADY_SENT, state.friendRequestStatus)
+    assertEquals("Friend request already sent", state.friendRequestMessage)
+
+    // Cancel the sent request via the ViewModel
+    viewModel.cancelFriendRequest()
+    advanceUntilIdle()
+
+    state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.IDLE, state.friendRequestStatus)
+    assertEquals("Friend request cancelled", state.friendRequestMessage)
+
+    // Verify repository no longer has the sent request
+    val stillSent = friendsRepo.hasPendingRequest(currentUser, targetUser)
+    assertFalse(stillSent)
+  }
+
+  @Test
+  fun removeFriend_withLocalRepo_removesFriendship_andUpdatesUi() = runTest {
+    val user =
+        User(
+            userId = "user-local-2",
+            email = "local2@studentconnect.ch",
+            username = "local2",
+            firstName = "Local",
+            lastName = "User2",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val friendsRepo = FriendsRepositoryLocal()
+    val currentUser = AuthenticationProvider.currentUser
+    val targetUser = user.userId
+
+    // Establish friendship: other user sends request, current user accepts
+    friendsRepo.sendFriendRequest(targetUser, currentUser)
+    friendsRepo.acceptFriendRequest(currentUser, targetUser)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo)
+
+    // Load profile should detect already friends
+    viewModel.loadProfile(targetUser)
+    advanceUntilIdle()
+
+    var state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ALREADY_FRIENDS, state.friendRequestStatus)
+
+    // Remove friend via ViewModel
+    viewModel.removeFriend()
+    advanceUntilIdle()
+
+    state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.IDLE, state.friendRequestStatus)
+    assertEquals("Friend removed", state.friendRequestMessage)
+
+    // Verify repository no longer considers them friends
+    val areStillFriends = friendsRepo.areFriends(currentUser, targetUser)
+    assertFalse(areStillFriends)
   }
 }

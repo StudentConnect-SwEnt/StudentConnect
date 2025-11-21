@@ -191,7 +191,6 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
         .assertExists()
         .assertTextContains("ritan$shortSuffix")
 
-    // FIX: Add performScrollTo() and assert the full text to avoid substring/exact match ambiguity
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_bio)
         .performScrollTo()
