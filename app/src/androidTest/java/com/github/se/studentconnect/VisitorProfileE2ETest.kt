@@ -1,3 +1,5 @@
+// this code was implemented with the help of gemini
+
 package com.github.se.studentconnect
 
 import android.content.Intent

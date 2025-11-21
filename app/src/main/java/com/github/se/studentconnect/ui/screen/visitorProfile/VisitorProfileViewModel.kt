@@ -36,9 +36,7 @@ data class VisitorProfileUiState(
 class VisitorProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
-    // Function to resolve string resources.
-    // Should be injected by the factory as: { id -> context.getString(id) }
-    private val getString: (Int) -> String
+    private val getString: (resId: Int) -> String = { id -> "" }
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(VisitorProfileUiState())
