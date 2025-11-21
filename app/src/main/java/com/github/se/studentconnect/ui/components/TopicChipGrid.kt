@@ -86,7 +86,7 @@ fun TopicChipGrid(
               TopicFilterChip(
                   label = filter,
                   selected = filter == selectedFilter,
-                  onClick = { onFilterSelected?.invoke(filter) },
+                  onClick = { onFilterSelected.invoke(filter) },
                   modifier =
                       Modifier.semantics {
                         testTag = "${TopicChipGridTestTags.FILTER_CHIP_PREFIX}_$filter"
