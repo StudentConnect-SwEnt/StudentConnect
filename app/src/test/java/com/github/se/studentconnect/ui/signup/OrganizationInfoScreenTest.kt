@@ -6,10 +6,10 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.signup.OrganizationInfoScreen
 import com.github.se.studentconnect.ui.screen.signup.OrganizationInfoScreenTestTags
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -40,16 +40,12 @@ class OrganizationInfoScreenTest {
     composeRule.onNodeWithTag(OrganizationInfoScreenTestTags.ORG_NAME_INPUT).performTextInput("Org")
 
     // select and then deselect chip via test tag
-    composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_$assoc", useUnmergedTree = true)
-        .performClick()
+    composeRule.onNodeWithText(assoc).performClick()
     // ensure CTA enabled
     composeRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).assertIsEnabled()
 
     // click again to deselect
-    composeRule
-        .onNodeWithTag("${C.Tag.experiences_filter_chip_prefix}_$assoc", useUnmergedTree = true)
-        .performClick()
+    composeRule.onNodeWithText(assoc).performClick()
     // CTA should be disabled because no type selected
     composeRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).assertIsNotEnabled()
   }

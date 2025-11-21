@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.components.TopicFilterChip
 
 object OrganizationInfoScreenTestTags {
   const val SCREEN = "organization_info_screen"
@@ -114,7 +115,7 @@ fun OrganizationInfoScreen(
                 Arrangement.spacedBy(chipSpacing, alignment = Alignment.CenterHorizontally)) {
               types.forEach { t ->
                 val selected = selectedType.value == t
-                ExperienceFilterChip(
+                TopicFilterChip(
                     label = t,
                     selected = selected,
                     onClick = { selectedType.value = if (selected) null else t },

@@ -359,11 +359,15 @@
     <string name="event_error_date_empty">Date cannot be empty</string>
     <string name="event_error_date_invalid">Date is invalid</string>
     <string name="event_label_participants">Number of participants</string>
+    <string name="event_label_tags">Tags</string>
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
 
+    <!-- Experience tags -->
+    <string name="topic_selector_empty">No topics yet</string>
+    
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
 
@@ -394,6 +398,7 @@
     <string name="polls_list_no_polls">No polls available for this event</string>
     <string name="poll_options_count">%1$d options</string>
     <string name="poll_voted_indicator">Voted</string>
+
     <!-- Organization profile -->
     <string name="org_profile_follow">Follow</string>
     <string name="org_profile_following">Following</string>
@@ -434,4 +439,13 @@
     <string name="failed_to_remove_friend">Failed to remove friend</string>
     <string name="must_be_logged_in_cancel_friend_request">You must be logged in to cancel friend requests</string>
     <string name="must_be_logged_in_remove_friend">You must be logged in to remove friends</string>
+
+    <!-- Brand organization screen strings -->
+    <string name="title_brand_organization">Brand your organization</string>
+    <string name="subtitle_brand_organization">Make your profile stand out</string>
+    <string name="label_website">Website</string>
+    <string name="label_insta">Instagram</string>
+    <string name="label_x">X</string>
+    <string name="label_linkedin">LinkedIn</string>
+
 </resources>
