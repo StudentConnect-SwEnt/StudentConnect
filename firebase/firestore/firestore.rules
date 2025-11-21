@@ -187,7 +187,12 @@ service cloud.firestore {
       allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
 
       // Allow users to create notifications for themselves
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      //allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow authenticated users to create notifications for any user. The app (client)
+      // creates notifications (e.g., friend request alerts) on behalf of recipients,
+      // so we permit authenticated writes. Reading/updating/deleting remain restricted
+      // to the notification owner.
+      allow create: if request.auth != null;
 
       // Allow updating/deleting only for the owner
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;

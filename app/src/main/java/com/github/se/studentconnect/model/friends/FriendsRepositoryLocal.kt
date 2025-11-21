@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model.friends
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -152,6 +154,14 @@ class FriendsRepositoryLocal : FriendsRepository {
 
   override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
       mutex.withLock { sentRequests[fromUserId]?.contains(toUserId) ?: false }
+
+  /**
+   * Observe whether two users are friends. This returns a cold Flow that emits the current
+   * friendship state once. For local in-memory repo this is sufficient for tests.
+   */
+  override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> = flow {
+    emit(areFriends(userId, otherUserId))
+  }
 
   /** Clears all data from the repository. Useful for testing. */
   suspend fun clear() =
