@@ -570,13 +570,13 @@ class OrganizationSignupViewModel : ViewModel() {
             null
           }
 
-      // Create SocialLinks object
+      // Create SocialLinks object (filter out blank strings to ensure safety)
       val socialLinks =
           SocialLinks(
-              website = s.website,
-              instagram = s.instagram,
-              x = s.x,
-              linkedin = s.linkedin)
+              website = s.website?.takeIf { it.isNotBlank() },
+              instagram = s.instagram?.takeIf { it.isNotBlank() },
+              x = s.x?.takeIf { it.isNotBlank() },
+              linkedin = s.linkedin?.takeIf { it.isNotBlank() })
 
       // Create OrganizationModel
       val organization =
