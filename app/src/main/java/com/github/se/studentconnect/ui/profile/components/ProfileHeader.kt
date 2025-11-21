@@ -36,9 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
@@ -98,16 +100,18 @@ fun ProfileHeader(
                       .background(MaterialTheme.colorScheme.secondaryContainer)
                       .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
               contentAlignment = Alignment.Center) {
+                val profilePictureDescription =
+                    stringResource(R.string.content_description_profile_picture)
                 if (imageBitmap != null) {
                   Image(
                       bitmap = imageBitmap!!,
-                      contentDescription = "Profile Picture",
+                      contentDescription = profilePictureDescription,
                       modifier = Modifier.size(100.dp).clip(CircleShape),
                       contentScale = ContentScale.Crop)
                 } else {
                   Icon(
                       imageVector = Icons.Default.Person,
-                      contentDescription = "Profile Picture",
+                      contentDescription = profilePictureDescription,
                       modifier = Modifier.size(60.dp),
                       tint = MaterialTheme.colorScheme.primary)
                 }
