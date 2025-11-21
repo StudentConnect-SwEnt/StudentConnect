@@ -39,6 +39,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 
 /**
@@ -66,7 +67,7 @@ fun SearchScreen(
     Column(
         modifier = modifier.padding(innerPadding),
     ) {
-      People(viewModel)
+      People(viewModel = viewModel, navController = navController)
       Events(viewModel)
     }
   }
@@ -113,7 +114,7 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun People(viewModel: SearchViewModel) {
+private fun People(viewModel: SearchViewModel, navController: NavHostController) {
   if (viewModel.hasUsers())
       Column {
         Text(
@@ -132,7 +133,7 @@ private fun People(viewModel: SearchViewModel) {
         LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
           items(viewModel.state.value.shownUsers) { user ->
             Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f))
-            UserCard(user)
+            UserCard(user = user, navController = navController)
           }
           item { Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f)) }
         }
@@ -140,10 +141,11 @@ private fun People(viewModel: SearchViewModel) {
 }
 
 @Composable
-private fun UserCard(user: User) {
+private fun UserCard(user: User, navController: NavHostController) {
   Box(
       modifier =
-          Modifier.clickable(onClick = {})
+          Modifier.clickable(
+                  onClick = { navController.navigate(Route.visitorProfile(user.userId)) })
               .clip(MaterialTheme.shapes.medium)
               .background(MaterialTheme.colorScheme.secondaryContainer)
               .padding(16.dp),

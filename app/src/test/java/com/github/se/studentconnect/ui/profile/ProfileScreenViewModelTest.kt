@@ -6,6 +6,7 @@ import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -450,5 +451,9 @@ class ProfileScreenViewModelTest {
     override suspend fun areFriends(userId: String, otherUserId: String) = false
 
     override suspend fun hasPendingRequest(fromUserId: String, toUserId: String) = false
+
+    override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
+      TODO("Not yet implemented")
+    }
   }
 }
