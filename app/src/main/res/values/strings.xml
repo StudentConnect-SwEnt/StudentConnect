@@ -137,7 +137,6 @@
     <string name="content_description_action_icon">action icon</string>
     <string name="content_description_action_button">Action button</string>
     <string name="content_description_close_filters">Close Filters</string>
-    <string name="content_description_selected_photo">Selected photo</string>
     <string name="content_description_upload_photo">Upload photo</string>
     <string name="content_description_owner">Owner</string>
     <string name="content_description_accept">Accept</string>
