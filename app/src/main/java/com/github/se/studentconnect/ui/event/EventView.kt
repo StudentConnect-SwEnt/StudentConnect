@@ -194,7 +194,6 @@ fun EventView(
               AttendeesList(
                   paddingValues = paddingValues,
                   pagerState = pagerState,
-                  context = context,
                   uiState = uiState,
                   navController = navController)
           1 ->
@@ -317,7 +316,6 @@ private fun BaseEventView(
 private fun AttendeesList(
     paddingValues: PaddingValues,
     pagerState: PagerState,
-    context: Context,
     uiState: EventUiState,
     navController: NavHostController,
 ) {
