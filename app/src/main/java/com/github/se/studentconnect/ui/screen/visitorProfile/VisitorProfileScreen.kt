@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontStyle
@@ -44,8 +45,8 @@ fun VisitorProfileScreen(
     onAddFriendClick: () -> Unit,
     onCancelFriendClick: () -> Unit = {},
     onRemoveFriendClick: () -> Unit = {},
-    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
   VisitorProfileContent(
       user = user,
@@ -65,8 +66,8 @@ internal fun VisitorProfileContent(
     onAddFriendClick: () -> Unit,
     onCancelFriendClick: () -> Unit = {},
     onRemoveFriendClick: () -> Unit = {},
-    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
   val scrollState = rememberScrollState()
 
@@ -87,7 +88,8 @@ internal fun VisitorProfileContent(
               onRemoveFriendClick = onRemoveFriendClick,
               friendRequestStatus = friendRequestStatus)
 
-          VisitorProfileEventSection(title = "Pinned Events")
+          VisitorProfileEventSection(
+              title = stringResource(id = com.github.se.studentconnect.R.string.text_pinned_events))
         }
   }
 }
@@ -102,7 +104,9 @@ internal fun VisitorProfileTopBar(username: String, onBackClick: () -> Unit) {
             Modifier.align(Alignment.TopStart).semantics { testTag = C.Tag.visitor_profile_back }) {
           Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "Back",
+              contentDescription =
+                  stringResource(
+                      id = com.github.se.studentconnect.R.string.content_description_back),
               tint = MaterialTheme.colorScheme.onSurface)
         }
 
@@ -174,12 +178,14 @@ internal fun VisitorProfileInfoCard(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
       Text(
           modifier = Modifier.padding(start = 10.dp),
-          text = "Bio",
+          text = stringResource(id = com.github.se.studentconnect.R.string.title_bio),
           style =
               MaterialTheme.typography.titleSmall.copy(
                   fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary))
 
-      val bio = user.bio?.takeIf { it.isNotBlank() } ?: "No biography available yet."
+      val bio =
+          user.bio?.takeIf { it.isNotBlank() }
+              ?: stringResource(id = com.github.se.studentconnect.R.string.no_bio_available)
       val bioColor =
           if (user.bio.isNullOrBlank()) MaterialTheme.colorScheme.onSurfaceVariant
           else MaterialTheme.colorScheme.onSurface
@@ -207,7 +213,11 @@ internal fun VisitorProfileInfoCard(
                           containerColor = MaterialTheme.colorScheme.surfaceVariant,
                           contentColor = MaterialTheme.colorScheme.onSurface),
                   shape = RoundedCornerShape(10.dp)) {
-                    Text(text = "Cancel", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text =
+                            stringResource(
+                                id = com.github.se.studentconnect.R.string.button_cancel),
+                        style = MaterialTheme.typography.labelLarge)
                   }
 
               Button(
@@ -219,7 +229,11 @@ internal fun VisitorProfileInfoCard(
                           containerColor = MaterialTheme.colorScheme.primary,
                           contentColor = MaterialTheme.colorScheme.onPrimary),
                   shape = RoundedCornerShape(10.dp)) {
-                    Text(text = "Request Sent", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text =
+                            stringResource(
+                                id = com.github.se.studentconnect.R.string.text_request_sent),
+                        style = MaterialTheme.typography.labelLarge)
                   }
             }
           }
@@ -236,16 +250,22 @@ internal fun VisitorProfileInfoCard(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurface),
                 shape = RoundedCornerShape(10.dp)) {
-                  Text(text = "Remove Friend", style = MaterialTheme.typography.labelLarge)
+                  Text(
+                      text =
+                          stringResource(
+                              id = com.github.se.studentconnect.R.string.text_remove_friend),
+                      style = MaterialTheme.typography.labelLarge)
                 }
           }
           else -> {
             val buttonText =
                 when (friendRequestStatus) {
-                  FriendRequestStatus.SENDING -> "Sending..."
-                  FriendRequestStatus.ALREADY_FRIENDS -> "Already Friends"
-                  FriendRequestStatus.ERROR -> "Try Again"
-                  else -> "Add Friend"
+                  FriendRequestStatus.SENDING ->
+                      stringResource(id = com.github.se.studentconnect.R.string.text_sending)
+                  FriendRequestStatus.ERROR ->
+                      stringResource(id = com.github.se.studentconnect.R.string.text_try_again)
+                  else ->
+                      stringResource(id = com.github.se.studentconnect.R.string.button_add_friend)
                 }
 
             val buttonEnabled =
@@ -298,7 +318,11 @@ internal fun VisitorProfileEventSection(title: String) {
                   verticalArrangement = Arrangement.spacedBy(8.dp),
                   horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Nothing to display yet",
+                        text =
+                            stringResource(
+                                id =
+                                    com.github.se.studentconnect.R.string
+                                        .text_nothing_to_display_yet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier =

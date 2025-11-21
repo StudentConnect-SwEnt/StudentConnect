@@ -36,6 +36,7 @@ import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
+import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
@@ -347,7 +348,7 @@ internal fun MainAppContent(
                   else -> {
                     // show an error state
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                      Text(text = uiState.errorMessage ?: "Profile not found")
+                      Text(text = uiState.errorMessage ?: ProfileConstants.ERROR_PROFILE_NOT_FOUND)
                     }
                   }
                 }

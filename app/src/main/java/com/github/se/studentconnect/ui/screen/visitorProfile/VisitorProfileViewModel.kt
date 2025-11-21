@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.visitorProfile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
@@ -35,6 +36,9 @@ data class VisitorProfileUiState(
 class VisitorProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
+    // Function to resolve string resources.
+    // Should be injected by the factory as: { id -> context.getString(id) }
+    private val getString: (Int) -> String
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(VisitorProfileUiState())
@@ -70,7 +74,10 @@ class VisitorProfileViewModel(
           subscribeToFriendshipUpdates(userId)
         } else {
           _uiState.update {
-            it.copy(isLoading = false, user = null, errorMessage = "Profile not found.")
+            it.copy(
+                isLoading = false,
+                user = null,
+                errorMessage = getString(R.string.error_profile_not_found))
           }
         }
       } catch (throwable: Throwable) {
@@ -78,7 +85,7 @@ class VisitorProfileViewModel(
           it.copy(
               isLoading = false,
               user = null,
-              errorMessage = throwable.message ?: "Failed to load profile.")
+              errorMessage = throwable.message ?: getString(R.string.error_failed_to_load_profile))
         }
       }
     }
@@ -94,7 +101,7 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS,
-              friendRequestMessage = "Already friends")
+              friendRequestMessage = getString(R.string.text_already_friends))
         }
         return
       }
@@ -105,7 +112,7 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.ALREADY_SENT,
-              friendRequestMessage = "Friend request already sent")
+              friendRequestMessage = getString(R.string.friend_request_already_sent))
         }
         return
       }
@@ -116,7 +123,7 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.IDLE,
-              friendRequestMessage = "This user sent you a friend request")
+              friendRequestMessage = getString(R.string.user_sent_you_request))
         }
         return
       }
@@ -149,7 +156,7 @@ class VisitorProfileViewModel(
                 _uiState.update {
                   it.copy(
                       friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS,
-                      friendRequestMessage = "Already friends")
+                      friendRequestMessage = getString(R.string.text_already_friends))
                 }
               } else {
                 // Re-evaluate other statuses when friendship no longer exists
@@ -170,7 +177,7 @@ class VisitorProfileViewModel(
       _uiState.update {
         it.copy(
             friendRequestStatus = FriendRequestStatus.ERROR,
-            friendRequestMessage = "You must be logged in to send friend requests")
+            friendRequestMessage = getString(R.string.must_be_logged_in_send_friend_request))
       }
       return
     }
@@ -179,7 +186,7 @@ class VisitorProfileViewModel(
       _uiState.update {
         it.copy(
             friendRequestStatus = FriendRequestStatus.ERROR,
-            friendRequestMessage = "Cannot send friend request to yourself")
+            friendRequestMessage = getString(R.string.cannot_send_request_to_self))
       }
       return
     }
@@ -194,23 +201,26 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.SENT,
-              friendRequestMessage = "Friend request sent successfully!")
+              friendRequestMessage = getString(R.string.friend_request_sent_success))
         }
       } catch (e: IllegalArgumentException) {
-        // Handle specific errors from the repository
-        val message = e.message ?: "Failed to send friend request"
-        val status =
+        // Handle specific errors from the repository using localized strings
+        val message = e.message ?: ""
+        val (status, uiMessage) =
             when {
-              message.contains("already friends") -> FriendRequestStatus.ALREADY_FRIENDS
-              message.contains("already sent") -> FriendRequestStatus.ALREADY_SENT
-              else -> FriendRequestStatus.ERROR
+              message.contains("already friends") ->
+                  FriendRequestStatus.ALREADY_FRIENDS to getString(R.string.text_already_friends)
+              message.contains("already sent") ->
+                  FriendRequestStatus.ALREADY_SENT to
+                      getString(R.string.friend_request_already_sent)
+              else -> FriendRequestStatus.ERROR to getString(R.string.failed_to_send_friend_request)
             }
-        _uiState.update { it.copy(friendRequestStatus = status, friendRequestMessage = message) }
+        _uiState.update { it.copy(friendRequestStatus = status, friendRequestMessage = uiMessage) }
       } catch (e: Exception) {
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.ERROR,
-              friendRequestMessage = e.message ?: "Failed to send friend request")
+              friendRequestMessage = e.message ?: getString(R.string.failed_to_send_friend_request))
         }
       }
     }
@@ -225,7 +235,7 @@ class VisitorProfileViewModel(
       _uiState.update {
         it.copy(
             friendRequestStatus = FriendRequestStatus.ERROR,
-            friendRequestMessage = "You must be logged in to cancel friend requests")
+            friendRequestMessage = getString(R.string.must_be_logged_in_cancel_friend_request))
       }
       return
     }
@@ -240,13 +250,14 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.IDLE,
-              friendRequestMessage = "Friend request cancelled")
+              friendRequestMessage = getString(R.string.friend_request_cancelled))
         }
       } catch (e: Exception) {
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.ERROR,
-              friendRequestMessage = e.message ?: "Failed to cancel friend request")
+              friendRequestMessage =
+                  e.message ?: getString(R.string.failed_to_cancel_friend_request))
         }
       }
     }
@@ -261,7 +272,7 @@ class VisitorProfileViewModel(
       _uiState.update {
         it.copy(
             friendRequestStatus = FriendRequestStatus.ERROR,
-            friendRequestMessage = "You must be logged in to remove friends")
+            friendRequestMessage = getString(R.string.must_be_logged_in_remove_friend))
       }
       return
     }
@@ -281,13 +292,13 @@ class VisitorProfileViewModel(
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.IDLE,
-              friendRequestMessage = "Friend removed")
+              friendRequestMessage = getString(R.string.friend_removed))
         }
       } catch (e: Exception) {
         _uiState.update {
           it.copy(
               friendRequestStatus = FriendRequestStatus.ERROR,
-              friendRequestMessage = e.message ?: "Failed to remove friend")
+              friendRequestMessage = e.message ?: getString(R.string.failed_to_remove_friend))
         }
       }
     }

@@ -72,7 +72,7 @@
     <string name="org_setup_main_domains_label">Main domains</string>
     <string name="org_setup_event_size_hint">You\'ll be able to refine this later for each event.</string>
     <string name="org_setup_main_domains_hint">Select up to 3 domains</string>
-    
+
     <!-- Instructions -->
     <string name="instruction_enter_name">Enter your full name</string>
     <string name="instruction_tell_about_yourself">Tell us about yourself</string>
@@ -104,6 +104,7 @@
     <string name="subtitle_add_profile_picture">Let others know what you look like !</string>
     <string name="title_upload_logo">Upload a logo</string>
     <string name="subtitle_upload_org_logo">Upload your organization logo</string>
+    <string name="text_photo_selected">Photo selected</string>
 
     <!-- Screen titles -->
     <string name="title_edit_nationality">Edit Nationality</string>
@@ -160,6 +161,7 @@
     <string name="content_description_action_icon">action icon</string>
     <string name="content_description_action_button">Action button</string>
     <string name="content_description_close_filters">Close Filters</string>
+    <string name="content_description_selected_photo">Selected photo</string>
     <string name="content_description_upload_photo">Upload photo</string>
     <string name="content_description_owner">Owner</string>
     <string name="content_description_accept">Accept</string>
@@ -170,7 +172,7 @@
     <string name="content_description_save">Save</string>
     <string name="content_description_clear_text">Clear text</string>
     <string name="content_description_open_dropdown">Toggle dropdown</string>
-    
+
     <!-- Other UI text -->
     <string name="text_current_birthday">Current Birthday</string>
     <string name="text_never_miss_out_again">Never miss out again.</string>
@@ -252,7 +254,7 @@
     <string name="event_size_medium">20-50</string>
     <string name="event_size_large">50-150</string>
     <string name="event_size_extra_large">150+</string>
-    
+
     <!-- Tabs -->
     <string name="tab_upcoming">Upcoming</string>
     <string name="tab_invitations">Invitations</string>
@@ -285,7 +287,7 @@
     <string name="team_roles_empty_state_title">No roles defined yet.</string>
     <string name="team_roles_empty_state_subtitle">Add roles to see them listed here.</string>
     <string name="team_roles_remove_button">Remove</string>
-    
+
     <!-- Team roles suggestions -->
     <string name="team_roles_suggestion_president">President</string>
     <string name="team_roles_suggestion_vice_president">Vice President</string>
@@ -295,7 +297,7 @@
     <string name="team_roles_suggestion_community_manager">Community Manager</string>
     <string name="team_roles_suggestion_marketing_lead">Marketing Lead</string>
     <string name="team_roles_suggestion_operations_lead">Operations Lead</string>
-    
+
     <!-- Signup screen labels -->
     <string name="signup_label_first_name">First name</string>
     <string name="signup_label_last_name">Last name</string>
@@ -407,4 +409,29 @@
     <string name="organization_type_ngo">NGO</string>
     <string name="organization_type_other">Other</string>
     <string name="organization_label_name">Organization name</string>
-    </resources>
+
+    <!-- Profile bio and visitor profile strings -->
+    <string name="title_bio">Bio</string>
+    <string name="no_bio_available">No biography available yet.</string>
+    <string name="text_request_sent">Request Sent</string>
+    <string name="text_remove_friend">Remove Friend</string>
+    <string name="text_sending">Sending...</string>
+    <string name="text_already_friends">Already Friends</string>
+    <string name="text_try_again">Try Again</string>
+    <string name="button_add_friend">Add Friend</string>
+    <string name="text_nothing_to_display_yet">Nothing to display yet</string>
+
+    <!-- Strings used by VisitorProfileViewModel (moved from hardcoded literals) -->
+    <string name="friend_request_already_sent">Friend request already sent</string>
+    <string name="user_sent_you_request">This user sent you a friend request</string>
+    <string name="must_be_logged_in_send_friend_request">You must be logged in to send friend requests</string>
+    <string name="cannot_send_request_to_self">Cannot send friend request to yourself</string>
+    <string name="friend_request_sent_success">Friend request sent successfully!</string>
+    <string name="friend_request_cancelled">Friend request cancelled</string>
+    <string name="friend_removed">Friend removed</string>
+    <string name="failed_to_send_friend_request">Failed to send friend request</string>
+    <string name="failed_to_cancel_friend_request">Failed to cancel friend request</string>
+    <string name="failed_to_remove_friend">Failed to remove friend</string>
+    <string name="must_be_logged_in_cancel_friend_request">You must be logged in to cancel friend requests</string>
+    <string name="must_be_logged_in_remove_friend">You must be logged in to remove friends</string>
+</resources>
