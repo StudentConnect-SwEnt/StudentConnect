@@ -50,6 +50,7 @@ class AddPictureScreenTest {
   fun addPictureScreen_selectingPhoto_enablesContinueAndShowsSelectionHint() {
     val viewModel = SignUpViewModel()
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    val tempFile = createTempImageFile(ctx.cacheDir)
 
     composeTestRule.setContent {
       AppTheme {
@@ -57,9 +58,7 @@ class AddPictureScreenTest {
       }
     }
 
-    composeTestRule.runOnIdle {
-      viewModel.setProfilePictureUri(Uri.parse("file://sample/photo.png"))
-    }
+    composeTestRule.runOnIdle { viewModel.setProfilePictureUri(Uri.fromFile(tempFile)) }
     composeTestRule.waitForIdle()
 
     composeTestRule
@@ -67,12 +66,15 @@ class AddPictureScreenTest {
             ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
         .assertExists()
     composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
+
+    tempFile.delete()
   }
 
   @Test
   fun addPictureScreen_existingSelection_displaysChangePrompt() {
-    val viewModel =
-        SignUpViewModel().apply { setProfilePictureUri(Uri.parse("file://already/there.jpg")) }
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val tempFile = createTempImageFile(context.cacheDir)
+    val viewModel = SignUpViewModel().apply { setProfilePictureUri(Uri.fromFile(tempFile)) }
 
     composeTestRule.setContent {
       AppTheme {
@@ -80,14 +82,16 @@ class AddPictureScreenTest {
       }
     }
 
-    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule.waitForIdle()
     composeTestRule
         .onNodeWithText(
-            ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
+            context.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
         .assertExists()
     composeTestRule
-        .onNodeWithContentDescription(ctx.getString(R.string.content_description_upload_photo))
+        .onNodeWithContentDescription(context.getString(R.string.content_description_upload_photo))
         .assertExists()
+
+    tempFile.delete()
   }
 
   @Test
