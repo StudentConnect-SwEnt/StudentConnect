@@ -8,6 +8,7 @@ import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -391,5 +392,9 @@ class ProfileScreenAndroidTest {
     override suspend fun areFriends(userId: String, otherUserId: String) = false
 
     override suspend fun hasPendingRequest(fromUserId: String, toUserId: String) = false
+
+    override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
+      TODO("Not yet implemented")
+    }
   }
 }
