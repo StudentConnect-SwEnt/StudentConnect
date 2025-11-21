@@ -165,6 +165,84 @@ class OrganizationSignupViewModel : ViewModel() {
     }
   }
 
+  // Section-level update methods
+  /**
+   * Updates all basic info fields at once.
+   *
+   * @param name The organization name.
+   * @param type The organization type.
+   * @param bannerUri Optional banner image URI.
+   */
+  fun updateBasicInfo(
+      name: String? = null,
+      type: OrganizationType? = null,
+      bannerUri: Uri? = null
+  ) = update {
+    it.copy(
+        name = name?.trim() ?: it.name,
+        type = type ?: it.type,
+        bannerUri = bannerUri?.takeIf { uri -> uri.toString().isNotBlank() } ?: it.bannerUri)
+  }
+
+  /**
+   * Updates all organization profile fields at once.
+   *
+   * @param location Optional location.
+   * @param mainDomains List of main domains (max 3).
+   * @param ageRanges List of age ranges.
+   * @param typicalEventSize Optional typical event size.
+   */
+  fun updateOrganizationProfile(
+      location: String? = null,
+      mainDomains: List<String>? = null,
+      ageRanges: List<String>? = null,
+      typicalEventSize: String? = null
+  ) = update {
+    it.copy(
+        location = location?.trim()?.ifBlank { null } ?: it.location,
+        mainDomains =
+            mainDomains?.map { domain -> domain.trim() }?.filter { it.isNotBlank() }
+                ?: it.mainDomains,
+        ageRanges =
+            ageRanges?.map { range -> range.trim() }?.filter { it.isNotBlank() }
+                ?: it.ageRanges,
+        typicalEventSize = typicalEventSize?.trim()?.ifBlank { null } ?: it.typicalEventSize)
+  }
+
+  /**
+   * Updates all branding/social links at once.
+   *
+   * @param website Optional website URL.
+   * @param instagram Optional Instagram URL.
+   * @param x Optional X (Twitter) URL.
+   * @param linkedin Optional LinkedIn URL.
+   */
+  fun updateBranding(
+      website: String? = null,
+      instagram: String? = null,
+      x: String? = null,
+      linkedin: String? = null
+  ) = update {
+    it.copy(
+        website = website?.trim()?.ifBlank { null } ?: it.website,
+        instagram = instagram?.trim()?.ifBlank { null } ?: it.instagram,
+        x = x?.trim()?.ifBlank { null } ?: it.x,
+        linkedin = linkedin?.trim()?.ifBlank { null } ?: it.linkedin)
+  }
+
+  /**
+   * Updates branding using a SocialLinks object.
+   *
+   * @param socialLinks The SocialLinks object containing all social media links.
+   */
+  fun updateBranding(socialLinks: SocialLinks) = update {
+    it.copy(
+        website = socialLinks.website,
+        instagram = socialLinks.instagram,
+        x = socialLinks.x,
+        linkedin = socialLinks.linkedin)
+  }
+
   // Navigation step helpers
   fun goTo(step: OrganizationSignupStep) = update { it.copy(currentStep = step) }
 
