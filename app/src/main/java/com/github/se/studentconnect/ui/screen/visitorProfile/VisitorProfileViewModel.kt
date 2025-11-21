@@ -8,6 +8,7 @@ import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +40,9 @@ class VisitorProfileViewModel(
   private val _uiState = MutableStateFlow(VisitorProfileUiState())
   val uiState: StateFlow<VisitorProfileUiState> = _uiState.asStateFlow()
 
+  // Holds the active friendship observer so we can cancel it when switching profiles
+  private var friendshipObserverJob: Job? = null
+
   fun loadProfile(userId: String, forceRefresh: Boolean = false) {
     val currentState = _uiState.value
     if (!forceRefresh &&
@@ -47,6 +51,10 @@ class VisitorProfileViewModel(
         currentState.errorMessage == null) {
       return
     }
+
+    // Cancel any previous friendship observer when loading a new profile
+    friendshipObserverJob?.cancel()
+    friendshipObserverJob = null
 
     _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -57,6 +65,9 @@ class VisitorProfileViewModel(
           _uiState.update { it.copy(isLoading = false, user = user, errorMessage = null) }
           // Check if already friends or request sent
           checkFriendshipStatus(userId)
+
+          // Start observing friendship changes so UI updates if the other accepts
+          subscribeToFriendshipUpdates(userId)
         } else {
           _uiState.update {
             it.copy(isLoading = false, user = null, errorMessage = "Profile not found.")
@@ -122,6 +133,35 @@ class VisitorProfileViewModel(
     }
   }
 
+  // Observe remote friendship changes and update UI when friendship is created/removed
+  private fun subscribeToFriendshipUpdates(viewedUserId: String) {
+    val currentUserId = AuthenticationProvider.currentUser
+    if (currentUserId.isEmpty()) return
+
+    // Cancel previous observer if any
+    friendshipObserverJob?.cancel()
+
+    friendshipObserverJob =
+        viewModelScope.launch {
+          try {
+            friendsRepository.observeFriendship(currentUserId, viewedUserId).collect { areFriends ->
+              if (areFriends) {
+                _uiState.update {
+                  it.copy(
+                      friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS,
+                      friendRequestMessage = "Already friends")
+                }
+              } else {
+                // Re-evaluate other statuses when friendship no longer exists
+                checkFriendshipStatus(viewedUserId)
+              }
+            }
+          } catch (e: Exception) {
+            // Ignore errors from the observer - keep current UI state
+          }
+        }
+  }
+
   fun sendFriendRequest() {
     val userId = _uiState.value.user?.userId ?: return
     val currentUserId = AuthenticationProvider.currentUser
@@ -176,7 +216,89 @@ class VisitorProfileViewModel(
     }
   }
 
+  // New: cancel an outgoing friend request so user can resend later
+  fun cancelFriendRequest() {
+    val userId = _uiState.value.user?.userId ?: return
+    val currentUserId = AuthenticationProvider.currentUser
+
+    if (currentUserId.isEmpty()) {
+      _uiState.update {
+        it.copy(
+            friendRequestStatus = FriendRequestStatus.ERROR,
+            friendRequestMessage = "You must be logged in to cancel friend requests")
+      }
+      return
+    }
+
+    _uiState.update {
+      it.copy(friendRequestStatus = FriendRequestStatus.SENDING, friendRequestMessage = null)
+    }
+
+    viewModelScope.launch {
+      try {
+        friendsRepository.cancelFriendRequest(currentUserId, userId)
+        _uiState.update {
+          it.copy(
+              friendRequestStatus = FriendRequestStatus.IDLE,
+              friendRequestMessage = "Friend request cancelled")
+        }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(
+              friendRequestStatus = FriendRequestStatus.ERROR,
+              friendRequestMessage = e.message ?: "Failed to cancel friend request")
+        }
+      }
+    }
+  }
+
+  // New: allow removing an existing friend from the visited profile
+  fun removeFriend() {
+    val userId = _uiState.value.user?.userId ?: return
+    val currentUserId = AuthenticationProvider.currentUser
+
+    if (currentUserId.isEmpty()) {
+      _uiState.update {
+        it.copy(
+            friendRequestStatus = FriendRequestStatus.ERROR,
+            friendRequestMessage = "You must be logged in to remove friends")
+      }
+      return
+    }
+
+    // Indicate an in-progress operation
+    _uiState.update {
+      it.copy(friendRequestStatus = FriendRequestStatus.SENDING, friendRequestMessage = null)
+    }
+
+    viewModelScope.launch {
+      try {
+        // Ask repository to remove the friendship
+        friendsRepository.removeFriend(currentUserId, userId)
+
+        // After successful removal, reset to idle and show a message. The friendship observer
+        // will detect the change and update statuses accordingly.
+        _uiState.update {
+          it.copy(
+              friendRequestStatus = FriendRequestStatus.IDLE,
+              friendRequestMessage = "Friend removed")
+        }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(
+              friendRequestStatus = FriendRequestStatus.ERROR,
+              friendRequestMessage = e.message ?: "Failed to remove friend")
+        }
+      }
+    }
+  }
+
   fun clearFriendRequestMessage() {
     _uiState.update { it.copy(friendRequestMessage = null) }
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    friendshipObserverJob?.cancel()
   }
 }

@@ -71,6 +71,8 @@ object C {
     const val visitor_profile_empty_state = "visitor_profile_empty_state"
     const val visitor_profile_avatar = "visitor_profile_avatar"
     const val visitor_profile_add_friend = "visitor_profile_add_friend"
+    const val visitor_profile_cancel_friend = "visitor_profile_cancel_friend"
+    const val visitor_profile_remove_friend = "visitor_profile_remove_friend"
     const val visitor_profile_loading = "visitor_profile_loading"
     const val visitor_profile_error = "visitor_profile_error"
 
