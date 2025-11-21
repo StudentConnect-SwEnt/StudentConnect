@@ -224,7 +224,6 @@ class VisitorProfileViewModel(
     }
   }
 
-  // New: cancel an outgoing friend request so user can resend later
   fun cancelFriendRequest() {
     val userId = _uiState.value.user?.userId ?: return
     val currentUserId = AuthenticationProvider.currentUser
@@ -261,7 +260,6 @@ class VisitorProfileViewModel(
     }
   }
 
-  // New: allow removing an existing friend from the visited profile
   fun removeFriend() {
     val userId = _uiState.value.user?.userId ?: return
     val currentUserId = AuthenticationProvider.currentUser
@@ -306,7 +304,7 @@ class VisitorProfileViewModel(
     _uiState.update { it.copy(friendRequestMessage = null) }
   }
 
-  override fun onCleared() {
+  public override fun onCleared() {
     super.onCleared()
     friendshipObserverJob?.cancel()
   }

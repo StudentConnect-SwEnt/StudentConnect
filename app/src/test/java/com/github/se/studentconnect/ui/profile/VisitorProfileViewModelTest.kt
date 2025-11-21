@@ -168,7 +168,8 @@ class VisitorProfileViewModelTest {
       friends: List<String> = emptyList(),
       sentRequests: List<String> = emptyList(),
       pendingRequests: List<String> = emptyList(),
-      onSendRequest: suspend (String, String) -> Unit = { _, _ -> }
+      onSendRequest: suspend (String, String) -> Unit = { _, _ -> },
+      observeForever: Boolean = false
   ): FriendsRepository {
     return object : FriendsRepository {
       override suspend fun getFriends(userId: String): List<String> = friends
@@ -195,8 +196,15 @@ class VisitorProfileViewModelTest {
           sentRequests.contains(toUserId)
 
       override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
-        // Simple test implementation: emit whether the two users are friends at subscription time.
-        return flow { emit(friends.contains(otherUserId)) }
+        // Either emit a single value (default) or emit and suspend forever for observer tests.
+        return if (observeForever) {
+          flow {
+            emit(friends.contains(otherUserId))
+            kotlinx.coroutines.delay(Long.MAX_VALUE)
+          }
+        } else {
+          flow { emit(friends.contains(otherUserId)) }
+        }
       }
     }
   }
@@ -416,5 +424,324 @@ class VisitorProfileViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals(FriendRequestStatus.ALREADY_SENT, state.friendRequestStatus)
+  }
+
+  @Test
+  fun cancelFriendRequest_success_updatesStatus() = runTest {
+    val user =
+        User(
+            userId = "user-1",
+            email = "user1@studentconnect.ch",
+            username = "user1",
+            firstName = "Test",
+            lastName = "User",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+    viewModel.loadProfile("user-1")
+    advanceUntilIdle()
+
+    viewModel.cancelFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.IDLE, state.friendRequestStatus)
+    assertEquals(rp.getString(R.string.friend_request_cancelled), state.friendRequestMessage)
+  }
+
+  @Test
+  fun cancelFriendRequest_notLoggedIn_setsError() = runTest {
+    val old = AuthenticationProvider.testUserId
+    AuthenticationProvider.testUserId = ""
+    try {
+      val user =
+          User(
+              userId = "user-2",
+              email = "u2@studentconnect.ch",
+              username = "user2",
+              firstName = "A",
+              lastName = "B",
+              university = "Uni",
+              updatedAt = 2,
+              createdAt = 1)
+
+      val viewModel =
+          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+      viewModel.loadProfile("user-2")
+      advanceUntilIdle()
+
+      viewModel.cancelFriendRequest()
+      advanceUntilIdle()
+
+      val state = viewModel.uiState.value
+      assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+      assertEquals(
+          rp.getString(R.string.must_be_logged_in_cancel_friend_request),
+          state.friendRequestMessage)
+    } finally {
+      AuthenticationProvider.testUserId = old
+    }
+  }
+
+  @Test
+  fun cancelFriendRequest_exception_setsError() = runTest {
+    val user =
+        User(
+            userId = "user-3",
+            email = "u3@studentconnect.ch",
+            username = "user3",
+            firstName = "A",
+            lastName = "B",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(
+            fakeRepository { user },
+            fakeFriendsRepository(
+                    onSendRequest = { _, _ -> },
+                    // override cancelFriendRequest to throw
+                    friends = emptyList(),
+                    sentRequests = emptyList(),
+                    pendingRequests = emptyList())
+                .let { base ->
+                  object : FriendsRepository by base {
+                    override suspend fun cancelFriendRequest(userId: String, toUserId: String) {
+                      throw Exception("boom cancel")
+                    }
+                  }
+                },
+            rp::getString)
+
+    viewModel.loadProfile("user-3")
+    advanceUntilIdle()
+
+    viewModel.cancelFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertEquals("boom cancel", state.friendRequestMessage)
+  }
+
+  @Test
+  fun removeFriend_success_updatesStatus() = runTest {
+    val user =
+        User(
+            userId = "user-rem",
+            email = "rem@studentconnect.ch",
+            username = "rem",
+            firstName = "R",
+            lastName = "M",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+    viewModel.loadProfile("user-rem")
+    advanceUntilIdle()
+
+    viewModel.removeFriend()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.IDLE, state.friendRequestStatus)
+    assertEquals(rp.getString(R.string.friend_removed), state.friendRequestMessage)
+  }
+
+  @Test
+  fun removeFriend_notLoggedIn_setsError() = runTest {
+    val old = AuthenticationProvider.testUserId
+    AuthenticationProvider.testUserId = ""
+    try {
+      val user =
+          User(
+              userId = "user-rem2",
+              email = "rem2@studentconnect.ch",
+              username = "rem2",
+              firstName = "R",
+              lastName = "M",
+              university = "Uni",
+              updatedAt = 2,
+              createdAt = 1)
+
+      val viewModel =
+          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+      viewModel.loadProfile("user-rem2")
+      advanceUntilIdle()
+
+      viewModel.removeFriend()
+      advanceUntilIdle()
+
+      val state = viewModel.uiState.value
+      assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+      assertEquals(
+          rp.getString(R.string.must_be_logged_in_remove_friend), state.friendRequestMessage)
+    } finally {
+      AuthenticationProvider.testUserId = old
+    }
+  }
+
+  @Test
+  fun removeFriend_exception_setsError() = runTest {
+    val user =
+        User(
+            userId = "user-rem3",
+            email = "rem3@studentconnect.ch",
+            username = "rem3",
+            firstName = "R",
+            lastName = "M",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(
+            fakeRepository { user },
+            fakeFriendsRepository().let { base ->
+              object : FriendsRepository by base {
+                override suspend fun removeFriend(userId: String, friendId: String) {
+                  throw Exception("boom remove")
+                }
+              }
+            },
+            rp::getString)
+
+    viewModel.loadProfile("user-rem3")
+    advanceUntilIdle()
+
+    viewModel.removeFriend()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertEquals("boom remove", state.friendRequestMessage)
+  }
+
+  @Test
+  fun clearFriendRequestMessage_clearsMessage() = runTest {
+    val user =
+        User(
+            userId = "user-clear",
+            email = "clear@studentconnect.ch",
+            username = "clear",
+            firstName = "C",
+            lastName = "L",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+    viewModel.loadProfile("user-clear")
+    advanceUntilIdle()
+
+    // simulate a message
+    viewModel.sendFriendRequest()
+    advanceUntilIdle()
+    // now clear it
+    viewModel.clearFriendRequestMessage()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertNull(state.friendRequestMessage)
+  }
+
+  @Test
+  fun sendFriendRequest_notLoggedIn_setsError() = runTest {
+    val old = AuthenticationProvider.testUserId
+    AuthenticationProvider.testUserId = ""
+    try {
+      val user =
+          User(
+              userId = "user-5",
+              email = "u5@studentconnect.ch",
+              username = "user5",
+              firstName = "A",
+              lastName = "B",
+              university = "Uni",
+              updatedAt = 2,
+              createdAt = 1)
+
+      val viewModel =
+          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+      viewModel.loadProfile("user-5")
+      advanceUntilIdle()
+
+      viewModel.sendFriendRequest()
+      advanceUntilIdle()
+
+      val state = viewModel.uiState.value
+      assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+      assertEquals(
+          rp.getString(R.string.must_be_logged_in_send_friend_request), state.friendRequestMessage)
+    } finally {
+      AuthenticationProvider.testUserId = old
+    }
+  }
+
+  @Test
+  fun sendFriendRequest_toSelf_setsError() = runTest {
+    // make the current user the same as the profile user
+    AuthenticationProvider.testUserId = "self-user"
+    val user =
+        User(
+            userId = "self-user",
+            email = "self@studentconnect.ch",
+            username = "self",
+            firstName = "S",
+            lastName = "S",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    val viewModel =
+        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+
+    viewModel.loadProfile("self-user")
+    advanceUntilIdle()
+
+    viewModel.sendFriendRequest()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(FriendRequestStatus.ERROR, state.friendRequestStatus)
+    assertEquals(rp.getString(R.string.cannot_send_request_to_self), state.friendRequestMessage)
+  }
+
+  @Test
+  fun onCleared_cancelsObserverWithoutThrowing() = runTest {
+    val user =
+        User(
+            userId = "user-ob",
+            email = "ob@studentconnect.ch",
+            username = "userob",
+            firstName = "O",
+            lastName = "B",
+            university = "Uni",
+            updatedAt = 2,
+            createdAt = 1)
+
+    // use local fakeFriendsRepository that keeps the observer active
+    val friendsRepo = fakeFriendsRepository(observeForever = true)
+
+    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo, rp::getString)
+
+    viewModel.loadProfile("user-ob")
+    advanceUntilIdle()
+
+    // call onCleared to cancel observer job; should not throw
+    viewModel.onCleared()
   }
 }
