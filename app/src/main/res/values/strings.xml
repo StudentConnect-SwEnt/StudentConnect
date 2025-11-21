@@ -72,7 +72,7 @@
     <string name="org_setup_main_domains_label">Main domains</string>
     <string name="org_setup_event_size_hint">You\'ll be able to refine this later for each event.</string>
     <string name="org_setup_main_domains_hint">Select up to 3 domains</string>
-    
+
     <!-- Instructions -->
     <string name="instruction_enter_name">Enter your full name</string>
     <string name="instruction_tell_about_yourself">Tell us about yourself</string>
@@ -170,7 +170,7 @@
     <string name="content_description_save">Save</string>
     <string name="content_description_clear_text">Clear text</string>
     <string name="content_description_open_dropdown">Toggle dropdown</string>
-    
+
     <!-- Other UI text -->
     <string name="text_current_birthday">Current Birthday</string>
     <string name="text_never_miss_out_again">Never miss out again.</string>
@@ -252,7 +252,7 @@
     <string name="event_size_medium">20-50</string>
     <string name="event_size_large">50-150</string>
     <string name="event_size_extra_large">150+</string>
-    
+
     <!-- Tabs -->
     <string name="tab_upcoming">Upcoming</string>
     <string name="tab_invitations">Invitations</string>
@@ -285,7 +285,7 @@
     <string name="team_roles_empty_state_title">No roles defined yet.</string>
     <string name="team_roles_empty_state_subtitle">Add roles to see them listed here.</string>
     <string name="team_roles_remove_button">Remove</string>
-    
+
     <!-- Team roles suggestions -->
     <string name="team_roles_suggestion_president">President</string>
     <string name="team_roles_suggestion_vice_president">Vice President</string>
@@ -295,7 +295,7 @@
     <string name="team_roles_suggestion_community_manager">Community Manager</string>
     <string name="team_roles_suggestion_marketing_lead">Marketing Lead</string>
     <string name="team_roles_suggestion_operations_lead">Operations Lead</string>
-    
+
     <!-- Signup screen labels -->
     <string name="signup_label_first_name">First name</string>
     <string name="signup_label_last_name">Last name</string>
@@ -411,4 +411,13 @@
     <string name="organization_type_ngo">NGO</string>
     <string name="organization_type_other">Other</string>
     <string name="organization_label_name">Organization name</string>
-    </resources>
+
+    <!-- Brand organization screen strings -->
+    <string name="title_brand_organization">Brand your organization</string>
+    <string name="subtitle_brand_organization">Make your profile stand out</string>
+    <string name="label_website">Website</string>
+    <string name="label_insta">Instagram</string>
+    <string name="label_x">X</string>
+    <string name="label_linkedin">LinkedIn</string>
+
+</resources>
