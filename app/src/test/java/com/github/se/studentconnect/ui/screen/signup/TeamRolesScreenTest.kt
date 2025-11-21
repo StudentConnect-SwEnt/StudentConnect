@@ -176,8 +176,7 @@ class TeamRolesScreenTest {
                     roles =
                         listOf(
                             OrganizationRole(
-                                name = "President",
-                                description = "Oversees organization"))),
+                                name = "President", description = "Oversees organization"))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(

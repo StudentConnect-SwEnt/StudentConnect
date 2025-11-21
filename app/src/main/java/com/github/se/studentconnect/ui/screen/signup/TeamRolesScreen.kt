@@ -47,8 +47,8 @@ import com.github.se.studentconnect.ui.theme.AppTheme
 /**
  * State for the Team Roles screen.
  *
- * This state can be managed by a ViewModel (e.g., OrganizationSignupViewModel) to separate
- * business logic from UI.
+ * This state can be managed by a ViewModel (e.g., OrganizationSignupViewModel) to separate business
+ * logic from UI.
  *
  * @property roleName Current input value for the role name field.
  * @property roleDescription Current input value for the role description field.
@@ -67,8 +67,8 @@ data class TeamRolesState(
  *
  * @property onRoleNameChange Called when the role name input changes.
  * @property onRoleDescriptionChange Called when the role description input changes.
- * @property onAddRole Called when a new role should be added. The implementation should
- *   create an OrganizationRole from the current roleName and roleDescription values.
+ * @property onAddRole Called when a new role should be added. The implementation should create an
+ *   OrganizationRole from the current roleName and roleDescription values.
  * @property onRemoveRole Called when a role should be removed.
  * @property onBackClick Called when the back button is clicked.
  * @property onSkipClick Called when the skip button is clicked.
@@ -87,12 +87,12 @@ data class TeamRolesCallbacks(
 /**
  * Team Roles screen for the organization signup flow.
  *
- * This screen allows users to add and manage roles for their organization.
- * The screen is designed to work with a ViewModel (e.g., OrganizationSignupViewModel)
- * by accepting state and callbacks as parameters.
+ * This screen allows users to add and manage roles for their organization. The screen is designed
+ * to work with a ViewModel (e.g., OrganizationSignupViewModel) by accepting state and callbacks as
+ * parameters.
  *
- * For backwards compatibility and testing, a version with local state management
- * is available via [TeamRolesScreenWithLocalState].
+ * For backwards compatibility and testing, a version with local state management is available via
+ * [TeamRolesScreenWithLocalState].
  *
  * @param state The current state of the screen (should come from ViewModel).
  * @param callbacks Callbacks for user actions (should come from ViewModel).
@@ -116,17 +116,14 @@ fun TeamRolesScreen(
           stringResource(R.string.team_roles_suggestion_operations_lead))
 
   TeamRolesContent(
-      state = state,
-      suggestions = suggestions,
-      callbacks = callbacks,
-      modifier = modifier)
+      state = state, suggestions = suggestions, callbacks = callbacks, modifier = modifier)
 }
 
 /**
  * Team Roles screen with local state management.
  *
- * This version maintains local state for backwards compatibility and testing purposes.
- * For production use, prefer [TeamRolesScreen] with state and callbacks from a ViewModel.
+ * This version maintains local state for backwards compatibility and testing purposes. For
+ * production use, prefer [TeamRolesScreen] with state and callbacks from a ViewModel.
  *
  * @param modifier Optional modifier for the screen.
  * @param onBackClick Callback when back button is clicked.
@@ -155,8 +152,7 @@ fun TeamRolesScreenWithLocalState(
                 if (trimmedName.isNotEmpty()) {
                   val newRole =
                       OrganizationRole(
-                          name = trimmedName,
-                          description = roleDescription.trim().ifBlank { null })
+                          name = trimmedName, description = roleDescription.trim().ifBlank { null })
                   roles = listOf(newRole) + roles
                   roleName = ""
                   roleDescription = ""
@@ -495,7 +491,5 @@ private fun RoleCard(
 @Preview(showBackground = true)
 @Composable
 private fun TeamRolesScreenPreview() {
-  AppTheme {
-    TeamRolesScreenWithLocalState()
-  }
+  AppTheme { TeamRolesScreenWithLocalState() }
 }
