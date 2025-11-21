@@ -306,17 +306,206 @@ class OrganizationSignupViewModel : ViewModel() {
   fun prevStep() = update { it.copy(currentStep = it.currentStep.prev()) }
 
   // Validation checks
+  /**
+   * Validates basic info section (name and type are required).
+   */
   val isBasicInfoValid: Boolean
     get() =
         state.value.name.isNotBlank() &&
-            state.value.name.length <= 200 &&
+            state.value.name.length <= OrganizationModel.MAX_NAME_LENGTH &&
             state.value.type != null
 
+  /**
+   * Validates description section (optional, but must be within length limit if provided).
+   */
   val isDescriptionValid: Boolean
-    get() = (state.value.description?.length ?: 0) <= 2000
+    get() = (state.value.description?.length ?: 0) <= OrganizationModel.MAX_DESCRIPTION_LENGTH
 
+  /**
+   * Validates organization profile section.
+   */
+  val isOrganizationProfileValid: Boolean
+    get() {
+      val s = state.value
+      // Main domains validation
+      if (s.mainDomains.size > OrganizationModel.MAX_MAIN_DOMAINS) return false
+      if (s.mainDomains.any { it.isBlank() || it.length > OrganizationModel.MAX_DOMAIN_LENGTH }) {
+        return false
+      }
+      // Age ranges validation
+      if (s.ageRanges.any { it.isBlank() || it.length > OrganizationModel.MAX_AGE_RANGE_LENGTH }) {
+        return false
+      }
+      // Location validation
+      if (s.location != null && s.location.length > OrganizationModel.MAX_LOCATION_LENGTH) {
+        return false
+      }
+      // Typical event size validation
+      if (s.typicalEventSize != null &&
+          s.typicalEventSize.length > OrganizationModel.MAX_EVENT_SIZE_LENGTH) {
+        return false
+      }
+      return true
+    }
+
+  /**
+   * Validates main domains (max 3, each non-blank and within length limit).
+   */
   val isMainDomainsValid: Boolean
-    get() = state.value.mainDomains.size <= 3
+    get() =
+        state.value.mainDomains.size <= OrganizationModel.MAX_MAIN_DOMAINS &&
+            state.value.mainDomains.all { it.isNotBlank() && it.length <= OrganizationModel.MAX_DOMAIN_LENGTH }
+
+  /**
+   * Validates age ranges (each non-blank and within length limit).
+   */
+  val isAgeRangesValid: Boolean
+    get() =
+        state.value.ageRanges.all { it.isNotBlank() && it.length <= OrganizationModel.MAX_AGE_RANGE_LENGTH }
+
+  /**
+   * Validates location (optional, but must be within length limit if provided).
+   */
+  val isLocationValid: Boolean
+    get() = (state.value.location?.length ?: 0) <= OrganizationModel.MAX_LOCATION_LENGTH
+
+  /**
+   * Validates typical event size (optional, but must be within length limit if provided).
+   */
+  val isTypicalEventSizeValid: Boolean
+    get() = (state.value.typicalEventSize?.length ?: 0) <= OrganizationModel.MAX_EVENT_SIZE_LENGTH
+
+  /**
+   * Validates branding/social links section (all URLs must be valid if provided).
+   */
+  val isBrandingValid: Boolean
+    get() {
+      val s = state.value
+      return isValidUrl(s.website) &&
+          isValidUrl(s.instagram) &&
+          isValidUrl(s.x) &&
+          isValidUrl(s.linkedin)
+    }
+
+  /**
+   * Validates roles section (all roles must be valid).
+   */
+  val isRolesValid: Boolean
+    get() = state.value.roles.all { role ->
+      role.name.isNotBlank() &&
+          role.name.length <= OrganizationRole.MAX_NAME_LENGTH &&
+          (role.description == null || role.description.length <= OrganizationRole.MAX_DESCRIPTION_LENGTH)
+    }
+
+  /**
+   * Validates if a URL is valid (null is considered valid as URLs are optional).
+   */
+  private fun isValidUrl(url: String?): Boolean {
+    if (url == null || url.isBlank()) return true // Optional field
+    return try {
+      val uri = java.net.URI(url)
+      uri.scheme != null && (uri.scheme == "http" || uri.scheme == "https")
+    } catch (e: Exception) {
+      false
+    }
+  }
+
+  /**
+   * Comprehensive validation for final submission.
+   * Checks all required fields and validates optional fields if provided.
+   *
+   * @return true if all required fields are valid and optional fields are valid (if provided).
+   */
+  fun isValidForSubmission(): Boolean {
+    val s = state.value
+
+    // Required fields
+    if (s.createdBy.isNullOrBlank()) return false
+    if (!isBasicInfoValid) return false
+
+    // Optional fields validation (only if provided)
+    if (!isDescriptionValid) return false
+    if (!isOrganizationProfileValid) return false
+    if (!isBrandingValid) return false
+    if (!isRolesValid) return false
+
+    return true
+  }
+
+  /**
+   * Gets a list of validation errors for debugging purposes.
+   *
+   * @return List of validation error messages.
+   */
+  fun getValidationErrors(): List<String> {
+    val errors = mutableListOf<String>()
+    val s = state.value
+
+    // Required fields
+    if (s.createdBy.isNullOrBlank()) {
+      errors.add("Created by user ID is required")
+    }
+    if (s.name.isBlank()) {
+      errors.add("Organization name is required")
+    } else if (s.name.length > OrganizationModel.MAX_NAME_LENGTH) {
+      errors.add("Organization name cannot exceed ${OrganizationModel.MAX_NAME_LENGTH} characters")
+    }
+    if (s.type == null) {
+      errors.add("Organization type is required")
+    }
+
+    // Optional fields
+    if (s.description != null && s.description.length > OrganizationModel.MAX_DESCRIPTION_LENGTH) {
+      errors.add("Description cannot exceed ${OrganizationModel.MAX_DESCRIPTION_LENGTH} characters")
+    }
+    if (s.mainDomains.size > OrganizationModel.MAX_MAIN_DOMAINS) {
+      errors.add("Main domains cannot exceed ${OrganizationModel.MAX_MAIN_DOMAINS} items")
+    }
+    s.mainDomains.forEachIndexed { index, domain ->
+      if (domain.isBlank()) {
+        errors.add("Main domain at index $index cannot be blank")
+      } else if (domain.length > OrganizationModel.MAX_DOMAIN_LENGTH) {
+        errors.add("Main domain at index $index cannot exceed ${OrganizationModel.MAX_DOMAIN_LENGTH} characters")
+      }
+    }
+    s.ageRanges.forEachIndexed { index, range ->
+      if (range.isBlank()) {
+        errors.add("Age range at index $index cannot be blank")
+      } else if (range.length > OrganizationModel.MAX_AGE_RANGE_LENGTH) {
+        errors.add("Age range at index $index cannot exceed ${OrganizationModel.MAX_AGE_RANGE_LENGTH} characters")
+      }
+    }
+    if (s.location != null && s.location.length > OrganizationModel.MAX_LOCATION_LENGTH) {
+      errors.add("Location cannot exceed ${OrganizationModel.MAX_LOCATION_LENGTH} characters")
+    }
+    if (s.typicalEventSize != null && s.typicalEventSize.length > OrganizationModel.MAX_EVENT_SIZE_LENGTH) {
+      errors.add("Typical event size cannot exceed ${OrganizationModel.MAX_EVENT_SIZE_LENGTH} characters")
+    }
+    if (!isValidUrl(s.website)) {
+      errors.add("Website URL is invalid")
+    }
+    if (!isValidUrl(s.instagram)) {
+      errors.add("Instagram URL is invalid")
+    }
+    if (!isValidUrl(s.x)) {
+      errors.add("X (Twitter) URL is invalid")
+    }
+    if (!isValidUrl(s.linkedin)) {
+      errors.add("LinkedIn URL is invalid")
+    }
+    s.roles.forEachIndexed { index, role ->
+      if (role.name.isBlank()) {
+        errors.add("Role at index $index: name cannot be blank")
+      } else if (role.name.length > OrganizationRole.MAX_NAME_LENGTH) {
+        errors.add("Role at index $index: name cannot exceed ${OrganizationRole.MAX_NAME_LENGTH} characters")
+      }
+      if (role.description != null && role.description.length > OrganizationRole.MAX_DESCRIPTION_LENGTH) {
+        errors.add("Role at index $index: description cannot exceed ${OrganizationRole.MAX_DESCRIPTION_LENGTH} characters")
+      }
+    }
+
+    return errors
+  }
 
   fun reset() = update { OrganizationSignupState() }
 }
