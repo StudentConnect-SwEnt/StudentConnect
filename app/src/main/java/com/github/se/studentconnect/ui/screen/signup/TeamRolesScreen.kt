@@ -320,7 +320,8 @@ private fun RoleNameDropdownField(
   val shouldShowDropdown = filteredSuggestions.isNotEmpty() && !exactMatch
 
   LaunchedEffect(isFocused, value, exactMatch) {
-    expanded = calculateExpandedState(exactMatch, isFocused, shouldShowDropdown, value.isBlank(), expanded)
+    expanded =
+        calculateExpandedState(exactMatch, isFocused, shouldShowDropdown, value.isBlank(), expanded)
   }
 
   ExposedDropdownMenuBox(
