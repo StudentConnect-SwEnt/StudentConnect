@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -41,38 +41,69 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.ui.theme.AppTheme
-import java.util.UUID
 
-data class TeamRole(val id: String, val name: String, val description: String?)
-
+/**
+ * State for the Team Roles screen.
+ *
+ * This state can be managed by a ViewModel (e.g., OrganizationSignupViewModel) to separate
+ * business logic from UI.
+ *
+ * @property roleName Current input value for the role name field.
+ * @property roleDescription Current input value for the role description field.
+ * @property roles List of roles that have been added.
+ */
 data class TeamRolesState(
-    val roleName: String,
-    val roleDescription: String,
-    val roles: List<TeamRole>
+    val roleName: String = "",
+    val roleDescription: String = "",
+    val roles: List<OrganizationRole> = emptyList()
 )
 
+/**
+ * Callbacks for the Team Roles screen.
+ *
+ * These callbacks should be provided by a ViewModel to handle business logic operations.
+ *
+ * @property onRoleNameChange Called when the role name input changes.
+ * @property onRoleDescriptionChange Called when the role description input changes.
+ * @property onAddRole Called when a new role should be added. The implementation should
+ *   create an OrganizationRole from the current roleName and roleDescription values.
+ * @property onRemoveRole Called when a role should be removed.
+ * @property onBackClick Called when the back button is clicked.
+ * @property onSkipClick Called when the skip button is clicked.
+ * @property onContinueClick Called when the continue button is clicked.
+ */
 data class TeamRolesCallbacks(
     val onRoleNameChange: (String) -> Unit,
     val onRoleDescriptionChange: (String) -> Unit,
     val onAddRole: () -> Unit,
-    val onRemoveRole: (TeamRole) -> Unit,
+    val onRemoveRole: (OrganizationRole) -> Unit,
     val onBackClick: () -> Unit,
     val onSkipClick: () -> Unit,
     val onContinueClick: () -> Unit
 )
 
+/**
+ * Team Roles screen for the organization signup flow.
+ *
+ * This screen allows users to add and manage roles for their organization.
+ * The screen is designed to work with a ViewModel (e.g., OrganizationSignupViewModel)
+ * by accepting state and callbacks as parameters.
+ *
+ * For backwards compatibility and testing, a version with local state management
+ * is available via [TeamRolesScreenWithLocalState].
+ *
+ * @param state The current state of the screen (should come from ViewModel).
+ * @param callbacks Callbacks for user actions (should come from ViewModel).
+ * @param modifier Optional modifier for the screen.
+ */
 @Composable
 fun TeamRolesScreen(
-    modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {},
-    onContinueClick: (List<TeamRole>) -> Unit = {}
+    state: TeamRolesState,
+    callbacks: TeamRolesCallbacks,
+    modifier: Modifier = Modifier
 ) {
-  var roleName by remember { mutableStateOf("") }
-  var roleDescription by remember { mutableStateOf("") }
-  var roles by remember { mutableStateOf<List<TeamRole>>(emptyList()) }
-
   val suggestions =
       listOf(
           stringResource(R.string.team_roles_suggestion_president),
@@ -85,8 +116,36 @@ fun TeamRolesScreen(
           stringResource(R.string.team_roles_suggestion_operations_lead))
 
   TeamRolesContent(
-      state = TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
+      state = state,
       suggestions = suggestions,
+      callbacks = callbacks,
+      modifier = modifier)
+}
+
+/**
+ * Team Roles screen with local state management.
+ *
+ * This version maintains local state for backwards compatibility and testing purposes.
+ * For production use, prefer [TeamRolesScreen] with state and callbacks from a ViewModel.
+ *
+ * @param modifier Optional modifier for the screen.
+ * @param onBackClick Callback when back button is clicked.
+ * @param onSkipClick Callback when skip button is clicked.
+ * @param onContinueClick Callback when continue button is clicked, receives the list of roles.
+ */
+@Composable
+fun TeamRolesScreenWithLocalState(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {},
+    onSkipClick: () -> Unit = {},
+    onContinueClick: (List<OrganizationRole>) -> Unit = {}
+) {
+  var roleName by remember { mutableStateOf("") }
+  var roleDescription by remember { mutableStateOf("") }
+  var roles by remember { mutableStateOf<List<OrganizationRole>>(emptyList()) }
+
+  TeamRolesScreen(
+      state = TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
       callbacks =
           TeamRolesCallbacks(
               onRoleNameChange = { roleName = it },
@@ -95,8 +154,7 @@ fun TeamRolesScreen(
                 val trimmedName = roleName.trim()
                 if (trimmedName.isNotEmpty()) {
                   val newRole =
-                      TeamRole(
-                          id = UUID.randomUUID().toString(),
+                      OrganizationRole(
                           name = trimmedName,
                           description = roleDescription.trim().ifBlank { null })
                   roles = listOf(newRole) + roles
@@ -104,7 +162,7 @@ fun TeamRolesScreen(
                   roleDescription = ""
                 }
               },
-              onRemoveRole = { role -> roles = roles.filterNot { it.id == role.id } },
+              onRemoveRole = { role -> roles = roles.filterNot { it == role } },
               onBackClick = onBackClick,
               onSkipClick = onSkipClick,
               onContinueClick = { onContinueClick(roles) }),
@@ -188,7 +246,7 @@ internal fun TeamRolesContent(
                         Arrangement.spacedBy(SignUpScreenConstants.ROLE_ITEM_SPACING),
                     contentPadding =
                         PaddingValues(bottom = SignUpScreenConstants.ROLES_LIST_BOTTOM_PADDING)) {
-                      items(items = state.roles, key = { it.id }) { role ->
+                      itemsIndexed(items = state.roles) { index, role ->
                         RoleCard(role = role, onRemoveRole = callbacks.onRemoveRole)
                       }
                     }
@@ -389,8 +447,8 @@ private fun shouldExpandOnTextChange(
 
 @Composable
 private fun RoleCard(
-    role: TeamRole,
-    onRemoveRole: (TeamRole) -> Unit,
+    role: OrganizationRole,
+    onRemoveRole: (OrganizationRole) -> Unit,
     modifier: Modifier = Modifier
 ) {
   Surface(
@@ -437,5 +495,7 @@ private fun RoleCard(
 @Preview(showBackground = true)
 @Composable
 private fun TeamRolesScreenPreview() {
-  AppTheme { TeamRolesScreen() }
+  AppTheme {
+    TeamRolesScreenWithLocalState()
+  }
 }

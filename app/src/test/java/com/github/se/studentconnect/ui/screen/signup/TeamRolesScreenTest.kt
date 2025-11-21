@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -26,7 +27,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun screen_rendersTitleAndSubtitle() {
-    composeRule.setContent { AppTheme { TeamRolesScreen() } }
+    composeRule.setContent { AppTheme { TeamRolesScreenWithLocalState() } }
 
     composeRule.waitForIdle()
     val title = composeRule.activity.getString(R.string.team_roles_title)
@@ -37,7 +38,9 @@ class TeamRolesScreenTest {
   fun backButton_invokesCallback() {
     var backClicked = false
 
-    composeRule.setContent { AppTheme { TeamRolesScreen(onBackClick = { backClicked = true }) } }
+    composeRule.setContent {
+      AppTheme { TeamRolesScreenWithLocalState(onBackClick = { backClicked = true }) }
+    }
 
     composeRule.waitForIdle()
     val backDesc = composeRule.activity.getString(R.string.content_description_back)
@@ -50,7 +53,9 @@ class TeamRolesScreenTest {
   fun skipButton_invokesCallback() {
     var skipClicked = false
 
-    composeRule.setContent { AppTheme { TeamRolesScreen(onSkipClick = { skipClicked = true }) } }
+    composeRule.setContent {
+      AppTheme { TeamRolesScreenWithLocalState(onSkipClick = { skipClicked = true }) }
+    }
 
     composeRule.waitForIdle()
     val skipText = composeRule.activity.getString(R.string.button_skip)
@@ -61,7 +66,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun continueButton_disabledWhenNoRoles() {
-    composeRule.setContent { AppTheme { TeamRolesScreen() } }
+    composeRule.setContent { AppTheme { TeamRolesScreenWithLocalState() } }
 
     composeRule.waitForIdle()
     val startNowText = composeRule.activity.getString(R.string.button_start_now)
@@ -70,7 +75,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun continueButton_enabledWhenRolesExist() {
-    val testRoles = listOf(TeamRole(id = "1", name = "President", description = null))
+    val testRoles = listOf(OrganizationRole(name = "President", description = null))
 
     composeRule.setContent {
       AppTheme {
@@ -97,7 +102,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun continueButton_isClickableWhenRolesExist() {
-    val testRoles = listOf(TeamRole(id = "1", name = "President", description = null))
+    val testRoles = listOf(OrganizationRole(name = "President", description = null))
 
     composeRule.setContent {
       AppTheme {
@@ -132,7 +137,7 @@ class TeamRolesScreenTest {
                 TeamRolesState(
                     roleName = "",
                     roleDescription = "",
-                    roles = listOf(TeamRole(id = "1", name = "President", description = null))),
+                    roles = listOf(OrganizationRole(name = "President", description = null))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -170,8 +175,7 @@ class TeamRolesScreenTest {
                     roleDescription = "",
                     roles =
                         listOf(
-                            TeamRole(
-                                id = "1",
+                            OrganizationRole(
                                 name = "President",
                                 description = "Oversees organization"))),
             suggestions = emptyList(),
@@ -209,7 +213,7 @@ class TeamRolesScreenTest {
                 TeamRolesState(
                     roleName = "",
                     roleDescription = "",
-                    roles = listOf(TeamRole(id = "1", name = "President", description = null))),
+                    roles = listOf(OrganizationRole(name = "President", description = null))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -247,8 +251,8 @@ class TeamRolesScreenTest {
                     roleDescription = "",
                     roles =
                         listOf(
-                            TeamRole(id = "1", name = "President", description = null),
-                            TeamRole(id = "2", name = "Treasurer", description = null))),
+                            OrganizationRole(name = "President", description = null),
+                            OrganizationRole(name = "Treasurer", description = null))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
@@ -335,7 +339,7 @@ class TeamRolesScreenTest {
 
   @Test
   fun addRoleButton_disabledWhenRoleNameEmpty() {
-    composeRule.setContent { AppTheme { TeamRolesScreen() } }
+    composeRule.setContent { AppTheme { TeamRolesScreenWithLocalState() } }
 
     composeRule.waitForIdle()
     val addButtonText = composeRule.activity.getString(R.string.team_roles_add_button)
@@ -383,7 +387,7 @@ class TeamRolesScreenTest {
                 TeamRolesState(
                     roleName = "",
                     roleDescription = "",
-                    roles = listOf(TeamRole(id = "1", name = "President", description = ""))),
+                    roles = listOf(OrganizationRole(name = "President", description = ""))),
             suggestions = emptyList(),
             callbacks =
                 TeamRolesCallbacks(
