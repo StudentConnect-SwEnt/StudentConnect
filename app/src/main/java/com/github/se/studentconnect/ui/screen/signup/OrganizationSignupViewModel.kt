@@ -4,9 +4,13 @@ import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.organization.SocialLinks
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Represents the various steps of the organization signup flow, each corresponding to a specific
@@ -30,7 +34,6 @@ data class OrganizationSignupState(
     // Basic Info Screen
     val name: String = "",
     val type: OrganizationType? = null,
-    val bannerUri: Uri? = null,
     // Upload Logo Screen
     val logoUri: Uri? = null,
     // Description Screen
@@ -61,6 +64,12 @@ class OrganizationSignupViewModel : ViewModel() {
   private val _state = mutableStateOf(OrganizationSignupState())
   val state: State<OrganizationSignupState> = _state
 
+  private val _isUploadingLogo = MutableStateFlow(false)
+  val isUploadingLogo: StateFlow<Boolean> = _isUploadingLogo.asStateFlow()
+
+  private val _uploadError = MutableStateFlow<String?>(null)
+  val uploadError: StateFlow<String?> = _uploadError.asStateFlow()
+
   private fun update(block: (OrganizationSignupState) -> OrganizationSignupState) {
     _state.value = block(_state.value)
   }
@@ -74,13 +83,62 @@ class OrganizationSignupViewModel : ViewModel() {
 
   fun setType(type: OrganizationType?) = update { it.copy(type = type) }
 
-  fun setBannerUri(uri: Uri?) = update {
-    it.copy(bannerUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
-  }
-
   // Upload Logo Screen updates
   fun setLogoUri(uri: Uri?) = update {
     it.copy(logoUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
+  }
+
+  /**
+   * Uploads the logo image to Firebase Storage.
+   *
+   * @param mediaRepository The media repository to use for uploading.
+   * @param organizationId Optional organization ID. If null, uses createdBy user ID as temporary
+   *   path.
+   * @return The uploaded logo URL (storage path), or null if upload failed or no logo URI is set.
+   */
+  suspend fun uploadLogo(
+      mediaRepository: MediaRepository,
+      organizationId: String? = null
+  ): String? {
+    val logoUri = state.value.logoUri ?: return null
+    val scheme = logoUri.scheme?.lowercase()
+
+    if (scheme.isNullOrBlank()) {
+      return null
+    }
+
+    // Skip upload for remote URIs (already uploaded)
+    if (scheme == "http" || scheme == "https") {
+      android.util.Log.w(
+          "OrganizationSignupViewModel", "Skipping upload for remote logo URI: $logoUri")
+      return null
+    }
+
+    _isUploadingLogo.value = true
+    _uploadError.value = null
+
+    return try {
+      val userId = state.value.createdBy
+          ?: throw IllegalStateException("Cannot upload logo: createdBy user ID is not set")
+
+      // Use organization ID if available, otherwise use user ID as temporary path
+      val path =
+          if (organizationId != null) {
+            "organizations/$organizationId/logo"
+          } else {
+            "organizations/$userId/logo"
+          }
+
+      val uploadId = mediaRepository.upload(logoUri, path)
+      android.util.Log.d("OrganizationSignupViewModel", "Logo uploaded successfully: $uploadId")
+      uploadId
+    } catch (e: Exception) {
+      android.util.Log.e("OrganizationSignupViewModel", "Failed to upload logo", e)
+      _uploadError.value = "Failed to upload logo: ${e.message}"
+      null
+    } finally {
+      _isUploadingLogo.value = false
+    }
   }
 
   // Description Screen updates
@@ -171,17 +229,14 @@ class OrganizationSignupViewModel : ViewModel() {
    *
    * @param name The organization name.
    * @param type The organization type.
-   * @param bannerUri Optional banner image URI.
    */
   fun updateBasicInfo(
       name: String? = null,
-      type: OrganizationType? = null,
-      bannerUri: Uri? = null
+      type: OrganizationType? = null
   ) = update {
     it.copy(
         name = name?.trim() ?: it.name,
-        type = type ?: it.type,
-        bannerUri = bannerUri?.takeIf { uri -> uri.toString().isNotBlank() } ?: it.bannerUri)
+        type = type ?: it.type)
   }
 
   /**
