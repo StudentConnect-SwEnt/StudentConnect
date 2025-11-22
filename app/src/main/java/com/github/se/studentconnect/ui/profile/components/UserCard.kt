@@ -1,11 +1,8 @@
 package com.github.se.studentconnect.ui.profile.components
 
-// import androidx.compose.ui.tooling.preview.Preview
-// import com.github.se.studentconnect.ui.theme.AppTheme
-// import com.google.firebase.Timestamp
-// import java.util.Date
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,7 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +48,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.userqr.UserQRCode
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
 
 // Common styling constants
 private val CARD_SHAPE = RoundedCornerShape(16.dp)
@@ -144,6 +148,22 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
 
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("UserCard", "Failed to download profile image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   CardContainer(modifier = modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
       // App Logo (Top Right)
@@ -171,14 +191,23 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                         .border(
                             width = 2.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(12.dp))) {
-                  // Profile picture placeholder (TODO: Add image loading when Coil is available)
-                  Icon(
-                      imageVector = Icons.Default.Person,
-                      contentDescription =
-                          stringResource(R.string.content_description_profile_picture),
-                      modifier = Modifier.fillMaxSize().padding(16.dp),
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center) {
+                  val profilePictureDescription =
+                      stringResource(R.string.content_description_profile_picture)
+                  if (imageBitmap != null) {
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription = profilePictureDescription,
+                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop)
+                  } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = profilePictureDescription,
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                  }
                 }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -202,7 +231,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text = user.birthdate ?: stringResource(R.string.text_birthday_not_provided),
+                  text = stringResource(R.string.text_user_id_label, user.userId),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

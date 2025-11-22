@@ -182,6 +182,7 @@
     <string name="text_discover">Discover</string>
     <string name="text_belong">Belong</string>
     <string name="text_birthday_not_provided">Birthday not provided</string>
+    <string name="text_user_id_label">ID: %1$s</string>
     <string name="text_scan_qr_code_to_connect">Scan QR code to connect!</string>
     <string name="text_scan_qr_to_connect">Scan QR to connect!</string>
     <string name="text_no_events_found">No events found matching your criteria.</string>
