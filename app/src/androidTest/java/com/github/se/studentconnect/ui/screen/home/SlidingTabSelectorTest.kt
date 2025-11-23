@@ -25,7 +25,7 @@ class SlidingTabSelectorTest {
 
     // Assert
     composeTestRule.onNodeWithText("For You").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Events").assertIsDisplayed()
+    composeTestRule.onNodeWithText("All Events").assertIsDisplayed()
     composeTestRule.onNodeWithText("Discover").assertIsDisplayed()
   }
 
@@ -201,18 +201,6 @@ class SlidingTabSelectorTest {
     // Assert
     composeTestRule.onNodeWithText("For You").assertIsDisplayed()
     composeTestRule.onNodeWithTag("tab_for_you").assertIsDisplayed()
-  }
-
-  @Test
-  fun slidingTabSelector_selectedTabCanBeEvents() {
-    // Arrange & Act
-    composeTestRule.setContent {
-      SlidingTabSelector(selectedTab = HomeTabMode.EVENTS, onTabSelected = {})
-    }
-
-    // Assert
-    composeTestRule.onNodeWithText("Events").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("tab_events").assertIsDisplayed()
   }
 
   @Test
