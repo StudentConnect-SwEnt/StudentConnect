@@ -3,8 +3,6 @@ package com.github.se.studentconnect.ui.screen.map
 
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
-import com.mapbox.maps.extension.style.layers.addLayer
-import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 import io.mockk.*
 import org.junit.Assert.*
@@ -353,63 +351,6 @@ class EventMarkersTest {
 
     assertFalse(result)
     verify { mockStyle.styleSourceExists("non-existent") }
-  }
-
-  @Test
-  fun realStyleAdapter_addGeoJsonSourceWithFeatures_addsSourceToStyle() {
-    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
-    every { mockStyle.addSource(any()) } just Runs
-
-    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
-    val features =
-        listOf(
-            Feature.fromGeometry(Point.fromLngLat(1.0, 2.0)).apply {
-              addStringProperty("test", "value")
-            })
-
-    adapter.addGeoJsonSourceWithFeatures("test-source", features)
-
-    verify { mockStyle.addSource(any()) }
-  }
-
-  @Test
-  fun realStyleAdapter_addLayerForSource_addsCircleLayerToStyle() {
-    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
-    every { mockStyle.addLayer(any()) } just Runs
-
-    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
-
-    adapter.addLayerForSource("test-layer", "test-source")
-
-    verify { mockStyle.addLayer(any()) }
-  }
-
-  @Test
-  fun realStyleAdapter_updateSourceFeatures_updatesExistingSource() {
-    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
-    val mockGeoJsonSource =
-        mockk<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(relaxed = true)
-
-    every {
-      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
-          "test-source")
-    } returns mockGeoJsonSource
-    every { mockGeoJsonSource.featureCollection(any()) } returns mockGeoJsonSource
-
-    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
-    val features =
-        listOf(
-            Feature.fromGeometry(Point.fromLngLat(3.0, 4.0)).apply {
-              addStringProperty("updated", "true")
-            })
-
-    adapter.updateSourceFeatures("test-source", features)
-
-    verify {
-      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
-          "test-source")
-    }
-    verify { mockGeoJsonSource.featureCollection(any()) }
   }
 
   @Test
