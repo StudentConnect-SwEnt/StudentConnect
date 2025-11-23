@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">StudentConnect</string>
     <string name="default_web_client_id">1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com</string>
-    
+
     <!-- Error messages -->
     <string name="error_network">Network error</string>
     <string name="error_unexpected">An unexpected error occurred</string>
@@ -218,7 +218,13 @@
     <string name="filter_select_location">Select Location</string>
     <string name="filter_radius">Radius: %d km</string>
     <string name="content_description_location">Location</string>
-    
+
+    <!-- Location picker strings (added) -->
+    <string name="location_my_position">My position</string>
+    <string name="location_selected_location">Selected Location</string>
+    <string name="text_no_location_selected">No location selected</string>
+    <string name="text_selected">Selected</string>
+
     <!-- Time picker -->
     <string name="time_picker_title">Select Time</string>
     

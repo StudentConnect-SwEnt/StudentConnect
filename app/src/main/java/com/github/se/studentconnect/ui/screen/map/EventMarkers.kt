@@ -36,6 +36,8 @@ object EventMarkers {
   /**
    * Removes existing event marker layers and sources from the map style. This ensures clean state
    * before adding new markers.
+   *
+   * @param style Mapbox [Style] to operate on.
    */
   fun removeExistingEventLayers(style: Style) {
     val layersToRemove =
@@ -55,7 +57,13 @@ object EventMarkers {
     }
   }
 
-  /** Adds the event marker icon to the map style with the configured color tint. */
+  /**
+   * Adds the event marker icon to the map style with the configured color tint. If the icon
+   * resource cannot be tinted using the configured color, a fallback color is used.
+   *
+   * @param context Android context used to load drawable resources.
+   * @param style Mapbox [Style] where the icon will be added.
+   */
   fun addEventMarkerIcon(context: Context, style: Style) {
     val markerIcon = ContextCompat.getDrawable(context, R.drawable.ic_location)
     markerIcon?.let { drawable ->
@@ -75,6 +83,9 @@ object EventMarkers {
   /**
    * Creates GeoJSON features from events that have location data. Each feature includes the event's
    * title and UID as properties.
+   *
+   * @param events List of [Event] objects to convert into GeoJSON features.
+   * @return List of [Feature] objects representing the events with valid locations.
    */
   fun createEventFeatures(events: List<Event>): List<Feature> {
     Log.d("EventMarkers", "Creating features for ${events.size} events")
@@ -100,7 +111,12 @@ object EventMarkers {
     return features
   }
 
-  /** Adds a GeoJSON source with clustering enabled to the map style. */
+  /**
+   * Adds a GeoJSON source with clustering enabled to the map style.
+   *
+   * @param style Mapbox [Style] to add the source to.
+   * @param features List of GeoJSON [Feature]s to populate the source with.
+   */
   fun addEventSource(style: Style, features: List<Feature>) {
     val featureCollection = FeatureCollection.fromFeatures(features)
     style.addSource(
@@ -115,6 +131,8 @@ object EventMarkers {
   /**
    * Adds cluster circle and count text layers to the map style. These layers display when multiple
    * events are grouped together.
+   *
+   * @param style Mapbox [Style] to add the cluster layers to.
    */
   fun addClusterLayers(style: Style) {
     // Add cluster circle layer
@@ -138,7 +156,11 @@ object EventMarkers {
         })
   }
 
-  /** Adds a symbol layer for individual event markers (non-clustered points). */
+  /**
+   * Adds a symbol layer for individual event markers (non-clustered points).
+   *
+   * @param style Mapbox [Style] where the individual marker layer will be added.
+   */
   fun addIndividualMarkerLayer(style: Style) {
     style.addLayer(
         symbolLayer(EventMarkerConfig.LAYER_ID, EventMarkerConfig.SOURCE_ID) {
@@ -152,12 +174,16 @@ object EventMarkers {
 
   /** Adapter interface to abstract Style operations so we can unit test without Mapbox. */
   interface EventMapStyleAdapter {
+    /** Returns true if a style source with [id] exists. */
     fun styleSourceExists(id: String): Boolean
 
+    /** Adds a GeoJSON source (identified by [sourceId]) populated with [features]. */
     fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>)
 
+    /** Adds a layer associated with [sourceId] and identified by [layerId]. */
     fun addLayerForSource(layerId: String, sourceId: String)
 
+    /** Updates the features of an existing GeoJSON source identified by [sourceId]. */
     fun updateSourceFeatures(sourceId: String, features: List<Feature>)
   }
 
@@ -194,6 +220,11 @@ object EventMarkers {
    * markers separate from the clustered events source.
    *
    * This overload is the production entrypoint and delegates to an adapter.
+   *
+   * @param style Mapbox [Style] to modify.
+   * @param point Position of the click marker.
+   * @param title Optional title property for the marker.
+   * @param uid Optional UID property for the marker.
    */
   fun addClickMarker(style: Style, point: Point, title: String? = null, uid: String? = null) {
     addClickMarker(RealStyleAdapter(style), point, title, uid)
@@ -201,6 +232,11 @@ object EventMarkers {
 
   /**
    * Internal implementation that operates on the adapter. This version is testable without Mapbox.
+   *
+   * @param adapter Adapter used to manipulate style and sources.
+   * @param point Position of the click marker.
+   * @param title Optional title property for the marker.
+   * @param uid Optional UID property for the marker.
    */
   internal fun addClickMarker(
       adapter: EventMapStyleAdapter,
