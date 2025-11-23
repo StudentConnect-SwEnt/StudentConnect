@@ -19,14 +19,16 @@ import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
 
 /**
  * Utility object for managing event markers on the map.
  *
  * Provides functions for:
  * - Adding/removing event marker layers and sources
- * - Creating GeoJSON features from events
+ * - Creating GeoJson features from events
  * - Configuring marker clustering
  */
 object EventMarkers {
@@ -146,5 +148,81 @@ object EventMarkers {
           iconSize(EventMarkerConfig.ICON_SIZE)
           filter(not { has { literal("point_count") } })
         })
+  }
+
+  /** Adapter interface to abstract Style operations so we can unit test without Mapbox. */
+  interface EventMapStyleAdapter {
+    fun styleSourceExists(id: String): Boolean
+
+    fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>)
+
+    fun addLayerForSource(layerId: String, sourceId: String)
+
+    fun updateSourceFeatures(sourceId: String, features: List<Feature>)
+  }
+
+  /**
+   * Real adapter implementation that delegates to Mapbox Style. Kept internal to avoid leaking
+   * Mapbox types into tests.
+   */
+  internal class RealStyleAdapter(private val style: Style) : EventMapStyleAdapter {
+    override fun styleSourceExists(id: String): Boolean = style.styleSourceExists(id)
+
+    override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+      val featureCollection = FeatureCollection.fromFeatures(features)
+      style.addSource(geoJsonSource(sourceId) { featureCollection(featureCollection) })
+    }
+
+    override fun addLayerForSource(layerId: String, sourceId: String) {
+      style.addLayer(
+          circleLayer(layerId, sourceId) {
+            circleColor(EventMarkerConfig.COLOR)
+            circleRadius(8.0)
+            circleStrokeWidth(2.0)
+            circleStrokeColor(EventMarkerConfig.CLUSTER_STROKE_COLOR)
+          })
+    }
+
+    override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {
+      val src = style.getSourceAs<GeoJsonSource>(sourceId)
+      src?.featureCollection(FeatureCollection.fromFeatures(features))
+    }
+  }
+
+  /**
+   * Adds or updates a single marker source/layer used for click-created markers. This keeps click
+   * markers separate from the clustered events source.
+   *
+   * This overload is the production entrypoint and delegates to an adapter.
+   */
+  fun addClickMarker(style: Style, point: Point, title: String? = null, uid: String? = null) {
+    addClickMarker(RealStyleAdapter(style), point, title, uid)
+  }
+
+  /**
+   * Internal implementation that operates on the adapter. This version is testable without Mapbox.
+   */
+  internal fun addClickMarker(
+      adapter: EventMapStyleAdapter,
+      point: Point,
+      title: String? = null,
+      uid: String? = null
+  ) {
+    val clickSourceId = "${EventMarkerConfig.SOURCE_ID}_CLICK"
+    val clickLayerId = "${EventMarkerConfig.LAYER_ID}_CLICK"
+
+    val feature =
+        Feature.fromGeometry(point).apply {
+          title?.let { addStringProperty(EventMarkerConfig.PROP_TITLE, it) }
+          uid?.let { addStringProperty(EventMarkerConfig.PROP_UID, it) }
+        }
+
+    // If source doesn't exist, create it and add a symbol layer. Otherwise update the source data.
+    if (!adapter.styleSourceExists(clickSourceId)) {
+      adapter.addGeoJsonSourceWithFeatures(clickSourceId, listOf(feature))
+      adapter.addLayerForSource(clickLayerId, clickSourceId)
+    } else {
+      adapter.updateSourceFeatures(clickSourceId, listOf(feature))
+    }
   }
 }
