@@ -53,14 +53,17 @@ import com.github.se.studentconnect.ui.userqr.UserQRCode
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 
-// Common styling constants
+// STYLING CONSTANTS
 private val CARD_SHAPE = RoundedCornerShape(16.dp)
 private val CARD_ELEVATION = 16.dp
 private val CARD_BORDER_WIDTH = 3.dp
 private val CARD_BORDER_ALPHA = 0.3f
 private val GRADIENT_ALPHA = 0.5f
 
-// Reusable card styling modifier
+/**
+ * Extension function that applies the standard card styling. This creates the subtle gradient
+ * effect and semi-transparent border that gives the card its polished, slightly glossy appearance.
+ */
 @Composable
 private fun Modifier.cardStyling(): Modifier =
     this.background(
@@ -76,7 +79,11 @@ private fun Modifier.cardStyling(): Modifier =
             color = MaterialTheme.colorScheme.outline.copy(alpha = CARD_BORDER_ALPHA),
             shape = CARD_SHAPE)
 
-// Reusable card container
+/**
+ * A wrapper component that provides consistent styling for card faces. Both the front and back of
+ * the UserCard use this container to ensure they have the same surface color, shape, and styling.
+ * This keeps the visual appearance consistent when flipping.
+ */
 @Composable
 private fun CardContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   Surface(
@@ -87,6 +94,14 @@ private fun CardContainer(modifier: Modifier = Modifier, content: @Composable ()
       }
 }
 
+/**
+ * A flippable card that displays user profile information on the front and a QR code on the back.
+ * Tapping anywhere on the card triggers a flip animation) that reveals the QR code.
+ *
+ * @param user The user whose information will be displayed on the card.
+ * @param modifier Optional modifier for positioning and styling the card container.
+ * @param onClick Optional callback invoked each time the card is tapped (in addition to flipping).
+ */
 @Composable
 fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
   var isFlipped by remember { mutableStateOf(false) }
@@ -146,6 +161,10 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
       }
 }
 
+/**
+ * The front face of the user card showing profile information. If the download fails, a default
+ * person icon is shown instead.
+ */
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   val context = LocalContext.current
@@ -240,6 +259,12 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   }
 }
 
+/**
+ * The back face of the user card showing the QR code for connecting. Displays a scannable QR code
+ * that contains the user's ID. Other users can scan this code with their phone to quickly see the
+ * profile of the user. The layout is centered and includes instructional text to guide users on
+ * what to do.
+ */
 @Composable
 private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
   CardContainer(modifier = modifier) {
