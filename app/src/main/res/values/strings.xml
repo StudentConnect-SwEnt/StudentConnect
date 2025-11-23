@@ -216,7 +216,7 @@
     <string name="filter_price_min">Min: %d€</string>
     <string name="filter_price_max">Max: %d€</string>
     <string name="filter_select_location">Select Location</string>
-    <string name="filter_radius">Radius: %d km</string>
+    <string name="filter_radius">Radius : %d km</string>
     <string name="content_description_location">Location</string>
 
     <!-- Location picker strings (added) -->
