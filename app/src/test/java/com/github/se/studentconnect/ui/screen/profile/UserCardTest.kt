@@ -1,8 +1,11 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import com.github.se.studentconnect.ui.profile.components.UserCard
 import org.junit.After
@@ -37,6 +40,15 @@ class UserCardTest {
 
   @Before
   fun setUp() {
+    MediaRepositoryProvider.repository =
+        object : MediaRepository {
+          override suspend fun upload(uri: Uri, path: String?): String = "mock_id"
+
+          override suspend fun download(id: String): Uri = Uri.EMPTY
+
+          override suspend fun delete(id: String) {}
+        }
+
     controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     testUser =
         User(

@@ -1,11 +1,8 @@
 package com.github.se.studentconnect.ui.profile.components
 
-// import androidx.compose.ui.tooling.preview.Preview
-// import com.github.se.studentconnect.ui.theme.AppTheme
-// import com.google.firebase.Timestamp
-// import java.util.Date
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,7 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,16 +48,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.userqr.UserQRCode
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
 
-// Common styling constants
+// STYLING CONSTANTS
 private val CARD_SHAPE = RoundedCornerShape(16.dp)
 private val CARD_ELEVATION = 16.dp
 private val CARD_BORDER_WIDTH = 3.dp
 private val CARD_BORDER_ALPHA = 0.3f
 private val GRADIENT_ALPHA = 0.5f
 
-// Reusable card styling modifier
+/**
+ * Extension function that applies the standard card styling. This creates the subtle gradient
+ * effect and semi-transparent border that gives the card its polished, slightly glossy appearance.
+ */
 @Composable
 private fun Modifier.cardStyling(): Modifier =
     this.background(
@@ -72,7 +79,11 @@ private fun Modifier.cardStyling(): Modifier =
             color = MaterialTheme.colorScheme.outline.copy(alpha = CARD_BORDER_ALPHA),
             shape = CARD_SHAPE)
 
-// Reusable card container
+/**
+ * A wrapper component that provides consistent styling for card faces. Both the front and back of
+ * the UserCard use this container to ensure they have the same surface color, shape, and styling.
+ * This keeps the visual appearance consistent when flipping.
+ */
 @Composable
 private fun CardContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
   Surface(
@@ -83,6 +94,14 @@ private fun CardContainer(modifier: Modifier = Modifier, content: @Composable ()
       }
 }
 
+/**
+ * A flippable card that displays user profile information on the front and a QR code on the back.
+ * Tapping anywhere on the card triggers a flip animation) that reveals the QR code.
+ *
+ * @param user The user whose information will be displayed on the card.
+ * @param modifier Optional modifier for positioning and styling the card container.
+ * @param onClick Optional callback invoked each time the card is tapped (in addition to flipping).
+ */
 @Composable
 fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
   var isFlipped by remember { mutableStateOf(false) }
@@ -142,8 +161,28 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
       }
 }
 
+/**
+ * The front face of the user card showing profile information. If the download fails, a default
+ * person icon is shown instead.
+ */
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("UserCard", "Failed to download profile image: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   CardContainer(modifier = modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
       // App Logo (Top Right)
@@ -171,14 +210,23 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                         .border(
                             width = 2.dp,
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(12.dp))) {
-                  // Profile picture placeholder (TODO: Add image loading when Coil is available)
-                  Icon(
-                      imageVector = Icons.Default.Person,
-                      contentDescription =
-                          stringResource(R.string.content_description_profile_picture),
-                      modifier = Modifier.fillMaxSize().padding(16.dp),
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center) {
+                  val profilePictureDescription =
+                      stringResource(R.string.content_description_profile_picture)
+                  if (imageBitmap != null) {
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription = profilePictureDescription,
+                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop)
+                  } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = profilePictureDescription,
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                  }
                 }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -202,7 +250,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text = user.birthdate ?: stringResource(R.string.text_birthday_not_provided),
+                  text = stringResource(R.string.text_user_id_label, user.userId),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -211,6 +259,12 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   }
 }
 
+/**
+ * The back face of the user card showing the QR code for connecting. Displays a scannable QR code
+ * that contains the user's ID. Other users can scan this code with their phone to quickly see the
+ * profile of the user. The layout is centered and includes instructional text to guide users on
+ * what to do.
+ */
 @Composable
 private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
   CardContainer(modifier = modifier) {
