@@ -5,6 +5,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
+import com.github.se.studentconnect.ui.screen.home.HomeTabMode
 import com.google.firebase.Timestamp
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -302,5 +303,108 @@ class HomePageViewModelTest {
 
     // Assert
     assertTrue(filters.isNotEmpty())
+  }
+
+  @Test
+  fun selectTab_updatesSelectedTab_toForYou() = runTest {
+    // Arrange
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.selectTab(HomeTabMode.FOR_YOU)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.FOR_YOU, uiState.selectedTab)
+  }
+
+  @Test
+  fun selectTab_updatesSelectedTab_toEvents() = runTest {
+    // Arrange
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.selectTab(HomeTabMode.EVENTS)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.EVENTS, uiState.selectedTab)
+  }
+
+  @Test
+  fun selectTab_updatesSelectedTab_toDiscover() = runTest {
+    // Arrange
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.selectTab(HomeTabMode.DISCOVER)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.DISCOVER, uiState.selectedTab)
+  }
+
+  @Test
+  fun selectTab_switchesBetweenTabs() = runTest {
+    // Arrange
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    // Act - switch from default (FOR_YOU) to EVENTS
+    viewModel.selectTab(HomeTabMode.EVENTS)
+    advanceUntilIdle()
+    var uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.EVENTS, uiState.selectedTab)
+
+    // Act - switch to DISCOVER
+    viewModel.selectTab(HomeTabMode.DISCOVER)
+    advanceUntilIdle()
+    uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.DISCOVER, uiState.selectedTab)
+
+    // Act - switch back to FOR_YOU
+    viewModel.selectTab(HomeTabMode.FOR_YOU)
+    advanceUntilIdle()
+    uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.FOR_YOU, uiState.selectedTab)
+  }
+
+  @Test
+  fun initialState_hasDefaultTabForYou() = runTest {
+    // Act
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertEquals(HomeTabMode.FOR_YOU, uiState.selectedTab)
+  }
+
+  @Test
+  fun selectTab_doesNotAffectOtherUiState() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent1)
+    viewModel = HomePageViewModel(eventRepository, userRepository)
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    val initialEvents = initialState.events
+    val initialLoading = initialState.isLoading
+
+    // Act
+    viewModel.selectTab(HomeTabMode.EVENTS)
+    advanceUntilIdle()
+
+    // Assert
+    val finalState = viewModel.uiState.value
+    assertEquals(HomeTabMode.EVENTS, finalState.selectedTab)
+    assertEquals(initialEvents, finalState.events)
+    assertEquals(initialLoading, finalState.isLoading)
   }
 }
