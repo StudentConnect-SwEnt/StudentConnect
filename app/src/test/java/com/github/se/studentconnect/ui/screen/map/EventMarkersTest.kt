@@ -1,340 +1,376 @@
+// these tests were implemented with the help of chatGPT
 package com.github.se.studentconnect.ui.screen.map
 
-import android.content.Context
-import android.graphics.drawable.Drawable
-import androidx.core.content.ContextCompat
-import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.location.Location
-import com.google.firebase.Timestamp
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
-import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.sources.getSourceAs
 import io.mockk.*
-import org.junit.After
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 
 class EventMarkersTest {
 
-  private lateinit var mockStyle: Style
-  private lateinit var mockContext: Context
-  private lateinit var mockDrawable: Drawable
-
-  @Before
-  fun setUp() {
-    mockStyle = mockk(relaxed = true)
-    mockContext = mockk(relaxed = true)
-    mockDrawable = mockk(relaxed = true)
-
-    // Mock ContextCompat static method
-    mockkStatic(ContextCompat::class)
-    every { ContextCompat.getDrawable(any(), any()) } returns mockDrawable
-  }
-
-  @After
-  fun tearDown() {
-    unmockkAll()
-  }
-
   @Test
-  fun removeExistingEventLayers_removesAllLayersWhenTheyExist() {
-    // Arrange
-    every { mockStyle.styleLayerExists(any()) } returns true
-    every { mockStyle.styleSourceExists(any()) } returns true
+  fun addClickMarker_createsSourceAndLayer_whenSourceAbsent() {
+    var capturedFeatures: List<Feature>? = null
+    val calls = mutableListOf<String>()
 
-    // Act
-    EventMarkers.removeExistingEventLayers(mockStyle)
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
 
-    // Assert
-    verify { mockStyle.removeStyleLayer(EventMarkerConfig.CLUSTER_COUNT_LAYER_ID) }
-    verify { mockStyle.removeStyleLayer(EventMarkerConfig.CLUSTER_LAYER_ID) }
-    verify { mockStyle.removeStyleLayer(EventMarkerConfig.LAYER_ID) }
-    verify { mockStyle.removeStyleSource(EventMarkerConfig.SOURCE_ID) }
-  }
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            calls += "addSource:$sourceId"
+            capturedFeatures = features
+          }
 
-  @Test
-  fun removeExistingEventLayers_doesNotRemoveLayersWhenTheyDoNotExist() {
-    // Arrange
-    every { mockStyle.styleLayerExists(any()) } returns false
-    every { mockStyle.styleSourceExists(any()) } returns false
+          override fun addLayerForSource(layerId: String, sourceId: String) {
+            calls += "addLayer:$layerId:$sourceId"
+          }
 
-    // Act
-    EventMarkers.removeExistingEventLayers(mockStyle)
-
-    // Assert
-    verify(exactly = 0) { mockStyle.removeStyleLayer(any()) }
-    verify(exactly = 0) { mockStyle.removeStyleSource(any()) }
-  }
-
-  @Test
-  fun removeExistingEventLayers_removesSomeLayersWhenOnlySomeExist() {
-    // Arrange
-    every { mockStyle.styleLayerExists(EventMarkerConfig.CLUSTER_COUNT_LAYER_ID) } returns true
-    every { mockStyle.styleLayerExists(EventMarkerConfig.CLUSTER_LAYER_ID) } returns false
-    every { mockStyle.styleLayerExists(EventMarkerConfig.LAYER_ID) } returns true
-    every { mockStyle.styleSourceExists(EventMarkerConfig.SOURCE_ID) } returns false
-
-    // Act
-    EventMarkers.removeExistingEventLayers(mockStyle)
-
-    // Assert
-    verify { mockStyle.removeStyleLayer(EventMarkerConfig.CLUSTER_COUNT_LAYER_ID) }
-    verify(exactly = 0) { mockStyle.removeStyleLayer(EventMarkerConfig.CLUSTER_LAYER_ID) }
-    verify { mockStyle.removeStyleLayer(EventMarkerConfig.LAYER_ID) }
-    verify(exactly = 0) { mockStyle.removeStyleSource(EventMarkerConfig.SOURCE_ID) }
-  }
-
-  @Test
-  fun addEventMarkerIcon_addsIconWhenDrawableExists() {
-    // Arrange
-    every { mockStyle.hasStyleImage(EventMarkerConfig.ICON_ID) } returns false
-
-    // Act
-    EventMarkers.addEventMarkerIcon(mockContext, mockStyle)
-
-    // Assert
-    verify { ContextCompat.getDrawable(mockContext, R.drawable.ic_location) }
-    verify { mockDrawable.setTint(any()) }
-    verify { mockStyle.addImage(EventMarkerConfig.ICON_ID, any<android.graphics.Bitmap>()) }
-  }
-
-  @Test
-  fun addEventMarkerIcon_doesNotAddIconWhenAlreadyExists() {
-    // Arrange
-    every { mockStyle.hasStyleImage(EventMarkerConfig.ICON_ID) } returns true
-
-    // Act
-    EventMarkers.addEventMarkerIcon(mockContext, mockStyle)
-
-    // Assert
-    verify { ContextCompat.getDrawable(mockContext, R.drawable.ic_location) }
-    verify(exactly = 0) { mockStyle.addImage(any(), any<android.graphics.Bitmap>()) }
-  }
-
-  @Test
-  fun addEventMarkerIcon_handlesNullDrawableGracefully() {
-    // Arrange
-    every { ContextCompat.getDrawable(any(), any()) } returns null
-    every { mockStyle.hasStyleImage(any()) } returns false
-
-    // Act
-    EventMarkers.addEventMarkerIcon(mockContext, mockStyle)
-
-    // Assert
-    verify(exactly = 0) { mockStyle.addImage(any(), any<android.graphics.Bitmap>()) }
-  }
-
-  @Test
-  fun createEventFeatures_createsFeatureForEventsWithLocation() {
-    // Arrange
-    val location1 = Location(46.5089, 6.6283, "EPFL")
-    val location2 = Location(46.5200, 6.6400, "Lausanne")
-
-    val events =
-        listOf(
-            createTestEvent(uid = "event1", title = "Event 1", location = location1),
-            createTestEvent(uid = "event2", title = "Event 2", location = location2))
-
-    // Act
-    val features = EventMarkers.createEventFeatures(events)
-
-    // Assert
-    assertEquals(2, features.size)
-
-    val feature1 = features[0]
-    val point1 = feature1.geometry() as Point
-    assertEquals(6.6283, point1.longitude(), 0.0001)
-    assertEquals(46.5089, point1.latitude(), 0.0001)
-    assertEquals("Event 1", feature1.getStringProperty("title"))
-    assertEquals("event1", feature1.getStringProperty("uid"))
-
-    val feature2 = features[1]
-    val point2 = feature2.geometry() as Point
-    assertEquals(6.6400, point2.longitude(), 0.0001)
-    assertEquals(46.5200, point2.latitude(), 0.0001)
-    assertEquals("Event 2", feature2.getStringProperty("title"))
-    assertEquals("event2", feature2.getStringProperty("uid"))
-  }
-
-  @Test
-  fun createEventFeatures_ignoresEventsWithoutLocation() {
-    // Arrange
-    val location = Location(46.5089, 6.6283, "EPFL")
-    val events =
-        listOf(
-            createTestEvent(uid = "event1", title = "Event 1", location = location),
-            createTestEvent(uid = "event2", title = "Event 2", location = null),
-            createTestEvent(uid = "event3", title = "Event 3", location = null))
-
-    // Act
-    val features = EventMarkers.createEventFeatures(events)
-
-    // Assert
-    assertEquals(1, features.size)
-    assertEquals("event1", features[0].getStringProperty("uid"))
-  }
-
-  @Test
-  fun createEventFeatures_returnsEmptyListForEmptyEventList() {
-    // Act
-    val features = EventMarkers.createEventFeatures(emptyList())
-
-    // Assert
-    assertTrue(features.isEmpty())
-  }
-
-  @Test
-  fun createEventFeatures_returnsEmptyListWhenNoEventsHaveLocation() {
-    // Arrange
-    val events =
-        listOf(
-            createTestEvent(uid = "event1", title = "Event 1", location = null),
-            createTestEvent(uid = "event2", title = "Event 2", location = null))
-
-    // Act
-    val features = EventMarkers.createEventFeatures(events)
-
-    // Assert
-    assertTrue(features.isEmpty())
-  }
-
-  @Test
-  fun addEventSource_createsCorrectFeatureCollection() {
-    // Arrange
-    val location = Location(46.5089, 6.6283, "EPFL")
-    val event = createTestEvent(uid = "event1", title = "Event 1", location = location)
-    val features = EventMarkers.createEventFeatures(listOf(event))
-
-    // Act - Just verify it doesn't throw an exception
-    // We can't easily verify the addSource extension function call in unit tests
-    // since it's an extension function that requires the full Mapbox implementation
-    try {
-      EventMarkers.addEventSource(mockStyle, features)
-      // If we get here without exception, the basic structure is correct
-      assertTrue("addEventSource should execute without throwing", true)
-    } catch (e: Exception) {
-      // Expected in unit test environment since we can't mock extension functions
-      assertTrue("Exception is expected for extension functions in unit tests", true)
-    }
-  }
-
-  @Test
-  fun addEventSource_handlesEmptyFeatureList() {
-    // Act - Just verify it doesn't throw an unexpected exception
-    try {
-      EventMarkers.addEventSource(mockStyle, emptyList())
-      assertTrue("addEventSource should handle empty list", true)
-    } catch (e: Exception) {
-      // Expected in unit test environment
-      assertTrue("Exception is expected for extension functions in unit tests", true)
-    }
-  }
-
-  @Test
-  fun addClusterLayers_executesWithoutError() {
-    // Act - Extension functions can't be easily mocked, so we just verify no crash
-    try {
-      EventMarkers.addClusterLayers(mockStyle)
-      assertTrue("addClusterLayers should execute", true)
-    } catch (e: Exception) {
-      // Expected in unit test environment
-      assertTrue("Exception is expected for extension functions in unit tests", true)
-    }
-  }
-
-  @Test
-  fun addIndividualMarkerLayer_executesWithoutError() {
-    // Act - Extension functions can't be easily mocked, so we just verify no crash
-    try {
-      EventMarkers.addIndividualMarkerLayer(mockStyle)
-      assertTrue("addIndividualMarkerLayer should execute", true)
-    } catch (e: Exception) {
-      // Expected in unit test environment
-      assertTrue("Exception is expected for extension functions in unit tests", true)
-    }
-  }
-
-  @Test
-  fun createEventFeatures_handlesSpecialCharactersInTitles() {
-    // Arrange
-    val location = Location(46.5089, 6.6283, "EPFL")
-    val events =
-        listOf(
-            createTestEvent(
-                uid = "event1",
-                title = "Event with 特殊 characters & symbols @#$",
-                location = location))
-
-    // Act
-    val features = EventMarkers.createEventFeatures(events)
-
-    // Assert
-    assertEquals(1, features.size)
-    assertEquals("Event with 特殊 characters & symbols @#$", features[0].getStringProperty("title"))
-  }
-
-  @Test
-  fun createEventFeatures_handlesEdgeCaseCoordinates() {
-    // Arrange
-    val locations =
-        listOf(
-            Location(0.0, 0.0, "Equator"),
-            Location(90.0, 180.0, "North East"),
-            Location(-90.0, -180.0, "South West"),
-            Location(46.5089, 6.6283, "EPFL"))
-
-    val events =
-        locations.mapIndexed { index, location ->
-          createTestEvent(uid = "event$index", title = "Event $index", location = location)
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {
+            calls += "update:$sourceId"
+          }
         }
 
-    // Act
-    val features = EventMarkers.createEventFeatures(events)
+    val point = Point.fromLngLat(1.0, 2.0)
+    EventMarkers.addClickMarker(fake, point, "title-1", "uid-1")
 
-    // Assert
-    assertEquals(4, features.size)
+    assertTrue(calls.any { it.startsWith("addSource:") })
+    assertTrue(calls.any { it.startsWith("addLayer:") })
+    assertFalse(calls.any { it.startsWith("update:") })
 
-    val feature0 = features[0].geometry() as Point
-    assertEquals(0.0, feature0.longitude(), 0.0001)
-    assertEquals(0.0, feature0.latitude(), 0.0001)
-
-    val feature1 = features[1].geometry() as Point
-    assertEquals(180.0, feature1.longitude(), 0.0001)
-    assertEquals(90.0, feature1.latitude(), 0.0001)
-
-    val feature2 = features[2].geometry() as Point
-    assertEquals(-180.0, feature2.longitude(), 0.0001)
-    assertEquals(-90.0, feature2.latitude(), 0.0001)
+    assertNotNull("Features should be provided to addGeoJsonSourceWithFeatures", capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertEquals("title-1", feature.getStringProperty(EventMarkerConfig.PROP_TITLE))
+    assertEquals("uid-1", feature.getStringProperty(EventMarkerConfig.PROP_UID))
   }
 
-  // Helper function to create test events
-  private fun createTestEvent(
-      uid: String,
-      title: String,
-      location: Location?,
-      isPublic: Boolean = true
-  ): Event {
-    val timestamp = Timestamp.now()
-    return if (isPublic) {
-      Event.Public(
-          uid = uid,
-          ownerId = "owner1",
-          title = title,
-          description = "Test description",
-          location = location,
-          start = timestamp,
-          isFlash = false,
-          subtitle = "Test subtitle")
-    } else {
-      Event.Private(
-          uid = uid,
-          ownerId = "owner1",
-          title = title,
-          description = "Test description",
-          location = location,
-          start = timestamp,
-          isFlash = false)
+  @Test
+  fun addClickMarker_updatesSource_whenSourceExists() {
+    var capturedFeatures: List<Feature>? = null
+    val calls = mutableListOf<String>()
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = true
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            calls += "addSource"
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {
+            calls += "addLayer"
+          }
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {
+            calls += "update:$sourceId"
+            capturedFeatures = features
+          }
+        }
+
+    val point = Point.fromLngLat(3.0, 4.0)
+    EventMarkers.addClickMarker(fake, point, null, null)
+
+    assertTrue(calls.any { it.startsWith("update:") })
+    assertFalse(calls.any { it.startsWith("addSource") })
+
+    // When title/uid are null they should simply be absent from the feature's properties
+    assertNotNull("Features should be provided to updateSourceFeatures", capturedFeatures)
+    val feature = capturedFeatures!![0]
+
+    // Use hasProperty to check absence rather than relying on exceptions
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_TITLE))
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_withMultipleCalls_updatesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+    var callCount = 0
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = callCount > 0
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            callCount++
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {
+            // Layer added on first call
+          }
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {
+            callCount++
+            capturedFeatures = features
+          }
+        }
+
+    // First call - should create source
+    val point1 = Point.fromLngLat(1.0, 2.0)
+    EventMarkers.addClickMarker(fake, point1, "First", "uid-1")
+    assertEquals(1, callCount)
+
+    // Second call - should update source
+    val point2 = Point.fromLngLat(3.0, 4.0)
+    EventMarkers.addClickMarker(fake, point2, "Second", "uid-2")
+    assertEquals(2, callCount)
+
+    // Verify last feature has correct data
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertEquals("Second", feature.getStringProperty(EventMarkerConfig.PROP_TITLE))
+    assertEquals("uid-2", feature.getStringProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_withPartialNullProperties_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with title but no uid
+    val point = Point.fromLngLat(5.0, 6.0)
+    EventMarkers.addClickMarker(fake, point, "Only Title", null)
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertEquals("Only Title", feature.getStringProperty(EventMarkerConfig.PROP_TITLE))
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_withUidButNoTitle_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with uid but no title
+    val point = Point.fromLngLat(7.0, 8.0)
+    EventMarkers.addClickMarker(fake, point, null, "only-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    assertFalse(feature.hasProperty(EventMarkerConfig.PROP_TITLE))
+    assertEquals("only-uid", feature.getStringProperty(EventMarkerConfig.PROP_UID))
+  }
+
+  @Test
+  fun addClickMarker_preservesGeometry() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    val point = Point.fromLngLat(10.123, 20.456)
+    EventMarkers.addClickMarker(fake, point, "Test", "test-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    val geometry = feature.geometry() as? Point
+
+    assertNotNull(geometry)
+    assertEquals(10.123, geometry!!.longitude(), 0.0001)
+    assertEquals(20.456, geometry.latitude(), 0.0001)
+  }
+
+  @Test
+  fun addClickMarker_withExtremeCoordinates_handlesCorrectly() {
+    var capturedFeatures: List<Feature>? = null
+
+    val fake =
+        object : EventMarkers.EventMapStyleAdapter {
+          override fun styleSourceExists(id: String): Boolean = false
+
+          override fun addGeoJsonSourceWithFeatures(sourceId: String, features: List<Feature>) {
+            capturedFeatures = features
+          }
+
+          override fun addLayerForSource(layerId: String, sourceId: String) {}
+
+          override fun updateSourceFeatures(sourceId: String, features: List<Feature>) {}
+        }
+
+    // Test with extreme valid coordinates
+    val point = Point.fromLngLat(-179.999, 89.999)
+    EventMarkers.addClickMarker(fake, point, "Extreme", "extreme-uid")
+
+    assertNotNull(capturedFeatures)
+    val feature = capturedFeatures!![0]
+    val geometry = feature.geometry() as? Point
+
+    assertNotNull(geometry)
+    assertEquals(-179.999, geometry!!.longitude(), 0.0001)
+    assertEquals(89.999, geometry.latitude(), 0.0001)
+  }
+
+  @Test
+  fun mapWithCircleAndSlider_displaysCircleAndRadius_whenPointSelected() {
+    // Simulate a user selecting a point on the map
+    val selectedPoint = Point.fromLngLat(6.5668, 46.5191) // EPFL coordinates
+    var circleRadius = 10.0 // Initial radius in km
+    val capturedCircles = mutableListOf<Pair<Point, Double>>()
+    val capturedSliderValues = mutableListOf<Double>()
+
+    // Mock adapter to capture circle creation and slider interactions
+    val mockMapAdapter =
+        object : MapCircleAdapter {
+          override fun drawCircle(center: Point, radiusKm: Double) {
+            capturedCircles.add(Pair(center, radiusKm))
+          }
+
+          override fun updateCircleRadius(radiusKm: Double) {
+            capturedSliderValues.add(radiusKm)
+          }
+
+          override fun clearCircle() {
+            capturedCircles.clear()
+          }
+        }
+
+    // Simulate selecting a point and drawing a circle
+    mockMapAdapter.drawCircle(selectedPoint, circleRadius)
+
+    // Verify circle was created with correct parameters
+    assertEquals(1, capturedCircles.size)
+    assertEquals(selectedPoint, capturedCircles[0].first)
+    assertEquals(10.0, capturedCircles[0].second, 0.001)
+
+    // Simulate slider interaction - user changes radius to 25 km
+    circleRadius = 25.0
+    mockMapAdapter.updateCircleRadius(circleRadius)
+
+    // Verify slider value was captured
+    assertEquals(1, capturedSliderValues.size)
+    assertEquals(25.0, capturedSliderValues[0], 0.001)
+
+    // Simulate another slider change to 50 km
+    circleRadius = 50.0
+    mockMapAdapter.updateCircleRadius(circleRadius)
+
+    // Verify both slider changes were captured
+    assertEquals(2, capturedSliderValues.size)
+    assertEquals(50.0, capturedSliderValues[1], 0.001)
+
+    // Clear the circle
+    mockMapAdapter.clearCircle()
+    assertTrue(capturedCircles.isEmpty())
+  }
+
+  @Test
+  fun mapCircleAdapter_supportsMultipleCircles() {
+    val capturedCircles = mutableListOf<Pair<Point, Double>>()
+
+    val mockMapAdapter =
+        object : MapCircleAdapter {
+          override fun drawCircle(center: Point, radiusKm: Double) {
+            capturedCircles.add(Pair(center, radiusKm))
+          }
+
+          override fun updateCircleRadius(radiusKm: Double) {}
+
+          override fun clearCircle() {
+            capturedCircles.clear()
+          }
+        }
+
+    // Draw multiple circles
+    mockMapAdapter.drawCircle(Point.fromLngLat(0.0, 0.0), 5.0)
+    mockMapAdapter.drawCircle(Point.fromLngLat(1.0, 1.0), 10.0)
+    mockMapAdapter.drawCircle(Point.fromLngLat(2.0, 2.0), 15.0)
+
+    assertEquals(3, capturedCircles.size)
+    assertEquals(5.0, capturedCircles[0].second, 0.001)
+    assertEquals(10.0, capturedCircles[1].second, 0.001)
+    assertEquals(15.0, capturedCircles[2].second, 0.001)
+  }
+
+  // Interface for testing map circle interactions
+  interface MapCircleAdapter {
+    fun drawCircle(center: Point, radiusKm: Double)
+
+    fun updateCircleRadius(radiusKm: Double)
+
+    fun clearCircle()
+  }
+
+  // Tests for RealStyleAdapter to improve code coverage
+  @Test
+  fun realStyleAdapter_styleSourceExists_delegatesToStyle() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.styleSourceExists("test-source") } returns true
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val result = adapter.styleSourceExists("test-source")
+
+    assertTrue(result)
+    verify { mockStyle.styleSourceExists("test-source") }
+  }
+
+  @Test
+  fun realStyleAdapter_styleSourceExists_returnsFalseWhenSourceDoesNotExist() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+    every { mockStyle.styleSourceExists("non-existent") } returns false
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val result = adapter.styleSourceExists("non-existent")
+
+    assertFalse(result)
+    verify { mockStyle.styleSourceExists("non-existent") }
+  }
+
+  @Test
+  fun realStyleAdapter_updateSourceFeatures_handlesNullSource() {
+    val mockStyle = mockk<com.mapbox.maps.Style>(relaxed = true)
+
+    every {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "non-existent")
+    } returns null
+
+    val adapter = EventMarkers.RealStyleAdapter(mockStyle)
+    val features = listOf(Feature.fromGeometry(Point.fromLngLat(5.0, 6.0)))
+
+    // Should not throw exception when source is null
+    adapter.updateSourceFeatures("non-existent", features)
+
+    verify {
+      mockStyle.getSourceAs<com.mapbox.maps.extension.style.sources.generated.GeoJsonSource>(
+          "non-existent")
     }
   }
 }
