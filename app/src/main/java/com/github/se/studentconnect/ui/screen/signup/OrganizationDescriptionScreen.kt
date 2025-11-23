@@ -1,13 +1,9 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 /** Organization description screen reusing DescriptionLayout to avoid duplication. */
 @Composable
@@ -58,20 +54,4 @@ fun OrganizationDescriptionContent(
       onSkipClick = onSkipClick,
       onContinueClick = onContinueClick,
       showSkip = false)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OrganizationDescriptionPreview() {
-  AppTheme {
-    // sample content for preview
-    val sample = remember { mutableStateOf("We organize weekly meetups and socials.") }
-    OrganizationDescriptionContent(
-        about = sample.value,
-        onAboutChange = { sample.value = it },
-        onBackClick = {},
-        onSkipClick = {},
-        onContinueClick = {},
-        modifier = Modifier)
-  }
 }
