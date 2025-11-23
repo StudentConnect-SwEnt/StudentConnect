@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -141,18 +140,18 @@ fun SlidingTabSelector(
               .padding(4.dp)
               .testTag("tab_selector")) {
         // Sliding indicator - using fraction-based offset
-        val indicatorOffsetFraction by androidx.compose.animation.core.animateFloatAsState(
-            targetValue = selectedIndex / 3f,
-            animationSpec = tween(durationMillis = 300),
-            label = "tab_indicator_offset")
+        val indicatorOffsetFraction by
+            androidx.compose.animation.core.animateFloatAsState(
+                targetValue = selectedIndex / 3f,
+                animationSpec = tween(durationMillis = 300),
+                label = "tab_indicator_offset")
 
         androidx.compose.foundation.layout.BoxWithConstraints(
             modifier = Modifier.fillMaxWidth().height(40.dp)) {
               val containerWidth = maxWidth
               Box(
                   modifier =
-                      Modifier
-                          .width(containerWidth / 3f)
+                      Modifier.width(containerWidth / 3f)
                           .fillMaxHeight()
                           .offset(x = containerWidth * indicatorOffsetFraction)
                           .background(
@@ -166,18 +165,18 @@ fun SlidingTabSelector(
           tabs.forEach { tab ->
             Box(
                 modifier =
-                    Modifier
-                        .weight(1f)
+                    Modifier.weight(1f)
                         .height(40.dp)
                         .clickable { onTabSelected(tab) }
                         .testTag("tab_${tab.name.lowercase()}"),
                 contentAlignment = Alignment.Center) {
                   Text(
-                      text = when (tab) {
-                        HomeTabMode.FOR_YOU -> "For You"
-                        HomeTabMode.EVENTS -> "All Events"
-                        HomeTabMode.DISCOVER -> "Discover"
-                      },
+                      text =
+                          when (tab) {
+                            HomeTabMode.FOR_YOU -> "For You"
+                            HomeTabMode.EVENTS -> "All Events"
+                            HomeTabMode.DISCOVER -> "Discover"
+                          },
                       style = MaterialTheme.typography.bodyMedium,
                       fontWeight = if (tab == selectedTab) FontWeight.Bold else FontWeight.Normal,
                       color =
@@ -377,13 +376,12 @@ fun HomeScreen(
                           } else {
                             Column {
                               SlidingTabSelector(
-                                  selectedTab = uiState.selectedTab,
-                                  onTabSelected = onTabSelected)
+                                  selectedTab = uiState.selectedTab, onTabSelected = onTabSelected)
 
                               // Tab content pager
-                              val tabPagerState = rememberPagerState(
-                                  initialPage = uiState.selectedTab.ordinal,
-                                  pageCount = { 3 })
+                              val tabPagerState =
+                                  rememberPagerState(
+                                      initialPage = uiState.selectedTab.ordinal, pageCount = { 3 })
 
                               // Sync tab selection with pager
                               LaunchedEffect(uiState.selectedTab) {
@@ -399,8 +397,8 @@ fun HomeScreen(
                               }
 
                               HorizontalPager(
-                                  state = tabPagerState,
-                                  modifier = Modifier.fillMaxSize()) { page ->
+                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { page
+                                    ->
                                     Column {
                                       FilterBar(
                                           context = LocalContext.current,
