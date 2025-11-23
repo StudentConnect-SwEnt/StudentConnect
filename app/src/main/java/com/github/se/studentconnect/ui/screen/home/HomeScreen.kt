@@ -154,61 +154,84 @@ fun SlidingTabSelector(
                   shape = RoundedCornerShape(24.dp))
               .padding(4.dp)
               .testTag(HomeScreenTestTags.TAB_SELECTOR)) {
-        // Sliding indicator - using fraction-based offset
-        val indicatorOffsetFraction by
-            androidx.compose.animation.core.animateFloatAsState(
-                targetValue = selectedIndex / 3f,
-                animationSpec = tween(durationMillis = 300),
-                label = "tab_indicator_offset")
-
-        androidx.compose.foundation.layout.BoxWithConstraints(
-            modifier = Modifier.fillMaxWidth().height(40.dp)) {
-              val containerWidth = maxWidth
-              Box(
-                  modifier =
-                      Modifier.width(containerWidth / 3f)
-                          .fillMaxHeight()
-                          .offset(x = containerWidth * indicatorOffsetFraction)
-                          .background(
-                              color = MaterialTheme.colorScheme.surface,
-                              shape = RoundedCornerShape(20.dp))
-                          .testTag(HomeScreenTestTags.TAB_INDICATOR))
-            }
-
-        // Tab labels
-        Row(modifier = Modifier.fillMaxWidth()) {
-          tabs.forEach { tab ->
-            val tabTestTag =
-                when (tab) {
-                  HomeTabMode.FOR_YOU -> HomeScreenTestTags.TAB_FOR_YOU
-                  HomeTabMode.EVENTS -> HomeScreenTestTags.TAB_EVENTS
-                  HomeTabMode.DISCOVER -> HomeScreenTestTags.TAB_DISCOVER
-                }
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-                        .height(40.dp)
-                        .clickable { onTabSelected(tab) }
-                        .testTag(tabTestTag),
-                contentAlignment = Alignment.Center) {
-                  Text(
-                      text =
-                          stringResource(
-                              when (tab) {
-                                HomeTabMode.FOR_YOU -> R.string.tab_for_you
-                                HomeTabMode.EVENTS -> R.string.tab_all_events
-                                HomeTabMode.DISCOVER -> R.string.tab_discover
-                              }),
-                      style = MaterialTheme.typography.bodyMedium,
-                      fontWeight = if (tab == selectedTab) FontWeight.Bold else FontWeight.Normal,
-                      color =
-                          if (tab == selectedTab) MaterialTheme.colorScheme.onSurface
-                          else MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-          }
-        }
+        TabIndicator(selectedIndex = selectedIndex)
+        TabLabels(tabs = tabs, selectedTab = selectedTab, onTabSelected = onTabSelected)
       }
+}
+
+@Composable
+private fun TabIndicator(selectedIndex: Int) {
+  val indicatorOffsetFraction by
+      androidx.compose.animation.core.animateFloatAsState(
+          targetValue = selectedIndex / 3f,
+          animationSpec = tween(durationMillis = 300),
+          label = "tab_indicator_offset")
+
+  androidx.compose.foundation.layout.BoxWithConstraints(
+      modifier = Modifier.fillMaxWidth().height(40.dp)) {
+        val containerWidth = maxWidth
+        Box(
+            modifier =
+                Modifier.width(containerWidth / 3f)
+                    .fillMaxHeight()
+                    .offset(x = containerWidth * indicatorOffsetFraction)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(20.dp))
+                    .testTag(HomeScreenTestTags.TAB_INDICATOR))
+      }
+}
+
+@Composable
+private fun TabLabels(
+    tabs: List<HomeTabMode>,
+    selectedTab: HomeTabMode,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  Row(modifier = Modifier.fillMaxWidth()) {
+    tabs.forEach { tab ->
+      TabItem(tab = tab, isSelected = tab == selectedTab, onTabSelected = onTabSelected)
+    }
+  }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.TabItem(
+    tab: HomeTabMode,
+    isSelected: Boolean,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  val tabTestTag = getTabTestTag(tab)
+  val tabStringRes = getTabStringResource(tab)
+
+  Box(
+      modifier =
+          Modifier.weight(1f).height(40.dp).clickable { onTabSelected(tab) }.testTag(tabTestTag),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(tabStringRes),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color =
+                if (isSelected) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant)
+      }
+}
+
+private fun getTabTestTag(tab: HomeTabMode): String {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> HomeScreenTestTags.TAB_FOR_YOU
+    HomeTabMode.EVENTS -> HomeScreenTestTags.TAB_EVENTS
+    HomeTabMode.DISCOVER -> HomeScreenTestTags.TAB_DISCOVER
+  }
+}
+
+private fun getTabStringResource(tab: HomeTabMode): Int {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> R.string.tab_for_you
+    HomeTabMode.EVENTS -> R.string.tab_all_events
+    HomeTabMode.DISCOVER -> R.string.tab_discover
+  }
 }
 
 /** DI-friendly overload that wires default view models and exposes callback hooks. */
@@ -420,8 +443,7 @@ fun HomeScreen(
                               }
 
                               HorizontalPager(
-                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { page
-                                    ->
+                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
                                     Column {
                                       FilterBar(
                                           context = LocalContext.current,
