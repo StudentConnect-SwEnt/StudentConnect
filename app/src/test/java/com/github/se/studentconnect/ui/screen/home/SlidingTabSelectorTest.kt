@@ -8,7 +8,10 @@ import androidx.compose.ui.test.performClick
 import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class SlidingTabSelectorTest {
 
   @get:Rule val composeTestRule = createComposeRule()
@@ -40,7 +43,7 @@ class SlidingTabSelectorTest {
     }
 
     // Assert
-    composeTestRule.onNodeWithTag("tab_selector").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_SELECTOR).assertIsDisplayed()
   }
 
   @Test
@@ -54,7 +57,7 @@ class SlidingTabSelectorTest {
     }
 
     // Assert
-    composeTestRule.onNodeWithTag("tab_indicator").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_INDICATOR).assertIsDisplayed()
   }
 
   @Test
@@ -73,7 +76,7 @@ class SlidingTabSelectorTest {
           })
     }
 
-    composeTestRule.onNodeWithTag("tab_for_you").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_FOR_YOU).performClick()
 
     // Assert
     assertEquals(HomeTabMode.FOR_YOU, selectedTab)
@@ -96,7 +99,7 @@ class SlidingTabSelectorTest {
           })
     }
 
-    composeTestRule.onNodeWithTag("tab_events").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_EVENTS).performClick()
 
     // Assert
     assertEquals(HomeTabMode.EVENTS, selectedTab)
@@ -119,7 +122,7 @@ class SlidingTabSelectorTest {
           })
     }
 
-    composeTestRule.onNodeWithTag("tab_discover").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_DISCOVER).performClick()
 
     // Assert
     assertEquals(HomeTabMode.DISCOVER, selectedTab)
@@ -137,15 +140,15 @@ class SlidingTabSelectorTest {
     }
 
     // Click Events tab
-    composeTestRule.onNodeWithTag("tab_events").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_EVENTS).performClick()
     assertEquals(HomeTabMode.EVENTS, selectedTab)
 
     // Click Discover tab
-    composeTestRule.onNodeWithTag("tab_discover").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_DISCOVER).performClick()
     assertEquals(HomeTabMode.DISCOVER, selectedTab)
 
     // Click For You tab
-    composeTestRule.onNodeWithTag("tab_for_you").performClick()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_FOR_YOU).performClick()
     assertEquals(HomeTabMode.FOR_YOU, selectedTab)
   }
 
@@ -160,7 +163,7 @@ class SlidingTabSelectorTest {
     }
 
     // Assert
-    composeTestRule.onNodeWithTag("tab_for_you").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_FOR_YOU).assertIsDisplayed()
   }
 
   @Test
@@ -174,7 +177,7 @@ class SlidingTabSelectorTest {
     }
 
     // Assert
-    composeTestRule.onNodeWithTag("tab_events").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_EVENTS).assertIsDisplayed()
   }
 
   @Test
@@ -188,7 +191,7 @@ class SlidingTabSelectorTest {
     }
 
     // Assert
-    composeTestRule.onNodeWithTag("tab_discover").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_DISCOVER).assertIsDisplayed()
   }
 
   @Test
@@ -200,7 +203,7 @@ class SlidingTabSelectorTest {
 
     // Assert
     composeTestRule.onNodeWithText("For You").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("tab_for_you").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_FOR_YOU).assertIsDisplayed()
   }
 
   @Test
@@ -212,6 +215,6 @@ class SlidingTabSelectorTest {
 
     // Assert
     composeTestRule.onNodeWithText("Discover").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("tab_discover").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HomeScreenTestTags.TAB_DISCOVER).assertIsDisplayed()
   }
 }

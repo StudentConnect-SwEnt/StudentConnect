@@ -119,6 +119,15 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** Test tags for HomeScreen components. */
+object HomeScreenTestTags {
+  const val TAB_SELECTOR = "tab_selector"
+  const val TAB_INDICATOR = "tab_indicator"
+  const val TAB_FOR_YOU = "tab_for_you"
+  const val TAB_EVENTS = "tab_events"
+  const val TAB_DISCOVER = "tab_discover"
+}
+
 /** Sliding tab selector that displays three tabs: For You, Events, and Discover. */
 @Composable
 fun SlidingTabSelector(
@@ -126,19 +135,25 @@ fun SlidingTabSelector(
     onTabSelected: (HomeTabMode) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  val tabs = listOf(HomeTabMode.FOR_YOU, HomeTabMode.EVENTS, HomeTabMode.DISCOVER)
+  val tabs = HomeTabMode.entries
   val selectedIndex = tabs.indexOf(selectedTab)
+  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate responsive padding based on screen width
+  val horizontalPadding = (screenWidth * 0.04f).coerceIn(12.dp, 24.dp)
+  val verticalPadding = (screenWidth * 0.02f).coerceIn(6.dp, 12.dp)
 
   Box(
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(horizontal = 16.dp, vertical = 8.dp)
+              .padding(horizontal = horizontalPadding, vertical = verticalPadding)
               .background(
                   color = MaterialTheme.colorScheme.surfaceVariant,
                   shape = RoundedCornerShape(24.dp))
               .padding(4.dp)
-              .testTag("tab_selector")) {
+              .testTag(HomeScreenTestTags.TAB_SELECTOR)) {
         // Sliding indicator - using fraction-based offset
         val indicatorOffsetFraction by
             androidx.compose.animation.core.animateFloatAsState(
@@ -157,26 +172,34 @@ fun SlidingTabSelector(
                           .background(
                               color = MaterialTheme.colorScheme.surface,
                               shape = RoundedCornerShape(20.dp))
-                          .testTag("tab_indicator"))
+                          .testTag(HomeScreenTestTags.TAB_INDICATOR))
             }
 
         // Tab labels
         Row(modifier = Modifier.fillMaxWidth()) {
           tabs.forEach { tab ->
+            val tabTestTag =
+                when (tab) {
+                  HomeTabMode.FOR_YOU -> HomeScreenTestTags.TAB_FOR_YOU
+                  HomeTabMode.EVENTS -> HomeScreenTestTags.TAB_EVENTS
+                  HomeTabMode.DISCOVER -> HomeScreenTestTags.TAB_DISCOVER
+                }
+
             Box(
                 modifier =
                     Modifier.weight(1f)
                         .height(40.dp)
                         .clickable { onTabSelected(tab) }
-                        .testTag("tab_${tab.name.lowercase()}"),
+                        .testTag(tabTestTag),
                 contentAlignment = Alignment.Center) {
                   Text(
                       text =
-                          when (tab) {
-                            HomeTabMode.FOR_YOU -> "For You"
-                            HomeTabMode.EVENTS -> "All Events"
-                            HomeTabMode.DISCOVER -> "Discover"
-                          },
+                          stringResource(
+                              when (tab) {
+                                HomeTabMode.FOR_YOU -> R.string.tab_for_you
+                                HomeTabMode.EVENTS -> R.string.tab_all_events
+                                HomeTabMode.DISCOVER -> R.string.tab_discover
+                              }),
                       style = MaterialTheme.typography.bodyMedium,
                       fontWeight = if (tab == selectedTab) FontWeight.Bold else FontWeight.Normal,
                       color =
