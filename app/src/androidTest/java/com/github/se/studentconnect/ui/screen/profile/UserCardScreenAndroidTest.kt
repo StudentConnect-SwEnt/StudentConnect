@@ -189,6 +189,112 @@ class UserCardScreenAndroidTest {
     composeTestRule.onNodeWithContentDescription("Back").assertIsDisplayed()
   }
 
+  @Test
+  fun userCardScreen_displaysUserId() {
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = testUser.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = testUser.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify user ID is displayed with ID: prefix
+    composeTestRule.onNodeWithText("ID: ${testUser.userId}", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun userCardScreen_displaysUserIdWithLongId() {
+    val longIdUser = testUser.copy(userId = "very_long_user_id_12345")
+    mockUserRepository.user = longIdUser
+
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = longIdUser.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = longIdUser.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify long user ID is displayed
+    composeTestRule.onNodeWithText("ID: ${longIdUser.userId}", substring = true).assertIsDisplayed()
+  }
+
+  @Test
+  fun userCardScreen_displaysProfilePicturePlaceholderWhenNoUrl() {
+    val userWithoutPicture = testUser.copy(profilePictureUrl = null)
+    mockUserRepository.user = userWithoutPicture
+
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithoutPicture.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = userWithoutPicture.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify profile picture placeholder (Person icon) is displayed
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
+  }
+
+  @Test
+  fun userCardScreen_handlesEmptyProfilePictureUrl() {
+    val userWithEmptyPicture = testUser.copy(profilePictureUrl = "")
+    mockUserRepository.user = userWithEmptyPicture
+
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithEmptyPicture.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = userWithEmptyPicture.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Should display placeholder when URL is empty
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
+  }
+
+  @Test
+  fun userCardScreen_displaysUserIdNotBirthday() {
+    val userWithBirthday = testUser.copy(birthdate = "01/01/2000")
+    mockUserRepository.user = userWithBirthday
+
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithBirthday.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = userWithBirthday.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify user ID is displayed, not the birthday
+    composeTestRule.onNodeWithText("ID:", substring = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("01/01/2000").assertDoesNotExist()
+  }
+
+  @Test
+  fun userCardScreen_displaysUserIdWithSpecialCharacters() {
+    val specialIdUser = testUser.copy(userId = "user_123-abc")
+    mockUserRepository.user = specialIdUser
+
+    val viewModel =
+        UserCardViewModel(userRepository = mockUserRepository, currentUserId = specialIdUser.userId)
+
+    composeTestRule.setContent {
+      UserCardScreen(currentUserId = specialIdUser.userId, viewModel = viewModel)
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify special characters in user ID are displayed correctly
+    composeTestRule.onNodeWithText("ID: ${specialIdUser.userId}", substring = true).assertIsDisplayed()
+  }
+
   // Mock repository
   private class MockUserRepository(var user: User?) : UserRepository {
     override suspend fun getUserById(userId: String): User? {
