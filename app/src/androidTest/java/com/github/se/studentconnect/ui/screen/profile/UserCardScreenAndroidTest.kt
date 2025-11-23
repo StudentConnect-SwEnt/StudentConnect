@@ -228,7 +228,8 @@ class UserCardScreenAndroidTest {
     mockUserRepository.user = userWithoutPicture
 
     val viewModel =
-        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithoutPicture.userId)
+        UserCardViewModel(
+            userRepository = mockUserRepository, currentUserId = userWithoutPicture.userId)
 
     composeTestRule.setContent {
       UserCardScreen(currentUserId = userWithoutPicture.userId, viewModel = viewModel)
@@ -246,7 +247,8 @@ class UserCardScreenAndroidTest {
     mockUserRepository.user = userWithEmptyPicture
 
     val viewModel =
-        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithEmptyPicture.userId)
+        UserCardViewModel(
+            userRepository = mockUserRepository, currentUserId = userWithEmptyPicture.userId)
 
     composeTestRule.setContent {
       UserCardScreen(currentUserId = userWithEmptyPicture.userId, viewModel = viewModel)
@@ -264,7 +266,8 @@ class UserCardScreenAndroidTest {
     mockUserRepository.user = userWithBirthday
 
     val viewModel =
-        UserCardViewModel(userRepository = mockUserRepository, currentUserId = userWithBirthday.userId)
+        UserCardViewModel(
+            userRepository = mockUserRepository, currentUserId = userWithBirthday.userId)
 
     composeTestRule.setContent {
       UserCardScreen(currentUserId = userWithBirthday.userId, viewModel = viewModel)
@@ -292,7 +295,9 @@ class UserCardScreenAndroidTest {
     composeTestRule.waitForIdle()
 
     // Verify special characters in user ID are displayed correctly
-    composeTestRule.onNodeWithText("ID: ${specialIdUser.userId}", substring = true).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText("ID: ${specialIdUser.userId}", substring = true)
+        .assertIsDisplayed()
   }
 
   // Mock repository
