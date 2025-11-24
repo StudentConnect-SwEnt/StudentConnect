@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +15,13 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
+import com.github.se.studentconnect.ui.screen.signup.regularuser.AddPictureScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.BasicInfoScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.ExperiencesScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.NationalityScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpStep
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 
@@ -130,8 +138,7 @@ fun SignUpOrchestrator(
 
             coroutineScope.launch {
               try {
-                android.util.Log.d(
-                    "SignUpOrchestrator", "Creating user profile for: $firebaseUserId")
+                Log.d("SignUpOrchestrator", "Creating user profile for: $firebaseUserId")
 
                 val profilePictureUrl =
                     uploadProfilePictureIfNeeded(
@@ -153,13 +160,12 @@ fun SignUpOrchestrator(
 
                 // Save user to repository (Firestore in production, local in test mode)
                 userRepository.saveUser(user)
-                android.util.Log.d(
-                    "SignUpOrchestrator", "User profile saved successfully: ${user.userId}")
+                Log.d("SignUpOrchestrator", "User profile saved successfully: ${user.userId}")
 
                 // Notify MainActivity that onboarding is complete
                 onSignUpComplete(user)
               } catch (e: Exception) {
-                android.util.Log.e("SignUpOrchestrator", "Failed to save user profile", e)
+                Log.e("SignUpOrchestrator", "Failed to save user profile", e)
                 errorMessage = "Failed to save profile: ${e.message}"
               } finally {
                 isSavingUser = false

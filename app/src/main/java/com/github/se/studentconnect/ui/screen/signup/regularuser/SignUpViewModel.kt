@@ -1,9 +1,10 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeOption
 import com.google.firebase.Timestamp
 import java.util.Locale
 

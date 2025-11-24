@@ -24,9 +24,9 @@ import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.TopicChip
 import com.github.se.studentconnect.ui.components.TopicChipGridTestTags
 import com.github.se.studentconnect.ui.components.TopicFilterChip
-import com.github.se.studentconnect.ui.screen.signup.ExperiencesContent
-import com.github.se.studentconnect.ui.screen.signup.ExperiencesScreen
-import com.github.se.studentconnect.ui.screen.signup.PrimaryCtaButton
+import com.github.se.studentconnect.ui.screen.signup.regularuser.ExperiencesContent
+import com.github.se.studentconnect.ui.screen.signup.regularuser.ExperiencesScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.PrimaryCtaButton
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule

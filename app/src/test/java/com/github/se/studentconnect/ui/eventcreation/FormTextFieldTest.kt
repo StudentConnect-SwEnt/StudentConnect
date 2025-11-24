@@ -5,7 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
-import com.github.se.studentconnect.ui.screen.signup.SocialLinkField
+import com.github.se.studentconnect.ui.screen.signup.organization.SocialLinkField
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before

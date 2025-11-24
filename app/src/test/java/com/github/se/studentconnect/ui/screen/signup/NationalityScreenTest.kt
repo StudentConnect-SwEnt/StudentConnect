@@ -5,6 +5,8 @@ import androidx.activity.compose.setContent
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryRow
 import com.github.se.studentconnect.ui.components.loadCountries
+import com.github.se.studentconnect.ui.screen.signup.regularuser.NationalityScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.After
 import org.junit.Assert.assertEquals

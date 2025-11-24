@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -42,6 +42,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.OrganizationRole
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSkipButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 /**
@@ -214,7 +223,9 @@ internal fun TeamRolesContent(
               onRoleDescriptionChange = callbacks.onRoleDescriptionChange,
               onAddRole = callbacks.onAddRole)
 
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.ROLES_FORM_TO_LIST_SPACING))
+          Spacer(
+              modifier =
+                  Modifier.Companion.height(SignUpScreenConstants.ROLES_FORM_TO_LIST_SPACING))
 
           Text(
               text = stringResource(R.string.team_roles_current_section_title),
@@ -223,7 +234,9 @@ internal fun TeamRolesContent(
                       fontWeight = FontWeight.SemiBold,
                       color = MaterialTheme.colorScheme.onSurface))
 
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.SECTION_TITLE_TO_CONTENT_SPACING))
+          Spacer(
+              modifier =
+                  Modifier.Companion.height(SignUpScreenConstants.SECTION_TITLE_TO_CONTENT_SPACING))
 
           Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             AnimatedContent(
@@ -250,7 +263,9 @@ internal fun TeamRolesContent(
             }
           }
 
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
+          Spacer(
+              modifier =
+                  Modifier.Companion.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
 
           SignUpPrimaryButton(
               text = stringResource(R.string.button_start_now),
@@ -293,7 +308,9 @@ private fun RolesFormCard(
                     suggestions = suggestions,
                     modifier = Modifier.fillMaxWidth())
 
-                Spacer(modifier = Modifier.height(SignUpScreenConstants.TITLE_TO_SUBTITLE_SPACING))
+                Spacer(
+                    modifier =
+                        Modifier.Companion.height(SignUpScreenConstants.TITLE_TO_SUBTITLE_SPACING))
 
                 Text(
                     text = stringResource(R.string.team_roles_name_helper),
@@ -336,7 +353,9 @@ private fun EmptyRolesState(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center)
 
         Spacer(
-            modifier = Modifier.height(SignUpScreenConstants.EMPTY_STATE_TITLE_TO_SUBTITLE_SPACING))
+            modifier =
+                Modifier.Companion.height(
+                    SignUpScreenConstants.EMPTY_STATE_TITLE_TO_SUBTITLE_SPACING))
 
         Text(
             text = stringResource(R.string.team_roles_empty_state_subtitle),
@@ -465,7 +484,8 @@ private fun RoleCard(
               if (!role.description.isNullOrBlank()) {
                 Spacer(
                     modifier =
-                        Modifier.height(SignUpScreenConstants.ROLE_NAME_TO_DESCRIPTION_SPACING))
+                        Modifier.Companion.height(
+                            SignUpScreenConstants.ROLE_NAME_TO_DESCRIPTION_SPACING))
                 Text(
                     text = role.description,
                     style = MaterialTheme.typography.bodyMedium,
@@ -474,7 +494,8 @@ private fun RoleCard(
 
               Spacer(
                   modifier =
-                      Modifier.height(SignUpScreenConstants.ROLE_DESCRIPTION_TO_BUTTON_SPACING))
+                      Modifier.Companion.height(
+                          SignUpScreenConstants.ROLE_DESCRIPTION_TO_BUTTON_SPACING))
 
               Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { onRemoveRole(role) }) {

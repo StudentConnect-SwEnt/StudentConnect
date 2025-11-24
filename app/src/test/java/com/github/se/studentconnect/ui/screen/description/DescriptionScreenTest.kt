@@ -22,8 +22,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.screen.signup.DescriptionContent
-import com.github.se.studentconnect.ui.screen.signup.DescriptionScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionContent
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule

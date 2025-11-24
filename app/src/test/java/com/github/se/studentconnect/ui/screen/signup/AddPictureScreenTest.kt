@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.core.net.toUri
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.ui.screen.signup.regularuser.AddPictureScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

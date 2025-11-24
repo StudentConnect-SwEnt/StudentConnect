@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
@@ -51,6 +51,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import kotlinx.coroutines.delay
 
 /**

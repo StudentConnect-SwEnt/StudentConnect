@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +25,14 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.CountryListSurface
 import com.github.se.studentconnect.ui.components.filterCountries
 import com.github.se.studentconnect.ui.components.loadCountries
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 @Composable

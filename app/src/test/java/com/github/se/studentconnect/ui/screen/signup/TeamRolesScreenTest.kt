@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -11,6 +12,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.OrganizationRole
+import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesCallbacks
+import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesContent
+import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesScreenWithLocalState
+import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesState
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -91,7 +96,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -118,7 +123,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -148,7 +153,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -187,7 +192,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -223,7 +228,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -262,7 +267,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -294,7 +299,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -327,7 +332,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -361,7 +366,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 
@@ -397,7 +402,7 @@ class TeamRolesScreenTest {
                     onBackClick = {},
                     onSkipClick = {},
                     onContinueClick = {}),
-            modifier = androidx.compose.ui.Modifier)
+            modifier = Modifier)
       }
     }
 

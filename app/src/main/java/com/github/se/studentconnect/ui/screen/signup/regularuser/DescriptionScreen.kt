@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +22,15 @@ import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.BioTextField
 import com.github.se.studentconnect.ui.components.BioTextFieldConfig
 import com.github.se.studentconnect.ui.components.BioTextFieldStyle
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSkipButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
 
 /**
  * Description screen collecting a short multi-line text input from the user. Reuses the
@@ -150,7 +159,9 @@ fun DescriptionLayout(
                             style = BioTextFieldStyle.Bordered))
               }
 
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
+          Spacer(
+              modifier =
+                  Modifier.Companion.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
 
           SignUpPrimaryButton(
               text = stringResource(id = R.string.button_continue),

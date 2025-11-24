@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +27,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.components.TopicFilterChip
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
+import com.github.se.studentconnect.ui.screen.signup.regularuser.AvatarBanner
 
 object OrganizationInfoScreenTestTags {
   const val SCREEN = "organization_info_screen"
@@ -82,7 +91,8 @@ fun OrganizationInfoScreen(
                   vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.Start) {
         SignUpBackButton(
-            onClick = onBack, modifier = Modifier.size(SignUpScreenConstants.BACK_BUTTON_SIZE))
+            onClick = onBack,
+            modifier = Modifier.Companion.size(SignUpScreenConstants.BACK_BUTTON_SIZE))
 
         SignUpMediumSpacer()
         SignUpTitle(text = stringResource(R.string.instruction_who_are_you))

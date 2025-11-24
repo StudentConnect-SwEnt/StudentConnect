@@ -9,6 +9,8 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialInterruptedException
 import com.github.se.studentconnect.model.authentication.AuthRepository
+import com.github.se.studentconnect.ui.screen.signup.regularuser.AuthUIState
+import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedViewModel
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
 import io.mockk.coVerify

@@ -5,6 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeOption
+import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeSelectionScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule

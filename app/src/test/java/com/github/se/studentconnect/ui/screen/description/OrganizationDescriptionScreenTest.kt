@@ -20,8 +20,8 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.screen.signup.OrganizationDescriptionContent
-import com.github.se.studentconnect.ui.screen.signup.OrganizationDescriptionScreen
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationDescriptionContent
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationDescriptionScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
