@@ -470,5 +470,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+        run: ./gradlew sonar -PuseResOverrideForUnitTestResults --parallel --build-cache --stacktrace --info
 
