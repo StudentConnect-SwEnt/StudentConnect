@@ -400,13 +400,15 @@ jobs:
     needs: [static-checks, unit-tests, build-test-apks, connected-tests]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
+
+      # Replace the current shallow clone with a full one
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
-
-      - uses: ./.github/actions/setup-gradle
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
