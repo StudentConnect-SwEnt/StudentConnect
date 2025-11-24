@@ -424,7 +424,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-results
-          path: app/build/test-results/
+          path: app/build/test-results/testResOverrideDebugUnitTest/
 
       - name: Download android ec for all shards
         uses: actions/download-artifact@v4
@@ -454,7 +454,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: kotlin-classes
-          path: app/build/tmp/kotlin-classes/
+          path: app/build/tmp/kotlin-classes/resOverrideDebug/
 
       - name: Generate coverage report
         run: |
