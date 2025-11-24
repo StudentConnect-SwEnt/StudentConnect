@@ -26,6 +26,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Tab modes available for home screen content filtering. */
+enum class HomeTabMode {
+  FOR_YOU,
+  EVENTS,
+  DISCOVER
+}
+
 /** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
@@ -35,6 +42,7 @@ data class HomePageUiState(
     val selectedDate: Date? = null,
     val scrollToDate: Date? = null,
     val showOnlyFavorites: Boolean = false,
+    val selectedTab: HomeTabMode = HomeTabMode.FOR_YOU,
 )
 
 /** Coordinates event loading, filtering, favorite handling, and story progress. */
@@ -298,6 +306,11 @@ constructor(
   /** Clears the scroll target date after scrolling is complete. */
   fun clearScrollTarget() {
     _uiState.update { it.copy(scrollToDate = null) }
+  }
+
+  /** Updates the selected tab mode. */
+  fun selectTab(tab: HomeTabMode) {
+    _uiState.update { it.copy(selectedTab = tab) }
   }
 
   /** Gets events for a specific date. */

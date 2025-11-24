@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -117,6 +119,121 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** Test tags for HomeScreen components. */
+object HomeScreenTestTags {
+  const val TAB_SELECTOR = "tab_selector"
+  const val TAB_INDICATOR = "tab_indicator"
+  const val TAB_FOR_YOU = "tab_for_you"
+  const val TAB_EVENTS = "tab_events"
+  const val TAB_DISCOVER = "tab_discover"
+}
+
+/** Sliding tab selector that displays three tabs: For You, Events, and Discover. */
+@Composable
+fun SlidingTabSelector(
+    selectedTab: HomeTabMode,
+    onTabSelected: (HomeTabMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  val tabs = HomeTabMode.entries
+  val selectedIndex = tabs.indexOf(selectedTab)
+  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate responsive padding based on screen width
+  val horizontalPadding = (screenWidth * 0.04f).coerceIn(12.dp, 24.dp)
+  val verticalPadding = (screenWidth * 0.02f).coerceIn(6.dp, 12.dp)
+
+  Box(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+              .background(
+                  color = MaterialTheme.colorScheme.surfaceVariant,
+                  shape = RoundedCornerShape(24.dp))
+              .padding(4.dp)
+              .testTag(HomeScreenTestTags.TAB_SELECTOR)) {
+        TabIndicator(selectedIndex = selectedIndex)
+        TabLabels(tabs = tabs, selectedTab = selectedTab, onTabSelected = onTabSelected)
+      }
+}
+
+@Composable
+private fun TabIndicator(selectedIndex: Int) {
+  val indicatorOffsetFraction by
+      androidx.compose.animation.core.animateFloatAsState(
+          targetValue = selectedIndex / 3f,
+          animationSpec = tween(durationMillis = 300),
+          label = "tab_indicator_offset")
+
+  androidx.compose.foundation.layout.BoxWithConstraints(
+      modifier = Modifier.fillMaxWidth().height(40.dp)) {
+        val containerWidth = maxWidth
+        Box(
+            modifier =
+                Modifier.width(containerWidth / 3f)
+                    .fillMaxHeight()
+                    .offset(x = containerWidth * indicatorOffsetFraction)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(20.dp))
+                    .testTag(HomeScreenTestTags.TAB_INDICATOR))
+      }
+}
+
+@Composable
+private fun TabLabels(
+    tabs: List<HomeTabMode>,
+    selectedTab: HomeTabMode,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  Row(modifier = Modifier.fillMaxWidth()) {
+    tabs.forEach { tab ->
+      TabItem(tab = tab, isSelected = tab == selectedTab, onTabSelected = onTabSelected)
+    }
+  }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.TabItem(
+    tab: HomeTabMode,
+    isSelected: Boolean,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  val tabTestTag = getTabTestTag(tab)
+  val tabStringRes = getTabStringResource(tab)
+
+  Box(
+      modifier =
+          Modifier.weight(1f).height(40.dp).clickable { onTabSelected(tab) }.testTag(tabTestTag),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(tabStringRes),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color =
+                if (isSelected) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant)
+      }
+}
+
+private fun getTabTestTag(tab: HomeTabMode): String {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> HomeScreenTestTags.TAB_FOR_YOU
+    HomeTabMode.EVENTS -> HomeScreenTestTags.TAB_EVENTS
+    HomeTabMode.DISCOVER -> HomeScreenTestTags.TAB_DISCOVER
+  }
+}
+
+private fun getTabStringResource(tab: HomeTabMode): Int {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> R.string.tab_for_you
+    HomeTabMode.EVENTS -> R.string.tab_all_events
+    HomeTabMode.DISCOVER -> R.string.tab_discover
+  }
+}
+
 /** DI-friendly overload that wires default view models and exposes callback hooks. */
 @OptIn(
     ExperimentalFoundationApi::class,
@@ -151,7 +268,8 @@ fun HomeScreen(
       onApplyFilters = viewModel::applyFilters,
       onFavoriteToggle = viewModel::toggleFavorite,
       onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
-      onClearScrollTarget = { viewModel.clearScrollTarget() })
+      onClearScrollTarget = { viewModel.clearScrollTarget() },
+      onTabSelected = { tab -> viewModel.selectTab(tab) })
 }
 
 /** Core Home screen implementation containing pager, filters, notifications, and stories. */
@@ -175,7 +293,8 @@ fun HomeScreen(
     onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
-    onClearScrollTarget: () -> Unit = {}
+    onClearScrollTarget: () -> Unit = {},
+    onTabSelected: (HomeTabMode) -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
@@ -302,35 +421,61 @@ fun HomeScreen(
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                           } else {
                             Column {
-                              FilterBar(
-                                  context = LocalContext.current,
-                                  onCalendarClick = onCalendarClick,
-                                  onApplyFilters = onApplyFilters,
-                                  showOnlyFavorites = uiState.showOnlyFavorites,
-                                  onToggleFavorites = onToggleFavoritesFilter)
-                              EventListScreen(
-                                  navController = navController,
-                                  events = uiState.events,
-                                  hasJoined = false,
-                                  listState = listState,
-                                  favoriteEventIds = favoriteEventIds,
-                                  onFavoriteToggle = onFavoriteToggle,
-                                  topContent = {
-                                    StoriesRow(
-                                        onAddStoryClick = {
-                                          cameraMode = CameraMode.STORY
-                                          coroutineScope.launch {
-                                            pagerState.animateScrollToPage(
-                                                HomeScreenConstants.PAGER_SCANNER_PAGE)
-                                          }
-                                        },
-                                        onClick = { event, seenStories ->
-                                          selectedStory = event
-                                          showStoryViewer = true
-                                          onClickStory(event, seenStories)
-                                        },
-                                        stories = uiState.subscribedEventsStories)
-                                  })
+                              SlidingTabSelector(
+                                  selectedTab = uiState.selectedTab, onTabSelected = onTabSelected)
+
+                              // Tab content pager
+                              val tabPagerState =
+                                  rememberPagerState(
+                                      initialPage = uiState.selectedTab.ordinal, pageCount = { 3 })
+
+                              // Sync tab selection with pager
+                              LaunchedEffect(uiState.selectedTab) {
+                                tabPagerState.animateScrollToPage(uiState.selectedTab.ordinal)
+                              }
+
+                              // Sync pager with tab selection (when user swipes)
+                              LaunchedEffect(tabPagerState.currentPage) {
+                                val newTab = HomeTabMode.entries[tabPagerState.currentPage]
+                                if (newTab != uiState.selectedTab) {
+                                  onTabSelected(newTab)
+                                }
+                              }
+
+                              HorizontalPager(
+                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
+                                    Column {
+                                      FilterBar(
+                                          context = LocalContext.current,
+                                          onCalendarClick = onCalendarClick,
+                                          onApplyFilters = onApplyFilters,
+                                          showOnlyFavorites = uiState.showOnlyFavorites,
+                                          onToggleFavorites = onToggleFavoritesFilter)
+                                      EventListScreen(
+                                          navController = navController,
+                                          events = uiState.events, // Same events for now
+                                          hasJoined = false,
+                                          listState = listState,
+                                          favoriteEventIds = favoriteEventIds,
+                                          onFavoriteToggle = onFavoriteToggle,
+                                          topContent = {
+                                            StoriesRow(
+                                                onAddStoryClick = {
+                                                  cameraMode = CameraMode.STORY
+                                                  coroutineScope.launch {
+                                                    pagerState.animateScrollToPage(
+                                                        HomeScreenConstants.PAGER_SCANNER_PAGE)
+                                                  }
+                                                },
+                                                onClick = { event, seenStories ->
+                                                  selectedStory = event
+                                                  showStoryViewer = true
+                                                  onClickStory(event, seenStories)
+                                                },
+                                                stories = uiState.subscribedEventsStories)
+                                          })
+                                    }
+                                  }
                             }
                           }
                         }
