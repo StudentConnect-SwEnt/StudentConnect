@@ -1,6 +1,7 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +76,7 @@ fun GetStartedScreen(
     onSignedIn: (String) -> Unit,
     onSignInError: (String) -> Unit = {},
     viewModel: GetStartedViewModel = viewModel(),
-    context: android.content.Context = LocalContext.current,
+    context: Context = LocalContext.current,
     credentialManager: CredentialManager = remember(context) { CredentialManager.create(context) }
 ) {
   val uiState by viewModel.uiState.collectAsState()

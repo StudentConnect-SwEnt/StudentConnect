@@ -1,9 +1,13 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayout
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayoutCallbacks
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayoutTags
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayoutTextConfig
 
 /** Organization description screen reusing DescriptionLayout to avoid duplication. */
 @Composable

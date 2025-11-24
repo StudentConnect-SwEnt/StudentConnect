@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +39,11 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.TopicChipGrid
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 @Composable
@@ -147,7 +152,9 @@ internal fun ExperiencesContent(
                 }
               }
 
-          Spacer(modifier = Modifier.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
+          Spacer(
+              modifier =
+                  Modifier.Companion.height(SignUpScreenConstants.SUBTITLE_TO_CONTENT_SPACING))
 
           SignUpPrimaryButton(
               text = "Start Now",

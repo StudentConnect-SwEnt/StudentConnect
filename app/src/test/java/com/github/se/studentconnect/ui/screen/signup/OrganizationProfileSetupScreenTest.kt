@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationProfileSetupScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

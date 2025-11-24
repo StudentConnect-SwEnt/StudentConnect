@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
@@ -34,6 +34,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.disabled
@@ -46,6 +47,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
+import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
+import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
+import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
 import com.github.se.studentconnect.ui.theme.AppTheme
 
 private data class SimpleOption(val key: String, @StringRes val labelRes: Int)
@@ -241,7 +248,7 @@ private fun LocationDropdownField(
                     imageVector = Icons.Outlined.Map,
                     contentDescription = stringResource(R.string.content_description_search),
                     tint = primary)
-                Spacer(modifier = Modifier.width(SignUpScreenConstants.ICON_SPACING))
+                Spacer(modifier = Modifier.Companion.width(SignUpScreenConstants.ICON_SPACING))
                 Text(
                     text = displayText ?: placeholder,
                     color =
@@ -321,10 +328,10 @@ private fun SelectableChip(
     selected: Boolean,
     enabled: Boolean = true,
     onClick: () -> Unit,
-    selectedBackgroundColor: androidx.compose.ui.graphics.Color,
-    unselectedBackgroundColor: androidx.compose.ui.graphics.Color,
-    selectedContentColor: androidx.compose.ui.graphics.Color,
-    unselectedContentColor: androidx.compose.ui.graphics.Color,
+    selectedBackgroundColor: Color,
+    unselectedBackgroundColor: Color,
+    selectedContentColor: Color,
+    unselectedContentColor: Color,
     content: @Composable () -> Unit
 ) {
   val primary = MaterialTheme.colorScheme.primary
@@ -376,7 +383,7 @@ private fun DomainChip(
               Icon(
                   imageVector = icon,
                   contentDescription = null,
-                  modifier = Modifier.size(SignUpScreenConstants.ICON_SIZE))
+                  modifier = Modifier.Companion.size(SignUpScreenConstants.ICON_SIZE))
               Text(
                   text = text,
                   style =

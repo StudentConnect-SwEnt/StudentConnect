@@ -12,6 +12,9 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationLogoScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.DEFAULT_PLACEHOLDER
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.io.File
 import java.io.FileOutputStream

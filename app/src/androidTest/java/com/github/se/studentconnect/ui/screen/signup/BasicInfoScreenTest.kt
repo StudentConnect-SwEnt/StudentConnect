@@ -12,6 +12,8 @@ import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.ui.screen.signup.regularuser.BasicInfoScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp

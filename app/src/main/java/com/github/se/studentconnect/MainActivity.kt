@@ -51,8 +51,8 @@ import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
-import com.github.se.studentconnect.ui.screen.signup.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
+import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
