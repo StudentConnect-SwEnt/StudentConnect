@@ -272,6 +272,14 @@
     <string name="toast_edit_profile">Edit Profile</string>
     <string name="toast_user_card">User Card</string>
 
+    <!-- Friends list -->
+    <string name="title_friends_list">Friends</string>
+    <string name="placeholder_search_friends">Search friends…</string>
+    <string name="text_no_friends_title">No friends yet :(</string>
+    <string name="text_no_friends_subtitle">Add more friends and they will appear here :)</string>
+    <string name="error_failed_to_load_friends">Failed to load friends</string>
+    <string name="content_description_friend_profile_picture">Friend profile picture</string>
+
     <!-- Profile error messages -->
     <string name="error_unknown">Unknown error</string>
 
