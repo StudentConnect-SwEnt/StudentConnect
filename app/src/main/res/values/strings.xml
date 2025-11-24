@@ -310,7 +310,7 @@
     <string name="placeholder_about">What should other students know about you?</string>
     <!-- Organization description strings (distinct from user About/Description) -->
     <string name="org_description_title">Tell us more about your organization</string>
-    <string name="org_description_placeholder">describe your organization</string>
+    <string name="org_description_placeholder">Describe your organization</string>
 
     <!-- Picture picker -->
     <string name="picture_picker_title">Add a photo</string>

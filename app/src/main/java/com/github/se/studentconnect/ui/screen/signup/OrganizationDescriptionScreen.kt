@@ -24,34 +24,44 @@ fun OrganizationDescriptionScreen(
       modifier = modifier)
 }
 
+/**
+ * Content for the organization description step. Delegates to the reusable DescriptionLayout and
+ * provides the proper string resources and test tags.
+ */
 @Composable
 fun OrganizationDescriptionContent(
     about: String,
     onAboutChange: (String) -> Unit,
     onBackClick: () -> Unit,
-    onSkipClick: () -> Unit = {},
     onContinueClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSkipClick: () -> Unit = {},
 ) {
   // Delegate to the shared DescriptionLayout to keep UI consistent and avoid duplication.
   DescriptionLayout(
       modifier = modifier,
-      titleRes = R.string.org_description_title,
-      subtitleRes = R.string.about_subtitle,
-      placeholderRes = R.string.org_description_placeholder,
-      containerTag = C.Tag.about_screen_container,
-      appBarTag = C.Tag.about_app_bar,
-      backTag = C.Tag.about_back,
-      skipTag = C.Tag.about_skip,
-      titleTag = C.Tag.about_title,
-      subtitleTag = C.Tag.about_subtitle,
-      promptContainerTag = C.Tag.about_prompt_container,
-      inputTag = C.Tag.about_input,
-      continueTag = C.Tag.about_continue,
-      text = about,
-      onTextChange = onAboutChange,
-      onBackClick = onBackClick,
-      onSkipClick = onSkipClick,
-      onContinueClick = onContinueClick,
-      showSkip = false)
+      tags =
+          DescriptionLayoutTags(
+              containerTag = C.Tag.about_screen_container,
+              appBarTag = C.Tag.about_app_bar,
+              backTag = C.Tag.about_back,
+              skipTag = C.Tag.about_skip,
+              titleTag = C.Tag.about_title,
+              subtitleTag = C.Tag.about_subtitle,
+              promptContainerTag = C.Tag.about_prompt_container,
+              inputTag = C.Tag.about_input,
+              continueTag = C.Tag.about_continue),
+      textConfig =
+          DescriptionLayoutTextConfig(
+              titleRes = R.string.org_description_title,
+              subtitleRes = R.string.about_subtitle,
+              placeholderRes = R.string.org_description_placeholder,
+              text = about,
+              onTextChange = onAboutChange,
+              showSkip = false),
+      callbacks =
+          DescriptionLayoutCallbacks(
+              onBackClick = onBackClick,
+              onSkipClick = onSkipClick,
+              onContinueClick = onContinueClick))
 }

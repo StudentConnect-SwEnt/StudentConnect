@@ -23,6 +23,17 @@ import com.github.se.studentconnect.ui.components.BioTextField
 import com.github.se.studentconnect.ui.components.BioTextFieldConfig
 import com.github.se.studentconnect.ui.components.BioTextFieldStyle
 
+/**
+ * Description screen collecting a short multi-line text input from the user. Reuses the
+ * DescriptionLayout to avoid code duplication.
+ *
+ * @param description The current description text.
+ * @param onDescriptionChange Callback when the description text changes.
+ * @param onBackClick Callback when the back button is clicked.
+ * @param onSkipClick Callback when the skip button is clicked.
+ * @param onContinueClick Callback when the continue button is clicked.
+ * @param modifier Modifier for the screen.
+ */
 @Composable
 fun DescriptionScreen(
     description: String,
@@ -41,28 +52,45 @@ fun DescriptionScreen(
       modifier = modifier)
 }
 
-// New reusable layout extracted from the previous DescriptionContent so other screens can reuse it.
+// Group related parameters into small data classes to reduce the number of parameters
+// and improve readability / maintainability.
+data class DescriptionLayoutTags(
+    val containerTag: String,
+    val appBarTag: String,
+    val backTag: String,
+    val skipTag: String,
+    val titleTag: String,
+    val subtitleTag: String,
+    val promptContainerTag: String,
+    val inputTag: String,
+    val continueTag: String
+)
+
+data class DescriptionLayoutCallbacks(
+    val onBackClick: () -> Unit,
+    val onSkipClick: () -> Unit,
+    val onContinueClick: () -> Unit
+)
+
+data class DescriptionLayoutTextConfig(
+    @StringRes val titleRes: Int,
+    @StringRes val subtitleRes: Int,
+    @StringRes val placeholderRes: Int,
+    val text: String,
+    val onTextChange: (String) -> Unit,
+    val showSkip: Boolean = true
+)
+
+/**
+ * Reusable layout used by multiple signup flows that collect a short multi-line text input.
+ * Parameters are grouped into small data classes to avoid long parameter lists.
+ */
 @Composable
 fun DescriptionLayout(
     modifier: Modifier = Modifier,
-    @StringRes titleRes: Int,
-    @StringRes subtitleRes: Int,
-    @StringRes placeholderRes: Int,
-    containerTag: String,
-    appBarTag: String,
-    backTag: String,
-    skipTag: String,
-    titleTag: String,
-    subtitleTag: String,
-    promptContainerTag: String,
-    inputTag: String,
-    continueTag: String,
-    text: String,
-    onTextChange: (String) -> Unit,
-    onBackClick: () -> Unit,
-    onSkipClick: () -> Unit,
-    onContinueClick: () -> Unit,
-    showSkip: Boolean = true
+    tags: DescriptionLayoutTags,
+    textConfig: DescriptionLayoutTextConfig,
+    callbacks: DescriptionLayoutCallbacks
 ) {
   val background = MaterialTheme.colorScheme.surface
 
@@ -73,47 +101,51 @@ fun DescriptionLayout(
                 .padding(
                     horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
                     vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING)
-                .semantics { testTag = containerTag },
+                .semantics { testTag = tags.containerTag },
         horizontalAlignment = Alignment.Start) {
           Row(
-              modifier = Modifier.fillMaxWidth().semantics { testTag = appBarTag },
+              modifier = Modifier.fillMaxWidth().semantics { testTag = tags.appBarTag },
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
                 SignUpBackButton(
-                    onClick = onBackClick, modifier = Modifier.semantics { testTag = backTag })
+                    onClick = callbacks.onBackClick,
+                    modifier = Modifier.semantics { testTag = tags.backTag })
 
-                if (showSkip) {
+                if (textConfig.showSkip) {
                   SignUpSkipButton(
-                      onClick = onSkipClick, modifier = Modifier.semantics { testTag = skipTag })
+                      onClick = callbacks.onSkipClick,
+                      modifier = Modifier.semantics { testTag = tags.skipTag })
                 }
               }
 
           SignUpMediumSpacer()
 
           SignUpTitle(
-              text = stringResource(id = titleRes),
-              modifier = Modifier.semantics { testTag = titleTag })
+              text = stringResource(id = textConfig.titleRes),
+              modifier = Modifier.semantics { testTag = tags.titleTag })
 
           SignUpSmallSpacer()
 
           SignUpSubtitle(
-              text = stringResource(id = subtitleRes),
-              modifier = Modifier.semantics { testTag = subtitleTag })
+              text = stringResource(id = textConfig.subtitleRes),
+              modifier = Modifier.semantics { testTag = tags.subtitleTag })
 
           SignUpLargeSpacer()
 
           Column(
               modifier =
-                  Modifier.weight(1f).fillMaxWidth().semantics { testTag = promptContainerTag },
+                  Modifier.weight(1f).fillMaxWidth().semantics {
+                    testTag = tags.promptContainerTag
+                  },
               verticalArrangement = Arrangement.Top,
               horizontalAlignment = Alignment.CenterHorizontally) {
                 BioTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    modifier = Modifier.fillMaxSize().semantics { testTag = inputTag },
+                    value = textConfig.text,
+                    onValueChange = textConfig.onTextChange,
+                    modifier = Modifier.fillMaxSize().semantics { testTag = tags.inputTag },
                     config =
                         BioTextFieldConfig(
-                            placeholder = stringResource(id = placeholderRes),
+                            placeholder = stringResource(id = textConfig.placeholderRes),
                             showCharacterCount = false,
                             style = BioTextFieldStyle.Bordered))
               }
@@ -123,13 +155,26 @@ fun DescriptionLayout(
           SignUpPrimaryButton(
               text = stringResource(id = R.string.button_continue),
               iconRes = R.drawable.ic_arrow_forward,
-              onClick = onContinueClick,
+              onClick = callbacks.onContinueClick,
               modifier =
-                  Modifier.align(Alignment.CenterHorizontally).semantics { testTag = continueTag })
+                  Modifier.align(Alignment.CenterHorizontally).semantics {
+                    testTag = tags.continueTag
+                  })
         }
   }
 }
 
+/**
+ * Content for the description step. Delegates to the reusable DescriptionLayout and provides the
+ * proper string resources and test tags.
+ *
+ * @param description The current description text.
+ * @param onDescriptionChange Callback when the description text changes.
+ * @param onBackClick Callback when the back button is clicked.
+ * @param onSkipClick Callback when the skip button is clicked.
+ * @param onContinueClick Callback when the continue button is clicked.
+ * @param modifier Modifier for the content.
+ */
 @Composable
 fun DescriptionContent(
     description: String,
@@ -139,25 +184,29 @@ fun DescriptionContent(
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  // Delegate to the reusable DescriptionLayout and provide resource ids + test tags used by the
-  // original screen.
   DescriptionLayout(
       modifier = modifier,
-      titleRes = R.string.about_title,
-      subtitleRes = R.string.about_subtitle,
-      placeholderRes = R.string.placeholder_about,
-      containerTag = C.Tag.description_screen_container,
-      appBarTag = C.Tag.description_app_bar,
-      backTag = C.Tag.description_back,
-      skipTag = C.Tag.description_skip,
-      titleTag = C.Tag.description_title,
-      subtitleTag = C.Tag.description_subtitle,
-      promptContainerTag = C.Tag.description_prompt_container,
-      inputTag = C.Tag.description_input,
-      continueTag = C.Tag.description_continue,
-      text = description,
-      onTextChange = onDescriptionChange,
-      onBackClick = onBackClick,
-      onSkipClick = onSkipClick,
-      onContinueClick = onContinueClick)
+      tags =
+          DescriptionLayoutTags(
+              containerTag = C.Tag.description_screen_container,
+              appBarTag = C.Tag.description_app_bar,
+              backTag = C.Tag.description_back,
+              skipTag = C.Tag.description_skip,
+              titleTag = C.Tag.description_title,
+              subtitleTag = C.Tag.description_subtitle,
+              promptContainerTag = C.Tag.description_prompt_container,
+              inputTag = C.Tag.description_input,
+              continueTag = C.Tag.description_continue),
+      textConfig =
+          DescriptionLayoutTextConfig(
+              titleRes = R.string.about_title,
+              subtitleRes = R.string.about_subtitle,
+              placeholderRes = R.string.placeholder_about,
+              text = description,
+              onTextChange = onDescriptionChange),
+      callbacks =
+          DescriptionLayoutCallbacks(
+              onBackClick = onBackClick,
+              onSkipClick = onSkipClick,
+              onContinueClick = onContinueClick))
 }
