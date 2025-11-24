@@ -79,6 +79,12 @@ jobs:
             app/build/outputs/apk/resOverride/debug/*.apk
             app/build/outputs/apk/androidTest/resOverride/debug/*.apk
 
+      - name: Upload kotlin-classes (for Jacoco)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-classes
+          path: app/build/tmp/kotlin-classes/resOverrideDebug/
+
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: build-test-apks
@@ -444,10 +450,11 @@ jobs:
           name: lint-report
           path: app/build/reports/
 
-      # This step is needed so the compiled classes are available to JaCoCo
-      # We can't upload them as artifacts as they can be very big
-      - name: Materialize class files (from cache)
-        run: ./gradlew compileResOverrideDebugSources --build-cache --parallel
+      - name: Download kotlin-classes
+        uses: actions/download-artifact@v4
+        with:
+          name: kotlin-classes
+          path: app/build/tmp/kotlin-classes/
 
       - name: Generate coverage report
         run: |
