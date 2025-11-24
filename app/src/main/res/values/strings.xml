@@ -303,7 +303,15 @@
     <string name="signup_label_last_name">Last name</string>
     <string name="signup_label_birthday">Birthday</string>
     <string name="signup_label_username">Username</string>
-    
+
+    <!-- About screen strings (used by AboutScreen) -->
+    <string name="about_title">Tell us more about you</string>
+    <string name="about_subtitle">What should others know</string>
+    <string name="placeholder_about">What should other students know about you?</string>
+    <!-- Organization description strings (distinct from user About/Description) -->
+    <string name="org_description_title">Tell us more about your organization</string>
+    <string name="org_description_placeholder">Describe your organization</string>
+
     <!-- Picture picker -->
     <string name="picture_picker_title">Add a photo</string>
     <string name="picture_picker_text">Choose how you want to add your picture.</string>

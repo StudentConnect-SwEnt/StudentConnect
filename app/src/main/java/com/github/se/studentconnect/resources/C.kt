@@ -18,6 +18,18 @@ object C {
     const val description_input = "description_input"
     const val description_continue = "description_continue"
     const val description_navigation = "description_navigation"
+
+    // About screen test tags (new screen inspired from DescriptionScreen)
+    const val about_screen_container = "about_screen_container"
+    const val about_app_bar = "about_app_bar"
+    const val about_back = "about_back"
+    const val about_skip = "about_skip"
+    const val about_title = "about_title"
+    const val about_subtitle = "about_subtitle"
+    const val about_prompt_container = "about_prompt_container"
+    const val about_input = "about_input"
+    const val about_continue = "about_continue"
+
     const val experiences_screen_container = "experiences_screen_container"
     const val experiences_top_bar = "experiences_top_bar"
     const val experiences_title = "experiences_title"
