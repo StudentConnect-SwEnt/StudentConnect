@@ -1,0 +1,209 @@
+package com.github.se.studentconnect.ui.screen.home
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.resources.Variables
+
+private object OrganizationSuggestionsConstants {
+  // Section
+  const val SECTION_TITLE = "Organizations"
+  const val SECTION_PADDING_HORIZONTAL_DP = 16
+  const val SECTION_PADDING_BOTTOM_DP = 12
+
+  // Title
+  const val TITLE_FONT_SIZE_SP = 22
+  const val TITLE_LINE_HEIGHT_SP = 28
+  const val TITLE_FONT_WEIGHT = 400
+
+  // LazyRow
+  const val ROW_WIDTH_DP = 418
+  const val ROW_HEIGHT_DP = 195
+  const val ROW_PADDING_START_DP = 16
+  const val ROW_PADDING_BOTTOM_DP = 16
+  const val ROW_SPACING_DP = 8
+
+  // Card
+  const val CARD_WIDTH_DP = 132
+  const val CARD_HEIGHT_DP = 179
+  const val CARD_PADDING_DP = 8
+  const val CARD_CORNER_RADIUS_DP = 16
+  const val CARD_ELEVATION_DP = 0
+
+  // Image
+  const val IMAGE_WIDTH_DP = 116
+  const val IMAGE_HEIGHT_DP = 119
+  const val IMAGE_CORNER_RADIUS_DP = 8
+  val PLACEHOLDER_DRAWABLE = R.drawable.avatar_23
+
+  // Organization Name
+  const val NAME_FONT_SIZE_SP = 14
+  const val NAME_LINE_HEIGHT_SP = 20
+  const val NAME_FONT_WEIGHT = 500
+  const val NAME_LETTER_SPACING_SP = 0.1f
+
+  // Organization Handle
+  const val HANDLE_FONT_SIZE_SP = 12
+  const val HANDLE_LINE_HEIGHT_SP = 16
+  const val HANDLE_FONT_WEIGHT = 400
+  const val HANDLE_LETTER_SPACING_SP = 0.4f
+  const val HANDLE_WIDTH_DP = 108
+  const val HANDLE_HEIGHT_DP = 16
+
+  // Text spacing
+  const val TEXT_SPACING_DP = 2
+}
+
+data class OrganizationData(val id: String, val name: String, val handle: String)
+
+@Composable
+fun OrganizationSuggestions(organizations: List<OrganizationData>, modifier: Modifier = Modifier) {
+  Column(modifier = modifier.fillMaxWidth().testTag(C.Tag.org_suggestions_section)) {
+    Text(
+        text = OrganizationSuggestionsConstants.SECTION_TITLE,
+        style =
+            TextStyle(
+                fontSize = OrganizationSuggestionsConstants.TITLE_FONT_SIZE_SP.sp,
+                lineHeight = OrganizationSuggestionsConstants.TITLE_LINE_HEIGHT_SP.sp,
+                fontWeight = FontWeight(OrganizationSuggestionsConstants.TITLE_FONT_WEIGHT),
+                color = MaterialTheme.colorScheme.onSurface),
+        modifier =
+            Modifier.padding(
+                    horizontal = OrganizationSuggestionsConstants.SECTION_PADDING_HORIZONTAL_DP.dp)
+                .padding(bottom = OrganizationSuggestionsConstants.SECTION_PADDING_BOTTOM_DP.dp)
+                .testTag(C.Tag.org_suggestions_title))
+
+    LazyRow(
+        modifier =
+            Modifier.width(OrganizationSuggestionsConstants.ROW_WIDTH_DP.dp)
+                .height(OrganizationSuggestionsConstants.ROW_HEIGHT_DP.dp)
+                .padding(
+                    start = OrganizationSuggestionsConstants.ROW_PADDING_START_DP.dp,
+                    bottom = OrganizationSuggestionsConstants.ROW_PADDING_BOTTOM_DP.dp)
+                .testTag(C.Tag.org_suggestions_row),
+        horizontalArrangement =
+            Arrangement.spacedBy(
+                OrganizationSuggestionsConstants.ROW_SPACING_DP.dp, Alignment.Start),
+        verticalAlignment = Alignment.Top) {
+          items(organizations) { organization -> OrganizationCard(organization) }
+        }
+  }
+}
+
+@Composable
+private fun OrganizationCard(organization: OrganizationData) {
+  Card(
+      modifier =
+          Modifier.width(OrganizationSuggestionsConstants.CARD_WIDTH_DP.dp)
+              .height(OrganizationSuggestionsConstants.CARD_HEIGHT_DP.dp)
+              .testTag("${C.Tag.org_suggestions_card}_${organization.id}"),
+      shape = RoundedCornerShape(OrganizationSuggestionsConstants.CARD_CORNER_RADIUS_DP.dp),
+      colors = CardDefaults.cardColors(containerColor = Variables.LightGreyBackground),
+      elevation =
+          CardDefaults.cardElevation(
+              defaultElevation = OrganizationSuggestionsConstants.CARD_ELEVATION_DP.dp)) {
+        Column(
+            modifier = Modifier.padding(OrganizationSuggestionsConstants.CARD_PADDING_DP.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start) {
+              OrganizationImage(organization.id)
+              Spacer(modifier = Modifier.weight(1f))
+              OrganizationInfo(organization)
+            }
+      }
+}
+
+@Composable
+private fun OrganizationImage(organizationId: String) {
+  Box(
+      modifier =
+          Modifier.width(OrganizationSuggestionsConstants.IMAGE_WIDTH_DP.dp)
+              .height(OrganizationSuggestionsConstants.IMAGE_HEIGHT_DP.dp)
+              .background(
+                  color = Variables.LightGreyBackground,
+                  shape =
+                      RoundedCornerShape(
+                          OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))
+              .testTag("${C.Tag.org_suggestions_card_image}_$organizationId")) {
+        Image(
+            painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
+            contentDescription = "Organization image",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.matchParentSize())
+      }
+}
+
+@Composable
+private fun OrganizationInfo(organization: OrganizationData) {
+  Column(
+      verticalArrangement =
+          Arrangement.spacedBy(OrganizationSuggestionsConstants.TEXT_SPACING_DP.dp)) {
+        Text(
+            text = organization.name,
+            style =
+                TextStyle(
+                    fontSize = OrganizationSuggestionsConstants.NAME_FONT_SIZE_SP.sp,
+                    lineHeight = OrganizationSuggestionsConstants.NAME_LINE_HEIGHT_SP.sp,
+                    fontWeight = FontWeight(OrganizationSuggestionsConstants.NAME_FONT_WEIGHT),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    letterSpacing = OrganizationSuggestionsConstants.NAME_LETTER_SPACING_SP.sp),
+            modifier = Modifier.testTag("${C.Tag.org_suggestions_card_title}_${organization.id}"))
+
+        Text(
+            text = organization.handle,
+            style =
+                TextStyle(
+                    fontSize = OrganizationSuggestionsConstants.HANDLE_FONT_SIZE_SP.sp,
+                    lineHeight = OrganizationSuggestionsConstants.HANDLE_LINE_HEIGHT_SP.sp,
+                    fontWeight = FontWeight(OrganizationSuggestionsConstants.HANDLE_FONT_WEIGHT),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = OrganizationSuggestionsConstants.HANDLE_LETTER_SPACING_SP.sp),
+            modifier =
+                Modifier.width(OrganizationSuggestionsConstants.HANDLE_WIDTH_DP.dp)
+                    .height(OrganizationSuggestionsConstants.HANDLE_HEIGHT_DP.dp)
+                    .testTag("${C.Tag.org_suggestions_card_subtitle}_${organization.id}"))
+      }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrganizationSuggestionsPreview() {
+  MaterialTheme {
+    OrganizationSuggestions(
+        organizations =
+            listOf(
+                OrganizationData(id = "1", name = "Evolve", handle = "@evolve"),
+                OrganizationData(id = "2", name = "TechHub", handle = "@techhub"),
+                OrganizationData(id = "3", name = "Innovate", handle = "@innovate"),
+                OrganizationData(id = "4", name = "CodeLab", handle = "@codelab"),
+                OrganizationData(id = "5", name = "DevSpace", handle = "@devspace"),
+                OrganizationData(id = "6", name = "Catalyst", handle = "@catalyst")))
+  }
+}
