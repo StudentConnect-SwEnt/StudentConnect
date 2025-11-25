@@ -96,8 +96,10 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTag
 import com.github.se.studentconnect.ui.screen.camera.CameraMode
 import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
+import com.github.se.studentconnect.ui.utils.FavoritesConfig
 import com.github.se.studentconnect.ui.utils.FilterBar
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
+import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.viewmodel.NotificationUiState
@@ -467,12 +469,17 @@ fun HomeScreen(
                                           events = uiState.events,
                                           hasJoined = false,
                                           listState = listState,
-                                          favoriteEventIds = favoriteEventIds,
-                                          onFavoriteToggle = onFavoriteToggle,
-                                          organizations = mockOrganizations,
-                                          onOrganizationClick = { orgId ->
-                                            navController.navigate(Route.organizationProfile(orgId))
-                                          },
+                                          favoritesConfig =
+                                              FavoritesConfig(
+                                                  favoriteEventIds = favoriteEventIds,
+                                                  onFavoriteToggle = onFavoriteToggle),
+                                          organizationSuggestionsConfig =
+                                              OrganizationSuggestionsConfig(
+                                                  organizations = mockOrganizations,
+                                                  onOrganizationClick = { orgId ->
+                                                    navController.navigate(
+                                                        Route.organizationProfile(orgId))
+                                                  }),
                                           topContent = {
                                             StoriesRow(
                                                 onAddStoryClick = {

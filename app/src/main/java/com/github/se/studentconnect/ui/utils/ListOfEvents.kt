@@ -49,17 +49,37 @@ import kotlinx.coroutines.Dispatchers
 private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
 
 /**
+ * Configuration for favorite events functionality.
+ *
+ * @param favoriteEventIds A set of event IDs that are marked as favorites by the user.
+ * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
+ */
+data class FavoritesConfig(
+    val favoriteEventIds: Set<String> = emptySet(),
+    val onFavoriteToggle: (String) -> Unit = {}
+)
+
+/**
+ * Configuration for organization suggestions functionality.
+ *
+ * @param organizations List of organizations to display as suggestions.
+ * @param onOrganizationClick Callback when an organization is clicked.
+ */
+data class OrganizationSuggestionsConfig(
+    val organizations: List<OrganizationData> = emptyList(),
+    val onOrganizationClick: (String) -> Unit = {}
+)
+
+/**
  * The main screen composable that displays a vertical list of event cards.
  *
  * @param navController The navigation controller used for navigating to the event detail view.
  * @param events The list of events to display.
  * @param hasJoined Indicates if the user has joined the events.
  * @param listState The LazyListState for controlling scroll position.
- * @param favoriteEventIds A set of event IDs that are marked as favorites by the user
- * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
+ * @param favoritesConfig Configuration for favorites functionality.
  * @param topContent Optional composable content to display at the top of the list (e.g., filters).
- * @param organizations Optional list of organizations to display as suggestions.
- * @param onOrganizationClick Callback when an organization is clicked.
+ * @param organizationSuggestionsConfig Configuration for organization suggestions.
  */
 @Composable
 fun EventListScreen(
@@ -67,11 +87,9 @@ fun EventListScreen(
     events: List<Event>,
     hasJoined: Boolean,
     listState: LazyListState = rememberLazyListState(),
-    favoriteEventIds: Set<String> = emptySet(),
-    onFavoriteToggle: (String) -> Unit = {},
+    favoritesConfig: FavoritesConfig = FavoritesConfig(),
     topContent: (@Composable () -> Unit)? = null,
-    organizations: List<OrganizationData> = emptyList(),
-    onOrganizationClick: (String) -> Unit = {}
+    organizationSuggestionsConfig: OrganizationSuggestionsConfig = OrganizationSuggestionsConfig()
 ) {
   if (events.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -87,8 +105,8 @@ fun EventListScreen(
   // at least 2)
   val dateGroups = groupedEvents.keys.toList()
   val orgInsertionIndex =
-      remember(dateGroups.size, organizations.isNotEmpty()) {
-        if (organizations.isNotEmpty() && dateGroups.size >= 2) {
+      remember(dateGroups.size, organizationSuggestionsConfig.organizations.isNotEmpty()) {
+        if (organizationSuggestionsConfig.organizations.isNotEmpty() && dateGroups.size >= 2) {
           Random.nextInt(1, minOf(dateGroups.size, 3)) // Insert after 1st or 2nd date group
         } else {
           -1 // Don't insert
@@ -111,11 +129,11 @@ fun EventListScreen(
                 modifier = Modifier.padding(bottom = 16.dp, top = 8.dp))
           }
           items(eventsOnDate, key = { it.uid }) { event ->
-            val isFavorite = event.uid in favoriteEventIds
+            val isFavorite = event.uid in favoritesConfig.favoriteEventIds
             EventCard(
                 event = event,
                 isFavorite = isFavorite,
-                onFavoriteToggle = onFavoriteToggle,
+                onFavoriteToggle = favoritesConfig.onFavoriteToggle,
                 onClick = { navController.navigate(Route.eventView(event.uid, hasJoined)) })
           }
 
@@ -123,8 +141,8 @@ fun EventListScreen(
           if (index == orgInsertionIndex) {
             item(key = "organization_suggestions") {
               OrganizationSuggestions(
-                  organizations = organizations,
-                  onOrganizationClick = onOrganizationClick,
+                  organizations = organizationSuggestionsConfig.organizations,
+                  onOrganizationClick = organizationSuggestionsConfig.onOrganizationClick,
                   modifier = Modifier.padding(vertical = 16.dp))
             }
           }
