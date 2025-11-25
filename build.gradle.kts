@@ -1,3 +1,5 @@
+import java.util.Locale
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.androidApplication) apply false
@@ -14,14 +16,21 @@ sonar {
         property("sonar.organization", "studentconnect-swent")
         property("sonar.host.url", "https://sonarcloud.io")
 
+        val unitTestResultsFlavor =
+            if (project.hasProperty("useResOverrideForUnitTestResults")) "ResOverride"
+            else "Normal"
+
         // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
-        val unitTestResultDirectory =
-            if (project.hasProperty("useResOverride")) "testResOverrideDebugUnitTest"
-            else "testNormalDebugUnitTest"
+        val unitTestResultDirectory = "test${unitTestResultsFlavor}DebugUnitTest"
         property("sonar.junit.reportPaths", "${project(":app").layout.buildDirectory.get()}/test-results/${unitTestResultDirectory}/")
 
+        val lintResultsFlavor =
+            if (project.hasProperty("useResOverrideForLintResults")) "resOverride"
+            else "normal"
+
         // Paths to xml files with Android Lint issues. If the main flavor is changed, this file will have to be changed too.
-        property("sonar.androidLint.reportPaths", "${project(":app").layout.buildDirectory.get()}/reports/lint-results-debug.xml")
+        val lintResultsFile = "lint-results-${lintResultsFlavor}Debug.xml"
+        property("sonar.androidLint.reportPaths", "${project(":app").layout.buildDirectory.get()}/reports/${lintResultsFile}")
 
         // Paths to JaCoCo XML coverage report files.
         property("sonar.coverage.jacoco.xmlReportPaths", "${project(":app").layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")

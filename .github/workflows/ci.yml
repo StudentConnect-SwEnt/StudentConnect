@@ -79,6 +79,12 @@ jobs:
             app/build/outputs/apk/resOverride/debug/*.apk
             app/build/outputs/apk/androidTest/resOverride/debug/*.apk
 
+      - name: Upload kotlin-classes (for Jacoco)
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotlin-classes
+          path: app/build/tmp/kotlin-classes/resOverrideDebug/
+
   connected-tests:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: build-test-apks
@@ -394,13 +400,15 @@ jobs:
     needs: [static-checks, unit-tests, build-test-apks, connected-tests]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-gradle
+
+      # Replace the current shallow clone with a full one
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of Sonar analysis
-
-      - uses: ./.github/actions/setup-gradle
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -418,7 +426,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-test-results
-          path: app/build/test-results/
+          path: app/build/test-results/testResOverrideDebugUnitTest/
 
       - name: Download android ec for all shards
         uses: actions/download-artifact@v4
@@ -444,10 +452,11 @@ jobs:
           name: lint-report
           path: app/build/reports/
 
-      # This step is needed so the compiled classes are available to JaCoCo
-      # We can't upload them as artifacts as they can be very big
-      - name: Materialize class files (from cache)
-        run: ./gradlew compileResOverrideDebugSources --build-cache --parallel
+      - name: Download kotlin-classes
+        uses: actions/download-artifact@v4
+        with:
+          name: kotlin-classes
+          path: app/build/tmp/kotlin-classes/resOverrideDebug/
 
       - name: Generate coverage report
         run: |
@@ -463,5 +472,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -PuseResOverride --parallel --build-cache --stacktrace --info
+        run: ./gradlew sonar -PuseResOverrideForUnitTestResults --parallel --build-cache --stacktrace --info
 
