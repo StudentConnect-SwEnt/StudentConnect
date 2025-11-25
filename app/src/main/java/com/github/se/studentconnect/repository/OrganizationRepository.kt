@@ -24,9 +24,6 @@ interface OrganizationRepository {
    */
   suspend fun getOrganizationById(organizationId: String): OrganizationModel?
 
-  /**
-   * Returns a unique ID for a new organization document.
-   */
+  /** Returns a unique ID for a new organization document. */
   suspend fun getNewOrganizationId(): String
 }
-

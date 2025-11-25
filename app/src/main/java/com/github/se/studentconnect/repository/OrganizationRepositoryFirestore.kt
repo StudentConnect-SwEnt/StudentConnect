@@ -34,4 +34,3 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
     return docRef.id
   }
 }
-
