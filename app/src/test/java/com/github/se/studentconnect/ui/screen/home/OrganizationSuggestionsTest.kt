@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
@@ -54,11 +57,7 @@ class OrganizationSuggestionsTest {
     // Verify first few organization cards are displayed (LazyRow only renders visible items)
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_1").assertIsDisplayed()
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_2").assertIsDisplayed()
-
-    // Verify all cards exist (even if not visible)
-    testOrganizations.forEach { org ->
-      composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_${org.id}").assertExists()
-    }
+    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_3").assertIsDisplayed()
   }
 
   @Test
@@ -99,10 +98,10 @@ class OrganizationSuggestionsTest {
       MaterialTheme { OrganizationSuggestions(organizations = testOrganizations) }
     }
 
-    // Count all card nodes - should match the number of organizations
-    testOrganizations.forEach { org ->
-      composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_${org.id}").assertExists()
-    }
+    // Verify first few visible cards exist (LazyRow only renders visible items)
+    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_1").assertExists()
+    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_2").assertExists()
+    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_3").assertExists()
   }
 
   // ==================== Content Tests ====================
@@ -116,14 +115,24 @@ class OrganizationSuggestionsTest {
     // Test first few visible items
     composeTestRule.onNodeWithText(testOrganizations[0].name).assertIsDisplayed()
     composeTestRule
-        .onNodeWithTag("${C.Tag.org_suggestions_card_title}_${testOrganizations[0].id}")
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_title}_${testOrganizations[0].id}",
+            useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // Verify all exist
-    testOrganizations.forEach { org ->
-      composeTestRule.onNodeWithText(org.name).assertExists()
-      composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card_title}_${org.id}").assertExists()
-    }
+    // Verify first few exist (LazyRow only renders visible items)
+    composeTestRule.onNodeWithText(testOrganizations[0].name).assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_title}_${testOrganizations[0].id}",
+            useUnmergedTree = true)
+        .assertExists()
+    composeTestRule.onNodeWithText(testOrganizations[1].name).assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_title}_${testOrganizations[1].id}",
+            useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
@@ -135,13 +144,19 @@ class OrganizationSuggestionsTest {
     // Test first visible item
     composeTestRule.onNodeWithText(testOrganizations[0].handle).assertIsDisplayed()
 
-    // Verify all exist
-    testOrganizations.forEach { org ->
-      composeTestRule.onNodeWithText(org.handle).assertExists()
-      composeTestRule
-          .onNodeWithTag("${C.Tag.org_suggestions_card_subtitle}_${org.id}")
-          .assertExists()
-    }
+    // Verify first few exist (LazyRow only renders visible items)
+    composeTestRule.onNodeWithText(testOrganizations[0].handle).assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_subtitle}_${testOrganizations[0].id}",
+            useUnmergedTree = true)
+        .assertExists()
+    composeTestRule.onNodeWithText(testOrganizations[1].handle).assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_subtitle}_${testOrganizations[1].id}",
+            useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
@@ -150,10 +165,22 @@ class OrganizationSuggestionsTest {
       MaterialTheme { OrganizationSuggestions(organizations = testOrganizations) }
     }
 
-    // Verify images exist for all cards
-    testOrganizations.forEach { org ->
-      composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card_image}_${org.id}").assertExists()
-    }
+    // Verify images exist for first few visible cards (LazyRow only renders visible items)
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_image}_${testOrganizations[0].id}",
+            useUnmergedTree = true)
+        .assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_image}_${testOrganizations[1].id}",
+            useUnmergedTree = true)
+        .assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_image}_${testOrganizations[2].id}",
+            useUnmergedTree = true)
+        .assertExists()
   }
 
   @Test
@@ -376,17 +403,20 @@ class OrganizationSuggestionsTest {
     composeTestRule.onNodeWithTag(C.Tag.org_suggestions_title).assertExists()
     composeTestRule.onNodeWithTag(C.Tag.org_suggestions_row).assertExists()
 
-    // Verify test tags for first few cards
+    // Verify test tags for first card
     val firstOrg = testOrganizations.first()
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_${firstOrg.id}").assertExists()
     composeTestRule
-        .onNodeWithTag("${C.Tag.org_suggestions_card_image}_${firstOrg.id}")
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_image}_${firstOrg.id}", useUnmergedTree = true)
         .assertExists()
     composeTestRule
-        .onNodeWithTag("${C.Tag.org_suggestions_card_title}_${firstOrg.id}")
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_title}_${firstOrg.id}", useUnmergedTree = true)
         .assertExists()
     composeTestRule
-        .onNodeWithTag("${C.Tag.org_suggestions_card_subtitle}_${firstOrg.id}")
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_subtitle}_${firstOrg.id}", useUnmergedTree = true)
         .assertExists()
   }
 
@@ -400,10 +430,15 @@ class OrganizationSuggestionsTest {
 
     // Verify test tags contain the organization ID
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_test-id-123").assertExists()
-    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card_image}_test-id-123").assertExists()
-    composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card_title}_test-id-123").assertExists()
     composeTestRule
-        .onNodeWithTag("${C.Tag.org_suggestions_card_subtitle}_test-id-123")
+        .onNodeWithTag("${C.Tag.org_suggestions_card_image}_test-id-123", useUnmergedTree = true)
+        .assertExists()
+    composeTestRule
+        .onNodeWithTag("${C.Tag.org_suggestions_card_title}_test-id-123", useUnmergedTree = true)
+        .assertExists()
+    composeTestRule
+        .onNodeWithTag(
+            "${C.Tag.org_suggestions_card_subtitle}_test-id-123", useUnmergedTree = true)
         .assertExists()
   }
 
@@ -452,10 +487,10 @@ class OrganizationSuggestionsTest {
 
   @Test
   fun organizationSuggestions_recomposition_updatesContent() {
-    val initialOrgs = testOrganizations.take(3)
+    var organizations by mutableStateOf(testOrganizations.take(3))
 
     composeTestRule.setContent {
-      MaterialTheme { OrganizationSuggestions(organizations = initialOrgs) }
+      MaterialTheme { OrganizationSuggestions(organizations = organizations) }
     }
 
     // Verify initial state
@@ -464,11 +499,8 @@ class OrganizationSuggestionsTest {
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_3").assertIsDisplayed()
 
     // Update with new organizations
-    val updatedOrgs = testOrganizations.take(2)
-
-    composeTestRule.setContent {
-      MaterialTheme { OrganizationSuggestions(organizations = updatedOrgs) }
-    }
+    organizations = testOrganizations.take(2)
+    composeTestRule.waitForIdle()
 
     // Verify updated state
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_1").assertIsDisplayed()
