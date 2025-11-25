@@ -36,12 +36,12 @@ import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
-import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
+import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen

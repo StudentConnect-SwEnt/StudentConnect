@@ -64,11 +64,10 @@ fun FriendsListScreen(
     onFriendClick: (String) -> Unit,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
     viewModel: FriendsListViewModel = viewModel {
-        FriendsListViewModel(
-            userRepository = userRepository,
-            friendsRepository = FriendsRepositoryProvider.repository,
-            userId = userId
-        )
+      FriendsListViewModel(
+          userRepository = userRepository,
+          friendsRepository = FriendsRepositoryProvider.repository,
+          userId = userId)
     }
 ) {
   val filteredFriends by viewModel.filteredFriends.collectAsState()
