@@ -35,7 +35,6 @@ import com.github.se.studentconnect.resources.Variables
 private object OrganizationSuggestionsConstants {
   // Section
   const val SECTION_TITLE = "Organizations"
-  const val SECTION_PADDING_HORIZONTAL_DP = 16
   const val SECTION_PADDING_BOTTOM_DP = 12
 
   // Title
@@ -44,7 +43,6 @@ private object OrganizationSuggestionsConstants {
   const val TITLE_FONT_WEIGHT = 400
 
   // LazyRow
-  const val ROW_PADDING_START_DP = 16
   const val ROW_PADDING_BOTTOM_DP = 16
   const val ROW_SPACING_DP = 8
 
@@ -93,17 +91,13 @@ fun OrganizationSuggestions(
                 fontWeight = FontWeight(OrganizationSuggestionsConstants.TITLE_FONT_WEIGHT),
                 color = MaterialTheme.colorScheme.onSurface),
         modifier =
-            Modifier.padding(
-                    horizontal = OrganizationSuggestionsConstants.SECTION_PADDING_HORIZONTAL_DP.dp)
-                .padding(bottom = OrganizationSuggestionsConstants.SECTION_PADDING_BOTTOM_DP.dp)
+            Modifier.padding(bottom = OrganizationSuggestionsConstants.SECTION_PADDING_BOTTOM_DP.dp)
                 .testTag(C.Tag.org_suggestions_title))
 
     LazyRow(
         modifier =
             Modifier.fillMaxWidth()
-                .padding(
-                    start = OrganizationSuggestionsConstants.ROW_PADDING_START_DP.dp,
-                    bottom = OrganizationSuggestionsConstants.ROW_PADDING_BOTTOM_DP.dp)
+                .padding(bottom = OrganizationSuggestionsConstants.ROW_PADDING_BOTTOM_DP.dp)
                 .testTag(C.Tag.org_suggestions_row),
         horizontalArrangement =
             Arrangement.spacedBy(

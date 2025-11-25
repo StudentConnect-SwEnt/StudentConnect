@@ -407,12 +407,10 @@ class OrganizationSuggestionsTest {
     val firstOrg = testOrganizations.first()
     composeTestRule.onNodeWithTag("${C.Tag.org_suggestions_card}_${firstOrg.id}").assertExists()
     composeTestRule
-        .onNodeWithTag(
-            "${C.Tag.org_suggestions_card_image}_${firstOrg.id}", useUnmergedTree = true)
+        .onNodeWithTag("${C.Tag.org_suggestions_card_image}_${firstOrg.id}", useUnmergedTree = true)
         .assertExists()
     composeTestRule
-        .onNodeWithTag(
-            "${C.Tag.org_suggestions_card_title}_${firstOrg.id}", useUnmergedTree = true)
+        .onNodeWithTag("${C.Tag.org_suggestions_card_title}_${firstOrg.id}", useUnmergedTree = true)
         .assertExists()
     composeTestRule
         .onNodeWithTag(
@@ -437,8 +435,7 @@ class OrganizationSuggestionsTest {
         .onNodeWithTag("${C.Tag.org_suggestions_card_title}_test-id-123", useUnmergedTree = true)
         .assertExists()
     composeTestRule
-        .onNodeWithTag(
-            "${C.Tag.org_suggestions_card_subtitle}_test-id-123", useUnmergedTree = true)
+        .onNodeWithTag("${C.Tag.org_suggestions_card_subtitle}_test-id-123", useUnmergedTree = true)
         .assertExists()
   }
 
