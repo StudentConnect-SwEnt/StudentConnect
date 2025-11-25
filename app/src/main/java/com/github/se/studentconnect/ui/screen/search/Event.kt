@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
-import kotlin.collections.forEach
+
+private val bitmapsBuffer = mutableMapOf<String, ImageBitmap?>()
 
 @Composable
 internal fun Events(
@@ -43,53 +43,51 @@ internal fun Events(
     events: List<Event>
 ) {
 
-  val bitmaps = getBitmaps(events)
-  headText("Events", C.Tag.event_search_result_title)
-  if (alone) {
-    LazyColumn(
-        modifier =
-            Modifier.padding(
-                    screenWidth.value * 0.05f,
-                )
-                .testTag(C.Tag.event_search_result),
-    ) {
-      items(events) { event ->
-        EventCardColumn(
-            event = event,
-            ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
-            participantCount = viewModel.eventParticipantCount(eventUid = event.uid),
-            navController = navController,
-            bitmaps[event.uid])
-        columnSpacer()
+  Column(modifier = Modifier.testTag(SearchScreenTestTags.EVENTS_RESULTS)) {
+    HeadText("Events", SearchScreenTestTags.EVENTS_TITLE)
+    if (alone) {
+      LazyColumn(
+          modifier =
+              Modifier.padding(
+                      screenWidth.value * 0.05f,
+                  )
+                  .testTag(SearchScreenTestTags.EVENT_COLUMN),
+      ) {
+        items(events) { event ->
+          EventCardColumn(
+              event = event,
+              ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
+              participantCount = viewModel.eventParticipantCount(eventUid = event.uid),
+              navController = navController,
+          )
+          ColumnSpacer()
+        }
       }
-    }
-  } else {
-    LazyRow() {
-      items(events) { event ->
-        rowSpacer()
-        EventCardRow(
-            event = event,
-            ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
-            imageBitmap = bitmaps[event.uid],
-            navController = navController)
+    } else {
+      LazyRow(modifier = Modifier.testTag(SearchScreenTestTags.EVENT_ROW)) {
+        items(events) { event ->
+          RowSpacer()
+          EventCardRow(
+              event = event,
+              ownerUsername = viewModel.getUser(event.ownerId)?.username ?: "",
+              navController = navController)
+        }
+        item { EndRowSpacer() }
       }
-      item { endRowSpacer() }
     }
   }
 }
 
 @Composable
-private fun EventCardRow(
-    event: Event,
-    ownerUsername: String,
-    imageBitmap: ImageBitmap?,
-    navController: NavHostController
-) {
+private fun EventCardRow(event: Event, ownerUsername: String, navController: NavHostController) {
+  addBitmapToBuffer(event)
+  val imageBitmap = bitmapsBuffer[event.uid]
   Box(
       modifier =
-          rowCardBoxModifier {
-            navController.navigate(Route.eventView(eventUid = event.uid, true))
-          }) {
+          Modifier.rowCardBoxModifier {
+                navController.navigate(Route.eventView(eventUid = event.uid, true))
+              }
+              .testTag(SearchScreenTestTags.EVENT_ROW_CARD)) {
         Column {
           if (imageBitmap != null) {
 
@@ -109,7 +107,7 @@ private fun EventCardRow(
                         .clip(RoundedCornerShape(screenWidth.value * 0.003f)))
           }
 
-          rowCardInternalSpacer()
+          RowCardInternalSpacer()
           Text(
               text = event.title,
               fontSize = MaterialTheme.typography.bodyLarge.fontSize,
@@ -127,12 +125,14 @@ private fun EventCardColumn(
     ownerUsername: String,
     participantCount: Int,
     navController: NavHostController,
-    imageBitmap: ImageBitmap?
 ) {
+  addBitmapToBuffer(event)
+  val imageBitmap = bitmapsBuffer[event.uid]
   Row(
       modifier =
           Modifier.clickable(
-              onClick = { navController.navigate(Route.eventView(eventUid = event.uid, true)) }),
+                  onClick = { navController.navigate(Route.eventView(eventUid = event.uid, true)) })
+              .testTag(SearchScreenTestTags.EVENT_COLUMN_CARD),
       verticalAlignment = Alignment.CenterVertically) {
         if (imageBitmap != null) {
           Image(
@@ -151,7 +151,7 @@ private fun EventCardColumn(
                       .clip(RoundedCornerShape(screenWidth.value * 0.03f)),
               contentScale = ContentScale.Crop)
         }
-        columnCardInternalSpacer()
+        ColumnCardInternalSpacer()
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -195,8 +195,6 @@ private fun EventCardColumn(
 }
 
 @Composable
-private fun getBitmaps(events: List<Event>): Map<String, ImageBitmap?> {
-  val temp = mutableMapOf<String, ImageBitmap?>()
-  events.forEach { event -> temp[event.uid] = imageBitmap(event.imageUrl) }
-  return temp
+private fun addBitmapToBuffer(event: Event) {
+  bitmapsBuffer.putIfAbsent(event.uid, imageBitmap(event.imageUrl))
 }

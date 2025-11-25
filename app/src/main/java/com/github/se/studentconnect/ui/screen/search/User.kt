@@ -25,75 +25,83 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
+
+private val bitmapsBuffer = mutableMapOf<String, ImageBitmap?>()
 
 @Composable
 internal fun People(alone: Boolean, users: List<User>, navController: NavHostController) {
-  val bitmaps = getBitmaps(users)
-  Column {
-    headText("People", C.Tag.user_search_result_title)
+  Column(modifier = Modifier.testTag(SearchScreenTestTags.USERS_RESULTS)) {
+    HeadText("People", SearchScreenTestTags.USERS_TITLE)
     if (alone) {
       LazyColumn(
           Modifier.padding(
-              screenWidth.value * 0.05f,
-          )) {
+                  screenWidth.value * 0.05f,
+              )
+              .testTag(SearchScreenTestTags.USERS_COLUMN)) {
             items(users) { user ->
-              UserCardColumn(user, bitmaps[user.userId], navController)
-              columnSpacer()
+              UserCardColumn(user, navController)
+              ColumnSpacer()
             }
           }
     } else {
-      LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
+      LazyRow(Modifier.testTag(SearchScreenTestTags.USERS_ROW)) {
         items(users) { user ->
-          rowSpacer()
-          UserCardRow(user, bitmaps[user.userId], navController)
+          RowSpacer()
+          UserCardRow(user, navController)
         }
-        item { endRowSpacer() }
+        item { EndRowSpacer() }
       }
     }
   }
 }
 
 @Composable
-private fun UserCardRow(user: User, imageBitmap: ImageBitmap?, navController: NavHostController) {
-  Box(modifier = rowCardBoxModifier { navController.navigate(Route.visitorProfile(user.userId)) }) {
-    Column {
-      if (imageBitmap != null) {
+private fun UserCardRow(user: User, navController: NavHostController) {
+  addToBitmapBuffer(user)
+  val imageBitmap = bitmapsBuffer[user.userId]
+  Box(
+      modifier =
+          Modifier.rowCardBoxModifier { navController.navigate(Route.visitorProfile(user.userId)) }
+              .testTag(SearchScreenTestTags.USER_ROW_CARD)) {
+        Column {
+          if (imageBitmap != null) {
 
-        Image(
-            bitmap = imageBitmap,
-            contentDescription = "User Profile Picture",
-            modifier = Modifier.clip(CircleShape).size(screenWidth.value * 0.3f),
-            contentScale = ContentScale.Crop)
-      } else {
-        Image(
-            painter = painterResource(R.drawable.ic_user),
-            contentDescription = "User Profile Picture",
-            modifier = Modifier.size(screenWidth.value * 0.3f))
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = "User Profile Picture",
+                modifier = Modifier.clip(CircleShape).size(screenWidth.value * 0.3f),
+                contentScale = ContentScale.Crop)
+          } else {
+            Image(
+                painter = painterResource(R.drawable.ic_user),
+                contentDescription = "User Profile Picture",
+                modifier = Modifier.size(screenWidth.value * 0.3f))
+          }
+
+          RowCardInternalSpacer()
+          Text(
+              text = user.firstName + " " + user.lastName,
+              fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+              maxLines = 1,
+          )
+          Text(
+              user.username,
+              maxLines = 1,
+          )
+        }
       }
-
-      rowCardInternalSpacer()
-      Text(
-          text = user.firstName + " " + user.lastName,
-          fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      )
-      Text(user.username)
-    }
-  }
 }
 
 @Composable
-private fun UserCardColumn(
-    user: User,
-    imageBitmap: ImageBitmap?,
-    navController: NavHostController
-) {
-
+private fun UserCardColumn(user: User, navController: NavHostController) {
+  addToBitmapBuffer(user)
+  val imageBitmap = bitmapsBuffer[user.userId]
   Row(
       modifier =
           Modifier.clickable(
-              onClick = { navController.navigate(Route.visitorProfile(user.userId)) }),
+                  onClick = { navController.navigate(Route.visitorProfile(user.userId)) })
+              .testTag(SearchScreenTestTags.USER_COLUMN_CARD),
       verticalAlignment = Alignment.CenterVertically) {
         if (imageBitmap != null) {
           Image(
@@ -108,7 +116,7 @@ private fun UserCardColumn(
               modifier = Modifier.size(screenWidth.value * 0.2f).clip(CircleShape),
           )
         }
-        columnCardInternalSpacer()
+        ColumnCardInternalSpacer()
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -116,19 +124,17 @@ private fun UserCardColumn(
               text = user.firstName + " " + user.lastName,
               fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
               fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-          )
+              maxLines = 1)
           Text(
               text = user.username,
               fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
               fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-          )
+              maxLines = 1)
         }
       }
 }
 
 @Composable
-private fun getBitmaps(users: List<User>): Map<String, ImageBitmap?> {
-  val temp = mutableMapOf<String, ImageBitmap?>()
-  users.forEach { user -> temp[user.userId] = imageBitmap(user.profilePictureUrl) }
-  return temp
+private fun addToBitmapBuffer(user: User) {
+  bitmapsBuffer.putIfAbsent(user.userId, imageBitmap(user.profilePictureUrl))
 }

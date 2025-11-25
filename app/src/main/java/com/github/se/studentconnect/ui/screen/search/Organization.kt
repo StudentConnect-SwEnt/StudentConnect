@@ -23,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 
 @Composable
@@ -31,25 +30,26 @@ internal fun Organizations(
     alone: Boolean,
     fakeOrgaCount: Int,
 ) {
-  Column {
-    headText("Organizations", C.Tag.user_search_result_title)
+  Column(modifier = Modifier.testTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS)) {
+    HeadText("Organizations", SearchScreenTestTags.ORGANIZATIONS_TITLE)
     if (alone) {
       LazyColumn(
           Modifier.padding(
-              screenWidth.value * 0.05f,
-          )) {
+                  screenWidth.value * 0.05f,
+              )
+              .testTag(SearchScreenTestTags.ORGANIZATIONS_COLUMN)) {
             items(fakeOrgaCount) { num ->
               OrganizationCardColumn(num)
-              columnSpacer()
+              ColumnSpacer()
             }
           }
     } else {
-      LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
+      LazyRow(Modifier.testTag(SearchScreenTestTags.ORGANIZATIONS_ROW)) {
         items(fakeOrgaCount) { num ->
-          rowSpacer()
+          RowSpacer()
           OrganizationCardRow(num)
         }
-        item { endRowSpacer() }
+        item { EndRowSpacer() }
       }
     }
   }
@@ -58,35 +58,40 @@ internal fun Organizations(
 @Composable
 private fun OrganizationCardRow(num: Int) {
   val context = LocalContext.current
-  Box(modifier = rowCardBoxModifier { DialogNotImplemented(context) }) {
-    Column {
-      Image(
-          Icons.Default.Image,
-          contentDescription = "Organization Profile Picture Row",
-          modifier = Modifier.clip(CircleShape).size(screenWidth.value * 0.3f),
-          contentScale = ContentScale.FillBounds)
+  Box(
+      modifier =
+          Modifier.rowCardBoxModifier { DialogNotImplemented(context) }
+              .testTag(SearchScreenTestTags.ORGANIZATION_ROW_CARD)) {
+        Column {
+          Image(
+              Icons.Default.Image,
+              contentDescription = "Organization Profile Picture Row",
+              modifier = Modifier.clip(CircleShape).size(screenWidth.value * 0.3f),
+              contentScale = ContentScale.FillBounds)
 
-      rowCardInternalSpacer()
-      Text(
-          text = "Organization $num",
-          fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      )
-    }
-  }
+          RowCardInternalSpacer()
+          Text(
+              text = "Organization $num",
+              fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+          )
+        }
+      }
 }
 
 @Composable
 private fun OrganizationCardColumn(num: Int) {
   val context = LocalContext.current
   Row(
-      modifier = Modifier.clickable(onClick = { DialogNotImplemented(context) }),
+      modifier =
+          Modifier.clickable(onClick = { DialogNotImplemented(context) })
+              .testTag(SearchScreenTestTags.ORGANIZATION_COLUMN_CARD),
       verticalAlignment = Alignment.CenterVertically) {
         Image(
             Icons.Default.Image,
             contentDescription = "Organization Profile Picture Column",
             modifier = Modifier.size(screenWidth.value * 0.2f).clip(CircleShape),
         )
-        columnCardInternalSpacer()
+        ColumnCardInternalSpacer()
 
         Column(
             verticalArrangement = Arrangement.SpaceEvenly,

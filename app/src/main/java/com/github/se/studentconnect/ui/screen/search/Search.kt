@@ -6,14 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,15 +24,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 
 /**
@@ -70,7 +57,7 @@ fun SearchScreen(
           modifier
               .fillMaxSize()
               .background(MaterialTheme.colorScheme.surface)
-              .testTag(C.Tag.search_screen)
+              .testTag(SearchScreenTestTags.SEARCH_SCREEN)
               .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
   ) { innerPadding ->
     Column(
@@ -108,9 +95,10 @@ private fun SearchTopBar(
         HomeSearchBar(
             query = viewModel.state.value.query,
             onQueryChange = { viewModel.setQuery(it) },
-            modifier = Modifier.focusRequester(focusRequester))
+            modifier =
+                Modifier.focusRequester(focusRequester).testTag(SearchScreenTestTags.SEARCH_FIELD))
       },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(SearchScreenTestTags.TOP_BAR),
       navigationIcon = {
         IconButton(
             onClick = {
@@ -124,7 +112,7 @@ private fun SearchTopBar(
                   tint = MaterialTheme.colorScheme.onSurface,
               )
             },
-            modifier = Modifier.testTag(C.Tag.back_button),
+            modifier = Modifier.testTag(SearchScreenTestTags.BACK_BUTTON),
         )
       },
   )

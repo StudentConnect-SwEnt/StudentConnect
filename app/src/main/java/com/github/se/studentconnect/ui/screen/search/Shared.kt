@@ -24,31 +24,56 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 
+object SearchScreenTestTags {
+  const val SEARCH_SCREEN = "search_screen"
+  const val TOP_BAR = "search_screen_top_bar"
+  const val SEARCH_FIELD = "search_screen_search_field"
+  const val BACK_BUTTON = "search_screen_back_button"
+  const val USERS_RESULTS = "search_screen_users_results"
+  const val USERS_TITLE = "search_screen_users_results_title"
+  const val USERS_COLUMN = "search_screen_users_results_column"
+  const val USERS_ROW = "search_screen_users_results_row"
+  const val USER_COLUMN_CARD = "search_screen_users_results_column_card"
+  const val USER_ROW_CARD = "search_screen_users_results_row_card"
+  const val EVENTS_RESULTS = "search_screen_events_results"
+  const val EVENTS_TITLE = "search_screen_events_results_title"
+  const val EVENT_COLUMN = "search_screen_event_results_column"
+  const val EVENT_ROW = "search_screen_event_results_row"
+  const val EVENT_COLUMN_CARD = "search_screen_events_results_column_card"
+  const val EVENT_ROW_CARD = "search_screen_events_results_row_card"
+  const val ORGANIZATIONS_RESULTS = "search_screen_organizations_results"
+  const val ORGANIZATIONS_TITLE = "search_screen_organizations_results_title"
+  const val ORGANIZATIONS_COLUMN = "search_screen_organizations_results_column"
+  const val ORGANIZATIONS_ROW = "search_screen_organizations_results_row"
+  const val ORGANIZATION_COLUMN_CARD = "search_screen_organizations_results_column_card"
+  const val ORGANIZATION_ROW_CARD = "search_screen_organizations_results_row_card"
+}
+
 internal val screenWidth = mutableStateOf(0.dp)
 internal val screenHeight = mutableStateOf(0.dp)
 
-@Composable internal fun columnSpacer() = Spacer(Modifier.size(screenHeight.value * 0.01f))
+@Composable internal fun ColumnSpacer() = Spacer(Modifier.size(screenHeight.value * 0.01f))
 
 @Composable
-internal fun columnCardInternalSpacer() = Spacer(Modifier.size(screenWidth.value * 0.02f))
+internal fun ColumnCardInternalSpacer() = Spacer(Modifier.size(screenWidth.value * 0.02f))
 
-@Composable internal fun rowSpacer() = Spacer(Modifier.size(screenWidth.value * 0.02f))
+@Composable internal fun RowSpacer() = Spacer(Modifier.size(screenWidth.value * 0.02f))
 
-@Composable internal fun endRowSpacer() = Spacer(Modifier.size(screenWidth.value * 0.05f))
-
-@Composable
-internal fun rowCardInternalSpacer() = Spacer(Modifier.height(screenHeight.value * 0.005f))
+@Composable internal fun EndRowSpacer() = Spacer(Modifier.size(screenWidth.value * 0.05f))
 
 @Composable
-internal fun rowCardBoxModifier(onClick: () -> Unit) =
-    Modifier.clickable(onClick = onClick)
+internal fun RowCardInternalSpacer() = Spacer(Modifier.height(screenHeight.value * 0.005f))
+
+@Composable
+internal fun Modifier.rowCardBoxModifier(onClick: () -> Unit) =
+    this.clickable(onClick = onClick)
         .clip(MaterialTheme.shapes.medium)
         .background(MaterialTheme.colorScheme.secondaryContainer)
         .padding(screenWidth.value * 0.03f)
         .width(screenWidth.value * 0.3f)
 
 @Composable
-internal fun headText(text: String, testTag: String) =
+internal fun HeadText(text: String, testTag: String) =
     Text(
         text,
         fontSize = MaterialTheme.typography.headlineSmall.fontSize,
@@ -60,7 +85,8 @@ internal fun headText(text: String, testTag: String) =
                     0.dp,
                     0.dp,
                 )
-                .testTag(testTag))
+                .testTag(testTag),
+    )
 
 @Composable
 internal fun imageBitmap(url: String?): ImageBitmap? {
