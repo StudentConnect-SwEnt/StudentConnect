@@ -497,7 +497,7 @@ fun HomeScreen(
                 listState = listState,
                 events = uiState.events,
                 targetDate = targetDate,
-                topContentItemCount = 1)
+                hasTopContent = true) // Stories row is present as top content
             onClearScrollTarget()
           }
         }
@@ -1020,49 +1020,75 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 /**
- * Scrolls to the specified date in the event list. Finds the date header and scrolls to it smoothly
- * while keeping any static content (e.g., stories row) into account.
+ * Builds an index map of date headers in the event list. This mirrors the structure of
+ * EventListScreen's LazyColumn to ensure accurate index calculation regardless of dynamic content.
  *
- * @param topContentItemCount Number of list items that appear before the first date header.
+ * @param events The list of events to analyze
+ * @param hasTopContent Whether there's a header item (e.g., stories row)
+ * @return A map from date header strings to their indices in the LazyColumn
+ */
+private fun buildDateHeaderIndexMap(events: List<Event>, hasTopContent: Boolean): Map<String, Int> {
+  if (events.isEmpty()) return emptyMap()
+
+  val sortedEvents = events.sortedBy { it.start }
+  val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
+
+  val indexMap = mutableMapOf<String, Int>()
+  var currentIndex = if (hasTopContent) 1 else 0 // Account for topContent header if present
+
+  groupedEvents.forEach { (dateHeader, eventsOnDate) ->
+    // The date header is at currentIndex
+    indexMap[dateHeader] = currentIndex
+    // Move past the header and all events in this date section
+    currentIndex += 1 + eventsOnDate.size
+  }
+
+  return indexMap
+}
+
+/**
+ * Scrolls to the specified date in the event list by finding the date header's actual position.
+ * This approach is robust to dynamic content changes (like suggestion cards) because it searches
+ * for the date header by its key rather than pre-calculating offsets.
+ *
+ * @param listState The LazyListState controlling the event list
+ * @param events The list of events being displayed
+ * @param targetDate The date to scroll to
+ * @param hasTopContent Whether there's a header item (e.g., stories row) before the event list
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
-    events: List<com.github.se.studentconnect.model.event.Event>,
+    events: List<Event>,
     targetDate: Date,
-    topContentItemCount: Int = 0
+    hasTopContent: Boolean = true
 ) {
   try {
-    // Handle empty events list
-    if (events.isEmpty()) {
-      return
-    }
+    if (events.isEmpty()) return
 
-    // Group events by date header to find the target section
-    val groupedEvents =
-        events.sortedBy { it.start }.groupBy { event -> formatDateHeader(event.start) }
+    // Build the index map that mirrors EventListScreen's structure
+    val dateHeaderIndexMap = buildDateHeaderIndexMap(events, hasTopContent)
 
-    // Find the target date header
+    // Find the target date header string
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
-    // Calculate the index to scroll to
-    var currentIndex = topContentItemCount
-    for ((dateHeader, eventsOnDate) in groupedEvents) {
-      if (dateHeader == targetDateHeader) {
-        // Found the target date, scroll to it with bounds checking
-        val maxIndex = listState.layoutInfo.totalItemsCount - 1
-        val scrollIndex = minOf(currentIndex, maxIndex)
-        listState.animateScrollToItem(scrollIndex)
-        return
-      }
-      // Move to next section (header + events)
-      currentIndex += 1 + eventsOnDate.size
-    }
+    // Look up the index in our map
+    val targetIndex = dateHeaderIndexMap[targetDateHeader]
 
-    // If date not found, scroll to top
-    listState.animateScrollToItem(0)
+    if (targetIndex != null) {
+      // Ensure index is within bounds
+      val maxIndex = listState.layoutInfo.totalItemsCount - 1
+      val scrollIndex = minOf(targetIndex, maxIndex.coerceAtLeast(0))
+      listState.animateScrollToItem(scrollIndex)
+    } else {
+      // Date not found in the list, scroll to top
+      listState.animateScrollToItem(0)
+    }
   } catch (e: Exception) {
-    // Handle any unexpected errors gracefully
-    // In production, you might want to log this error
-    listState.animateScrollToItem(0)
+    // Handle any unexpected errors gracefully by scrolling to top
+    try {
+      listState.animateScrollToItem(0)
+    } catch (scrollError: Exception) {
+      // Ignore scroll errors if list is not yet initialized
+    }
   }
 }
