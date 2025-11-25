@@ -6,9 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,7 +25,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
@@ -45,22 +43,18 @@ private object OrganizationSuggestionsConstants {
   const val TITLE_FONT_WEIGHT = 400
 
   // LazyRow
-  const val ROW_WIDTH_DP = 418
-  const val ROW_HEIGHT_DP = 195
   const val ROW_PADDING_START_DP = 16
   const val ROW_PADDING_BOTTOM_DP = 16
   const val ROW_SPACING_DP = 8
 
   // Card
   const val CARD_WIDTH_DP = 132
-  const val CARD_HEIGHT_DP = 179
   const val CARD_PADDING_DP = 8
   const val CARD_CORNER_RADIUS_DP = 16
   const val CARD_ELEVATION_DP = 0
 
   // Image
-  const val IMAGE_WIDTH_DP = 116
-  const val IMAGE_HEIGHT_DP = 119
+  const val IMAGE_ASPECT_RATIO = 116f / 119f
   const val IMAGE_CORNER_RADIUS_DP = 8
   val PLACEHOLDER_DRAWABLE = R.drawable.avatar_23
 
@@ -75,8 +69,6 @@ private object OrganizationSuggestionsConstants {
   const val HANDLE_LINE_HEIGHT_SP = 16
   const val HANDLE_FONT_WEIGHT = 400
   const val HANDLE_LETTER_SPACING_SP = 0.4f
-  const val HANDLE_WIDTH_DP = 108
-  const val HANDLE_HEIGHT_DP = 16
 
   // Text spacing
   const val TEXT_SPACING_DP = 2
@@ -107,8 +99,7 @@ fun OrganizationSuggestions(
 
     LazyRow(
         modifier =
-            Modifier.width(OrganizationSuggestionsConstants.ROW_WIDTH_DP.dp)
-                .height(OrganizationSuggestionsConstants.ROW_HEIGHT_DP.dp)
+            Modifier.fillMaxWidth()
                 .padding(
                     start = OrganizationSuggestionsConstants.ROW_PADDING_START_DP.dp,
                     bottom = OrganizationSuggestionsConstants.ROW_PADDING_BOTTOM_DP.dp)
@@ -130,7 +121,6 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
   Card(
       modifier =
           Modifier.width(OrganizationSuggestionsConstants.CARD_WIDTH_DP.dp)
-              .height(OrganizationSuggestionsConstants.CARD_HEIGHT_DP.dp)
               .clickable(onClick = onClick)
               .testTag("${C.Tag.org_suggestions_card}_${organization.id}"),
       shape = RoundedCornerShape(OrganizationSuggestionsConstants.CARD_CORNER_RADIUS_DP.dp),
@@ -140,10 +130,10 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
               defaultElevation = OrganizationSuggestionsConstants.CARD_ELEVATION_DP.dp)) {
         Column(
             modifier = Modifier.padding(OrganizationSuggestionsConstants.CARD_PADDING_DP.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement =
+                Arrangement.spacedBy(OrganizationSuggestionsConstants.TEXT_SPACING_DP.dp),
             horizontalAlignment = Alignment.Start) {
               OrganizationImage(organization.id)
-              Spacer(modifier = Modifier.weight(1f))
               OrganizationInfo(organization)
             }
       }
@@ -153,8 +143,8 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
 private fun OrganizationImage(organizationId: String) {
   Box(
       modifier =
-          Modifier.width(OrganizationSuggestionsConstants.IMAGE_WIDTH_DP.dp)
-              .height(OrganizationSuggestionsConstants.IMAGE_HEIGHT_DP.dp)
+          Modifier.fillMaxWidth()
+              .aspectRatio(OrganizationSuggestionsConstants.IMAGE_ASPECT_RATIO)
               .background(
                   color = Variables.LightGreyBackground,
                   shape =
@@ -195,24 +185,6 @@ private fun OrganizationInfo(organization: OrganizationData) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = OrganizationSuggestionsConstants.HANDLE_LETTER_SPACING_SP.sp),
             modifier =
-                Modifier.width(OrganizationSuggestionsConstants.HANDLE_WIDTH_DP.dp)
-                    .height(OrganizationSuggestionsConstants.HANDLE_HEIGHT_DP.dp)
-                    .testTag("${C.Tag.org_suggestions_card_subtitle}_${organization.id}"))
+                Modifier.testTag("${C.Tag.org_suggestions_card_subtitle}_${organization.id}"))
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun OrganizationSuggestionsPreview() {
-  MaterialTheme {
-    OrganizationSuggestions(
-        organizations =
-            listOf(
-                OrganizationData(id = "1", name = "Evolve", handle = "@evolve"),
-                OrganizationData(id = "2", name = "TechHub", handle = "@techhub"),
-                OrganizationData(id = "3", name = "Innovate", handle = "@innovate"),
-                OrganizationData(id = "4", name = "CodeLab", handle = "@codelab"),
-                OrganizationData(id = "5", name = "DevSpace", handle = "@devspace"),
-                OrganizationData(id = "6", name = "Catalyst", handle = "@catalyst")))
-  }
 }

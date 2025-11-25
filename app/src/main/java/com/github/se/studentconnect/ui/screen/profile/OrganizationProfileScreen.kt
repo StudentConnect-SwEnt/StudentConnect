@@ -55,7 +55,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -76,7 +75,6 @@ import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Comp
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_AVATAR_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_ICON_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationTab
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 // Constants for UI spacing and sizing
 private object OrganizationProfileConstants {
@@ -657,11 +655,4 @@ private fun getDrawableIdFromName(name: String): Int? {
     "avatar_23" -> R.drawable.avatar_23
     else -> null
   }
-}
-
-/** Preview for the organization profile screen. */
-@Preview(showBackground = true)
-@Composable
-private fun OrganizationProfileScreenPreview() {
-  AppTheme { OrganizationProfileScreen() }
 }
