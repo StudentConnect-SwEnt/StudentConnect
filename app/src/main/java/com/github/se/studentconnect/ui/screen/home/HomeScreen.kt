@@ -1027,10 +1027,7 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
  * @param hasTopContent Whether there's a header item (e.g., stories row)
  * @return A map from date header strings to their indices in the LazyColumn
  */
-private fun buildDateHeaderIndexMap(
-    events: List<Event>,
-    hasTopContent: Boolean
-): Map<String, Int> {
+private fun buildDateHeaderIndexMap(events: List<Event>, hasTopContent: Boolean): Map<String, Int> {
   if (events.isEmpty()) return emptyMap()
 
   val sortedEvents = events.sortedBy { it.start }
