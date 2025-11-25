@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,7 +85,11 @@ private object OrganizationSuggestionsConstants {
 data class OrganizationData(val id: String, val name: String, val handle: String)
 
 @Composable
-fun OrganizationSuggestions(organizations: List<OrganizationData>, modifier: Modifier = Modifier) {
+fun OrganizationSuggestions(
+    organizations: List<OrganizationData>,
+    onOrganizationClick: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
   Column(modifier = modifier.fillMaxWidth().testTag(C.Tag.org_suggestions_section)) {
     Text(
         text = OrganizationSuggestionsConstants.SECTION_TITLE,
@@ -112,17 +117,21 @@ fun OrganizationSuggestions(organizations: List<OrganizationData>, modifier: Mod
             Arrangement.spacedBy(
                 OrganizationSuggestionsConstants.ROW_SPACING_DP.dp, Alignment.Start),
         verticalAlignment = Alignment.Top) {
-          items(organizations) { organization -> OrganizationCard(organization) }
+          items(organizations) { organization ->
+            OrganizationCard(
+                organization = organization, onClick = { onOrganizationClick(organization.id) })
+          }
         }
   }
 }
 
 @Composable
-private fun OrganizationCard(organization: OrganizationData) {
+private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit) {
   Card(
       modifier =
           Modifier.width(OrganizationSuggestionsConstants.CARD_WIDTH_DP.dp)
               .height(OrganizationSuggestionsConstants.CARD_HEIGHT_DP.dp)
+              .clickable(onClick = onClick)
               .testTag("${C.Tag.org_suggestions_card}_${organization.id}"),
       shape = RoundedCornerShape(OrganizationSuggestionsConstants.CARD_CORNER_RADIUS_DP.dp),
       colors = CardDefaults.cardColors(containerColor = Variables.LightGreyBackground),

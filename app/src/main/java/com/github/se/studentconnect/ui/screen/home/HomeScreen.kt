@@ -312,6 +312,17 @@ fun HomeScreen(
   val coroutineScope = rememberCoroutineScope()
   val listState = rememberLazyListState()
 
+  // Mock organization data
+  val mockOrganizations = remember {
+    listOf(
+        OrganizationData(id = "1", name = "Evolve", handle = "@evolve"),
+        OrganizationData(id = "2", name = "TechHub", handle = "@techhub"),
+        OrganizationData(id = "3", name = "Innovate", handle = "@innovate"),
+        OrganizationData(id = "4", name = "CodeLab", handle = "@codelab"),
+        OrganizationData(id = "5", name = "DevSpace", handle = "@devspace"),
+        OrganizationData(id = "6", name = "Catalyst", handle = "@catalyst"))
+  }
+
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
     if (shouldOpenQRScanner && pagerState.currentPage != HomeScreenConstants.PAGER_SCANNER_PAGE) {
@@ -453,11 +464,15 @@ fun HomeScreen(
                                           onToggleFavorites = onToggleFavoritesFilter)
                                       EventListScreen(
                                           navController = navController,
-                                          events = uiState.events, // Same events for now
+                                          events = uiState.events,
                                           hasJoined = false,
                                           listState = listState,
                                           favoriteEventIds = favoriteEventIds,
                                           onFavoriteToggle = onFavoriteToggle,
+                                          organizations = mockOrganizations,
+                                          onOrganizationClick = { orgId ->
+                                            navController.navigate(Route.organizationProfile(orgId))
+                                          },
                                           topContent = {
                                             StoriesRow(
                                                 onAddStoryClick = {
@@ -497,7 +512,9 @@ fun HomeScreen(
                 listState = listState,
                 events = uiState.events,
                 targetDate = targetDate,
-                hasTopContent = true) // Stories row is present as top content
+                hasTopContent = true, // Stories row is present as top content
+                hasOrganizations = mockOrganizations.isNotEmpty(),
+                organizationsCount = mockOrganizations.size)
             onClearScrollTarget()
           }
         }
@@ -1025,22 +1042,44 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
  *
  * @param events The list of events to analyze
  * @param hasTopContent Whether there's a header item (e.g., stories row)
+ * @param hasOrganizations Whether organizations are being displayed
+ * @param organizationsCount Number of organizations (if any)
  * @return A map from date header strings to their indices in the LazyColumn
  */
-private fun buildDateHeaderIndexMap(events: List<Event>, hasTopContent: Boolean): Map<String, Int> {
+private fun buildDateHeaderIndexMap(
+    events: List<Event>,
+    hasTopContent: Boolean,
+    hasOrganizations: Boolean = false,
+    organizationsCount: Int = 0
+): Map<String, Int> {
   if (events.isEmpty()) return emptyMap()
 
   val sortedEvents = events.sortedBy { it.start }
   val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
 
+  // Calculate organization insertion index (same logic as in EventListScreen)
+  val dateGroups = groupedEvents.keys.toList()
+  val orgInsertionIndex =
+      if (hasOrganizations && organizationsCount > 0 && dateGroups.size >= 2) {
+        // Random insertion between 1st and 2nd date group
+        1 // Using index 1 for consistency
+      } else {
+        -1
+      }
+
   val indexMap = mutableMapOf<String, Int>()
   var currentIndex = if (hasTopContent) 1 else 0 // Account for topContent header if present
 
-  groupedEvents.forEach { (dateHeader, eventsOnDate) ->
+  groupedEvents.entries.forEachIndexed { groupIndex, (dateHeader, eventsOnDate) ->
     // The date header is at currentIndex
     indexMap[dateHeader] = currentIndex
     // Move past the header and all events in this date section
     currentIndex += 1 + eventsOnDate.size
+
+    // Account for organization suggestions inserted after this date group
+    if (groupIndex == orgInsertionIndex) {
+      currentIndex += 1 // One item for organization suggestions
+    }
   }
 
   return indexMap
@@ -1055,18 +1094,23 @@ private fun buildDateHeaderIndexMap(events: List<Event>, hasTopContent: Boolean)
  * @param events The list of events being displayed
  * @param targetDate The date to scroll to
  * @param hasTopContent Whether there's a header item (e.g., stories row) before the event list
+ * @param hasOrganizations Whether organizations are being displayed
+ * @param organizationsCount Number of organizations (if any)
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
     events: List<Event>,
     targetDate: Date,
-    hasTopContent: Boolean = true
+    hasTopContent: Boolean = true,
+    hasOrganizations: Boolean = false,
+    organizationsCount: Int = 0
 ) {
   try {
     if (events.isEmpty()) return
 
     // Build the index map that mirrors EventListScreen's structure
-    val dateHeaderIndexMap = buildDateHeaderIndexMap(events, hasTopContent)
+    val dateHeaderIndexMap =
+        buildDateHeaderIndexMap(events, hasTopContent, hasOrganizations, organizationsCount)
 
     // Find the target date header string
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))

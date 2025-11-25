@@ -19,10 +19,14 @@ object Route {
   const val SEARCH = "search"
 
   const val VISITOR_PROFILE = "visitorProfile/{userId}"
+  const val ORGANIZATION_PROFILE = "organizationProfile/{organizationId}"
 
   const val USER_ID_ARG = "userId"
+  const val ORGANIZATION_ID_ARG = "organizationId"
 
   fun visitorProfile(userId: String): String = "visitorProfile/$userId"
+
+  fun organizationProfile(organizationId: String): String = "organizationProfile/$organizationId"
 
   const val CREATE_PUBLIC_EVENT = "create_public_event"
   const val CREATE_PRIVATE_EVENT = "create_private_event"
