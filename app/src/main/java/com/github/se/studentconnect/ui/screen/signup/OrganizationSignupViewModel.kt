@@ -1,641 +1,175 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.organization.OrganizationModel
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.organization.SocialLinks
-import com.github.se.studentconnect.repository.OrganizationRepository
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * Represents the various steps of the organization signup flow, each corresponding to a specific
- * screen in the onboarding process.
- */
-enum class OrganizationSignupStep {
-  BasicInfo,
-  UploadLogo,
+/** Represents the sequential steps of the organization signup flow. */
+enum class OrganizationSignUpStep {
+  Info,
+  Logo,
   Description,
-  Brand,
-  OrganizationProfile,
-  TeamRoles
+  Socials,
+  Team,
+  ProfileSetup
 }
 
 /**
- * Immutable data class holding all information entered by the user throughout the organization
- * signup flow.
+ * Immutable state holding all information entered by the organization during signup. Uses types
+ * from OrganizationModel where possible for consistency.
  */
-data class OrganizationSignupState(
-    val createdBy: String? = null,
-    // Basic Info Screen
-    val name: String = "",
-    val type: OrganizationType? = null,
-    // Upload Logo Screen
+data class OrganizationSignUpState(
+    val organizationName: String = "",
+    val organizationType: OrganizationType? = null,
     val logoUri: Uri? = null,
-    // Description Screen
-    val description: String? = null,
-    // Brand Screen
-    val website: String? = null,
-    val instagram: String? = null,
-    val x: String? = null,
-    val linkedin: String? = null,
-    // Organization Profile Screen
-    val location: String? = null,
-    val mainDomains: List<String> = emptyList(),
-    val ageRanges: List<String> = emptyList(),
-    val typicalEventSize: String? = null,
-    // Team Roles Screen
-    val roles: List<OrganizationRole> = emptyList(),
-    // Navigation
-    val currentStep: OrganizationSignupStep = OrganizationSignupStep.BasicInfo
+    val description: String = "",
+    val websiteUrl: String = "",
+    val instagramHandle: String = "",
+    val xHandle: String = "",
+    val linkedinUrl: String = "",
+    val teamRoles: List<OrganizationRole> = emptyList(),
+    val location: String = "",
+    val domains: Set<String> = emptySet(),
+    val targetAgeRanges: Set<String> = emptySet(),
+    val eventSize: String? = null,
+    val currentStep: OrganizationSignUpStep = OrganizationSignUpStep.Info
 )
 
-/**
- * ViewModel managing the organization signup flow state.
- *
- * Handles user input updates, navigation between steps, and validation of individual form fields.
- */
-class OrganizationSignupViewModel : ViewModel() {
+/** ViewModel managing the organization signup flow state. */
+class OrganizationSignUpViewModel : ViewModel() {
 
-  private val _state = mutableStateOf(OrganizationSignupState())
-  val state: State<OrganizationSignupState> = _state
+  private val _state = mutableStateOf(OrganizationSignUpState())
+  val state: State<OrganizationSignUpState> = _state
 
-  private val _isUploadingLogo = MutableStateFlow(false)
-  val isUploadingLogo: StateFlow<Boolean> = _isUploadingLogo.asStateFlow()
-
-  private val _uploadError = MutableStateFlow<String?>(null)
-  val uploadError: StateFlow<String?> = _uploadError.asStateFlow()
-
-  private val _isSubmitting = MutableStateFlow(false)
-  val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
-
-  private val _submissionError = MutableStateFlow<String?>(null)
-  val submissionError: StateFlow<String?> = _submissionError.asStateFlow()
-
-  private fun update(block: (OrganizationSignupState) -> OrganizationSignupState) {
+  private fun update(block: (OrganizationSignUpState) -> OrganizationSignUpState) {
     _state.value = block(_state.value)
   }
 
-  // Basic Info Screen updates
-  fun setCreatedBy(userId: String) = update {
-    it.copy(createdBy = userId.trim().ifBlank { null })
-  }
+  fun setOrganizationName(name: String) = update { it.copy(organizationName = name.trim()) }
 
-  fun setName(name: String) = update { it.copy(name = name.trim()) }
+  fun setOrganizationType(type: OrganizationType) = update { it.copy(organizationType = type) }
 
-  fun setType(type: OrganizationType?) = update { it.copy(type = type) }
-
-  // Upload Logo Screen updates
   fun setLogoUri(uri: Uri?) = update {
     it.copy(logoUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
   }
 
-  /**
-   * Uploads the logo image to Firebase Storage.
-   *
-   * @param mediaRepository The media repository to use for uploading.
-   * @param organizationId Optional organization ID. If null, uses createdBy user ID as temporary
-   *   path.
-   * @return The uploaded logo URL (storage path), or null if upload failed or no logo URI is set.
-   */
-  suspend fun uploadLogo(
-      mediaRepository: MediaRepository,
-      organizationId: String? = null
-  ): String? {
-    val logoUri = state.value.logoUri ?: return null
-    val scheme = logoUri.scheme?.lowercase()
+  fun setDescription(desc: String) = update { it.copy(description = desc) }
 
-    if (scheme.isNullOrBlank()) {
-      return null
-    }
+  fun setWebsite(url: String) = update { it.copy(websiteUrl = url.trim()) }
 
-    // Skip upload for remote URIs (already uploaded)
-    if (scheme == "http" || scheme == "https") {
-      android.util.Log.w(
-          "OrganizationSignupViewModel", "Skipping upload for remote logo URI: $logoUri")
-      return null
-    }
+  fun setInstagram(handle: String) = update { it.copy(instagramHandle = handle.trim()) }
 
-    _isUploadingLogo.value = true
-    _uploadError.value = null
+  fun setX(handle: String) = update { it.copy(xHandle = handle.trim()) }
 
-    return try {
-      val userId = state.value.createdBy
-          ?: throw IllegalStateException("Cannot upload logo: createdBy user ID is not set")
+  fun setLinkedin(url: String) = update { it.copy(linkedinUrl = url.trim()) }
 
-      // Use organization ID if available, otherwise use user ID as temporary path
-      val path =
-          if (organizationId != null) {
-            "organizations/$organizationId/logo"
-          } else {
-            "organizations/$userId/logo"
-          }
-
-      val uploadId = mediaRepository.upload(logoUri, path)
-      android.util.Log.d("OrganizationSignupViewModel", "Logo uploaded successfully: $uploadId")
-      uploadId
-    } catch (e: Exception) {
-      android.util.Log.e("OrganizationSignupViewModel", "Failed to upload logo", e)
-      _uploadError.value = "Failed to upload logo: ${e.message}"
-      null
-    } finally {
-      _isUploadingLogo.value = false
-    }
-  }
-
-  // Description Screen updates
-  fun setDescription(description: String?) = update {
-    it.copy(description = description?.ifBlank { null })
-  }
-
-  // Brand Screen updates
-  fun setWebsite(website: String?) = update {
-    it.copy(website = website?.trim()?.ifBlank { null })
-  }
-
-  fun setInstagram(instagram: String?) = update {
-    it.copy(instagram = instagram?.trim()?.ifBlank { null })
-  }
-
-  fun setX(x: String?) = update { it.copy(x = x?.trim()?.ifBlank { null }) }
-
-  fun setLinkedIn(linkedin: String?) = update {
-    it.copy(linkedin = linkedin?.trim()?.ifBlank { null })
-  }
-
-  // Organization Profile Screen updates
-  fun setLocation(location: String?) = update {
-    it.copy(location = location?.trim()?.ifBlank { null })
-  }
-
-  fun setMainDomains(domains: List<String>) = update {
-    it.copy(mainDomains = domains.map { it.trim() }.filter { it.isNotBlank() })
-  }
-
-  fun addMainDomain(domain: String) = update {
-    val trimmed = domain.trim()
-    if (trimmed.isBlank() || it.mainDomains.size >= 3) {
-      it
-    } else {
-      it.copy(mainDomains = it.mainDomains + trimmed)
-    }
-  }
-
-  fun removeMainDomain(domain: String) = update {
-    it.copy(mainDomains = it.mainDomains - domain)
-  }
-
-  fun setAgeRanges(ranges: List<String>) = update {
-    it.copy(ageRanges = ranges.map { it.trim() }.filter { it.isNotBlank() })
-  }
-
-  fun addAgeRange(range: String) = update {
-    val trimmed = range.trim()
-    if (trimmed.isBlank()) {
-      it
-    } else {
-      it.copy(ageRanges = it.ageRanges + trimmed)
-    }
-  }
-
-  fun removeAgeRange(range: String) = update {
-    it.copy(ageRanges = it.ageRanges - range)
-  }
-
-  fun setTypicalEventSize(size: String?) = update {
-    it.copy(typicalEventSize = size?.trim()?.ifBlank { null })
-  }
-
-  // Team Roles Screen updates
-  fun setRoles(roles: List<OrganizationRole>) = update { it.copy(roles = roles) }
-
-  fun addRole(role: OrganizationRole) = update {
-    it.copy(roles = it.roles + role)
-  }
+  fun addRole(role: OrganizationRole) = update { it.copy(teamRoles = listOf(role) + it.teamRoles) }
 
   fun removeRole(role: OrganizationRole) = update {
-    it.copy(roles = it.roles - role)
+    it.copy(teamRoles = it.teamRoles.filterNot { r -> r == role })
   }
 
-  fun updateRole(index: Int, role: OrganizationRole) = update {
-    if (index in it.roles.indices) {
-      it.copy(roles = it.roles.toMutableList().apply { this[index] = role })
-    } else {
-      it
-    }
+  fun setRoles(roles: List<OrganizationRole>) = update { it.copy(teamRoles = roles) }
+
+  fun setLocation(location: String) = update { it.copy(location = location) }
+
+  fun toggleDomain(domainKey: String) = update { it.copy(domains = it.domains.toggle(domainKey)) }
+
+  fun toggleAgeRange(ageKey: String) = update {
+    it.copy(targetAgeRanges = it.targetAgeRanges.toggle(ageKey))
   }
 
-  // Section-level update methods
-  /**
-   * Updates all basic info fields at once.
-   *
-   * @param name The organization name.
-   * @param type The organization type.
-   */
-  fun updateBasicInfo(
-      name: String? = null,
-      type: OrganizationType? = null
-  ) = update {
-    it.copy(
-        name = name?.trim() ?: it.name,
-        type = type ?: it.type)
-  }
+  fun setEventSize(size: String?) = update { it.copy(eventSize = size) }
 
-  /**
-   * Updates all organization profile fields at once.
-   *
-   * @param location Optional location.
-   * @param mainDomains List of main domains (max 3).
-   * @param ageRanges List of age ranges.
-   * @param typicalEventSize Optional typical event size.
-   */
-  fun updateOrganizationProfile(
-      location: String? = null,
-      mainDomains: List<String>? = null,
-      ageRanges: List<String>? = null,
-      typicalEventSize: String? = null
-  ) = update {
-    it.copy(
-        location = location?.trim()?.ifBlank { null } ?: it.location,
-        mainDomains =
-            mainDomains?.map { domain -> domain.trim() }?.filter { it.isNotBlank() }
-                ?: it.mainDomains,
-        ageRanges =
-            ageRanges?.map { range -> range.trim() }?.filter { it.isNotBlank() }
-                ?: it.ageRanges,
-        typicalEventSize = typicalEventSize?.trim()?.ifBlank { null } ?: it.typicalEventSize)
-  }
-
-  /**
-   * Updates all branding/social links at once.
-   *
-   * @param website Optional website URL.
-   * @param instagram Optional Instagram URL.
-   * @param x Optional X (Twitter) URL.
-   * @param linkedin Optional LinkedIn URL.
-   */
-  fun updateBranding(
-      website: String? = null,
-      instagram: String? = null,
-      x: String? = null,
-      linkedin: String? = null
-  ) = update {
-    it.copy(
-        website = website?.trim()?.ifBlank { null } ?: it.website,
-        instagram = instagram?.trim()?.ifBlank { null } ?: it.instagram,
-        x = x?.trim()?.ifBlank { null } ?: it.x,
-        linkedin = linkedin?.trim()?.ifBlank { null } ?: it.linkedin)
-  }
-
-  /**
-   * Updates branding using a SocialLinks object.
-   *
-   * @param socialLinks The SocialLinks object containing all social media links.
-   */
-  fun updateBranding(socialLinks: SocialLinks) = update {
-    it.copy(
-        website = socialLinks.website,
-        instagram = socialLinks.instagram,
-        x = socialLinks.x,
-        linkedin = socialLinks.linkedin)
-  }
-
-  // Navigation step helpers
-  fun goTo(step: OrganizationSignupStep) = update { it.copy(currentStep = step) }
+  fun goTo(step: OrganizationSignUpStep) = update { it.copy(currentStep = step) }
 
   fun nextStep() = update { it.copy(currentStep = it.currentStep.next()) }
 
   fun prevStep() = update { it.copy(currentStep = it.currentStep.prev()) }
 
-  // Validation checks
-  /**
-   * Validates basic info section (name and type are required).
-   */
-  val isBasicInfoValid: Boolean
+  val isInfoValid: Boolean
+    get() = state.value.organizationName.isNotBlank() && state.value.organizationType != null
+
+  val isProfileSetupValid: Boolean
     get() =
-        state.value.name.isNotBlank() &&
-            state.value.name.length <= OrganizationModel.MAX_NAME_LENGTH &&
-            state.value.type != null
+        state.value.location.isNotBlank() &&
+            state.value.domains.isNotEmpty() &&
+            state.value.eventSize != null
 
   /**
-   * Validates description section (optional, but must be within length limit if provided).
-   */
-  val isDescriptionValid: Boolean
-    get() = (state.value.description?.length ?: 0) <= OrganizationModel.MAX_DESCRIPTION_LENGTH
-
-  /**
-   * Validates organization profile section.
-   */
-  val isOrganizationProfileValid: Boolean
-    get() {
-      val s = state.value
-      // Main domains validation
-      if (s.mainDomains.size > OrganizationModel.MAX_MAIN_DOMAINS) return false
-      if (s.mainDomains.any { it.isBlank() || it.length > OrganizationModel.MAX_DOMAIN_LENGTH }) {
-        return false
-      }
-      // Age ranges validation
-      if (s.ageRanges.any { it.isBlank() || it.length > OrganizationModel.MAX_AGE_RANGE_LENGTH }) {
-        return false
-      }
-      // Location validation
-      if (s.location != null && s.location.length > OrganizationModel.MAX_LOCATION_LENGTH) {
-        return false
-      }
-      // Typical event size validation
-      if (s.typicalEventSize != null &&
-          s.typicalEventSize.length > OrganizationModel.MAX_EVENT_SIZE_LENGTH) {
-        return false
-      }
-      return true
-    }
-
-  /**
-   * Validates main domains (max 3, each non-blank and within length limit).
-   */
-  val isMainDomainsValid: Boolean
-    get() =
-        state.value.mainDomains.size <= OrganizationModel.MAX_MAIN_DOMAINS &&
-            state.value.mainDomains.all { it.isNotBlank() && it.length <= OrganizationModel.MAX_DOMAIN_LENGTH }
-
-  /**
-   * Validates age ranges (each non-blank and within length limit).
-   */
-  val isAgeRangesValid: Boolean
-    get() =
-        state.value.ageRanges.all { it.isNotBlank() && it.length <= OrganizationModel.MAX_AGE_RANGE_LENGTH }
-
-  /**
-   * Validates location (optional, but must be within length limit if provided).
-   */
-  val isLocationValid: Boolean
-    get() = (state.value.location?.length ?: 0) <= OrganizationModel.MAX_LOCATION_LENGTH
-
-  /**
-   * Validates typical event size (optional, but must be within length limit if provided).
-   */
-  val isTypicalEventSizeValid: Boolean
-    get() = (state.value.typicalEventSize?.length ?: 0) <= OrganizationModel.MAX_EVENT_SIZE_LENGTH
-
-  /**
-   * Validates branding/social links section (all URLs must be valid if provided).
-   */
-  val isBrandingValid: Boolean
-    get() {
-      val s = state.value
-      return isValidUrl(s.website) &&
-          isValidUrl(s.instagram) &&
-          isValidUrl(s.x) &&
-          isValidUrl(s.linkedin)
-    }
-
-  /**
-   * Validates roles section (all roles must be valid).
-   */
-  val isRolesValid: Boolean
-    get() = state.value.roles.all { role ->
-      role.name.isNotBlank() &&
-          role.name.length <= OrganizationRole.MAX_NAME_LENGTH &&
-          (role.description == null || role.description.length <= OrganizationRole.MAX_DESCRIPTION_LENGTH)
-    }
-
-  /**
-   * Validates if a URL is valid (null is considered valid as URLs are optional).
-   */
-  private fun isValidUrl(url: String?): Boolean {
-    if (url == null || url.isBlank()) return true // Optional field
-    return try {
-      val uri = java.net.URI(url)
-      uri.scheme != null && (uri.scheme == "http" || uri.scheme == "https")
-    } catch (e: Exception) {
-      false
-    }
-  }
-
-  /**
-   * Comprehensive validation for final submission.
-   * Checks all required fields and validates optional fields if provided.
+   * Creates the final [OrganizationModel] from the current state. This should be called when the
+   * user clicks "Finish" or "Submit".
    *
-   * @return true if all required fields are valid and optional fields are valid (if provided).
+   * @param orgId The unique ID generated for this organization (e.g. from Auth or Firestore).
+   * @param currentUserId The ID of the currently logged-in user (the creator).
+   * @param uploadedLogoUrl The download URL of the logo after it has been uploaded to Storage
+   *   (nullable).
    */
-  fun isValidForSubmission(): Boolean {
-    val s = state.value
-
-    // Required fields
-    if (s.createdBy.isNullOrBlank()) return false
-    if (!isBasicInfoValid) return false
-
-    // Optional fields validation (only if provided)
-    if (!isDescriptionValid) return false
-    if (!isOrganizationProfileValid) return false
-    if (!isBrandingValid) return false
-    if (!isRolesValid) return false
-
-    return true
-  }
-
-  /**
-   * Gets a list of validation errors for debugging purposes.
-   *
-   * @return List of validation error messages.
-   */
-  fun getValidationErrors(): List<String> {
-    val errors = mutableListOf<String>()
-    val s = state.value
-
-    // Required fields
-    if (s.createdBy.isNullOrBlank()) {
-      errors.add("Created by user ID is required")
-    }
-    if (s.name.isBlank()) {
-      errors.add("Organization name is required")
-    } else if (s.name.length > OrganizationModel.MAX_NAME_LENGTH) {
-      errors.add("Organization name cannot exceed ${OrganizationModel.MAX_NAME_LENGTH} characters")
-    }
-    if (s.type == null) {
-      errors.add("Organization type is required")
-    }
-
-    // Optional fields
-    if (s.description != null && s.description.length > OrganizationModel.MAX_DESCRIPTION_LENGTH) {
-      errors.add("Description cannot exceed ${OrganizationModel.MAX_DESCRIPTION_LENGTH} characters")
-    }
-    if (s.mainDomains.size > OrganizationModel.MAX_MAIN_DOMAINS) {
-      errors.add("Main domains cannot exceed ${OrganizationModel.MAX_MAIN_DOMAINS} items")
-    }
-    s.mainDomains.forEachIndexed { index, domain ->
-      if (domain.isBlank()) {
-        errors.add("Main domain at index $index cannot be blank")
-      } else if (domain.length > OrganizationModel.MAX_DOMAIN_LENGTH) {
-        errors.add("Main domain at index $index cannot exceed ${OrganizationModel.MAX_DOMAIN_LENGTH} characters")
-      }
-    }
-    s.ageRanges.forEachIndexed { index, range ->
-      if (range.isBlank()) {
-        errors.add("Age range at index $index cannot be blank")
-      } else if (range.length > OrganizationModel.MAX_AGE_RANGE_LENGTH) {
-        errors.add("Age range at index $index cannot exceed ${OrganizationModel.MAX_AGE_RANGE_LENGTH} characters")
-      }
-    }
-    if (s.location != null && s.location.length > OrganizationModel.MAX_LOCATION_LENGTH) {
-      errors.add("Location cannot exceed ${OrganizationModel.MAX_LOCATION_LENGTH} characters")
-    }
-    if (s.typicalEventSize != null && s.typicalEventSize.length > OrganizationModel.MAX_EVENT_SIZE_LENGTH) {
-      errors.add("Typical event size cannot exceed ${OrganizationModel.MAX_EVENT_SIZE_LENGTH} characters")
-    }
-    if (!isValidUrl(s.website)) {
-      errors.add("Website URL is invalid")
-    }
-    if (!isValidUrl(s.instagram)) {
-      errors.add("Instagram URL is invalid")
-    }
-    if (!isValidUrl(s.x)) {
-      errors.add("X (Twitter) URL is invalid")
-    }
-    if (!isValidUrl(s.linkedin)) {
-      errors.add("LinkedIn URL is invalid")
-    }
-    s.roles.forEachIndexed { index, role ->
-      if (role.name.isBlank()) {
-        errors.add("Role at index $index: name cannot be blank")
-      } else if (role.name.length > OrganizationRole.MAX_NAME_LENGTH) {
-        errors.add("Role at index $index: name cannot exceed ${OrganizationRole.MAX_NAME_LENGTH} characters")
-      }
-      if (role.description != null && role.description.length > OrganizationRole.MAX_DESCRIPTION_LENGTH) {
-        errors.add("Role at index $index: description cannot exceed ${OrganizationRole.MAX_DESCRIPTION_LENGTH} characters")
-      }
-    }
-
-    return errors
-  }
-
-  /**
-   * Submits the organization signup data to Firebase.
-   *
-   * This method:
-   * 1. Validates all required fields
-   * 2. Uploads the logo image if provided
-   * 3. Creates an OrganizationModel from the signup state
-   * 4. Saves the organization to Firestore
-   *
-   * @param organizationRepository The repository to use for saving the organization.
-   * @param mediaRepository The media repository to use for uploading the logo.
-   * @return The created OrganizationModel.
-   * @throws IllegalStateException if validation fails or required fields are missing.
-   * @throws Exception if upload or save operations fail.
-   */
-  suspend fun submitOrganization(
-      organizationRepository: OrganizationRepository,
-      mediaRepository: MediaRepository
+  fun createOrganizationModel(
+      orgId: String,
+      currentUserId: String,
+      uploadedLogoUrl: String?
   ): OrganizationModel {
-    _isSubmitting.value = true
-    _submissionError.value = null
+    val s = state.value
 
-    try {
-      // Validate before submission
-      if (!isValidForSubmission()) {
-        val errors = getValidationErrors()
-        val errorMessage = "Validation failed: ${errors.joinToString("; ")}"
-        android.util.Log.e("OrganizationSignupViewModel", errorMessage)
-        _submissionError.value = errorMessage
-        throw IllegalStateException(errorMessage)
-      }
-
-      val s = state.value
-      val createdBy = s.createdBy
-          ?: throw IllegalStateException("Cannot submit: createdBy user ID is not set")
-
-      android.util.Log.d(
-          "OrganizationSignupViewModel", "Submitting organization: ${s.name}")
-
-      // Get a new organization ID
-      val organizationId = organizationRepository.getNewOrganizationId()
-      android.util.Log.d(
-          "OrganizationSignupViewModel", "Generated organization ID: $organizationId")
-
-      // Upload logo if provided
-      val logoUrl =
-          if (s.logoUri != null) {
-            android.util.Log.d(
-                "OrganizationSignupViewModel", "Uploading logo for organization: $organizationId")
-            uploadLogo(mediaRepository, organizationId)
-          } else {
-            null
-          }
-
-      // Create SocialLinks object (filter out blank strings to ensure safety)
-      val socialLinks =
-          SocialLinks(
-              website = s.website?.takeIf { it.isNotBlank() },
-              instagram = s.instagram?.takeIf { it.isNotBlank() },
-              x = s.x?.takeIf { it.isNotBlank() },
-              linkedin = s.linkedin?.takeIf { it.isNotBlank() })
-
-      // Create OrganizationModel
-      val organization =
-          OrganizationModel(
-              id = organizationId,
-              name = s.name,
-              type = s.type!!, // Safe to use !! since validation passed
-              description = s.description,
-              logoUrl = logoUrl,
-              bannerUrl = null, // No banner support
-              location = s.location,
-              mainDomains = s.mainDomains,
-              ageRanges = s.ageRanges,
-              typicalEventSize = s.typicalEventSize,
-              roles = s.roles,
-              socialLinks = socialLinks,
-              createdAt = Timestamp.now(),
-              createdBy = createdBy,
-              members = listOf(createdBy) // Creator is the first member
-          )
-
-      // Save to Firestore
-      organizationRepository.saveOrganization(organization)
-      android.util.Log.d(
-          "OrganizationSignupViewModel",
-          "Organization saved successfully: ${organization.id}")
-
-      return organization
-    } catch (e: Exception) {
-      android.util.Log.e("OrganizationSignupViewModel", "Failed to submit organization", e)
-      _submissionError.value = "Failed to submit organization: ${e.message}"
-      throw e
-    } finally {
-      _isSubmitting.value = false
-    }
+    return OrganizationModel(
+        id = orgId,
+        name = s.organizationName,
+        type = s.organizationType ?: OrganizationType.Other,
+        description = s.description.ifBlank { null },
+        logoUrl = uploadedLogoUrl,
+        location = s.location.ifBlank { null },
+        mainDomains = s.domains.toList(),
+        ageRanges = s.targetAgeRanges.toList(),
+        typicalEventSize = s.eventSize,
+        roles = s.teamRoles,
+        socialLinks =
+            SocialLinks(
+                website = s.websiteUrl.ifBlank { null },
+                instagram = s.instagramHandle.ifBlank { null },
+                x = s.xHandle.ifBlank { null },
+                linkedin = s.linkedinUrl.ifBlank { null }),
+        createdAt = Timestamp.now(),
+        createdBy = currentUserId)
   }
 
-  fun reset() = update { OrganizationSignupState() }
+  private fun <T> Set<T>.toggle(item: T): Set<T> {
+    return if (contains(item)) minus(item) else plus(item)
+  }
+
+  fun reset() = update { OrganizationSignUpState() }
+
+  /**
+   * Toggle the selected organization type. If the provided type is already selected, clears it;
+   * otherwise sets it.
+   */
+  fun toggleOrganizationType(type: OrganizationType) = update {
+    it.copy(organizationType = if (it.organizationType == type) null else type)
+  }
 }
 
-/** Returns the next logical step in the organization signup sequence. */
-private fun OrganizationSignupStep.next(): OrganizationSignupStep =
+private fun OrganizationSignUpStep.next(): OrganizationSignUpStep =
     when (this) {
-      OrganizationSignupStep.BasicInfo -> OrganizationSignupStep.UploadLogo
-      OrganizationSignupStep.UploadLogo -> OrganizationSignupStep.Description
-      OrganizationSignupStep.Description -> OrganizationSignupStep.Brand
-      OrganizationSignupStep.Brand -> OrganizationSignupStep.OrganizationProfile
-      OrganizationSignupStep.OrganizationProfile -> OrganizationSignupStep.TeamRoles
-      OrganizationSignupStep.TeamRoles -> OrganizationSignupStep.TeamRoles
+      OrganizationSignUpStep.Info -> OrganizationSignUpStep.Logo
+      OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Description
+      OrganizationSignUpStep.Description -> OrganizationSignUpStep.Socials
+      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Team
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.ProfileSetup
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.ProfileSetup
     }
 
-/** Returns the previous step in the organization signup sequence. */
-private fun OrganizationSignupStep.prev(): OrganizationSignupStep =
+private fun OrganizationSignUpStep.prev(): OrganizationSignUpStep =
     when (this) {
-      OrganizationSignupStep.BasicInfo -> OrganizationSignupStep.BasicInfo
-      OrganizationSignupStep.UploadLogo -> OrganizationSignupStep.BasicInfo
-      OrganizationSignupStep.Description -> OrganizationSignupStep.UploadLogo
-      OrganizationSignupStep.Brand -> OrganizationSignupStep.Description
-      OrganizationSignupStep.OrganizationProfile -> OrganizationSignupStep.Brand
-      OrganizationSignupStep.TeamRoles -> OrganizationSignupStep.OrganizationProfile
+      OrganizationSignUpStep.Info -> OrganizationSignUpStep.Info
+      OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Info
+      OrganizationSignUpStep.Description -> OrganizationSignUpStep.Logo
+      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Description
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.Socials
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Team
     }
-
