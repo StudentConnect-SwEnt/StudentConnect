@@ -16,14 +16,11 @@ enum class OrganizationSignUpStep {
   Logo,
   Description,
   Socials,
-  Team,
-  ProfileSetup
+  ProfileSetup,
+  Team
 }
 
-/**
- * Immutable state holding all information entered by the organization during signup. Uses types
- * from OrganizationModel where possible for consistency.
- */
+/** Immutable state holding all information entered by the organization during signup. */
 data class OrganizationSignUpState(
     val organizationName: String = "",
     val organizationType: OrganizationType? = null,
@@ -58,21 +55,11 @@ class OrganizationSignUpViewModel : ViewModel() {
    */
   fun setOrganizationName(name: String) = update { it.copy(organizationName = name.trim()) }
 
-  /**
-   * Sets the organization type.
-   *
-   * @param type The organization type selected by the user.
-   */
-  fun setOrganizationType(type: OrganizationType) = update { it.copy(organizationType = type) }
-
-  /**
-   * Sets the logo URI.
-   *
-   * @param uri The URI of the logo image selected by the user.
-   */
-  fun setLogoUri(uri: Uri?) = update {
-    it.copy(logoUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
+  fun toggleOrganizationType(type: OrganizationType) = update {
+    it.copy(organizationType = if (it.organizationType == type) null else type)
   }
+
+  fun setLogoUri(uri: Uri?) = update { it.copy(logoUri = uri) }
 
   /**
    * Sets the organization description.
@@ -81,7 +68,7 @@ class OrganizationSignUpViewModel : ViewModel() {
    */
   fun setDescription(desc: String) = update { it.copy(description = desc) }
 
-  /**
+   /**
    * Sets the organization website URL, trimming leading/trailing whitespace.
    *
    * @param url The website URL entered by the user.
@@ -219,21 +206,6 @@ class OrganizationSignUpViewModel : ViewModel() {
         createdAt = Timestamp.now(),
         createdBy = currentUserId)
   }
-
-  private fun <T> Set<T>.toggle(item: T): Set<T> {
-    return if (contains(item)) minus(item) else plus(item)
-  }
-
-  /** Resets the signup state to the initial default values. */
-  fun reset() = update { OrganizationSignUpState() }
-
-  /**
-   * Toggle the selected organization type. If the provided type is already selected, clears it;
-   * otherwise sets it.
-   */
-  fun toggleOrganizationType(type: OrganizationType) = update {
-    it.copy(organizationType = if (it.organizationType == type) null else type)
-  }
 }
 
 private fun OrganizationSignUpStep.next(): OrganizationSignUpStep =
@@ -241,9 +213,9 @@ private fun OrganizationSignUpStep.next(): OrganizationSignUpStep =
       OrganizationSignUpStep.Info -> OrganizationSignUpStep.Logo
       OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Description
       OrganizationSignUpStep.Description -> OrganizationSignUpStep.Socials
-      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Team
-      OrganizationSignUpStep.Team -> OrganizationSignUpStep.ProfileSetup
-      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.ProfileSetup
+      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.ProfileSetup
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Team
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.Team
     }
 
 private fun OrganizationSignUpStep.prev(): OrganizationSignUpStep =
@@ -252,6 +224,6 @@ private fun OrganizationSignUpStep.prev(): OrganizationSignUpStep =
       OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Info
       OrganizationSignUpStep.Description -> OrganizationSignUpStep.Logo
       OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Description
-      OrganizationSignUpStep.Team -> OrganizationSignUpStep.Socials
-      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Team
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Socials
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.ProfileSetup
     }
