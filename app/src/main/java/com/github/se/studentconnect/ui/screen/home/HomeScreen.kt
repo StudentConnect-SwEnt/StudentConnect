@@ -312,7 +312,11 @@ fun HomeScreen(
           initialPage = HomeScreenConstants.PAGER_HOME_PAGE,
           pageCount = { HomeScreenConstants.PAGER_HOME_PAGE + 1 })
   val coroutineScope = rememberCoroutineScope()
-  val listState = rememberLazyListState()
+
+  // Separate scroll states for each tab to maintain independent scroll positions
+  val forYouListState = rememberLazyListState()
+  val allEventsListState = rememberLazyListState()
+  val discoverListState = rememberLazyListState()
 
   // TODO: Move mock organization data out of UI layer when backend is implemented
   val mockOrganizations = remember {
@@ -448,8 +452,10 @@ fun HomeScreen(
                               }
 
                               // Sync pager with tab selection (when user swipes)
-                              LaunchedEffect(tabPagerState.currentPage) {
-                                val newTab = HomeTabMode.entries[tabPagerState.currentPage]
+                              // Use settledPage instead of currentPage to avoid triggering during
+                              // animation
+                              LaunchedEffect(tabPagerState.settledPage) {
+                                val newTab = HomeTabMode.entries[tabPagerState.settledPage]
                                 if (newTab != uiState.selectedTab) {
                                   onTabSelected(newTab)
                                 }
@@ -457,6 +463,15 @@ fun HomeScreen(
 
                               HorizontalPager(
                                   state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
+                                    // Use different scroll state for each tab
+                                    val currentListState =
+                                        when (page) {
+                                          0 -> forYouListState // FOR_YOU
+                                          1 -> allEventsListState // EVENTS
+                                          2 -> discoverListState // DISCOVER
+                                          else -> forYouListState
+                                        }
+
                                     Column {
                                       FilterBar(
                                           context = LocalContext.current,
@@ -466,9 +481,9 @@ fun HomeScreen(
                                           onToggleFavorites = onToggleFavoritesFilter)
                                       EventListScreen(
                                           navController = navController,
-                                          events = uiState.events,
+                                          events = uiState.events, // Same events for now
                                           hasJoined = false,
-                                          listState = listState,
+                                          listState = currentListState,
                                           favoritesConfig =
                                               FavoritesConfig(
                                                   favoriteEventIds = favoriteEventIds,
@@ -513,10 +528,17 @@ fun HomeScreen(
         }
 
         // Handle scroll to date functionality
-        LaunchedEffect(uiState.scrollToDate) {
+        LaunchedEffect(uiState.scrollToDate, uiState.selectedTab) {
           uiState.scrollToDate?.let { targetDate ->
+            // Use the appropriate list state based on the selected tab
+            val targetListState =
+                when (uiState.selectedTab) {
+                  HomeTabMode.FOR_YOU -> forYouListState
+                  HomeTabMode.EVENTS -> allEventsListState
+                  HomeTabMode.DISCOVER -> discoverListState
+                }
             scrollToDate(
-                listState = listState,
+                listState = targetListState,
                 events = uiState.events,
                 targetDate = targetDate,
                 hasTopContent = true, // Stories row is present as top content

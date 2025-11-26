@@ -43,6 +43,7 @@ data class HomePageUiState(
     val scrollToDate: Date? = null,
     val showOnlyFavorites: Boolean = false,
     val selectedTab: HomeTabMode = HomeTabMode.FOR_YOU,
+    val userHobbies: List<String> = emptyList(),
 )
 
 /** Coordinates event loading, filtering, favorite handling, and story progress. */
@@ -73,9 +74,26 @@ constructor(
   private var allFetchedEvents: List<Event> = emptyList()
 
   init {
+    loadUserHobbies()
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+  }
+
+  private fun loadUserHobbies() {
+    currentUserId?.let { uid ->
+      viewModelScope.launch {
+        try {
+          val user = userRepository.getUserById(uid)
+          val hobbies = user?.hobbies ?: emptyList()
+          _uiState.update { it.copy(userHobbies = hobbies) }
+          Log.d("HomePageViewModel", "Loaded user hobbies: $hobbies")
+        } catch (e: Exception) {
+          Log.e("HomePageViewModel", "Error loading user hobbies", e)
+          _uiState.update { it.copy(userHobbies = emptyList()) }
+        }
+      }
+    }
   }
 
   private fun loadAllSubscribedEventsStories() {
@@ -200,6 +218,8 @@ constructor(
     _uiState.update { it.copy(isLoading = true) }
 
     val currentTime = Date()
+    val currentTab = _uiState.value.selectedTab
+    val userHobbies = _uiState.value.userHobbies
 
     val filtered =
         eventsToFilter.filter { event ->
@@ -211,6 +231,38 @@ constructor(
           val isFutureOrLive = eventEndTime.after(currentTime) || eventEndTime == currentTime
           if (!isFutureOrLive) return@filter false
 
+          // Tab-based filtering (before other filters)
+          val tabMatch =
+              when (currentTab) {
+                HomeTabMode.FOR_YOU -> {
+                  // Show events that have at least one tag matching user hobbies
+                  if (userHobbies.isEmpty()) {
+                    true // If user has no hobbies, show all events
+                  } else {
+                    val eventTags = publicEvent.tags
+                    eventTags.any { eventTag ->
+                      userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
+                    }
+                  }
+                }
+                HomeTabMode.EVENTS -> {
+                  // Show all events
+                  true
+                }
+                HomeTabMode.DISCOVER -> {
+                  // Show events that DON'T have any tags matching user hobbies
+                  if (userHobbies.isEmpty()) {
+                    true // If user has no hobbies, show all events
+                  } else {
+                    val eventTags = publicEvent.tags
+                    eventTags.none { eventTag ->
+                      userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
+                    }
+                  }
+                }
+              }
+          if (!tabMatch) return@filter false
+
           // Favorites
           val favoriteMatch =
               if (filters.showOnlyFavorites) {
@@ -220,7 +272,7 @@ constructor(
               }
           if (!favoriteMatch) return@filter false
 
-          // Tags
+          // Tags (from filter bar)
           val tagMatch =
               if (filters.categories.isEmpty()) {
                 true
@@ -308,9 +360,11 @@ constructor(
     _uiState.update { it.copy(scrollToDate = null) }
   }
 
-  /** Updates the selected tab mode. */
+  /** Updates the selected tab mode and reapplies filters. */
   fun selectTab(tab: HomeTabMode) {
     _uiState.update { it.copy(selectedTab = tab) }
+    // Reapply filters with the new tab selection
+    applyFilters(currentFilters, allFetchedEvents)
   }
 
   /** Gets events for a specific date. */
