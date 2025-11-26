@@ -142,11 +142,9 @@ fun TeamRolesScreen(
               },
               onSkipClick = {
                 viewModel.setRoles(emptyList()) // Clear roles on skip
-                viewModel.nextStep()
                 onContinue()
               },
               onContinueClick = {
-                viewModel.nextStep()
                 onContinue()
               }),
       modifier = modifier)

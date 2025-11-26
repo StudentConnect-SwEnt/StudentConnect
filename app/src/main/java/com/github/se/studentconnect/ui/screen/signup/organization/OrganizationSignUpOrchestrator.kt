@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 fun OrganizationSignUpOrchestrator(
     firebaseUserId: String,
     onSignUpComplete: (OrganizationModel) -> Unit,
+    onLogout: () -> Unit,
     onBackToSelection: () -> Unit,
     viewModel: OrganizationSignUpViewModel = viewModel()
 ) {
@@ -31,12 +32,7 @@ fun OrganizationSignUpOrchestrator(
   // IF organization is created, show the "To Be Continued" screen
   if (createdOrganization != null) {
     OrganizationToBeContinuedScreen(
-        organization = createdOrganization,
-        onLogout = {
-          // When they click logout/continue here, we finish the flow
-          onSignUpComplete(createdOrganization!!)
-        },
-        onBack = {})
+        organization = createdOrganization, onLogout = onLogout, onBack = {})
     return
   }
 

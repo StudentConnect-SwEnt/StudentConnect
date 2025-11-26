@@ -35,10 +35,8 @@ fun OnboardingNavigation(
       AccountTypeOption.Organization -> {
         OrganizationSignUpOrchestrator(
             firebaseUserId = firebaseUserId,
-            onSignUpComplete = {
-              // Pas de signOut ici, juste le signal
-              onOnboardingComplete(true)
-            },
+            onSignUpComplete = { onOnboardingComplete(false) },
+            onLogout = { onOnboardingComplete(true) },
             onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
       }
       null -> {}

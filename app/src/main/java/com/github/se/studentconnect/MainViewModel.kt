@@ -154,6 +154,13 @@ class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
   }
 
   fun onLogoutComplete() {
+    try {
+      if (!AuthenticationProvider.local) {
+        Firebase.auth.signOut()
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("MainViewModel", "Error signing out", e)
+    }
     _uiState.update {
       it.copy(appState = AppState.AUTHENTICATION, currentUserId = null, currentUserEmail = null)
     }
