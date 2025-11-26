@@ -144,9 +144,7 @@ fun TeamRolesScreen(
                 viewModel.setRoles(emptyList()) // Clear roles on skip
                 onContinue()
               },
-              onContinueClick = {
-                onContinue()
-              }),
+              onContinueClick = { onContinue() }),
       modifier = modifier)
 }
 
