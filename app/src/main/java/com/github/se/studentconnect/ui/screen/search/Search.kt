@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 
 /**
@@ -58,7 +57,7 @@ fun SearchScreen(
           modifier
               .fillMaxSize()
               .background(MaterialTheme.colorScheme.surface)
-              .testTag(C.Tag.search_screen)
+              .testTag(SearchScreenTestTags.SEARCH_SCREEN)
               .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
   ) { innerPadding ->
     Column(
@@ -96,9 +95,10 @@ private fun SearchTopBar(
         HomeSearchBar(
             query = viewModel.state.value.query,
             onQueryChange = { viewModel.setQuery(it) },
-            modifier = Modifier.focusRequester(focusRequester))
+            modifier =
+                Modifier.focusRequester(focusRequester).testTag(SearchScreenTestTags.SEARCH_FIELD))
       },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(SearchScreenTestTags.TOP_BAR),
       navigationIcon = {
         IconButton(
             onClick = {
@@ -112,7 +112,7 @@ private fun SearchTopBar(
                   tint = MaterialTheme.colorScheme.onSurface,
               )
             },
-            modifier = Modifier.testTag(C.Tag.back_button),
+            modifier = Modifier.testTag(SearchScreenTestTags.BACK_BUTTON),
         )
       },
   )

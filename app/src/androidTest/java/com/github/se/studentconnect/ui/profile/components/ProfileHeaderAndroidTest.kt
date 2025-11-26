@@ -313,4 +313,22 @@ class ProfileHeaderAndroidTest {
 
     composeTestRule.onNodeWithText(longUniversity).assertIsDisplayed()
   }
+
+  @Test
+  fun profileHeader_handlesUserWithProfilePictureUrl() {
+    // User with profile picture URL (image won't load in test but we verify no crash)
+    val userWithPicture = testUser.copy(profilePictureUrl = "test_profile_picture_id")
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = userWithPicture,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
+    }
+
+    // Should still display profile picture area (placeholder while loading)
+    composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+  }
 }

@@ -419,6 +419,14 @@ class EndToEndTest : FirestoreStudentConnectTest() {
           composeTestRule.onAllNodesWithTag("HomePage").fetchSemanticsNodes().isNotEmpty()
         }
 
+    // Ensure we're on the "For You" tab by clicking it
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 10_020, message = "For You tab to be visible") {
+          composeTestRule.onAllNodesWithTag("tab_for_you").fetchSemanticsNodes().isNotEmpty()
+        }
+    composeTestRule.onNodeWithTag("tab_for_you").performClick()
+    composeTestRule.waitForIdle()
+
     // Verify the event title appears somewhere on the home page
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 30_003, message = "E2E Test Event to appear on home page") {
@@ -452,44 +460,40 @@ class EndToEndTest : FirestoreStudentConnectTest() {
   }
 
   private fun openEventAndEditTitle() {
-    // Click on the event to open it. Prefer the event card title node identified by a testTag
-    // that starts with "event_card_title_" to avoid clicking other views that also contain the
-    // same text (stories, etc.). Fall back to clicking any text node if necessary.
-    val titleTagStartsWith =
-        SemanticsMatcher("testTag starts with event_card_title_") { node ->
-          node.config.getOrNull(SemanticsProperties.TestTag)?.startsWith("event_card_title_") ==
-              true
+    // Click on the event card that contains the E2E Test Event
+    // Use a matcher that finds the card containing the event text
+    val eventCardTagStartsWith =
+        SemanticsMatcher("testTag starts with event_card_") { node ->
+          node.config.getOrNull(SemanticsProperties.TestTag)?.startsWith("event_card_") == true
         }
 
-    try {
-      // Wait until a matching event card title is present
-      composeTestRule.waitUntilWithMessage(
-          timeoutMillis = 10_014, message = "matching event card title to appear on home page") {
-            try {
-              composeTestRule
-                  .onAllNodes(
-                      hasText("E2E Test Event", substring = true) and titleTagStartsWith,
-                      useUnmergedTree = true)
-                  .fetchSemanticsNodes()
-                  .isNotEmpty()
-            } catch (_: Exception) {
-              false
-            }
+    // Wait until the event card with our title is present and ready to click
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_014, message = "E2E Test Event card to be visible and clickable") {
+          try {
+            val nodes =
+                composeTestRule
+                    .onAllNodes(
+                        eventCardTagStartsWith and
+                            hasAnyDescendant(hasText("E2E Test Event", substring = true)),
+                        useUnmergedTree = true)
+                    .fetchSemanticsNodes()
+            nodes.isNotEmpty()
+          } catch (_: Exception) {
+            false
           }
+        }
 
-      composeTestRule
-          .onAllNodes(
-              hasText("E2E Test Event", substring = true) and titleTagStartsWith,
-              useUnmergedTree = true)
-          .onFirst()
-          .performClick()
-    } catch (_: Exception) {
-      // Fallback: click the first node that contains the event title text
-      composeTestRule
-          .onAllNodesWithText("E2E Test Event", substring = true, useUnmergedTree = true)
-          .onFirst()
-          .performClick()
-    }
+    // Click the event card (not the title text) to ensure proper click handling
+    // Using performScrollTo() to ensure it's fully visible before clicking
+    composeTestRule
+        .onAllNodes(
+            eventCardTagStartsWith and
+                hasAnyDescendant(hasText("E2E Test Event", substring = true)),
+            useUnmergedTree = true)
+        .onFirst()
+        .performScrollTo()
+        .performClick()
 
     composeTestRule.waitForIdle()
 

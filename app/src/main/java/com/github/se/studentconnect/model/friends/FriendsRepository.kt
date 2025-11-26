@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.model.friends
 
+import kotlinx.coroutines.flow.Flow
+
 /**
  * Repository interface for Friends operations.
  *
@@ -94,4 +96,11 @@ interface FriendsRepository {
    * @return True if a pending request exists, false otherwise.
    */
   suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean
+
+  /**
+   * Observe whether a friendship exists between userId and otherUserId. This allows UI to react to
+   * remote changes (e.g. when the other user accepts a request). Implementations may return a cold
+   * Flow that emits true when friendship exists and false when not.
+   */
+  fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean>
 }

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import com.github.se.studentconnect.R
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,18 +25,20 @@ class FilterBarComprehensiveTest {
   fun filterBar_openBottomSheet_displaysFilterOptions() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Filter Events").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Categories & Tags").assertIsDisplayed()
+    composeTestRule.onNodeWithText(context.getString(R.string.filter_title)).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_categories_tags))
+        .assertIsDisplayed()
   }
 
   @Test
   fun filterBar_bottomSheet_displaysCategoryChips() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").assertIsDisplayed()
@@ -50,7 +53,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_selectCategory_showsTopics() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -65,7 +68,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_selectMultipleCategories_displaysAllTopics() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -82,7 +85,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_deselectCategory_hidesTopics() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -98,7 +101,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_selectTopic_marksAsSelected() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -115,13 +118,13 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     assert(capturedFilters != null)
@@ -135,14 +138,14 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
     composeTestRule.onNodeWithText("Music").performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Reset Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_reset_filters)).performClick()
     composeTestRule.waitForIdle()
 
     assert(capturedFilters != null)
@@ -153,41 +156,47 @@ class FilterBarComprehensiveTest {
   fun filterBar_closeButton_dismissesBottomSheet() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithContentDescription("Close Filters").performClick()
+    composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.content_description_close_filters))
+        .performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Filter Events").assertDoesNotExist()
+    composeTestRule.onNodeWithText(context.getString(R.string.filter_title)).assertDoesNotExist()
   }
 
   @Test
   fun filterBar_radiusSlider_isDisplayed() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Radius: 10 km").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_radius, 10))
+        .assertIsDisplayed()
   }
 
   @Test
   fun filterBar_locationSection_isDisplayed() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Location").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Select Location").assertIsDisplayed()
+    composeTestRule.onNodeWithText(context.getString(R.string.filter_location)).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_select_location))
+        .assertIsDisplayed()
   }
 
   @Test
   fun filterBar_multipleTopics_canBeSelected() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -206,10 +215,10 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     assert(capturedFilters != null)
@@ -222,10 +231,10 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     assert(capturedFilters != null)
@@ -236,7 +245,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_selectAndDeselectTopic_worksCorrectly() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Sports").performClick()
@@ -253,7 +262,7 @@ class FilterBarComprehensiveTest {
   fun filterBar_allCategories_areClickable() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     val categories = listOf("Sports", "Science", "Music", "Language", "Art", "Tech")
@@ -270,7 +279,7 @@ class FilterBarComprehensiveTest {
     }
 
     // Click Favorites button
-    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_favorites)).performClick()
     composeTestRule.waitForIdle()
 
     // Verify callback was called with showOnlyFavorites = true
@@ -278,7 +287,7 @@ class FilterBarComprehensiveTest {
     assert(capturedFilters!!.showOnlyFavorites)
 
     // Click again to toggle off
-    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_favorites)).performClick()
     composeTestRule.waitForIdle()
 
     // Verify callback was called with showOnlyFavorites = false
@@ -293,15 +302,15 @@ class FilterBarComprehensiveTest {
     }
 
     // Open filters and select category
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Sports").performClick()
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Now enable favorites
-    composeTestRule.onNodeWithText("Favorites").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_favorites)).performClick()
     composeTestRule.waitForIdle()
 
     // Verify both filters are applied
@@ -314,18 +323,22 @@ class FilterBarComprehensiveTest {
   fun filterBar_priceRange_isDisplayed() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Scroll to the price section and verify it exists
-    composeTestRule.onNodeWithText("Price (€)").performScrollTo()
+    composeTestRule.onNodeWithText(context.getString(R.string.filter_price)).performScrollTo()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Price (€)").assertIsDisplayed()
+    composeTestRule.onNodeWithText(context.getString(R.string.filter_price)).assertIsDisplayed()
 
     // Verify min and max labels exist (they may not be fully visible)
-    composeTestRule.onNodeWithText("Min: 0€", substring = true).assertExists()
-    composeTestRule.onNodeWithText("Max: 50€", substring = true).assertExists()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_price_min, 0), substring = true)
+        .assertExists()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_price_max, 50), substring = true)
+        .assertExists()
   }
 
   @Test
@@ -335,10 +348,10 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     assert(capturedFilters != null)
@@ -354,13 +367,13 @@ class FilterBarComprehensiveTest {
     }
 
     // Open filters and select category
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Sports").performClick()
     composeTestRule.waitForIdle()
 
     // Reset filters
-    composeTestRule.onNodeWithText("Reset Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_reset_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Verify all filters are reset
@@ -379,7 +392,7 @@ class FilterBarComprehensiveTest {
       FilterBar(context, onApplyFilters = { filters -> capturedFilters = filters })
     }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Select category and a topic
@@ -392,7 +405,7 @@ class FilterBarComprehensiveTest {
     composeTestRule.onNodeWithText("Sports").performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Apply Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Verify neither category nor topic are in filters
@@ -423,24 +436,28 @@ class FilterBarComprehensiveTest {
   fun filterBar_selectLocationButton_opensLocationPicker() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}, useTestMap = true) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Select Location").performClick()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_select_location))
+        .performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText("Cancel").assertIsDisplayed()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_cancel)).assertIsDisplayed()
   }
 
   @Test
   fun filterBar_locationPickerDialog_appliesLocationAndRadius() {
     composeTestRule.setContent { FilterBar(context, onApplyFilters = {}, useTestMap = true) }
 
-    composeTestRule.onNodeWithText("Filters").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_filters)).performClick()
     composeTestRule.waitForIdle()
 
     // Open location picker
-    composeTestRule.onNodeWithText("Select Location").performClick()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.filter_select_location))
+        .performClick()
     composeTestRule.waitForIdle()
 
     // Click on the test map to select a location
@@ -448,7 +465,7 @@ class FilterBarComprehensiveTest {
     composeTestRule.waitForIdle()
 
     // Click Apply
-    composeTestRule.onNodeWithText("Apply").performClick()
+    composeTestRule.onNodeWithText(context.getString(R.string.button_apply)).performClick()
     composeTestRule.waitForIdle()
   }
 }

@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.core.net.toUri
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpState
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpStep
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.google.firebase.Timestamp
 import java.util.Date
 import org.junit.Assert.*

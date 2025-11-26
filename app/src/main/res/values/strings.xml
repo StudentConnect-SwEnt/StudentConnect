@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">StudentConnect</string>
     <string name="default_web_client_id">1014128431937-e0iprnt5jgajga4hueks3ah9i9bhco0u.apps.googleusercontent.com</string>
-    
+
     <!-- Error messages -->
     <string name="error_network">Network error</string>
     <string name="error_unexpected">An unexpected error occurred</string>
@@ -64,7 +64,15 @@
     <string name="placeholder_choose_username">Choose a unique username</string>
     <string name="placeholder_select_birthdate">Select your birthdate</string>
     <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
-    
+    <string name="org_setup_title">Where and what do you organize ?</string>
+    <string name="org_setup_main_location_label">Main Location</string>
+    <string name="org_setup_main_location_placeholder">Search locations...</string>
+    <string name="org_setup_age_range_label">Age range</string>
+    <string name="org_setup_event_size_label">Typical event size</string>
+    <string name="org_setup_main_domains_label">Main domains</string>
+    <string name="org_setup_event_size_hint">You\'ll be able to refine this later for each event.</string>
+    <string name="org_setup_main_domains_hint">Select up to 3 domains</string>
+
     <!-- Instructions -->
     <string name="instruction_enter_name">Enter your full name</string>
     <string name="instruction_tell_about_yourself">Tell us about yourself</string>
@@ -74,6 +82,21 @@
     <string name="instruction_who_are_you_subtitle">Let others know who you are !</string>
     <string name="instruction_select_date_of_birth">Select your date of birth</string>
     <string name="instruction_pick_date">Pick a date</string>
+    <string name="signup_account_type_title">Choose your account type!</string>
+    <string name="signup_account_type_subtitle">What best describes you</string>
+    <string name="account_type_regular_user">I AM A REGULAR USER</string>
+    <string name="account_type_regular_user_icon">👤</string>
+    <string name="account_type_regular_user_feature_events">You can see, join &amp; save events</string>
+    <string name="account_type_regular_user_feature_friends">Add friends</string>
+    <string name="account_type_regular_user_feature_create_event">Create public and private event</string>
+    <string name="account_type_organization">WE ARE AN ORGANIZATION</string>
+    <string name="account_type_organization_icon">🏛️</string>
+    <string name="account_type_organization_feature_promote">Create and Promote Events</string>
+    <string name="account_type_organization_feature_analytics">Track Performance with Analytics</string>
+    <string name="account_type_organization_feature_hire">Hire and Manage Staff</string>
+    <string name="account_type_organization_feature_operations">Centralize all Your Operations</string>
+    <string name="content_description_select_regular_user">Select regular user account type</string>
+    <string name="content_description_select_organization">Select organization account type</string>
     <string name="instruction_preview_profile_picture">Preview of your new profile picture</string>
     <string name="instruction_choose_profile_photo">Tap above to choose a profile photo</string>
     <string name="instruction_tap_to_change_photo">Tap to change photo</string>
@@ -147,7 +170,9 @@
     <string name="content_description_public_event">Public Event</string>
     <string name="content_description_private_event">Private Event</string>
     <string name="content_description_save">Save</string>
-    
+    <string name="content_description_clear_text">Clear text</string>
+    <string name="content_description_open_dropdown">Toggle dropdown</string>
+
     <!-- Other UI text -->
     <string name="text_current_birthday">Current Birthday</string>
     <string name="text_never_miss_out_again">Never miss out again.</string>
@@ -156,7 +181,7 @@
     <string name="text_connect">Connect</string>
     <string name="text_discover">Discover</string>
     <string name="text_belong">Belong</string>
-    <string name="text_birthday_not_provided">Birthday not provided</string>
+    <string name="text_user_id_label">ID: %1$s</string>
     <string name="text_scan_qr_code_to_connect">Scan QR code to connect!</string>
     <string name="text_scan_qr_to_connect">Scan QR to connect!</string>
     <string name="text_no_events_found">No events found matching your criteria.</string>
@@ -192,11 +217,51 @@
     <string name="button_explore">Explore</string>
     <string name="button_filters">Filters</string>
     <string name="button_favorites">Favorites</string>
-    
+    <string name="domain_sport">Sport</string>
+    <string name="domain_music">Music</string>
+    <string name="domain_science">Science</string>
+    <string name="domain_career">Career</string>
+    <string name="domain_social">Social</string>
+    <string name="domain_tech">Tech</string>
+    <string name="domain_culture">Culture</string>
+    <string name="domain_parties">Parties</string>
+    <string name="domain_other">Other</string>
+    <string name="org_location_epfl">EPFL</string>
+    <string name="org_location_ethz">ETH Zurich</string>
+    <string name="org_location_unige">University of Geneva (UniGe)</string>
+    <string name="org_location_unil">University of Lausanne (UNIL)</string>
+    <string name="org_location_unibe">University of Bern (UniBe)</string>
+    <string name="org_location_uzh">University of Zurich (UZH)</string>
+    <string name="org_location_unibasel">University of Basel</string>
+    <string name="org_location_hsg">University of St. Gallen (HSG)</string>
+    <string name="org_location_lausanne">Lausanne</string>
+    <string name="org_location_geneva">Geneva</string>
+    <string name="org_location_zurich">Zurich</string>
+    <string name="org_location_bern">Bern</string>
+    <string name="org_location_basel">Basel</string>
+    <string name="org_location_lugano">Lugano</string>
+    <string name="org_location_lucerne">Lucerne</string>
+    <string name="org_location_neuchatel">Neuchâtel</string>
+    <string name="org_location_fribourg">Fribourg</string>
+    <string name="org_location_winterthur">Winterthur</string>
+    <string name="org_location_other">Other</string>
+    <string name="age_range_under_18">&lt;18</string>
+    <string name="age_range_18_22">18-22</string>
+    <string name="age_range_23_25">23-25</string>
+    <string name="age_range_26_30">26-30</string>
+    <string name="age_range_30_plus">30+</string>
+    <string name="event_size_small">&lt; 20</string>
+    <string name="event_size_medium">20-50</string>
+    <string name="event_size_large">50-150</string>
+    <string name="event_size_extra_large">150+</string>
+
     <!-- Tabs -->
     <string name="tab_upcoming">Upcoming</string>
     <string name="tab_invitations">Invitations</string>
     <string name="tab_archived">Archived</string>
+    <string name="tab_for_you">For You</string>
+    <string name="tab_all_events">All Events</string>
+    <string name="tab_discover">Discover</string>
     
     <!-- Toast messages -->
     <string name="toast_camera_closed">Camera closed without capturing a photo</string>
@@ -212,12 +277,44 @@
 
     <!-- User card -->
     <string name="user_card_tap_to_flip">Tap the card to flip it</string>
+
+    <!-- Team roles onboarding -->
+    <string name="team_roles_title">Set up your team roles</string>
+    <string name="team_roles_subtitle">Define the positions in your organization. You\'ll assign members to these roles later.</string>
+    <string name="team_roles_add_section_title">Add a role</string>
+    <string name="team_roles_name_label">Role name</string>
+    <string name="team_roles_name_helper">Select from popular roles or type a custom name</string>
+    <string name="team_roles_description_label">Role description</string>
+    <string name="team_roles_add_button">+ Add role</string>
+    <string name="team_roles_current_section_title">Current roles</string>
+    <string name="team_roles_empty_state_title">No roles defined yet.</string>
+    <string name="team_roles_empty_state_subtitle">Add roles to see them listed here.</string>
+    <string name="team_roles_remove_button">Remove</string>
+
+    <!-- Team roles suggestions -->
+    <string name="team_roles_suggestion_president">President</string>
+    <string name="team_roles_suggestion_vice_president">Vice President</string>
+    <string name="team_roles_suggestion_treasurer">Treasurer</string>
+    <string name="team_roles_suggestion_secretary">Secretary</string>
+    <string name="team_roles_suggestion_event_manager">Event Manager</string>
+    <string name="team_roles_suggestion_community_manager">Community Manager</string>
+    <string name="team_roles_suggestion_marketing_lead">Marketing Lead</string>
+    <string name="team_roles_suggestion_operations_lead">Operations Lead</string>
+
     <!-- Signup screen labels -->
     <string name="signup_label_first_name">First name</string>
     <string name="signup_label_last_name">Last name</string>
     <string name="signup_label_birthday">Birthday</string>
     <string name="signup_label_username">Username</string>
-    
+
+    <!-- About screen strings (used by AboutScreen) -->
+    <string name="about_title">Tell us more about you</string>
+    <string name="about_subtitle">What should others know</string>
+    <string name="placeholder_about">What should other students know about you?</string>
+    <!-- Organization description strings (distinct from user About/Description) -->
+    <string name="org_description_title">Tell us more about your organization</string>
+    <string name="org_description_placeholder">Describe your organization</string>
+
     <!-- Picture picker -->
     <string name="picture_picker_title">Add a photo</string>
     <string name="picture_picker_text">Choose how you want to add your picture.</string>
@@ -230,9 +327,15 @@
     <string name="filter_price_min">Min: %d€</string>
     <string name="filter_price_max">Max: %d€</string>
     <string name="filter_select_location">Select Location</string>
-    <string name="filter_radius">Radius: %d km</string>
+    <string name="filter_radius">Radius : %d km</string>
     <string name="content_description_location">Location</string>
-    
+
+    <!-- Location picker strings (added) -->
+    <string name="location_my_position">My position</string>
+    <string name="location_selected_location">Selected Location</string>
+    <string name="text_no_location_selected">No location selected</string>
+    <string name="text_selected">Selected</string>
+
     <!-- Time picker -->
     <string name="time_picker_title">Select Time</string>
     
@@ -273,13 +376,45 @@
     <string name="event_error_date_empty">Date cannot be empty</string>
     <string name="event_error_date_invalid">Date is invalid</string>
     <string name="event_label_participants">Number of participants</string>
+    <string name="event_label_tags">Tags</string>
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
 
+    <!-- Experience tags -->
+    <string name="topic_selector_empty">No topics yet</string>
+    
     <!-- Date format -->
     <string name="date_format">dd/MM/yyyy</string>
+
+    <!-- Poll strings -->
+    <string name="poll_create_title">Create Poll</string>
+    <string name="poll_create_question_label">Poll Question</string>
+    <string name="poll_create_options_label">Options</string>
+    <string name="poll_create_option_label">Option %1$d</string>
+    <string name="poll_create_remove_option">Remove option</string>
+    <string name="poll_create_add_option">Add Option</string>
+    <string name="poll_create_button">Create Poll</string>
+    <string name="poll_screen_title">Poll</string>
+    <string name="poll_error_generic">An error occurred</string>
+    <string name="poll_closed_message">This poll is closed</string>
+    <string name="poll_owner_cannot_vote">As the event organizer, you cannot vote on this poll</string>
+    <string name="poll_results_title">Results</string>
+    <string name="poll_total_votes">%1$d total votes</string>
+    <string name="poll_submit_vote_button">Submit Vote</string>
+    <string name="poll_status_active">Active</string>
+    <string name="poll_status_closed">Closed</string>
+    <string name="poll_notification_title">New Poll Available</string>
+    <string name="poll_notification_message">There are active polls for this event</string>
+    <string name="poll_notification_vote">Vote Now</string>
+    <string name="button_view_polls">View Polls</string>
+    <string name="button_create_poll">Create Poll</string>
+    <string name="content_description_add_poll">Create new poll</string>
+    <string name="polls_list_screen_title">Event Polls</string>
+    <string name="polls_list_no_polls">No polls available for this event</string>
+    <string name="poll_options_count">%1$d options</string>
+    <string name="poll_voted_indicator">Voted</string>
 
     <!-- Organization profile -->
     <string name="org_profile_follow">Follow</string>
@@ -296,4 +431,38 @@
     <string name="organization_type_ngo">NGO</string>
     <string name="organization_type_other">Other</string>
     <string name="organization_label_name">Organization name</string>
+
+    <!-- Profile bio and visitor profile strings -->
+    <string name="title_bio">Bio</string>
+    <string name="no_bio_available">No biography available yet.</string>
+    <string name="text_request_sent">Request Sent</string>
+    <string name="text_remove_friend">Remove Friend</string>
+    <string name="text_sending">Sending...</string>
+    <string name="text_already_friends">Already Friends</string>
+    <string name="text_try_again">Try Again</string>
+    <string name="button_add_friend">Add Friend</string>
+    <string name="text_nothing_to_display_yet">Nothing to display yet</string>
+
+    <!-- Strings used by VisitorProfileViewModel (moved from hardcoded literals) -->
+    <string name="friend_request_already_sent">Friend request already sent</string>
+    <string name="user_sent_you_request">This user sent you a friend request</string>
+    <string name="must_be_logged_in_send_friend_request">You must be logged in to send friend requests</string>
+    <string name="cannot_send_request_to_self">Cannot send friend request to yourself</string>
+    <string name="friend_request_sent_success">Friend request sent successfully!</string>
+    <string name="friend_request_cancelled">Friend request cancelled</string>
+    <string name="friend_removed">Friend removed</string>
+    <string name="failed_to_send_friend_request">Failed to send friend request</string>
+    <string name="failed_to_cancel_friend_request">Failed to cancel friend request</string>
+    <string name="failed_to_remove_friend">Failed to remove friend</string>
+    <string name="must_be_logged_in_cancel_friend_request">You must be logged in to cancel friend requests</string>
+    <string name="must_be_logged_in_remove_friend">You must be logged in to remove friends</string>
+
+    <!-- Brand organization screen strings -->
+    <string name="title_brand_organization">Brand your organization</string>
+    <string name="subtitle_brand_organization">Make your profile stand out</string>
+    <string name="label_website">Website</string>
+    <string name="label_insta">Instagram</string>
+    <string name="label_x">X</string>
+    <string name="label_linkedin">LinkedIn</string>
+
 </resources>

@@ -82,7 +82,7 @@ fun EventListScreen(
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
         topContent?.let { header -> item(key = "event_list_header") { header() } }
         groupedEvents.forEach { (dateHeader, eventsOnDate) ->
-          item {
+          item(key = "date_header_$dateHeader") {
             Text(
                 text = dateHeader,
                 style = MaterialTheme.typography.headlineMedium,

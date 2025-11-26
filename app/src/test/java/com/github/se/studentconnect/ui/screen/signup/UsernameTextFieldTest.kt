@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.ui.screen.signup.regularuser.UsernameTextField
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule

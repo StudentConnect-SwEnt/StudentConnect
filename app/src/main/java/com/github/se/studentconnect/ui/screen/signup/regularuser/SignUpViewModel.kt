@@ -1,9 +1,10 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.net.Uri
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeOption
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -26,6 +27,7 @@ data class SignUpState(
     val firstName: String = "",
     val lastName: String = "",
     val username: String = "",
+    val accountTypeSelection: AccountTypeOption? = null,
     val birthdate: Timestamp? = null,
     val nationality: String? = null,
     val profilePictureUri: Uri? = null,
@@ -56,6 +58,10 @@ class SignUpViewModel : ViewModel() {
   fun setLastName(lastName: String) = update { it.copy(lastName = lastName.trim()) }
 
   fun setUsername(username: String) = update { it.copy(username = username.trim().lowercase()) }
+
+  fun setAccountTypeSelection(selection: AccountTypeOption?) = update {
+    it.copy(accountTypeSelection = selection)
+  }
 
   fun setBirthdate(birthdate: Timestamp?) = update { it.copy(birthdate = birthdate) }
 

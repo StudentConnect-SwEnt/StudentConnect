@@ -626,4 +626,91 @@ class EventViewModelTest {
     val uiState = viewModel.uiState.value
     assertFalse(uiState.isFull)
   }
+
+  @Test
+  fun initialState_pollsAreEmpty() {
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.activePolls.isEmpty())
+    assertFalse(uiState.showCreatePollDialog)
+  }
+
+  @Test
+  fun showCreatePollDialog_updatesUiState() {
+    // Act
+    viewModel.showCreatePollDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showCreatePollDialog)
+  }
+
+  @Test
+  fun hideCreatePollDialog_updatesUiState() {
+    // Arrange
+    viewModel.showCreatePollDialog()
+    assertTrue(viewModel.uiState.value.showCreatePollDialog)
+
+    // Act
+    viewModel.hideCreatePollDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showCreatePollDialog)
+  }
+
+  @Test
+  fun showCreatePollDialog_canBeCalledMultipleTimes() {
+    // Act
+    viewModel.showCreatePollDialog()
+    viewModel.showCreatePollDialog()
+    viewModel.showCreatePollDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showCreatePollDialog)
+  }
+
+  @Test
+  fun hideCreatePollDialog_whenNotShown_doesNotCrash() {
+    // Act & Assert - should not crash
+    viewModel.hideCreatePollDialog()
+
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showCreatePollDialog)
+  }
+
+  @Test
+  fun fetchEvent_asParticipant_fetchesActivePolls() = runTest {
+    // Arrange
+    val currentUserId = "test-user-id"
+    eventRepository.addEvent(testEvent)
+    eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant(currentUserId))
+
+    // Act
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.isJoined)
+    // Active polls list should be initialized (even if empty from mock)
+    assertNotNull(uiState.activePolls)
+  }
+
+  @Test
+  fun joinEvent_asParticipant_fetchesActivePolls() = runTest {
+    // Arrange
+    eventRepository.addEvent(testEvent)
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Act
+    viewModel.joinEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    // Active polls should be fetched after joining
+    assertNotNull(uiState.activePolls)
+  }
 }

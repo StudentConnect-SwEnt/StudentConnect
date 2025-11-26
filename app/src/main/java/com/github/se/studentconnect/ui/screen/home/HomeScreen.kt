@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -117,6 +119,121 @@ private object HomeScreenConstants {
   const val PAGER_HOME_PAGE = 1
 }
 
+/** Test tags for HomeScreen components. */
+object HomeScreenTestTags {
+  const val TAB_SELECTOR = "tab_selector"
+  const val TAB_INDICATOR = "tab_indicator"
+  const val TAB_FOR_YOU = "tab_for_you"
+  const val TAB_EVENTS = "tab_events"
+  const val TAB_DISCOVER = "tab_discover"
+}
+
+/** Sliding tab selector that displays three tabs: For You, Events, and Discover. */
+@Composable
+fun SlidingTabSelector(
+    selectedTab: HomeTabMode,
+    onTabSelected: (HomeTabMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  val tabs = HomeTabMode.entries
+  val selectedIndex = tabs.indexOf(selectedTab)
+  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate responsive padding based on screen width
+  val horizontalPadding = (screenWidth * 0.04f).coerceIn(12.dp, 24.dp)
+  val verticalPadding = (screenWidth * 0.02f).coerceIn(6.dp, 12.dp)
+
+  Box(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+              .background(
+                  color = MaterialTheme.colorScheme.surfaceVariant,
+                  shape = RoundedCornerShape(24.dp))
+              .padding(4.dp)
+              .testTag(HomeScreenTestTags.TAB_SELECTOR)) {
+        TabIndicator(selectedIndex = selectedIndex)
+        TabLabels(tabs = tabs, selectedTab = selectedTab, onTabSelected = onTabSelected)
+      }
+}
+
+@Composable
+private fun TabIndicator(selectedIndex: Int) {
+  val indicatorOffsetFraction by
+      androidx.compose.animation.core.animateFloatAsState(
+          targetValue = selectedIndex / 3f,
+          animationSpec = tween(durationMillis = 300),
+          label = "tab_indicator_offset")
+
+  androidx.compose.foundation.layout.BoxWithConstraints(
+      modifier = Modifier.fillMaxWidth().height(40.dp)) {
+        val containerWidth = maxWidth
+        Box(
+            modifier =
+                Modifier.width(containerWidth / 3f)
+                    .fillMaxHeight()
+                    .offset(x = containerWidth * indicatorOffsetFraction)
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(20.dp))
+                    .testTag(HomeScreenTestTags.TAB_INDICATOR))
+      }
+}
+
+@Composable
+private fun TabLabels(
+    tabs: List<HomeTabMode>,
+    selectedTab: HomeTabMode,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  Row(modifier = Modifier.fillMaxWidth()) {
+    tabs.forEach { tab ->
+      TabItem(tab = tab, isSelected = tab == selectedTab, onTabSelected = onTabSelected)
+    }
+  }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.TabItem(
+    tab: HomeTabMode,
+    isSelected: Boolean,
+    onTabSelected: (HomeTabMode) -> Unit
+) {
+  val tabTestTag = getTabTestTag(tab)
+  val tabStringRes = getTabStringResource(tab)
+
+  Box(
+      modifier =
+          Modifier.weight(1f).height(40.dp).clickable { onTabSelected(tab) }.testTag(tabTestTag),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(tabStringRes),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color =
+                if (isSelected) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant)
+      }
+}
+
+private fun getTabTestTag(tab: HomeTabMode): String {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> HomeScreenTestTags.TAB_FOR_YOU
+    HomeTabMode.EVENTS -> HomeScreenTestTags.TAB_EVENTS
+    HomeTabMode.DISCOVER -> HomeScreenTestTags.TAB_DISCOVER
+  }
+}
+
+private fun getTabStringResource(tab: HomeTabMode): Int {
+  return when (tab) {
+    HomeTabMode.FOR_YOU -> R.string.tab_for_you
+    HomeTabMode.EVENTS -> R.string.tab_all_events
+    HomeTabMode.DISCOVER -> R.string.tab_discover
+  }
+}
+
 /** DI-friendly overload that wires default view models and exposes callback hooks. */
 @OptIn(
     ExperimentalFoundationApi::class,
@@ -151,7 +268,8 @@ fun HomeScreen(
       onApplyFilters = viewModel::applyFilters,
       onFavoriteToggle = viewModel::toggleFavorite,
       onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
-      onClearScrollTarget = { viewModel.clearScrollTarget() })
+      onClearScrollTarget = { viewModel.clearScrollTarget() },
+      onTabSelected = { tab -> viewModel.selectTab(tab) })
 }
 
 /** Core Home screen implementation containing pager, filters, notifications, and stories. */
@@ -175,7 +293,8 @@ fun HomeScreen(
     onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
-    onClearScrollTarget: () -> Unit = {}
+    onClearScrollTarget: () -> Unit = {},
+    onTabSelected: (HomeTabMode) -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
@@ -302,35 +421,61 @@ fun HomeScreen(
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                           } else {
                             Column {
-                              FilterBar(
-                                  context = LocalContext.current,
-                                  onCalendarClick = onCalendarClick,
-                                  onApplyFilters = onApplyFilters,
-                                  showOnlyFavorites = uiState.showOnlyFavorites,
-                                  onToggleFavorites = onToggleFavoritesFilter)
-                              EventListScreen(
-                                  navController = navController,
-                                  events = uiState.events,
-                                  hasJoined = false,
-                                  listState = listState,
-                                  favoriteEventIds = favoriteEventIds,
-                                  onFavoriteToggle = onFavoriteToggle,
-                                  topContent = {
-                                    StoriesRow(
-                                        onAddStoryClick = {
-                                          cameraMode = CameraMode.STORY
-                                          coroutineScope.launch {
-                                            pagerState.animateScrollToPage(
-                                                HomeScreenConstants.PAGER_SCANNER_PAGE)
-                                          }
-                                        },
-                                        onClick = { event, seenStories ->
-                                          selectedStory = event
-                                          showStoryViewer = true
-                                          onClickStory(event, seenStories)
-                                        },
-                                        stories = uiState.subscribedEventsStories)
-                                  })
+                              SlidingTabSelector(
+                                  selectedTab = uiState.selectedTab, onTabSelected = onTabSelected)
+
+                              // Tab content pager
+                              val tabPagerState =
+                                  rememberPagerState(
+                                      initialPage = uiState.selectedTab.ordinal, pageCount = { 3 })
+
+                              // Sync tab selection with pager
+                              LaunchedEffect(uiState.selectedTab) {
+                                tabPagerState.animateScrollToPage(uiState.selectedTab.ordinal)
+                              }
+
+                              // Sync pager with tab selection (when user swipes)
+                              LaunchedEffect(tabPagerState.currentPage) {
+                                val newTab = HomeTabMode.entries[tabPagerState.currentPage]
+                                if (newTab != uiState.selectedTab) {
+                                  onTabSelected(newTab)
+                                }
+                              }
+
+                              HorizontalPager(
+                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
+                                    Column {
+                                      FilterBar(
+                                          context = LocalContext.current,
+                                          onCalendarClick = onCalendarClick,
+                                          onApplyFilters = onApplyFilters,
+                                          showOnlyFavorites = uiState.showOnlyFavorites,
+                                          onToggleFavorites = onToggleFavoritesFilter)
+                                      EventListScreen(
+                                          navController = navController,
+                                          events = uiState.events, // Same events for now
+                                          hasJoined = false,
+                                          listState = listState,
+                                          favoriteEventIds = favoriteEventIds,
+                                          onFavoriteToggle = onFavoriteToggle,
+                                          topContent = {
+                                            StoriesRow(
+                                                onAddStoryClick = {
+                                                  cameraMode = CameraMode.STORY
+                                                  coroutineScope.launch {
+                                                    pagerState.animateScrollToPage(
+                                                        HomeScreenConstants.PAGER_SCANNER_PAGE)
+                                                  }
+                                                },
+                                                onClick = { event, seenStories ->
+                                                  selectedStory = event
+                                                  showStoryViewer = true
+                                                  onClickStory(event, seenStories)
+                                                },
+                                                stories = uiState.subscribedEventsStories)
+                                          })
+                                    }
+                                  }
                             }
                           }
                         }
@@ -352,7 +497,7 @@ fun HomeScreen(
                 listState = listState,
                 events = uiState.events,
                 targetDate = targetDate,
-                topContentItemCount = 1)
+                hasTopContent = true) // Stories row is present as top content
             onClearScrollTarget()
           }
         }
@@ -875,49 +1020,75 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
 }
 
 /**
- * Scrolls to the specified date in the event list. Finds the date header and scrolls to it smoothly
- * while keeping any static content (e.g., stories row) into account.
+ * Builds an index map of date headers in the event list. This mirrors the structure of
+ * EventListScreen's LazyColumn to ensure accurate index calculation regardless of dynamic content.
  *
- * @param topContentItemCount Number of list items that appear before the first date header.
+ * @param events The list of events to analyze
+ * @param hasTopContent Whether there's a header item (e.g., stories row)
+ * @return A map from date header strings to their indices in the LazyColumn
+ */
+private fun buildDateHeaderIndexMap(events: List<Event>, hasTopContent: Boolean): Map<String, Int> {
+  if (events.isEmpty()) return emptyMap()
+
+  val sortedEvents = events.sortedBy { it.start }
+  val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
+
+  val indexMap = mutableMapOf<String, Int>()
+  var currentIndex = if (hasTopContent) 1 else 0 // Account for topContent header if present
+
+  groupedEvents.forEach { (dateHeader, eventsOnDate) ->
+    // The date header is at currentIndex
+    indexMap[dateHeader] = currentIndex
+    // Move past the header and all events in this date section
+    currentIndex += 1 + eventsOnDate.size
+  }
+
+  return indexMap
+}
+
+/**
+ * Scrolls to the specified date in the event list by finding the date header's actual position.
+ * This approach is robust to dynamic content changes (like suggestion cards) because it searches
+ * for the date header by its key rather than pre-calculating offsets.
+ *
+ * @param listState The LazyListState controlling the event list
+ * @param events The list of events being displayed
+ * @param targetDate The date to scroll to
+ * @param hasTopContent Whether there's a header item (e.g., stories row) before the event list
  */
 private suspend fun scrollToDate(
     listState: LazyListState,
-    events: List<com.github.se.studentconnect.model.event.Event>,
+    events: List<Event>,
     targetDate: Date,
-    topContentItemCount: Int = 0
+    hasTopContent: Boolean = true
 ) {
   try {
-    // Handle empty events list
-    if (events.isEmpty()) {
-      return
-    }
+    if (events.isEmpty()) return
 
-    // Group events by date header to find the target section
-    val groupedEvents =
-        events.sortedBy { it.start }.groupBy { event -> formatDateHeader(event.start) }
+    // Build the index map that mirrors EventListScreen's structure
+    val dateHeaderIndexMap = buildDateHeaderIndexMap(events, hasTopContent)
 
-    // Find the target date header
+    // Find the target date header string
     val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
 
-    // Calculate the index to scroll to
-    var currentIndex = topContentItemCount
-    for ((dateHeader, eventsOnDate) in groupedEvents) {
-      if (dateHeader == targetDateHeader) {
-        // Found the target date, scroll to it with bounds checking
-        val maxIndex = listState.layoutInfo.totalItemsCount - 1
-        val scrollIndex = minOf(currentIndex, maxIndex)
-        listState.animateScrollToItem(scrollIndex)
-        return
-      }
-      // Move to next section (header + events)
-      currentIndex += 1 + eventsOnDate.size
-    }
+    // Look up the index in our map
+    val targetIndex = dateHeaderIndexMap[targetDateHeader]
 
-    // If date not found, scroll to top
-    listState.animateScrollToItem(0)
+    if (targetIndex != null) {
+      // Ensure index is within bounds
+      val maxIndex = listState.layoutInfo.totalItemsCount - 1
+      val scrollIndex = minOf(targetIndex, maxIndex.coerceAtLeast(0))
+      listState.animateScrollToItem(scrollIndex)
+    } else {
+      // Date not found in the list, scroll to top
+      listState.animateScrollToItem(0)
+    }
   } catch (e: Exception) {
-    // Handle any unexpected errors gracefully
-    // In production, you might want to log this error
-    listState.animateScrollToItem(0)
+    // Handle any unexpected errors gracefully by scrolling to top
+    try {
+      listState.animateScrollToItem(0)
+    } catch (scrollError: Exception) {
+      // Ignore scroll errors if list is not yet initialized
+    }
   }
 }

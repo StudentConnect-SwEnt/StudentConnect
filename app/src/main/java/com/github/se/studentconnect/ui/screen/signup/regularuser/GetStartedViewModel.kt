@@ -1,13 +1,16 @@
 // From Bootcamp
 
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.github.se.studentconnect.model.authentication.AuthRepositoryFirebase
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -65,8 +68,7 @@ class GetStartedViewModel(private val repository: AuthRepository = AuthRepositor
 
   private fun getSignInOptions(context: Context) =
       GetSignInWithGoogleOption.Builder(
-              serverClientId =
-                  context.getString(com.github.se.studentconnect.R.string.default_web_client_id))
+              serverClientId = context.getString(R.string.default_web_client_id))
           .build()
 
   private fun signInRequest(signInOptions: GetSignInWithGoogleOption) =
@@ -108,13 +110,13 @@ class GetStartedViewModel(private val repository: AuthRepository = AuthRepositor
         }
       } catch (e: GetCredentialCancellationException) {
         // User cancelled the sign-in flow
-        android.util.Log.e("GetStartedViewModel", "Sign-in cancelled by user", e)
+        Log.e("GetStartedViewModel", "Sign-in cancelled by user", e)
         _uiState.update {
           it.copy(isLoading = false, errorMsg = "Sign-in cancelled", signedOut = true, user = null)
         }
-      } catch (e: androidx.credentials.exceptions.GetCredentialException) {
+      } catch (e: GetCredentialException) {
         // Other credential errors - usually SHA-1 fingerprint not registered
-        android.util.Log.e("GetStartedViewModel", "Credential error: ${e.javaClass.simpleName}", e)
+        Log.e("GetStartedViewModel", "Credential error: ${e.javaClass.simpleName}", e)
         _uiState.update {
           it.copy(
               isLoading = false,
@@ -125,7 +127,7 @@ class GetStartedViewModel(private val repository: AuthRepository = AuthRepositor
         }
       } catch (e: Exception) {
         // Unexpected errors
-        android.util.Log.e("GetStartedViewModel", "Unexpected error during sign-in", e)
+        Log.e("GetStartedViewModel", "Unexpected error during sign-in", e)
         _uiState.update {
           it.copy(
               isLoading = false,

@@ -5,7 +5,13 @@ package com.github.se.studentconnect.model.media
  * purposes.
  */
 object MediaRepositoryProvider {
-  private val _repository: MediaRepository = MediaRepositoryFirebaseStorage()
+  private val firebaseRepository: MediaRepository by lazy { MediaRepositoryFirebaseStorage() }
 
-  var repository: MediaRepository = _repository
+  private var _repository: MediaRepository? = null
+
+  var repository: MediaRepository
+    get() = _repository ?: firebaseRepository
+    set(value) {
+      _repository = value
+    }
 }

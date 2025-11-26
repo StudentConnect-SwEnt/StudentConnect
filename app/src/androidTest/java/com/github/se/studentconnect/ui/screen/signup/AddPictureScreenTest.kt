@@ -14,6 +14,8 @@ import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.screen.signup.regularuser.AddPictureScreen
+import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.io.File
 import java.io.FileOutputStream
@@ -50,6 +52,7 @@ class AddPictureScreenTest {
   fun addPictureScreen_selectingPhoto_enablesContinueAndShowsSelectionHint() {
     val viewModel = SignUpViewModel()
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+    val tempFile = createTempImageFile(ctx.cacheDir)
 
     composeTestRule.setContent {
       AppTheme {
@@ -57,19 +60,23 @@ class AddPictureScreenTest {
       }
     }
 
-    composeTestRule.runOnIdle {
-      viewModel.setProfilePictureUri(Uri.parse("file://sample/photo.png"))
-    }
+    composeTestRule.runOnIdle { viewModel.setProfilePictureUri(Uri.fromFile(tempFile)) }
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule
+        .onNodeWithText(
+            ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
+        .assertExists()
     composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
+
+    tempFile.delete()
   }
 
   @Test
   fun addPictureScreen_existingSelection_displaysChangePrompt() {
-    val viewModel =
-        SignUpViewModel().apply { setProfilePictureUri(Uri.parse("file://already/there.jpg")) }
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val tempFile = createTempImageFile(context.cacheDir)
+    val viewModel = SignUpViewModel().apply { setProfilePictureUri(Uri.fromFile(tempFile)) }
 
     composeTestRule.setContent {
       AppTheme {
@@ -77,11 +84,16 @@ class AddPictureScreenTest {
       }
     }
 
-    val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-    composeTestRule.onNodeWithText(ctx.getString(R.string.text_photo_selected)).assertExists()
+    composeTestRule.waitForIdle()
     composeTestRule
-        .onNodeWithContentDescription(ctx.getString(R.string.content_description_upload_photo))
+        .onNodeWithText(
+            context.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
         .assertExists()
+    composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.content_description_upload_photo))
+        .assertExists()
+
+    tempFile.delete()
   }
 
   @Test

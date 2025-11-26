@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -53,6 +55,7 @@ import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
 import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
 import com.github.se.studentconnect.ui.screen.activities.days
@@ -74,6 +77,7 @@ object EventViewTestTags {
   const val INFO_SECTION = "event_view_info_section"
   const val COUNTDOWN_TIMER = "event_view_countdown_timer"
   const val COUNTDOWN_DAYS = "event_view_countdown_days"
+  const val TAGS_SECTION = "event_view_tags"
   const val DESCRIPTION_TEXT = "event_view_description_text"
   const val CHAT_BUTTON = "event_view_chat_button"
   const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
@@ -96,6 +100,9 @@ object EventViewTestTags {
   const val JOIN_BUTTON = "event_view_join_button"
   const val PARTICIPANTS_INFO = "event_view_participants_info"
   const val BASE_SCREEN = "event_view_base_screen"
+  const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
+  const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
+  const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
 }
 
 /** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
@@ -110,6 +117,7 @@ fun EventView(
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
+  val isJoined = uiState.isJoined
   val showQrScanner = uiState.showQrScanner
   val validationResult = uiState.ticketValidationResult
 
@@ -124,6 +132,14 @@ fun EventView(
         eventViewModel = eventViewModel,
         onDismiss = { eventViewModel.hideQrScanner() },
         validationResult = validationResult)
+  }
+
+  // Create Poll Dialog
+  if (uiState.showCreatePollDialog && event != null) {
+    CreatePollDialog(
+        eventUid = event.uid,
+        onDismiss = { eventViewModel.hideCreatePollDialog() },
+        onPollCreated = { event.let { eventViewModel.fetchActivePolls(it.uid) } })
   }
 
   Scaffold(
@@ -141,6 +157,21 @@ fun EventView(
                       Icon(
                           imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                           contentDescription = stringResource(R.string.content_description_back))
+                    }
+              }
+            },
+            actions = {
+              // View Polls button - only show if user is joined or is owner
+              if (isJoined ||
+                  (event != null && AuthenticationProvider.currentUser == event.ownerId)) {
+                IconButton(
+                    onClick = {
+                      event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
+                    },
+                    modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
+                      Icon(
+                          painter = painterResource(id = R.drawable.ic_poll),
+                          contentDescription = stringResource(R.string.button_view_polls))
                     }
               }
             },
@@ -166,8 +197,8 @@ fun EventView(
               AttendeesList(
                   paddingValues = paddingValues,
                   pagerState = pagerState,
-                  context = context,
-                  uiState = uiState)
+                  uiState = uiState,
+                  navController = navController)
           1 ->
               BaseEventView(
                   paddingValues = paddingValues,
@@ -270,6 +301,16 @@ private fun BaseEventView(
             },
             modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
 
+        // Poll notification for participants (not organizers)
+        if (isJoined &&
+            uiState.activePolls.isNotEmpty() &&
+            AuthenticationProvider.currentUser != event.ownerId) {
+          PollNotificationCard(
+              onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+              onDismissClick = { /* TODO: Add dismiss functionality if needed */},
+              modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+        }
+
         ChatButton()
       }
 }
@@ -278,8 +319,8 @@ private fun BaseEventView(
 private fun AttendeesList(
     paddingValues: PaddingValues,
     pagerState: PagerState,
-    context: Context,
-    uiState: EventUiState
+    uiState: EventUiState,
+    navController: NavHostController,
 ) {
   val coroutineScope = rememberCoroutineScope()
   val isJoined = uiState.isJoined
@@ -311,7 +352,7 @@ private fun AttendeesList(
           AttendeeItem(
               user,
               false,
-              { DialogNotImplemented(context = context) },
+              { navController.navigate(Route.visitorProfile(user.userId)) },
               modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
         }
       }
@@ -320,7 +361,7 @@ private fun AttendeesList(
           AttendeeItem(
               owner,
               true,
-              { DialogNotImplemented(context = context) },
+              { navController.navigate(Route.visitorProfile(owner.userId)) },
               modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
         }
       }
@@ -330,7 +371,7 @@ private fun AttendeesList(
             AttendeeItem(
                 a,
                 false,
-                { DialogNotImplemented(context = context) },
+                { navController.navigate(Route.visitorProfile(a.userId)) },
                 modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
       }
     }
@@ -391,6 +432,9 @@ private fun InfoEvent(
                 }
           }
         }
+        if (event is Event.Public && event.tags.isNotEmpty()) {
+          EventTagsRow(tags = event.tags)
+        }
         Text(text = stringResource(R.string.event_label_description), style = titleTextStyle())
         Text(
             text = event.description,
@@ -398,6 +442,37 @@ private fun InfoEvent(
         Spacer(modifier = Modifier.height(10.dp))
         ParticipantsInfo(event = event, participantCount = participantCount, onClickParticipants)
       }
+}
+
+/**
+ * Displays the tags associated with a public event using pill-shaped chips.
+ *
+ * @param tags List of tag labels to display
+ * @param modifier Modifier applied to the row container
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EventTagsRow(tags: List<String>, modifier: Modifier = Modifier) {
+  Column(modifier = modifier.fillMaxWidth().testTag(EventViewTestTags.TAGS_SECTION)) {
+    Spacer(modifier = Modifier.height(8.dp))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          tags.forEach { tag ->
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer) {
+                  Text(
+                      text = tag,
+                      style = MaterialTheme.typography.bodyMedium,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                }
+          }
+        }
+  }
 }
 
 @Composable
@@ -494,12 +569,13 @@ fun EventActionButtons(
   val currentUserId = AuthenticationProvider.currentUser
   val isOwner = currentUserId == currentEvent.ownerId
 
-  Row(
+  FlowRow(
       modifier =
           modifier
               .fillMaxWidth()
               .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+      verticalArrangement = Arrangement.spacedBy(4.dp),
   ) {
     if (isOwner) {
       // Owner-specific buttons
@@ -542,6 +618,18 @@ private fun OwnerActionButtons(
         onClick = { DialogNotImplemented(context) },
         modifier = Modifier.testTag("event_view_invite_friends_button"))
   }
+
+  Button(
+      onClick = { eventViewModel.showCreatePollDialog() },
+      modifier =
+          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.CREATE_POLL_BUTTON)) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_poll),
+            contentDescription = stringResource(R.string.content_description_add_poll),
+            modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(stringResource(R.string.button_create_poll))
+      }
 
   Button(
       onClick = { eventViewModel.showQrScanner() },
@@ -859,3 +947,43 @@ private fun getValidationTestTag(result: TicketValidationResult) =
       is TicketValidationResult.Invalid -> EventViewTestTags.VALIDATION_RESULT_INVALID
       is TicketValidationResult.Error -> EventViewTestTags.VALIDATION_RESULT_ERROR
     }
+
+@Composable
+private fun PollNotificationCard(
+    onVoteNowClick: () -> Unit,
+    onDismissClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Card(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(start = screenPadding, end = screenPadding, top = 8.dp, bottom = 8.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.poll_notification_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.poll_notification_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+              }
+              Button(
+                  onClick = onVoteNowClick,
+                  colors =
+                      ButtonDefaults.buttonColors(
+                          containerColor = MaterialTheme.colorScheme.primary)) {
+                    Text(stringResource(R.string.poll_notification_vote))
+                  }
+            }
+      }
+}
