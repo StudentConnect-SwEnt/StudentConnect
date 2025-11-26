@@ -85,9 +85,10 @@ class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
         val firebaseUser = Firebase.auth.currentUser
 
         if (firebaseUser == null) {
-          // No Firebase user - needs authentication
-          android.util.Log.d("MainViewModel", "No authenticated user - showing GetStarted")
-          _uiState.update { it.copy(appState = AppState.AUTHENTICATION) }
+          _uiState.update {
+            it.copy(
+                appState = AppState.AUTHENTICATION, currentUserId = null, currentUserEmail = null)
+          }
         } else {
           // Firebase user exists - check if profile exists in Firestore
           android.util.Log.d("MainViewModel", "Found authenticated user: ${firebaseUser.uid}")
@@ -109,7 +110,8 @@ class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
    * @param userId The Firebase user ID to check
    * @param email The user's email address
    */
-  private suspend fun checkUserProfile(userId: String, email: String) {
+  private suspend fun checkUserProfile(userId: String?, email: String?) {
+    if (userId.isNullOrEmpty()) return
     val existingUser = userRepository.getUserById(userId)
     if (existingUser != null) {
       android.util.Log.d("MainViewModel", "User profile found - showing main app")
@@ -149,6 +151,12 @@ class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
   fun onUserProfileCreated() {
     android.util.Log.d("MainViewModel", "User profile created - showing main app")
     _uiState.update { it.copy(appState = AppState.MAIN_APP) }
+  }
+
+  fun onLogoutComplete() {
+    _uiState.update {
+      it.copy(appState = AppState.AUTHENTICATION, currentUserId = null, currentUserEmail = null)
+    }
   }
 }
 

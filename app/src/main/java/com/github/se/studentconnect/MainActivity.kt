@@ -8,8 +8,6 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -45,14 +43,9 @@ import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditBioScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
-import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
+import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
@@ -179,6 +172,17 @@ fun MainContent() {
       }
     }
     AppState.AUTHENTICATION -> {
+      LaunchedEffect(Unit) {
+        if (Firebase.auth.currentUser != null) {
+          Log.d("MainActivity", "Performing delayed Safe SignOut.")
+          try {
+            Firebase.auth.signOut()
+          } catch (e: Exception) {
+            Log.e("MainActivity", "SignOut error", e)
+          }
+        }
+      }
+
       GetStartedScreen(
           onSignedIn = { uid ->
             val firebaseUser = Firebase.auth.currentUser
@@ -187,14 +191,16 @@ fun MainContent() {
     }
     AppState.ONBOARDING -> {
       if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
-        Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
-        SignUpOrchestrator(
+        OnboardingNavigation(
             firebaseUserId = uiState.currentUserId!!,
             email = uiState.currentUserEmail!!,
             userRepository = userRepository,
-            onSignUpComplete = { user ->
-              Log.d("MainActivity", "Onboarding complete: ${user.userId}")
-              viewModel.onUserProfileCreated()
+            onOnboardingComplete = { isLogout ->
+              if (isLogout) {
+                viewModel.onLogoutComplete()
+              } else {
+                viewModel.onUserProfileCreated()
+              }
             })
       }
     }
