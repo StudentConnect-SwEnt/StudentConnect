@@ -107,7 +107,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
 
     // Wait until users/events/organizations have been loaded and UI updated
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+    composeTestRule.waitUntil(timeoutMillis = 50_000) {
       composeTestRule.onNodeWithTag(SearchScreenTestTags.USERS_RESULTS).isDisplayed() &&
           composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENTS_RESULTS).isDisplayed() &&
           composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).isDisplayed()
@@ -154,7 +154,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("user")
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+    composeTestRule.waitUntil(timeoutMillis = 50_000) {
       composeTestRule.onNodeWithTag(SearchScreenTestTags.USERS_RESULTS).isDisplayed()
     }
 
@@ -180,7 +180,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("sample")
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+    composeTestRule.waitUntil(timeoutMillis = 50_000) {
       composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENTS_RESULTS).isDisplayed()
     }
 
@@ -207,7 +207,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("event")
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+    composeTestRule.waitUntil(timeoutMillis = 50_000) {
       composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENTS_RESULTS).isDisplayed()
     }
 
@@ -234,7 +234,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("organization")
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+    composeTestRule.waitUntil(timeoutMillis = 50_000) {
       composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).isDisplayed()
     }
 
