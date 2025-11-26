@@ -255,6 +255,9 @@ class FriendsListScreenAndroidTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Search friends…").performTextInput("Bob")
+
+    // Wait for debounce delay (300ms) plus buffer
+    Thread.sleep(400)
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Bob Wilson").assertIsDisplayed()
@@ -303,6 +306,9 @@ class FriendsListScreenAndroidTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Search friends…").performTextInput("johndoe")
+
+    // Wait for debounce delay (300ms) plus buffer
+    Thread.sleep(400)
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
@@ -328,6 +334,9 @@ class FriendsListScreenAndroidTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Search friends…").performTextInput("JOHN")
+
+    // Wait for debounce delay (300ms) plus buffer
+    Thread.sleep(400)
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
