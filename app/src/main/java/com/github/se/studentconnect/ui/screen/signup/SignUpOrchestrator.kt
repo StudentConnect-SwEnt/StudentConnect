@@ -62,7 +62,8 @@ fun SignUpOrchestrator(
     email: String,
     userRepository: UserRepository,
     onSignUpComplete: (User) -> Unit,
-    signUpViewModel: SignUpViewModel = viewModel()
+    signUpViewModel: SignUpViewModel = viewModel(),
+    onBackToSelection: () -> Unit = {} // Added callback
 ) {
   val signUpState by signUpViewModel.state
   var selectedExperienceFilter by remember { mutableStateOf("Sports") }
@@ -92,9 +93,10 @@ fun SignUpOrchestrator(
           viewModel = signUpViewModel,
           userRepository = userRepository,
           onContinue = { signUpViewModel.nextStep() },
-          // No back navigation from BasicInfo since user is already authenticated
-          // and committed to onboarding flow
-          onBack = { /* No-op: can't go back to auth after authentication */})
+          onBack = {
+            // GO BACK TO SELECTION SCREEN
+            onBackToSelection()
+          })
     }
     SignUpStep.Nationality -> {
       NationalityScreen(
