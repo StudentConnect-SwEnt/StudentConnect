@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -19,6 +20,7 @@ import com.github.se.studentconnect.model.notification.NotificationRepositoryLoc
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -76,6 +78,12 @@ class HomeScreenUITest {
 
   @Before
   fun setup() {
+    // Initialize Firebase first (before accessing any repositories)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+
     // Set test user ID to match the notifications
     AuthenticationProvider.testUserId = "user123"
 

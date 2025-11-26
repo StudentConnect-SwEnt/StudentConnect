@@ -326,15 +326,9 @@ constructor(
           val tabMatch =
               when (currentTab) {
                 HomeTabMode.FOR_YOU -> {
-                  // Show events that have at least one tag matching user hobbies
-                  if (userHobbies.isEmpty()) {
-                    true // If user has no hobbies, show all events
-                  } else {
-                    val eventTags = publicEvent.tags
-                    eventTags.any { eventTag ->
-                      userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
-                    }
-                  }
+                  // FOR_YOU shows all events, sorted by recommendation score
+                  // Don't filter here - let the scoring algorithm rank everything
+                  true
                 }
                 HomeTabMode.EVENTS -> {
                   // Show all events

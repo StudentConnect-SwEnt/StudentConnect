@@ -5,17 +5,22 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +35,21 @@ class HomeScreenFilteringTest {
 
   companion object {
     private const val NO_EVENTS_TEXT = "No events found matching your criteria."
+  }
+
+  @Before
+  fun setup() {
+    // Initialize Firebase first (before accessing any repositories)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+    AuthenticationProvider.testUserId = "testUser123"
+  }
+
+  @After
+  fun tearDown() {
+    AuthenticationProvider.testUserId = null
   }
 
   private fun createTestEvent(

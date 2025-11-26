@@ -6,15 +6,20 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,6 +31,21 @@ import org.robolectric.annotation.Config
 class HomeScreenStoriesTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    // Initialize Firebase first (before accessing any repositories)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+    AuthenticationProvider.testUserId = "testUser123"
+  }
+
+  @After
+  fun tearDown() {
+    AuthenticationProvider.testUserId = null
+  }
 
   // Fake repositories for testing
   private val fakeEventRepository =
