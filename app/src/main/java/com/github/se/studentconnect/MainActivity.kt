@@ -316,8 +316,8 @@ internal fun MainAppContent(
                 userRepository = userRepository,
                 onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
                 onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
-                onNavigateToFriendsList = {
-                  navController.navigate(ProfileRoutes.friendsList(currentUserId))
+                onNavigateToFriendsList = { userId ->
+                  navController.navigate(ProfileRoutes.friendsList(userId))
                 })
           }
 

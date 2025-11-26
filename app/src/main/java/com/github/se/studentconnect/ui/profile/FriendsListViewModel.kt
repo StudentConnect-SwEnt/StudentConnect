@@ -6,14 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.repository.UserRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 /** ViewModel for the friends list screen. Loads and manages the list of friends. */
+@OptIn(FlowPreview::class)
 class FriendsListViewModel(
     private val userRepository: UserRepository,
     private val friendsRepository: FriendsRepository,
@@ -37,6 +40,7 @@ class FriendsListViewModel(
 
   init {
     loadFriends()
+    setupDebouncedSearch()
   }
 
   /** Loads all friends for the given user. */
@@ -51,7 +55,13 @@ class FriendsListViewModel(
         val friendUsers =
             friendIds
                 .map { friendId ->
-                  async { runCatching { userRepository.getUserById(friendId) }.getOrNull() }
+                  async {
+                    runCatching { userRepository.getUserById(friendId) }
+                        .onFailure { e ->
+                          Log.w(TAG, "Failed to load friend with ID: $friendId", e)
+                        }
+                        .getOrNull()
+                  }
                 }
                 .awaitAll()
                 .filterNotNull()
@@ -67,10 +77,16 @@ class FriendsListViewModel(
     }
   }
 
-  /** Updates the search query and filters the friends list. */
+  /** Sets up debounced search to reduce filtering overhead. */
+  private fun setupDebouncedSearch() {
+    viewModelScope.launch {
+      _searchQuery.debounce(SEARCH_DEBOUNCE_MILLIS).collect { query -> filterFriends(query) }
+    }
+  }
+
+  /** Updates the search query. Filtering is debounced to avoid excessive work. */
   fun updateSearchQuery(query: String) {
     _searchQuery.value = query
-    filterFriends(query)
   }
 
   private fun filterFriends(query: String) {
@@ -87,5 +103,6 @@ class FriendsListViewModel(
 
   companion object {
     private const val TAG = "FriendsListViewModel"
+    private const val SEARCH_DEBOUNCE_MILLIS = 300L
   }
 }

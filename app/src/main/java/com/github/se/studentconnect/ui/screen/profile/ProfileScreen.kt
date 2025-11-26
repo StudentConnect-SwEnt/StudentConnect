@@ -40,7 +40,7 @@ import com.google.firebase.firestore.FirebaseFirestore
  * @param viewModel ViewModel for profile screen
  * @param onNavigateToSettings Callback to navigate to settings/edit profile screen
  * @param onNavigateToUserCard Callback to navigate to user card screen
- * @param onNavigateToFriendsList Callback to navigate to friends list screen
+ * @param onNavigateToFriendsList Callback to navigate to friends list screen with userId parameter
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -55,7 +55,7 @@ fun ProfileScreen(
     },
     onNavigateToSettings: (() -> Unit)? = null,
     onNavigateToUserCard: (() -> Unit)? = null,
-    onNavigateToFriendsList: (() -> Unit)? = null,
+    onNavigateToFriendsList: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()
@@ -105,7 +105,7 @@ fun ProfileScreen(
                   user = currentUser,
                   stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
                   onFriendsClick = {
-                    onNavigateToFriendsList?.invoke()
+                    onNavigateToFriendsList?.invoke(currentUserId)
                         ?: Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
                   },
                   onEventsClick = {
