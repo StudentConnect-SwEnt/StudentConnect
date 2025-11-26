@@ -244,7 +244,10 @@ private fun getTabStringResource(tab: HomeTabMode): Int {
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
-    viewModel: HomePageViewModel = viewModel(),
+    viewModel: HomePageViewModel = run {
+      val context = LocalContext.current
+      viewModel { HomePageViewModel(context = context, locationRepository = null) }
+    },
     notificationViewModel: NotificationViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
     onQRScannerClosed: () -> Unit = {},
