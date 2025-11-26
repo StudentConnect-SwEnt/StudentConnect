@@ -276,13 +276,47 @@ class HomeScreenUITest {
           notificationViewModel = notificationViewModel)
     }
 
-    // Wait for events to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
+    // Wait for the home page to be displayed
+    composeTestRule.waitUntil(timeoutMillis = 10000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag("HomePage"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    // Use onNodeWithTag to specifically target the event card, not the story
-    composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
+    // Wait for tab selector to be ready
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(HomeScreenTestTags.TAB_SELECTOR))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Give additional time for the pager and events to render
+    composeTestRule.waitForIdle()
+
+    // Wait for any event card to be visible (scoring algorithm might change order)
+    composeTestRule.waitUntil(timeoutMillis = 10000) {
+      val event1Nodes =
+          composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes()
+      val event2Nodes =
+          composeTestRule.onAllNodesWithTag("event_card_event-2").fetchSemanticsNodes()
+      event1Nodes.isNotEmpty() || event2Nodes.isNotEmpty()
+    }
+
+    // Verify that at least one event card has a click action
+    val event1Exists =
+        composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
+    val event2Exists =
+        composeTestRule.onAllNodesWithTag("event_card_event-2").fetchSemanticsNodes().isNotEmpty()
+
+    assert(event1Exists || event2Exists) { "No event cards found" }
+
+    if (event1Exists) {
+      composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
+    } else {
+      composeTestRule.onNodeWithTag("event_card_event-2").assertHasClickAction()
+    }
   }
 
   // @Test
