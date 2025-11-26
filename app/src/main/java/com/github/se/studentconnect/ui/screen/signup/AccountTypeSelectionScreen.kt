@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup.organization
+package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
@@ -32,7 +32,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,15 +53,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
-import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
-import com.github.se.studentconnect.ui.screen.signup.SignUpMediumSpacer
-import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
-import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
-import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
-import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
-import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
-import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import kotlinx.coroutines.delay
 
 /**
@@ -116,19 +109,15 @@ enum class AccountTypeOption(
  * Animated account type selection screen for onboarding. Users can toggle between a "Regular User"
  * and "Organization" card with satisfying spring-based transitions and contextual details.
  *
- * @param viewModel Shared [SignUpViewModel] that stores the selected account type.
  * @param onContinue Invoked when the user confirms their choice.
  * @param onBack Invoked when the back button is pressed.
  */
 @Composable
-fun AccountTypeSelectionScreen(
-    viewModel: SignUpViewModel,
-    onContinue: (AccountTypeOption) -> Unit,
-    onBack: () -> Unit
-) {
-  val state by viewModel.state
-  val selectedType = state.accountTypeSelection
-  // Calculate responsive sizing/spacing metrics for animated card transitions
+fun AccountTypeSelectionScreen(onContinue: (AccountTypeOption) -> Unit, onBack: () -> Unit) {
+  // FIX: Use LOCAL state for selection. This ensures clicking a card
+  // only expands the UI and doesn't trigger navigation immediately.
+  var selectedOption by remember { mutableStateOf<AccountTypeOption?>(null) }
+
   val metrics = rememberAccountTypeMetrics()
   val accentColor = MaterialTheme.colorScheme.primary
 
@@ -152,9 +141,9 @@ fun AccountTypeSelectionScreen(
           AccountTypeOption.entries.forEachIndexed { index, option ->
             AccountTypeAnimatedCard(
                 option = option,
-                isSelected = selectedType == option,
-                otherSelected = selectedType != null && selectedType != option,
-                onSelect = { viewModel.setAccountTypeSelection(it) },
+                isSelected = selectedOption == option,
+                otherSelected = selectedOption != null && selectedOption != option,
+                onSelect = { selectedOption = it }, // Updates local UI only
                 metrics = metrics,
                 accentColor = accentColor)
             if (index != AccountTypeOption.entries.lastIndex) {
@@ -165,8 +154,9 @@ fun AccountTypeSelectionScreen(
 
         SignUpPrimaryButton(
             text = stringResource(R.string.button_continue),
-            onClick = { selectedType?.let(onContinue) },
-            enabled = selectedType != null,
+            // FIX: Only trigger navigation when this button is clicked
+            onClick = { selectedOption?.let { onContinue(it) } },
+            enabled = selectedOption != null,
             modifier = Modifier.align(Alignment.CenterHorizontally))
       }
 }
