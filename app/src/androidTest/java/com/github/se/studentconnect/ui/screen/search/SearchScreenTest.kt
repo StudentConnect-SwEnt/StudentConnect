@@ -26,7 +26,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.not
 
 class SearchScreenTest {
 
@@ -196,7 +195,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENT_COLUMN).assertIsDisplayed()
     composeTestRule
         .onAllNodesWithTag(SearchScreenTestTags.EVENT_COLUMN_CARD)
-        .assertAll(not(hasText("Sample Event 0")))
+        .assertAll(!hasText("Sample Event 0"))
         .assertAll(hasClickAction())
         .onFirst()
         .assertIsDisplayed()
@@ -223,7 +222,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENT_COLUMN).assertIsDisplayed()
     composeTestRule
         .onAllNodesWithTag(SearchScreenTestTags.EVENT_COLUMN_CARD)
-        .assertAll(not(hasText("Sample Event 0")))
+        .assertAll(!hasText("Sample Event 0"))
         .assertAll(hasClickAction())
         .onFirst()
         .assertIsDisplayed()
@@ -250,7 +249,6 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_COLUMN).assertIsDisplayed()
     composeTestRule
         .onAllNodesWithTag(SearchScreenTestTags.ORGANIZATION_COLUMN_CARD)
-        .assertAll(not(hasText("Sample Event 0")))
         .assertAll(hasClickAction())
         .onFirst()
         .assertIsDisplayed()
