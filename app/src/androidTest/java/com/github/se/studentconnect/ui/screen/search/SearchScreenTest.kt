@@ -227,32 +227,34 @@ class SearchScreenTest {
         .assertIsDisplayed()
   }
 
-    @Test
-    fun testSearchOrganizationDisplayed() {
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).performTextInput("organization")
-        composeTestRule.waitForIdle()
+  @Test
+  fun testSearchOrganizationDisplayed() {
+    composeTestRule
+        .onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD)
+        .performTextInput("organization")
+    composeTestRule.waitForIdle()
 
-        composeTestRule.waitUntil(timeoutMillis = 5_000) {
-            composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).isDisplayed()
-        }
-
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_SCREEN).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.BACK_BUTTON).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.USERS_RESULTS).assertIsNotDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENTS_RESULTS).assertIsNotDisplayed()
-
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_TITLE).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_ROW).assertIsNotDisplayed()
-        composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_COLUMN).assertIsDisplayed()
-        composeTestRule
-            .onAllNodesWithTag(SearchScreenTestTags.ORGANIZATION_COLUMN_CARD)
-            .assertAll(not(hasText("Sample Event 0")))
-            .assertAll(hasClickAction())
-            .onFirst()
-            .assertIsDisplayed()
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).isDisplayed()
     }
+
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_SCREEN).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.BACK_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.USERS_RESULTS).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.EVENTS_RESULTS).assertIsNotDisplayed()
+
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_RESULTS).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_ROW).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.ORGANIZATIONS_COLUMN).assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithTag(SearchScreenTestTags.ORGANIZATION_COLUMN_CARD)
+        .assertAll(not(hasText("Sample Event 0")))
+        .assertAll(hasClickAction())
+        .onFirst()
+        .assertIsDisplayed()
+  }
   // Test to be added when organization logic is finished
   /*@Test
   fun testSearchNothingDisplayed() {
