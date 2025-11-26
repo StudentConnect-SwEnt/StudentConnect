@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -158,24 +159,38 @@ fun BrandOrganizationContent(
 }
 
 /**
- * Composable for the Brand/Organization sign-up screen.
+ * Composable for the Brand/Organization sign-up screen (Social Links Step).
  *
+ * @param viewModel The view model managing the organization sign-up state.
  * @param onSkip Callback when the skip button is pressed.
  * @param onContinue Callback when the continue button is pressed.
  * @param onBack Callback when the back button is pressed.
  */
 @Composable
-fun BrandOrganizationScreen(onSkip: () -> Unit, onContinue: () -> Unit, onBack: () -> Unit) {
+fun BrandOrganizationScreen(
+    viewModel: OrganizationSignUpViewModel,
+    onSkip: () -> Unit,
+    onContinue: () -> Unit,
+    onBack: () -> Unit
+) {
+  val state by viewModel.state
+
   BrandOrganizationContent(
-      website = "",
-      onWebsiteChange = { /* TODO: hook to viewModel when fields exist */},
-      insta = "",
-      onInstaChange = {},
-      x = "",
-      onXChange = {},
-      linkedin = "",
-      onLinkedinChange = {},
-      onBack = onBack,
-      onSkip = onSkip,
-      onContinue = onContinue)
+      website = state.websiteUrl,
+      onWebsiteChange = { viewModel.setWebsite(it) },
+      insta = state.instagramHandle,
+      onInstaChange = { viewModel.setInstagram(it) },
+      x = state.xHandle,
+      onXChange = { viewModel.setX(it) },
+      linkedin = state.linkedinUrl,
+      onLinkedinChange = { viewModel.setLinkedin(it) },
+      onBack = { onBack() },
+      onSkip = {
+        viewModel.setWebsite("")
+        viewModel.setInstagram("")
+        viewModel.setX("")
+        viewModel.setLinkedin("")
+        onSkip()
+      },
+      onContinue = { onContinue() })
 }
