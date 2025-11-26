@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.signup.organization
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
@@ -9,28 +10,35 @@ import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayo
 import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayoutTags
 import com.github.se.studentconnect.ui.screen.signup.regularuser.DescriptionLayoutTextConfig
 
-/** Organization description screen reusing DescriptionLayout to avoid duplication. */
+/**
+ * Organization description screen.
+ *
+ * This screen wraps the reusable [DescriptionLayout] to collect the organization's description. It
+ * connects to the [OrganizationSignUpViewModel] to manage state.
+ */
 @Composable
 fun OrganizationDescriptionScreen(
-    about: String,
-    onAboutChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {},
-    onContinueClick: () -> Unit = {}
+    viewModel: OrganizationSignUpViewModel,
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
+  val state by viewModel.state
+
   OrganizationDescriptionContent(
-      about = about,
-      onAboutChange = onAboutChange,
-      onBackClick = onBackClick,
-      onSkipClick = onSkipClick,
-      onContinueClick = onContinueClick,
-      modifier = modifier)
+      about = state.description,
+      onAboutChange = { viewModel.setDescription(it) },
+      modifier = modifier,
+      onBackClick = { onBack() },
+      onContinueClick = { onContinue() },
+      onSkipClick = {})
 }
 
 /**
- * Content for the organization description step. Delegates to the reusable DescriptionLayout and
- * provides the proper string resources and test tags.
+ * Stateless content for the organization description step.
+ *
+ * Delegates to the reusable [DescriptionLayout] to keep UI consistent with the Regular User flow,
+ * while injecting organization-specific strings and tags.
  */
 @Composable
 fun OrganizationDescriptionContent(
@@ -41,7 +49,6 @@ fun OrganizationDescriptionContent(
     modifier: Modifier = Modifier,
     onSkipClick: () -> Unit = {},
 ) {
-  // Delegate to the shared DescriptionLayout to keep UI consistent and avoid duplication.
   DescriptionLayout(
       modifier = modifier,
       tags =
