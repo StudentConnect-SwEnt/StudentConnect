@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.repository
 
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -15,15 +15,15 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
     private const val COLLECTION_NAME = "organizations"
   }
 
-  override suspend fun saveOrganization(organization: OrganizationModel) {
+  override suspend fun saveOrganization(organization: Organization) {
     db.collection(COLLECTION_NAME).document(organization.id).set(organization.toMap()).await()
   }
 
-  override suspend fun getOrganizationById(organizationId: String): OrganizationModel? {
+  override suspend fun getOrganizationById(organizationId: String): Organization? {
     val document = db.collection(COLLECTION_NAME).document(organizationId).get().await()
 
     return if (document.exists()) {
-      OrganizationModel.fromMap(document.data ?: emptyMap())
+      Organization.fromMap(document.data ?: emptyMap())
     } else {
       null
     }

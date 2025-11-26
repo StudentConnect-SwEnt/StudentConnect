@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.repository
 
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 
 /**
  * Repository interface for Organization operations.
@@ -14,7 +14,7 @@ interface OrganizationRepository {
    *
    * @param organization The OrganizationModel to save.
    */
-  suspend fun saveOrganization(organization: OrganizationModel)
+  suspend fun saveOrganization(organization: Organization)
 
   /**
    * Retrieves an organization by its unique identifier.
@@ -22,7 +22,7 @@ interface OrganizationRepository {
    * @param organizationId The unique identifier of the organization.
    * @return The OrganizationModel, or null if not found.
    */
-  suspend fun getOrganizationById(organizationId: String): OrganizationModel?
+  suspend fun getOrganizationById(organizationId: String): Organization?
 
   /** Returns a unique ID for a new organization document. */
   suspend fun getNewOrganizationId(): String

@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.viewmodel
 
 import android.net.Uri
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpStep
@@ -144,7 +144,7 @@ class OrganizationSignUpViewModelTest {
     val currentUserId = "user456"
     val uploadedLogoUrl = "https://storage/logo.png"
 
-    val model: OrganizationModel = vm.createOrganizationModel(orgId, currentUserId, uploadedLogoUrl)
+    val model: Organization = vm.createOrganizationModel(orgId, currentUserId, uploadedLogoUrl)
 
     Assert.assertEquals(orgId, model.id)
     Assert.assertEquals("My Club", model.name)

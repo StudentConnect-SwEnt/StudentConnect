@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.repository
 
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
@@ -30,7 +30,7 @@ class OrganizationRepositoryFirestoreTest {
     val repo = OrganizationRepositoryFirestore(db)
 
     val model =
-        OrganizationModel(
+        Organization(
             id = "org1", name = "Name", type = OrganizationType.Company, createdBy = "creator")
 
     repo.saveOrganization(model)

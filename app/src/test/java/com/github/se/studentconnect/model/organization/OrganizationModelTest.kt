@@ -30,7 +30,7 @@ class OrganizationModelTest {
     val role = OrganizationRole("Dev", "Writes code")
 
     val model =
-        OrganizationModel(
+        Organization(
             id = "o1",
             name = "Org1",
             type = OrganizationType.Company,
@@ -52,7 +52,7 @@ class OrganizationModelTest {
     assertEquals("Company", map["type"])
     assertEquals(ts, map["createdAt"])
 
-    val from = OrganizationModel.fromMap(map)
+    val from = Organization.fromMap(map)
     assertNotNull(from)
     assertEquals(model.id, from?.id)
     assertEquals(model.name, from?.name)
@@ -77,21 +77,21 @@ class OrganizationModelTest {
     base["createdBy"] = "c"
 
     // ok when present
-    assertNotNull(OrganizationModel.fromMap(base))
+    assertNotNull(Organization.fromMap(base))
 
     // missing id
     val m1 = base.toMutableMap()
     m1.remove("id")
-    assertNull(OrganizationModel.fromMap(m1))
+    assertNull(Organization.fromMap(m1))
 
     // missing name
     val m2 = base.toMutableMap()
     m2.remove("name")
-    assertNull(OrganizationModel.fromMap(m2))
+    assertNull(Organization.fromMap(m2))
 
     // missing createdBy
     val m3 = base.toMutableMap()
     m3.remove("createdBy")
-    assertNull(OrganizationModel.fromMap(m3))
+    assertNull(Organization.fromMap(m3))
   }
 }

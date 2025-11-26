@@ -60,7 +60,7 @@ data class SocialLinks(
  * @property createdAt Timestamp of creation.
  * @property createdBy User ID of the creator (admin).
  */
-data class OrganizationModel(
+data class Organization(
     val id: String,
     val name: String,
     val type: OrganizationType,
@@ -99,7 +99,7 @@ data class OrganizationModel(
      * Creates an OrganizationModel from a Firestore Map. Returns null if critical fields (id, name,
      * creator) are missing.
      */
-    fun fromMap(map: Map<String, Any?>): OrganizationModel? {
+    fun fromMap(map: Map<String, Any?>): Organization? {
       return try {
         val id = map["id"] as? String ?: return null
         val name = map["name"] as? String ?: return null
@@ -141,7 +141,7 @@ data class OrganizationModel(
                 x = socialMap?.get("x"),
                 linkedin = socialMap?.get("linkedin"))
 
-        OrganizationModel(
+        Organization(
             id = id,
             name = name,
             type = type,
