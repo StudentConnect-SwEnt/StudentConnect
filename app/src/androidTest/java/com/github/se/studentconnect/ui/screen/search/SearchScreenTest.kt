@@ -19,6 +19,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.test.runTest
@@ -103,6 +104,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(SearchScreenTestTags.TOP_BAR).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SearchScreenTestTags.BACK_BUTTON).assertIsDisplayed()
     composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
 
     // Wait until users/events/organizations have been loaded and UI updated
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -149,7 +151,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchUserDisplayed() {
-    composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).performTextInput("user")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("user")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -175,7 +177,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchEventDisplayed() {
-    composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).performTextInput("sample")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("sample")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -202,7 +204,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchEventDisplayedWhenNotStart() {
-    composeTestRule.onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD).performTextInput("event")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("event")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
@@ -229,9 +231,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchOrganizationDisplayed() {
-    composeTestRule
-        .onNodeWithTag(SearchScreenTestTags.SEARCH_FIELD)
-        .performTextInput("organization")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("organization")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
