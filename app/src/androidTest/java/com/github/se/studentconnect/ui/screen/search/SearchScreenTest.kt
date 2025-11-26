@@ -151,7 +151,7 @@ class SearchScreenTest {
 
   @Test
   fun testSearchUserDisplayed() {
-    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("user")
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("first")
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntil(timeoutMillis = 50_000) {
