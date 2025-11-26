@@ -96,7 +96,7 @@ data class Organization(
 
   companion object {
     /**
-     * Creates an OrganizationModel from a Firestore Map. Returns null if critical fields (id, name,
+     * Creates an Organization from a Firestore Map. Returns null if critical fields (id, name,
      * creator) are missing.
      */
     fun fromMap(map: Map<String, Any?>): Organization? {
@@ -116,30 +116,30 @@ data class Organization(
         val typicalEventSize = map["typicalEventSize"] as? String
         val createdAt = map["createdAt"] as? Timestamp ?: Timestamp.now()
 
-        // Safe parsing of Lists
-        @Suppress("UNCHECKED_CAST")
-        val mainDomains = (map["mainDomains"] as? List<String>) ?: emptyList()
+        // Safe parsing of Lists using filterIsInstance
+        val mainDomains =
+            (map["mainDomains"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-        @Suppress("UNCHECKED_CAST")
-        val ageRanges = (map["ageRanges"] as? List<String>) ?: emptyList()
+        val ageRanges = (map["ageRanges"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
         // Safe parsing of Roles (List of Maps)
-        val rawRoles = map["roles"] as? List<Map<String, Any?>> ?: emptyList()
+        val rawRoles = map["roles"] as? List<*> ?: emptyList<Any>()
         val roles =
-            rawRoles.mapNotNull { roleMap ->
-              val rName = roleMap["name"] as? String
-              val rDesc = roleMap["description"] as? String
+            rawRoles.mapNotNull { item ->
+              val roleMap = item as? Map<*, *>
+              val rName = roleMap?.get("name") as? String
+              val rDesc = roleMap?.get("description") as? String
               if (rName != null) OrganizationRole(rName, rDesc) else null
             }
 
         // Safe parsing of Social Links
-        val socialMap = map["socialLinks"] as? Map<String, String?>
+        val socialMap = map["socialLinks"] as? Map<*, *>
         val socialLinks =
             SocialLinks(
-                website = socialMap?.get("website"),
-                instagram = socialMap?.get("instagram"),
-                x = socialMap?.get("x"),
-                linkedin = socialMap?.get("linkedin"))
+                website = socialMap?.get("website") as? String,
+                instagram = socialMap?.get("instagram") as? String,
+                x = socialMap?.get("x") as? String,
+                linkedin = socialMap?.get("linkedin") as? String)
 
         Organization(
             id = id,
@@ -155,7 +155,7 @@ data class Organization(
             socialLinks = socialLinks,
             createdAt = createdAt,
             createdBy = createdBy)
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         // Log exception here if you have a crashlytics service
         null
       }
