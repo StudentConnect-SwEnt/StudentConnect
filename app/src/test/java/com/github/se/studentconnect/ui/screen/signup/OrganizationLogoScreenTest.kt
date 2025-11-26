@@ -57,8 +57,7 @@ class OrganizationSignUpViewModelUnitTest {
     assertFalse(vm.isInfoValid)
     vm.setOrganizationName("Org")
     assertFalse(vm.isInfoValid)
-    vm.toggleOrganizationType(
-        OrganizationType.Association)
+    vm.toggleOrganizationType(OrganizationType.Association)
     assertTrue(vm.isInfoValid)
   }
 }
