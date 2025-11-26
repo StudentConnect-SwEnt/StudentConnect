@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
 import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
 
@@ -25,7 +25,7 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
  */
 @Composable
 fun OrganizationToBeContinuedScreen(
-    organization: OrganizationModel?,
+    organization: Organization?,
     onLogout: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {

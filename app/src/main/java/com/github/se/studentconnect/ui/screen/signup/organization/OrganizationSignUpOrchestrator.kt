@@ -10,14 +10,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.model.organization.OrganizationModel
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import kotlinx.coroutines.launch
 
 @Composable
 fun OrganizationSignUpOrchestrator(
     firebaseUserId: String,
-    onSignUpComplete: (OrganizationModel) -> Unit,
+    onSignUpComplete: (Organization) -> Unit,
     onLogout: () -> Unit,
     onBackToSelection: () -> Unit,
     viewModel: OrganizationSignUpViewModel = viewModel()
@@ -27,7 +27,7 @@ fun OrganizationSignUpOrchestrator(
   var isSubmitting by remember { mutableStateOf(false) }
 
   // State to track if we should show the confirmation screen
-  var createdOrganization by remember { mutableStateOf<OrganizationModel?>(null) }
+  var createdOrganization by remember { mutableStateOf<Organization?>(null) }
 
   // IF organization is created, show the "To Be Continued" screen
   if (createdOrganization != null) {

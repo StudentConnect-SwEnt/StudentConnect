@@ -48,6 +48,10 @@ class OrganizationSignUpViewModel : ViewModel() {
     _state.value = block(_state.value)
   }
 
+  fun reset() {
+    _state.value = OrganizationSignUpState()
+  }
+
   /**
    * Sets the organization name, trimming leading/trailing whitespace.
    *
@@ -68,7 +72,7 @@ class OrganizationSignUpViewModel : ViewModel() {
    */
   fun setDescription(desc: String) = update { it.copy(description = desc) }
 
-   /**
+  /**
    * Sets the organization website URL, trimming leading/trailing whitespace.
    *
    * @param url The website URL entered by the user.
@@ -131,7 +135,11 @@ class OrganizationSignUpViewModel : ViewModel() {
    *
    * @param domainKey The domain key to toggle.
    */
-  fun toggleDomain(domainKey: String) = update { it.copy(domains = it.domains.toggle(domainKey)) }
+  fun toggleDomain(domainKey: String) = update {
+    val newDomains =
+        if (it.domains.contains(domainKey)) it.domains - domainKey else it.domains + domainKey
+    it.copy(domains = newDomains)
+  }
 
   /**
    * Toggles an age range in the selected target age ranges set.
@@ -139,7 +147,10 @@ class OrganizationSignUpViewModel : ViewModel() {
    * @param ageKey The age range key to toggle.
    */
   fun toggleAgeRange(ageKey: String) = update {
-    it.copy(targetAgeRanges = it.targetAgeRanges.toggle(ageKey))
+    val newRanges =
+        if (it.targetAgeRanges.contains(ageKey)) it.targetAgeRanges - ageKey
+        else it.targetAgeRanges + ageKey
+    it.copy(targetAgeRanges = newRanges)
   }
 
   /**
@@ -173,11 +184,6 @@ class OrganizationSignUpViewModel : ViewModel() {
   /**
    * Creates the final [Organization] from the current state. This should be called when the user
    * clicks "Finish" or "Submit".
-   *
-   * @param orgId The unique ID generated for this organization (e.g. from Auth or Firestore).
-   * @param currentUserId The ID of the currently logged-in user (the creator).
-   * @param uploadedLogoUrl The download URL of the logo after it has been uploaded to Storage
-   *   (nullable).
    */
   fun createOrganizationModel(
       orgId: String,
