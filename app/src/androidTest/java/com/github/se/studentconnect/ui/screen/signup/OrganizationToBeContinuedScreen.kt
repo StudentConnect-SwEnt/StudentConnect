@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup.organization
+package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
@@ -8,14 +8,13 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationToBeContinuedScreen
 import com.google.firebase.Timestamp
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [29])
 class OrganizationToBeContinuedScreen {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -36,8 +35,8 @@ class OrganizationToBeContinuedScreen {
     var logoutClicked = false
 
     composeTestRule.setContent {
-      OrganizationToBeContinuedScreen(
-          organization = organization, onLogout = { logoutClicked = true })
+        OrganizationToBeContinuedScreen(
+            organization = organization, onLogout = { logoutClicked = true })
     }
 
     // Check if info is displayed

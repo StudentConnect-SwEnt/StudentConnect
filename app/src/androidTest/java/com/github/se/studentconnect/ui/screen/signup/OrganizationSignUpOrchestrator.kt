@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup.organization
+package com.github.se.studentconnect.ui.screen.signup
 
 import android.content.Context
 import android.net.Uri
@@ -19,6 +19,9 @@ import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationInfoScreenTestTags
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -28,10 +31,8 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
-import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [29], qualifiers = "w400dp-h900dp")
 class OrganizationSignUpOrchestrator {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -58,12 +59,13 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
 
     composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
+        OrganizationSignUpOrchestrator(
+            firebaseUserId = "user123",
+            onSignUpComplete = {},
+            onLogout = {},
+            onBackToSelection = {},
+            viewModel = viewModel
+        )
     }
 
     // 1. Info Screen
@@ -114,12 +116,13 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
 
     composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
+        OrganizationSignUpOrchestrator(
+            firebaseUserId = "user123",
+            onSignUpComplete = {},
+            onLogout = {},
+            onBackToSelection = {},
+            viewModel = viewModel
+        )
     }
 
     // 1. Info Screen
@@ -165,12 +168,13 @@ class OrganizationSignUpOrchestrator {
     var backToSelectionCalled = false
 
     composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = { backToSelectionCalled = true },
-          viewModel = viewModel)
+        OrganizationSignUpOrchestrator(
+            firebaseUserId = "user123",
+            onSignUpComplete = {},
+            onLogout = {},
+            onBackToSelection = { backToSelectionCalled = true },
+            viewModel = viewModel
+        )
     }
 
     // 1. Info Screen -> Back
@@ -201,12 +205,13 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.saveOrganization(any())).thenThrow(RuntimeException("Network error"))
 
     composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
+        OrganizationSignUpOrchestrator(
+            firebaseUserId = "user123",
+            onSignUpComplete = {},
+            onLogout = {},
+            onBackToSelection = {},
+            viewModel = viewModel
+        )
     }
 
     // Fast forward to Team Roles Screen

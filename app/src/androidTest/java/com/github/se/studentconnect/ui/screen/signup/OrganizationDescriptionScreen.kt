@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup.organization
+package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
@@ -8,14 +8,14 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationDescriptionScreen
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [29])
 class OrganizationDescriptionScreen {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -27,10 +27,10 @@ class OrganizationDescriptionScreen {
     var continueClicked = false
 
     composeTestRule.setContent {
-      OrganizationDescriptionScreen(
-          viewModel = viewModel,
-          onBack = { backClicked = true },
-          onContinue = { continueClicked = true })
+        OrganizationDescriptionScreen(
+            viewModel = viewModel,
+            onBack = { backClicked = true },
+            onContinue = { continueClicked = true })
     }
 
     // Check if elements are displayed
