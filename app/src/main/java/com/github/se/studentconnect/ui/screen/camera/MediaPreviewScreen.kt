@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.MediaPlayer
 import android.net.Uri
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.compose.foundation.Image
@@ -23,9 +24,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.exifinterface.media.ExifInterface
+import com.github.se.studentconnect.R
+import java.io.IOException
+
+private val ACTION_BUTTON_SIZE = 64.dp
+private val ACTION_ICON_SIZE = 32.dp
+private val ACTIONS_BOTTOM_PADDING = 32.dp
+private val ACTIONS_SPACING = 48.dp
 
 /**
  * Screen that displays a preview of captured photo or video with options to accept or retake.
@@ -55,39 +64,39 @@ fun MediaPreviewScreen(
     Row(
         modifier =
             Modifier.align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .padding(bottom = ACTIONS_BOTTOM_PADDING)
                 .testTag("media_preview_actions"),
-        horizontalArrangement = Arrangement.spacedBy(48.dp)) {
+        horizontalArrangement = Arrangement.spacedBy(ACTIONS_SPACING)) {
           // Retake button
           IconButton(
               onClick = onRetake,
               modifier =
-                  Modifier.size(64.dp)
+                  Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
                           Color.White.copy(alpha = 0.2f),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_retake")) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Retake",
+                    contentDescription = stringResource(R.string.content_description_retake),
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp))
+                    modifier = Modifier.size(ACTION_ICON_SIZE))
               }
 
           // Accept button
           IconButton(
               onClick = onAccept,
               modifier =
-                  Modifier.size(64.dp)
+                  Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
                           Color(0xFF4CAF50).copy(alpha = 0.8f),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_accept")) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Accept",
+                    contentDescription = stringResource(R.string.content_description_accept),
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp))
+                    modifier = Modifier.size(ACTION_ICON_SIZE))
               }
         }
   }
@@ -120,7 +129,14 @@ private fun PhotoPreview(imageUri: Uri, modifier: Modifier = Modifier) {
             // Rotate bitmap based on EXIF orientation
             rotateBitmap(bmp, orientation)
           }
+        } catch (e: IOException) {
+          Log.e("PhotoPreview", "IO error loading image", e)
+          null
+        } catch (e: IllegalStateException) {
+          Log.e("PhotoPreview", "Illegal state loading image", e)
+          null
         } catch (e: Exception) {
+          Log.e("PhotoPreview", "Unexpected error loading image", e)
           null
         }
       }
@@ -128,7 +144,7 @@ private fun PhotoPreview(imageUri: Uri, modifier: Modifier = Modifier) {
   bitmap?.let {
     Image(
         bitmap = it.asImageBitmap(),
-        contentDescription = "Captured photo",
+        contentDescription = stringResource(R.string.content_description_captured_photo),
         modifier = modifier.testTag("photo_preview"),
         contentScale = ContentScale.Fit)
   }
@@ -168,7 +184,6 @@ private fun rotateBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
 
 @Composable
 private fun VideoPreview(videoUri: Uri, modifier: Modifier = Modifier) {
-  val context = LocalContext.current
   var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
   DisposableEffect(videoUri) {
@@ -193,8 +208,12 @@ private fun VideoPreview(videoUri: Uri, modifier: Modifier = Modifier) {
                           prepare()
                           start()
                         }
+                  } catch (e: IOException) {
+                    Log.e("VideoPreview", "IO error initializing MediaPlayer", e)
+                  } catch (e: IllegalStateException) {
+                    Log.e("VideoPreview", "MediaPlayer already initialized", e)
                   } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e("VideoPreview", "Unexpected error initializing MediaPlayer", e)
                   }
                 }
 
@@ -203,7 +222,9 @@ private fun VideoPreview(videoUri: Uri, modifier: Modifier = Modifier) {
                     format: Int,
                     width: Int,
                     height: Int
-                ) {}
+                ) {
+                  // Required by SurfaceHolder.Callback but not used
+                }
 
                 override fun surfaceDestroyed(holder: SurfaceHolder) {
                   mediaPlayer?.release()

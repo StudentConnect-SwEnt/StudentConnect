@@ -33,6 +33,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.launch
 
+private val CAPTURE_BUTTON_PADDING = 16.dp
+private val CAPTURE_BUTTON_SIZE = 72.dp
+
 @Composable
 fun CameraView(
     modifier: Modifier = Modifier,
@@ -174,10 +177,10 @@ fun CameraView(
       Box(
           modifier =
               Modifier.align(Alignment.BottomCenter)
-                  .padding(16.dp)
+                  .padding(CAPTURE_BUTTON_PADDING)
                   .let { base ->
                     if (hasCustomButton) base
-                    else base.size(72.dp).background(Color.White, CircleShape)
+                    else base.size(CAPTURE_BUTTON_SIZE).background(Color.White, CircleShape)
                   }
                   .clickable {
                     coroutineScope.launch {
@@ -218,8 +221,8 @@ fun CameraView(
                     }
                   },
           contentAlignment = Alignment.Center) {
-            if (hasCustomButton) {
-              captureButton?.invoke(isRecording)
+            if (captureButton != null) {
+              captureButton.invoke(isRecording)
             } else {
               Icon(
                   imageVector = Icons.Default.CameraAlt,

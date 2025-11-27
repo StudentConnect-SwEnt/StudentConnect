@@ -25,9 +25,13 @@ class MediaPreviewScreenTest {
   private lateinit var testFile: File
   private val context: Context = ApplicationProvider.getApplicationContext()
 
+  companion object {
+    private const val TEST_IMAGE_FILENAME = "test_image.jpg"
+  }
+
   @Before
   fun setup() {
-    testFile = File(context.cacheDir, "test_image.jpg")
+    testFile = File(context.cacheDir, TEST_IMAGE_FILENAME)
     testFile.createNewFile()
     testImageUri = Uri.fromFile(testFile)
   }
@@ -74,7 +78,10 @@ class MediaPreviewScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Retake").performClick()
+    val retakeDescription =
+        composeTestRule.activity.getString(
+            com.github.se.studentconnect.R.string.content_description_retake)
+    composeTestRule.onNodeWithContentDescription(retakeDescription).performClick()
     composeTestRule.runOnIdle { assert(retakeClicked) }
   }
 
@@ -92,7 +99,10 @@ class MediaPreviewScreenTest {
       }
     }
 
-    composeTestRule.onNodeWithContentDescription("Accept").performClick()
+    val acceptDescription =
+        composeTestRule.activity.getString(
+            com.github.se.studentconnect.R.string.content_description_accept)
+    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
     composeTestRule.runOnIdle { assert(acceptClicked) }
   }
 
