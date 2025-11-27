@@ -7,13 +7,13 @@ import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.EventFilter
 import com.google.firebase.Timestamp
 import io.mockk.*
+import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.util.Calendar
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class JoinedEventsViewModelTest {
@@ -213,16 +213,16 @@ class JoinedEventsViewModelTest {
   fun `handles events without end time`() = runTest {
     // Given
     val joinedEventIds = listOf(event1Id)
-    val eventWithoutEnd = Event.Public(
-        uid = event1Id,
-        ownerId = testUserId,
-        title = "Event Without End",
-        subtitle = "",
-        description = "",
-        start = createTimestamp(daysAgo = 5),
-        end = null, // No end time
-        isFlash = false
-    )
+    val eventWithoutEnd =
+        Event.Public(
+            uid = event1Id,
+            ownerId = testUserId,
+            title = "Event Without End",
+            subtitle = "",
+            description = "",
+            start = createTimestamp(daysAgo = 5),
+            end = null, // No end time
+            isFlash = false)
 
     coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns joinedEventIds
     coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
@@ -294,7 +294,8 @@ class JoinedEventsViewModelTest {
 
     coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns joinedEventIds
     coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(ownedEvent)
-    coEvery { mockEventRepository.getEvent(event1Id) } returns createMockPublicEvent(event1Id, "Event 1", daysAgo = 1)
+    coEvery { mockEventRepository.getEvent(event1Id) } returns
+        createMockPublicEvent(event1Id, "Event 1", daysAgo = 1)
     coEvery { mockEventRepository.getEvent(event2Id) } returns ownedEvent
 
     // When
@@ -311,15 +312,15 @@ class JoinedEventsViewModelTest {
   fun `private events are handled correctly`() = runTest {
     // Given
     val joinedEventIds = listOf(event1Id)
-    val privateEvent = Event.Private(
-        uid = event1Id,
-        ownerId = testUserId,
-        title = "Private Party",
-        description = "Secret event",
-        start = createTimestamp(daysAgo = 2),
-        end = createTimestamp(daysAgo = 1),
-        isFlash = false
-    )
+    val privateEvent =
+        Event.Private(
+            uid = event1Id,
+            ownerId = testUserId,
+            title = "Private Party",
+            description = "Secret event",
+            start = createTimestamp(daysAgo = 2),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
 
     coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns joinedEventIds
     coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
@@ -342,11 +343,13 @@ class JoinedEventsViewModelTest {
       daysAgo: Int = 0,
       daysFromNow: Int = 0
   ): Event.Public {
-    val start = if (daysAgo > 0) createTimestamp(daysAgo = daysAgo)
-    else createTimestamp(daysFromNow = daysFromNow)
+    val start =
+        if (daysAgo > 0) createTimestamp(daysAgo = daysAgo)
+        else createTimestamp(daysFromNow = daysFromNow)
 
-    val end = if (daysAgo > 0) createTimestamp(daysAgo = daysAgo - 1)
-    else createTimestamp(daysFromNow = daysFromNow + 1)
+    val end =
+        if (daysAgo > 0) createTimestamp(daysAgo = daysAgo - 1)
+        else createTimestamp(daysFromNow = daysFromNow + 1)
 
     return Event.Public(
         uid = uid,
@@ -356,8 +359,7 @@ class JoinedEventsViewModelTest {
         description = "Description for $title",
         start = start,
         end = end,
-        isFlash = false
-    )
+        isFlash = false)
   }
 
   private fun createTimestamp(daysAgo: Int = 0, daysFromNow: Int = 0): Timestamp {

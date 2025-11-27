@@ -100,8 +100,7 @@ fun JoinedEventsScreen(
                       .testTag(JoinedEventsScreenTestTags.SEARCH_BAR))
 
           FilterTabs(
-              selectedFilter = selectedFilter,
-              onFilterSelected = { viewModel.updateFilter(it) })
+              selectedFilter = selectedFilter, onFilterSelected = { viewModel.updateFilter(it) })
 
           Spacer(modifier = Modifier.height(spacing.extraSmall))
 
@@ -222,8 +221,7 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
                         modifier =
                             Modifier.size(100.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
                         tint = MaterialTheme.colorScheme.onPrimary)
 
                     Column(
@@ -266,8 +264,7 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
                               Text(
                                   text = event.subtitle,
                                   style = MaterialTheme.typography.bodySmall,
-                                  color =
-                                      MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                                  color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                                   maxLines = 1,
                                   overflow = TextOverflow.Ellipsis)
                             }
@@ -289,9 +286,7 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
 private fun EmptyEventsState(selectedFilter: EventFilter) {
   Column(
       modifier =
-          Modifier.fillMaxSize()
-              .padding(32.dp)
-              .testTag(JoinedEventsScreenTestTags.EMPTY_STATE),
+          Modifier.fillMaxSize().padding(32.dp).testTag(JoinedEventsScreenTestTags.EMPTY_STATE),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center) {
         val title =
@@ -302,8 +297,7 @@ private fun EmptyEventsState(selectedFilter: EventFilter) {
 
         val description =
             when (selectedFilter) {
-              EventFilter.Past ->
-                  stringResource(R.string.text_no_past_joined_events_description)
+              EventFilter.Past -> stringResource(R.string.text_no_past_joined_events_description)
               EventFilter.Upcoming ->
                   stringResource(R.string.text_no_upcoming_joined_events_description)
             }

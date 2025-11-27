@@ -326,8 +326,7 @@ internal fun MainAppContent(
           // Joined Events Screen
           composable(Route.JOINED_EVENTS) {
             JoinedEventsScreen(
-                navController = navController,
-                onNavigateBack = { navController.popBackStack() })
+                navController = navController, onNavigateBack = { navController.popBackStack() })
           }
 
           // Visitor Profile Screen (shown when clicking on other users)
