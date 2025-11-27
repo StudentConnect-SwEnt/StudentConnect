@@ -59,7 +59,9 @@ class TeamRolesScreenTest {
     composeTestRule.onNodeWithText("Role description").assertIsDisplayed()
 
     // Verify Empty State
-    composeTestRule.onNodeWithText("No roles defined yet.").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText("No roles defined yet.", useUnmergedTree = true)
+        .assertIsDisplayed()
 
     // Verify Buttons
     composeTestRule
@@ -101,12 +103,14 @@ class TeamRolesScreenTest {
     composeTestRule.setContent { TeamRolesScreen(state = state, callbacks = defaultCallbacks) }
 
     // Verify Empty State is GONE
-    composeTestRule.onNodeWithText("No roles defined yet.").assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText("No roles defined yet.", useUnmergedTree = true)
+        .assertDoesNotExist()
 
     // Verify List Items
-    composeTestRule.onNodeWithText("President").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Runs the show").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Treasurer").assertIsDisplayed()
+    composeTestRule.onNodeWithText("President", useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Runs the show", useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Treasurer", useUnmergedTree = true).assertIsDisplayed()
 
     // Verify Continue Button Enabled
     val continueButton = composeTestRule.onNodeWithText("Start Now")
@@ -123,7 +127,7 @@ class TeamRolesScreenTest {
     composeTestRule.setContent { TeamRolesScreen(state = state, callbacks = defaultCallbacks) }
 
     // Find the remove button text ("Remove") and click it
-    composeTestRule.onNodeWithText("Remove").performClick()
+    composeTestRule.onNodeWithText("Remove", useUnmergedTree = true).performClick()
 
     verify(onRemoveRole).invoke(role1)
   }
@@ -158,6 +162,6 @@ class TeamRolesScreenTest {
     // Since the field is focused and suggestions exist by default in the composable,
     // the dropdown items should appear.
     // We check for one of the hardcoded suggestions.
-    composeTestRule.onNodeWithText("President").assertIsDisplayed()
+    composeTestRule.onNodeWithText("President", useUnmergedTree = true).assertIsDisplayed()
   }
 }

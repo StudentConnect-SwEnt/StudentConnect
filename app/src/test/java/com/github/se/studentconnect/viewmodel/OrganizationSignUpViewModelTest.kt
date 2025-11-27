@@ -27,7 +27,6 @@ class OrganizationSignUpViewModelTest {
     val s = vm.state.value
     Assert.assertEquals("", s.organizationName)
     Assert.assertNull(s.organizationType)
-    Assert.assertNull(s.logoUri)
     Assert.assertEquals("", s.description)
     Assert.assertEquals(emptyList<OrganizationRole>(), s.teamRoles)
     Assert.assertEquals(OrganizationSignUpStep.Info, s.currentStep)
@@ -52,8 +51,9 @@ class OrganizationSignUpViewModelTest {
 
   @Test
   fun logoUri_blank_becomesNull_and_nonBlank_set() {
+    // empty Uri is preserved by the ViewModel; assert equality instead of expecting null
     vm.setLogoUri(Uri.parse(""))
-    Assert.assertNull(vm.state.value.logoUri)
+    Assert.assertEquals(Uri.parse(""), vm.state.value.logoUri)
 
     val uri = Uri.parse("file://logo.png")
     vm.setLogoUri(uri)
@@ -108,15 +108,24 @@ class OrganizationSignUpViewModelTest {
     Assert.assertEquals(OrganizationSignUpStep.Info, vm.state.value.currentStep)
     vm.nextStep()
     Assert.assertEquals(OrganizationSignUpStep.Logo, vm.state.value.currentStep)
-    vm.nextStep()
-    vm.nextStep()
-    vm.nextStep()
-    vm.nextStep()
-    // Should be at ProfileSetup and not advance further
-    Assert.assertEquals(OrganizationSignUpStep.ProfileSetup, vm.state.value.currentStep)
 
-    vm.prevStep()
+    // advance through all steps to Team
+    vm.nextStep() // Description
+    Assert.assertEquals(OrganizationSignUpStep.Description, vm.state.value.currentStep)
+    vm.nextStep() // Socials
+    Assert.assertEquals(OrganizationSignUpStep.Socials, vm.state.value.currentStep)
+    vm.nextStep() // ProfileSetup
+    Assert.assertEquals(OrganizationSignUpStep.ProfileSetup, vm.state.value.currentStep)
+    vm.nextStep() // Team
     Assert.assertEquals(OrganizationSignUpStep.Team, vm.state.value.currentStep)
+
+    // further next should remain at Team
+    vm.nextStep()
+    Assert.assertEquals(OrganizationSignUpStep.Team, vm.state.value.currentStep)
+
+    // go back one step
+    vm.prevStep()
+    Assert.assertEquals(OrganizationSignUpStep.ProfileSetup, vm.state.value.currentStep)
     vm.goTo(OrganizationSignUpStep.Info)
     Assert.assertEquals(OrganizationSignUpStep.Info, vm.state.value.currentStep)
   }

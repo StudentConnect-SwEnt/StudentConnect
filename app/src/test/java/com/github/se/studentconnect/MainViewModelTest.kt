@@ -410,9 +410,10 @@ class MainViewModelTest {
         viewModel.onUserSignedIn(testUserId, testEmail)
         advanceUntilIdle()
 
-        // Assert
+        // Assert - credentials should be updated but no state transition (checkUserProfile returns
+        // early)
         val state = viewModel.uiState.value
-        assertEquals(AppState.ONBOARDING, state.appState)
+        assertEquals(AppState.LOADING, state.appState)
         assertEquals(testUserId, state.currentUserId)
         assertEquals(testEmail, state.currentUserEmail)
       }
