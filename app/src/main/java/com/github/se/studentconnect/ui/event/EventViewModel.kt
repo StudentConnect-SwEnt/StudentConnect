@@ -7,6 +7,8 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollRepository
 import com.github.se.studentconnect.model.poll.PollRepositoryProvider
@@ -31,7 +33,14 @@ data class EventUiState(
     val participantCount: Int = 0,
     val isFull: Boolean = false,
     val activePolls: List<Poll> = emptyList(),
-    val showCreatePollDialog: Boolean = false
+    val showCreatePollDialog: Boolean = false,
+    val showInviteFriendsDialog: Boolean = false,
+    val friends: List<User> = emptyList(),
+    val invitedFriendIds: Set<String> = emptySet(),
+    val initialInvitedFriendIds: Set<String> = emptySet(),
+    val isLoadingFriends: Boolean = false,
+    val friendsError: String? = null,
+    val isInvitingFriends: Boolean = false
 )
 
 sealed class TicketValidationResult {
@@ -45,7 +54,8 @@ sealed class TicketValidationResult {
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val pollRepository: PollRepository = PollRepositoryProvider.repository
+    private val pollRepository: PollRepository = PollRepositoryProvider.repository,
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
@@ -74,7 +84,14 @@ class EventViewModel(
             isLoading = false,
             isJoined = finalIsJoined,
             participantCount = participantCount,
-            isFull = isFull)
+            isFull = isFull,
+            showInviteFriendsDialog = false,
+            invitedFriendIds = emptySet(),
+            initialInvitedFriendIds = emptySet(),
+            friendsError = null,
+            isInvitingFriends = false,
+            friends = emptyList(),
+            isLoadingFriends = false)
       }
 
       // Fetch active polls if user is already a participant
@@ -188,6 +205,109 @@ class EventViewModel(
     _uiState.update { it.copy(showCreatePollDialog = false) }
   }
 
+  /** Opens the invite friends dialog and triggers loading the friend list + existing invites. */
+  fun showInviteFriendsDialog() {
+    _uiState.update { it.copy(showInviteFriendsDialog = true) }
+    loadFriendsForInvites()
+  }
+
+  /** Closes the invite friends dialog and clears any pending selection/errors. */
+  fun hideInviteFriendsDialog() {
+    _uiState.update {
+      it.copy(
+          showInviteFriendsDialog = false,
+          invitedFriendIds = emptySet(),
+          initialInvitedFriendIds = emptySet(),
+          friendsError = null,
+          isInvitingFriends = false)
+    }
+  }
+
+  /**
+   * Toggles whether a friend is selected to be invited (or uninvited) in the dialog.
+   *
+   * @param friendId The UID of the friend being toggled.
+   */
+  fun toggleFriendInvitation(friendId: String) {
+    _uiState.update { state ->
+      val updated =
+          if (state.invitedFriendIds.contains(friendId)) state.invitedFriendIds - friendId
+          else state.invitedFriendIds + friendId
+      state.copy(invitedFriendIds = updated)
+    }
+  }
+
+  /**
+   * Sends additions/removals of invitations for the current event. Only the owner is allowed. If
+   * nothing changed, the dialog simply closes.
+   */
+  fun updateInvitationsForEvent() {
+    val event = _uiState.value.event ?: return
+    val currentUserId = AuthenticationProvider.currentUser
+    if (currentUserId != event.ownerId) {
+      _uiState.update { it.copy(friendsError = "Only the owner can invite friends.") }
+      return
+    }
+    val currentSelection = _uiState.value.invitedFriendIds
+    val initialSelection = _uiState.value.initialInvitedFriendIds
+    val toAdd = currentSelection - initialSelection
+    val toRemove = initialSelection - currentSelection
+    if (toAdd.isEmpty() && toRemove.isEmpty()) {
+      _uiState.update { it.copy(showInviteFriendsDialog = false) }
+      return
+    }
+
+    viewModelScope.launch {
+      _uiState.update { it.copy(isInvitingFriends = true, friendsError = null) }
+      var hadError = false
+      toAdd.forEach { friendId ->
+        runCatching {
+              eventRepository.addInvitationToEvent(event.uid, friendId, currentUserId)
+              userRepository.addInvitationToUser(event.uid, friendId, currentUserId)
+            }
+            .onFailure { e ->
+              android.util.Log.w("EventViewModel", "Failed to invite friend $friendId", e)
+              hadError = true
+              _uiState.update { state ->
+                state.copy(
+                    friendsError =
+                        state.friendsError ?: e.message ?: "Failed to send some invitations")
+              }
+            }
+      }
+      toRemove.forEach { friendId ->
+        runCatching {
+              eventRepository.removeInvitationFromEvent(event.uid, friendId, currentUserId)
+              userRepository.removeInvitation(event.uid, friendId)
+            }
+            .onFailure { e ->
+              android.util.Log.w("EventViewModel", "Failed to remove invitation for $friendId", e)
+              hadError = true
+              _uiState.update { state ->
+                state.copy(
+                    friendsError =
+                        state.friendsError ?: e.message ?: "Failed to remove some invitations")
+              }
+            }
+      }
+      _uiState.update {
+        if (hadError) {
+          it.copy(isInvitingFriends = false)
+        } else {
+          it.copy(
+              isInvitingFriends = false,
+              showInviteFriendsDialog = false,
+              invitedFriendIds = currentSelection,
+              initialInvitedFriendIds = currentSelection)
+        }
+      }
+    }
+  }
+
+  /**
+   * Loads event attendees, owner, and current user profile for display in the attendees tab.
+   * Operates only if an event is already loaded.
+   */
   fun fetchAttendees() {
     val event = uiState.value.event
     val currentUserUid = AuthenticationProvider.currentUser
@@ -206,6 +326,43 @@ class EventViewModel(
         }
         _uiState.update {
           it.copy(isLoading = false, attendees = userList, currentUser = currentUser, owner = owner)
+        }
+      }
+    }
+  }
+
+  private fun loadFriendsForInvites() {
+    val event = _uiState.value.event ?: return
+    val currentUserUid = AuthenticationProvider.currentUser
+    if (currentUserUid == null) {
+      _uiState.update { it.copy(friendsError = "User not authenticated") }
+      return
+    }
+
+    _uiState.update { it.copy(isLoadingFriends = true, friendsError = null) }
+    viewModelScope.launch {
+      try {
+        val friendIds = friendsRepository.getFriends(currentUserUid)
+        val invitedIds = eventRepository.getEventInvitations(event.uid).toSet()
+        val friends =
+            friendIds.mapNotNull { friendId ->
+              runCatching { userRepository.getUserById(friendId) }
+                  .onFailure { e ->
+                    android.util.Log.w("EventViewModel", "Failed to fetch friend $friendId", e)
+                  }
+                  .getOrNull()
+            }
+        _uiState.update {
+          it.copy(
+              friends = friends,
+              isLoadingFriends = false,
+              friendsError = null,
+              invitedFriendIds = invitedIds.intersect(friendIds.toSet()),
+              initialInvitedFriendIds = invitedIds.intersect(friendIds.toSet()))
+        }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(isLoadingFriends = false, friendsError = e.message ?: "Failed to load friends")
         }
       }
     }

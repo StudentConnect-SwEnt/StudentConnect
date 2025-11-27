@@ -396,6 +396,11 @@
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
     <string name="event_label_username">Username</string>
+    <string name="event_label_invite_friends">Invite friends</string>
+    <string name="event_invite_friends_help">Select friends to invite to this event.</string>
+    <string name="event_invite_friends_empty">You have no friends to invite yet.</string>
+    <string name="event_invite_friends_error">Couldn\'t load your friends.</string>
+    <string name="event_button_update_invites">Update invitations</string>
 
     <!-- Experience tags -->
     <string name="topic_selector_empty">No topics yet</string>
