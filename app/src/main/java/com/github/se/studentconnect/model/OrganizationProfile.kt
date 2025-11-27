@@ -11,7 +11,7 @@ package com.github.se.studentconnect.model
  * @property events List of events associated with this organization.
  * @property members List of members in this organization.
  */
-data class Organization(
+data class OrganizationProfile(
     val organizationId: String,
     val name: String,
     val description: String,
