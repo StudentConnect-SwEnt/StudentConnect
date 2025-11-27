@@ -21,6 +21,11 @@
     <string name="error_bio_too_long">Bio exceeds %d characters</string>
     <string name="error_date_format">Please use DD/MM/YYYY format</string>
     <string name="error_failed_to_upload_photo">Failed to upload photo</string>
+    <string name="error_failed_to_upload_story">Failed to upload story</string>
+    <string name="error_failed_to_delete_story">Failed to delete story</string>
+    <string name="error_failed_to_load_stories">Failed to load stories</string>
+    <string name="error_story_not_found">Story not found</string>
+    <string name="error_unauthorized_delete_story">You can only delete your own stories</string>
     <string name="error_username_length">Username must be 3-20 characters long</string>
     <string name="error_username_format">Only alphanumeric characters, underscores, hyphens, and periods are allowed</string>
     <string name="error_username_taken">This username is already taken</string>
@@ -39,6 +44,8 @@
     <string name="success_profile_updated">Profile updated successfully</string>
     <string name="success_profile_picture_updated">Profile picture updated successfully</string>
     <string name="success_birthday_removed">Birthday removed successfully</string>
+    <string name="success_story_uploaded">Story uploaded successfully</string>
+    <string name="success_story_deleted">Story deleted successfully</string>
     
     <!-- Field labels -->
     <string name="label_first_name">First Name</string>
