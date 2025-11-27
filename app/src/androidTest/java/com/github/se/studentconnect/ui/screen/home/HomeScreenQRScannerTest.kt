@@ -120,6 +120,8 @@ class HomeScreenQRScannerTest {
 
         override suspend fun declineInvitation(eventId: String, userId: String) {}
 
+        override suspend fun removeInvitation(eventId: String, userId: String) {}
+
         override suspend fun joinEvent(eventId: String, userId: String) {}
 
         override suspend fun sendInvitation(
