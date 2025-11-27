@@ -35,15 +35,40 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.screen.home.OrganizationData
+import com.github.se.studentconnect.ui.screen.home.OrganizationSuggestions
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
+import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 
 private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
+
+/**
+ * Configuration for favorite events functionality.
+ *
+ * @param favoriteEventIds A set of event IDs that are marked as favorites by the user.
+ * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
+ */
+data class FavoritesConfig(
+    val favoriteEventIds: Set<String> = emptySet(),
+    val onFavoriteToggle: (String) -> Unit = {}
+)
+
+/**
+ * Configuration for organization suggestions functionality.
+ *
+ * @param organizations List of organizations to display as suggestions.
+ * @param onOrganizationClick Callback when an organization is clicked.
+ */
+data class OrganizationSuggestionsConfig(
+    val organizations: List<OrganizationData> = emptyList(),
+    val onOrganizationClick: (String) -> Unit = {}
+)
 
 /**
  * The main screen composable that displays a vertical list of event cards.
@@ -52,9 +77,9 @@ private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
  * @param events The list of events to display.
  * @param hasJoined Indicates if the user has joined the events.
  * @param listState The LazyListState for controlling scroll position.
- * @param favoriteEventIds A set of event IDs that are marked as favorites by the user
- * @param onFavoriteToggle A callback function to handle favorite toggling for an event.
+ * @param favoritesConfig Configuration for favorites functionality.
  * @param topContent Optional composable content to display at the top of the list (e.g., filters).
+ * @param organizationSuggestionsConfig Configuration for organization suggestions.
  */
 @Composable
 fun EventListScreen(
@@ -62,9 +87,9 @@ fun EventListScreen(
     events: List<Event>,
     hasJoined: Boolean,
     listState: LazyListState = rememberLazyListState(),
-    favoriteEventIds: Set<String> = emptySet(),
-    onFavoriteToggle: (String) -> Unit = {},
-    topContent: (@Composable () -> Unit)? = null
+    favoritesConfig: FavoritesConfig = FavoritesConfig(),
+    topContent: (@Composable () -> Unit)? = null,
+    organizationSuggestionsConfig: OrganizationSuggestionsConfig = OrganizationSuggestionsConfig()
 ) {
   if (events.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -76,12 +101,25 @@ fun EventListScreen(
   val sortedEvents = events.sortedBy { it.start }
   val groupedEvents = sortedEvents.groupBy { event -> formatDateHeader(event.start) }
 
+  // Calculate random insertion point for organizations (between 1st and 2nd date group if there are
+  // at least 2)
+  val dateGroups = groupedEvents.keys.toList()
+  val orgInsertionIndex =
+      remember(dateGroups.size, organizationSuggestionsConfig.organizations.isNotEmpty()) {
+        if (organizationSuggestionsConfig.organizations.isNotEmpty() && dateGroups.size >= 2) {
+          Random.nextInt(1, minOf(dateGroups.size, 3)) // Insert after 1st or 2nd date group
+        } else {
+          -1 // Don't insert
+        }
+      }
+
   LazyColumn(
       state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
         topContent?.let { header -> item(key = "event_list_header") { header() } }
-        groupedEvents.forEach { (dateHeader, eventsOnDate) ->
+
+        groupedEvents.entries.forEachIndexed { index, (dateHeader, eventsOnDate) ->
           item(key = "date_header_$dateHeader") {
             Text(
                 text = dateHeader,
@@ -91,12 +129,22 @@ fun EventListScreen(
                 modifier = Modifier.padding(bottom = 16.dp, top = 8.dp))
           }
           items(eventsOnDate, key = { it.uid }) { event ->
-            val isFavorite = event.uid in favoriteEventIds
+            val isFavorite = event.uid in favoritesConfig.favoriteEventIds
             EventCard(
                 event = event,
                 isFavorite = isFavorite,
-                onFavoriteToggle = onFavoriteToggle,
+                onFavoriteToggle = favoritesConfig.onFavoriteToggle,
                 onClick = { navController.navigate(Route.eventView(event.uid, hasJoined)) })
+          }
+
+          // Insert organization suggestions after this date group if it matches the insertion index
+          if (index == orgInsertionIndex) {
+            item(key = "organization_suggestions") {
+              OrganizationSuggestions(
+                  organizations = organizationSuggestionsConfig.organizations,
+                  onOrganizationClick = organizationSuggestionsConfig.onOrganizationClick,
+                  modifier = Modifier.padding(vertical = 16.dp))
+            }
           }
         }
       }

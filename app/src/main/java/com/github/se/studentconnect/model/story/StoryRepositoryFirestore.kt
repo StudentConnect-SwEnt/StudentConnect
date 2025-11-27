@@ -7,6 +7,7 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.utils.ImageCompressor
+import com.github.se.studentconnect.utils.MediaTypeDetector
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,7 +31,7 @@ class StoryRepositoryFirestore(
     private const val STORAGE_PATH_PREFIX = "stories"
     private const val SECONDS_PER_HOUR = 3600
     private const val HOURS_PER_DAY = 24
-    private const val STORY_EXPIRATION_SECONDS =
+    internal const val STORY_EXPIRATION_SECONDS =
         HOURS_PER_DAY * SECONDS_PER_HOUR // 24 hours in seconds
   }
 
@@ -51,9 +52,16 @@ class StoryRepositoryFirestore(
 
   override suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String): Story? {
     return try {
-      // Compress image before upload
-      val compressedUri = ImageCompressor.compressImage(context, fileUri)
-      val uriToUpload = compressedUri ?: fileUri
+      // Detect media type (image or video)
+      val mediaType = MediaTypeDetector.detectMediaType(context, fileUri)
+
+      // Compress only images before upload (videos are uploaded as-is)
+      val uriToUpload =
+          if (mediaType == MediaType.IMAGE) {
+            ImageCompressor.compressImage(context, fileUri) ?: fileUri
+          } else {
+            fileUri
+          }
 
       // Generate storage path: stories/{eventId}/{userId}/{timestamp}
       val timestamp = System.currentTimeMillis()
@@ -80,7 +88,8 @@ class StoryRepositoryFirestore(
               "eventId" to eventId,
               "mediaUrl" to mediaUrl,
               "createdAt" to FieldValue.serverTimestamp(),
-              "expiresAt" to tempExpiresAt)
+              "expiresAt" to tempExpiresAt,
+              "mediaType" to mediaType.value)
 
       db.collection(STORIES_COLLECTION).document(storyId).set(storyData).await()
 

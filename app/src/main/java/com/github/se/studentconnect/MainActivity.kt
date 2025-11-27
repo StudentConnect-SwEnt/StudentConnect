@@ -43,6 +43,7 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
+import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
@@ -364,6 +365,20 @@ internal fun MainAppContent(
                     }
                   }
                 }
+              }
+
+          // Organization Profile Screen
+          composable(
+              route = Route.ORGANIZATION_PROFILE,
+              arguments =
+                  listOf(navArgument(Route.ORGANIZATION_ID_ARG) { type = NavType.StringType })) {
+                  backStackEntry ->
+                val organizationId =
+                    requireNotNull(backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG)) {
+                      "Organization ID is required"
+                    }
+                OrganizationProfileScreen(
+                    organizationId = organizationId, onBackClick = { navController.popBackStack() })
               }
 
           // Friends List Screen
