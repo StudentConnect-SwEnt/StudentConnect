@@ -25,6 +25,11 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/events/$(eventId)/invitations/$(request.auth.uid));
     }
 
+    // Check if user has joined an event (via users/{userId}/joinedEvents/{eventId})
+    function hasJoinedEvent(eventId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedEvents/$(eventId));
+    }
+
     // EVENTS COLLECTION
     
     match /events/{eventId} {
@@ -195,6 +200,26 @@ service cloud.firestore {
 
       // Allow updating/deleting only for the owner
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // STORIES COLLECTION
+    
+    match /stories/{storyId} {
+      // Allow read if user has joined the event
+      allow get, list: if request.auth != null &&
+                        hasJoinedEvent(resource.data.eventId);
+
+      // Allow create if user has joined the event and userId matches authenticated user
+      allow create: if request.auth != null &&
+                     request.auth.uid == request.resource.data.userId &&
+                     hasJoinedEvent(request.resource.data.eventId);
+
+      // Allow delete only by story owner
+      allow delete: if request.auth != null &&
+                     request.auth.uid == resource.data.userId;
+
+      // Prevent updates (stories are immutable once created)
+      allow update: if false;
     }
   }
 }

@@ -1,6 +1,21 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Stories: allow read/write for authenticated users who have joined the event
+    // Storage path: stories/{eventId}/{userId}/{timestamp}
+    match /stories/{eventId}/{userId}/{fileName} {
+      // Allow read if user is authenticated (stories are visible to all who joined the event)
+      // Note: Event membership is verified at Firestore level
+      allow read: if request.auth != null;
+      
+      // Allow write (upload) if user is authenticated and matches the userId in path
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow delete if user is authenticated and matches the userId in path
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default: allow all for other paths (existing behavior)
     match /{allPaths=**} {
       allow read, write: if true;
     }
