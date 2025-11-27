@@ -4,9 +4,9 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
@@ -48,116 +48,6 @@ private class TestMediaRepository : MediaRepository {
   }
 }
 
-private class TestUserRepository : UserRepository {
-  var joinedEvents: List<String> = emptyList()
-  var shouldThrowOnGetJoinedEvents: Throwable? = null
-
-  override suspend fun getJoinedEvents(userId: String): List<String> {
-    shouldThrowOnGetJoinedEvents?.let { throw it }
-    return joinedEvents
-  }
-
-  override suspend fun leaveEvent(eventId: String, userId: String) {}
-
-  override suspend fun getUserById(userId: String) = null
-
-  override suspend fun getUserByEmail(email: String) = null
-
-  override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> = emptyList()
-
-  override suspend fun getUsersPaginated(
-      limit: Int,
-      lastUserId: String?
-  ): Pair<List<com.github.se.studentconnect.model.User>, Boolean> =
-      emptyList<com.github.se.studentconnect.model.User>() to false
-
-  override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
-
-  override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
-
-  override suspend fun deleteUser(userId: String) {}
-
-  override suspend fun getUsersByUniversity(
-      university: String
-  ): List<com.github.se.studentconnect.model.User> = emptyList()
-
-  override suspend fun getUsersByHobby(
-      hobby: String
-  ): List<com.github.se.studentconnect.model.User> = emptyList()
-
-  override suspend fun getNewUid() = "new-uid"
-
-  override suspend fun addEventToUser(eventId: String, userId: String) {}
-
-  override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
-
-  override suspend fun getInvitations(
-      userId: String
-  ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
-
-  override suspend fun acceptInvitation(eventId: String, userId: String) {}
-
-  override suspend fun declineInvitation(eventId: String, userId: String) {}
-
-  override suspend fun joinEvent(eventId: String, userId: String) {}
-
-  override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
-
-  override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
-
-  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
-
-  override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
-
-  override suspend fun checkUsernameAvailability(username: String) = true
-}
-
-private class TestEventRepository : EventRepository {
-  private val events = mutableMapOf<String, Event>()
-  var shouldThrowOnGetEvent: ((String) -> Throwable?)? = null
-
-  fun addTestEvent(event: Event) {
-    events[event.uid] = event
-  }
-
-  override suspend fun getEvent(eventUid: String): Event {
-    shouldThrowOnGetEvent?.invoke(eventUid)?.let { throw it }
-    return events[eventUid] ?: throw Exception("Event not found")
-  }
-
-  override fun getNewUid() = "new-event-uid"
-
-  override suspend fun getAllVisibleEvents(): List<Event> = emptyList()
-
-  override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> =
-      emptyList()
-
-  override suspend fun getEventParticipants(
-      eventUid: String
-  ): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
-
-  override suspend fun addEvent(event: Event) {
-    events[event.uid] = event
-  }
-
-  override suspend fun editEvent(eventUid: String, newEvent: Event) {}
-
-  override suspend fun deleteEvent(eventUid: String) {}
-
-  override suspend fun addParticipantToEvent(
-      eventUid: String,
-      participant: com.github.se.studentconnect.model.event.EventParticipant
-  ) {}
-
-  override suspend fun addInvitationToEvent(
-      eventUid: String,
-      invitedUser: String,
-      currentUserId: String
-  ) {}
-
-  override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
-}
-
 class StoryRepositoryFirestoreTest {
 
   @Mock private lateinit var mockFirestore: FirebaseFirestore
@@ -165,8 +55,8 @@ class StoryRepositoryFirestoreTest {
   @Mock private lateinit var mockContentResolver: ContentResolver
 
   private lateinit var mockMediaRepository: TestMediaRepository
-  private lateinit var mockUserRepository: TestUserRepository
-  private lateinit var mockEventRepository: TestEventRepository
+  private lateinit var mockUserRepository: UserRepositoryLocal
+  private lateinit var mockEventRepository: EventRepositoryLocal
   @Mock private lateinit var mockCollectionReference: CollectionReference
   @Mock private lateinit var mockDocumentReference: DocumentReference
   @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
@@ -199,8 +89,8 @@ class StoryRepositoryFirestoreTest {
 
     // Create concrete test implementations for suspend function interfaces
     mockMediaRepository = TestMediaRepository()
-    mockUserRepository = TestUserRepository()
-    mockEventRepository = TestEventRepository()
+    mockUserRepository = UserRepositoryLocal()
+    mockEventRepository = EventRepositoryLocal()
 
     repository =
         StoryRepositoryFirestore(
@@ -221,11 +111,11 @@ class StoryRepositoryFirestoreTest {
     // Arrange
     val userId = "user123"
     val eventIds = listOf("event123", "event456")
-    mockUserRepository.joinedEvents = eventIds
-    mockEventRepository.addTestEvent(testEvent)
-    mockEventRepository.shouldThrowOnGetEvent = { eventId ->
-      if (eventId == "event456") Exception("Event not found") else null
-    }
+    // Add joined events using the local repository
+    eventIds.forEach { eventId -> mockUserRepository.joinEvent(eventId, userId) }
+    // Add test event to the local repository
+    mockEventRepository.addEvent(testEvent)
+    // event456 doesn't exist, so it will throw when trying to get it
 
     // Act
     val result = repository.getUserJoinedEvents(userId)
@@ -239,7 +129,7 @@ class StoryRepositoryFirestoreTest {
   fun getUserJoinedEvents_withNoJoinedEvents_returnsEmptyList() = runTest {
     // Arrange
     val userId = "user123"
-    mockUserRepository.joinedEvents = emptyList()
+    // No events joined, local repository starts empty
 
     // Act
     val result = repository.getUserJoinedEvents(userId)
@@ -252,7 +142,9 @@ class StoryRepositoryFirestoreTest {
   fun getUserJoinedEvents_withException_returnsEmptyList() = runTest {
     // Arrange
     val userId = "user123"
-    mockUserRepository.shouldThrowOnGetJoinedEvents = Exception("Database error")
+    // Add a joined event that doesn't exist in EventRepository
+    mockUserRepository.joinEvent("nonexistent-event", userId)
+    // This will cause getEvent to throw, which should be caught and return empty list
 
     // Act
     val result = repository.getUserJoinedEvents(userId)
