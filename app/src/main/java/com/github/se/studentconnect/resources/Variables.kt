@@ -8,4 +8,5 @@ object Variables {
   val FilterChipContent: Color = Color(0xFF3F3A4B)
   val TopicChipBackground: Color = Color(0xFFE7E1F0)
   val TopicChipContent: Color = Color(0xFF3F3A4B)
+  val LightGreyBackground: Color = Color(0xFFF5F5F5)
 }

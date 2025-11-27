@@ -142,8 +142,7 @@ class ListOfEventsTest {
           navController = navController,
           events = emptyList(),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     composeTestRule.onNodeWithText("Test Event").assertDoesNotExist()
@@ -158,8 +157,7 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     composeTestRule.onNodeWithText("Summer Party").assertIsDisplayed()
@@ -176,8 +174,7 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(event1, event2, event3),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     composeTestRule.onNodeWithText("Event One").assertIsDisplayed()
@@ -202,8 +199,7 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(eventToday, eventTomorrow),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     composeTestRule.onNodeWithText("TODAY").assertIsDisplayed()
@@ -279,8 +275,7 @@ class ListOfEventsTest {
           navController = navController,
           events = emptyList(),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     composeTestRule.onNodeWithText("No events found matching your criteria.").assertIsDisplayed()
@@ -431,8 +426,10 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = { eventId -> toggledId = eventId })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet(),
+                  onFavoriteToggle = { eventId -> toggledId = eventId }))
     }
 
     composeTestRule.onNodeWithContentDescription("Favorite").performClick()
@@ -449,8 +446,8 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = setOf("fav123"),
-          onFavoriteToggle = {})
+          favoritesConfig =
+              FavoritesConfig(favoriteEventIds = setOf("fav123"), onFavoriteToggle = {}))
     }
 
     // Event should be displayed with favorite icon shown
@@ -501,8 +498,7 @@ class ListOfEventsTest {
           navController = navController,
           events = listOf(event1, event2),
           hasJoined = false,
-          favoriteEventIds = emptySet(),
-          onFavoriteToggle = {})
+          favoritesConfig = FavoritesConfig(favoriteEventIds = emptySet(), onFavoriteToggle = {}))
     }
 
     // Should only have one "TODAY" header

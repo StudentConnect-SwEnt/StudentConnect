@@ -113,5 +113,14 @@ object C {
     const val org_profile_member_card_prefix = "org_profile_member_card"
     const val org_profile_events_empty = "org_profile_events_empty"
     const val org_profile_members_empty = "org_profile_members_empty"
+
+    // Organization suggestions test tags
+    const val org_suggestions_section = "organization_suggestions_section"
+    const val org_suggestions_title = "organization_suggestions_title"
+    const val org_suggestions_row = "organization_suggestions_row"
+    const val org_suggestions_card = "organization_card"
+    const val org_suggestions_card_image = "organization_card_image"
+    const val org_suggestions_card_title = "organization_card_title"
+    const val org_suggestions_card_subtitle = "organization_card_subtitle"
   }
 }

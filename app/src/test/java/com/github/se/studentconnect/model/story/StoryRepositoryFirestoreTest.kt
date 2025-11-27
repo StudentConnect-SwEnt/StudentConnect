@@ -112,7 +112,7 @@ class StoryRepositoryFirestoreTest {
     val userId = "user123"
     val eventIds = listOf("event123", "event456")
     // Add joined events using the local repository
-    eventIds.forEach { eventId -> mockUserRepository.joinEvent(eventId, userId) }
+    eventIds.forEach { eventId -> mockUserRepository.addEventToUser(eventId, userId) }
     // Add test event to the local repository
     mockEventRepository.addEvent(testEvent)
     // event456 doesn't exist, so it will throw when trying to get it
@@ -143,7 +143,7 @@ class StoryRepositoryFirestoreTest {
     // Arrange
     val userId = "user123"
     // Add a joined event that doesn't exist in EventRepository
-    mockUserRepository.joinEvent("nonexistent-event", userId)
+    mockUserRepository.addEventToUser("nonexistent-event", userId)
     // This will cause getEvent to throw, which should be caught and return empty list
 
     // Act
@@ -171,7 +171,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to eventId,
             "mediaUrl" to "stories/event123/user1/123",
             "createdAt" to Timestamp(now.seconds - 3600, now.nanoseconds),
-            "expiresAt" to futureExpiresAt)
+            "expiresAt" to futureExpiresAt,
+            "mediaType" to "image")
 
     val expiredStoryData: Map<String, Any> =
         mapOf(
@@ -180,7 +181,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to eventId,
             "mediaUrl" to "stories/event123/user2/456",
             "createdAt" to Timestamp(now.seconds - 7200, now.nanoseconds),
-            "expiresAt" to pastExpiresAt)
+            "expiresAt" to pastExpiresAt,
+            "mediaType" to "image")
 
     val mockDoc1 = mock(DocumentSnapshot::class.java)
     val mockDoc2 = mock(DocumentSnapshot::class.java)
@@ -224,7 +226,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
@@ -257,7 +260,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
@@ -302,7 +306,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
@@ -319,5 +324,62 @@ class StoryRepositoryFirestoreTest {
     assertTrue("Delete should succeed even if storage delete fails", result)
     // Storage delete will throw, but Firestore delete should still happen
     verify(mockDocumentReference).delete()
+  }
+
+  @Test
+  fun deleteStory_withInvalidStoryData_returnsFalse() = runTest {
+    // Arrange
+    val storyId = "story123"
+    val userId = "user456"
+    // Invalid story data (missing required fields)
+    val invalidStoryData: Map<String, Any> = mapOf("storyId" to storyId)
+
+    whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
+    whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockDocumentSnapshot.data).thenReturn(invalidStoryData)
+
+    // Act
+    val result = repository.deleteStory(storyId, userId)
+
+    // Assert
+    assertFalse("Delete should fail when story data is invalid", result)
+    verify(mockDocumentReference, never()).delete()
+  }
+
+  @Test
+  fun getEventStories_withInvalidStoryData_filtersOutInvalidStories() = runTest {
+    // Arrange
+    val eventId = "event123"
+    val now = Timestamp.now()
+    val futureExpiresAt = Timestamp(now.seconds + 3600, now.nanoseconds)
+
+    val validStoryData =
+        mapOf(
+            "storyId" to "story1",
+            "userId" to "user1",
+            "eventId" to eventId,
+            "mediaUrl" to "stories/event123/user1/123",
+            "createdAt" to Timestamp(now.seconds - 3600, now.nanoseconds),
+            "expiresAt" to futureExpiresAt,
+            "mediaType" to "image")
+
+    // Invalid story data (missing required fields)
+    val invalidStoryData: Map<String, Any> = mapOf("storyId" to "story2", "eventId" to eventId)
+
+    val mockDoc1 = mock(DocumentSnapshot::class.java)
+    val mockDoc2 = mock(DocumentSnapshot::class.java)
+    whenever(mockDoc1.data).thenReturn(validStoryData)
+    whenever(mockDoc2.data).thenReturn(invalidStoryData)
+
+    whenever(mockQuery.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
+
+    // Act
+    val result = repository.getEventStories(eventId)
+
+    // Assert
+    assertEquals(1, result.size)
+    assertEquals("story1", result[0].storyId)
   }
 }
