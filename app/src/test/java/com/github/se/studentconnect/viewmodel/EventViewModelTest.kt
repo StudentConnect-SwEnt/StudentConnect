@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.viewmodel
 
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
@@ -634,6 +635,164 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertFalse(uiState.isFull)
+  }
+
+  @Test
+  fun showInviteFriendsDialog_loadsFriendsAndInvites() = runTest {
+    val ownerId = AuthenticationProvider.testUserId!!
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "f1@example.com",
+            username = "f1",
+            firstName = "F1",
+            lastName = "L1",
+            university = "EPFL")
+    val friend2 =
+        User(
+            userId = "friend2",
+            email = "f2@example.com",
+            username = "f2",
+            firstName = "F2",
+            lastName = "L2",
+            university = "EPFL")
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(friend1)
+    localUserRepo.saveUser(friend2)
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val event =
+        Event.Private(
+            uid = "ownedEvent",
+            ownerId = ownerId,
+            title = "Owner Event",
+            description = "d",
+            start = Timestamp.now(),
+            isFlash = false)
+    localEventRepo.addEvent(event)
+    localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
+    val fakeFriendsRepo =
+        object : FriendsRepository {
+          override suspend fun getFriends(userId: String): List<String> =
+              listOf(friend1.userId, friend2.userId)
+
+          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
+
+          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
+
+          override suspend fun removeFriend(userId: String, friendId: String) {}
+
+          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
+              false
+
+          override fun observeFriendship(userId: String, otherUserId: String) =
+              kotlinx.coroutines.flow.flow { emit(false) }
+        }
+    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    val state = vm.uiState.value
+    assertTrue(state.showInviteFriendsDialog)
+    assertEquals(2, state.friends.size)
+    assertTrue(state.invitedFriendIds.contains(friend1.userId))
+    assertTrue(state.initialInvitedFriendIds.contains(friend1.userId))
+  }
+
+  @Test
+  fun updateInvitationsForEvent_addsAndRemoves() = runTest {
+    val ownerId = AuthenticationProvider.testUserId!!
+    val friend1 =
+        User(
+            userId = "friendA",
+            email = "fA@example.com",
+            username = "fA",
+            firstName = "FA",
+            lastName = "LA",
+            university = "EPFL")
+    val friend2 =
+        User(
+            userId = "friendB",
+            email = "fB@example.com",
+            username = "fB",
+            firstName = "FB",
+            lastName = "LB",
+            university = "EPFL")
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(friend1)
+    localUserRepo.saveUser(friend2)
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val event =
+        Event.Private(
+            uid = "ownedEvent2",
+            ownerId = ownerId,
+            title = "Owner Event 2",
+            description = "d",
+            start = Timestamp.now(),
+            isFlash = false)
+    localEventRepo.addEvent(event)
+    localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
+    val fakeFriendsRepo =
+        object : FriendsRepository {
+          override suspend fun getFriends(userId: String): List<String> =
+              listOf(friend1.userId, friend2.userId)
+
+          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
+
+          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
+
+          override suspend fun removeFriend(userId: String, friendId: String) {}
+
+          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
+              false
+
+          override fun observeFriendship(userId: String, otherUserId: String) =
+              kotlinx.coroutines.flow.flow { emit(false) }
+        }
+    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Toggle selection: remove friend1, add friend2
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.toggleFriendInvitation(friend2.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    val invites = localEventRepo.getEventInvitations(event.uid)
+    assertFalse(invites.contains(friend1.userId))
+    assertTrue(invites.contains(friend2.userId))
+    val state = vm.uiState.value
+    assertFalse(state.showInviteFriendsDialog)
+    assertEquals(setOf(friend2.userId), state.invitedFriendIds)
+    assertEquals(setOf(friend2.userId), state.initialInvitedFriendIds)
   }
 
   @Test
