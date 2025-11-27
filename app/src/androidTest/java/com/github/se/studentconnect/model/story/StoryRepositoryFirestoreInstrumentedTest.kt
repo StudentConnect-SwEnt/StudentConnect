@@ -212,7 +212,8 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val userId = "user456"
     val storyId = "story789"
     val now = Timestamp.now()
-    val expiresAt = Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
+    val expiresAt =
+        Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
 
     // Mock Firestore document creation
     val mockNewDocRef = mock(DocumentReference::class.java)
@@ -316,7 +317,8 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val userId = "user456"
     val storyId = "story789"
     val now = Timestamp.now()
-    val expiresAt = Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
+    val expiresAt =
+        Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
 
     val mockMediaRepo = TestMediaRepository()
     val mockUserRepo = TestUserRepository()
@@ -377,7 +379,8 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val userId = "user456"
     val storyId = "story789"
     val now = Timestamp.now()
-    val expiresAt = Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
+    val expiresAt =
+        Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
 
     val mockNewDocRef = mock(DocumentReference::class.java)
     whenever(mockCollectionReference.document()).thenReturn(mockNewDocRef)

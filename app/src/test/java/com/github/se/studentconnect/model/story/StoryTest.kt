@@ -8,7 +8,8 @@ import org.junit.Test
 class StoryTest {
 
   private val now = Timestamp(Date())
-  private val expiresAt = Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
+  private val expiresAt =
+      Timestamp(now.seconds + StoryRepositoryFirestore.STORY_EXPIRATION_SECONDS, now.nanoseconds)
 
   @Test
   fun story_toMap_correctlyConvertsToMap() {

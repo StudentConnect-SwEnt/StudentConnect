@@ -12,7 +12,8 @@ object MediaTypeDetector {
    *
    * @param context The application context
    * @param uri The URI to check
-   * @return MediaType.IMAGE if it's an image, MediaType.VIDEO if it's a video, MediaType.IMAGE as default
+   * @return MediaType.IMAGE if it's an image, MediaType.VIDEO if it's a video, MediaType.IMAGE as
+   *   default
    */
   fun detectMediaType(context: Context, uri: Uri): MediaType {
     return try {
