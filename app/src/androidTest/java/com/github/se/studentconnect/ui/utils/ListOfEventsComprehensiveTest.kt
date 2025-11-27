@@ -202,8 +202,9 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = emptyList(),
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(), onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText(NO_EVENTS_TEXT).assertIsDisplayed()
@@ -223,8 +224,9 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = events,
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(), onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
@@ -247,8 +249,9 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(), onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText("TODAY").assertIsDisplayed()
@@ -265,8 +268,9 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(), onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText("TOMORROW").assertIsDisplayed()
@@ -283,8 +287,8 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = favoritedIds,
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(favoriteEventIds = favoritedIds, onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText("Favorite Event").assertIsDisplayed()
@@ -301,8 +305,10 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = listOf(event),
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { toggledEventId = it })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(),
+                  onFavoriteToggle = { toggledEventId = it }))
     }
 
     composeTestRule.onNodeWithContentDescription("Favorite").performClick()
@@ -327,8 +333,9 @@ class ListOfEventsComprehensiveTest {
           navController = navController,
           events = events,
           hasJoined = false,
-          favoriteEventIds = emptySet<String>(),
-          onFavoriteToggle = { _: String -> })
+          favoritesConfig =
+              FavoritesConfig(
+                  favoriteEventIds = emptySet<String>(), onFavoriteToggle = { _: String -> }))
     }
 
     composeTestRule.onNodeWithText("TODAY").assertIsDisplayed()
