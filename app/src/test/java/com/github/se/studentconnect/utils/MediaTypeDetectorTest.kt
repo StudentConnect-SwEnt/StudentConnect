@@ -3,6 +3,7 @@ package com.github.se.studentconnect.utils
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import com.github.se.studentconnect.model.story.MediaType
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -35,7 +36,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -48,7 +49,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -61,7 +62,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -74,7 +75,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -87,7 +88,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -100,7 +101,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -113,7 +114,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -126,7 +127,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -139,7 +140,7 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -152,6 +153,6 @@ class MediaTypeDetectorTest {
     val result = MediaTypeDetector.detectMediaType(mockContext, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 }

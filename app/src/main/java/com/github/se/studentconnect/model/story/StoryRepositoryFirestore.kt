@@ -57,7 +57,7 @@ class StoryRepositoryFirestore(
 
       // Compress only images before upload (videos are uploaded as-is)
       val uriToUpload =
-          if (mediaType == "image") {
+          if (mediaType == MediaType.IMAGE) {
             ImageCompressor.compressImage(context, fileUri) ?: fileUri
           } else {
             fileUri
@@ -89,7 +89,7 @@ class StoryRepositoryFirestore(
               "mediaUrl" to mediaUrl,
               "createdAt" to FieldValue.serverTimestamp(),
               "expiresAt" to tempExpiresAt,
-              "mediaType" to mediaType)
+              "mediaType" to mediaType.value)
 
       db.collection(STORIES_COLLECTION).document(storyId).set(storyData).await()
 

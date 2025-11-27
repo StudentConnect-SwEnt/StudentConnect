@@ -11,7 +11,7 @@ import com.google.firebase.Timestamp
  * @property mediaUrl The Firebase Storage URL for the story media
  * @property createdAt Timestamp when the story was created
  * @property expiresAt Timestamp when the story expires (24h after creation)
- * @property mediaType The type of media: "image" or "video"
+ * @property mediaType The type of media: IMAGE or VIDEO
  */
 data class Story(
     val storyId: String,
@@ -20,7 +20,7 @@ data class Story(
     val mediaUrl: String,
     val createdAt: Timestamp,
     val expiresAt: Timestamp,
-    val mediaType: String = "image"
+    val mediaType: MediaType = MediaType.IMAGE
 ) {
   fun toMap(): Map<String, Any> =
       mapOf(
@@ -30,7 +30,7 @@ data class Story(
           "mediaUrl" to mediaUrl,
           "createdAt" to createdAt,
           "expiresAt" to expiresAt,
-          "mediaType" to mediaType)
+          "mediaType" to mediaType.value)
 
   companion object {
     /**
@@ -48,7 +48,7 @@ data class Story(
             mediaUrl = map["mediaUrl"] as? String ?: return null,
             createdAt = map["createdAt"] as? Timestamp ?: return null,
             expiresAt = map["expiresAt"] as? Timestamp ?: return null,
-            mediaType = map["mediaType"] as? String ?: "image")
+            mediaType = MediaType.fromString(map["mediaType"] as? String))
       } catch (e: Exception) {
         null
       }

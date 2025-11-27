@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.model.story.MediaType
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -31,7 +32,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
 
     // Cleanup
     testImageFile.delete()
@@ -48,7 +49,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert - Android may detect MIME type or fallback to extension, both should return "video"
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
 
     // Cleanup
     testVideoFile.delete()
@@ -63,7 +64,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert - should handle exception and return default
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 
   @Test
@@ -75,7 +76,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert - should fallback to extension check
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -87,7 +88,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -99,7 +100,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -111,7 +112,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -123,7 +124,7 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("video", result)
+    assertEquals(MediaType.VIDEO, result)
   }
 
   @Test
@@ -135,6 +136,6 @@ class MediaTypeDetectorInstrumentedTest {
     val result = MediaTypeDetector.detectMediaType(context, uri)
 
     // Assert
-    assertEquals("image", result)
+    assertEquals(MediaType.IMAGE, result)
   }
 }

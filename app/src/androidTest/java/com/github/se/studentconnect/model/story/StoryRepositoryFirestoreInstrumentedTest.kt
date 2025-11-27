@@ -358,7 +358,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
 
     // Assert
     assertNotNull("Story should not be null", result)
-    assertEquals("video", result?.mediaType)
+    assertEquals(MediaType.VIDEO, result?.mediaType)
 
     // Cleanup
     testVideoFile.delete()

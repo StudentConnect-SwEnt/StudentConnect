@@ -20,7 +20,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "image")
+            mediaType = MediaType.IMAGE)
 
     val map = story.toMap()
 
@@ -30,7 +30,7 @@ class StoryTest {
     assertEquals("stories/event789/user456/1234567890", map["mediaUrl"])
     assertEquals(now, map["createdAt"])
     assertEquals(expiresAt, map["expiresAt"])
-    assertEquals("image", map["mediaType"])
+    assertEquals(MediaType.IMAGE.value, map["mediaType"])
   }
 
   @Test
@@ -54,7 +54,7 @@ class StoryTest {
     assertEquals("stories/event789/user456/1234567890", story?.mediaUrl)
     assertEquals(now, story?.createdAt)
     assertEquals(expiresAt, story?.expiresAt)
-    assertEquals("image", story?.mediaType)
+    assertEquals(MediaType.IMAGE, story?.mediaType)
   }
 
   @Test
@@ -72,7 +72,7 @@ class StoryTest {
     val story = Story.fromMap(map)
 
     assertNotNull("Story should not be null", story)
-    assertEquals("image", story?.mediaType) // Should default to "image"
+    assertEquals(MediaType.IMAGE, story?.mediaType) // Should default to "image"
   }
 
   @Test
@@ -90,7 +90,7 @@ class StoryTest {
     val story = Story.fromMap(map)
 
     assertNotNull("Story should not be null", story)
-    assertEquals("video", story?.mediaType)
+    assertEquals(MediaType.VIDEO, story?.mediaType)
   }
 
   @Test
@@ -151,7 +151,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "image")
+            mediaType = MediaType.IMAGE)
     val story2 =
         Story(
             storyId = "story123",
@@ -160,7 +160,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "image")
+            mediaType = MediaType.IMAGE)
     val story3 =
         Story(
             storyId = "story999",
@@ -169,7 +169,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "image")
+            mediaType = MediaType.IMAGE)
 
     assertEquals(story1, story2)
     assertNotEquals(story1, story3)
@@ -185,7 +185,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "image")
+            mediaType = MediaType.IMAGE)
     val story2 =
         Story(
             storyId = "story123",
@@ -194,7 +194,7 @@ class StoryTest {
             mediaUrl = "stories/event789/user456/1234567890",
             createdAt = now,
             expiresAt = expiresAt,
-            mediaType = "video")
+            mediaType = MediaType.VIDEO)
 
     assertNotEquals(story1, story2)
   }
@@ -214,7 +214,7 @@ class StoryTest {
     val story = Story.fromMap(map)
 
     assertNotNull("Story should not be null", story)
-    assertEquals("image", story?.mediaType) // Should default to "image"
+    assertEquals(MediaType.IMAGE, story?.mediaType) // Should default to "image"
   }
 
   @Test
