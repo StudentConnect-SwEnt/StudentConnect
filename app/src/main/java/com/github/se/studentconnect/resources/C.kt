@@ -82,6 +82,8 @@ object C {
     const val visitor_profile_add_friend = "visitor_profile_add_friend"
     const val visitor_profile_cancel_friend = "visitor_profile_cancel_friend"
     const val visitor_profile_remove_friend = "visitor_profile_remove_friend"
+    const val visitor_profile_dialog_confirm = "visitor_profile_dialog_confirm"
+    const val visitor_profile_dialog_dismiss = "visitor_profile_dialog_dismiss"
     const val visitor_profile_loading = "visitor_profile_loading"
     const val visitor_profile_error = "visitor_profile_error"
 

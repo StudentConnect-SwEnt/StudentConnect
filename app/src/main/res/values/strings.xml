@@ -272,6 +272,14 @@
     <string name="toast_edit_profile">Edit Profile</string>
     <string name="toast_user_card">User Card</string>
 
+    <!-- Friends list -->
+    <string name="title_friends_list">Friends</string>
+    <string name="placeholder_search_friends">Search friends…</string>
+    <string name="text_no_friends_title">No friends yet :(</string>
+    <string name="text_no_friends_subtitle">Add more friends and they will appear here :)</string>
+    <string name="error_failed_to_load_friends">Failed to load friends</string>
+    <string name="content_description_friend_profile_picture">Friend profile picture</string>
+
     <!-- Profile error messages -->
     <string name="error_unknown">Unknown error</string>
 
@@ -456,6 +464,10 @@
     <string name="failed_to_remove_friend">Failed to remove friend</string>
     <string name="must_be_logged_in_cancel_friend_request">You must be logged in to cancel friend requests</string>
     <string name="must_be_logged_in_remove_friend">You must be logged in to remove friends</string>
+    <string name="dialog_remove_friend_title">Remove Friend</string>
+    <string name="dialog_remove_friend_message">Are you sure you want to remove this friend?</string>
+    <string name="button_yes">Yes</string>
+    <string name="button_no">No</string>
 
     <!-- Brand organization screen strings -->
     <string name="title_brand_organization">Brand your organization</string>

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -24,7 +25,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -129,6 +135,7 @@ internal fun VisitorProfileInfoCard(
     onRemoveFriendClick: () -> Unit = {},
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
+  var showRemoveFriendDialog by remember { mutableStateOf(false) }
 
   Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
     Row(
@@ -240,7 +247,7 @@ internal fun VisitorProfileInfoCard(
           FriendRequestStatus.ALREADY_FRIENDS -> {
             // Show a prominent remove button when already friends
             Button(
-                onClick = onRemoveFriendClick,
+                onClick = { showRemoveFriendDialog = true },
                 modifier =
                     Modifier.fillMaxWidth().semantics {
                       testTag = C.Tag.visitor_profile_remove_friend
@@ -292,6 +299,40 @@ internal fun VisitorProfileInfoCard(
           }
         }
       }
+    }
+
+    if (showRemoveFriendDialog) {
+      AlertDialog(
+          onDismissRequest = { showRemoveFriendDialog = false },
+          title = {
+            Text(
+                text =
+                    stringResource(
+                        id = com.github.se.studentconnect.R.string.dialog_remove_friend_title))
+          },
+          text = {
+            Text(
+                text =
+                    stringResource(
+                        id = com.github.se.studentconnect.R.string.dialog_remove_friend_message))
+          },
+          confirmButton = {
+            TextButton(
+                onClick = {
+                  showRemoveFriendDialog = false
+                  onRemoveFriendClick()
+                },
+                modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_confirm }) {
+                  Text(text = stringResource(id = com.github.se.studentconnect.R.string.button_yes))
+                }
+          },
+          dismissButton = {
+            TextButton(
+                onClick = { showRemoveFriendDialog = false },
+                modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_dismiss }) {
+                  Text(text = stringResource(id = com.github.se.studentconnect.R.string.button_no))
+                }
+          })
     }
   }
 }

@@ -9,6 +9,7 @@ class ProfileRoutesTest {
 
   @Test
   fun `ProfileRoutes contains all required route constants`() {
+    assertEquals("friends_list/{userId}", ProfileRoutes.FRIENDS_LIST)
     assertEquals("edit_profile_picture/{userId}", ProfileRoutes.EDIT_PICTURE)
     assertEquals("edit_bio/{userId}", ProfileRoutes.EDIT_BIO)
     assertEquals("edit_activities/{userId}", ProfileRoutes.EDIT_ACTIVITIES)
@@ -19,6 +20,7 @@ class ProfileRoutesTest {
 
   @Test
   fun `ProfileRoutes route constants are not empty`() {
+    assertFalse(ProfileRoutes.FRIENDS_LIST.isBlank())
     assertFalse(ProfileRoutes.EDIT_PICTURE.isBlank())
     assertFalse(ProfileRoutes.EDIT_NAME.isBlank())
     assertFalse(ProfileRoutes.EDIT_BIO.isBlank())
@@ -62,6 +64,7 @@ class ProfileRoutesTest {
   fun `ProfileRoutes route constants are unique`() {
     val routes =
         listOf(
+            ProfileRoutes.FRIENDS_LIST,
             ProfileRoutes.EDIT_PICTURE,
             ProfileRoutes.EDIT_NAME,
             ProfileRoutes.EDIT_BIO,
@@ -177,6 +180,7 @@ class ProfileRoutesTest {
   fun `ProfileRoutes functions work correctly`() {
     val testUserId = "test_user_123"
 
+    assertEquals("friends_list/$testUserId", ProfileRoutes.friendsList(testUserId))
     assertEquals("edit_profile_picture/$testUserId", ProfileRoutes.editPicture(testUserId))
     assertEquals("edit_name/$testUserId", ProfileRoutes.editName(testUserId))
     assertEquals("edit_bio/$testUserId", ProfileRoutes.editBio(testUserId))
@@ -189,6 +193,7 @@ class ProfileRoutesTest {
   fun `ProfileRoutes functions handle special characters in userId`() {
     val specialUserId = "user-123_test"
 
+    assertEquals("friends_list/$specialUserId", ProfileRoutes.friendsList(specialUserId))
     assertEquals("edit_profile_picture/$specialUserId", ProfileRoutes.editPicture(specialUserId))
     assertEquals("edit_name/$specialUserId", ProfileRoutes.editName(specialUserId))
     assertEquals("edit_bio/$specialUserId", ProfileRoutes.editBio(specialUserId))
@@ -201,11 +206,24 @@ class ProfileRoutesTest {
   fun `ProfileRoutes functions handle empty userId`() {
     val emptyUserId = ""
 
+    assertEquals("friends_list/$emptyUserId", ProfileRoutes.friendsList(emptyUserId))
     assertEquals("edit_profile_picture/$emptyUserId", ProfileRoutes.editPicture(emptyUserId))
     assertEquals("edit_name/$emptyUserId", ProfileRoutes.editName(emptyUserId))
     assertEquals("edit_bio/$emptyUserId", ProfileRoutes.editBio(emptyUserId))
     assertEquals("edit_activities/$emptyUserId", ProfileRoutes.editActivities(emptyUserId))
     assertEquals("edit_birthday/$emptyUserId", ProfileRoutes.editBirthday(emptyUserId))
     assertEquals("edit_nationality/$emptyUserId", ProfileRoutes.editNationality(emptyUserId))
+  }
+
+  @Test
+  fun `friendsList function creates correct route`() {
+    assertEquals("friends_list/user123", ProfileRoutes.friendsList("user123"))
+    assertEquals("friends_list/abc-xyz", ProfileRoutes.friendsList("abc-xyz"))
+  }
+
+  @Test
+  fun `FRIENDS_LIST constant has correct format`() {
+    assertTrue(ProfileRoutes.FRIENDS_LIST.contains("friends_list"))
+    assertTrue(ProfileRoutes.FRIENDS_LIST.contains("{userId}"))
   }
 }

@@ -44,6 +44,7 @@ object ProfileConstants {
   const val ERROR_SAVE_BIO = "Failed to save bio"
   const val ERROR_UNEXPECTED = "An unexpected error occurred"
   const val ERROR_PROFILE_NOT_FOUND = "Profile not found"
+  const val ERROR_LOAD_FRIENDS = "Failed to load friends"
 
   // Field labels
   const val LABEL_FIRST_NAME = "First Name"
