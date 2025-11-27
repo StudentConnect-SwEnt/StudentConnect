@@ -5,9 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.OrganizationEvent
 import com.github.se.studentconnect.model.OrganizationMember
 import com.github.se.studentconnect.model.OrganizationProfile
+import com.github.se.studentconnect.model.fetchOrganizationMembers
+import com.github.se.studentconnect.model.toOrganizationEvents
 import com.github.se.studentconnect.model.toOrganizationProfile
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
+import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,15 +40,23 @@ data class OrganizationProfileUiState(
  * Manages organization data, tab selection, and follow/unfollow actions.
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
- * @param repository The repository to fetch organization data from
+ * @param organizationRepository The repository to fetch organization data from
+ * @param eventRepository The repository to fetch event data from
+ * @param userRepository The repository to fetch user data from
  */
 class OrganizationProfileViewModel(
     private val organizationId: String? = null,
-    private val repository: OrganizationRepository = OrganizationRepositoryProvider.repository
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
+
+  private val currentUserId: String? =
+      AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
 
   init {
     loadOrganizationData()
@@ -60,7 +75,7 @@ class OrganizationProfileViewModel(
           return@launch
         }
 
-        val organization = repository.getOrganizationById(organizationId)
+        val organization = organizationRepository.getOrganizationById(organizationId)
         if (organization == null) {
           _uiState.value =
               _uiState.value.copy(
@@ -68,16 +83,36 @@ class OrganizationProfileViewModel(
           return@launch
         }
 
-        // TODO: Fetch actual events and members for this organization
-        // For now, using empty lists until those repositories are implemented
-        val mockEvents = createMockEvents()
-        val mockMembers = createMockMembers()
+        // Fetch events for this organization
+        val events =
+            try {
+              eventRepository.getEventsByOrganization(organizationId).toOrganizationEvents()
+            } catch (e: Exception) {
+              emptyList() // If fetching events fails, use empty list
+            }
+
+        // Fetch members for this organization
+        val members =
+            try {
+              fetchOrganizationMembers(organization.memberUids, userRepository)
+            } catch (e: Exception) {
+              emptyList() // If fetching members fails, use empty list
+            }
+
+        // Check if current user is following this organization
+        val isFollowing =
+            currentUserId?.let { uid ->
+              try {
+                val followedOrgs = userRepository.getFollowedOrganizations(uid)
+                followedOrgs.contains(organizationId)
+              } catch (e: Exception) {
+                false
+              }
+            } ?: false
 
         val organizationProfile =
             organization.toOrganizationProfile(
-                isFollowing = false, // TODO: Check if user is following this organization
-                events = mockEvents,
-                members = mockMembers)
+                isFollowing = isFollowing, events = events, members = members)
 
         _uiState.value =
             _uiState.value.copy(
@@ -104,45 +139,25 @@ class OrganizationProfileViewModel(
   /** Toggles the follow status for the organization. */
   fun toggleFollow() {
     val currentOrg = _uiState.value.organization ?: return
+    val userId = currentUserId ?: return
+
+    // Optimistically update UI
     val updatedOrg = currentOrg.copy(isFollowing = !currentOrg.isFollowing)
     _uiState.value = _uiState.value.copy(organization = updatedOrg)
-    // TODO: Persist follow/unfollow status to backend
-  }
 
-  /** Creates mock event data until event repository integration is complete. */
-  private fun createMockEvents(): List<OrganizationEvent> {
-    return listOf(
-        OrganizationEvent(
-            eventId = "event_1",
-            cardTitle = "EPFL Hackathon",
-            cardDate = "15 dec, 2024",
-            title = "Hackathon EPFL",
-            subtitle = "Tomorrow",
-            location = "EPFL"),
-        OrganizationEvent(
-            eventId = "event_2",
-            cardTitle = "EPFL Hackathon",
-            cardDate = "15 dec, 2024",
-            title = "Hackathon EPFL",
-            subtitle = "Tomorrow",
-            location = "EPFL"))
-  }
-
-  /** Creates mock member data until member repository integration is complete. */
-  private fun createMockMembers(): List<OrganizationMember> {
-    return listOf(
-        OrganizationMember(
-            memberId = "member_1", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-        OrganizationMember(
-            memberId = "member_2", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-        OrganizationMember(
-            memberId = "member_3", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"),
-        OrganizationMember(
-            memberId = "member_4", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-        OrganizationMember(
-            memberId = "member_5", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-        OrganizationMember(
-            memberId = "member_6", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"))
+    // Persist to backend
+    viewModelScope.launch {
+      try {
+        if (updatedOrg.isFollowing) {
+          userRepository.followOrganization(userId, currentOrg.organizationId)
+        } else {
+          userRepository.unfollowOrganization(userId, currentOrg.organizationId)
+        }
+      } catch (e: Exception) {
+        // Revert on failure
+        _uiState.value = _uiState.value.copy(organization = currentOrg)
+      }
+    }
   }
 
   companion object {

@@ -21,6 +21,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val JOINED_EVENT = "joinedEvents"
     private const val INVITATIONS = "invitations"
     private const val FAVORITE_EVENTS = "favoriteEvents"
+    private const val FOLLOWED_ORGANIZATIONS = "followedOrganizations"
   }
 
   override suspend fun getUserById(userId: String): User? {
@@ -246,5 +247,36 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
 
     // Username is available if no documents are found
     return querySnapshot.isEmpty
+  }
+
+  override suspend fun followOrganization(userId: String, organizationId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FOLLOWED_ORGANIZATIONS)
+        .document(organizationId)
+        .set(
+            mapOf(
+                "organizationId" to organizationId,
+                "followedAt" to FieldValue.serverTimestamp()))
+        .await()
+  }
+
+  override suspend fun unfollowOrganization(userId: String, organizationId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(FOLLOWED_ORGANIZATIONS)
+        .document(organizationId)
+        .delete()
+        .await()
+  }
+
+  override suspend fun getFollowedOrganizations(userId: String): List<String> {
+    val document =
+        db.collection(COLLECTION_NAME)
+            .document(userId)
+            .collection(FOLLOWED_ORGANIZATIONS)
+            .get()
+            .await()
+    return document.documents.mapNotNull { it.getString("organizationId") }
   }
 }
