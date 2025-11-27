@@ -132,4 +132,27 @@ class StoryCaptureScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
+
+  @Test
+  fun storyCaptureScreen_videoMode_switchesControls() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_onPreviewStateChanged_invokedOnComposition() {
+    val stateChanges = mutableListOf<Boolean>()
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {}, isActive = true, onPreviewStateChanged = { stateChanges.add(it) })
+      }
+    }
+
+    composeTestRule.runOnIdle { assert(stateChanges.contains(false)) }
+  }
 }

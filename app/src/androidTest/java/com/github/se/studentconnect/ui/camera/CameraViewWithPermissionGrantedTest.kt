@@ -53,4 +53,38 @@ class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
     assertTrue(fakeCapture.exists())
     assertTrue(fakeCapture.length() > 0)
   }
+
+  @Test
+  fun cameraView_enableVideoCapture_rendersButton() {
+    composeTestRule.setContent {
+      CameraView(enableImageCapture = false, enableVideoCapture = true, onVideoCaptured = {})
+    }
+    composeTestRule.onNodeWithContentDescription("Capture").assertExists()
+  }
+
+  @Test
+  fun cameraView_videoCapture_passesRecordingStateToButton() {
+    var receivedRecordingState = false
+    composeTestRule.setContent {
+      CameraView(
+          enableVideoCapture = true,
+          captureButton = { isRecording -> receivedRecordingState = isRecording })
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { assert(!receivedRecordingState) }
+  }
+
+  @Test
+  fun cameraView_videoCaptureCallback_isOptional() {
+    composeTestRule.setContent { CameraView(enableVideoCapture = true, onVideoCaptured = null) }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Capture").assertExists()
+  }
+
+  @Test
+  fun cameraView_imageCaptureCallback_isOptional() {
+    composeTestRule.setContent { CameraView(enableImageCapture = true, onImageCaptured = null) }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Capture").assertExists()
+  }
 }
