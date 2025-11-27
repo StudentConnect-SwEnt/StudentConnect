@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.activities
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -117,7 +118,6 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
-  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -275,7 +275,7 @@ private fun BaseEventView(
             profileId?.let { id ->
               runCatching { repository.download(id) }
                   .onFailure {
-                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                    Log.e("eventViewImage", "Failed to download event image: $id", it)
                   }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
@@ -956,6 +956,18 @@ private fun AttendeeItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, attendee.profilePictureUrl, repository) {
+        value =
+            attendee.profilePictureUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
   Row(
       modifier =
           modifier
@@ -965,11 +977,19 @@ private fun AttendeeItem(
       horizontalArrangement = Arrangement.spacedBy(10.dp),
       verticalAlignment = Alignment.CenterVertically,
   ) {
-    Image(
-        painter = painterResource(R.drawable.ic_user),
-        contentDescription = "attendee image",
-        Modifier.size(48.dp),
-    )
+    if (imageBitmap != null) {
+      Image(
+          bitmap = imageBitmap!!,
+          contentDescription = "attendee image",
+          Modifier.size(48.dp).clip(CircleShape),
+          contentScale = ContentScale.Crop)
+    } else {
+      Image(
+          painter = painterResource(R.drawable.ic_user),
+          contentDescription = "attendee image",
+          Modifier.size(48.dp),
+      )
+    }
     Column {
       Text(
           attendee.firstName + " " + attendee.lastName,
