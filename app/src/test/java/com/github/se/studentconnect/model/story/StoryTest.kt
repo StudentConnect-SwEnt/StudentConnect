@@ -198,4 +198,54 @@ class StoryTest {
 
     assertNotEquals(story1, story2)
   }
+
+  @Test
+  fun story_fromMap_withMediaTypeAsNonString_usesDefault() {
+    val map =
+        mapOf(
+            "storyId" to "story123",
+            "userId" to "user456",
+            "eventId" to "event789",
+            "mediaUrl" to "stories/event789/user456/1234567890",
+            "createdAt" to now,
+            "expiresAt" to expiresAt,
+            "mediaType" to 123) // Wrong type (Int instead of String)
+
+    val story = Story.fromMap(map)
+
+    assertNotNull("Story should not be null", story)
+    assertEquals("image", story?.mediaType) // Should default to "image"
+  }
+
+  @Test
+  fun story_fromMap_withNullExpiresAt_returnsNull() {
+    val map =
+        mapOf(
+            "storyId" to "story123",
+            "userId" to "user456",
+            "eventId" to "event789",
+            "mediaUrl" to "stories/event789/user456/1234567890",
+            "createdAt" to now,
+            "expiresAt" to null) // Null expiresAt
+
+    val story = Story.fromMap(map)
+
+    assertNull("Story should be null when expiresAt is null", story)
+  }
+
+  @Test
+  fun story_fromMap_withNullCreatedAt_returnsNull() {
+    val map =
+        mapOf(
+            "storyId" to "story123",
+            "userId" to "user456",
+            "eventId" to "event789",
+            "mediaUrl" to "stories/event789/user456/1234567890",
+            "createdAt" to null, // Null createdAt
+            "expiresAt" to expiresAt)
+
+    val story = Story.fromMap(map)
+
+    assertNull("Story should be null when createdAt is null", story)
+  }
 }

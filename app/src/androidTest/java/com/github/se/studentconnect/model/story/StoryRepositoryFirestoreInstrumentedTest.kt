@@ -305,4 +305,117 @@ class StoryRepositoryFirestoreInstrumentedTest {
     // Cleanup
     testImageFile.delete()
   }
+
+  @Test
+  fun uploadStory_withVideoFile_uploadsWithoutCompression() = runTest {
+    // Arrange - create a dummy video file
+    val testVideoFile = File(context.cacheDir, "test_video.mp4")
+    testVideoFile.createNewFile()
+    val fileUri = Uri.fromFile(testVideoFile)
+    val eventId = "event123"
+    val userId = "user456"
+    val storyId = "story789"
+    val now = Timestamp.now()
+    val expiresAt = Timestamp(now.seconds + 86400, now.nanoseconds)
+
+    val mockMediaRepo = TestMediaRepository()
+    val mockUserRepo = TestUserRepository()
+    val mockEventRepo = TestEventRepository()
+    val testRepo =
+        StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo, context)
+
+    val mockNewDocRef = mock(DocumentReference::class.java)
+    whenever(mockCollectionReference.document()).thenReturn(mockNewDocRef)
+    whenever(mockNewDocRef.id).thenReturn(storyId)
+    whenever(mockNewDocRef.set(any<Map<String, Any>>())).thenReturn(Tasks.forResult(null))
+    whenever(mockNewDocRef.update(anyString(), any())).thenReturn(Tasks.forResult(null))
+
+    val initialDocumentData: Map<String, Any> =
+        mapOf(
+            "storyId" to storyId,
+            "userId" to userId,
+            "eventId" to eventId,
+            "mediaUrl" to "stories/$eventId/$userId/1234567890",
+            "createdAt" to now,
+            "mediaType" to "video")
+    whenever(mockDocumentSnapshot.data).thenReturn(initialDocumentData)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockDocumentSnapshot.reference).thenReturn(mockNewDocRef)
+
+    val finalDocumentData = initialDocumentData.toMutableMap() as MutableMap<String, Any>
+    finalDocumentData["expiresAt"] = expiresAt
+    val mockFinalDoc = mock(DocumentSnapshot::class.java)
+    whenever(mockFinalDoc.data).thenReturn(finalDocumentData)
+    whenever(mockFinalDoc.exists()).thenReturn(true)
+
+    whenever(mockCollectionReference.document(storyId)).thenReturn(mockNewDocRef)
+    whenever(mockNewDocRef.get())
+        .thenReturn(Tasks.forResult(mockDocumentSnapshot))
+        .thenReturn(Tasks.forResult(mockFinalDoc))
+
+    // Act
+    val result = testRepo.uploadStory(fileUri, eventId, userId)
+
+    // Assert
+    assertNotNull("Story should not be null", result)
+    assertEquals("video", result?.mediaType)
+
+    // Cleanup
+    testVideoFile.delete()
+  }
+
+  @Test
+  fun uploadStory_withValidData_createsStoryWithCorrectExpiresAt() = runTest {
+    // Arrange - create a real image file
+    val testImageFile = File(context.cacheDir, "test_image.jpg")
+    FileOutputStream(testImageFile).use { out ->
+      Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+          .compress(Bitmap.CompressFormat.JPEG, 100, out)
+    }
+    val fileUri = Uri.fromFile(testImageFile)
+    val eventId = "event123"
+    val userId = "user456"
+    val storyId = "story789"
+    val now = Timestamp.now()
+    val expiresAt = Timestamp(now.seconds + 86400, now.nanoseconds)
+
+    val mockNewDocRef = mock(DocumentReference::class.java)
+    whenever(mockCollectionReference.document()).thenReturn(mockNewDocRef)
+    whenever(mockNewDocRef.id).thenReturn(storyId)
+    whenever(mockNewDocRef.set(any<Map<String, Any>>())).thenReturn(Tasks.forResult(null))
+    whenever(mockNewDocRef.update(anyString(), any())).thenReturn(Tasks.forResult(null))
+
+    val documentData: Map<String, Any> =
+        mapOf(
+            "storyId" to storyId,
+            "userId" to userId,
+            "eventId" to eventId,
+            "mediaUrl" to "stories/$eventId/$userId/1234567890",
+            "createdAt" to now,
+            "expiresAt" to expiresAt,
+            "mediaType" to "image")
+    whenever(mockDocumentSnapshot.data).thenReturn(documentData)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(true)
+    whenever(mockDocumentSnapshot.reference).thenReturn(mockNewDocRef)
+
+    val mockFinalDoc = mock(DocumentSnapshot::class.java)
+    whenever(mockFinalDoc.data).thenReturn(documentData)
+    whenever(mockFinalDoc.exists()).thenReturn(true)
+
+    whenever(mockCollectionReference.document(storyId)).thenReturn(mockNewDocRef)
+    whenever(mockNewDocRef.get())
+        .thenReturn(Tasks.forResult(mockDocumentSnapshot))
+        .thenReturn(Tasks.forResult(mockFinalDoc))
+
+    // Act
+    val result = repository.uploadStory(fileUri, eventId, userId)
+
+    // Assert
+    assertNotNull("Story should not be null", result)
+    assertEquals(storyId, result?.storyId)
+    assertEquals(expiresAt, result?.expiresAt)
+
+    // Cleanup
+    testImageFile.delete()
+  }
 }

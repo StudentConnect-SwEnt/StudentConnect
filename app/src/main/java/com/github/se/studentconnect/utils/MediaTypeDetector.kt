@@ -14,12 +14,26 @@ object MediaTypeDetector {
    */
   suspend fun detectMediaType(context: Context, uri: Uri): String {
     return try {
-      val mimeType = context.contentResolver.getType(uri) ?: return "image"
-
+      val mimeType = context.contentResolver.getType(uri)
+      
+      // If MIME type is detected, use it
+      if (mimeType != null) {
+        return when {
+          mimeType.startsWith("image/") -> "image"
+          mimeType.startsWith("video/") -> "video"
+          else -> "image" // Default to image if unknown
+        }
+      }
+      
+      // If MIME type is null, fallback to file extension
+      val path = uri.path ?: return "image"
       when {
-        mimeType.startsWith("image/") -> "image"
-        mimeType.startsWith("video/") -> "video"
-        else -> "image" // Default to image if unknown
+        path.contains(".mp4", ignoreCase = true) ||
+            path.contains(".mov", ignoreCase = true) ||
+            path.contains(".avi", ignoreCase = true) ||
+            path.contains(".mkv", ignoreCase = true) ||
+            path.contains(".webm", ignoreCase = true) -> "video"
+        else -> "image"
       }
     } catch (e: Exception) {
       // Fallback: check file extension if MIME type detection fails
