@@ -274,7 +274,7 @@ internal fun TeamRolesContent(
 }
 
 @Composable
-private fun RolesFormCard(
+internal fun RolesFormCard(
     roleName: String,
     roleDescription: String,
     suggestions: List<String>,
@@ -337,7 +337,7 @@ private fun RolesFormCard(
 }
 
 @Composable
-private fun EmptyRolesState(modifier: Modifier = Modifier) {
+internal fun EmptyRolesState(modifier: Modifier = Modifier) {
   Column(
       modifier = modifier.fillMaxWidth(),
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -365,7 +365,7 @@ private fun EmptyRolesState(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RoleNameDropdownField(
+internal fun RoleNameDropdownField(
     value: String,
     onValueChange: (String) -> Unit,
     suggestions: List<String>,
@@ -457,7 +457,7 @@ internal fun shouldExpandOnTextChange(
 }
 
 @Composable
-private fun RoleCard(
+internal fun RoleCard(
     role: OrganizationRole,
     onRemoveRole: (OrganizationRole) -> Unit,
     modifier: Modifier = Modifier
