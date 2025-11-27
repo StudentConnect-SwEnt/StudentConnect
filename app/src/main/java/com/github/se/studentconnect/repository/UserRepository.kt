@@ -188,7 +188,9 @@ interface UserRepository {
    * @param userId The unique identifier of the user.
    * @param organizationId The unique identifier of the organization to follow.
    */
-  suspend fun followOrganization(userId: String, organizationId: String)
+  suspend fun followOrganization(userId: String, organizationId: String) {
+    // Default implementation: do nothing
+  }
 
   /**
    * Removes an organization from the user's list of followed organizations.
@@ -196,7 +198,9 @@ interface UserRepository {
    * @param userId The unique identifier of the user.
    * @param organizationId The unique identifier of the organization to unfollow.
    */
-  suspend fun unfollowOrganization(userId: String, organizationId: String)
+  suspend fun unfollowOrganization(userId: String, organizationId: String) {
+    // Default implementation: do nothing
+  }
 
   /**
    * Retrieves all organizations that a user is following.
@@ -204,5 +208,8 @@ interface UserRepository {
    * @param userId The unique identifier of the user.
    * @return A list of organization IDs that the user is following.
    */
-  suspend fun getFollowedOrganizations(userId: String): List<String>
+  suspend fun getFollowedOrganizations(userId: String): List<String> {
+    // Default implementation: return empty list
+    return emptyList()
+  }
 }
