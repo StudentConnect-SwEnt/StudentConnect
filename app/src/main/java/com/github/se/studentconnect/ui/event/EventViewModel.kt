@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.event
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -39,7 +41,7 @@ data class EventUiState(
     val invitedFriendIds: Set<String> = emptySet(),
     val initialInvitedFriendIds: Set<String> = emptySet(),
     val isLoadingFriends: Boolean = false,
-    val friendsError: String? = null,
+    @StringRes val friendsErrorRes: Int? = null,
     val isInvitingFriends: Boolean = false
 )
 
@@ -88,7 +90,7 @@ class EventViewModel(
             showInviteFriendsDialog = false,
             invitedFriendIds = emptySet(),
             initialInvitedFriendIds = emptySet(),
-            friendsError = null,
+            friendsErrorRes = null,
             isInvitingFriends = false,
             friends = emptyList(),
             isLoadingFriends = false)
@@ -218,7 +220,7 @@ class EventViewModel(
           showInviteFriendsDialog = false,
           invitedFriendIds = emptySet(),
           initialInvitedFriendIds = emptySet(),
-          friendsError = null,
+          friendsErrorRes = null,
           isInvitingFriends = false)
     }
   }
@@ -245,7 +247,7 @@ class EventViewModel(
     val event = _uiState.value.event ?: return
     val currentUserId = AuthenticationProvider.currentUser
     if (currentUserId != event.ownerId) {
-      _uiState.update { it.copy(friendsError = "Only the owner can invite friends.") }
+      _uiState.update { it.copy(friendsErrorRes = R.string.event_invite_owner_only) }
       return
     }
     val currentSelection = _uiState.value.invitedFriendIds
@@ -258,7 +260,7 @@ class EventViewModel(
     }
 
     viewModelScope.launch {
-      _uiState.update { it.copy(isInvitingFriends = true, friendsError = null) }
+      _uiState.update { it.copy(isInvitingFriends = true, friendsErrorRes = null) }
       var hadError = false
       toAdd.forEach { friendId ->
         runCatching {
@@ -270,8 +272,7 @@ class EventViewModel(
               hadError = true
               _uiState.update { state ->
                 state.copy(
-                    friendsError =
-                        state.friendsError ?: e.message ?: "Failed to send some invitations")
+                    friendsErrorRes = state.friendsErrorRes ?: R.string.event_invite_send_failed)
               }
             }
       }
@@ -285,8 +286,7 @@ class EventViewModel(
               hadError = true
               _uiState.update { state ->
                 state.copy(
-                    friendsError =
-                        state.friendsError ?: e.message ?: "Failed to remove some invitations")
+                    friendsErrorRes = state.friendsErrorRes ?: R.string.event_invite_remove_failed)
               }
             }
       }
@@ -335,11 +335,11 @@ class EventViewModel(
     val event = _uiState.value.event ?: return
     val currentUserUid = AuthenticationProvider.currentUser
     if (currentUserUid == null) {
-      _uiState.update { it.copy(friendsError = "User not authenticated") }
+      _uiState.update { it.copy(friendsErrorRes = R.string.error_user_not_authenticated) }
       return
     }
 
-    _uiState.update { it.copy(isLoadingFriends = true, friendsError = null) }
+    _uiState.update { it.copy(isLoadingFriends = true, friendsErrorRes = null) }
     viewModelScope.launch {
       try {
         val friendIds = friendsRepository.getFriends(currentUserUid)
@@ -356,13 +356,13 @@ class EventViewModel(
           it.copy(
               friends = friends,
               isLoadingFriends = false,
-              friendsError = null,
+              friendsErrorRes = null,
               invitedFriendIds = invitedIds.intersect(friendIds.toSet()),
               initialInvitedFriendIds = invitedIds.intersect(friendIds.toSet()))
         }
       } catch (e: Exception) {
         _uiState.update {
-          it.copy(isLoadingFriends = false, friendsError = e.message ?: "Failed to load friends")
+          it.copy(isLoadingFriends = false, friendsErrorRes = R.string.event_invite_friends_error)
         }
       }
     }

@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -76,7 +77,7 @@ fun InviteFriendsDialog(
                     friends = state.friends,
                     invitedFriendIds = state.invitedFriendIds,
                     isLoadingFriends = state.isLoadingFriends,
-                    friendsError = state.friendsError,
+                    friendsErrorRes = state.friendsErrorRes,
                     onToggleFriend = onToggleFriend)
 
                 Button(
@@ -106,7 +107,7 @@ private fun InviteFriendsSection(
     friends: List<User>,
     invitedFriendIds: Set<String>,
     isLoadingFriends: Boolean,
-    friendsError: String?,
+    @StringRes friendsErrorRes: Int?,
     onToggleFriend: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -129,9 +130,10 @@ private fun InviteFriendsSection(
                         CircularProgressIndicator()
                       }
                 }
-                friendsError != null -> {
+                friendsErrorRes != null -> {
+                  val errorText = stringResource(friendsErrorRes)
                   Text(
-                      text = friendsError,
+                      text = errorText,
                       style = MaterialTheme.typography.bodyMedium,
                       color = MaterialTheme.colorScheme.error,
                       modifier = Modifier.testTag(InviteFriendsDialogTestTags.ERROR))

@@ -401,6 +401,10 @@
     <string name="event_invite_friends_empty">You have no friends to invite yet.</string>
     <string name="event_invite_friends_error">Couldn\'t load your friends.</string>
     <string name="event_button_update_invites">Update invitations</string>
+    <string name="event_invite_owner_only">Only the event owner can manage invitations.</string>
+    <string name="event_invite_send_failed">Failed to send some invitations.</string>
+    <string name="event_invite_remove_failed">Failed to remove some invitations.</string>
+    <string name="error_user_not_authenticated">User not authenticated.</string>
 
     <!-- Experience tags -->
     <string name="topic_selector_empty">No topics yet</string>
