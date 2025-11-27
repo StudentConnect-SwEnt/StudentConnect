@@ -230,7 +230,8 @@ class StoryRepositoryFirestoreInstrumentedTest {
             "userId" to userId,
             "eventId" to eventId,
             "mediaUrl" to "stories/$eventId/$userId/1234567890",
-            "createdAt" to now)
+            "createdAt" to now,
+            "mediaType" to "image")
     whenever(mockDocumentSnapshot.data).thenReturn(initialDocumentData)
     whenever(mockDocumentSnapshot.exists()).thenReturn(true)
     whenever(mockDocumentSnapshot.reference).thenReturn(mockNewDocRef)
