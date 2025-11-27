@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.activities
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -135,7 +136,6 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
-  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -343,7 +343,7 @@ private fun BaseEventView(
             profileId?.let { id ->
               runCatching { repository.download(id) }
                   .onFailure {
-                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
+                    Log.e("eventViewImage", "Failed to download event image: $id", it)
                   }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
@@ -1111,17 +1111,16 @@ private fun AttendeeItem(
 ) {
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
   val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+      produceState<ImageBitmap?>(initialValue = null, attendee.profilePictureUrl, repository) {
         value =
-            profileId?.let { id ->
+            attendee.profilePictureUrl?.let { id ->
               runCatching { repository.download(id) }
+                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
       }
-
   Row(
       modifier =
           modifier
