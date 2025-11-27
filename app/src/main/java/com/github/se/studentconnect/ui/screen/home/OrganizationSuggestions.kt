@@ -81,9 +81,6 @@ fun OrganizationSuggestions(
     onOrganizationClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-  // Don't render section if organizations list is empty
-  if (organizations.isEmpty()) return
-
   Column(modifier = modifier.fillMaxWidth().testTag(C.Tag.org_suggestions_section)) {
     Text(
         text = stringResource(R.string.org_suggestions_title),
