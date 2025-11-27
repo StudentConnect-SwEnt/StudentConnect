@@ -3,12 +3,12 @@ package com.github.se.studentconnect.model
 import org.junit.Assert.*
 import org.junit.Test
 
-class OrganizationTest {
+class OrganizationProfileTest {
 
   @Test
-  fun `Organization with valid fields is created successfully`() {
+  fun `OrganizationProfile with valid fields is created successfully`() {
     val organization =
-        Organization(
+        OrganizationProfile(
             organizationId = "org_1", name = "Test Org", description = "A test organization")
 
     assertEquals("org_1", organization.organizationId)
@@ -21,12 +21,12 @@ class OrganizationTest {
   }
 
   @Test
-  fun `Organization with all optional fields is created successfully`() {
+  fun `OrganizationProfile with all optional fields is created successfully`() {
     val events = listOf(OrganizationEvent("e1", "Event 1", "Jan 1", "Title", "Subtitle"))
     val members = listOf(OrganizationMember("m1", "Member 1", "Owner"))
 
     val organization =
-        Organization(
+        OrganizationProfile(
             organizationId = "org_2",
             name = "Full Org",
             description = "Description",
@@ -42,48 +42,50 @@ class OrganizationTest {
   }
 
   @Test(expected = IllegalArgumentException::class)
-  fun `Organization with blank id throws exception`() {
-    Organization(organizationId = "", name = "Test", description = "Desc")
+  fun `OrganizationProfile with blank id throws exception`() {
+    OrganizationProfile(organizationId = "", name = "Test", description = "Desc")
   }
 
   @Test(expected = IllegalArgumentException::class)
-  fun `Organization with blank name throws exception`() {
-    Organization(organizationId = "org_1", name = "", description = "Desc")
+  fun `OrganizationProfile with blank name throws exception`() {
+    OrganizationProfile(organizationId = "org_1", name = "", description = "Desc")
   }
 
   @Test(expected = IllegalArgumentException::class)
-  fun `Organization with blank description throws exception`() {
-    Organization(organizationId = "org_1", name = "Test", description = "")
+  fun `OrganizationProfile with blank description throws exception`() {
+    OrganizationProfile(organizationId = "org_1", name = "Test", description = "")
   }
 
   @Test(expected = IllegalArgumentException::class)
-  fun `Organization with name exceeding 200 characters throws exception`() {
-    Organization(organizationId = "org_1", name = "A".repeat(201), description = "Description")
+  fun `OrganizationProfile with name exceeding 200 characters throws exception`() {
+    OrganizationProfile(
+        organizationId = "org_1", name = "A".repeat(201), description = "Description")
   }
 
   @Test(expected = IllegalArgumentException::class)
-  fun `Organization with description exceeding 1000 characters throws exception`() {
-    Organization(organizationId = "org_1", name = "Test", description = "A".repeat(1001))
+  fun `OrganizationProfile with description exceeding 1000 characters throws exception`() {
+    OrganizationProfile(organizationId = "org_1", name = "Test", description = "A".repeat(1001))
   }
 
   @Test
-  fun `Organization with maximum allowed name length succeeds`() {
+  fun `OrganizationProfile with maximum allowed name length succeeds`() {
     val organization =
-        Organization(organizationId = "org_1", name = "A".repeat(200), description = "Description")
+        OrganizationProfile(
+            organizationId = "org_1", name = "A".repeat(200), description = "Description")
     assertEquals(200, organization.name.length)
   }
 
   @Test
-  fun `Organization with maximum allowed description length succeeds`() {
+  fun `OrganizationProfile with maximum allowed description length succeeds`() {
     val organization =
-        Organization(organizationId = "org_1", name = "Test", description = "A".repeat(1000))
+        OrganizationProfile(organizationId = "org_1", name = "Test", description = "A".repeat(1000))
     assertEquals(1000, organization.description.length)
   }
 
   @Test
-  fun `Organization copy creates correct instance`() {
+  fun `OrganizationProfile copy creates correct instance`() {
     val original =
-        Organization(
+        OrganizationProfile(
             organizationId = "org_1",
             name = "Original",
             description = "Description",
@@ -96,10 +98,10 @@ class OrganizationTest {
   }
 
   @Test
-  fun `Organization equals compares all fields`() {
-    val org1 = Organization("id", "Name", "Desc")
-    val org2 = Organization("id", "Name", "Desc")
-    val org3 = Organization("id2", "Name", "Desc")
+  fun `OrganizationProfile equals compares all fields`() {
+    val org1 = OrganizationProfile("id", "Name", "Desc")
+    val org2 = OrganizationProfile("id", "Name", "Desc")
+    val org3 = OrganizationProfile("id2", "Name", "Desc")
 
     assertEquals(org1, org2)
     assertNotEquals(org1, org3)

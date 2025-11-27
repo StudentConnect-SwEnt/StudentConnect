@@ -1,9 +1,9 @@
 package com.github.se.studentconnect.ui.profile
 
 import androidx.lifecycle.ViewModel
-import com.github.se.studentconnect.model.Organization
 import com.github.se.studentconnect.model.OrganizationEvent
 import com.github.se.studentconnect.model.OrganizationMember
+import com.github.se.studentconnect.model.OrganizationProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,7 @@ enum class OrganizationTab {
 
 /** UI state for the organization profile screen. */
 data class OrganizationProfileUiState(
-    val organization: Organization? = null,
+    val organization: OrganizationProfile? = null,
     val selectedTab: OrganizationTab = OrganizationTab.EVENTS,
     val isLoading: Boolean = false,
     val error: String? = null
@@ -71,7 +71,7 @@ class OrganizationProfileViewModel(private val organizationId: String? = null) :
   }
 
   /** Creates mock organization data for testing and preview. */
-  private fun createMockOrganization(): Organization {
+  private fun createMockOrganization(): OrganizationProfile {
     val mockEvents =
         listOf(
             OrganizationEvent(
@@ -104,7 +104,7 @@ class OrganizationProfileViewModel(private val organizationId: String? = null) :
             OrganizationMember(
                 memberId = "member_6", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"))
 
-    return Organization(
+    return OrganizationProfile(
         organizationId = organizationId ?: "org_evolve",
         name = "Evolve",
         description =

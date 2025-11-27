@@ -60,9 +60,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.Organization
 import com.github.se.studentconnect.model.OrganizationEvent
 import com.github.se.studentconnect.model.OrganizationMember
+import com.github.se.studentconnect.model.OrganizationProfile
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.AVATAR_BANNER_HEIGHT
@@ -173,7 +173,7 @@ fun OrganizationProfileScreen(
  */
 @Composable
 private fun OrganizationProfileContent(
-    organization: Organization,
+    organization: OrganizationProfile,
     selectedTab: OrganizationTab,
     onTabSelected: (OrganizationTab) -> Unit,
     onFollowClick: () -> Unit,
@@ -286,7 +286,7 @@ private fun AvatarBanner(modifier: Modifier = Modifier) {
  */
 @Composable
 private fun OrganizationInfoBlock(
-    organization: Organization,
+    organization: OrganizationProfile,
     onFollowClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
