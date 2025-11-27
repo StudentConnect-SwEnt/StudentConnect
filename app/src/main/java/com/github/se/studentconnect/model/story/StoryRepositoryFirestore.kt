@@ -31,7 +31,7 @@ class StoryRepositoryFirestore(
     private const val STORAGE_PATH_PREFIX = "stories"
     private const val SECONDS_PER_HOUR = 3600
     private const val HOURS_PER_DAY = 24
-    private const val STORY_EXPIRATION_SECONDS =
+    internal const val STORY_EXPIRATION_SECONDS =
         HOURS_PER_DAY * SECONDS_PER_HOUR // 24 hours in seconds
   }
 
