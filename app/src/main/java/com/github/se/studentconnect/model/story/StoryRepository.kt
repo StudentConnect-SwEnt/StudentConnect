@@ -6,7 +6,9 @@ import com.github.se.studentconnect.model.event.Event
 /**
  * Repository interface for managing stories.
  *
- * Stories are linked to events and only visible to users who joined the event.
+ * Stories are linked to events and visible to:
+ * - Users who joined the event
+ * - Friends of the story creator (even if they haven't joined the event)
  */
 interface StoryRepository {
 
