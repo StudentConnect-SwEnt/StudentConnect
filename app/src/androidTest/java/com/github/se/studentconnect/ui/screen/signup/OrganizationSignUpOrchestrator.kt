@@ -59,13 +59,12 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
 
     composeTestRule.setContent {
-        OrganizationSignUpOrchestrator(
-            firebaseUserId = "user123",
-            onSignUpComplete = {},
-            onLogout = {},
-            onBackToSelection = {},
-            viewModel = viewModel
-        )
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = "user123",
+          onSignUpComplete = {},
+          onLogout = {},
+          onBackToSelection = {},
+          viewModel = viewModel)
     }
 
     // 1. Info Screen
@@ -116,13 +115,12 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
 
     composeTestRule.setContent {
-        OrganizationSignUpOrchestrator(
-            firebaseUserId = "user123",
-            onSignUpComplete = {},
-            onLogout = {},
-            onBackToSelection = {},
-            viewModel = viewModel
-        )
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = "user123",
+          onSignUpComplete = {},
+          onLogout = {},
+          onBackToSelection = {},
+          viewModel = viewModel)
     }
 
     // 1. Info Screen
@@ -168,13 +166,12 @@ class OrganizationSignUpOrchestrator {
     var backToSelectionCalled = false
 
     composeTestRule.setContent {
-        OrganizationSignUpOrchestrator(
-            firebaseUserId = "user123",
-            onSignUpComplete = {},
-            onLogout = {},
-            onBackToSelection = { backToSelectionCalled = true },
-            viewModel = viewModel
-        )
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = "user123",
+          onSignUpComplete = {},
+          onLogout = {},
+          onBackToSelection = { backToSelectionCalled = true },
+          viewModel = viewModel)
     }
 
     // 1. Info Screen -> Back
@@ -205,13 +202,12 @@ class OrganizationSignUpOrchestrator {
     `when`(mockOrgRepository.saveOrganization(any())).thenThrow(RuntimeException("Network error"))
 
     composeTestRule.setContent {
-        OrganizationSignUpOrchestrator(
-            firebaseUserId = "user123",
-            onSignUpComplete = {},
-            onLogout = {},
-            onBackToSelection = {},
-            viewModel = viewModel
-        )
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = "user123",
+          onSignUpComplete = {},
+          onLogout = {},
+          onBackToSelection = {},
+          viewModel = viewModel)
     }
 
     // Fast forward to Team Roles Screen

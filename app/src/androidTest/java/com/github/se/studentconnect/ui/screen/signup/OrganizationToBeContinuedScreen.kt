@@ -35,8 +35,8 @@ class OrganizationToBeContinuedScreen {
     var logoutClicked = false
 
     composeTestRule.setContent {
-        OrganizationToBeContinuedScreen(
-            organization = organization, onLogout = { logoutClicked = true })
+      OrganizationToBeContinuedScreen(
+          organization = organization, onLogout = { logoutClicked = true })
     }
 
     // Check if info is displayed

@@ -27,10 +27,10 @@ class OrganizationDescriptionScreen {
     var continueClicked = false
 
     composeTestRule.setContent {
-        OrganizationDescriptionScreen(
-            viewModel = viewModel,
-            onBack = { backClicked = true },
-            onContinue = { continueClicked = true })
+      OrganizationDescriptionScreen(
+          viewModel = viewModel,
+          onBack = { backClicked = true },
+          onContinue = { continueClicked = true })
     }
 
     // Check if elements are displayed
