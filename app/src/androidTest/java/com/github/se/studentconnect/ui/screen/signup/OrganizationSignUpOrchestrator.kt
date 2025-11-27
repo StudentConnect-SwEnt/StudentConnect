@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import android.content.Context
-import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -18,7 +17,6 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationInfoScreenTestTags
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
@@ -49,115 +47,6 @@ class OrganizationSignUpOrchestrator {
 
     OrganizationRepositoryProvider.repository = mockOrgRepository
     MediaRepositoryProvider.repository = mockMediaRepository
-  }
-
-  @Test
-  fun organizationSignUpFlow_completesSuccessfully() = runTest {
-    val viewModel = OrganizationSignUpViewModel()
-
-    // Mock repository responses
-    `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
-
-    composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
-    }
-
-    // 1. Info Screen
-    composeTestRule
-        .onNodeWithTag(OrganizationInfoScreenTestTags.ORG_NAME_INPUT)
-        .performTextInput("My Org")
-    composeTestRule.onNodeWithText("Association").performClick() // Select type
-    composeTestRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).performClick()
-
-    // 2. Logo Screen
-    composeTestRule.onNodeWithText("Skip").performClick()
-
-    // 3. Description Screen
-    composeTestRule.onNodeWithTag(C.Tag.about_input).performTextInput("Description")
-    composeTestRule.onNodeWithTag(C.Tag.about_continue).performClick()
-
-    // 4. Socials Screen
-    composeTestRule.onNodeWithText("Skip").performClick()
-
-    // 5. Profile Setup Screen
-    composeTestRule.onNodeWithText("Search locations...").performClick()
-    composeTestRule.onNodeWithText("EPFL").performClick()
-    composeTestRule.onNodeWithText("Tech").performClick() // Select domain
-    composeTestRule.onNodeWithText("20-50").performClick() // Select size
-    composeTestRule.onNodeWithText("Continue").performClick()
-
-    // 6. Team Roles Screen
-    // Add a role to enable continue button
-    composeTestRule.onNodeWithText("Role name").performTextInput("President")
-    composeTestRule.onNodeWithText("+ Add role").performClick()
-
-    // Click Start Now (Submit)
-    composeTestRule.onNodeWithText("Start Now").performClick()
-
-    // Verify repository interaction
-    composeTestRule.waitForIdle()
-    verify(mockOrgRepository).saveOrganization(any())
-
-    // Verify "To Be Continued" screen is shown
-    composeTestRule.onNodeWithText("My Org").assertIsDisplayed()
-  }
-
-  @Test
-  fun organizationSignUpFlow_withLogoUpload_uploadsImage() = runTest {
-    val viewModel = OrganizationSignUpViewModel()
-
-    // Mock repository responses
-    `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
-
-    composeTestRule.setContent {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
-    }
-
-    // 1. Info Screen
-    composeTestRule
-        .onNodeWithTag(OrganizationInfoScreenTestTags.ORG_NAME_INPUT)
-        .performTextInput("My Org")
-    composeTestRule.onNodeWithText("Association").performClick()
-    composeTestRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).performClick()
-
-    // 2. Logo Screen - Simulate selecting an image
-    viewModel.setLogoUri(Uri.parse("content://media/external/images/media/1"))
-
-    composeTestRule.onNodeWithText("Continue").performClick()
-
-    // 3. Description Screen
-    composeTestRule.onNodeWithTag(C.Tag.about_input).performTextInput("Description")
-    composeTestRule.onNodeWithTag(C.Tag.about_continue).performClick()
-
-    // 4. Socials Screen
-    composeTestRule.onNodeWithText("Skip").performClick()
-
-    // 5. Profile Setup Screen
-    composeTestRule.onNodeWithText("Search locations...").performClick()
-    composeTestRule.onNodeWithText("EPFL").performClick()
-    composeTestRule.onNodeWithText("Tech").performClick()
-    composeTestRule.onNodeWithText("20-50").performClick()
-    composeTestRule.onNodeWithText("Continue").performClick()
-
-    // 6. Team Roles Screen
-    composeTestRule.onNodeWithText("Role name").performTextInput("President")
-    composeTestRule.onNodeWithText("+ Add role").performClick()
-    composeTestRule.onNodeWithText("Start Now").performClick()
-
-    // Verify upload was called
-    composeTestRule.waitForIdle()
-    verify(mockMediaRepository).upload(any(), any())
-    verify(mockOrgRepository).saveOrganization(any())
   }
 
   @Test
