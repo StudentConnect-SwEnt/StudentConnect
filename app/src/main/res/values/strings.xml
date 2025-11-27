@@ -484,4 +484,15 @@
     <string name="label_x">X</string>
     <string name="label_linkedin">LinkedIn</string>
 
+    <!-- Joined Events Screen -->
+    <string name="filter_past">Past</string>
+    <string name="filter_upcoming">Upcoming</string>
+    <string name="text_no_past_joined_events">No past events</string>
+    <string name="text_no_upcoming_joined_events">No upcoming events</string>
+    <string name="text_no_past_joined_events_description">Events you have attended will appear here.</string>
+    <string name="text_no_upcoming_joined_events_description">You haven\'t joined any upcoming events yet.</string>
+    <string name="title_my_events">My Events</string>
+    <string name="content_description_back_to_profile">Back to Profile</string>
+    <string name="placeholder_search_events_joined">Search events…</string>
+
 </resources>
