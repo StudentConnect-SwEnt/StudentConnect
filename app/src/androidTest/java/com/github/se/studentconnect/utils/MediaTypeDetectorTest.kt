@@ -11,7 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class MediaTypeDetectorTest {
+class MediaTypeDetectorInstrumentedTest {
 
   private lateinit var context: Context
 
@@ -137,4 +137,5 @@ class MediaTypeDetectorTest {
     // Assert
     assertEquals("image", result)
   }
+
 }
