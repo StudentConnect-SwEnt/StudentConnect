@@ -2,6 +2,8 @@
 // https://proandroiddev.com/swipeable-image-carousel-with-smooth-animations-in-jetpack-compose-76eacdc89bfb
 package com.github.se.studentconnect.ui.screen.activities
 
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -24,8 +26,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -39,11 +44,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.google.firebase.Timestamp
 import java.util.*
+import kotlinx.coroutines.Dispatchers
 
 sealed interface CarouselDisplayItem {
   val uid: String
@@ -68,8 +76,6 @@ object ActivitiesScreenTestTags {
   const val ACTIVITIES_SCREEN = "activities_screen"
   const val TOP_APP_BAR = "top_app_bar"
   const val ACTIVITIES_TAB_ROW = "activities_tab_row"
-  const val TAB_BUTTON_JOINED = "tab_button_joined"
-  const val BUTTON_INVITATIONS = "tab_button_invitations"
   const val EMPTY_STATE_TEXT = "empty_state_text"
   const val ACTIVITIES_CAROUSEL = "activities_carousel"
   const val ACTIVITIES_MAIN_COLUMN = "activities_main_column"
@@ -340,6 +346,18 @@ fun CarouselCard(
           }
   val isLive = now >= item.start && now < endTime
   val isPrivate = item is Event.Private
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, item.imageUrl, repository) {
+        value =
+            item.imageUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
 
   Card(
       onClick = onEventClick,
@@ -351,15 +369,27 @@ fun CarouselCard(
               modifier = Modifier.fillMaxSize().padding(24.dp),
               verticalArrangement = Arrangement.Bottom,
               horizontalAlignment = Alignment.Start) {
-                Icon(
-                    imageVector = Icons.Default.Image,
-                    contentDescription = "Event Image",
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                    tint = MaterialTheme.colorScheme.onPrimary)
+                if (imageBitmap != null) {
+                  Image(
+                      imageBitmap!!,
+                      contentDescription = "Event Image",
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .weight(1f)
+                              .clip(RoundedCornerShape(16.dp))
+                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                      contentScale = ContentScale.Crop)
+                } else {
+                  Icon(
+                      imageVector = Icons.Default.Image,
+                      contentDescription = "Event Image",
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .weight(1f)
+                              .clip(RoundedCornerShape(16.dp))
+                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                      tint = MaterialTheme.colorScheme.onPrimary)
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -441,6 +471,18 @@ fun InvitationCarouselCard(
 
   val isDeclined = item.invitation.status == InvitationStatus.Declined || declineState
   val cardAlpha = if (isDeclined) 0.7f else 1.0f
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, item.event.imageUrl, repository) {
+        value =
+            item.event.imageUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
 
   Card(
       onClick = onCardClick,
@@ -453,15 +495,27 @@ fun InvitationCarouselCard(
           modifier = Modifier.fillMaxSize().padding(24.dp),
           verticalArrangement = Arrangement.Bottom,
           horizontalAlignment = Alignment.Start) {
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = "Event Image",
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                tint = MaterialTheme.colorScheme.onPrimary)
+            if (imageBitmap != null) {
+              Image(
+                  imageBitmap!!,
+                  contentDescription = "Event Image",
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f)
+                          .clip(RoundedCornerShape(16.dp))
+                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                  contentScale = ContentScale.Crop)
+            } else {
+              Icon(
+                  imageVector = Icons.Default.Image,
+                  contentDescription = "Event Image",
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f)
+                          .clip(RoundedCornerShape(16.dp))
+                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                  tint = MaterialTheme.colorScheme.onPrimary)
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
