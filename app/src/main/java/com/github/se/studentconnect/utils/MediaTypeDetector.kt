@@ -12,7 +12,7 @@ object MediaTypeDetector {
    * @param uri The URI to check
    * @return "image" if it's an image, "video" if it's a video, "image" as default
    */
-  suspend fun detectMediaType(context: Context, uri: Uri): String {
+  fun detectMediaType(context: Context, uri: Uri): String {
     return try {
       val mimeType = context.contentResolver.getType(uri)
 
