@@ -34,7 +34,10 @@ interface EventRepository {
    * @return A list of [Event] objects owned by the organization.
    * @throws Exception if the retrieval fails.
    */
-  suspend fun getEventsByOrganization(organizationId: String): List<Event>
+  suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+    // Default implementation: return empty list
+    return emptyList()
+  }
 
   /**
    * Retrieves a specific event by its unique identifier.
