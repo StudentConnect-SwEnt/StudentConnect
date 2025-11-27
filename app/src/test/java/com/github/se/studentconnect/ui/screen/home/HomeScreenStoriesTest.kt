@@ -60,6 +60,14 @@ class HomeScreenStoriesTest {
             currentUserId: String
         ) {}
 
+        override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+        override suspend fun removeInvitationFromEvent(
+            eventUid: String,
+            invitedUser: String,
+            currentUserId: String
+        ) {}
+
         override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
       }
 
