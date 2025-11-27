@@ -95,12 +95,41 @@ class StoryCaptureScreenTest {
   }
 
   @Test
-  fun storyCaptureScreen_instructionsVisible_whenInactive() {
+  fun storyCaptureScreen_instructionsNotVisible_whenInactive() {
     composeTestRule.setContent {
       AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = false) }
     }
 
-    // Instructions are visible even when inactive (they appear over the inactive background)
-    composeTestRule.onNodeWithTag("story_instructions").assertIsDisplayed()
+    // Instructions are not visible when inactive
+    composeTestRule.onNodeWithTag("story_instructions").assertDoesNotExist()
+  }
+
+  @Test
+  fun storyCaptureScreen_previewStateCallback_initiallyFalse() {
+    val previewStates = mutableListOf<Boolean>()
+
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {},
+            isActive = true,
+            onPreviewStateChanged = { isShowing -> previewStates.add(isShowing) })
+      }
+    }
+
+    composeTestRule.runOnIdle {
+      assert(previewStates.isNotEmpty())
+      assert(!previewStates.last())
+    }
+  }
+
+  @Test
+  fun storyCaptureScreen_previewStateCallback_defaultValue() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
 }
