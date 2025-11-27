@@ -321,17 +321,6 @@ fun HomeScreen(
   val allEventsListState = rememberLazyListState()
   val discoverListState = rememberLazyListState()
 
-  // TODO: Move mock organization data out of UI layer when backend is implemented
-  val mockOrganizations = remember {
-    listOf(
-        OrganizationData(id = "1", name = "Evolve", handle = "@evolve"),
-        OrganizationData(id = "2", name = "TechHub", handle = "@techhub"),
-        OrganizationData(id = "3", name = "Innovate", handle = "@innovate"),
-        OrganizationData(id = "4", name = "CodeLab", handle = "@codelab"),
-        OrganizationData(id = "5", name = "DevSpace", handle = "@devspace"),
-        OrganizationData(id = "6", name = "Catalyst", handle = "@catalyst"))
-  }
-
   // Automatically open QR scanner if requested
   LaunchedEffect(shouldOpenQRScanner) {
     if (shouldOpenQRScanner && pagerState.currentPage != HomeScreenConstants.PAGER_SCANNER_PAGE) {
@@ -493,7 +482,7 @@ fun HomeScreen(
                                                   onFavoriteToggle = onFavoriteToggle),
                                           organizationSuggestionsConfig =
                                               OrganizationSuggestionsConfig(
-                                                  organizations = mockOrganizations,
+                                                  organizations = uiState.organizations,
                                                   onOrganizationClick = { orgId ->
                                                     navController.navigate(
                                                         Route.organizationProfile(orgId))
@@ -545,8 +534,8 @@ fun HomeScreen(
                 events = uiState.events,
                 targetDate = targetDate,
                 hasTopContent = true, // Stories row is present as top content
-                hasOrganizations = mockOrganizations.isNotEmpty(),
-                organizationsCount = mockOrganizations.size)
+                hasOrganizations = uiState.organizations.isNotEmpty(),
+                organizationsCount = uiState.organizations.size)
             onClearScrollTarget()
           }
         }
