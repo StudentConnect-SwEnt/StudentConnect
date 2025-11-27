@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,36 +32,66 @@ import com.github.se.studentconnect.ui.camera.CameraView
 fun StoryCaptureScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isActive: Boolean = true
+    isActive: Boolean = true,
+    onPreviewStateChanged: (Boolean) -> Unit = {}
 ) {
+  var storyCaptureMode by remember { mutableStateOf(StoryCaptureMode.PHOTO) }
+  var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
+  var showPreview by remember { mutableStateOf(false) }
+
+  // Notify parent when preview state changes
+  LaunchedEffect(showPreview) { onPreviewStateChanged(showPreview) }
+
   Box(modifier = modifier.fillMaxSize().background(Color.Black).testTag("story_capture_screen")) {
-    if (isActive) {
+    if (showPreview && capturedMediaUri != null) {
+      // Show preview screen
+      MediaPreviewScreen(
+          mediaUri = capturedMediaUri!!,
+          isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
+          onAccept = {
+            // Handle accept - you can implement story upload here
+            Log.d("StoryCaptureScreen", "Media accepted: $capturedMediaUri")
+            showPreview = false
+            capturedMediaUri = null
+          },
+          onRetake = {
+            // Go back to camera
+            showPreview = false
+            capturedMediaUri = null
+          })
+    } else if (isActive) {
+      // Show camera view
       CameraView(
           modifier = Modifier.fillMaxSize(),
-          enableImageCapture = true,
-          onImageCaptured = {
-            // Capture button does nothing for now
-            // TODO: Implement story capture
+          enableImageCapture = storyCaptureMode == StoryCaptureMode.PHOTO,
+          enableVideoCapture = storyCaptureMode == StoryCaptureMode.VIDEO,
+          captureButton = { isRecording -> CaptureButtonPreview(selectedMode = storyCaptureMode) },
+          onImageCaptured = { uri ->
+            capturedMediaUri = uri
+            showPreview = true
+          },
+          onVideoCaptured = { uri ->
+            capturedMediaUri = uri
+            showPreview = true
           },
           onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
           noPermission = { PermissionRequired(onBackClick = onBackClick) })
+
+      // Only show mode controls when not showing preview
+      Column(
+          modifier =
+              Modifier.align(Alignment.BottomCenter)
+                  .padding(horizontal = 32.dp, vertical = 160.dp)
+                  .testTag("story_instructions"),
+          horizontalAlignment = Alignment.CenterHorizontally) {
+            StoryModeControls(
+                selectedMode = storyCaptureMode,
+                onModeSelected = { mode -> storyCaptureMode = mode },
+                showCaptureButton = false)
+          }
     } else {
       InactiveCameraBackground()
     }
-
-    // Instructions
-    Column(
-        modifier =
-            Modifier.align(Alignment.BottomCenter)
-                .padding(horizontal = 32.dp, vertical = 200.dp)
-                .testTag("story_instructions"),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-          Text(
-              text = "Tap the button to take a photo",
-              style = MaterialTheme.typography.titleMedium,
-              textAlign = TextAlign.Center,
-              color = Color.White)
-        }
   }
 }
 
