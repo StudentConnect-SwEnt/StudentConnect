@@ -12,7 +12,18 @@ import org.junit.Test
 
 class HomeScreenScrollUtilsTest {
 
-  private fun createTestEvent(daysFromNow: Int, hourOfDay: Int, title: String): Event.Public {
+  private fun createTestEvent(
+      daysFromNow: Int = 1,
+      hourOfDay: Int = 10,
+      title: String = "Test Event",
+      uid: String = "event-$title",
+      subtitle: String = "Subtitle",
+      description: String = "Description",
+      location: Location = Location(46.5197, 6.6323, "EPFL"),
+      website: String = "https://example.com",
+      ownerId: String = "owner1",
+      isFlash: Boolean = false
+  ): Event.Public {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DAY_OF_YEAR, daysFromNow)
     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
@@ -22,16 +33,16 @@ class HomeScreenScrollUtilsTest {
     val timestamp = Timestamp(calendar.time)
 
     return Event.Public(
-        uid = "event-$title",
+        uid = uid,
         title = title,
-        subtitle = "Subtitle",
-        description = "Description",
+        subtitle = subtitle,
+        description = description,
         start = timestamp,
         end = timestamp,
-        location = Location(46.5197, 6.6323, "EPFL"),
-        website = "https://example.com",
-        ownerId = "owner1",
-        isFlash = false)
+        location = location,
+        website = website,
+        ownerId = ownerId,
+        isFlash = isFlash)
   }
 
   @Test

@@ -41,7 +41,7 @@ class HomePageViewModelScoringTest {
   private lateinit var mockLocationRepository: LocationRepository
 
   // Helper to create timestamps at specific times
-  private fun createTimestamp(daysFromNow: Int, hourOfDay: Int): Timestamp {
+  private fun createTimestamp(daysFromNow: Int = 1, hourOfDay: Int = 10): Timestamp {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DAY_OF_YEAR, daysFromNow)
     calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
@@ -49,6 +49,36 @@ class HomePageViewModelScoringTest {
     calendar.set(Calendar.SECOND, 0)
     calendar.set(Calendar.MILLISECOND, 0)
     return Timestamp(calendar.time)
+  }
+
+  // Helper to create test events with default parameters
+  private fun createTestEvent(
+      uid: String,
+      title: String,
+      daysFromNow: Int = 1,
+      hourOfDay: Int = 10,
+      subtitle: String = "Subtitle",
+      description: String = "Description",
+      location: Location? = Location(46.5, 6.6, "EPFL"),
+      website: String = "https://example.com",
+      isFlash: Boolean = false,
+      ownerId: String = "owner1",
+      tags: List<String> = emptyList(),
+      participationFee: UInt? = null
+  ): Event.Public {
+    return Event.Public(
+        uid = uid,
+        title = title,
+        subtitle = subtitle,
+        description = description,
+        start = createTimestamp(daysFromNow, hourOfDay),
+        end = createTimestamp(daysFromNow, hourOfDay + 2),
+        location = location,
+        website = website,
+        isFlash = isFlash,
+        ownerId = ownerId,
+        tags = tags,
+        participationFee = participationFee)
   }
 
   @Before

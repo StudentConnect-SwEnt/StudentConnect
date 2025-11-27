@@ -95,6 +95,30 @@ constructor(
 
   private var allFetchedEvents: List<Event> = emptyList()
 
+  companion object {
+    // Scoring weights
+    private const val WEIGHT_TAG_SIMILARITY = 0.35
+    private const val WEIGHT_ATTENDED_SIMILARITY = 0.10
+    private const val WEIGHT_DISTANCE = 0.15
+    private const val WEIGHT_PRICE = 0.15
+    private const val WEIGHT_TIME = 0.10
+    private const val WEIGHT_RECENCY = 0.15
+
+    // Score defaults
+    private const val DEFAULT_SCORE = 0.5
+    private const val MIN_SCORE = 0.0
+    private const val MAX_SCORE = 1.0
+
+    // Distance scoring
+    private const val MAX_DISTANCE_KM = 50.0
+
+    // Time matching
+    private const val TIME_NON_MATCH_SCORE = 0.3
+
+    // Recency scoring
+    private const val MAX_RECENCY_DAYS = 30.0
+  }
+
   init {
     loadUserHobbies()
     loadUserAttendedEvents()
@@ -444,12 +468,12 @@ constructor(
     val recencyBoost = calculateRecencyBoost(publicEvent)
 
     val totalScore =
-        0.35 * tagSimilarity +
-            0.10 * attendedSimilarity +
-            0.15 * distanceScore +
-            0.15 * pricePreference +
-            0.10 * timeMatch +
-            0.15 * recencyBoost
+        WEIGHT_TAG_SIMILARITY * tagSimilarity +
+            WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
+            WEIGHT_DISTANCE * distanceScore +
+            WEIGHT_PRICE * pricePreference +
+            WEIGHT_TIME * timeMatch +
+            WEIGHT_RECENCY * recencyBoost
 
     Log.d(
         "EventScore",
@@ -467,13 +491,14 @@ constructor(
   /** Calculates tag similarity score (0.0 to 1.0) based on matching user hobbies. */
   private fun calculateTagSimilarity(event: Event.Public): Double {
     val userHobbies = _uiState.value.userHobbies
-    if (userHobbies.isEmpty() || event.tags.isEmpty()) return 0.5
+    if (userHobbies.isEmpty() || event.tags.isEmpty()) return DEFAULT_SCORE
 
     val matchingTags =
         event.tags.count { eventTag ->
           userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
         }
-    return (matchingTags.toDouble() / userHobbies.size.coerceAtLeast(1)).coerceIn(0.0, 1.0)
+    return (matchingTags.toDouble() / userHobbies.size.coerceAtLeast(1)).coerceIn(
+        MIN_SCORE, MAX_SCORE)
   }
 
   /**
@@ -482,18 +507,18 @@ constructor(
    */
   private fun calculateAttendedEventSimilarity(event: Event.Public): Double {
     val attendedEvents = _uiState.value.attendedEvents
-    if (attendedEvents.isEmpty()) return 0.5
+    if (attendedEvents.isEmpty()) return DEFAULT_SCORE
 
     val attendedTags =
         attendedEvents.flatMap { attendedEvent ->
           (attendedEvent as? Event.Public)?.tags ?: emptyList()
         }
-    if (attendedTags.isEmpty()) return 0.5
+    if (attendedTags.isEmpty()) return DEFAULT_SCORE
 
     val matchingTags =
         event.tags.count { eventTag -> attendedTags.any { it.equals(eventTag, ignoreCase = true) } }
     return (matchingTags.toDouble() / attendedTags.distinct().size.coerceAtLeast(1)).coerceIn(
-        0.0, 1.0)
+        MIN_SCORE, MAX_SCORE)
   }
 
   /** Calculates distance score (0.0 to 1.0), where 1.0 is closest. */
@@ -501,11 +526,10 @@ constructor(
     val userLocation = _uiState.value.userPreferences.preferredLocation
     val eventLocation = event.location
 
-    if (userLocation == null || eventLocation == null) return 0.5
+    if (userLocation == null || eventLocation == null) return DEFAULT_SCORE
 
     val distance = calculateHaversineDistance(userLocation, eventLocation)
-    val maxDistance = 50.0 // 50km max distance for scoring
-    return (1.0 - (distance / maxDistance).coerceIn(0.0, 1.0))
+    return (MAX_SCORE - (distance / MAX_DISTANCE_KM).coerceIn(MIN_SCORE, MAX_SCORE))
   }
 
   /** Calculates price preference score (0.0 to 1.0) based on user's price range. */
@@ -514,15 +538,15 @@ constructor(
     val eventPrice = event.participationFee?.toFloat() ?: 0f
 
     return when {
-      eventPrice == 0f && priceRange.start <= 0f -> 1.0
-      eventPrice in priceRange -> 1.0
+      eventPrice == 0f && priceRange.start <= 0f -> MAX_SCORE
+      eventPrice in priceRange -> MAX_SCORE
       eventPrice < priceRange.start -> {
         val diff = priceRange.start - eventPrice
-        (1.0 - (diff / priceRange.start)).coerceIn(0.0, 1.0)
+        (MAX_SCORE - (diff / priceRange.start)).coerceIn(MIN_SCORE, MAX_SCORE)
       }
       else -> {
         val diff = eventPrice - priceRange.endInclusive
-        (1.0 - (diff / priceRange.endInclusive)).coerceIn(0.0, 1.0)
+        (MAX_SCORE - (diff / priceRange.endInclusive)).coerceIn(MIN_SCORE, MAX_SCORE)
       }
     }
   }
@@ -530,17 +554,17 @@ constructor(
   /** Calculates time match score (0.0 to 1.0) based on preferred time of day. */
   private fun calculateTimeMatch(event: Event.Public): Double {
     val preferredTime = _uiState.value.userPreferences.preferredTimeOfDay
-    if (preferredTime == PreferredTimeOfDay.ANY) return 1.0
+    if (preferredTime == PreferredTimeOfDay.ANY) return MAX_SCORE
 
     val calendar = Calendar.getInstance()
     calendar.time = event.start.toDate()
     val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
 
     return when (preferredTime) {
-      PreferredTimeOfDay.MORNING -> if (hourOfDay in 6..11) 1.0 else 0.3
-      PreferredTimeOfDay.AFTERNOON -> if (hourOfDay in 12..17) 1.0 else 0.3
-      PreferredTimeOfDay.EVENING -> if (hourOfDay in 18..23) 1.0 else 0.3
-      PreferredTimeOfDay.ANY -> 1.0
+      PreferredTimeOfDay.MORNING -> if (hourOfDay in 6..11) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.AFTERNOON -> if (hourOfDay in 12..17) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.EVENING -> if (hourOfDay in 18..23) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.ANY -> MAX_SCORE
     }
   }
 
@@ -557,12 +581,12 @@ constructor(
     // Calculate days until event starts (can be negative if event is in the past)
     val daysUntilEvent = ((eventStartTime - now) / (1000.0 * 60 * 60 * 24))
 
-    // For events happening within 30 days, give higher scores to sooner events
-    val maxDays = 30.0
+    // For events happening within MAX_RECENCY_DAYS, give higher scores to sooner events
     return when {
-      daysUntilEvent < 0 -> 0.0 // Past events get 0
-      daysUntilEvent <= maxDays -> (1.0 - (daysUntilEvent / maxDays)).coerceIn(0.0, 1.0)
-      else -> 0.0 // Events more than 30 days away get 0
+      daysUntilEvent < MIN_SCORE -> MIN_SCORE // Past events get 0
+      daysUntilEvent <= MAX_RECENCY_DAYS ->
+          (MAX_SCORE - (daysUntilEvent / MAX_RECENCY_DAYS)).coerceIn(MIN_SCORE, MAX_SCORE)
+      else -> MIN_SCORE // Events more than MAX_RECENCY_DAYS away get 0
     }
   }
 
