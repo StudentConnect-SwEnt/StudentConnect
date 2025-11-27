@@ -62,14 +62,20 @@ class StoryRepositoryFirestore(
       // Create Firestore document
       val storyId = db.collection(STORIES_COLLECTION).document().id
 
-      // Save to Firestore with serverTimestamp for createdAt
+      // Calculate temporary expiresAt (will be updated with correct value based on server timestamp)
+      val tempCreatedAt = Timestamp.now()
+      val tempExpiresAt = Timestamp(tempCreatedAt.seconds + 86400, tempCreatedAt.nanoseconds)
+
+      // Save to Firestore with serverTimestamp for createdAt and temporary expiresAt
+      // expiresAt will be updated with the correct value after we get the actual server timestamp
       val storyData =
           mapOf(
               "storyId" to storyId,
               "userId" to userId,
               "eventId" to eventId,
               "mediaUrl" to mediaUrl,
-              "createdAt" to FieldValue.serverTimestamp())
+              "createdAt" to FieldValue.serverTimestamp(),
+              "expiresAt" to tempExpiresAt)
 
       db.collection(STORIES_COLLECTION).document(storyId).set(storyData).await()
 
@@ -77,14 +83,17 @@ class StoryRepositoryFirestore(
       val savedDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
       val savedData = savedDoc.data ?: emptyMap()
 
-      // Calculate expiresAt based on server timestamp (24 hours later)
-      val createdAt = savedData["createdAt"] as? Timestamp ?: Timestamp.now()
-      val expiresAt = Timestamp(createdAt.seconds + 86400, createdAt.nanoseconds)
+      // Calculate expiresAt based on actual server timestamp (24 hours later)
+      val actualCreatedAt = savedData["createdAt"] as? Timestamp ?: Timestamp.now()
+      val actualExpiresAt = Timestamp(actualCreatedAt.seconds + 86400, actualCreatedAt.nanoseconds)
 
-      // Update document with expiresAt (required field)
-      savedDoc.reference.update("expiresAt", expiresAt).await()
+      // Update document with correct expiresAt if it differs from temporary value
+      // (usually it will, since server timestamp may differ from client timestamp)
+      if (actualExpiresAt.compareTo(tempExpiresAt) != 0) {
+        savedDoc.reference.update("expiresAt", actualExpiresAt).await()
+      }
 
-      // Fetch again to ensure we have the complete document
+      // Fetch again to ensure we have the complete document with correct expiresAt
       val finalDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
       val finalData = finalDoc.data ?: emptyMap()
 
