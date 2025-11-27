@@ -171,7 +171,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to eventId,
             "mediaUrl" to "stories/event123/user1/123",
             "createdAt" to Timestamp(now.seconds - 3600, now.nanoseconds),
-            "expiresAt" to futureExpiresAt)
+            "expiresAt" to futureExpiresAt,
+            "mediaType" to "image")
 
     val expiredStoryData: Map<String, Any> =
         mapOf(
@@ -180,7 +181,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to eventId,
             "mediaUrl" to "stories/event123/user2/456",
             "createdAt" to Timestamp(now.seconds - 7200, now.nanoseconds),
-            "expiresAt" to pastExpiresAt)
+            "expiresAt" to pastExpiresAt,
+            "mediaType" to "image")
 
     val mockDoc1 = mock(DocumentSnapshot::class.java)
     val mockDoc2 = mock(DocumentSnapshot::class.java)
@@ -224,7 +226,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
@@ -257,7 +260,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
@@ -302,7 +306,8 @@ class StoryRepositoryFirestoreTest {
             "eventId" to "event789",
             "mediaUrl" to "stories/event789/user456/123",
             "createdAt" to Timestamp.now(),
-            "expiresAt" to Timestamp.now())
+            "expiresAt" to Timestamp.now(),
+            "mediaType" to "image")
 
     whenever(mockCollectionReference.document(storyId)).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.get()).thenReturn(Tasks.forResult(mockDocumentSnapshot))
