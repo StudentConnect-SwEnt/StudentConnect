@@ -11,6 +11,7 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.google.firebase.Timestamp
@@ -793,6 +794,37 @@ class EventViewModelTest {
     assertFalse(state.showInviteFriendsDialog)
     assertEquals(setOf(friend2.userId), state.invitedFriendIds)
     assertEquals(setOf(friend2.userId), state.initialInvitedFriendIds)
+  }
+
+  @Test
+  fun hideInviteFriendsDialog_resetsSelectionAndErrors() = runTest {
+    val stateBefore =
+        EventUiState(
+            showInviteFriendsDialog = true,
+            invitedFriendIds = setOf("f1"),
+            initialInvitedFriendIds = setOf("f1"),
+            friendsErrorRes = 1234,
+            isInvitingFriends = true,
+            isLoadingFriends = true)
+
+    // Inject state into view model
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
+    // Force state
+    val privateField = EventViewModel::class.java.getDeclaredField("_uiState")
+    privateField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    val stateFlow =
+        privateField.get(viewModel) as kotlinx.coroutines.flow.MutableStateFlow<EventUiState>
+    stateFlow.value = stateBefore
+
+    viewModel.hideInviteFriendsDialog()
+
+    val after = viewModel.uiState.value
+    assertFalse(after.showInviteFriendsDialog)
+    assertTrue(after.invitedFriendIds.isEmpty())
+    assertTrue(after.initialInvitedFriendIds.isEmpty())
+    assertNull(after.friendsErrorRes)
+    assertFalse(after.isInvitingFriends)
   }
 
   @Test
