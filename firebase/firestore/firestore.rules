@@ -30,6 +30,11 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedEvents/$(eventId));
     }
 
+    // Check if user is friend with the story creator
+    function isFriendOfStoryCreator(storyCreatorId) {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(storyCreatorId));
+    }
+
     // --- ORGANIZATIONS COLLECTION ---
     
     match /organizations/{orgId} {
@@ -225,9 +230,10 @@ service cloud.firestore {
     // --- STORIES COLLECTION ---
     
     match /stories/{storyId} {
-      // Allow read if user has joined the event
+      // Allow read if user has joined the event OR is friend with the story creator
       allow get, list: if request.auth != null &&
-                        hasJoinedEvent(resource.data.eventId);
+                        (hasJoinedEvent(resource.data.eventId) ||
+                         isFriendOfStoryCreator(resource.data.userId));
 
       // Allow create if user has joined the event and userId matches authenticated user
       allow create: if request.auth != null &&
