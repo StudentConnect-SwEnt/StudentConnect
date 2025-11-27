@@ -73,7 +73,7 @@ service cloud.firestore {
                     isResourceOwner() ||
                     isParticipant(eventId) ||
                     isInvited(eventId));
-      
+
       // Allow listing of all events for authenticated users
       // (filtering happens in the application layer)
       allow list: if request.auth != null;
@@ -96,11 +96,11 @@ service cloud.firestore {
                           get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           isParticipant(eventId) ||
                           isInvited(eventId));
-                          
+
         allow create: if request.auth != null &&
                          request.auth.uid == userId &&
                          request.resource.data.uid == userId;
-                         
+
         allow delete: if request.auth != null &&
                          request.auth.uid == userId;
       }
@@ -110,10 +110,10 @@ service cloud.firestore {
         allow get: if request.auth != null &&
                       (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                        request.auth.uid == userId);
-                       
+
         allow create: if request.auth != null &&
                          get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
-                         
+
         allow update: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           request.auth.uid == userId);
@@ -127,16 +127,16 @@ service cloud.firestore {
                             get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                             isParticipant(eventId) ||
                             isInvited(eventId));
-                            
+
         // Allow create/delete only for event owner
         allow create, delete: if request.auth != null &&
                                  get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
-                                 
+
         // Allow update for event owner OR participants (for vote count increments)
         allow update: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           isParticipant(eventId));
-
+        
         // Subcollection: votes
         match /votes/{userId} {
           // Allow read own vote or if user is event owner
@@ -152,8 +152,8 @@ service cloud.firestore {
           // 1. User is authenticated
           // 2. Vote userId matches authenticated user (verified in both path and data)
           allow create: if request.auth != null &&
-                        userId == request.auth.uid &&
-                        request.resource.data.userId == request.auth.uid;
+                          userId == request.auth.uid &&
+                          request.resource.data.userId == request.auth.uid;
 
           // Prevent updates and deletes (votes are immutable)
           allow update, delete: if false;
