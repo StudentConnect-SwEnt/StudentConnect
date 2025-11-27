@@ -3,9 +3,7 @@ package com.github.se.studentconnect.utils
 import android.content.Context
 import android.net.Uri
 
-/**
- * Utility for detecting media type (image or video) from a URI.
- */
+/** Utility for detecting media type (image or video) from a URI. */
 object MediaTypeDetector {
   /**
    * Detects if the URI points to an image or video.
@@ -17,7 +15,7 @@ object MediaTypeDetector {
   suspend fun detectMediaType(context: Context, uri: Uri): String {
     return try {
       val mimeType = context.contentResolver.getType(uri) ?: return "image"
-      
+
       when {
         mimeType.startsWith("image/") -> "image"
         mimeType.startsWith("video/") -> "video"
@@ -28,13 +26,12 @@ object MediaTypeDetector {
       val path = uri.path ?: return "image"
       when {
         path.contains(".mp4", ignoreCase = true) ||
-        path.contains(".mov", ignoreCase = true) ||
-        path.contains(".avi", ignoreCase = true) ||
-        path.contains(".mkv", ignoreCase = true) ||
-        path.contains(".webm", ignoreCase = true) -> "video"
+            path.contains(".mov", ignoreCase = true) ||
+            path.contains(".avi", ignoreCase = true) ||
+            path.contains(".mkv", ignoreCase = true) ||
+            path.contains(".webm", ignoreCase = true) -> "video"
         else -> "image"
       }
     }
   }
 }
-

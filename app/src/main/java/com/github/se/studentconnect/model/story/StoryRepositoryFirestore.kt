@@ -54,13 +54,14 @@ class StoryRepositoryFirestore(
     return try {
       // Detect media type (image or video)
       val mediaType = MediaTypeDetector.detectMediaType(context, fileUri)
-      
+
       // Compress only images before upload (videos are uploaded as-is)
-      val uriToUpload = if (mediaType == "image") {
-        ImageCompressor.compressImage(context, fileUri) ?: fileUri
-      } else {
-        fileUri
-      }
+      val uriToUpload =
+          if (mediaType == "image") {
+            ImageCompressor.compressImage(context, fileUri) ?: fileUri
+          } else {
+            fileUri
+          }
 
       // Generate storage path: stories/{eventId}/{userId}/{timestamp}
       val timestamp = System.currentTimeMillis()
