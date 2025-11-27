@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -58,6 +59,13 @@ class TeamRolesScreenTest {
     composeTestRule.onNodeWithText("Role name").assertIsDisplayed()
     composeTestRule.onNodeWithText("Role description").assertIsDisplayed()
 
+    // Wait until the empty state is displayed (robust for CI)
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithText("No roles defined yet.", useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
     // Verify Empty State
     composeTestRule
         .onNodeWithText("No roles defined yet.", useUnmergedTree = true)
@@ -107,6 +115,14 @@ class TeamRolesScreenTest {
         .onNodeWithText("No roles defined yet.", useUnmergedTree = true)
         .assertDoesNotExist()
 
+    // Wait until the first role is displayed (robust for CI)
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithText("President", useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
     // Verify List Items
     composeTestRule.onNodeWithText("President", useUnmergedTree = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("Runs the show", useUnmergedTree = true).assertIsDisplayed()
@@ -126,6 +142,13 @@ class TeamRolesScreenTest {
 
     composeTestRule.setContent { TeamRolesScreen(state = state, callbacks = defaultCallbacks) }
 
+    // Wait until the remove button is displayed (robust for CI)
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithText("Remove", useUnmergedTree = true)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
     // Find the remove button text ("Remove") and click it
     composeTestRule.onNodeWithText("Remove", useUnmergedTree = true).performClick()
 
