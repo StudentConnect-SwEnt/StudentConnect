@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +35,6 @@ import com.github.se.studentconnect.resources.Variables
 
 private object OrganizationSuggestionsConstants {
   // Section
-  const val SECTION_TITLE = "Organizations"
   const val SECTION_PADDING_BOTTOM_DP = 12
 
   // Title
@@ -81,9 +81,12 @@ fun OrganizationSuggestions(
     onOrganizationClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+  // Don't render section if organizations list is empty
+  if (organizations.isEmpty()) return
+
   Column(modifier = modifier.fillMaxWidth().testTag(C.Tag.org_suggestions_section)) {
     Text(
-        text = OrganizationSuggestionsConstants.SECTION_TITLE,
+        text = stringResource(R.string.org_suggestions_title),
         style =
             TextStyle(
                 fontSize = OrganizationSuggestionsConstants.TITLE_FONT_SIZE_SP.sp,
@@ -149,7 +152,7 @@ private fun OrganizationImage(organizationId: String) {
               .testTag("${C.Tag.org_suggestions_card_image}_$organizationId")) {
         Image(
             painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
-            contentDescription = "Organization image",
+            contentDescription = stringResource(R.string.content_description_organization_image),
             contentScale = ContentScale.Fit,
             modifier = Modifier.matchParentSize())
       }

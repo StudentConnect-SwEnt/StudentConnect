@@ -366,7 +366,9 @@ internal fun MainAppContent(
                   listOf(navArgument(Route.ORGANIZATION_ID_ARG) { type = NavType.StringType })) {
                   backStackEntry ->
                 val organizationId =
-                    backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG) ?: ""
+                    requireNotNull(backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG)) {
+                      "Organization ID is required"
+                    }
                 OrganizationProfileScreen(
                     organizationId = organizationId, onBackClick = { navController.popBackStack() })
               }

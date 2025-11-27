@@ -314,7 +314,7 @@ fun HomeScreen(
   val coroutineScope = rememberCoroutineScope()
   val listState = rememberLazyListState()
 
-  // Mock organization data
+  // TODO: Move mock organization data out of UI layer when backend is implemented
   val mockOrganizations = remember {
     listOf(
         OrganizationData(id = "1", name = "Evolve", handle = "@evolve"),
