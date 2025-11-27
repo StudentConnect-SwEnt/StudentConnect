@@ -15,7 +15,7 @@ object MediaTypeDetector {
   suspend fun detectMediaType(context: Context, uri: Uri): String {
     return try {
       val mimeType = context.contentResolver.getType(uri)
-      
+
       // If MIME type is detected, use it
       if (mimeType != null) {
         return when {
@@ -24,7 +24,7 @@ object MediaTypeDetector {
           else -> "image" // Default to image if unknown
         }
       }
-      
+
       // If MIME type is null, fallback to file extension
       val path = uri.path ?: return "image"
       when {
