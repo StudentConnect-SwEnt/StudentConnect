@@ -137,5 +137,4 @@ class MediaTypeDetectorInstrumentedTest {
     // Assert
     assertEquals("image", result)
   }
-
 }

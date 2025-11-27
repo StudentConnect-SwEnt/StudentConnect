@@ -3,7 +3,6 @@ package com.github.se.studentconnect.utils
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -156,4 +155,3 @@ class MediaTypeDetectorTest {
     assertEquals("image", result)
   }
 }
-
