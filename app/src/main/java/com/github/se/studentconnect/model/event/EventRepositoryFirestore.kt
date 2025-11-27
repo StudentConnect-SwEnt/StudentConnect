@@ -248,10 +248,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
   override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
     val querySnapshot =
-        db.collection(EVENTS_COLLECTION_PATH)
-            .whereEqualTo("ownerId", organizationId)
-            .get()
-            .await()
+        db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("ownerId", organizationId).get().await()
 
     return querySnapshot.documents.mapNotNull { doc ->
       try {

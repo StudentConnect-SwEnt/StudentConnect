@@ -2,8 +2,8 @@ package com.github.se.studentconnect.model
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.organization.Organization
-import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -59,10 +59,10 @@ fun List<Organization>.toOrganizationDataList(): List<OrganizationData> {
  */
 fun User.toOrganizationMember(role: String = "Member"): OrganizationMember {
   return OrganizationMember(
-      memberId = this.uid,
+      memberId = this.userId,
       name = this.firstName + " " + this.lastName,
       role = role,
-      avatarUrl = this.profileImageUrl)
+      avatarUrl = this.profilePictureUrl)
 }
 
 /**
@@ -99,7 +99,8 @@ fun Event.toOrganizationEvent(): OrganizationEvent {
 
   // Calculate subtitle (e.g., "Tomorrow", "Today", "In 3 days")
   val today = java.util.Calendar.getInstance()
-  val eventDate = java.util.Calendar.getInstance().apply { time = this@toOrganizationEvent.start.toDate() }
+  val eventDate =
+      java.util.Calendar.getInstance().apply { time = this@toOrganizationEvent.start.toDate() }
 
   val daysDifference =
       ((eventDate.timeInMillis - today.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()

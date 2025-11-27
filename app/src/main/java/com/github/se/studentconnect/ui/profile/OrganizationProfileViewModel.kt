@@ -2,14 +2,12 @@ package com.github.se.studentconnect.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.OrganizationEvent
-import com.github.se.studentconnect.model.OrganizationMember
 import com.github.se.studentconnect.model.OrganizationProfile
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.fetchOrganizationMembers
 import com.github.se.studentconnect.model.toOrganizationEvents
 import com.github.se.studentconnect.model.toOrganizationProfile
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
@@ -55,8 +53,7 @@ class OrganizationProfileViewModel(
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
 
-  private val currentUserId: String? =
-      AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
 
   init {
     loadOrganizationData()
@@ -115,8 +112,7 @@ class OrganizationProfileViewModel(
                 isFollowing = isFollowing, events = events, members = members)
 
         _uiState.value =
-            _uiState.value.copy(
-                organization = organizationProfile, isLoading = false, error = null)
+            _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
       } catch (e: Exception) {
         _uiState.value =
             _uiState.value.copy(
