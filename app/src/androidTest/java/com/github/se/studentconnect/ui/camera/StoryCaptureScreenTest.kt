@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -154,5 +156,44 @@ class StoryCaptureScreenTest {
     }
 
     composeTestRule.runOnIdle { assert(stateChanges.contains(false)) }
+  }
+}
+
+class StoryCaptureScreenPermissionTest {
+
+  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+  @Test
+  fun storyCaptureScreen_noPermission_showsPermissionRequired() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_permission").assertExists()
+  }
+
+  @Test
+  fun storyCaptureScreen_permissionRequired_backButtonWorks() {
+    var backClicked = false
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = { backClicked = true }, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Back").performClick()
+    composeTestRule.runOnIdle { assert(backClicked) }
+  }
+
+  @Test
+  fun storyCaptureScreen_permissionRequired_displaysMessage() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Camera permission is required to capture photos.")
+        .assertExists()
   }
 }

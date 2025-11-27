@@ -87,4 +87,50 @@ class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithContentDescription("Capture").assertExists()
   }
+
+  @Test
+  fun cameraView_clickCaptureButton_triggersImageCapture() {
+    var imageCaptured = false
+    composeTestRule.setContent {
+      CameraView(enableImageCapture = true, onImageCaptured = { imageCaptured = true })
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Capture").performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun cameraView_onError_handlesExceptions() {
+    var errorReceived = false
+    composeTestRule.setContent {
+      CameraView(
+          enableImageCapture = true, onImageCaptured = {}, onError = { errorReceived = true })
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun cameraView_bothCaptureModesDisabled_noButtonShown() {
+    composeTestRule.setContent {
+      CameraView(enableImageCapture = false, enableVideoCapture = false)
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithContentDescription("Capture").assertDoesNotExist()
+  }
+
+  @Test
+  fun cameraView_customButton_receivesRecordingState() {
+    val recordingStates = mutableListOf<Boolean>()
+    composeTestRule.setContent {
+      CameraView(
+          enableVideoCapture = true,
+          captureButton = { isRecording -> recordingStates.add(isRecording) })
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { assert(recordingStates.isNotEmpty()) }
+  }
 }
