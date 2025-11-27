@@ -52,7 +52,7 @@ class VisitorProfileScreenTest {
   }
 
   @Test
-  fun showsRemoveFriend_whenAlreadyFriends_andClickInvokes() {
+  fun showsRemoveFriend_whenAlreadyFriends_andShowsDialogOnClick() {
     var removed = false
 
     composeTestRule.setContent {
@@ -69,7 +69,43 @@ class VisitorProfileScreenTest {
 
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_remove_friend).assertExists()
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_remove_friend).performClick()
+
+    // Dialog should appear with confirm and dismiss buttons
+    composeTestRule.onNodeWithText("Are you sure you want to remove this friend?").assertExists()
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_dialog_confirm).assertExists()
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_dialog_dismiss).assertExists()
+
+    // Click confirm
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_dialog_confirm).performClick()
     composeTestRule.runOnIdle { assert(removed) }
+  }
+
+  @Test
+  fun removeFriendDialog_dismissesOnNoClick() {
+    var removed = false
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = { removed = true },
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_remove_friend).performClick()
+
+    // Click dismiss
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_dialog_dismiss).performClick()
+
+    // Dialog should disappear
+    composeTestRule
+        .onNodeWithText("Are you sure you want to remove this friend?")
+        .assertDoesNotExist()
+    composeTestRule.runOnIdle { assert(!removed) }
   }
 
   @Test
