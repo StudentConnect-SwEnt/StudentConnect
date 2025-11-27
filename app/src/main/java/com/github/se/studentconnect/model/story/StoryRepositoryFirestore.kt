@@ -30,7 +30,8 @@ class StoryRepositoryFirestore(
     private const val STORAGE_PATH_PREFIX = "stories"
     private const val SECONDS_PER_HOUR = 3600
     private const val HOURS_PER_DAY = 24
-    private const val STORY_EXPIRATION_SECONDS = HOURS_PER_DAY * SECONDS_PER_HOUR // 24 hours in seconds
+    private const val STORY_EXPIRATION_SECONDS =
+        HOURS_PER_DAY * SECONDS_PER_HOUR // 24 hours in seconds
   }
 
   override suspend fun getUserJoinedEvents(userId: String): List<Event> {
@@ -67,7 +68,8 @@ class StoryRepositoryFirestore(
       // Calculate temporary expiresAt (will be updated with correct value based on server
       // timestamp)
       val tempCreatedAt = Timestamp.now()
-      val tempExpiresAt = Timestamp(tempCreatedAt.seconds + STORY_EXPIRATION_SECONDS, tempCreatedAt.nanoseconds)
+      val tempExpiresAt =
+          Timestamp(tempCreatedAt.seconds + STORY_EXPIRATION_SECONDS, tempCreatedAt.nanoseconds)
 
       // Save to Firestore with serverTimestamp for createdAt and temporary expiresAt
       // expiresAt will be updated with the correct value after we get the actual server timestamp
@@ -88,7 +90,8 @@ class StoryRepositoryFirestore(
 
       // Calculate expiresAt based on actual server timestamp (24 hours later)
       val actualCreatedAt = savedData["createdAt"] as? Timestamp ?: Timestamp.now()
-      val actualExpiresAt = Timestamp(actualCreatedAt.seconds + STORY_EXPIRATION_SECONDS, actualCreatedAt.nanoseconds)
+      val actualExpiresAt =
+          Timestamp(actualCreatedAt.seconds + STORY_EXPIRATION_SECONDS, actualCreatedAt.nanoseconds)
 
       // Update document with correct expiresAt if it differs from temporary value
       // (usually it will, since server timestamp may differ from client timestamp)
