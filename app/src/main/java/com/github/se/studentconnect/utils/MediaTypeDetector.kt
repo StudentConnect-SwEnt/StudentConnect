@@ -28,25 +28,28 @@ object MediaTypeDetector {
 
       // If MIME type is null, fallback to file extension
       val path = uri.path ?: return MediaType.IMAGE
-      when {
-        path.contains(".mp4", ignoreCase = true) ||
-            path.contains(".mov", ignoreCase = true) ||
-            path.contains(".avi", ignoreCase = true) ||
-            path.contains(".mkv", ignoreCase = true) ||
-            path.contains(".webm", ignoreCase = true) -> MediaType.VIDEO
-        else -> MediaType.IMAGE
-      }
+      detectMediaTypeFromPath(path)
     } catch (e: Exception) {
       // Fallback: check file extension if MIME type detection fails
       val path = uri.path ?: return MediaType.IMAGE
-      when {
-        path.contains(".mp4", ignoreCase = true) ||
-            path.contains(".mov", ignoreCase = true) ||
-            path.contains(".avi", ignoreCase = true) ||
-            path.contains(".mkv", ignoreCase = true) ||
-            path.contains(".webm", ignoreCase = true) -> MediaType.VIDEO
-        else -> MediaType.IMAGE
-      }
+      detectMediaTypeFromPath(path)
+    }
+  }
+
+  /**
+   * Detects media type from file path based on extension.
+   *
+   * @param path The file path to check
+   * @return MediaType.VIDEO if path contains a video extension, MediaType.IMAGE otherwise
+   */
+  private fun detectMediaTypeFromPath(path: String): MediaType {
+    return when {
+      path.contains(".mp4", ignoreCase = true) ||
+          path.contains(".mov", ignoreCase = true) ||
+          path.contains(".avi", ignoreCase = true) ||
+          path.contains(".mkv", ignoreCase = true) ||
+          path.contains(".webm", ignoreCase = true) -> MediaType.VIDEO
+      else -> MediaType.IMAGE
     }
   }
 }
