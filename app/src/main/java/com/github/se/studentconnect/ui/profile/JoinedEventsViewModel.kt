@@ -44,7 +44,8 @@ class JoinedEventsViewModel(
 
   // Fetches all events the current user has joined (both past and upcoming)
   fun loadJoinedEvents() {
-    val currentUserId = AuthenticationProvider.currentUser ?: return
+    val currentUserId = AuthenticationProvider.currentUser
+    if (currentUserId.isEmpty()) return
 
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true) }
