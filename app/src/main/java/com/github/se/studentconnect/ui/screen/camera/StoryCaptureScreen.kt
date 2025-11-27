@@ -65,7 +65,9 @@ fun StoryCaptureScreen(
           modifier = Modifier.fillMaxSize(),
           enableImageCapture = storyCaptureMode == StoryCaptureMode.PHOTO,
           enableVideoCapture = storyCaptureMode == StoryCaptureMode.VIDEO,
-          captureButton = { isRecording -> CaptureButtonPreview(selectedMode = storyCaptureMode) },
+          captureButton = { isRecording ->
+            CaptureButtonPreview(selectedMode = storyCaptureMode, isRecording = isRecording)
+          },
           onImageCaptured = { uri ->
             capturedMediaUri = uri
             showPreview = true

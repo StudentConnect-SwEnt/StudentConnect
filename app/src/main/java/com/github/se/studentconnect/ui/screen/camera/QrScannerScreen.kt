@@ -387,13 +387,26 @@ fun StoryModeOption(
 }
 
 @Composable
-fun CaptureButtonPreview(selectedMode: StoryCaptureMode, modifier: Modifier = Modifier) {
+fun CaptureButtonPreview(
+    selectedMode: StoryCaptureMode,
+    modifier: Modifier = Modifier,
+    isRecording: Boolean = false
+) {
   val innerSize by
       animateDpAsState(
-          targetValue = if (selectedMode == StoryCaptureMode.PHOTO) 64.dp else 54.dp,
+          targetValue =
+              when {
+                selectedMode == StoryCaptureMode.PHOTO -> 64.dp
+                isRecording -> 32.dp
+                else -> 54.dp
+              },
           label = "captureInnerSize")
   val innerShape =
-      if (selectedMode == StoryCaptureMode.PHOTO) CircleShape else RoundedCornerShape(12.dp)
+      when {
+        selectedMode == StoryCaptureMode.PHOTO -> CircleShape
+        isRecording -> RoundedCornerShape(8.dp)
+        else -> RoundedCornerShape(12.dp)
+      }
   val innerColor =
       if (selectedMode == StoryCaptureMode.PHOTO) Color.Companion.White else Color(0xFFFF453A)
 
