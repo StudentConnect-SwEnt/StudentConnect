@@ -2,6 +2,7 @@ package com.github.se.studentconnect.utils
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.github.se.studentconnect.model.story.MediaType
 
 /** Utility for detecting media type (image or video) from a URI. */
@@ -30,7 +31,8 @@ object MediaTypeDetector {
       val path = uri.path ?: return MediaType.IMAGE
       detectMediaTypeFromPath(path)
     } catch (e: Exception) {
-      // Fallback: check file extension if MIME type detection fails
+      // Log exception for debugging, then fallback to file extension
+      Log.w("MediaTypeDetector", "Exception while detecting media type for URI: $uri", e)
       val path = uri.path ?: return MediaType.IMAGE
       detectMediaTypeFromPath(path)
     }
