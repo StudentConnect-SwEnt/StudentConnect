@@ -1,0 +1,48 @@
+package com.github.se.studentconnect.model.story
+
+import android.net.Uri
+import com.github.se.studentconnect.model.event.Event
+
+/**
+ * Repository interface for managing stories.
+ *
+ * Stories are linked to events and only visible to users who joined the event.
+ */
+interface StoryRepository {
+
+  /**
+   * Gets all events that a user has joined.
+   *
+   * @param userId The user identifier
+   * @return List of events the user has joined
+   */
+  suspend fun getUserJoinedEvents(userId: String): List<Event>
+
+  /**
+   * Uploads a story media file and creates a story document in Firestore.
+   *
+   * @param fileUri The local URI of the media file to upload
+   * @param eventId The event this story is linked to
+   * @param userId The user creating the story
+   * @return The created Story, or null if upload fails
+   */
+  suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String): Story?
+
+  /**
+   * Gets all stories for a specific event, filtering out expired stories.
+   *
+   * @param eventId The event identifier
+   * @return List of non-expired stories for the event
+   */
+  suspend fun getEventStories(eventId: String): List<Story>
+
+  /**
+   * Deletes a story from both Firestore and Storage.
+   *
+   * @param storyId The story identifier
+   * @param userId The user attempting to delete (must be the story owner)
+   * @return true if deletion was successful, false otherwise
+   */
+  suspend fun deleteStory(storyId: String, userId: String): Boolean
+}
+
