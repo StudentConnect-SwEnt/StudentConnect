@@ -83,8 +83,15 @@ class EventViewUnitTest {
     val eventRepo = EventRepositoryLocal()
     kotlinx.coroutines.runBlocking { eventRepo.addEvent(event) }
     val localUserRepo = UserRepositoryLocal()
+    val pollRepo = com.github.se.studentconnect.model.poll.PollRepositoryLocal()
+    val friendsRepo = com.github.se.studentconnect.model.friends.FriendsRepositoryLocal()
 
-    val vm = EventViewModel(eventRepository = eventRepo, userRepository = localUserRepo)
+    val vm =
+        EventViewModel(
+            eventRepository = eventRepo,
+            userRepository = localUserRepo,
+            pollRepository = pollRepo,
+            friendsRepository = friendsRepo)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -136,8 +143,15 @@ class EventViewUnitTest {
     val eventRepo = EventRepositoryLocal()
     kotlinx.coroutines.runBlocking { eventRepo.addEvent(event) }
     val localUserRepo = UserRepositoryLocal()
+    val pollRepo = com.github.se.studentconnect.model.poll.PollRepositoryLocal()
+    val friendsRepo = com.github.se.studentconnect.model.friends.FriendsRepositoryLocal()
 
-    val vm = EventViewModel(eventRepository = eventRepo, userRepository = localUserRepo)
+    val vm =
+        EventViewModel(
+            eventRepository = eventRepo,
+            userRepository = localUserRepo,
+            pollRepository = pollRepo,
+            friendsRepository = friendsRepo)
 
     composeTestRule.setContent {
       MaterialTheme {

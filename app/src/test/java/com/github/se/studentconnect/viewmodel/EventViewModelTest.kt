@@ -4,7 +4,10 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.event.EventViewModel
@@ -33,6 +36,8 @@ class EventViewModelTest {
   private lateinit var viewModel: EventViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var pollRepository: PollRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepository
 
   private val testEvent =
       Event.Public(
@@ -52,7 +57,9 @@ class EventViewModelTest {
     Dispatchers.setMain(testDispatcher)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = EventViewModel(eventRepository, userRepository)
+    pollRepository = PollRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     // Force un utilisateur courant non vide pendant les tests
     AuthenticationProvider.testUserId = "test-user-id"
   }
@@ -364,7 +371,8 @@ class EventViewModelTest {
             throw RuntimeException("Network error")
           }
         }
-    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
 
     val userId = "user123"
 
@@ -425,7 +433,8 @@ class EventViewModelTest {
             throw RuntimeException("Connection timeout")
           }
         }
-    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
 
     val userId = "user123"
 

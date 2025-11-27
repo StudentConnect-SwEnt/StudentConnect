@@ -3,6 +3,7 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
@@ -17,6 +18,7 @@ import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -34,6 +36,7 @@ class EventViewModelPollIntegrationTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var pollRepository: PollRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepository
 
   private val testEvent =
       Event.Public(
@@ -54,7 +57,32 @@ class EventViewModelPollIntegrationTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
-    viewModel = EventViewModel(eventRepository, userRepository, pollRepository)
+    friendsRepository =
+        object : FriendsRepository {
+          override suspend fun getFriends(userId: String): List<String> = emptyList()
+
+          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
+
+          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
+
+          override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
+
+          override suspend fun removeFriend(userId: String, friendId: String) {}
+
+          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
+              false
+
+          override fun observeFriendship(userId: String, otherUserId: String) = flow { emit(false) }
+        }
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     AuthenticationProvider.testUserId = "test-user-id"
   }
 
