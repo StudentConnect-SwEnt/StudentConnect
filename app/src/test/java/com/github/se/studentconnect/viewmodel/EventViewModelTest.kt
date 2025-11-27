@@ -644,7 +644,7 @@ class EventViewModelTest {
         User(
             userId = "friend1",
             email = "f1@example.com",
-            username = "f1",
+            username = "f10",
             firstName = "F1",
             lastName = "L1",
             university = "EPFL")
@@ -652,7 +652,7 @@ class EventViewModelTest {
         User(
             userId = "friend2",
             email = "f2@example.com",
-            username = "f2",
+            username = "f20",
             firstName = "F2",
             lastName = "L2",
             university = "EPFL")
@@ -719,7 +719,7 @@ class EventViewModelTest {
         User(
             userId = "friendA",
             email = "fA@example.com",
-            username = "fA",
+            username = "fA0",
             firstName = "FA",
             lastName = "LA",
             university = "EPFL")
@@ -727,7 +727,7 @@ class EventViewModelTest {
         User(
             userId = "friendB",
             email = "fB@example.com",
-            username = "fB",
+            username = "fB0",
             firstName = "FB",
             lastName = "LB",
             university = "EPFL")
