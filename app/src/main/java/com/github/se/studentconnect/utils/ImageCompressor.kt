@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -25,8 +26,13 @@ object ImageCompressor {
    * @param uri The URI of the image to compress
    * @return The URI of the compressed image file, or null if compression fails
    */
-  suspend fun compressImage(context: Context, uri: Uri, maxWidth: Int = 1920): Uri? =
-      withContext(Dispatchers.IO) {
+  suspend fun compressImage(
+      context: Context,
+      uri: Uri,
+      maxWidth: Int = 1920,
+      dispatcher: CoroutineDispatcher = Dispatchers.IO
+  ): Uri? =
+      withContext(dispatcher) {
         try {
           // Open input stream from URI
           val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext null
