@@ -4,12 +4,15 @@ package com.github.se.studentconnect.ui.profile
 object ProfileRoutes {
   const val SETTINGS = "profile_settings"
   const val USER_CARD = "user_card"
+  const val FRIENDS_LIST = "friends_list/{userId}"
   const val EDIT_PICTURE = "edit_profile_picture/{userId}"
   const val EDIT_BIO = "edit_bio/{userId}"
   const val EDIT_ACTIVITIES = "edit_activities/{userId}"
   const val EDIT_NAME = "edit_name/{userId}"
   const val EDIT_BIRTHDAY = "edit_birthday/{userId}"
   const val EDIT_NATIONALITY = "edit_nationality/{userId}"
+
+  fun friendsList(userId: String) = "friends_list/$userId"
 
   /** Creates the route for editing profile picture. */
   fun editPicture(userId: String) = "edit_profile_picture/$userId"

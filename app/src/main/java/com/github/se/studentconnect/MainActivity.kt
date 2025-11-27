@@ -41,6 +41,7 @@ import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
+import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
@@ -314,7 +315,10 @@ internal fun MainAppContent(
                 currentUserId = currentUserId,
                 userRepository = userRepository,
                 onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
-                onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) })
+                onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
+                onNavigateToFriendsList = { userId ->
+                  navController.navigate(ProfileRoutes.friendsList(userId))
+                })
           }
 
           // Visitor Profile Screen (shown when clicking on other users)
@@ -352,6 +356,21 @@ internal fun MainAppContent(
                     }
                   }
                 }
+              }
+
+          // Friends List Screen
+          composable(
+              route = ProfileRoutes.FRIENDS_LIST,
+              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                FriendsListScreen(
+                    userId = userId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onFriendClick = { friendId ->
+                      navController.navigate(Route.visitorProfile(friendId))
+                    },
+                    userRepository = userRepository)
               }
 
           // User Card Screen
