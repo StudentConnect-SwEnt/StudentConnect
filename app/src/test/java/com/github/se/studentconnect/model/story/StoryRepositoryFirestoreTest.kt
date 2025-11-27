@@ -1,13 +1,12 @@
 package com.github.se.studentconnect.model.story
 
-import android.content.Context
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.repository.UserRepository
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
@@ -16,7 +15,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import java.util.Date
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -24,11 +22,9 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito.*
-import org.mockito.MockitoAnnotations
-import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.lenient
+import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.whenever
 
 // Test implementations for suspend function interfaces
@@ -36,7 +32,7 @@ private class TestMediaRepository : MediaRepository {
   private val uploads = mutableMapOf<Pair<Uri, String?>, String>()
   var shouldThrowOnUpload: Throwable? = null
   var shouldThrowOnDelete: Throwable? = null
-  
+
   override suspend fun upload(uri: Uri, path: String?): String {
     shouldThrowOnUpload?.let { throw it }
     val key = uri to path
@@ -44,9 +40,9 @@ private class TestMediaRepository : MediaRepository {
     uploads[key] = result
     return result
   }
-  
+
   override suspend fun download(id: String): Uri = Uri.parse("file:///$id")
-  
+
   override suspend fun delete(id: String) {
     shouldThrowOnDelete?.let { throw it }
   }
@@ -55,60 +51,110 @@ private class TestMediaRepository : MediaRepository {
 private class TestUserRepository : UserRepository {
   var joinedEvents: List<String> = emptyList()
   var shouldThrowOnGetJoinedEvents: Throwable? = null
-  
+
   override suspend fun getJoinedEvents(userId: String): List<String> {
     shouldThrowOnGetJoinedEvents?.let { throw it }
     return joinedEvents
   }
-  
+
   override suspend fun leaveEvent(eventId: String, userId: String) {}
+
   override suspend fun getUserById(userId: String) = null
+
   override suspend fun getUserByEmail(email: String) = null
-      override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> = emptyList()
-      override suspend fun getUsersPaginated(limit: Int, lastUserId: String?): Pair<List<com.github.se.studentconnect.model.User>, Boolean> = emptyList<com.github.se.studentconnect.model.User>() to false
-      override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
-      override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
-      override suspend fun deleteUser(userId: String) {}
-      override suspend fun getUsersByUniversity(university: String): List<com.github.se.studentconnect.model.User> = emptyList()
-      override suspend fun getUsersByHobby(hobby: String): List<com.github.se.studentconnect.model.User> = emptyList()
+
+  override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> = emptyList()
+
+  override suspend fun getUsersPaginated(
+      limit: Int,
+      lastUserId: String?
+  ): Pair<List<com.github.se.studentconnect.model.User>, Boolean> =
+      emptyList<com.github.se.studentconnect.model.User>() to false
+
+  override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
+
+  override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+
+  override suspend fun deleteUser(userId: String) {}
+
+  override suspend fun getUsersByUniversity(
+      university: String
+  ): List<com.github.se.studentconnect.model.User> = emptyList()
+
+  override suspend fun getUsersByHobby(
+      hobby: String
+  ): List<com.github.se.studentconnect.model.User> = emptyList()
+
   override suspend fun getNewUid() = "new-uid"
+
   override suspend fun addEventToUser(eventId: String, userId: String) {}
+
   override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
-      override suspend fun getInvitations(userId: String): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
-      override suspend fun acceptInvitation(eventId: String, userId: String) {}
-      override suspend fun declineInvitation(eventId: String, userId: String) {}
-      override suspend fun joinEvent(eventId: String, userId: String) {}
-      override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
-      override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
-      override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
-      override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
+
+  override suspend fun getInvitations(
+      userId: String
+  ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+
+  override suspend fun acceptInvitation(eventId: String, userId: String) {}
+
+  override suspend fun declineInvitation(eventId: String, userId: String) {}
+
+  override suspend fun joinEvent(eventId: String, userId: String) {}
+
+  override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
+
+  override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+
+  override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+
+  override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
+
   override suspend fun checkUsernameAvailability(username: String) = true
 }
 
 private class TestEventRepository : EventRepository {
   private val events = mutableMapOf<String, Event>()
   var shouldThrowOnGetEvent: ((String) -> Throwable?)? = null
-  
+
   fun addTestEvent(event: Event) {
     events[event.uid] = event
   }
-  
+
   override suspend fun getEvent(eventUid: String): Event {
     shouldThrowOnGetEvent?.invoke(eventUid)?.let { throw it }
     return events[eventUid] ?: throw Exception("Event not found")
   }
-  
+
   override fun getNewUid() = "new-event-uid"
+
   override suspend fun getAllVisibleEvents(): List<Event> = emptyList()
-  override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> = emptyList()
-  override suspend fun getEventParticipants(eventUid: String): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
+  override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> =
+      emptyList()
+
+  override suspend fun getEventParticipants(
+      eventUid: String
+  ): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
   override suspend fun addEvent(event: Event) {
     events[event.uid] = event
   }
+
   override suspend fun editEvent(eventUid: String, newEvent: Event) {}
+
   override suspend fun deleteEvent(eventUid: String) {}
-  override suspend fun addParticipantToEvent(eventUid: String, participant: com.github.se.studentconnect.model.event.EventParticipant) {}
-  override suspend fun addInvitationToEvent(eventUid: String, invitedUser: String, currentUserId: String) {}
+
+  override suspend fun addParticipantToEvent(
+      eventUid: String,
+      participant: com.github.se.studentconnect.model.event.EventParticipant
+  ) {}
+
+  override suspend fun addInvitationToEvent(
+      eventUid: String,
+      invitedUser: String,
+      currentUserId: String
+  ) {}
+
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
 }
 
@@ -117,7 +163,7 @@ class StoryRepositoryFirestoreTest {
   @Mock private lateinit var mockFirestore: FirebaseFirestore
   @Mock private lateinit var mockContext: Context
   @Mock private lateinit var mockContentResolver: ContentResolver
-  
+
   private lateinit var mockMediaRepository: TestMediaRepository
   private lateinit var mockUserRepository: TestUserRepository
   private lateinit var mockEventRepository: TestEventRepository
@@ -142,21 +188,27 @@ class StoryRepositoryFirestoreTest {
   @Before
   fun setup() {
     MockitoAnnotations.openMocks(this)
-    
+
     // Mock context for ImageCompressor FIRST (before repository creation)
     // Compression will fail, so original URI is used
     // Use lenient to avoid strict stubbing issues
     lenient().`when`(mockContext.contentResolver).thenReturn(mockContentResolver)
-    lenient().`when`(mockContentResolver.openInputStream(any())).thenReturn(null) // Compression fails, returns null
-    
+    lenient()
+        .`when`(mockContentResolver.openInputStream(any()))
+        .thenReturn(null) // Compression fails, returns null
+
     // Create concrete test implementations for suspend function interfaces
     mockMediaRepository = TestMediaRepository()
     mockUserRepository = TestUserRepository()
     mockEventRepository = TestEventRepository()
-    
+
     repository =
         StoryRepositoryFirestore(
-            mockFirestore, mockMediaRepository, mockUserRepository, mockEventRepository, mockContext)
+            mockFirestore,
+            mockMediaRepository,
+            mockUserRepository,
+            mockEventRepository,
+            mockContext)
 
     // Default mock behavior
     whenever(mockFirestore.collection("stories")).thenReturn(mockCollectionReference)
@@ -288,7 +340,8 @@ class StoryRepositoryFirestoreTest {
     whenever(mockDocumentSnapshot.data).thenReturn(storyData)
     whenever(mockDocumentSnapshot.reference).thenReturn(mockDocumentReference)
     whenever(mockDocumentReference.delete()).thenReturn(Tasks.forResult(null))
-    // MediaRepository.delete is a suspend function, so it doesn't need explicit mocking for success case
+    // MediaRepository.delete is a suspend function, so it doesn't need explicit mocking for success
+    // case
     // The actual implementation will call it, but we can verify it was called
 
     // Act
@@ -376,4 +429,3 @@ class StoryRepositoryFirestoreTest {
     verify(mockDocumentReference).delete()
   }
 }
-

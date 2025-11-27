@@ -23,7 +23,8 @@ class StoryRepositoryProviderInstrumentedTest {
     val repository = StoryRepositoryProvider.getRepository(context)
 
     assertNotNull("Repository should not be null", repository)
-    assertTrue("Repository should be StoryRepositoryFirestore", repository is StoryRepositoryFirestore)
+    assertTrue(
+        "Repository should be StoryRepositoryFirestore", repository is StoryRepositoryFirestore)
   }
 
   @Test
@@ -36,4 +37,3 @@ class StoryRepositoryProviderInstrumentedTest {
     assertNotNull("Repository should not be null", repository)
   }
 }
-

@@ -6,10 +6,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Utility for compressing images before upload.
@@ -40,20 +40,22 @@ object ImageCompressor {
           val imageHeight = options.outHeight
 
           // Calculate scale factor
-          val scaleFactor = if (imageWidth > maxWidth) {
-            imageWidth.toFloat() / maxWidth
-          } else {
-            1f
-          }
+          val scaleFactor =
+              if (imageWidth > maxWidth) {
+                imageWidth.toFloat() / maxWidth
+              } else {
+                1f
+              }
 
           // Calculate new dimensions
           val newWidth = (imageWidth / scaleFactor).toInt()
           val newHeight = (imageHeight / scaleFactor).toInt()
 
           // Decode bitmap at reduced size
-          val decodeOptions = BitmapFactory.Options().apply {
-            inSampleSize = calculateInSampleSize(options, newWidth, newHeight)
-          }
+          val decodeOptions =
+              BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(options, newWidth, newHeight)
+              }
 
           val inputStream2 = context.contentResolver.openInputStream(uri) ?: return@withContext null
           val bitmap = BitmapFactory.decodeStream(inputStream2, null, decodeOptions)
@@ -114,4 +116,3 @@ object ImageCompressor {
     return inSampleSize
   }
 }
-

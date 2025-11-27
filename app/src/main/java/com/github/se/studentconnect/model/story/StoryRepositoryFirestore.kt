@@ -15,8 +15,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * Firestore implementation of StoryRepository.
  *
- * Stories are stored in: stories/{storyId}
- * Storage path: stories/{eventId}/{userId}/{timestamp}
+ * Stories are stored in: stories/{storyId} Storage path: stories/{eventId}/{userId}/{timestamp}
  */
 class StoryRepositoryFirestore(
     private val db: FirebaseFirestore,
@@ -62,7 +61,8 @@ class StoryRepositoryFirestore(
       // Create Firestore document
       val storyId = db.collection(STORIES_COLLECTION).document().id
 
-      // Calculate temporary expiresAt (will be updated with correct value based on server timestamp)
+      // Calculate temporary expiresAt (will be updated with correct value based on server
+      // timestamp)
       val tempCreatedAt = Timestamp.now()
       val tempExpiresAt = Timestamp(tempCreatedAt.seconds + 86400, tempCreatedAt.nanoseconds)
 
@@ -107,15 +107,10 @@ class StoryRepositoryFirestore(
     return try {
       val now = Timestamp.now()
       val querySnapshot =
-          db.collection(STORIES_COLLECTION)
-              .whereEqualTo("eventId", eventId)
-              .get()
-              .await()
+          db.collection(STORIES_COLLECTION).whereEqualTo("eventId", eventId).get().await()
 
       querySnapshot.documents
-          .mapNotNull { doc ->
-            Story.fromMap(doc.data ?: emptyMap())
-          }
+          .mapNotNull { doc -> Story.fromMap(doc.data ?: emptyMap()) }
           .filter { story ->
             // Filter out expired stories (client-side)
             story.expiresAt.compareTo(now) > 0
@@ -158,4 +153,3 @@ class StoryRepositoryFirestore(
     }
   }
 }
-

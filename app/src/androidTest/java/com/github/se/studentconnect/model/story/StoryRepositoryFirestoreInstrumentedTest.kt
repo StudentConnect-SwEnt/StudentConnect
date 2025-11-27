@@ -2,7 +2,6 @@ package com.github.se.studentconnect.model.story
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,6 +16,8 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import java.io.File
+import java.io.FileOutputStream
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -28,8 +29,6 @@ import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
-import java.io.File
-import java.io.FileOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class StoryRepositoryFirestoreInstrumentedTest {
@@ -84,26 +83,57 @@ class StoryRepositoryFirestoreInstrumentedTest {
     }
 
     override suspend fun leaveEvent(eventId: String, userId: String) {}
+
     override suspend fun getUserById(userId: String) = null
+
     override suspend fun getUserByEmail(email: String) = null
+
     override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> = emptyList()
-    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?): Pair<List<com.github.se.studentconnect.model.User>, Boolean> = emptyList<com.github.se.studentconnect.model.User>() to false
+
+    override suspend fun getUsersPaginated(
+        limit: Int,
+        lastUserId: String?
+    ): Pair<List<com.github.se.studentconnect.model.User>, Boolean> =
+        emptyList<com.github.se.studentconnect.model.User>() to false
+
     override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
+
     override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+
     override suspend fun deleteUser(userId: String) {}
-    override suspend fun getUsersByUniversity(university: String): List<com.github.se.studentconnect.model.User> = emptyList()
-    override suspend fun getUsersByHobby(hobby: String): List<com.github.se.studentconnect.model.User> = emptyList()
+
+    override suspend fun getUsersByUniversity(
+        university: String
+    ): List<com.github.se.studentconnect.model.User> = emptyList()
+
+    override suspend fun getUsersByHobby(
+        hobby: String
+    ): List<com.github.se.studentconnect.model.User> = emptyList()
+
     override suspend fun getNewUid() = "new-uid"
+
     override suspend fun addEventToUser(eventId: String, userId: String) {}
+
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
-    override suspend fun getInvitations(userId: String): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+
+    override suspend fun getInvitations(
+        userId: String
+    ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+
     override suspend fun acceptInvitation(eventId: String, userId: String) {}
+
     override suspend fun declineInvitation(eventId: String, userId: String) {}
+
     override suspend fun joinEvent(eventId: String, userId: String) {}
+
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
+
     override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+
     override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+
     override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
+
     override suspend fun checkUsernameAvailability(username: String) = true
   }
 
@@ -119,16 +149,35 @@ class StoryRepositoryFirestoreInstrumentedTest {
     }
 
     override fun getNewUid() = "new-event-uid"
+
     override suspend fun getAllVisibleEvents(): List<Event> = emptyList()
-    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> = emptyList()
-    override suspend fun getEventParticipants(eventUid: String): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
+    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> =
+        emptyList()
+
+    override suspend fun getEventParticipants(
+        eventUid: String
+    ): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
     override suspend fun addEvent(event: Event) {
       events[event.uid] = event
     }
+
     override suspend fun editEvent(eventUid: String, newEvent: Event) {}
+
     override suspend fun deleteEvent(eventUid: String) {}
-    override suspend fun addParticipantToEvent(eventUid: String, participant: com.github.se.studentconnect.model.event.EventParticipant) {}
-    override suspend fun addInvitationToEvent(eventUid: String, invitedUser: String, currentUserId: String) {}
+
+    override suspend fun addParticipantToEvent(
+        eventUid: String,
+        participant: com.github.se.studentconnect.model.event.EventParticipant
+    ) {}
+
+    override suspend fun addInvitationToEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) {}
+
     override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
   }
 
@@ -142,8 +191,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val mockEventRepo = TestEventRepository()
 
     repository =
-        StoryRepositoryFirestore(
-            mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo, context)
+        StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo, context)
 
     // Default mock behavior
     whenever(mockFirestore.collection("stories")).thenReturn(mockCollectionReference)
@@ -210,7 +258,9 @@ class StoryRepositoryFirestoreInstrumentedTest {
     assertEquals(userId, result?.userId)
     assertEquals(eventId, result?.eventId)
     assertNotNull(result?.mediaUrl)
-    assertTrue("MediaUrl should match expected pattern", result?.mediaUrl?.startsWith(expectedMediaUrlPattern) == true)
+    assertTrue(
+        "MediaUrl should match expected pattern",
+        result?.mediaUrl?.startsWith(expectedMediaUrlPattern) == true)
     verify(mockNewDocRef).set(any<Map<String, Any>>())
     verify(mockNewDocRef).update(anyString(), any())
 
@@ -231,15 +281,19 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val userId = "user456"
 
     // Create a repository with a throwing media repository
-    val throwingMediaRepo = object : MediaRepository {
-      override suspend fun upload(uri: Uri, path: String?): String {
-        throw Exception("Upload failed")
-      }
-      override suspend fun download(id: String): Uri = Uri.parse("file:///$id")
-      override suspend fun delete(id: String) {}
-    }
-    val testMediaRepo = StoryRepositoryFirestore(
-        mockFirestore, throwingMediaRepo, TestUserRepository(), TestEventRepository(), context)
+    val throwingMediaRepo =
+        object : MediaRepository {
+          override suspend fun upload(uri: Uri, path: String?): String {
+            throw Exception("Upload failed")
+          }
+
+          override suspend fun download(id: String): Uri = Uri.parse("file:///$id")
+
+          override suspend fun delete(id: String) {}
+        }
+    val testMediaRepo =
+        StoryRepositoryFirestore(
+            mockFirestore, throwingMediaRepo, TestUserRepository(), TestEventRepository(), context)
 
     // Act
     val result = testMediaRepo.uploadStory(fileUri, eventId, userId)
@@ -251,4 +305,3 @@ class StoryRepositoryFirestoreInstrumentedTest {
     testImageFile.delete()
   }
 }
-

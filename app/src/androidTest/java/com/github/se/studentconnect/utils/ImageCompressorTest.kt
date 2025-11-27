@@ -5,12 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
+import java.io.FileOutputStream
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.io.File
-import java.io.FileOutputStream
 
 class ImageCompressorTest {
 
@@ -132,4 +132,3 @@ class ImageCompressorTest {
     testImageFile.delete()
   }
 }
-

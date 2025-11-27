@@ -132,4 +132,3 @@ class StoryTest {
     assertNotEquals(story1, story3)
   }
 }
-

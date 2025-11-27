@@ -45,4 +45,3 @@ interface StoryRepository {
    */
   suspend fun deleteStory(storyId: String, userId: String): Boolean
 }
-
