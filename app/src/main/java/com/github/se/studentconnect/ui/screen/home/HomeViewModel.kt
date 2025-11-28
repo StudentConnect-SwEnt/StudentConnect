@@ -8,7 +8,10 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.toOrganizationDataList
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.repository.OrganizationRepository
+import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -37,6 +40,7 @@ enum class HomeTabMode {
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
     val events: List<Event> = emptyList(),
+    val organizations: List<OrganizationData> = emptyList(),
     val isLoading: Boolean = true,
     val isCalendarVisible: Boolean = false,
     val selectedDate: Date? = null,
@@ -50,8 +54,9 @@ class HomePageViewModel
 @Inject
 constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    // maybe will be used after for recommendations
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -76,6 +81,21 @@ constructor(
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+    loadOrganizations()
+  }
+
+  /** Loads organization suggestions from the repository. */
+  private fun loadOrganizations() {
+    viewModelScope.launch {
+      try {
+        val organizations = organizationRepository.getAllOrganizations()
+        val organizationDataList = organizations.toOrganizationDataList()
+        _uiState.update { it.copy(organizations = organizationDataList) }
+      } catch (e: Exception) {
+        Log.e("HomePageViewModel", "Error loading organizations", e)
+        _uiState.update { it.copy(organizations = emptyList()) }
+      }
+    }
   }
 
   private fun loadAllSubscribedEventsStories() {
@@ -279,11 +299,12 @@ constructor(
   /** Returns the static list of available filter chips for the UI. */
   fun getAvailableFilters(): List<String> = Activities.filterOptions
 
-  /** Reloads events, favorites, and story data. */
+  /** Reloads events, favorites, story data, and organizations. */
   fun refresh() {
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+    loadOrganizations()
   }
 
   /** Shows the calendar modal. */

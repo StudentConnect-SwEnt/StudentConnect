@@ -3,6 +3,7 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.google.firebase.Timestamp
@@ -26,13 +27,15 @@ class HomePageViewModelGetEventsForDateTest {
   private lateinit var viewModel: HomePageViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var organizationRepository: OrganizationRepositoryLocal
 
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    organizationRepository = OrganizationRepositoryLocal()
+    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
   }
 
   @After

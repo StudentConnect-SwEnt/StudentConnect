@@ -1,12 +1,22 @@
 package com.github.se.studentconnect.ui.profile
 
 import androidx.lifecycle.ViewModel
-import com.github.se.studentconnect.model.OrganizationEvent
-import com.github.se.studentconnect.model.OrganizationMember
+import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.OrganizationProfile
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.fetchOrganizationMembers
+import com.github.se.studentconnect.model.toOrganizationEvents
+import com.github.se.studentconnect.model.toOrganizationProfile
+import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.repository.OrganizationRepository
+import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
+import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /** Tab selection for the organization profile screen. */
 enum class OrganizationTab {
@@ -28,30 +38,89 @@ data class OrganizationProfileUiState(
  * Manages organization data, tab selection, and follow/unfollow actions.
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
+ * @param organizationRepository The repository to fetch organization data from
+ * @param eventRepository The repository to fetch event data from
+ * @param userRepository The repository to fetch user data from
  */
-// TODO: Inject a repository interface (e.g., OrganizationRepository) to fetch real data
-// instead of using mock data. This will avoid a large refactor later when implementing
-// the backend integration.
-class OrganizationProfileViewModel(private val organizationId: String? = null) : ViewModel() {
+class OrganizationProfileViewModel(
+    private val organizationId: String? = null,
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repository
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
 
+  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+
   init {
-    // TODO: Replace mock data loading with repository call when backend is implemented
-    // Load mock data for now
     loadOrganizationData()
   }
 
-  /** Loads organization data. Currently uses mock data. */
+  /** Loads organization data from the repository. */
   private fun loadOrganizationData() {
     _uiState.value = _uiState.value.copy(isLoading = true)
 
-    // Mock data - in production, this would fetch from a repository
-    val mockOrganization = createMockOrganization()
+    viewModelScope.launch {
+      try {
+        if (organizationId == null) {
+          _uiState.value =
+              _uiState.value.copy(
+                  isLoading = false, error = "Organization ID is required", organization = null)
+          return@launch
+        }
 
-    _uiState.value =
-        _uiState.value.copy(organization = mockOrganization, isLoading = false, error = null)
+        val organization = organizationRepository.getOrganizationById(organizationId)
+        if (organization == null) {
+          _uiState.value =
+              _uiState.value.copy(
+                  isLoading = false, error = "Organization not found", organization = null)
+          return@launch
+        }
+
+        // Fetch events for this organization
+        val events =
+            try {
+              eventRepository.getEventsByOrganization(organizationId).toOrganizationEvents()
+            } catch (e: Exception) {
+              emptyList() // If fetching events fails, use empty list
+            }
+
+        // Fetch members for this organization
+        val members =
+            try {
+              fetchOrganizationMembers(organization.memberUids, userRepository)
+            } catch (e: Exception) {
+              emptyList() // If fetching members fails, use empty list
+            }
+
+        // Check if current user is following this organization
+        val isFollowing =
+            currentUserId?.let { uid ->
+              try {
+                val followedOrgs = userRepository.getFollowedOrganizations(uid)
+                followedOrgs.contains(organizationId)
+              } catch (e: Exception) {
+                false
+              }
+            } ?: false
+
+        val organizationProfile =
+            organization.toOrganizationProfile(
+                isFollowing = isFollowing, events = events, members = members)
+
+        _uiState.value =
+            _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
+      } catch (e: Exception) {
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                error = "Failed to load organization: ${e.message}",
+                organization = null)
+      }
+    }
   }
 
   /**
@@ -66,53 +135,25 @@ class OrganizationProfileViewModel(private val organizationId: String? = null) :
   /** Toggles the follow status for the organization. */
   fun toggleFollow() {
     val currentOrg = _uiState.value.organization ?: return
+    val userId = currentUserId ?: return
+
+    // Optimistically update UI
     val updatedOrg = currentOrg.copy(isFollowing = !currentOrg.isFollowing)
     _uiState.value = _uiState.value.copy(organization = updatedOrg)
-  }
 
-  /** Creates mock organization data for testing and preview. */
-  private fun createMockOrganization(): OrganizationProfile {
-    val mockEvents =
-        listOf(
-            OrganizationEvent(
-                eventId = "event_1",
-                cardTitle = "EPFL Hackathon",
-                cardDate = "15 dec, 2024",
-                title = "Hackathon EPFL",
-                subtitle = "Tomorrow",
-                location = "EPFL"),
-            OrganizationEvent(
-                eventId = "event_2",
-                cardTitle = "EPFL Hackathon",
-                cardDate = "15 dec, 2024",
-                title = "Hackathon EPFL",
-                subtitle = "Tomorrow",
-                location = "EPFL"))
-
-    val mockMembers =
-        listOf(
-            OrganizationMember(
-                memberId = "member_1", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-            OrganizationMember(
-                memberId = "member_2", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-            OrganizationMember(
-                memberId = "member_3", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"),
-            OrganizationMember(
-                memberId = "member_4", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-            OrganizationMember(
-                memberId = "member_5", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-            OrganizationMember(
-                memberId = "member_6", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"))
-
-    return OrganizationProfile(
-        organizationId = organizationId ?: "org_evolve",
-        name = "Evolve",
-        description =
-            "Evolve est une organisation dédiée au développement du potentiel humain et professionnel.",
-        logoUrl = null,
-        isFollowing = false,
-        events = mockEvents,
-        members = mockMembers)
+    // Persist to backend
+    viewModelScope.launch {
+      try {
+        if (updatedOrg.isFollowing) {
+          userRepository.followOrganization(userId, currentOrg.organizationId)
+        } else {
+          userRepository.unfollowOrganization(userId, currentOrg.organizationId)
+        }
+      } catch (e: Exception) {
+        // Revert on failure
+        _uiState.value = _uiState.value.copy(organization = currentOrg)
+      }
+    }
   }
 
   companion object {

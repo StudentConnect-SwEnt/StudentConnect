@@ -246,6 +246,20 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return getAllVisibleEvents().filter(predicate)
   }
 
+  override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+    val querySnapshot =
+        db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("ownerId", organizationId).get().await()
+
+    return querySnapshot.documents.mapNotNull { doc ->
+      try {
+        eventFromDocumentSnapshot(doc)
+      } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Failed to parse event for organization", e)
+        null
+      }
+    }
+  }
+
   override suspend fun getEvent(eventUid: String): Event {
     val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
     val documentSnapshot = getEventDocument(eventUid)

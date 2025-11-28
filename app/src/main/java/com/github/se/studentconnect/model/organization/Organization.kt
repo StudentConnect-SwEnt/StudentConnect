@@ -57,6 +57,7 @@ data class SocialLinks(
  * @property typicalEventSize Description of event size (e.g., "Small", "Large").
  * @property roles List of distinct roles within the organization team.
  * @property socialLinks Container for external profile links.
+ * @property memberUids List of user IDs who are members of this organization.
  * @property createdAt Timestamp of creation.
  * @property createdBy User ID of the creator (admin).
  */
@@ -72,6 +73,7 @@ data class Organization(
     val typicalEventSize: String? = null,
     val roles: List<OrganizationRole> = emptyList(),
     val socialLinks: SocialLinks = SocialLinks(),
+    val memberUids: List<String> = emptyList(),
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String
 ) {
@@ -90,6 +92,7 @@ data class Organization(
         "typicalEventSize" to typicalEventSize,
         "roles" to roles.map { mapOf("name" to it.name, "description" to it.description) },
         "socialLinks" to socialLinks.toMap(),
+        "memberUids" to memberUids,
         "createdAt" to createdAt,
         "createdBy" to createdBy)
   }
@@ -141,6 +144,9 @@ data class Organization(
                 x = socialMap?.get("x") as? String,
                 linkedin = socialMap?.get("linkedin") as? String)
 
+        // Safe parsing of memberUids
+        val memberUids = (map["memberUids"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
         Organization(
             id = id,
             name = name,
@@ -153,6 +159,7 @@ data class Organization(
             typicalEventSize = typicalEventSize,
             roles = roles,
             socialLinks = socialLinks,
+            memberUids = memberUids,
             createdAt = createdAt,
             createdBy = createdBy)
       } catch (_: Exception) {

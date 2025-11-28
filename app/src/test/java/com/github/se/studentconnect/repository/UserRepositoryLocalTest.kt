@@ -392,4 +392,198 @@ class UserRepositoryLocalTest {
     assertFalse(repository.checkUsernameAvailability("janesmith"))
     assertTrue(repository.checkUsernameAvailability("newuser"))
   }
+
+  // Additional edge case tests for better coverage
+  @Test
+  fun getUsersPaginated_withLastUserIdBeyondEnd_returnsEmpty() = runTest {
+    repository.saveUser(testUser1)
+    repository.saveUser(testUser2)
+
+    val (users, hasMore) =
+        repository.getUsersPaginated(limit = 5, lastUserId = "user2") // user2 is the last user
+
+    assertTrue(users.isEmpty())
+    assertFalse(hasMore)
+  }
+
+  @Test
+  fun getUsersPaginated_withNonExistentLastUserId_returnsEmpty() = runTest {
+    repository.saveUser(testUser1)
+    repository.saveUser(testUser2)
+
+    val (users, hasMore) = repository.getUsersPaginated(limit = 5, lastUserId = "non-existent-user")
+
+    assertTrue(users.isEmpty())
+    assertFalse(hasMore)
+  }
+
+  @Test
+  fun getUsersPaginated_withExactLimitMatch_returnsCorrectHasMore() = runTest {
+    val user3 = testUser1.copy(userId = "user3", email = "user3@example.com")
+    repository.saveUser(testUser1)
+    repository.saveUser(testUser2)
+    repository.saveUser(user3)
+
+    val (users, hasMore) = repository.getUsersPaginated(limit = 3, lastUserId = null)
+
+    assertEquals(3, users.size)
+    assertFalse(hasMore) // Exactly at the limit, no more pages
+  }
+
+  @Test
+  fun declineInvitation_throwsException_whenNoInvitationsExist() = runTest {
+    var exceptionThrown = false
+    try {
+      repository.declineInvitation("event1", "user1")
+    } catch (e: NoSuchElementException) {
+      exceptionThrown = true
+      assertTrue(e.message?.contains("No Invitations found") == true)
+    }
+    assertTrue(exceptionThrown)
+  }
+
+  @Test
+  fun declineInvitation_throwsException_whenInvitationNotFound() = runTest {
+    repository.addInvitationToUser("event1", "user1", "user2")
+
+    var exceptionThrown = false
+    try {
+      repository.declineInvitation("event2", "user1") // Different event
+    } catch (e: NoSuchElementException) {
+      exceptionThrown = true
+      assertTrue(e.message?.contains("No invitation for event") == true)
+    }
+    assertTrue(exceptionThrown)
+  }
+
+  @Test
+  fun addFavoriteEvent_multipleTimes_doesNotDuplicate() = runTest {
+    repository.addFavoriteEvent("user1", "event1")
+    repository.addFavoriteEvent("user1", "event1")
+    repository.addFavoriteEvent("user1", "event1")
+
+    val favorites = repository.getFavoriteEvents("user1")
+    assertEquals(1, favorites.size)
+    assertEquals("event1", favorites[0])
+  }
+
+  @Test
+  fun removeFavoriteEvent_fromEmptyList_doesNotThrow() = runTest {
+    // Should not throw an exception
+    repository.removeFavoriteEvent("user1", "event1")
+
+    val favorites = repository.getFavoriteEvents("user1")
+    assertTrue(favorites.isEmpty())
+  }
+
+  @Test
+  fun removeFavoriteEvent_nonExistentEvent_doesNotAffectOtherFavorites() = runTest {
+    repository.addFavoriteEvent("user1", "event1")
+    repository.addFavoriteEvent("user1", "event2")
+
+    repository.removeFavoriteEvent("user1", "event3") // Non-existent
+
+    val favorites = repository.getFavoriteEvents("user1")
+    assertEquals(2, favorites.size)
+    assertTrue(favorites.contains("event1"))
+    assertTrue(favorites.contains("event2"))
+  }
+
+  @Test
+  fun leaveEvent_fromEmptyList_doesNotThrow() = runTest {
+    // Should not throw an exception
+    repository.leaveEvent("event1", "user1")
+
+    val events = repository.getJoinedEvents("user1")
+    assertTrue(events.isEmpty())
+  }
+
+  @Test
+  fun leaveEvent_nonExistentEvent_doesNotAffectOtherEvents() = runTest {
+    repository.addEventToUser("event1", "user1")
+    repository.addEventToUser("event2", "user1")
+
+    repository.leaveEvent("event3", "user1") // Non-existent
+
+    val events = repository.getJoinedEvents("user1")
+    assertEquals(2, events.size)
+    assertTrue(events.contains("event1"))
+    assertTrue(events.contains("event2"))
+  }
+
+  @Test
+  fun updateUser_withInvalidData_handlesGracefully() = runTest {
+    repository.saveUser(testUser1)
+
+    // Try to update with invalid map that can't be converted back to User
+    repository.updateUser(testUser1.userId, mapOf("invalidField" to "invalidValue"))
+
+    // Original user should remain unchanged if conversion fails
+    val result = repository.getUserById(testUser1.userId)
+    assertNotNull(result)
+  }
+
+  @Test
+  fun followOrganization_multipleTimes_doesNotDuplicate() = runTest {
+    repository.followOrganization("user1", "org1")
+    repository.followOrganization("user1", "org1")
+    repository.followOrganization("user1", "org1")
+
+    val followed = repository.getFollowedOrganizations("user1")
+    assertEquals(1, followed.size)
+    assertEquals("org1", followed[0])
+  }
+
+  @Test
+  fun unfollowOrganization_fromEmptyList_doesNotThrow() = runTest {
+    // Should not throw an exception
+    repository.unfollowOrganization("user1", "org1")
+
+    val followed = repository.getFollowedOrganizations("user1")
+    assertTrue(followed.isEmpty())
+  }
+
+  @Test
+  fun unfollowOrganization_nonExistentOrganization_doesNotAffectOthers() = runTest {
+    repository.followOrganization("user1", "org1")
+    repository.followOrganization("user1", "org2")
+
+    repository.unfollowOrganization("user1", "org3") // Non-existent
+
+    val followed = repository.getFollowedOrganizations("user1")
+    assertEquals(2, followed.size)
+    assertTrue(followed.contains("org1"))
+    assertTrue(followed.contains("org2"))
+  }
+
+  @Test
+  fun getFollowedOrganizations_forNonExistentUser_returnsEmptyList() = runTest {
+    val followed = repository.getFollowedOrganizations("non-existent-user")
+    assertTrue(followed.isEmpty())
+  }
+
+  @Test
+  fun deleteUser_alsoClearsFollowedOrganizations() = runTest {
+    repository.saveUser(testUser1)
+    repository.followOrganization("user1", "org1")
+    repository.followOrganization("user1", "org2")
+
+    repository.deleteUser("user1")
+
+    // Verify user is deleted
+    assertNull(repository.getUserById("user1"))
+
+    // Verify followed organizations are also cleared
+    val followed = repository.getFollowedOrganizations("user1")
+    assertTrue(followed.isEmpty())
+  }
+
+  @Test
+  fun acceptInvitation_withNoExistingInvitations_handlesGracefully() = runTest {
+    // Should not throw exception - just does nothing since there are no invitations
+    repository.acceptInvitation("event1", "user1")
+
+    val events = repository.getJoinedEvents("user1")
+    assertEquals(1, events.size) // Event should still be added
+  }
 }
