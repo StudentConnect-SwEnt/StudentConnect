@@ -315,12 +315,13 @@ class OrganizationProfileViewModelTest {
 
     advanceUntilIdle()
 
-    val initialState = viewModel.uiState.value
+    val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
     viewModel.toggleFollow()
     advanceUntilIdle()
 
-    val finalState = viewModel.uiState.value
-    assertEquals(initialState.organization?.isFollowing, finalState.organization?.isFollowing)
+    val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
+    // Since currentUserId is null, toggleFollow should not change the state
+    assertEquals(initialFollowing, finalFollowing)
   }
 
   @Test
@@ -339,10 +340,11 @@ class OrganizationProfileViewModelTest {
 
     // Since currentUserId is null in tests, toggleFollow won't change the state
     // This test verifies that behavior
-    val initialFollowing = viewModel.uiState.value.organization?.isFollowing
+    val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
     viewModel.toggleFollow()
     advanceUntilIdle()
-    assertEquals(initialFollowing, viewModel.uiState.value.organization?.isFollowing)
+    val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
+    assertEquals(initialFollowing, finalFollowing)
   }
 
   @Test
