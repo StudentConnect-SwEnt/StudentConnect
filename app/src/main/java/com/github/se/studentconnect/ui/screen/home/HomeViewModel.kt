@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,9 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.repository.LocationRepository
+import com.github.se.studentconnect.repository.LocationRepositoryImpl
+import com.github.se.studentconnect.repository.LocationResult
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -33,6 +37,21 @@ enum class HomeTabMode {
   DISCOVER
 }
 
+/** User preferences for event scoring. */
+data class UserPreferences(
+    val preferredLocation: Location? = null,
+    val preferredPriceRange: ClosedFloatingPointRange<Float> = 0f..100f,
+    val preferredTimeOfDay: PreferredTimeOfDay = PreferredTimeOfDay.ANY
+)
+
+/** Preferred time of day for events. */
+enum class PreferredTimeOfDay {
+  MORNING, // 6-12
+  AFTERNOON, // 12-18
+  EVENING, // 18-24
+  ANY
+}
+
 /** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
@@ -43,6 +62,9 @@ data class HomePageUiState(
     val scrollToDate: Date? = null,
     val showOnlyFavorites: Boolean = false,
     val selectedTab: HomeTabMode = HomeTabMode.FOR_YOU,
+    val userHobbies: List<String> = emptyList(),
+    val attendedEvents: List<Event> = emptyList(),
+    val userPreferences: UserPreferences = UserPreferences()
 )
 
 /** Coordinates event loading, filtering, favorite handling, and story progress. */
@@ -50,8 +72,9 @@ class HomePageViewModel
 @Inject
 constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    // maybe will be used after for recommendations
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val context: Context? = null,
+    private val locationRepository: LocationRepository? = null
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -72,10 +95,120 @@ constructor(
 
   private var allFetchedEvents: List<Event> = emptyList()
 
+  companion object {
+    // Scoring weights
+    private const val WEIGHT_TAG_SIMILARITY = 0.35
+    private const val WEIGHT_ATTENDED_SIMILARITY = 0.10
+    private const val WEIGHT_DISTANCE = 0.15
+    private const val WEIGHT_PRICE = 0.15
+    private const val WEIGHT_TIME = 0.10
+    private const val WEIGHT_RECENCY = 0.15
+
+    // Score defaults
+    private const val DEFAULT_SCORE = 0.5
+    private const val MIN_SCORE = 0.0
+    private const val MAX_SCORE = 1.0
+
+    // Distance scoring
+    private const val MAX_DISTANCE_KM = 50.0
+
+    // Time matching
+    private const val TIME_NON_MATCH_SCORE = 0.3
+
+    // Recency scoring
+    private const val MAX_RECENCY_DAYS = 30.0
+  }
+
   init {
+    loadUserHobbies()
+    loadUserAttendedEvents()
+    loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+  }
+
+  private fun loadUserHobbies() {
+    currentUserId?.let { uid ->
+      viewModelScope.launch {
+        try {
+          val user = userRepository.getUserById(uid)
+          val hobbies = user?.hobbies ?: emptyList()
+          _uiState.update { it.copy(userHobbies = hobbies) }
+          Log.d("HomePageViewModel", "Loaded user hobbies: $hobbies")
+        } catch (e: Exception) {
+          Log.e("HomePageViewModel", "Error loading user hobbies", e)
+          _uiState.update { it.copy(userHobbies = emptyList()) }
+        }
+      }
+    }
+  }
+
+  private fun loadUserAttendedEvents() {
+    currentUserId?.let { uid ->
+      viewModelScope.launch {
+        try {
+          val attendedEventIds = userRepository.getJoinedEvents(uid)
+          val attendedEvents =
+              attendedEventIds.mapNotNull { eventId ->
+                try {
+                  eventRepository.getEvent(eventId)
+                } catch (e: Exception) {
+                  Log.e("HomePageViewModel", "Error loading attended event $eventId", e)
+                  null
+                }
+              }
+          _uiState.update { it.copy(attendedEvents = attendedEvents) }
+          Log.d("HomePageViewModel", "Loaded ${attendedEvents.size} attended events")
+        } catch (e: Exception) {
+          Log.e("HomePageViewModel", "Error loading attended events", e)
+          _uiState.update { it.copy(attendedEvents = emptyList()) }
+        }
+      }
+    }
+  }
+
+  private fun loadUserPreferences() {
+    currentUserId?.let { _ ->
+      viewModelScope.launch {
+        try {
+          // Fetch user's current location if available
+          val userLocation =
+              if (context != null) {
+                val locRepo = locationRepository ?: LocationRepositoryImpl(context)
+                when (val result = locRepo.getCurrentLocation()) {
+                  is LocationResult.Success -> {
+                    val androidLocation = result.location
+                    Location(
+                        latitude = androidLocation.latitude,
+                        longitude = androidLocation.longitude,
+                        name = "Current Location")
+                  }
+                  else -> {
+                    Log.d(
+                        "HomePageViewModel",
+                        "Could not get location for scoring: ${result.javaClass.simpleName}")
+                    null
+                  }
+                }
+              } else {
+                null
+              }
+
+          val preferences =
+              UserPreferences(
+                  preferredLocation = userLocation,
+                  preferredPriceRange = 0f..100f,
+                  preferredTimeOfDay = PreferredTimeOfDay.ANY)
+          _uiState.update { it.copy(userPreferences = preferences) }
+          Log.d(
+              "HomePageViewModel", "Loaded user preferences with location: ${userLocation != null}")
+        } catch (e: Exception) {
+          Log.e("HomePageViewModel", "Error loading user preferences", e)
+          _uiState.update { it.copy(userPreferences = UserPreferences()) }
+        }
+      }
+    }
   }
 
   private fun loadAllSubscribedEventsStories() {
@@ -200,6 +333,8 @@ constructor(
     _uiState.update { it.copy(isLoading = true) }
 
     val currentTime = Date()
+    val currentTab = _uiState.value.selectedTab
+    val userHobbies = _uiState.value.userHobbies
 
     val filtered =
         eventsToFilter.filter { event ->
@@ -211,6 +346,32 @@ constructor(
           val isFutureOrLive = eventEndTime.after(currentTime) || eventEndTime == currentTime
           if (!isFutureOrLive) return@filter false
 
+          // Tab-based filtering (before other filters)
+          val tabMatch =
+              when (currentTab) {
+                HomeTabMode.FOR_YOU -> {
+                  // FOR_YOU shows all events, sorted by recommendation score
+                  // Don't filter here - let the scoring algorithm rank everything
+                  true
+                }
+                HomeTabMode.EVENTS -> {
+                  // Show all events
+                  true
+                }
+                HomeTabMode.DISCOVER -> {
+                  // Show events that DON'T have any tags matching user hobbies
+                  if (userHobbies.isEmpty()) {
+                    true // If user has no hobbies, show all events
+                  } else {
+                    val eventTags = publicEvent.tags
+                    eventTags.none { eventTag ->
+                      userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
+                    }
+                  }
+                }
+              }
+          if (!tabMatch) return@filter false
+
           // Favorites
           val favoriteMatch =
               if (filters.showOnlyFavorites) {
@@ -220,7 +381,7 @@ constructor(
               }
           if (!favoriteMatch) return@filter false
 
-          // Tags
+          // Tags (from filter bar)
           val tagMatch =
               if (filters.categories.isEmpty()) {
                 true
@@ -255,8 +416,20 @@ constructor(
 
           locationMatch
         }
+
+    // Sort events based on current tab
+    val sortedEvents =
+        if (currentTab == HomeTabMode.FOR_YOU) {
+          // Sort by recommendation score (highest first)
+          filtered.sortedByDescending { event -> calculateEventScore(event) }
+        } else {
+          // For other tabs, sort by start date
+          filtered.sortedBy { it.start.toDate() }
+        }
+
     _uiState.update {
-      it.copy(events = filtered, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites)
+      it.copy(
+          events = sortedEvents, isLoading = false, showOnlyFavorites = filters.showOnlyFavorites)
     }
   }
 
@@ -276,11 +449,155 @@ constructor(
     return earthRadiusKm * c
   }
 
+  /**
+   * Calculates a recommendation score for an event based on user preferences.
+   *
+   * Score formula: 0.35 * tag_similarity + 0.10 * previous_attended_event_similarity + 0.15 *
+   * distance_score + 0.15 * price_preference + 0.10 * time_match + 0.15 * recency_boost
+   *
+   * @return A score between 0.0 and 1.0
+   */
+  private fun calculateEventScore(event: Event): Double {
+    val publicEvent = event as? Event.Public ?: return 0.0
+
+    val tagSimilarity = calculateTagSimilarity(publicEvent)
+    val attendedSimilarity = calculateAttendedEventSimilarity(publicEvent)
+    val distanceScore = calculateDistanceScore(publicEvent)
+    val pricePreference = calculatePricePreference(publicEvent)
+    val timeMatch = calculateTimeMatch(publicEvent)
+    val recencyBoost = calculateRecencyBoost(publicEvent)
+
+    val totalScore =
+        WEIGHT_TAG_SIMILARITY * tagSimilarity +
+            WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
+            WEIGHT_DISTANCE * distanceScore +
+            WEIGHT_PRICE * pricePreference +
+            WEIGHT_TIME * timeMatch +
+            WEIGHT_RECENCY * recencyBoost
+
+    Log.d(
+        "EventScore",
+        "Event: ${publicEvent.title} | Score: ${"%.3f".format(totalScore)} | " +
+            "Tag: ${"%.2f".format(tagSimilarity)}, " +
+            "Attended: ${"%.2f".format(attendedSimilarity)}, " +
+            "Distance: ${"%.2f".format(distanceScore)}, " +
+            "Price: ${"%.2f".format(pricePreference)}, " +
+            "Time: ${"%.2f".format(timeMatch)}, " +
+            "Recency: ${"%.2f".format(recencyBoost)}")
+
+    return totalScore
+  }
+
+  /** Calculates tag similarity score (0.0 to 1.0) based on matching user hobbies. */
+  private fun calculateTagSimilarity(event: Event.Public): Double {
+    val userHobbies = _uiState.value.userHobbies
+    if (userHobbies.isEmpty() || event.tags.isEmpty()) return DEFAULT_SCORE
+
+    val matchingTags =
+        event.tags.count { eventTag ->
+          userHobbies.any { hobby -> eventTag.equals(hobby, ignoreCase = true) }
+        }
+    return (matchingTags.toDouble() / userHobbies.size.coerceAtLeast(1)).coerceIn(
+        MIN_SCORE, MAX_SCORE)
+  }
+
+  /**
+   * Calculates similarity to previously attended events (0.0 to 1.0) based on shared tags and
+   * categories.
+   */
+  private fun calculateAttendedEventSimilarity(event: Event.Public): Double {
+    val attendedEvents = _uiState.value.attendedEvents
+    if (attendedEvents.isEmpty()) return DEFAULT_SCORE
+
+    val attendedTags =
+        attendedEvents.flatMap { attendedEvent ->
+          (attendedEvent as? Event.Public)?.tags ?: emptyList()
+        }
+    if (attendedTags.isEmpty()) return DEFAULT_SCORE
+
+    val matchingTags =
+        event.tags.count { eventTag -> attendedTags.any { it.equals(eventTag, ignoreCase = true) } }
+    return (matchingTags.toDouble() / attendedTags.distinct().size.coerceAtLeast(1)).coerceIn(
+        MIN_SCORE, MAX_SCORE)
+  }
+
+  /** Calculates distance score (0.0 to 1.0), where 1.0 is closest. */
+  private fun calculateDistanceScore(event: Event.Public): Double {
+    val userLocation = _uiState.value.userPreferences.preferredLocation
+    val eventLocation = event.location
+
+    if (userLocation == null || eventLocation == null) return DEFAULT_SCORE
+
+    val distance = calculateHaversineDistance(userLocation, eventLocation)
+    return (MAX_SCORE - (distance / MAX_DISTANCE_KM).coerceIn(MIN_SCORE, MAX_SCORE))
+  }
+
+  /** Calculates price preference score (0.0 to 1.0) based on user's price range. */
+  private fun calculatePricePreference(event: Event.Public): Double {
+    val priceRange = _uiState.value.userPreferences.preferredPriceRange
+    val eventPrice = event.participationFee?.toFloat() ?: 0f
+
+    return when {
+      eventPrice == 0f && priceRange.start <= 0f -> MAX_SCORE
+      eventPrice in priceRange -> MAX_SCORE
+      eventPrice < priceRange.start -> {
+        val diff = priceRange.start - eventPrice
+        (MAX_SCORE - (diff / priceRange.start)).coerceIn(MIN_SCORE, MAX_SCORE)
+      }
+      else -> {
+        val diff = eventPrice - priceRange.endInclusive
+        (MAX_SCORE - (diff / priceRange.endInclusive)).coerceIn(MIN_SCORE, MAX_SCORE)
+      }
+    }
+  }
+
+  /** Calculates time match score (0.0 to 1.0) based on preferred time of day. */
+  private fun calculateTimeMatch(event: Event.Public): Double {
+    val preferredTime = _uiState.value.userPreferences.preferredTimeOfDay
+    if (preferredTime == PreferredTimeOfDay.ANY) return MAX_SCORE
+
+    val calendar = Calendar.getInstance()
+    calendar.time = event.start.toDate()
+    val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+
+    return when (preferredTime) {
+      PreferredTimeOfDay.MORNING -> if (hourOfDay in 6..11) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.AFTERNOON -> if (hourOfDay in 12..17) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.EVENING -> if (hourOfDay in 18..23) MAX_SCORE else TIME_NON_MATCH_SCORE
+      PreferredTimeOfDay.ANY -> MAX_SCORE
+    }
+  }
+
+  /**
+   * Calculates recency boost score (0.0 to 1.0), favoring events happening sooner.
+   *
+   * Uses event start time instead of creation time. Events happening in the next 30 days get higher
+   * scores, with events happening sooner getting the highest scores.
+   */
+  private fun calculateRecencyBoost(event: Event.Public): Double {
+    val now = System.currentTimeMillis()
+    val eventStartTime = event.start.toDate().time
+
+    // Calculate days until event starts (can be negative if event is in the past)
+    val daysUntilEvent = ((eventStartTime - now) / (1000.0 * 60 * 60 * 24))
+
+    // For events happening within MAX_RECENCY_DAYS, give higher scores to sooner events
+    return when {
+      daysUntilEvent < MIN_SCORE -> MIN_SCORE // Past events get 0
+      daysUntilEvent <= MAX_RECENCY_DAYS ->
+          (MAX_SCORE - (daysUntilEvent / MAX_RECENCY_DAYS)).coerceIn(MIN_SCORE, MAX_SCORE)
+      else -> MIN_SCORE // Events more than MAX_RECENCY_DAYS away get 0
+    }
+  }
+
   /** Returns the static list of available filter chips for the UI. */
   fun getAvailableFilters(): List<String> = Activities.filterOptions
 
   /** Reloads events, favorites, and story data. */
   fun refresh() {
+    loadUserHobbies()
+    loadUserAttendedEvents()
+    loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
@@ -308,9 +625,11 @@ constructor(
     _uiState.update { it.copy(scrollToDate = null) }
   }
 
-  /** Updates the selected tab mode. */
+  /** Updates the selected tab mode and reapplies filters. */
   fun selectTab(tab: HomeTabMode) {
     _uiState.update { it.copy(selectedTab = tab) }
+    // Reapply filters with the new tab selection
+    applyFilters(currentFilters, allFetchedEvents)
   }
 
   /** Gets events for a specific date. */
