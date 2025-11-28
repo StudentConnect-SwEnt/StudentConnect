@@ -274,8 +274,7 @@ class HomePageViewModelTest {
 
     val nearEvent =
         testEvent1.copy(uid = "near_event", title = "Near Event", location = nearLocation)
-    val farEvent =
-        testEvent2.copy(uid = "far_event", title = "Far Event", location = farLocation)
+    val farEvent = testEvent2.copy(uid = "far_event", title = "Far Event", location = farLocation)
 
     eventRepository.addEvent(nearEvent)
     eventRepository.addEvent(farEvent)
@@ -461,9 +460,7 @@ class HomePageViewModelTest {
 
     val pastEvent =
         testEvent1.copy(
-            uid = "past_event",
-            start = Timestamp(pastDate.time),
-            end = Timestamp(pastDate.time))
+            uid = "past_event", start = Timestamp(pastDate.time), end = Timestamp(pastDate.time))
 
     eventRepository.addEvent(pastEvent)
     eventRepository.addEvent(testEvent1)
