@@ -119,7 +119,7 @@ class HomePageViewModelFilterTest {
     // Setup AuthenticationProvider with test user for tests that use toggleFavorite
     AuthenticationProvider.testUserId = "test-user-123"
     AuthenticationProvider.local = false
-    
+
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
