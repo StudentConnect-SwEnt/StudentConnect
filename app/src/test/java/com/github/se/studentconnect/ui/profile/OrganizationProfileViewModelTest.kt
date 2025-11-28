@@ -523,5 +523,4 @@ class OrganizationProfileViewModelTest {
     val followedOrgs = userRepository.getFollowedOrganizations("user1")
     assertFalse(followedOrgs.contains("test_org"))
   }
-
 }
