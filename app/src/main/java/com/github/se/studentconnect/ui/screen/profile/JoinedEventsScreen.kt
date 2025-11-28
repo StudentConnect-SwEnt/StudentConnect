@@ -136,7 +136,8 @@ private fun SearchBar(
   TextField(
       value = query,
       onValueChange = onQueryChange,
-      modifier = modifier.testTag(JoinedEventsScreenTestTags.SEARCH_BAR).padding(vertical = spacing.small),
+      modifier =
+          modifier.testTag(JoinedEventsScreenTestTags.SEARCH_BAR).padding(vertical = spacing.small),
       placeholder = { Text(searchPlaceholder) },
       leadingIcon = {
         Icon(imageVector = Icons.Default.Search, contentDescription = searchDescription)

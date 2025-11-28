@@ -7,8 +7,6 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
-import com.google.firebase.Timestamp
-import java.util.Calendar
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
@@ -180,9 +178,7 @@ class JoinedEventsScreenTest {
     composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
 
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithTag(JoinedEventsScreenTestTags.JOINED_EVENTS_SCREEN)
-        .assertExists()
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.JOINED_EVENTS_SCREEN).assertExists()
   }
 
   @Test
@@ -265,9 +261,7 @@ class JoinedEventsScreenTest {
     // Type text
     composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).performTextInput("first")
     composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR)
-        .assertTextContains("first")
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).assertTextContains("first")
 
     // Clear and type new text
     composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).performTextClearance()
@@ -295,8 +289,7 @@ class JoinedEventsScreenTest {
   }
 
   // Mock repositories
-  private class MockUserRepository(var joinedEvents: List<String> = emptyList()) :
-      UserRepository {
+  private class MockUserRepository(var joinedEvents: List<String> = emptyList()) : UserRepository {
 
     override suspend fun getUserById(userId: String) = null
 
@@ -330,11 +323,8 @@ class JoinedEventsScreenTest {
 
     override suspend fun addEventToUser(eventId: String, userId: String) = Unit
 
-    override suspend fun addInvitationToUser(
-        eventId: String,
-        userId: String,
-        fromUserId: String
-    ) = Unit
+    override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
+        Unit
 
     override suspend fun getInvitations(userId: String) =
         emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
@@ -373,8 +363,7 @@ class JoinedEventsScreenTest {
 
     override suspend fun getEvent(eventUid: String): Event {
       delay(50)
-      return events.find { it.uid == eventUid }
-          ?: throw Exception("Event not found: $eventUid")
+      return events.find { it.uid == eventUid } ?: throw Exception("Event not found: $eventUid")
     }
 
     override suspend fun getEventParticipants(eventUid: String) =
@@ -397,7 +386,6 @@ class JoinedEventsScreenTest {
         currentUserId: String
     ) = Unit
 
-    override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) =
-        Unit
+    override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
   }
 }
