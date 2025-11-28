@@ -334,10 +334,6 @@ class EventViewModel(
   private fun loadFriendsForInvites() {
     val event = _uiState.value.event ?: return
     val currentUserUid = AuthenticationProvider.currentUser
-    if (currentUserUid == null) {
-      _uiState.update { it.copy(friendsErrorRes = R.string.error_user_not_authenticated) }
-      return
-    }
 
     _uiState.update { it.copy(isLoadingFriends = true, friendsErrorRes = null) }
     viewModelScope.launch {
