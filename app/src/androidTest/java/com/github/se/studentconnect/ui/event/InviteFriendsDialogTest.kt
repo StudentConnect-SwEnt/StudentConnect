@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
@@ -129,5 +130,23 @@ class InviteFriendsDialogTest {
     composeTestRule
         .onNodeWithTag(InviteFriendsDialogTestTags.SEND_BUTTON, useUnmergedTree = true)
         .assertIsEnabled()
+  }
+
+  @Test
+  fun friendsList_showsErrorMessageWhenPresent() {
+    val state =
+        EventUiState(
+            friends = emptyList(),
+            invitedFriendIds = emptySet(),
+            initialInvitedFriendIds = emptySet(),
+            friendsErrorRes = R.string.event_invite_send_failed,
+            isLoadingFriends = false)
+
+    setContent(state)
+
+    composeTestRule
+        .onNodeWithTag(InviteFriendsDialogTestTags.ERROR, useUnmergedTree = true)
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Failed to send some invitations.").assertIsDisplayed()
   }
 }
