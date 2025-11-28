@@ -23,7 +23,7 @@ fun OrganizationLogoScreen(
       selectedUri = state.logoUri,
       onUriSelected = { uri -> viewModel.setLogoUri(uri) },
       onSkip = {
-        viewModel.setLogoUri(null) // Or set a default logo if you have one
+        viewModel.setLogoUri(null) // TODO Set a default logo ?
         onSkip()
       },
       onContinue = { onContinue() },

@@ -31,7 +31,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 
 @RunWith(AndroidJUnit4::class)
-class OrganizationSignUpOrchestrator {
+class OrganizationSignUpOrchestratorTest {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 

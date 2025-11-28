@@ -48,6 +48,7 @@ class OrganizationSignUpViewModel : ViewModel() {
     _state.value = block(_state.value)
   }
 
+  /** Resets the signup state to its initial values. */
   fun reset() {
     _state.value = OrganizationSignUpState()
   }
@@ -59,10 +60,21 @@ class OrganizationSignUpViewModel : ViewModel() {
    */
   fun setOrganizationName(name: String) = update { it.copy(organizationName = name.trim()) }
 
+  /**
+   * Toggles the selected organization type. If the same type is selected again, it clears the
+   * selection.
+   *
+   * @param type The [OrganizationType] selected by the user.
+   */
   fun toggleOrganizationType(type: OrganizationType) = update {
     it.copy(organizationType = if (it.organizationType == type) null else type)
   }
 
+  /**
+   * Sets the organization logo URI.
+   *
+   * @param uri The URI of the selected logo image.
+   */
   fun setLogoUri(uri: Uri?) = update { it.copy(logoUri = uri) }
 
   /**
@@ -184,6 +196,10 @@ class OrganizationSignUpViewModel : ViewModel() {
   /**
    * Creates the final [Organization] from the current state. This should be called when the user
    * clicks "Finish" or "Submit".
+   *
+   * @param orgId The unique ID to assign to the new organization.
+   * @param currentUserId The ID of the user creating the organization.
+   * @param uploadedLogoUrl The URL of the uploaded logo image, if any.
    */
   fun createOrganizationModel(
       orgId: String,

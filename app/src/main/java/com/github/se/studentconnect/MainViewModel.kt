@@ -153,6 +153,7 @@ class MainViewModel(private val userRepository: UserRepository) : ViewModel() {
     _uiState.update { it.copy(appState = AppState.MAIN_APP) }
   }
 
+  /** Called when the user logs out. */
   fun onLogoutComplete() {
     try {
       if (!AuthenticationProvider.local) {

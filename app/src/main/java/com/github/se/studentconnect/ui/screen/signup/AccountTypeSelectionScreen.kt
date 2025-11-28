@@ -114,8 +114,6 @@ enum class AccountTypeOption(
  */
 @Composable
 fun AccountTypeSelectionScreen(onContinue: (AccountTypeOption) -> Unit, onBack: () -> Unit) {
-  // FIX: Use LOCAL state for selection. This ensures clicking a card
-  // only expands the UI and doesn't trigger navigation immediately.
   var selectedOption by remember { mutableStateOf<AccountTypeOption?>(null) }
 
   val metrics = rememberAccountTypeMetrics()
@@ -154,7 +152,6 @@ fun AccountTypeSelectionScreen(onContinue: (AccountTypeOption) -> Unit, onBack: 
 
         SignUpPrimaryButton(
             text = stringResource(R.string.button_continue),
-            // FIX: Only trigger navigation when this button is clicked
             onClick = { selectedOption?.let { onContinue(it) } },
             enabled = selectedOption != null,
             modifier = Modifier.align(Alignment.CenterHorizontally))
