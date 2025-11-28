@@ -5,7 +5,6 @@ import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -26,12 +25,12 @@ class OrganizationProfileViewModelTest {
     organizationRepository = OrganizationRepositoryLocal()
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = OrganizationProfileViewModel(
-        organizationId = "test_org",
-        organizationRepository = organizationRepository,
-        eventRepository = eventRepository,
-        userRepository = userRepository
-    )
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
   }
 
   @Test
