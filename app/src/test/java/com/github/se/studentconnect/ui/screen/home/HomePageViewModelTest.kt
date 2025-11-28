@@ -178,15 +178,17 @@ class HomePageViewModelTest {
 
     advanceUntilIdle()
 
-    assertFalse(viewModel.favoriteEventIds.value.contains("event1"))
+    val initialFavorites = viewModel.favoriteEventIds.value.toSet()
+    assertFalse(initialFavorites.contains("event1"))
 
     // Note: toggleFavorite requires currentUserId which is null in tests
     // This test verifies the current behavior
     viewModel.toggleFavorite("event1")
     advanceUntilIdle()
 
+    val finalFavorites = viewModel.favoriteEventIds.value.toSet()
     // Since currentUserId is null, favoriteEventIds won't change
-    assertFalse(viewModel.favoriteEventIds.value.contains("event1"))
+    assertEquals(initialFavorites, finalFavorites)
   }
 
   @Test
@@ -203,10 +205,11 @@ class HomePageViewModelTest {
     advanceUntilIdle()
 
     // Since currentUserId is null in tests, this verifies non-authenticated behavior
-    val initialFavorites = viewModel.favoriteEventIds.value
+    val initialFavorites = viewModel.favoriteEventIds.value.toSet()
     viewModel.toggleFavorite("event1")
     advanceUntilIdle()
-    assertEquals(initialFavorites, viewModel.favoriteEventIds.value)
+    val finalFavorites = viewModel.favoriteEventIds.value.toSet()
+    assertEquals(initialFavorites, finalFavorites)
   }
 
   @Test
