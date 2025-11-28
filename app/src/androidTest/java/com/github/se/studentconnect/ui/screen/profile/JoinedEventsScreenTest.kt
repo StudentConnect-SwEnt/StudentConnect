@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import com.google.firebase.Timestamp
@@ -27,6 +28,12 @@ class JoinedEventsScreenTest {
   fun setUp() {
     mockEventRepository = MockEventRepository()
     mockUserRepository = MockUserRepository()
+    AuthenticationProvider.testUserId = "user1"
+  }
+
+  @org.junit.After
+  fun tearDown() {
+    AuthenticationProvider.testUserId = null
   }
 
   @Test
@@ -444,5 +451,120 @@ class JoinedEventsScreenTest {
     ) = Unit
 
     override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
+  }
+
+  @Test
+  fun joinedEventsScreen_displaysEventCardDetailsCorrectly() {
+    val publicEvent =
+        Event.Public(
+            uid = "public_event",
+            ownerId = "user1",
+            title = "Public Event Title",
+            subtitle = "Public Subtitle",
+            description = "Description",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    val privateEvent =
+        Event.Private(
+            uid = "private_event",
+            ownerId = "user1",
+            title = "Private Event Title",
+            description = "Description",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("public_event", "private_event")
+    mockEventRepository.events = listOf(publicEvent, privateEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Public Event Title").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Verify Public Event details
+    composeTestRule.onNodeWithText("Public Event Title").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Public Subtitle").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Public Event").assertIsDisplayed()
+
+    // Verify Private Event details
+    composeTestRule.onNodeWithText("Private Event Title").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Private Event").assertIsDisplayed()
+
+    // Verify Date formatting
+    composeTestRule.onAllNodesWithContentDescription("Event Image").onFirst().assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_displaysEmptyStateCorrectly() {
+    mockUserRepository.joinedEvents = emptyList()
+    mockEventRepository.events = emptyList()
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("No past events").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Default is Past
+    composeTestRule.onNodeWithText("No past events").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Events you have attended will appear here.").assertIsDisplayed()
+
+    // Switch to Upcoming
+    composeTestRule.onNodeWithText("Upcoming").performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("No upcoming events").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithText("No upcoming events").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText("You haven't joined any upcoming events yet.")
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_eventCardIsClickable() {
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Test Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodesWithTag(JoinedEventsScreenTestTags.eventCard("event1"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule
+        .onNodeWithTag(JoinedEventsScreenTestTags.eventCard("event1"))
+        .assertHasClickAction()
   }
 }
