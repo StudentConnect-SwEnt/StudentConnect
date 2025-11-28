@@ -41,6 +41,7 @@ import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
+import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
@@ -350,7 +351,14 @@ internal fun MainAppContent(
                 onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
                 onNavigateToFriendsList = { userId ->
                   navController.navigate(ProfileRoutes.friendsList(userId))
-                })
+                },
+                onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) })
+          }
+
+          // Joined Events Screen
+          composable(Route.JOINED_EVENTS) {
+            JoinedEventsScreen(
+                navController = navController, onNavigateBack = { navController.popBackStack() })
           }
 
           // Visitor Profile Screen (shown when clicking on other users)

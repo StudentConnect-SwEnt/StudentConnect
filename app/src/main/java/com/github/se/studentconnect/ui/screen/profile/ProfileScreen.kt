@@ -56,6 +56,7 @@ fun ProfileScreen(
     onNavigateToSettings: (() -> Unit)? = null,
     onNavigateToUserCard: (() -> Unit)? = null,
     onNavigateToFriendsList: ((String) -> Unit)? = null,
+    onNavigateToJoinedEvents: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()
@@ -67,7 +68,6 @@ fun ProfileScreen(
 
   // Pre-fetch string resources for use in callbacks
   val friendsListComingSoon = stringResource(R.string.toast_friends_list_coming_soon)
-  val eventHistoryComingSoon = stringResource(R.string.toast_event_history_coming_soon)
   val editProfileText = stringResource(R.string.toast_edit_profile)
   val userCardText = stringResource(R.string.toast_user_card)
 
@@ -108,10 +108,7 @@ fun ProfileScreen(
                     onNavigateToFriendsList?.invoke(currentUserId)
                         ?: Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
                   },
-                  onEventsClick = {
-                    // Here we'll implement the view of all the events the user joined
-                    Toast.makeText(context, eventHistoryComingSoon, Toast.LENGTH_SHORT).show()
-                  },
+                  onEventsClick = { onNavigateToJoinedEvents?.invoke() },
                   onEditClick = {
                     onNavigateToSettings?.invoke()
                         ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
