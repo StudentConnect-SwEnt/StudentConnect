@@ -7,6 +7,8 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
+import com.google.firebase.Timestamp
+import java.util.Calendar
 import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
@@ -286,6 +288,61 @@ class JoinedEventsScreenTest {
 
     // Search bar should be clickable
     composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).assertHasClickAction()
+  }
+
+  @Test
+  fun joinedEventsScreen_eventListExists() {
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Test Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitForIdle()
+
+    // Event list should exist
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.EVENT_LIST).assertExists()
+  }
+
+  // Helper function to create timestamps
+  private fun createTimestamp(daysAgo: Int = 0): Timestamp {
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.DAY_OF_YEAR, -daysAgo)
+    return Timestamp(cal.time)
+  }
+
+  // Helper to create past event timestamps with guaranteed past end time
+  private fun createPastEventTimestamps(daysAgo: Int): Pair<Timestamp, Timestamp> {
+    val now = Calendar.getInstance()
+
+    // Create start time: go back daysAgo days, then back 4 more hours
+    val calStart = Calendar.getInstance()
+    calStart.timeInMillis = now.timeInMillis
+    calStart.add(Calendar.DAY_OF_YEAR, -daysAgo)
+    calStart.add(Calendar.HOUR_OF_DAY, -4)
+    val start = Timestamp(calStart.time)
+
+    // Create end time: 2 hours after start (so definitely in the past)
+    val calEnd = Calendar.getInstance()
+    calEnd.timeInMillis = calStart.timeInMillis
+    calEnd.add(Calendar.HOUR_OF_DAY, 2)
+    val end = Timestamp(calEnd.time)
+
+    return Pair(start, end)
   }
 
   // Mock repositories
