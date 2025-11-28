@@ -5,6 +5,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -13,6 +14,7 @@ import java.util.Date
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -76,6 +78,10 @@ class OrganizationProfileViewModelTest {
 
   @Before
   fun setUp() {
+    // Ensure no authenticated user for tests that expect null currentUserId
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
+
     organizationRepository = OrganizationRepositoryLocal()
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
@@ -85,6 +91,13 @@ class OrganizationProfileViewModelTest {
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
+  }
+
+  @After
+  fun tearDown() {
+    // Clean up authentication state
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
   }
 
   @Test

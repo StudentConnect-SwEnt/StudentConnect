@@ -3,6 +3,7 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
@@ -115,6 +116,10 @@ class HomePageViewModelFilterTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    // Setup AuthenticationProvider with test user for tests that use toggleFavorite
+    AuthenticationProvider.testUserId = "test-user-123"
+    AuthenticationProvider.local = false
+    
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
@@ -123,6 +128,9 @@ class HomePageViewModelFilterTest {
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    // Clean up authentication state
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
   }
 
   @Test
