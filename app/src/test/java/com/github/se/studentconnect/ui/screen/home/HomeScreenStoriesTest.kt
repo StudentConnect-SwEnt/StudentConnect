@@ -60,6 +60,14 @@ class HomeScreenStoriesTest {
             currentUserId: String
         ) {}
 
+        override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+        override suspend fun removeInvitationFromEvent(
+            eventUid: String,
+            invitedUser: String,
+            currentUserId: String
+        ) {}
+
         override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
       }
 
@@ -115,6 +123,8 @@ class HomeScreenStoriesTest {
         override suspend fun acceptInvitation(eventId: String, userId: String) {}
 
         override suspend fun declineInvitation(eventId: String, userId: String) {}
+
+        override suspend fun removeInvitation(eventId: String, userId: String) {}
 
         override suspend fun joinEvent(eventId: String, userId: String) {}
 

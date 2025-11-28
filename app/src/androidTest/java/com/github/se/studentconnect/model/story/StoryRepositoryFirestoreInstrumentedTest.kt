@@ -124,6 +124,8 @@ class StoryRepositoryFirestoreInstrumentedTest {
 
     override suspend fun declineInvitation(eventId: String, userId: String) {}
 
+    override suspend fun removeInvitation(eventId: String, userId: String) {}
+
     override suspend fun joinEvent(eventId: String, userId: String) {}
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
@@ -173,6 +175,14 @@ class StoryRepositoryFirestoreInstrumentedTest {
     ) {}
 
     override suspend fun addInvitationToEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) {}
+
+    override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+    override suspend fun removeInvitationFromEvent(
         eventUid: String,
         invitedUser: String,
         currentUserId: String

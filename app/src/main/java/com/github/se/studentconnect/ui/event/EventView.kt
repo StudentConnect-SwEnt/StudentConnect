@@ -53,6 +53,7 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
+import com.github.se.studentconnect.ui.event.InviteFriendsDialog
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
@@ -140,6 +141,14 @@ fun EventView(
         eventUid = event.uid,
         onDismiss = { eventViewModel.hideCreatePollDialog() },
         onPollCreated = { event.let { eventViewModel.fetchActivePolls(it.uid) } })
+  }
+
+  if (uiState.showInviteFriendsDialog && event is Event.Private) {
+    InviteFriendsDialog(
+        state = uiState,
+        onToggleFriend = { eventViewModel.toggleFriendInvitation(it) },
+        onSendInvites = { eventViewModel.updateInvitationsForEvent() },
+        onDismiss = { eventViewModel.hideInviteFriendsDialog() })
   }
 
   Scaffold(
@@ -615,7 +624,7 @@ private fun OwnerActionButtons(
   if (currentEvent is Event.Private) {
     ButtonIcon(
         id = R.drawable.ic_group,
-        onClick = { DialogNotImplemented(context) },
+        onClick = { eventViewModel.showInviteFriendsDialog() },
         modifier = Modifier.testTag("event_view_invite_friends_button"))
   }
 

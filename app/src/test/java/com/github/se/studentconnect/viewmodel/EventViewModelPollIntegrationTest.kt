@@ -3,6 +3,8 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
@@ -34,6 +36,7 @@ class EventViewModelPollIntegrationTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var pollRepository: PollRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepository
 
   private val testEvent =
       Event.Public(
@@ -54,7 +57,8 @@ class EventViewModelPollIntegrationTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
-    viewModel = EventViewModel(eventRepository, userRepository, pollRepository)
+    friendsRepository = FriendsRepositoryLocal()
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     AuthenticationProvider.testUserId = "test-user-id"
   }
 

@@ -126,7 +126,15 @@ interface UserRepository {
   suspend fun declineInvitation(eventId: String, userId: String)
 
   /**
-   * join an event (adds the event to the user's joined events and removes any invitation)à
+   * Removes an event invitation for the given user (used when the owner revokes an invite).
+   *
+   * @param eventId The unique identifier of the event.
+   * @param userId The unique identifier of the user whose invitation should be removed.
+   */
+  suspend fun removeInvitation(eventId: String, userId: String)
+
+  /**
+   * Join an event (adds the event to the user's joined events and removes any invitation).
    *
    * @param eventId The unique identifier of the event to join.
    * @param userId The unique identifier of the user joining the event.

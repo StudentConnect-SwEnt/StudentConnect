@@ -109,6 +109,15 @@ class HomeScreenFilteringTest {
           currentUserId: String
       ) = local.addInvitationToEvent(eventUid, invitedUser, currentUserId)
 
+      override suspend fun getEventInvitations(eventUid: String): List<String> =
+          local.getEventInvitations(eventUid)
+
+      override suspend fun removeInvitationFromEvent(
+          eventUid: String,
+          invitedUser: String,
+          currentUserId: String
+      ) = local.removeInvitationFromEvent(eventUid, invitedUser, currentUserId)
+
       override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) =
           local.removeParticipantFromEvent(eventUid, participantUid)
     }
@@ -147,6 +156,14 @@ class HomeScreenFilteringTest {
       ) {}
 
       override suspend fun addInvitationToEvent(
+          eventUid: String,
+          invitedUser: String,
+          currentUserId: String
+      ) {}
+
+      override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+      override suspend fun removeInvitationFromEvent(
           eventUid: String,
           invitedUser: String,
           currentUserId: String
