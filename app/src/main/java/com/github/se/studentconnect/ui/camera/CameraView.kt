@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.*
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,16 +33,22 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.launch
 
+private val CAPTURE_BUTTON_PADDING = 16.dp
+private val CAPTURE_BUTTON_SIZE = 72.dp
+
 @Composable
 fun CameraView(
     modifier: Modifier = Modifier,
     noPermission: @Composable () -> Unit = {},
-    captureButton: @Composable (() -> Unit)? = null, // null gives default button
+    captureButton: @Composable ((Boolean) -> Unit)? =
+        null, // null gives default button, Boolean is recording state
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     enableImageCapture: Boolean = true,
+    enableVideoCapture: Boolean = false,
     imageAnalyzer: ImageAnalysis.Analyzer? = null,
     imageAnalysisConfig: (ImageAnalysis.Builder.() -> Unit)? = null,
-    onImageCaptured: (Uri) -> Unit = {},
+    onImageCaptured: ((Uri) -> Unit)? = null,
+    onVideoCaptured: ((Uri) -> Unit)? = null,
     onCameraPermissionDenied: () -> Unit = {},
     onError: (Throwable) -> Unit = {},
     requestPermissionAutomatically: Boolean = true,
@@ -85,6 +92,19 @@ fun CameraView(
           null
         }
       }
+  val videoCapture =
+      remember(enableVideoCapture) {
+        if (enableVideoCapture) {
+          val recorder =
+              Recorder.Builder().setQualitySelector(QualitySelector.from(Quality.HD)).build()
+          VideoCapture.withOutput(recorder)
+        } else {
+          null
+        }
+      }
+  var activeRecording by remember { mutableStateOf<Recording?>(null) }
+  var isRecording by remember { mutableStateOf(false) }
+
   val cameraProviderState = remember { mutableStateOf<ProcessCameraProvider?>(null) }
   val boundUseCases = remember { mutableStateListOf<UseCase>() }
   val analysisExecutor =
@@ -111,7 +131,7 @@ fun CameraView(
   DisposableEffect(imageAnalyzer) { onDispose { analysisExecutor?.shutdown() } }
 
   // Bind camera when Composable appears
-  LaunchedEffect(cameraSelector, imageAnalysis, imageCapture) {
+  LaunchedEffect(cameraSelector, imageAnalysis, imageCapture, videoCapture) {
     val cameraProvider = context.getCameraProvider()
     cameraProviderState.value = cameraProvider
     val preview = Preview.Builder().build()
@@ -122,6 +142,7 @@ fun CameraView(
       val useCases = mutableListOf<UseCase>()
       useCases += preview
       imageCapture?.let { useCases += it }
+      videoCapture?.let { useCases += it }
       imageAnalysis?.let { useCases += it }
 
       cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, *useCases.toTypedArray())
@@ -150,18 +171,50 @@ fun CameraView(
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 
     // Capture button overlay
-    if (enableImageCapture && imageCapture != null) {
+    if ((enableImageCapture && imageCapture != null) ||
+        (enableVideoCapture && videoCapture != null)) {
+      val hasCustomButton = captureButton != null
       Box(
           modifier =
               Modifier.align(Alignment.BottomCenter)
-                  .padding(16.dp)
-                  .size(72.dp)
-                  .background(Color.White, CircleShape)
+                  .padding(CAPTURE_BUTTON_PADDING)
+                  .let { base ->
+                    if (hasCustomButton) base
+                    else base.size(CAPTURE_BUTTON_SIZE).background(Color.White, CircleShape)
+                  }
                   .clickable {
                     coroutineScope.launch {
                       try {
-                        val uri = capturePhoto(context, imageCapture)
-                        uri?.let(onImageCaptured)
+                        if (enableVideoCapture && videoCapture != null) {
+                          // Toggle video recording
+                          if (isRecording) {
+                            activeRecording?.stop()
+                            activeRecording = null
+                            isRecording = false
+                          } else {
+                            val file =
+                                File(context.cacheDir, "video_${System.currentTimeMillis()}.mp4")
+                            val outputOptions = FileOutputOptions.Builder(file).build()
+                            activeRecording =
+                                videoCapture.output.prepareRecording(context, outputOptions).start(
+                                    ContextCompat.getMainExecutor(context)) { event ->
+                                      when (event) {
+                                        is VideoRecordEvent.Finalize -> {
+                                          if (event.hasError()) {
+                                            onError(
+                                                Exception("Video recording error: ${event.error}"))
+                                          } else {
+                                            onVideoCaptured?.invoke(Uri.fromFile(file))
+                                          }
+                                        }
+                                      }
+                                    }
+                            isRecording = true
+                          }
+                        } else if (enableImageCapture && imageCapture != null) {
+                          val uri = capturePhoto(context, imageCapture)
+                          uri?.let { onImageCaptured?.invoke(it) }
+                        }
                       } catch (e: Exception) {
                         onError(e)
                       }
@@ -169,7 +222,7 @@ fun CameraView(
                   },
           contentAlignment = Alignment.Center) {
             if (captureButton != null) {
-              captureButton()
+              captureButton.invoke(isRecording)
             } else {
               Icon(
                   imageVector = Icons.Default.CameraAlt,

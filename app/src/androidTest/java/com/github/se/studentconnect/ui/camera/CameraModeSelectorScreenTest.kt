@@ -240,4 +240,20 @@ class CameraModeSelectorScreenTest {
         .onNodeWithText("Point the camera at a StudentConnect QR code")
         .assertIsDisplayed()
   }
+
+  @Test
+  fun cameraModeSelectorScreen_modeSelectorVisible_byDefault() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            onStoryCapture = {},
+            initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("camera_mode_selector").assertIsDisplayed()
+  }
 }

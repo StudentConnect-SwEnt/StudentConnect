@@ -94,6 +94,9 @@ object C {
     const val qr_scanner_error = "qr_scanner_error"
     const val qr_scanner_permission = "qr_scanner_permission"
     const val qr_scanner_placeholder = "qr_scanner_placeholder"
+    const val qr_scanner_story_controls = "qr_scanner_story_controls"
+    const val qr_scanner_story_toggle = "qr_scanner_story_toggle"
+    const val qr_scanner_story_capture_button = "qr_scanner_story_capture_button"
 
     // Organization profile test tags
     const val org_profile_screen = "org_profile_screen"

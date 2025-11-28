@@ -19,7 +19,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +51,7 @@ fun CameraModeSelectorScreen(
   val pagerState =
       rememberPagerState(initialPage = initialMode.ordinal, pageCount = { CameraMode.entries.size })
   val coroutineScope = rememberCoroutineScope()
+  var isStoryPreviewShowing by remember { mutableStateOf(false) }
 
   // React to changes in initialMode
   LaunchedEffect(initialMode) {
@@ -60,7 +65,12 @@ fun CameraModeSelectorScreen(
     HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
       when (CameraMode.entries[page]) {
         CameraMode.STORY -> {
-          StoryCaptureScreen(onBackClick = onBackClick, isActive = pagerState.currentPage == page)
+          StoryCaptureScreen(
+              onBackClick = onBackClick,
+              isActive = pagerState.currentPage == page,
+              onPreviewStateChanged = { isPreviewShowing ->
+                isStoryPreviewShowing = isPreviewShowing
+              })
         }
         CameraMode.QR_SCAN -> {
           QrScannerScreen(
@@ -84,31 +94,35 @@ fun CameraModeSelectorScreen(
               tint = Color.White)
         }
 
-    // Bottom mode selector (like iPhone camera)
-    Row(
-        modifier =
-            Modifier.align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(bottom = 32.dp)
-                .testTag("camera_mode_selector"),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically) {
-          CameraModeTab(
-              text = "STORY",
-              isSelected = pagerState.currentPage == CameraMode.STORY.ordinal,
-              onClick = {
-                coroutineScope.launch { pagerState.animateScrollToPage(CameraMode.STORY.ordinal) }
-              },
-              modifier = Modifier.testTag("mode_story"))
+    // Bottom mode selector (like iPhone camera) - hide when story preview is showing
+    if (!isStoryPreviewShowing) {
+      Row(
+          modifier =
+              Modifier.align(Alignment.BottomCenter)
+                  .fillMaxWidth()
+                  .padding(bottom = 32.dp)
+                  .testTag("camera_mode_selector"),
+          horizontalArrangement = Arrangement.SpaceEvenly,
+          verticalAlignment = Alignment.CenterVertically) {
+            CameraModeTab(
+                text = "STORY",
+                isSelected = pagerState.currentPage == CameraMode.STORY.ordinal,
+                onClick = {
+                  coroutineScope.launch { pagerState.animateScrollToPage(CameraMode.STORY.ordinal) }
+                },
+                modifier = Modifier.testTag("mode_story"))
 
-          CameraModeTab(
-              text = "QR SCAN",
-              isSelected = pagerState.currentPage == CameraMode.QR_SCAN.ordinal,
-              onClick = {
-                coroutineScope.launch { pagerState.animateScrollToPage(CameraMode.QR_SCAN.ordinal) }
-              },
-              modifier = Modifier.testTag("mode_qr_scan"))
-        }
+            CameraModeTab(
+                text = "QR SCAN",
+                isSelected = pagerState.currentPage == CameraMode.QR_SCAN.ordinal,
+                onClick = {
+                  coroutineScope.launch {
+                    pagerState.animateScrollToPage(CameraMode.QR_SCAN.ordinal)
+                  }
+                },
+                modifier = Modifier.testTag("mode_qr_scan"))
+          }
+    }
   }
 }
 

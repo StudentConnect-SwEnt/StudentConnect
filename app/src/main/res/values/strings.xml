@@ -172,7 +172,9 @@
     <string name="content_description_upload_photo">Upload photo</string>
     <string name="content_description_owner">Owner</string>
     <string name="content_description_accept">Accept</string>
+    <string name="content_description_retake">Retake</string>
     <string name="content_description_decline">Decline</string>
+    <string name="content_description_captured_photo">Captured photo</string>
     <string name="content_description_center_on_my_location">Center on my location</string>
     <string name="content_description_public_event">Public Event</string>
     <string name="content_description_private_event">Private Event</string>
