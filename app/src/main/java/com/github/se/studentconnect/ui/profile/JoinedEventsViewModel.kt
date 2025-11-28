@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 data class JoinedEventsUiState(
     val allEvents: List<Event> = emptyList(),
     val filteredEvents: List<Event> = emptyList(),
-    val searchQuery: String = "",
     val selectedFilter: EventFilter = EventFilter.Past,
     val isLoading: Boolean = true
 )
@@ -36,13 +35,15 @@ class JoinedEventsViewModel(
   private val _uiState = MutableStateFlow(JoinedEventsUiState())
   val uiState: StateFlow<JoinedEventsUiState> = _uiState.asStateFlow()
 
+  // Search query is separate from uiState so the TextField updates immediately
   private val _searchQuery = MutableStateFlow("")
+  val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
   init {
     setupDebouncedSearch()
   }
 
-  // Fetches all events the current user has joined (both past and upcoming)
+  // Load all events the user has joined or created
   fun loadJoinedEvents() {
     val currentUserId = AuthenticationProvider.currentUser
     if (currentUserId.isEmpty()) return
@@ -51,17 +52,16 @@ class JoinedEventsViewModel(
       _uiState.update { it.copy(isLoading = true) }
 
       try {
-        // Get all event IDs the user has joined
         val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
 
-        // Fetch all visible events to check if user is owner
+        // Also include events the user owns
         val allVisibleEvents = eventRepository.getAllVisibleEvents()
         val ownedEvents = allVisibleEvents.filter { it.ownerId == currentUserId }
 
-        // Combine joined and owned event IDs
+        // Combine both lists and remove duplicates
         val allEventIds = (joinedEventIds + ownedEvents.map { it.uid }).distinct()
 
-        // Fetch all events
+        // Fetch the actual event objects, skip any that fail to load
         val allEvents =
             allEventIds.mapNotNull { eventId ->
               try {
@@ -79,36 +79,34 @@ class JoinedEventsViewModel(
     }
   }
 
-  // Waits 300ms after typing stops before filtering to avoid laggy UI
+  // Wait 300ms after user stops typing before applying the search filter
   private fun setupDebouncedSearch() {
     viewModelScope.launch {
-      _searchQuery.debounce(SEARCH_DEBOUNCE_MILLIS).collect { query ->
-        _uiState.update { it.copy(searchQuery = query) }
-        applyFilters()
-      }
+      _searchQuery.debounce(SEARCH_DEBOUNCE_MILLIS).collect { applyFilters() }
     }
   }
 
-  // Updates the search query (actual filtering happens after debounce delay)
+  // Update search query instantly (filtering happens after debounce)
   fun updateSearchQuery(query: String) {
     _searchQuery.value = query
   }
 
-  // Switches between showing past or upcoming events
+  // Switch between Past and Upcoming events
   fun updateFilter(filter: EventFilter) {
     _uiState.update { it.copy(selectedFilter = filter) }
     applyFilters()
   }
 
-  // Filters events based on time (past/upcoming) and search query
+  // Apply both time-based and search-based filtering
   private fun applyFilters() {
     val currentState = _uiState.value
+    val currentSearchQuery = _searchQuery.value
     val now = Timestamp.now()
 
     val filtered =
         currentState.allEvents
             .filter { event ->
-              // Filter by time (Past or Upcoming)
+              // If event has no end time, assume it lasts 3 hours
               val endTime =
                   event.end
                       ?: run {
@@ -128,14 +126,14 @@ class JoinedEventsViewModel(
               matchesFilter
             }
             .filter { event ->
-              // Filter by search query
-              if (currentState.searchQuery.isBlank()) {
+              // Show all events if search is empty, otherwise filter by title
+              if (currentSearchQuery.isBlank()) {
                 true
               } else {
-                event.title.contains(currentState.searchQuery, ignoreCase = true)
+                event.title.contains(currentSearchQuery, ignoreCase = true)
               }
             }
-            .sortedByDescending { it.start } // Show newest events first
+            .sortedByDescending { it.start }
 
     _uiState.update { it.copy(filteredEvents = filtered) }
   }

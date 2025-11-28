@@ -55,7 +55,7 @@ class JoinedEventsViewModelTest {
     assert(state.selectedFilter == EventFilter.Past)
     assert(state.allEvents.isEmpty())
     assert(state.filteredEvents.isEmpty())
-    assert(state.searchQuery.isEmpty())
+    assert(viewModel.searchQuery.value.isEmpty())
   }
 
   @Test
@@ -157,7 +157,7 @@ class JoinedEventsViewModelTest {
 
     // Then
     val state = viewModel.uiState.value
-    assert(state.searchQuery == "party")
+    assert(viewModel.searchQuery.value == "party")
     assert(state.filteredEvents.size == 2)
     assert(state.filteredEvents.all { it.title.contains("Party", ignoreCase = true) })
   }

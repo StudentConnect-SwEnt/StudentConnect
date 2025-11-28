@@ -63,7 +63,7 @@ fun JoinedEventsScreen(
     onNavigateBack: () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
-  val searchQuery = uiState.searchQuery
+  val searchQuery by viewModel.searchQuery.collectAsState()
   val selectedFilter = uiState.selectedFilter
   val filteredEvents = uiState.filteredEvents
   val isLoading = uiState.isLoading
@@ -94,10 +94,7 @@ fun JoinedEventsScreen(
           SearchBar(
               query = searchQuery,
               onQueryChange = viewModel::updateSearchQuery,
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(horizontal = spacing.medium)
-                      .testTag(JoinedEventsScreenTestTags.SEARCH_BAR))
+              modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.medium))
 
           FilterTabs(
               selectedFilter = selectedFilter, onFilterSelected = { viewModel.updateFilter(it) })
@@ -139,7 +136,7 @@ private fun SearchBar(
   TextField(
       value = query,
       onValueChange = onQueryChange,
-      modifier = modifier.padding(vertical = spacing.small),
+      modifier = modifier.testTag(JoinedEventsScreenTestTags.SEARCH_BAR).padding(vertical = spacing.small),
       placeholder = { Text(searchPlaceholder) },
       leadingIcon = {
         Icon(imageVector = Icons.Default.Search, contentDescription = searchDescription)
