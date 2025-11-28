@@ -176,7 +176,9 @@ class OrganizationRepositoryLocalTest {
             ageRanges = listOf("18-25", "26-35"),
             typicalEventSize = "Large",
             roles = listOf(),
-            socialLinks = mapOf("website" to "https://example.com"),
+            socialLinks =
+                com.github.se.studentconnect.model.organization.SocialLinks(
+                    website = "https://example.com"),
             createdBy = "creator")
 
     repository.saveOrganization(fullOrg)
