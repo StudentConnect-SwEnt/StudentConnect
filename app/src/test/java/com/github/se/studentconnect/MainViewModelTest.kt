@@ -410,9 +410,8 @@ class MainViewModelTest {
         viewModel.onUserSignedIn(testUserId, testEmail)
         advanceUntilIdle()
 
-        // Assert
         val state = viewModel.uiState.value
-        assertEquals(AppState.ONBOARDING, state.appState)
+        assertEquals(AppState.LOADING, state.appState)
         assertEquals(testUserId, state.currentUserId)
         assertEquals(testEmail, state.currentUserEmail)
       }

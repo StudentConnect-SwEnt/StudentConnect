@@ -1,9 +1,11 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.github.se.studentconnect.ui.screen.signup.organization.BrandOrganizationContent
 import com.github.se.studentconnect.ui.screen.signup.organization.BrandOrganizationScreen
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import com.github.se.studentconnect.ui.screen.signup.organization.SocialLinkField
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.After
@@ -61,6 +63,7 @@ class BrandOrganizationScreenTest {
     Assert.assertFalse(continueInvoked)
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun `brand screen composes with viewmodel and callbacks`() {
     var backCount = 0
@@ -69,7 +72,10 @@ class BrandOrganizationScreenTest {
 
     controller.get().setContent {
       BrandOrganizationScreen(
-          onSkip = { skipCount++ }, onContinue = { continueCount++ }, onBack = { backCount++ })
+          onSkip = { skipCount++ },
+          onContinue = { continueCount++ },
+          onBack = { backCount++ },
+          viewModel = OrganizationSignUpViewModel())
     }
 
     // After composition counters must remain zero (no clicks performed), but composition path

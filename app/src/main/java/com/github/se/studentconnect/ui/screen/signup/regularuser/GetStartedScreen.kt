@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 object GetStartedScreenTestTags {
   const val CAROUSEL = "getting_started_carousel"
@@ -84,8 +86,11 @@ fun GetStartedScreen(
 
   LaunchedEffect(uiState.user) {
     uiState.user?.let { user ->
-      errorMessage = null
-      onSignedIn(user.uid)
+      val currentUser = Firebase.auth.currentUser
+      if (currentUser != null && currentUser.uid == user.uid) {
+        errorMessage = null
+        onSignedIn(user.uid)
+      }
     }
   }
 

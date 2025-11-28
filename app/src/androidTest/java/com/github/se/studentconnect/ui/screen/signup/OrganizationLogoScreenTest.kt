@@ -13,8 +13,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationLogoScreen
-import com.github.se.studentconnect.ui.screen.signup.regularuser.DEFAULT_PLACEHOLDER
-import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import java.io.File
 import java.io.FileOutputStream
@@ -30,7 +29,7 @@ class OrganizationLogoScreenTest {
 
   @Test
   fun initialState_showsTitleAndContinueDisabled() {
-    val viewModel = SignUpViewModel()
+    val viewModel = OrganizationSignUpViewModel()
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
     composeTestRule.setContent {
@@ -45,8 +44,8 @@ class OrganizationLogoScreenTest {
   }
 
   @Test
-  fun skip_setsPlaceholderAndEnablesContinue() {
-    val viewModel = SignUpViewModel()
+  fun skip_invokesCallback_and_leavesLogoNull() {
+    val viewModel = OrganizationSignUpViewModel()
     var skipped = false
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
 
@@ -60,14 +59,16 @@ class OrganizationLogoScreenTest {
     composeTestRule.onNodeWithText(ctx.getString(R.string.button_skip)).performClick()
     composeTestRule.waitForIdle()
 
-    assertEquals(DEFAULT_PLACEHOLDER, viewModel.state.value.profilePictureUri)
+    // Organization wrapper sets logoUri to null on skip, so it should remain null
+    assertEquals(null, viewModel.state.value.logoUri)
     assertEquals(true, skipped)
-    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
+    // continue should remain disabled
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsNotEnabled()
   }
 
   @Test
   fun selectingPhoto_enablesContinue_and_invokesOnContinue() {
-    val viewModel = SignUpViewModel()
+    val viewModel = OrganizationSignUpViewModel()
     var continued = false
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
     val tempFile = createTempImageFile(ctx.cacheDir)
@@ -79,13 +80,12 @@ class OrganizationLogoScreenTest {
       }
     }
 
-    composeTestRule.runOnIdle { viewModel.setProfilePictureUri(Uri.fromFile(tempFile)) }
+    // simulate selecting a photo
+    composeTestRule.runOnIdle { viewModel.setLogoUri(Uri.fromFile(tempFile)) }
     composeTestRule.waitForIdle()
 
-    composeTestRule
-        .onNodeWithText(
-            ctx.getString(R.string.instruction_tap_to_change_photo), useUnmergedTree = true)
-        .assertExists()
+    // now continue should be enabled
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).assertIsEnabled()
     composeTestRule.onNodeWithText(ctx.getString(R.string.button_continue)).performClick()
     composeTestRule.runOnIdle { assertEquals(true, continued) }
 

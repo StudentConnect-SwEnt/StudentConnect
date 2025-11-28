@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup.regularuser
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,11 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,38 +30,32 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
 val DEFAULT_PLACEHOLDER = "ic_user".toUri()
 
 /**
- * Screen for adding a profile picture during the signup flow.
+ * A stateless, reusable screen for adding a profile picture.
  *
- * This composable allows users to upload or take a profile picture, skip the step, or continue with
- * a placeholder. It integrates with the SignUpViewModel to manage the profile picture state and
- * provides callbacks for navigation actions.
+ * This version is decoupled from any specific ViewModel, making it reusable for both Regular User
+ * signup and Organization signup.
  *
- * @param viewModel The SignUpViewModel that manages the signup flow state
- * @param onSkip Callback invoked when the user chooses to skip adding a profile picture
- * @param onContinue Callback invoked when the user wants to proceed to the next step
- * @param onBack Callback invoked when the user wants to go back to the previous step
- * @param titleRes String resource id for the title text
- * @param subtitleRes String resource id for the subtitle text
+ * @param selectedUri The currently selected image URI (nullable).
+ * @param onUriSelected Callback when a new image is picked.
+ * @param onSkip Callback when the user clicks Skip.
+ * @param onContinue Callback when the user clicks Continue.
+ * @param onBack Callback when the user clicks Back.
+ * @param titleRes String resource id for the title text.
+ * @param subtitleRes String resource id for the subtitle text.
  */
 @Composable
 fun AddPictureScreen(
-    viewModel: SignUpViewModel,
+    selectedUri: Uri?,
+    onUriSelected: (Uri) -> Unit,
     onSkip: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit,
     @StringRes titleRes: Int = R.string.title_add_profile_picture,
     @StringRes subtitleRes: Int = R.string.subtitle_add_profile_picture
 ) {
-  val signUpState by viewModel.state
-  var profileUri by remember { mutableStateOf(signUpState.profilePictureUri) }
 
-  LaunchedEffect(signUpState.profilePictureUri) { profileUri = signUpState.profilePictureUri }
-
-  val canContinue = profileUri != null
-  val selectedProfileUri = profileUri?.takeUnless { it == DEFAULT_PLACEHOLDER }
-
-  val titleText = stringResource(id = titleRes)
-  val subtitleText = stringResource(id = subtitleRes)
+  val canContinue = selectedUri != null
+  val displayUri = selectedUri?.takeUnless { it == DEFAULT_PLACEHOLDER }
 
   Column(
       modifier =
@@ -76,19 +67,14 @@ fun AddPictureScreen(
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
           SignUpBackButton(onClick = onBack)
           Spacer(Modifier.weight(1f))
-          SignUpSkipButton(
-              onClick = {
-                viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-                profileUri = DEFAULT_PLACEHOLDER
-                onSkip()
-              })
+          SignUpSkipButton(onClick = onSkip)
         }
 
         SignUpMediumSpacer()
 
-        SignUpTitle(text = titleText)
+        SignUpTitle(text = stringResource(id = titleRes))
         SignUpSmallSpacer()
-        SignUpSubtitle(text = subtitleText)
+        SignUpSubtitle(text = stringResource(id = subtitleRes))
 
         SignUpLargeSpacer()
 
@@ -96,11 +82,8 @@ fun AddPictureScreen(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             style = PicturePickerStyle.Avatar,
             existingImagePath = null,
-            selectedImageUri = selectedProfileUri,
-            onImageSelected = { uri ->
-              viewModel.setProfilePictureUri(uri)
-              profileUri = uri
-            },
+            selectedImageUri = displayUri,
+            onImageSelected = onUriSelected,
             placeholderText = stringResource(R.string.placeholder_upload_profile_photo),
             overlayText = stringResource(R.string.instruction_tap_to_change_photo),
             imageDescription = stringResource(R.string.content_description_upload_photo))
@@ -114,4 +97,35 @@ fun AddPictureScreen(
             onClick = onContinue,
             enabled = canContinue)
       }
+}
+
+/**
+ * Screen for adding a profile picture during the REGULAR USER signup flow.
+ *
+ * This wrapper maintains backward compatibility with the SignUpViewModel. It extracts state from
+ * the ViewModel and delegates to the stateless AddPictureScreen.
+ */
+@Composable
+fun AddPictureScreen(
+    viewModel: SignUpViewModel,
+    onSkip: () -> Unit,
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    @StringRes titleRes: Int = R.string.title_add_profile_picture,
+    @StringRes subtitleRes: Int = R.string.subtitle_add_profile_picture
+) {
+  val signUpState by viewModel.state
+
+  AddPictureScreen(
+      selectedUri = signUpState.profilePictureUri,
+      onUriSelected = { uri -> viewModel.setProfilePictureUri(uri) },
+      onSkip = {
+        // Specific logic for Regular User skip: set placeholder
+        viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
+        onSkip()
+      },
+      onContinue = onContinue,
+      onBack = onBack,
+      titleRes = titleRes,
+      subtitleRes = subtitleRes)
 }

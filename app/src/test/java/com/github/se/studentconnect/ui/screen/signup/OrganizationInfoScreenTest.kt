@@ -1,5 +1,6 @@
-package com.github.se.studentconnect.ui.signup
+package com.github.se.studentconnect.ui.screen.signup
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.performTextInput
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationInfoScreen
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationInfoScreenTestTags
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -26,12 +28,16 @@ class OrganizationInfoScreenTest {
 
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun chipSelection_toggles_off_and_cta_disables_when_no_selection() {
     composeRule.setContent {
       AppTheme {
         OrganizationInfoScreen(
-            onContinue = {}, onBack = {}, avatarResIds = listOf(R.drawable.avatar_12))
+            onContinue = {},
+            onBack = {},
+            avatarResIds = listOf(R.drawable.avatar_12),
+            viewModel = OrganizationSignUpViewModel())
       }
     }
 
@@ -50,6 +56,7 @@ class OrganizationInfoScreenTest {
     composeRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).assertIsNotEnabled()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun backButton_invokes_onBack() {
     var backClicked = false
@@ -58,7 +65,8 @@ class OrganizationInfoScreenTest {
         OrganizationInfoScreen(
             onContinue = {},
             onBack = { backClicked = true },
-            avatarResIds = listOf(R.drawable.avatar_12))
+            avatarResIds = listOf(R.drawable.avatar_12),
+            viewModel = OrganizationSignUpViewModel())
       }
     }
 
