@@ -672,33 +672,7 @@ class EventViewModelTest {
             isFlash = false)
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
-    val fakeFriendsRepo =
-        object : FriendsRepository {
-          override suspend fun getFriends(userId: String): List<String> =
-              listOf(friend1.userId, friend2.userId)
-
-          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
-
-          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
-
-          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
-
-          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
-
-          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
-
-          override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
-
-          override suspend fun removeFriend(userId: String, friendId: String) {}
-
-          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
-
-          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
-              false
-
-          override fun observeFriendship(userId: String, otherUserId: String) =
-              kotlinx.coroutines.flow.flow { emit(false) }
-        }
+    val fakeFriendsRepo = FriendsRepositoryLocal()
     val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
 
     vm.fetchEvent(event.uid)
@@ -747,33 +721,7 @@ class EventViewModelTest {
             isFlash = false)
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
-    val fakeFriendsRepo =
-        object : FriendsRepository {
-          override suspend fun getFriends(userId: String): List<String> =
-              listOf(friend1.userId, friend2.userId)
-
-          override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
-
-          override suspend fun getSentRequests(userId: String): List<String> = emptyList()
-
-          override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
-
-          override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
-
-          override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
-
-          override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
-
-          override suspend fun removeFriend(userId: String, friendId: String) {}
-
-          override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
-
-          override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean =
-              false
-
-          override fun observeFriendship(userId: String, otherUserId: String) =
-              kotlinx.coroutines.flow.flow { emit(false) }
-        }
+    val fakeFriendsRepo = FriendsRepositoryLocal()
     val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
 
     vm.fetchEvent(event.uid)

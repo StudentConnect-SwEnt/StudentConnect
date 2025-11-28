@@ -41,6 +41,10 @@ object InviteFriendsDialogTestTags {
   const val SEND_BUTTON = "inviteFriendsSendButton"
 }
 
+/**
+ * Dialog for inviting friends to a private event. Shows loading/error/empty states, a checkbox list
+ * of friends, and a single action to update invitations.
+ */
 @Composable
 fun InviteFriendsDialog(
     state: EventUiState,
