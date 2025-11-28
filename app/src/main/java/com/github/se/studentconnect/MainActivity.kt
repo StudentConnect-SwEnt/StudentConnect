@@ -217,8 +217,8 @@ private fun AppNavigationOrchestrator(
     AppState.ONBOARDING -> {
       if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
         OnboardingNavigation(
-            firebaseUserId = uiState.currentUserId!!,
-            email = uiState.currentUserEmail!!,
+            firebaseUserId = uiState.currentUserId,
+            email = uiState.currentUserEmail,
             userRepository = userRepository,
             onOnboardingComplete = { isLogout ->
               if (isLogout) {
