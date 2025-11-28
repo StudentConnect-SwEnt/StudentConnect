@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import android.widget.Toast
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -104,12 +105,15 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
+import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -123,9 +127,13 @@ import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.viewmodel.NotificationUiState
+import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -1060,18 +1068,81 @@ private fun NotificationContent(
 
 @Composable
 private fun NotificationIcon(notification: Notification) {
-  val icon =
-      when (notification) {
-        is Notification.FriendRequest -> Icons.Default.Person
-        is Notification.EventStarting -> Icons.Default.Event
-        is Notification.EventInvitation -> Icons.Default.Email
-        is Notification.OrganizationMemberInvitation -> Icons.Default.Group
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+
+  when (notification) {
+    is Notification.FriendRequest -> {
+      var user: User? = null
+      LaunchedEffect(user) {
+        user = UserRepositoryProvider.repository.getUserById(notification.userId)
       }
-  Icon(
-      imageVector = icon,
-      contentDescription = null,
-      modifier = Modifier.size(24.dp),
-      tint = MaterialTheme.colorScheme.primary)
+      val imageBitmap by
+          produceState<ImageBitmap?>(initialValue = null, user?.profilePictureUrl, repository) {
+            value =
+                user?.profilePictureUrl?.let { id ->
+                  runCatching { repository.download(id) }
+                      .onFailure {
+                        Log.e("eventViewImage", "Failed to download event image: $id", it)
+                      }
+                      .getOrNull()
+                      ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+                }
+          }
+      if (imageBitmap != null) {
+        Image(
+            imageBitmap!!,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+        )
+      } else {
+        Icon(
+            imageVector = Icons.Default.Person,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary)
+      }
+    }
+    is Notification.EventStarting -> {
+      var event: Event? = null
+      LaunchedEffect(event) {
+        event = EventRepositoryProvider.repository.getEvent(notification.eventId)
+      }
+      val imageBitmap by
+          produceState<ImageBitmap?>(initialValue = null, event?.imageUrl, repository) {
+            value =
+                event?.imageUrl?.let { id ->
+                  runCatching { repository.download(id) }
+                      .onFailure {
+                        Log.e("eventViewImage", "Failed to download event image: $id", it)
+                      }
+                      .getOrNull()
+                      ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+                }
+          }
+      if (imageBitmap != null) {
+        Image(
+            imageBitmap!!,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+        )
+      } else {
+        Icon(
+            imageVector = Icons.Default.Event,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary)
+      }
+    }
+      is Notification.EventInvitation -> Icons.Default.Email
+      is Notification.OrganizationMemberInvitation -> Icons.Default.Group
+  }
+
+    Icon(
+          imageVector = icon,
+    contentDescription = null,
+    modifier = Modifier.size(24.dp),
+    tint = MaterialTheme.colorScheme.primary)
 }
 
 @Composable
