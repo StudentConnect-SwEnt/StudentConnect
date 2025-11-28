@@ -21,6 +21,7 @@ import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
+import com.github.se.studentconnect.ui.screen.search.SearchScreenTestTags
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.github.se.studentconnect.utils.NoAnonymousSignIn
@@ -213,7 +214,10 @@ class EndToEndTest : FirestoreStudentConnectTest() {
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 15_017, message = "search screen to open from home search bar") {
-          composeTestRule.onAllNodesWithTag(C.Tag.search_screen).fetchSemanticsNodes().isNotEmpty()
+          composeTestRule
+              .onAllNodesWithTag(SearchScreenTestTags.SEARCH_SCREEN)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
         }
 
     val searchField =
@@ -236,7 +240,7 @@ class EndToEndTest : FirestoreStudentConnectTest() {
   }
 
   private fun openEventInHomeScreen(eventUid: String) {
-    composeTestRule.onNodeWithTag(C.Tag.back_button).performClick()
+    composeTestRule.onNodeWithTag(SearchScreenTestTags.BACK_BUTTON).performClick()
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 30_017, message = "home screen to be visible after leaving search") {
