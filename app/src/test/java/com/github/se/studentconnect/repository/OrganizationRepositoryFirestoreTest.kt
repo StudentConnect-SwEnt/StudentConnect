@@ -110,4 +110,114 @@ class OrganizationRepositoryFirestoreTest {
 
     assertEquals("generated-42", id)
   }
+
+  @Test
+  fun getAllOrganizations_returns_list_of_organizations() = runBlocking {
+    val db = mockk<FirebaseFirestore>(relaxed = true)
+    val collection = mockk<CollectionReference>(relaxed = true)
+    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+    val doc1 = mockk<DocumentSnapshot>(relaxed = true)
+    val doc2 = mockk<DocumentSnapshot>(relaxed = true)
+
+    val org1Map =
+        mapOf<String, Any?>(
+            "id" to "org1",
+            "name" to "Org1",
+            "type" to "Company",
+            "description" to "desc1",
+            "logoUrl" to "url1",
+            "location" to "loc1",
+            "mainDomains" to listOf("Tech"),
+            "ageRanges" to listOf("18-25"),
+            "typicalEventSize" to "M",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator1")
+
+    val org2Map =
+        mapOf<String, Any?>(
+            "id" to "org2",
+            "name" to "Org2",
+            "type" to "NGO",
+            "description" to "desc2",
+            "logoUrl" to "url2",
+            "location" to "loc2",
+            "mainDomains" to listOf("Education"),
+            "ageRanges" to listOf("26-35"),
+            "typicalEventSize" to "S",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator2")
+
+    every { db.collection("organizations") } returns collection
+    every { collection.get() } returns Tasks.forResult(querySnapshot)
+    every { querySnapshot.documents } returns listOf(doc1, doc2)
+    every { doc1.data } returns org1Map
+    every { doc2.data } returns org2Map
+
+    val repo = OrganizationRepositoryFirestore(db)
+    val organizations = repo.getAllOrganizations()
+
+    assertEquals(2, organizations.size)
+    assertEquals("org1", organizations[0].id)
+    assertEquals("Org1", organizations[0].name)
+    assertEquals("org2", organizations[1].id)
+    assertEquals("Org2", organizations[1].name)
+  }
+
+  @Test
+  fun getAllOrganizations_returns_empty_list_when_no_organizations() = runBlocking {
+    val db = mockk<FirebaseFirestore>(relaxed = true)
+    val collection = mockk<CollectionReference>(relaxed = true)
+    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+
+    every { db.collection("organizations") } returns collection
+    every { collection.get() } returns Tasks.forResult(querySnapshot)
+    every { querySnapshot.documents } returns emptyList()
+
+    val repo = OrganizationRepositoryFirestore(db)
+    val organizations = repo.getAllOrganizations()
+
+    assertTrue(organizations.isEmpty())
+  }
+
+  @Test
+  fun getAllOrganizations_skips_invalid_documents() = runBlocking {
+    val db = mockk<FirebaseFirestore>(relaxed = true)
+    val collection = mockk<CollectionReference>(relaxed = true)
+    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+    val validDoc = mockk<DocumentSnapshot>(relaxed = true)
+    val invalidDoc = mockk<DocumentSnapshot>(relaxed = true)
+
+    val validMap =
+        mapOf<String, Any?>(
+            "id" to "org1",
+            "name" to "Org1",
+            "type" to "Company",
+            "description" to "desc",
+            "logoUrl" to "url",
+            "location" to "loc",
+            "mainDomains" to listOf("Tech"),
+            "ageRanges" to listOf("18-25"),
+            "typicalEventSize" to "M",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator")
+
+    every { db.collection("organizations") } returns collection
+    every { collection.get() } returns Tasks.forResult(querySnapshot)
+    every { querySnapshot.documents } returns listOf(validDoc, invalidDoc)
+    every { validDoc.data } returns validMap
+    every { invalidDoc.data } returns emptyMap() // Invalid data
+
+    val repo = OrganizationRepositoryFirestore(db)
+    val organizations = repo.getAllOrganizations()
+
+    // Should only return the valid organization, skipping the invalid one
+    assertEquals(1, organizations.size)
+    assertEquals("org1", organizations[0].id)
+  }
 }

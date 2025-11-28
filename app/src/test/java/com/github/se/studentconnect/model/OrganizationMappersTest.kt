@@ -97,6 +97,14 @@ class OrganizationMappersTest {
 
   @Test
   fun `toOrganizationProfile converts null description to empty string`() {
+    val orgWithNullDescription = testOrganization.copy(description = null)
+    val profile = orgWithNullDescription.toOrganizationProfile()
+    // Test that null description is converted to empty string
+    assertEquals("", profile.description)
+  }
+
+  @Test
+  fun `toOrganizationProfile preserves non-null description`() {
     val profile = testOrganization.toOrganizationProfile()
     // Test that when organization has description it's preserved
     assertEquals("A test organization description", profile.description)

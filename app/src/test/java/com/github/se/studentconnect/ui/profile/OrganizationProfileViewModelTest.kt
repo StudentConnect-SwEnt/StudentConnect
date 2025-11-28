@@ -454,4 +454,268 @@ class OrganizationProfileViewModelTest {
     assertNotNull(state.organization)
     assertEquals(2, state.organization?.events?.size)
   }
+
+  @Test
+  fun `toggleFollow with authenticated user follows organization`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    assertFalse(initialState.organization?.isFollowing == true)
+
+    // Toggle follow
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    val finalState = viewModel.uiState.value
+    assertTrue(finalState.organization?.isFollowing == true)
+
+    // Verify the organization was followed in the repository
+    val followedOrgs = userRepository.getFollowedOrganizations("user1")
+    assertTrue(followedOrgs.contains("test_org"))
+  }
+
+  @Test
+  fun `toggleFollow with authenticated user unfollows organization`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    userRepository.followOrganization("user1", "test_org")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    assertTrue(initialState.organization?.isFollowing == true)
+
+    // Toggle follow (should unfollow)
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    val finalState = viewModel.uiState.value
+    assertFalse(finalState.organization?.isFollowing == true)
+
+    // Verify the organization was unfollowed in the repository
+    val followedOrgs = userRepository.getFollowedOrganizations("user1")
+    assertFalse(followedOrgs.contains("test_org"))
+  }
+
+  @Test
+  fun `toggleFollow with authenticated user handles follow error gracefully`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    // Create a mock repository that throws an exception
+    val failingUserRepository =
+        object : UserRepositoryLocal() {
+          override suspend fun followOrganization(userId: String, organizationId: String) {
+            throw Exception("Network error")
+          }
+        }
+
+    organizationRepository.saveOrganization(testOrganization)
+    failingUserRepository.saveUser(testUser1)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = failingUserRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    val initialFollowing = initialState.organization?.isFollowing ?: false
+
+    // Try to toggle follow (should fail and revert)
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    // State should be reverted to original after error
+    val finalState = viewModel.uiState.value
+    assertEquals(initialFollowing, finalState.organization?.isFollowing)
+  }
+
+  @Test
+  fun `toggleFollow with authenticated user handles unfollow error gracefully`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    // Create a mock repository that throws an exception on unfollow
+    val failingUserRepository =
+        object : UserRepositoryLocal() {
+          override suspend fun unfollowOrganization(userId: String, organizationId: String) {
+            throw Exception("Network error")
+          }
+        }
+
+    organizationRepository.saveOrganization(testOrganization)
+    failingUserRepository.saveUser(testUser1)
+    failingUserRepository.followOrganization("user1", "test_org")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = failingUserRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertTrue(initialState.organization?.isFollowing == true)
+
+    // Try to toggle follow (should fail and revert)
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    // State should remain following after error (reverted)
+    val finalState = viewModel.uiState.value
+    assertTrue(finalState.organization?.isFollowing == true)
+  }
+
+  @Test
+  fun `loadOrganizationData handles event repository exception`() = runTest {
+    // Create a mock event repository that throws an exception
+    val failingEventRepository =
+        object : EventRepositoryLocal() {
+          override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+            throw Exception("Event fetch failed")
+          }
+        }
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    userRepository.saveUser(testUser2)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = failingEventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertNull(state.error) // Should succeed even if events fail
+    assertNotNull(state.organization)
+    assertTrue(state.organization?.events?.isEmpty() == true) // Events should be empty on error
+    assertEquals(2, state.organization?.members?.size) // Members should still load
+  }
+
+  @Test
+  fun `loadOrganizationData handles user repository exception for members`() = runTest {
+    // Create a mock user repository that throws an exception
+    val failingUserRepository =
+        object : UserRepositoryLocal() {
+          override suspend fun getUserById(userId: String): User? {
+            throw Exception("User fetch failed")
+          }
+        }
+
+    organizationRepository.saveOrganization(testOrganization)
+    eventRepository.addEvent(testEvent)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = failingUserRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertNull(state.error) // Should succeed even if member fetch fails
+    assertNotNull(state.organization)
+    assertEquals(1, state.organization?.events?.size) // Events should still load
+    assertTrue(state.organization?.members?.isEmpty() == true) // Members should be empty on error
+  }
+
+  @Test
+  fun `loadOrganizationData handles user repository exception for follow status`() = runTest {
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    // Create a mock user repository that throws an exception when checking follow status
+    val failingUserRepository =
+        object : UserRepositoryLocal() {
+          override suspend fun getFollowedOrganizations(userId: String): List<String> {
+            throw Exception("Follow status fetch failed")
+          }
+        }
+
+    organizationRepository.saveOrganization(testOrganization)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = failingUserRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertNull(state.error)
+    assertNotNull(state.organization)
+    assertFalse(state.organization?.isFollowing == true) // Should default to false on error
+  }
+
+  @Test
+  fun `loadOrganizationData handles organization repository exception`() = runTest {
+    // Create a mock organization repository that throws an exception
+    val failingOrgRepository =
+        object : OrganizationRepositoryLocal() {
+          override suspend fun getOrganizationById(organizationId: String): Organization? {
+            throw Exception("Organization fetch failed")
+          }
+        }
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertNotNull(state.error)
+    assertTrue(state.error?.contains("Failed to load organization") == true)
+    assertNull(state.organization)
+  }
 }
