@@ -6,7 +6,6 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.friends.FriendsRepository
-import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
@@ -22,6 +21,7 @@ import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -30,6 +30,30 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
+private class FakeFriendsRepository(val friends: List<String> = emptyList()) : FriendsRepository {
+  override suspend fun getFriends(userId: String): List<String> = friends
+
+  override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+  override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+  override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
+
+  override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
+
+  override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
+
+  override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
+
+  override suspend fun removeFriend(userId: String, friendId: String) {}
+
+  override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+  override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean = false
+
+  override fun observeFriendship(userId: String, otherUserId: String) = flow { emit(false) }
+}
 
 @ExperimentalCoroutinesApi
 class EventViewModelTest {
@@ -60,7 +84,7 @@ class EventViewModelTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
-    friendsRepository = FriendsRepositoryLocal()
+    friendsRepository = FakeFriendsRepository()
     viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     // Force un utilisateur courant non vide pendant les tests
     AuthenticationProvider.testUserId = "test-user-id"
@@ -672,7 +696,7 @@ class EventViewModelTest {
             isFlash = false)
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
-    val fakeFriendsRepo = FriendsRepositoryLocal()
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
     val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
 
     vm.fetchEvent(event.uid)
@@ -721,7 +745,7 @@ class EventViewModelTest {
             isFlash = false)
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
-    val fakeFriendsRepo = FriendsRepositoryLocal()
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
     val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
 
     vm.fetchEvent(event.uid)
