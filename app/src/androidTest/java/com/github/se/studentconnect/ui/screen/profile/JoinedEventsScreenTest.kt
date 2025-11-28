@@ -332,26 +332,6 @@ class JoinedEventsScreenTest {
     return Timestamp(cal.time)
   }
 
-  // Helper to create past event timestamps with guaranteed past end time
-  private fun createPastEventTimestamps(daysAgo: Int): Pair<Timestamp, Timestamp> {
-    val now = Calendar.getInstance()
-
-    // Create start time: go back daysAgo days, then back 4 more hours
-    val calStart = Calendar.getInstance()
-    calStart.timeInMillis = now.timeInMillis
-    calStart.add(Calendar.DAY_OF_YEAR, -daysAgo)
-    calStart.add(Calendar.HOUR_OF_DAY, -4)
-    val start = Timestamp(calStart.time)
-
-    // Create end time: 2 hours after start (so definitely in the past)
-    val calEnd = Calendar.getInstance()
-    calEnd.timeInMillis = calStart.timeInMillis
-    calEnd.add(Calendar.HOUR_OF_DAY, 2)
-    val end = Timestamp(calEnd.time)
-
-    return Pair(start, end)
-  }
-
   // Mock repositories
   private class MockUserRepository(var joinedEvents: List<String> = emptyList()) : UserRepository {
 
