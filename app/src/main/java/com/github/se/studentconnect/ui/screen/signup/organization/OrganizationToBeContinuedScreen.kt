@@ -24,11 +24,7 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
  * @param onBack optional callback invoked when the user navigates back
  */
 @Composable
-fun OrganizationToBeContinuedScreen(
-    organization: Organization?,
-    onLogout: () -> Unit = {},
-    onBack: () -> Unit = {}
-) {
+fun OrganizationToBeContinuedScreen(organization: Organization?, onLogout: () -> Unit = {}) {
   Column(
       modifier = Modifier.fillMaxSize().padding(SignUpScreenConstants.SCREEN_VERTICAL_PADDING),
       horizontalAlignment = Alignment.CenterHorizontally) {

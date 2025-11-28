@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun OrganizationSignUpOrchestrator(
     firebaseUserId: String,
-    onSignUpComplete: (Organization) -> Unit,
     onLogout: () -> Unit,
     onBackToSelection: () -> Unit,
     viewModel: OrganizationSignUpViewModel = viewModel()
@@ -40,105 +39,97 @@ fun OrganizationSignUpOrchestrator(
 
   // IF organization is created, show the "To Be Continued" screen
   if (createdOrganization != null) {
-    OrganizationToBeContinuedScreen(
-        organization = createdOrganization, onLogout = onLogout, onBack = {})
+    OrganizationToBeContinuedScreen(organization = createdOrganization, onLogout = onLogout)
     return
   }
 
   // Otherwise, show the signup flow steps
-  // 1. Info Screen
-  if (state.currentStep == OrganizationSignUpStep.Info) {
-    OrganizationInfoScreen(
-        viewModel = viewModel,
-        onContinue = { viewModel.nextStep() },
-        onBack = { onBackToSelection() })
-  }
+  when (state.currentStep) {
+    OrganizationSignUpStep.Info -> {
+      OrganizationInfoScreen(
+          viewModel = viewModel,
+          onContinue = { viewModel.nextStep() },
+          onBack = { onBackToSelection() })
+    }
+    OrganizationSignUpStep.Logo -> {
+      OrganizationLogoScreen(
+          viewModel = viewModel,
+          onContinue = { viewModel.nextStep() },
+          onSkip = {
+            viewModel.setLogoUri(null)
+            viewModel.nextStep()
+          },
+          onBack = { viewModel.prevStep() })
+    }
+    OrganizationSignUpStep.Description -> {
+      OrganizationDescriptionScreen(
+          viewModel = viewModel,
+          onContinue = { viewModel.nextStep() },
+          onBack = { viewModel.prevStep() })
+    }
+    OrganizationSignUpStep.Socials -> {
+      BrandOrganizationScreen(
+          viewModel = viewModel,
+          onSkip = {
+            viewModel.setWebsite("")
+            viewModel.setInstagram("")
+            viewModel.setX("")
+            viewModel.setLinkedin("")
+            viewModel.nextStep()
+          },
+          onContinue = { viewModel.nextStep() },
+          onBack = { viewModel.prevStep() })
+    }
+    OrganizationSignUpStep.ProfileSetup -> {
+      OrganizationProfileSetupScreen(
+          viewModel = viewModel,
+          onBack = { viewModel.prevStep() },
+          onStartNow = { viewModel.nextStep() })
+    }
+    OrganizationSignUpStep.Team -> {
+      TeamRolesScreen(
+          viewModel = viewModel,
+          onBack = {},
+          onContinue = {
+            // This "Continue" acts as "Submit"
+            if (!isSubmitting) {
+              isSubmitting = true
+              coroutineScope.launch {
+                try {
+                  val orgRepository = OrganizationRepositoryProvider.repository
+                  val mediaRepository = MediaRepositoryProvider.repository
 
-  // 2. Logo Screen
-  if (state.currentStep == OrganizationSignUpStep.Logo) {
-    OrganizationLogoScreen(
-        viewModel = viewModel,
-        onContinue = { viewModel.nextStep() },
-        onSkip = {
-          viewModel.setLogoUri(null)
-          viewModel.nextStep()
-        },
-        onBack = { viewModel.prevStep() })
-  }
+                  // Generate ID
+                  val newOrgId = orgRepository.getNewOrganizationId()
 
-  // 3. Description Screen
-  if (state.currentStep == OrganizationSignUpStep.Description) {
-    OrganizationDescriptionScreen(
-        viewModel = viewModel,
-        onContinue = { viewModel.nextStep() },
-        onBack = { viewModel.prevStep() })
-  }
+                  // Upload Logo
+                  val logoUrl =
+                      state.logoUri?.let { uri ->
+                        if (shouldUpload(uri)) {
+                          mediaRepository.upload(uri, "organizations/$newOrgId/logo")
+                        } else null
+                      }
 
-  // 4. Socials Screen
-  if (state.currentStep == OrganizationSignUpStep.Socials) {
-    BrandOrganizationScreen(
-        viewModel = viewModel,
-        onSkip = {
-          viewModel.setWebsite("")
-          viewModel.setInstagram("")
-          viewModel.setX("")
-          viewModel.setLinkedin("")
-          viewModel.nextStep()
-        },
-        onContinue = { viewModel.nextStep() },
-        onBack = { viewModel.prevStep() })
-  }
+                  // Create Model
+                  val organization =
+                      viewModel.createOrganizationModel(
+                          orgId = newOrgId,
+                          currentUserId = firebaseUserId,
+                          uploadedLogoUrl = logoUrl)
 
-  // 5. Profile Setup
-  if (state.currentStep == OrganizationSignUpStep.ProfileSetup) {
-    OrganizationProfileSetupScreen(
-        viewModel = viewModel,
-        onBack = { viewModel.prevStep() },
-        onStartNow = { viewModel.nextStep() })
-  }
+                  // Save
+                  orgRepository.saveOrganization(organization)
 
-  // 6. Team Screen (Final Step)
-  if (state.currentStep == OrganizationSignUpStep.Team) {
-    TeamRolesScreen(
-        viewModel = viewModel,
-        onBack = {},
-        onContinue = {
-          // This "Continue" acts as "Submit"
-          if (!isSubmitting) {
-            isSubmitting = true
-            coroutineScope.launch {
-              try {
-                val orgRepository = OrganizationRepositoryProvider.repository
-                val mediaRepository = MediaRepositoryProvider.repository
-
-                // Generate ID
-                val newOrgId = orgRepository.getNewOrganizationId()
-
-                // Upload Logo
-                val logoUrl =
-                    state.logoUri?.let { uri ->
-                      if (shouldUpload(uri)) {
-                        mediaRepository.upload(uri, "organizations/$newOrgId/logo")
-                      } else null
-                    }
-
-                // Create Model
-                val organization =
-                    viewModel.createOrganizationModel(
-                        orgId = newOrgId, currentUserId = firebaseUserId, uploadedLogoUrl = logoUrl)
-
-                // Save
-                orgRepository.saveOrganization(organization)
-
-                // Show Confirmation Screen instead of exiting immediately
-                createdOrganization = organization
-              } catch (e: Exception) {
-                Log.e("OrganizationSignUp", "Failed to create organization", e)
-                isSubmitting = false
+                  // Show Confirmation Screen instead of exiting immediately
+                  createdOrganization = organization
+                } catch (e: Exception) {
+                  Log.e("OrganizationSignUp", "Failed to create organization", e)
+                  isSubmitting = false
+                }
               }
             }
-          }
-        })
+          })
+    }
   }
 }
 

@@ -24,6 +24,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.EventReminderWorker
@@ -165,7 +166,31 @@ fun MainContent() {
   LaunchedEffect(Unit) { viewModel.checkInitialAuthState() }
 
   // Render based on app state from ViewModel
-  when (uiState.appState) {
+  AppNavigationOrchestrator(
+      appState = uiState.appState,
+      uiState = uiState,
+      viewModel = viewModel,
+      userRepository = userRepository,
+      navController = navController,
+      selectedTab = selectedTab,
+      onTabSelected = { selectedTab = it },
+      shouldOpenQRScanner = shouldOpenQRScanner,
+      onQRScannerStateChange = { shouldOpenQRScanner = it })
+}
+
+@Composable
+private fun AppNavigationOrchestrator(
+    appState: AppState,
+    uiState: MainUIState,
+    viewModel: MainViewModel,
+    userRepository: UserRepository,
+    navController: NavHostController,
+    selectedTab: Tab,
+    onTabSelected: (Tab) -> Unit,
+    shouldOpenQRScanner: Boolean,
+    onQRScannerStateChange: (Boolean) -> Unit
+) {
+  when (appState) {
     AppState.LOADING -> {
       Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         // Loading screen
@@ -208,9 +233,9 @@ fun MainContent() {
       MainAppContent(
           navController = navController,
           selectedTab = selectedTab,
-          onTabSelected = { selectedTab = it },
+          onTabSelected = onTabSelected,
           shouldOpenQRScanner = shouldOpenQRScanner,
-          onQRScannerStateChange = { shouldOpenQRScanner = it })
+          onQRScannerStateChange = onQRScannerStateChange)
     }
   }
 }

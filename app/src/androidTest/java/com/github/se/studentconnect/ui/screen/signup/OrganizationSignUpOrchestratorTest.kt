@@ -57,7 +57,6 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.setContent {
       OrganizationSignUpOrchestrator(
           firebaseUserId = "user123",
-          onSignUpComplete = {},
           onLogout = {},
           onBackToSelection = { backToSelectionCalled = true },
           viewModel = viewModel)
@@ -92,11 +91,7 @@ class OrganizationSignUpOrchestratorTest {
 
     composeTestRule.setContent {
       OrganizationSignUpOrchestrator(
-          firebaseUserId = "user123",
-          onSignUpComplete = {},
-          onLogout = {},
-          onBackToSelection = {},
-          viewModel = viewModel)
+          firebaseUserId = "user123", onLogout = {}, onBackToSelection = {}, viewModel = viewModel)
     }
 
     // Fast forward to Team Roles Screen

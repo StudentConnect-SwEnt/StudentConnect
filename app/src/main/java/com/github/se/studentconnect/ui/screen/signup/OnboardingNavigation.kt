@@ -17,29 +17,25 @@ fun OnboardingNavigation(
   val signUpViewModel: SignUpViewModel = viewModel()
   val signUpState by signUpViewModel.state
 
-  if (signUpState.accountTypeSelection == null) {
-    AccountTypeSelectionScreen(
-        onContinue = { accountType -> signUpViewModel.setAccountTypeSelection(accountType) },
-        onBack = { onOnboardingComplete(true) })
-  } else {
-    when (signUpState.accountTypeSelection) {
-      AccountTypeOption.RegularUser -> {
-        SignUpOrchestrator(
-            firebaseUserId = firebaseUserId,
-            email = email,
-            userRepository = userRepository,
-            onSignUpComplete = { _ -> onOnboardingComplete(false) },
-            signUpViewModel = signUpViewModel,
-            onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
-      }
-      AccountTypeOption.Organization -> {
-        OrganizationSignUpOrchestrator(
-            firebaseUserId = firebaseUserId,
-            onSignUpComplete = { onOnboardingComplete(false) },
-            onLogout = { onOnboardingComplete(true) },
-            onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
-      }
-      null -> {}
+  when (signUpState.accountTypeSelection) {
+    AccountTypeOption.RegularUser -> {
+      SignUpOrchestrator(
+          firebaseUserId = firebaseUserId,
+          email = email,
+          userRepository = userRepository,
+          onSignUpComplete = { _ -> onOnboardingComplete(false) },
+          signUpViewModel = signUpViewModel,
+          onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
     }
+    AccountTypeOption.Organization -> {
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = firebaseUserId,
+          onLogout = { onOnboardingComplete(true) },
+          onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
+    }
+    null ->
+        AccountTypeSelectionScreen(
+            onContinue = { accountType -> signUpViewModel.setAccountTypeSelection(accountType) },
+            onBack = { onOnboardingComplete(true) })
   }
 }

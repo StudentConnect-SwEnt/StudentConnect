@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -210,29 +211,19 @@ private fun AccountTypeAnimatedCard(
 
     val cardContentDescription = stringResource(option.contentDescriptionRes)
 
-    Surface(
+    CardSurface(
         modifier =
-            Modifier.width(animatedWidth)
-                .height(animatedHeight)
-                .graphicsLayer {
-                  this.alpha = alpha
-                  scaleX = scale
-                  scaleY = scale
-                }
-                .clip(shape)
-                .semantics { contentDescription = cardContentDescription }
-                .clickable(enabled = true, interactionSource = interactionSource) {
-                  onSelect(option)
-                },
+            Modifier.width(animatedWidth).height(animatedHeight).graphicsLayer {
+              this.alpha = alpha
+              scaleX = scale
+              scaleY = scale
+            },
         shape = shape,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        color =
-            if (isSelected) accentColor.copy(alpha = 0.15f)
-            else MaterialTheme.colorScheme.surfaceVariant,
-        contentColor =
-            if (isSelected) MaterialTheme.colorScheme.onPrimary
-            else MaterialTheme.colorScheme.onSurface) {
+        isSelected = isSelected,
+        accentColor = accentColor,
+        contentDescription = cardContentDescription,
+        interactionSource = interactionSource,
+        onSelect = { onSelect(option) }) {
           if (otherSelected) {
             SmallIconOnlyContent(option = option, metrics = metrics)
           } else {
@@ -244,6 +235,35 @@ private fun AccountTypeAnimatedCard(
           }
         }
   }
+}
+
+@Composable
+private fun CardSurface(
+    modifier: Modifier,
+    shape: Shape,
+    isSelected: Boolean,
+    accentColor: Color,
+    contentDescription: String,
+    interactionSource: MutableInteractionSource,
+    onSelect: () -> Unit,
+    content: @Composable () -> Unit
+) {
+  Surface(
+      modifier =
+          modifier
+              .clip(shape)
+              .semantics { this.contentDescription = contentDescription }
+              .clickable(enabled = true, interactionSource = interactionSource) { onSelect() },
+      shape = shape,
+      tonalElevation = 0.dp,
+      shadowElevation = 0.dp,
+      color =
+          if (isSelected) accentColor.copy(alpha = 0.15f)
+          else MaterialTheme.colorScheme.surfaceVariant,
+      contentColor =
+          if (isSelected) MaterialTheme.colorScheme.onPrimary
+          else MaterialTheme.colorScheme.onSurface,
+      content = content)
 }
 
 @Composable
