@@ -1036,4 +1036,437 @@ class UserRepositoryFirestoreTest {
     assertFalse(result)
     verify(mockCollectionReference).whereEqualTo("username", "johndoe")
   }
+
+  @Test
+  fun testCheckUsernameAvailabilityFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    whenever(mockCollectionReference.whereEqualTo("username", "newuser")).thenReturn(mockQuery)
+    whenever(mockQuery.limit(1)).thenReturn(mockQuery)
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+    whenever(mockQuery.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.checkUsernameAvailability("newuser")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testFollowOrganizationSuccess() = runTest {
+    // Arrange
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockOrgDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.document("org123")).thenReturn(mockOrgDoc)
+    whenever(mockOrgDoc.set(any())).thenReturn(mockTask)
+
+    // Act
+    repository.followOrganization("user123", "org123")
+
+    // Assert
+    verify(mockFollowedOrgsCollection).document("org123")
+    val captor = argumentCaptor<Map<String, Any?>>()
+    verify(mockOrgDoc).set(captor.capture())
+    val followData = captor.firstValue
+    assert(followData["organizationId"] == "org123")
+    assert(followData.containsKey("followedAt"))
+  }
+
+  @Test
+  fun testFollowOrganizationFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockOrgDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.document("org123")).thenReturn(mockOrgDoc)
+    whenever(mockOrgDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.followOrganization("user123", "org123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testUnfollowOrganizationSuccess() = runTest {
+    // Arrange
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockOrgDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.document("org123")).thenReturn(mockOrgDoc)
+    whenever(mockOrgDoc.delete()).thenReturn(mockTask)
+
+    // Act
+    repository.unfollowOrganization("user123", "org123")
+
+    // Assert
+    verify(mockFollowedOrgsCollection).document("org123")
+    verify(mockOrgDoc).delete()
+  }
+
+  @Test
+  fun testUnfollowOrganizationFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockOrgDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.document("org123")).thenReturn(mockOrgDoc)
+    whenever(mockOrgDoc.delete()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.unfollowOrganization("user123", "org123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetFollowedOrganizationsSuccess() = runTest {
+    // Arrange
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+
+    whenever(mockDoc1.getString("organizationId")).thenReturn("org1")
+    whenever(mockDoc2.getString("organizationId")).thenReturn("org2")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
+
+    // Act
+    val result = repository.getFollowedOrganizations("user123")
+
+    // Assert
+    assertEquals(2, result.size)
+    assertEquals(listOf("org1", "org2"), result)
+  }
+
+  @Test
+  fun testGetFollowedOrganizationsEmpty() = runTest {
+    // Arrange
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
+
+    // Act
+    val result = repository.getFollowedOrganizations("user123")
+
+    // Assert
+    assertTrue(result.isEmpty())
+  }
+
+  @Test
+  fun testGetFollowedOrganizationsFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.getFollowedOrganizations("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetFollowedOrganizationsHandlesNullValues() = runTest {
+    // Arrange
+    val mockFollowedOrgsCollection: CollectionReference = mock()
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+
+    whenever(mockDoc1.getString("organizationId")).thenReturn("org1")
+    whenever(mockDoc2.getString("organizationId")).thenReturn(null)
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection)
+    whenever(mockFollowedOrgsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
+
+    // Act
+    val result = repository.getFollowedOrganizations("user123")
+
+    // Assert
+    assertEquals(1, result.size)
+    assertEquals("org1", result[0])
+  }
+
+  @Test
+  fun testAddFavoriteEventSuccess() = runTest {
+    // Arrange
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act
+    repository.addFavoriteEvent("user123", "event123")
+
+    // Assert
+    verify(mockFavoriteEventsCollection).document("event123")
+    val captor = argumentCaptor<Map<String, Any?>>()
+    verify(mockEventDoc).set(captor.capture())
+    val favoriteData = captor.firstValue
+    assert(favoriteData["eventId"] == "event123")
+    assert(favoriteData.containsKey("addedAt"))
+  }
+
+  @Test
+  fun testAddFavoriteEventFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.addFavoriteEvent("user123", "event123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testRemoveFavoriteEventSuccess() = runTest {
+    // Arrange
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act
+    repository.removeFavoriteEvent("user123", "event123")
+
+    // Assert
+    verify(mockFavoriteEventsCollection).document("event123")
+    verify(mockEventDoc).delete()
+  }
+
+  @Test
+  fun testRemoveFavoriteEventFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockEventDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.document("event123")).thenReturn(mockEventDoc)
+    whenever(mockEventDoc.delete()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.removeFavoriteEvent("user123", "event123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetFavoriteEventsSuccess() = runTest {
+    // Arrange
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockDoc1: DocumentSnapshot = mock()
+    val mockDoc2: DocumentSnapshot = mock()
+
+    whenever(mockDoc1.getString("eventId")).thenReturn("event1")
+    whenever(mockDoc2.getString("eventId")).thenReturn("event2")
+
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(mockDoc1, mockDoc2))
+
+    // Act
+    val result = repository.getFavoriteEvents("user123")
+
+    // Assert
+    assertEquals(2, result.size)
+    assertEquals(listOf("event1", "event2"), result)
+  }
+
+  @Test
+  fun testGetFavoriteEventsEmpty() = runTest {
+    // Arrange
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.get()).thenReturn(mockTask)
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
+
+    // Act
+    val result = repository.getFavoriteEvents("user123")
+
+    // Assert
+    assertTrue(result.isEmpty())
+  }
+
+  @Test
+  fun testGetFavoriteEventsFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockFavoriteEventsCollection: CollectionReference = mock()
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+
+    whenever(mockDocumentReference.collection("favoriteEvents"))
+        .thenReturn(mockFavoriteEventsCollection)
+    whenever(mockFavoriteEventsCollection.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.getFavoriteEvents("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testDeclineInvitationSuccess() = runTest {
+    // Arrange
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forResult(null)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.update(anyString(), any())).thenReturn(mockTask)
+
+    // Act
+    repository.declineInvitation("event123", "user123")
+
+    // Assert
+    verify(mockInvitationDoc).update("status", InvitationStatus.Declined.name)
+  }
+
+  @Test
+  fun testDeclineInvitationFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.update(anyString(), any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.declineInvitation("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testAcceptInvitationFailureWhenInvitationNotExists() = runTest {
+    // Arrange
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockJoinedDoc: DocumentReference = mock()
+    val mockGetTask: Task<DocumentSnapshot> = Tasks.forResult(mockDocumentSnapshot)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockJoinedEventsCollection.document("event123")).thenReturn(mockJoinedDoc)
+    whenever(mockInvitationDoc.get()).thenReturn(mockGetTask)
+    whenever(mockDocumentSnapshot.exists()).thenReturn(false)
+
+    // Act & Assert
+    try {
+      repository.acceptInvitation("event123", "user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: IllegalArgumentException) {
+      assert(e.message!!.contains("No invitation"))
+    }
+  }
+
+  @Test
+  fun testAddInvitationToUserFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockInvitationDoc: DocumentReference = mock()
+    val mockTask: Task<Void> = Tasks.forException(exception)
+
+    whenever(mockInvitationsCollection.document("event123")).thenReturn(mockInvitationDoc)
+    whenever(mockInvitationDoc.set(any())).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.addInvitationToUser("event123", "user123", "user456")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
+
+  @Test
+  fun testGetInvitationsFailure() = runTest {
+    // Arrange
+    val exception = Exception("Firestore error")
+    val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
+    whenever(mockInvitationsCollection.get()).thenReturn(mockTask)
+
+    // Act & Assert
+    try {
+      repository.getInvitations("user123")
+      assert(false) { "Should have thrown exception" }
+    } catch (e: Exception) {
+      assert(e == exception)
+    }
+  }
 }
