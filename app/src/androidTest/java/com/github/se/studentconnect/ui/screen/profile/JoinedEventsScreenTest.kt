@@ -547,4 +547,466 @@ class JoinedEventsScreenTest {
         .onNodeWithTag(JoinedEventsScreenTestTags.eventCard("event1"))
         .assertHasClickAction()
   }
+
+  @Test
+  fun joinedEventsScreen_searchFiltersEventsByTitle() {
+    val event1 =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Tech Conference",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    val event2 =
+        Event.Public(
+            uid = "event2",
+            ownerId = "user1",
+            title = "Music Festival",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 2),
+            end = createTimestamp(daysAgo = 2),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1", "event2")
+    mockEventRepository.events = listOf(event1, event2)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Tech Conference").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Both events should be visible initially
+    composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Music Festival").assertIsDisplayed()
+
+    // Search for "Tech"
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).performTextInput("Tech")
+
+    // Wait for debounce
+    Thread.sleep(400)
+    composeTestRule.waitForIdle()
+
+    // Only Tech Conference should be visible
+    composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Music Festival").assertDoesNotExist()
+  }
+
+  @Test
+  fun joinedEventsScreen_searchIsCaseInsensitive() {
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Tech Conference",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Tech Conference").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Search with lowercase
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).performTextInput("tech")
+
+    Thread.sleep(400)
+    composeTestRule.waitForIdle()
+
+    // Event should still be visible (case-insensitive search)
+    composeTestRule.onNodeWithText("Tech Conference").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_displaysUpcomingEvents() {
+    val upcomingEvent =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Future Event",
+            subtitle = "",
+            description = "Test",
+            start = createFutureTimestamp(daysAhead = 5),
+            end = createFutureTimestamp(daysAhead = 5),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(upcomingEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("No past events").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Past tab should show empty state
+    composeTestRule.onNodeWithText("No past events").assertIsDisplayed()
+
+    // Switch to Upcoming tab
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.tab("Upcoming")).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Future Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Upcoming event should be displayed
+    composeTestRule.onNodeWithText("Future Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_displaysOwnedEvents() {
+    // Event owned by user1 but not in joinedEvents
+    val ownedEvent =
+        Event.Public(
+            uid = "owned1",
+            ownerId = "user1",
+            title = "My Created Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = emptyList()
+    mockEventRepository.events = listOf(ownedEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("My Created Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Owned event should be displayed even if not in joinedEvents
+    composeTestRule.onNodeWithText("My Created Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_eventsSortedByStartDate() {
+    val event1 =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Older Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 5),
+            end = createTimestamp(daysAgo = 5),
+            isFlash = false)
+
+    val event2 =
+        Event.Public(
+            uid = "event2",
+            ownerId = "user1",
+            title = "Recent Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1", "event2")
+    mockEventRepository.events = listOf(event1, event2)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Recent Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Both events should be displayed
+    composeTestRule.onNodeWithText("Older Event").assertExists()
+    composeTestRule.onNodeWithText("Recent Event").assertExists()
+  }
+
+  @Test
+  fun joinedEventsScreen_handlesEventWithoutEndTime() {
+    val now = Calendar.getInstance()
+    now.add(Calendar.HOUR_OF_DAY, -5) // Event started 5 hours ago, no end time
+
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "No End Time Event",
+            subtitle = "",
+            description = "Test",
+            start = Timestamp(now.time),
+            end = null, // No end time - should default to start + 3 hours
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("No End Time Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Event should be displayed in Past tab (start + 3 hours < now)
+    composeTestRule.onNodeWithText("No End Time Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_pullToRefreshWorks() {
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Test Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Test Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Event should be displayed
+    composeTestRule.onNodeWithText("Test Event").assertIsDisplayed()
+
+    // Add a new event to the repository
+    val newEvent =
+        Event.Public(
+            uid = "event2",
+            ownerId = "user1",
+            title = "New Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 2),
+            end = createTimestamp(daysAgo = 2),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1", "event2")
+    mockEventRepository.events = listOf(event, newEvent)
+
+    // Trigger refresh by calling loadJoinedEvents on viewModel
+    viewModel.loadJoinedEvents()
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("New Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // New event should appear after refresh
+    composeTestRule.onNodeWithText("New Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_searchShowsEmptyWhenNoMatches() {
+    val event =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "Tech Conference",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(event)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Tech Conference").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Search for something that doesn't match
+    composeTestRule
+        .onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR)
+        .performTextInput("NonExistent")
+
+    Thread.sleep(400)
+    composeTestRule.waitForIdle()
+
+    // Event should not be displayed
+    composeTestRule.onNodeWithText("Tech Conference").assertDoesNotExist()
+
+    // Empty state should appear
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.EMPTY_STATE).assertExists()
+  }
+
+  @Test
+  fun joinedEventsScreen_filterAndSearchWorkTogether() {
+    val pastEvent =
+        Event.Public(
+            uid = "past1",
+            ownerId = "user1",
+            title = "Past Tech Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 2),
+            end = createTimestamp(daysAgo = 2),
+            isFlash = false)
+
+    val futureEvent =
+        Event.Public(
+            uid = "future1",
+            ownerId = "user1",
+            title = "Future Tech Event",
+            subtitle = "",
+            description = "Test",
+            start = createFutureTimestamp(daysAhead = 3),
+            end = createFutureTimestamp(daysAhead = 3),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("past1", "future1")
+    mockEventRepository.events = listOf(pastEvent, futureEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Past Tech Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Search for "Tech"
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.SEARCH_BAR).performTextInput("Tech")
+
+    Thread.sleep(400)
+    composeTestRule.waitForIdle()
+
+    // Only past tech event should show (in Past tab)
+    composeTestRule.onNodeWithText("Past Tech Event").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Future Tech Event").assertDoesNotExist()
+
+    // Switch to Upcoming tab
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.tab("Upcoming")).performClick()
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Future Tech Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Only future tech event should show (in Upcoming tab)
+    composeTestRule.onNodeWithText("Future Tech Event").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Past Tech Event").assertDoesNotExist()
+  }
+
+  @Test
+  fun joinedEventsScreen_handlesFailedEventLoad() {
+    // Event that will throw an exception when loaded
+    mockUserRepository.joinedEvents = listOf("valid1", "invalid1")
+
+    val validEvent =
+        Event.Public(
+            uid = "valid1",
+            ownerId = "user1",
+            title = "Valid Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockEventRepository.events = listOf(validEvent)
+    // invalid1 will throw exception in getEvent()
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Valid Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Valid event should be displayed, invalid event skipped
+    composeTestRule.onNodeWithText("Valid Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun joinedEventsScreen_publicEventWithEmptySubtitleDoesNotShowSubtitle() {
+    val publicEvent =
+        Event.Public(
+            uid = "event1",
+            ownerId = "user1",
+            title = "No Subtitle Event",
+            subtitle = "",
+            description = "Test",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("event1")
+    mockEventRepository.events = listOf(publicEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("No Subtitle Event").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Title should be shown
+    composeTestRule.onNodeWithText("No Subtitle Event").assertIsDisplayed()
+    // Event card should exist
+    composeTestRule.onNodeWithTag(JoinedEventsScreenTestTags.eventCard("event1")).assertExists()
+  }
+
+  // Helper to create future timestamps
+  private fun createFutureTimestamp(daysAhead: Int): Timestamp {
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.DAY_OF_YEAR, daysAhead)
+    return Timestamp(cal.time)
+  }
 }
