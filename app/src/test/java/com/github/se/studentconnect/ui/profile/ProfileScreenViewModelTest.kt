@@ -410,6 +410,8 @@ class ProfileScreenViewModelTest {
 
     override suspend fun declineInvitation(eventId: String, userId: String) = Unit
 
+    override suspend fun removeInvitation(eventId: String, userId: String) = Unit
+
     override suspend fun joinEvent(eventId: String, userId: String) = Unit
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =

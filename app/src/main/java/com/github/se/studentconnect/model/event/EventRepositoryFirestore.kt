@@ -369,6 +369,28 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
         .await()
   }
 
+  override suspend fun getEventInvitations(eventUid: String): List<String> {
+    val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
+    val snapshot = eventRef.collection(INVITATIONS_COLLECTION_PATH).get().await()
+    return snapshot.documents.mapNotNull { it.id }
+  }
+
+  override suspend fun removeInvitationFromEvent(
+      eventUid: String,
+      invitedUser: String,
+      currentUserId: String
+  ) {
+    val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
+    val eventSnapshot = eventRef.get().await()
+    require(eventSnapshot.exists()) { "Event $eventUid does not exist" }
+
+    val owner = eventSnapshot.getString("ownerId")
+    if (owner != currentUserId)
+        throw IllegalAccessException("Only the owner of the event can invite users")
+
+    eventRef.collection(INVITATIONS_COLLECTION_PATH).document(invitedUser).delete().await()
+  }
+
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {
     if (participantUid != Firebase.auth.currentUser?.uid)
         throw IllegalAccessException("Users can only remove themselves from events")

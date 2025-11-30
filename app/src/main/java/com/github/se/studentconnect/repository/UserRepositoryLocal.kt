@@ -127,6 +127,10 @@ class UserRepositoryLocal : UserRepository {
     userInvitations[invitationIndex] = updatedInvitation
   }
 
+  override suspend fun removeInvitation(eventId: String, userId: String) {
+    invitations[userId]?.removeAll { it.eventId == eventId }
+  }
+
   override suspend fun joinEvent(eventId: String, userId: String) {
     invitations[userId]?.removeAll { it.eventId == eventId }
     addEventToUser(eventId, userId)

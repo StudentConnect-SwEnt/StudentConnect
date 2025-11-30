@@ -5,8 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeOption
-import com.github.se.studentconnect.ui.screen.signup.organization.AccountTypeSelectionScreen
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -53,9 +51,7 @@ class AccountTypeSelectionScreenTest {
 
   private fun setScreen(onContinue: (AccountTypeOption) -> Unit = {}) {
     composeTestRule.setContent {
-      MaterialTheme {
-        AccountTypeSelectionScreen(viewModel = viewModel, onContinue = onContinue, onBack = {})
-      }
+      MaterialTheme { AccountTypeSelectionScreen(onContinue = onContinue, onBack = {}) }
     }
   }
 
@@ -85,9 +81,6 @@ class AccountTypeSelectionScreenTest {
     }
     composeTestRule.onNodeWithText(continueText).assertIsEnabled().performClick()
     assertEquals(AccountTypeOption.Organization, continueInvocation)
-    composeTestRule.runOnIdle {
-      assertEquals(AccountTypeOption.Organization, viewModel.state.value.accountTypeSelection)
-    }
 
     // Tap the collapsed regular card using its content description
     val regularCta =
@@ -102,9 +95,6 @@ class AccountTypeSelectionScreenTest {
     }
     organizationFeatureStrings.forEach { feature ->
       composeTestRule.onNodeWithText(feature, useUnmergedTree = true).assertDoesNotExist()
-    }
-    composeTestRule.runOnIdle {
-      assertEquals(AccountTypeOption.RegularUser, viewModel.state.value.accountTypeSelection)
     }
   }
 }

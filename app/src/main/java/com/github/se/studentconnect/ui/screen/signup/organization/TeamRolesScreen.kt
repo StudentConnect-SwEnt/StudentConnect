@@ -39,7 +39,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
@@ -51,7 +50,6 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpSkipButton
 import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
 import com.github.se.studentconnect.ui.screen.signup.SignUpSubtitle
 import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 /**
  * State for the Team Roles screen.
@@ -100,13 +98,57 @@ data class TeamRolesCallbacks(
  * to work with a ViewModel (e.g., OrganizationSignupViewModel) by accepting state and callbacks as
  * parameters.
  *
- * For backwards compatibility and testing, a version with local state management is available via
- * [TeamRolesScreenWithLocalState].
- *
  * @param state The current state of the screen (should come from ViewModel).
  * @param callbacks Callbacks for user actions (should come from ViewModel).
  * @param modifier Optional modifier for the screen.
  */
+@Composable
+fun TeamRolesScreen(
+    viewModel: OrganizationSignUpViewModel,
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  val state by viewModel.state
+
+  var currentRoleName by remember { mutableStateOf("") }
+  var currentRoleDescription by remember { mutableStateOf("") }
+
+  TeamRolesScreen(
+      state =
+          TeamRolesState(
+              roleName = currentRoleName,
+              roleDescription = currentRoleDescription,
+              roles = state.teamRoles),
+      callbacks =
+          TeamRolesCallbacks(
+              onRoleNameChange = { currentRoleName = it },
+              onRoleDescriptionChange = { currentRoleDescription = it },
+              onAddRole = {
+                if (currentRoleName.isNotBlank()) {
+                  viewModel.addRole(
+                      OrganizationRole(
+                          name = currentRoleName.trim(),
+                          description = currentRoleDescription.trim().ifBlank { null }))
+                  // Reset form
+                  currentRoleName = ""
+                  currentRoleDescription = ""
+                }
+              },
+              onRemoveRole = { role -> viewModel.removeRole(role) },
+              onBackClick = {
+                viewModel.prevStep()
+                onBack()
+              },
+              onSkipClick = {
+                viewModel.setRoles(emptyList()) // Clear roles on skip
+                onContinue()
+              },
+              onContinueClick = { onContinue() }),
+      modifier = modifier)
+}
+
+/** Stateless Team Roles screen. */
 @Composable
 fun TeamRolesScreen(
     state: TeamRolesState,
@@ -126,52 +168,6 @@ fun TeamRolesScreen(
 
   TeamRolesContent(
       state = state, suggestions = suggestions, callbacks = callbacks, modifier = modifier)
-}
-
-/**
- * Team Roles screen with local state management.
- *
- * This version maintains local state for backwards compatibility and testing purposes. For
- * production use, prefer [TeamRolesScreen] with state and callbacks from a ViewModel.
- *
- * @param modifier Optional modifier for the screen.
- * @param onBackClick Callback when back button is clicked.
- * @param onSkipClick Callback when skip button is clicked.
- * @param onContinueClick Callback when continue button is clicked, receives the list of roles.
- */
-@Composable
-fun TeamRolesScreenWithLocalState(
-    modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {},
-    onContinueClick: (List<OrganizationRole>) -> Unit = {}
-) {
-  var roleName by remember { mutableStateOf("") }
-  var roleDescription by remember { mutableStateOf("") }
-  var roles by remember { mutableStateOf<List<OrganizationRole>>(emptyList()) }
-
-  TeamRolesScreen(
-      state = TeamRolesState(roleName = roleName, roleDescription = roleDescription, roles = roles),
-      callbacks =
-          TeamRolesCallbacks(
-              onRoleNameChange = { roleName = it },
-              onRoleDescriptionChange = { roleDescription = it },
-              onAddRole = {
-                val trimmedName = roleName.trim()
-                if (trimmedName.isNotEmpty()) {
-                  val newRole =
-                      OrganizationRole(
-                          name = trimmedName, description = roleDescription.trim().ifBlank { null })
-                  roles = listOf(newRole) + roles
-                  roleName = ""
-                  roleDescription = ""
-                }
-              },
-              onRemoveRole = { role -> roles = roles.filterNot { it == role } },
-              onBackClick = onBackClick,
-              onSkipClick = onSkipClick,
-              onContinueClick = { onContinueClick(roles) }),
-      modifier = modifier)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -278,7 +274,7 @@ internal fun TeamRolesContent(
 }
 
 @Composable
-private fun RolesFormCard(
+internal fun RolesFormCard(
     roleName: String,
     roleDescription: String,
     suggestions: List<String>,
@@ -341,7 +337,7 @@ private fun RolesFormCard(
 }
 
 @Composable
-private fun EmptyRolesState(modifier: Modifier = Modifier) {
+internal fun EmptyRolesState(modifier: Modifier = Modifier) {
   Column(
       modifier = modifier.fillMaxWidth(),
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -369,7 +365,7 @@ private fun EmptyRolesState(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RoleNameDropdownField(
+internal fun RoleNameDropdownField(
     value: String,
     onValueChange: (String) -> Unit,
     suggestions: List<String>,
@@ -435,7 +431,7 @@ private fun RoleNameDropdownField(
       }
 }
 
-private fun calculateExpandedState(
+internal fun calculateExpandedState(
     exactMatch: Boolean,
     isFocused: Boolean,
     shouldShowDropdown: Boolean,
@@ -450,7 +446,7 @@ private fun calculateExpandedState(
   }
 }
 
-private fun shouldExpandOnTextChange(
+internal fun shouldExpandOnTextChange(
     newValue: String,
     suggestions: List<String>,
     filteredSuggestions: List<String>
@@ -461,7 +457,7 @@ private fun shouldExpandOnTextChange(
 }
 
 @Composable
-private fun RoleCard(
+internal fun RoleCard(
     role: OrganizationRole,
     onRemoveRole: (OrganizationRole) -> Unit,
     modifier: Modifier = Modifier
@@ -507,10 +503,4 @@ private fun RoleCard(
               }
             }
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun TeamRolesScreenPreview() {
-  AppTheme { TeamRolesScreenWithLocalState() }
 }

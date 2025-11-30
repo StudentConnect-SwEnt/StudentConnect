@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +41,6 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
@@ -53,7 +51,6 @@ import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
 import com.github.se.studentconnect.ui.screen.signup.SignUpScreenConstants
 import com.github.se.studentconnect.ui.screen.signup.SignUpSmallSpacer
 import com.github.se.studentconnect.ui.screen.signup.SignUpTitle
-import com.github.se.studentconnect.ui.theme.AppTheme
 
 private data class SimpleOption(val key: String, @StringRes val labelRes: Int)
 
@@ -97,20 +94,15 @@ private val locationOptions =
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OrganizationProfileSetupScreen(
+    viewModel: OrganizationSignUpViewModel,
     onBack: () -> Unit,
     onStartNow: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  var selectedLocation by rememberSaveable { mutableStateOf("") }
+  val state by viewModel.state
   var isDropdownExpanded by remember { mutableStateOf(false) }
-  var selectedDomains by rememberSaveable { mutableStateOf(listOf<String>()) }
-  var selectedAgeRanges by rememberSaveable { mutableStateOf(listOf<String>()) }
-  var selectedEventSize by rememberSaveable { mutableStateOf<String?>(null) }
 
   val locationLabels = locationOptions.map { stringResource(id = it) }
-
-  val isFormValid =
-      selectedLocation.isNotBlank() && selectedDomains.isNotEmpty() && selectedEventSize != null
 
   Column(
       modifier =
@@ -120,7 +112,7 @@ fun OrganizationProfileSetupScreen(
               .padding(
                   horizontal = SignUpScreenConstants.SCREEN_HORIZONTAL_PADDING,
                   vertical = SignUpScreenConstants.SCREEN_VERTICAL_PADDING)) {
-        SignUpBackButton(onClick = onBack)
+        SignUpBackButton(onClick = { onBack() })
 
         SignUpLargeSpacer()
 
@@ -134,13 +126,13 @@ fun OrganizationProfileSetupScreen(
                 Arrangement.spacedBy(SignUpScreenConstants.HEADER_TO_TITLE_SPACING)) {
               FormSectionLabel(text = stringResource(R.string.org_setup_main_location_label))
               LocationDropdownField(
-                  selectedValue = selectedLocation,
+                  selectedValue = state.location,
                   placeholder = stringResource(R.string.org_setup_main_location_placeholder),
                   options = locationLabels,
                   expanded = isDropdownExpanded,
                   onExpandedChange = { isDropdownExpanded = it },
                   onOptionSelected = {
-                    selectedLocation = it
+                    viewModel.setLocation(it)
                     isDropdownExpanded = false
                   })
 
@@ -153,18 +145,14 @@ fun OrganizationProfileSetupScreen(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
                     Activities.domainOptions.forEach { category ->
-                      val isSelected = category.key in selectedDomains
-                      val canSelectMore = isSelected || selectedDomains.size < MAX_DOMAIN_SELECTION
+                      val isSelected = category.key in state.domains
+                      val canSelectMore = isSelected || state.domains.size < MAX_DOMAIN_SELECTION
                       DomainChip(
                           text = category.labelRes?.let { stringResource(it) } ?: category.label,
                           icon = category.icon,
                           selected = isSelected,
                           enabled = canSelectMore,
-                          onClick = {
-                            selectedDomains =
-                                if (isSelected) selectedDomains - category.key
-                                else selectedDomains + category.key
-                          })
+                          onClick = { viewModel.toggleDomain(category.key) })
                     }
                   }
 
@@ -173,15 +161,11 @@ fun OrganizationProfileSetupScreen(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
                     ageRangeOptions.forEach { option ->
-                      val isSelected = option.key in selectedAgeRanges
+                      val isSelected = option.key in state.targetAgeRanges
                       SimpleSelectableChip(
                           text = stringResource(option.labelRes),
                           selected = isSelected,
-                          onClick = {
-                            selectedAgeRanges =
-                                if (isSelected) selectedAgeRanges - option.key
-                                else selectedAgeRanges + option.key
-                          })
+                          onClick = { viewModel.toggleAgeRange(option.key) })
                     }
                   }
 
@@ -190,11 +174,11 @@ fun OrganizationProfileSetupScreen(
                   horizontalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING),
                   verticalArrangement = Arrangement.spacedBy(SignUpScreenConstants.ICON_SPACING)) {
                     eventSizeOptions.forEach { option ->
-                      val isSelected = option.key == selectedEventSize
+                      val isSelected = option.key == state.eventSize
                       SimpleSelectableChip(
                           text = stringResource(option.labelRes),
                           selected = isSelected,
-                          onClick = { selectedEventSize = option.key })
+                          onClick = { viewModel.setEventSize(option.key) })
                     }
                   }
 
@@ -209,7 +193,7 @@ fun OrganizationProfileSetupScreen(
         SignUpPrimaryButton(
             text = stringResource(R.string.button_continue),
             iconRes = R.drawable.ic_arrow_forward,
-            enabled = isFormValid,
+            enabled = viewModel.isProfileSetupValid,
             onClick = onStartNow,
             modifier = Modifier.align(Alignment.CenterHorizontally))
       }
@@ -311,18 +295,6 @@ private fun FormSectionLabel(text: String) {
               fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant))
 }
 
-/**
- * Base composable for selectable chips with common styling and behavior.
- *
- * @param selected Whether the chip is currently selected
- * @param enabled Whether the chip can be clicked (defaults to true)
- * @param onClick Callback when the chip is clicked
- * @param selectedBackgroundColor Background color when selected
- * @param unselectedBackgroundColor Background color when not selected
- * @param selectedContentColor Content color when selected
- * @param unselectedContentColor Content color when not selected
- * @param content The content to display inside the chip
- */
 @Composable
 private fun SelectableChip(
     selected: Boolean,
@@ -417,9 +389,3 @@ private val DropdownMaxHeight = SignUpScreenConstants.BUTTON_HEIGHT * 6
 private val DropdownSurfaceElevation = SignUpScreenConstants.BUTTON_VERTICAL_PADDING / 2
 private val ChipContentSpacing = SignUpScreenConstants.ICON_SPACING * (2f / 3f)
 private val OutlineWidth = 1.dp
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun OrganizationProfileSetupScreenPreview() {
-  AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
-}

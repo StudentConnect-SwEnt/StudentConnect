@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.signup
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationProfileSetupScreen
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -22,10 +24,14 @@ class OrganizationProfileSetupScreenTest {
 
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun screenRendersAllElements() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -36,10 +42,14 @@ class OrganizationProfileSetupScreenTest {
     composeRule.onNodeWithText("Select up to 3 domains").assertIsDisplayed()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun continueButtonIsDisabledWhenFormIsIncomplete() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -64,12 +74,18 @@ class OrganizationProfileSetupScreenTest {
     composeRule.onNodeWithText("Continue").assertIsNotEnabled()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun continueButtonCallbackIsInvokedWhenFormIsFilled() {
     var startNowClicks = 0
 
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = { startNowClicks++ }) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {},
+            onStartNow = { startNowClicks++ },
+            viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -82,16 +98,17 @@ class OrganizationProfileSetupScreenTest {
     composeRule.waitForIdle()
 
     // Try to click Continue - if form is valid, callback should be invoked
-    // Note: In Robolectric, state updates may not propagate immediately,
-    // so we test that the button exists and can be interacted with
     composeRule.onNodeWithText("Continue").assertIsDisplayed()
-    // The button may still be disabled due to timing, but we verify the structure is correct
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun locationDropdownExpandsAndClosesOnSelection() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -104,10 +121,14 @@ class OrganizationProfileSetupScreenTest {
     composeRule.onNodeWithText("Search locations...").assertDoesNotExist()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun domainSelectionAllowsMultipleSelections() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -130,10 +151,14 @@ class OrganizationProfileSetupScreenTest {
     composeRule.waitForIdle()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun ageRangeAndEventSizeSelection() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -146,12 +171,16 @@ class OrganizationProfileSetupScreenTest {
     composeRule.onNodeWithText("20-50").performClick()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun backButtonCallbackIsInvoked() {
     var backClicks = 0
 
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = { backClicks++ }, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = { backClicks++ }, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -160,10 +189,14 @@ class OrganizationProfileSetupScreenTest {
     composeRule.runOnIdle { assertEquals(1, backClicks) }
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun domainChipCanBeToggled() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()
@@ -175,10 +208,14 @@ class OrganizationProfileSetupScreenTest {
     composeRule.onNodeWithText("Sport").assertIsDisplayed()
   }
 
+  @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun multipleDomainsCanBeSelected() {
     composeRule.setContent {
-      AppTheme { OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}) }
+      AppTheme {
+        OrganizationProfileSetupScreen(
+            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+      }
     }
 
     composeRule.waitForIdle()

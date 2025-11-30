@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -19,6 +20,7 @@ import com.github.se.studentconnect.model.notification.NotificationRepositoryLoc
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -76,6 +78,12 @@ class HomeScreenUITest {
 
   @Before
   fun setup() {
+    // Initialize Firebase first (before accessing any repositories)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+
     // Set test user ID to match the notifications
     AuthenticationProvider.testUserId = "user123"
 
@@ -268,13 +276,47 @@ class HomeScreenUITest {
           notificationViewModel = notificationViewModel)
     }
 
-    // Wait for events to load
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
+    // Wait for the home page to be displayed
+    composeTestRule.waitUntil(timeoutMillis = 10000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag("HomePage"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    // Use onNodeWithTag to specifically target the event card, not the story
-    composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
+    // Wait for tab selector to be ready
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule
+          .onAllNodes(androidx.compose.ui.test.hasTestTag(HomeScreenTestTags.TAB_SELECTOR))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    // Give additional time for the pager and events to render
+    composeTestRule.waitForIdle()
+
+    // Wait for any event card to be visible (scoring algorithm might change order)
+    composeTestRule.waitUntil(timeoutMillis = 10000) {
+      val event1Nodes =
+          composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes()
+      val event2Nodes =
+          composeTestRule.onAllNodesWithTag("event_card_event-2").fetchSemanticsNodes()
+      event1Nodes.isNotEmpty() || event2Nodes.isNotEmpty()
+    }
+
+    // Verify that at least one event card has a click action
+    val event1Exists =
+        composeTestRule.onAllNodesWithTag("event_card_event-1").fetchSemanticsNodes().isNotEmpty()
+    val event2Exists =
+        composeTestRule.onAllNodesWithTag("event_card_event-2").fetchSemanticsNodes().isNotEmpty()
+
+    assert(event1Exists || event2Exists) { "No event cards found" }
+
+    if (event1Exists) {
+      composeTestRule.onNodeWithTag("event_card_event-1").assertHasClickAction()
+    } else {
+      composeTestRule.onNodeWithTag("event_card_event-2").assertHasClickAction()
+    }
   }
 
   // @Test

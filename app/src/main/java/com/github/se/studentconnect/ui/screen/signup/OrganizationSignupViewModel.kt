@@ -16,14 +16,11 @@ enum class OrganizationSignUpStep {
   Logo,
   Description,
   Socials,
-  Team,
-  ProfileSetup
+  ProfileSetup,
+  Team
 }
 
-/**
- * Immutable state holding all information entered by the organization during signup. Uses types
- * from OrganizationModel where possible for consistency.
- */
+/** Immutable state holding all information entered by the organization during signup. */
 data class OrganizationSignUpState(
     val organizationName: String = "",
     val organizationType: OrganizationType? = null,
@@ -51,6 +48,11 @@ class OrganizationSignUpViewModel : ViewModel() {
     _state.value = block(_state.value)
   }
 
+  /** Resets the signup state to its initial values. */
+  fun reset() {
+    _state.value = OrganizationSignUpState()
+  }
+
   /**
    * Sets the organization name, trimming leading/trailing whitespace.
    *
@@ -59,20 +61,21 @@ class OrganizationSignUpViewModel : ViewModel() {
   fun setOrganizationName(name: String) = update { it.copy(organizationName = name.trim()) }
 
   /**
-   * Sets the organization type.
+   * Toggles the selected organization type. If the same type is selected again, it clears the
+   * selection.
    *
-   * @param type The organization type selected by the user.
+   * @param type The [OrganizationType] selected by the user.
    */
-  fun setOrganizationType(type: OrganizationType) = update { it.copy(organizationType = type) }
+  fun toggleOrganizationType(type: OrganizationType) = update {
+    it.copy(organizationType = if (it.organizationType == type) null else type)
+  }
 
   /**
-   * Sets the logo URI.
+   * Sets the organization logo URI.
    *
-   * @param uri The URI of the logo image selected by the user.
+   * @param uri The URI of the selected logo image.
    */
-  fun setLogoUri(uri: Uri?) = update {
-    it.copy(logoUri = uri?.takeIf { uri -> uri.toString().isNotBlank() })
-  }
+  fun setLogoUri(uri: Uri?) = update { it.copy(logoUri = uri) }
 
   /**
    * Sets the organization description.
@@ -144,7 +147,11 @@ class OrganizationSignUpViewModel : ViewModel() {
    *
    * @param domainKey The domain key to toggle.
    */
-  fun toggleDomain(domainKey: String) = update { it.copy(domains = it.domains.toggle(domainKey)) }
+  fun toggleDomain(domainKey: String) = update {
+    val newDomains =
+        if (it.domains.contains(domainKey)) it.domains - domainKey else it.domains + domainKey
+    it.copy(domains = newDomains)
+  }
 
   /**
    * Toggles an age range in the selected target age ranges set.
@@ -152,7 +159,10 @@ class OrganizationSignUpViewModel : ViewModel() {
    * @param ageKey The age range key to toggle.
    */
   fun toggleAgeRange(ageKey: String) = update {
-    it.copy(targetAgeRanges = it.targetAgeRanges.toggle(ageKey))
+    val newRanges =
+        if (it.targetAgeRanges.contains(ageKey)) it.targetAgeRanges - ageKey
+        else it.targetAgeRanges + ageKey
+    it.copy(targetAgeRanges = newRanges)
   }
 
   /**
@@ -187,10 +197,9 @@ class OrganizationSignUpViewModel : ViewModel() {
    * Creates the final [Organization] from the current state. This should be called when the user
    * clicks "Finish" or "Submit".
    *
-   * @param orgId The unique ID generated for this organization (e.g. from Auth or Firestore).
-   * @param currentUserId The ID of the currently logged-in user (the creator).
-   * @param uploadedLogoUrl The download URL of the logo after it has been uploaded to Storage
-   *   (nullable).
+   * @param orgId The unique ID to assign to the new organization.
+   * @param currentUserId The ID of the user creating the organization.
+   * @param uploadedLogoUrl The URL of the uploaded logo image, if any.
    */
   fun createOrganizationModel(
       orgId: String,
@@ -219,21 +228,6 @@ class OrganizationSignUpViewModel : ViewModel() {
         createdAt = Timestamp.now(),
         createdBy = currentUserId)
   }
-
-  private fun <T> Set<T>.toggle(item: T): Set<T> {
-    return if (contains(item)) minus(item) else plus(item)
-  }
-
-  /** Resets the signup state to the initial default values. */
-  fun reset() = update { OrganizationSignUpState() }
-
-  /**
-   * Toggle the selected organization type. If the provided type is already selected, clears it;
-   * otherwise sets it.
-   */
-  fun toggleOrganizationType(type: OrganizationType) = update {
-    it.copy(organizationType = if (it.organizationType == type) null else type)
-  }
 }
 
 private fun OrganizationSignUpStep.next(): OrganizationSignUpStep =
@@ -241,9 +235,9 @@ private fun OrganizationSignUpStep.next(): OrganizationSignUpStep =
       OrganizationSignUpStep.Info -> OrganizationSignUpStep.Logo
       OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Description
       OrganizationSignUpStep.Description -> OrganizationSignUpStep.Socials
-      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Team
-      OrganizationSignUpStep.Team -> OrganizationSignUpStep.ProfileSetup
-      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.ProfileSetup
+      OrganizationSignUpStep.Socials -> OrganizationSignUpStep.ProfileSetup
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Team
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.Team
     }
 
 private fun OrganizationSignUpStep.prev(): OrganizationSignUpStep =
@@ -252,6 +246,6 @@ private fun OrganizationSignUpStep.prev(): OrganizationSignUpStep =
       OrganizationSignUpStep.Logo -> OrganizationSignUpStep.Info
       OrganizationSignUpStep.Description -> OrganizationSignUpStep.Logo
       OrganizationSignUpStep.Socials -> OrganizationSignUpStep.Description
-      OrganizationSignUpStep.Team -> OrganizationSignUpStep.Socials
-      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Team
+      OrganizationSignUpStep.ProfileSetup -> OrganizationSignUpStep.Socials
+      OrganizationSignUpStep.Team -> OrganizationSignUpStep.ProfileSetup
     }

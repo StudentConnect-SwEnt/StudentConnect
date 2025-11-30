@@ -82,6 +82,26 @@ interface EventRepository {
   suspend fun addInvitationToEvent(eventUid: String, invitedUser: String, currentUserId: String)
 
   /**
+   * Returns the list of user IDs invited to the event.
+   *
+   * @param eventUid The unique identifier of the event.
+   */
+  suspend fun getEventInvitations(eventUid: String): List<String>
+
+  /**
+   * Removes an invitation from a given event (owner only).
+   *
+   * @param eventUid The event identifier.
+   * @param invitedUser The user whose invitation should be revoked.
+   * @param currentUserId The UID of the caller (must match owner).
+   */
+  suspend fun removeInvitationFromEvent(
+      eventUid: String,
+      invitedUser: String,
+      currentUserId: String
+  )
+
+  /**
    * Removes a participant from a given event.
    *
    * @param eventUid The unique identifier of the event from which the participant should be

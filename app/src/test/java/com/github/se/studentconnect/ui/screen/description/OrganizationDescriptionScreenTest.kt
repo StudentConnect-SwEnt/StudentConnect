@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationDescriptionContent
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationDescriptionScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert
 import org.junit.Rule
@@ -44,7 +43,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text,
             onAboutChange = { text = it },
             onBackClick = { backClicks++ },
@@ -76,7 +75,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
@@ -91,7 +90,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
@@ -109,7 +108,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
@@ -130,7 +129,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
@@ -182,7 +181,7 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text,
             onAboutChange = {
               text = it
@@ -227,7 +226,7 @@ class OrganizationDescriptionScreenTest {
   fun organizationDescriptionDisplaysProvidedAbout() {
     composeRule.setContent {
       AppTheme {
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = "Existing description",
             onAboutChange = {},
             onBackClick = {},
@@ -242,7 +241,7 @@ class OrganizationDescriptionScreenTest {
   fun organizationDescriptionHonorsModifier() {
     composeRule.setContent {
       AppTheme {
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = "",
             onAboutChange = {},
             onBackClick = {},
@@ -277,7 +276,8 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(about = text, onAboutChange = { text = it })
+        OrganizationDescriptionContent(
+            about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
 
@@ -291,7 +291,8 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("Initial text") }
-        OrganizationDescriptionScreen(about = text, onAboutChange = { text = it })
+        OrganizationDescriptionContent(
+            about = text, onAboutChange = { text = it }, onBackClick = {}, onContinueClick = {})
       }
     }
 
@@ -307,12 +308,14 @@ class OrganizationDescriptionScreenTest {
     composeRule.setContent {
       AppTheme {
         var text by remember { mutableStateOf("") }
-        OrganizationDescriptionScreen(
+        OrganizationDescriptionContent(
             about = text,
             onAboutChange = {
               text = it
               textHistory.add(it)
-            })
+            },
+            onBackClick = {},
+            onContinueClick = {})
       }
     }
 

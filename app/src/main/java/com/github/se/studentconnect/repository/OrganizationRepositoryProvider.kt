@@ -10,5 +10,15 @@ import com.google.firebase.firestore.firestore
  * testing similar to UserRepositoryProvider.
  */
 object OrganizationRepositoryProvider {
-  val repository: OrganizationRepository = OrganizationRepositoryFirestore(Firebase.firestore)
+  private val firestoreRepository: OrganizationRepository by lazy {
+    OrganizationRepositoryFirestore(Firebase.firestore)
+  }
+
+  private var _repository: OrganizationRepository? = null
+
+  var repository: OrganizationRepository
+    get() = _repository ?: firestoreRepository
+    set(value) {
+      _repository = value
+    }
 }

@@ -100,6 +100,22 @@ class EventRepositoryLocal : EventRepository {
     userInvitations.add(newInvitation)
   }
 
+  override suspend fun getEventInvitations(eventUid: String): List<String> {
+    return invitationsByUser
+        .filterValues { invites -> invites.any { it.eventId == eventUid } }
+        .keys
+        .toList()
+  }
+
+  override suspend fun removeInvitationFromEvent(
+      eventUid: String,
+      invitedUser: String,
+      currentUserId: String
+  ) {
+    val userInvitations = invitationsByUser[invitedUser] ?: return
+    userInvitations.removeIf { it.eventId == eventUid }
+  }
+
   override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {
     val participants =
         participantsByEvent[eventUid]

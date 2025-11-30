@@ -8,8 +8,6 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -26,6 +24,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.EventReminderWorker
@@ -47,14 +46,9 @@ import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditActivitiesScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditBioScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditNationalityScreen
-import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
+import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
-import com.github.se.studentconnect.ui.screen.signup.SignUpOrchestrator
+import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
@@ -174,13 +168,48 @@ fun MainContent() {
   LaunchedEffect(Unit) { viewModel.checkInitialAuthState() }
 
   // Render based on app state from ViewModel
-  when (uiState.appState) {
+  AppNavigationOrchestrator(
+      appState = uiState.appState,
+      uiState = uiState,
+      viewModel = viewModel,
+      userRepository = userRepository,
+      navController = navController,
+      selectedTab = selectedTab,
+      onTabSelected = { selectedTab = it },
+      shouldOpenQRScanner = shouldOpenQRScanner,
+      onQRScannerStateChange = { shouldOpenQRScanner = it })
+}
+
+@Composable
+private fun AppNavigationOrchestrator(
+    appState: AppState,
+    uiState: MainUIState,
+    viewModel: MainViewModel,
+    userRepository: UserRepository,
+    navController: NavHostController,
+    selectedTab: Tab,
+    onTabSelected: (Tab) -> Unit,
+    shouldOpenQRScanner: Boolean,
+    onQRScannerStateChange: (Boolean) -> Unit
+) {
+  when (appState) {
     AppState.LOADING -> {
       Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         // Loading screen
       }
     }
     AppState.AUTHENTICATION -> {
+      LaunchedEffect(Unit) {
+        if (Firebase.auth.currentUser != null) {
+          Log.d("MainActivity", "Performing delayed Safe SignOut.")
+          try {
+            Firebase.auth.signOut()
+          } catch (e: Exception) {
+            Log.e("MainActivity", "SignOut error", e)
+          }
+        }
+      }
+
       GetStartedScreen(
           onSignedIn = { uid ->
             val firebaseUser = Firebase.auth.currentUser
@@ -189,14 +218,16 @@ fun MainContent() {
     }
     AppState.ONBOARDING -> {
       if (uiState.currentUserId != null && uiState.currentUserEmail != null) {
-        Log.d("MainActivity", "Showing onboarding for: ${uiState.currentUserId}")
-        SignUpOrchestrator(
-            firebaseUserId = uiState.currentUserId!!,
-            email = uiState.currentUserEmail!!,
+        OnboardingNavigation(
+            firebaseUserId = uiState.currentUserId,
+            email = uiState.currentUserEmail,
             userRepository = userRepository,
-            onSignUpComplete = { user ->
-              Log.d("MainActivity", "Onboarding complete: ${user.userId}")
-              viewModel.onUserProfileCreated()
+            onOnboardingComplete = { isLogout ->
+              if (isLogout) {
+                viewModel.onLogoutComplete()
+              } else {
+                viewModel.onUserProfileCreated()
+              }
             })
       }
     }
@@ -204,9 +235,9 @@ fun MainContent() {
       MainAppContent(
           navController = navController,
           selectedTab = selectedTab,
-          onTabSelected = { selectedTab = it },
+          onTabSelected = onTabSelected,
           shouldOpenQRScanner = shouldOpenQRScanner,
-          onQRScannerStateChange = { shouldOpenQRScanner = it })
+          onQRScannerStateChange = onQRScannerStateChange)
     }
   }
 }

@@ -517,6 +517,9 @@ class EditBirthdayScreenTest {
     override suspend fun declineInvitation(eventId: String, userId: String) =
         delegate.declineInvitation(eventId, userId)
 
+    override suspend fun removeInvitation(eventId: String, userId: String) =
+        delegate.removeInvitation(eventId, userId)
+
     override suspend fun joinEvent(eventId: String, userId: String) =
         delegate.joinEvent(eventId, userId)
 

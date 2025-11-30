@@ -107,9 +107,9 @@ service cloud.firestore {
 
       // Subcollection: invitations
       match /invitations/{userId} {
-        allow get: if request.auth != null &&
-                      (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
-                       request.auth.uid == userId);
+        allow get, list: if request.auth != null &&
+                           (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                            request.auth.uid == userId);
 
         allow create: if request.auth != null &&
                          get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
@@ -117,6 +117,9 @@ service cloud.firestore {
         allow update: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           request.auth.uid == userId);
+
+        allow delete: if request.auth != null &&
+                         get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid;
       }
 
       // Subcollection: polls
@@ -203,7 +206,9 @@ service cloud.firestore {
       match /invitations/{eventId} {
         allow get, list: if request.auth != null && request.auth.uid == userId;
         allow create: if request.auth != null;
-        allow delete, update: if request.auth != null && request.auth.uid == userId;
+        allow delete, update: if request.auth != null &&
+                                 (request.auth.uid == userId ||
+                                  request.auth.uid == resource.data.from);
       }
 
       // Subcollection: favoriteEvents

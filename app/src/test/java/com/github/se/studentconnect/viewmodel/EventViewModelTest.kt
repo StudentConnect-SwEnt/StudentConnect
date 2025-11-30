@@ -1,12 +1,16 @@
 package com.github.se.studentconnect.viewmodel
 
+import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.google.firebase.Timestamp
@@ -17,6 +21,7 @@ import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -26,6 +31,30 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+private class FakeFriendsRepository(val friends: List<String> = emptyList()) : FriendsRepository {
+  override suspend fun getFriends(userId: String): List<String> = friends
+
+  override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
+
+  override suspend fun getSentRequests(userId: String): List<String> = emptyList()
+
+  override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {}
+
+  override suspend fun acceptFriendRequest(userId: String, fromUserId: String) {}
+
+  override suspend fun rejectFriendRequest(userId: String, fromUserId: String) {}
+
+  override suspend fun cancelFriendRequest(userId: String, toUserId: String) {}
+
+  override suspend fun removeFriend(userId: String, friendId: String) {}
+
+  override suspend fun areFriends(userId: String, otherUserId: String): Boolean = false
+
+  override suspend fun hasPendingRequest(fromUserId: String, toUserId: String): Boolean = false
+
+  override fun observeFriendship(userId: String, otherUserId: String) = flow { emit(false) }
+}
+
 @ExperimentalCoroutinesApi
 class EventViewModelTest {
 
@@ -33,6 +62,8 @@ class EventViewModelTest {
   private lateinit var viewModel: EventViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var pollRepository: PollRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepository
 
   private val testEvent =
       Event.Public(
@@ -52,7 +83,9 @@ class EventViewModelTest {
     Dispatchers.setMain(testDispatcher)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
-    viewModel = EventViewModel(eventRepository, userRepository)
+    pollRepository = PollRepositoryLocal()
+    friendsRepository = FakeFriendsRepository()
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     // Force un utilisateur courant non vide pendant les tests
     AuthenticationProvider.testUserId = "test-user-id"
   }
@@ -364,7 +397,8 @@ class EventViewModelTest {
             throw RuntimeException("Network error")
           }
         }
-    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
 
     val userId = "user123"
 
@@ -425,7 +459,8 @@ class EventViewModelTest {
             throw RuntimeException("Connection timeout")
           }
         }
-    val mockViewModel = EventViewModel(errorThrowingRepo, userRepository)
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
 
     val userId = "user123"
 
@@ -625,6 +660,143 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertFalse(uiState.isFull)
+  }
+
+  @Test
+  fun showInviteFriendsDialog_loadsFriendsAndInvites() = runTest {
+    val ownerId = AuthenticationProvider.testUserId!!
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "f1@example.com",
+            username = "f10",
+            firstName = "F1",
+            lastName = "L1",
+            university = "EPFL")
+    val friend2 =
+        User(
+            userId = "friend2",
+            email = "f2@example.com",
+            username = "f20",
+            firstName = "F2",
+            lastName = "L2",
+            university = "EPFL")
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(friend1)
+    localUserRepo.saveUser(friend2)
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val event =
+        Event.Private(
+            uid = "ownedEvent",
+            ownerId = ownerId,
+            title = "Owner Event",
+            description = "d",
+            start = Timestamp.now(),
+            isFlash = false)
+    localEventRepo.addEvent(event)
+    localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
+    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    val state = vm.uiState.value
+    assertTrue(state.showInviteFriendsDialog)
+    assertEquals(2, state.friends.size)
+    assertTrue(state.invitedFriendIds.contains(friend1.userId))
+    assertTrue(state.initialInvitedFriendIds.contains(friend1.userId))
+  }
+
+  @Test
+  fun updateInvitationsForEvent_addsAndRemoves() = runTest {
+    val ownerId = AuthenticationProvider.testUserId!!
+    val friend1 =
+        User(
+            userId = "friendA",
+            email = "fA@example.com",
+            username = "fA0",
+            firstName = "FA",
+            lastName = "LA",
+            university = "EPFL")
+    val friend2 =
+        User(
+            userId = "friendB",
+            email = "fB@example.com",
+            username = "fB0",
+            firstName = "FB",
+            lastName = "LB",
+            university = "EPFL")
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(friend1)
+    localUserRepo.saveUser(friend2)
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val event =
+        Event.Private(
+            uid = "ownedEvent2",
+            ownerId = ownerId,
+            title = "Owner Event 2",
+            description = "d",
+            start = Timestamp.now(),
+            isFlash = false)
+    localEventRepo.addEvent(event)
+    localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
+    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Toggle selection: remove friend1, add friend2
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.toggleFriendInvitation(friend2.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    val invites = localEventRepo.getEventInvitations(event.uid)
+    assertFalse(invites.contains(friend1.userId))
+    assertTrue(invites.contains(friend2.userId))
+    val state = vm.uiState.value
+    assertFalse(state.showInviteFriendsDialog)
+    assertEquals(setOf(friend2.userId), state.invitedFriendIds)
+    assertEquals(setOf(friend2.userId), state.initialInvitedFriendIds)
+  }
+
+  @Test
+  fun hideInviteFriendsDialog_resetsSelectionAndErrors() = runTest {
+    val stateBefore =
+        EventUiState(
+            showInviteFriendsDialog = true,
+            invitedFriendIds = setOf("f1"),
+            initialInvitedFriendIds = setOf("f1"),
+            friendsErrorRes = 1234,
+            isInvitingFriends = true,
+            isLoadingFriends = true)
+
+    // Inject state into view model
+    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
+    // Force state
+    val privateField = EventViewModel::class.java.getDeclaredField("_uiState")
+    privateField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    val stateFlow =
+        privateField.get(viewModel) as kotlinx.coroutines.flow.MutableStateFlow<EventUiState>
+    stateFlow.value = stateBefore
+
+    viewModel.hideInviteFriendsDialog()
+
+    val after = viewModel.uiState.value
+    assertFalse(after.showInviteFriendsDialog)
+    assertTrue(after.invitedFriendIds.isEmpty())
+    assertTrue(after.initialInvitedFriendIds.isEmpty())
+    assertNull(after.friendsErrorRes)
+    assertFalse(after.isInvitingFriends)
   }
 
   @Test
