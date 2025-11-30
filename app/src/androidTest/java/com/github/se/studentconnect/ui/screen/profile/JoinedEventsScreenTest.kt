@@ -377,6 +377,10 @@ class JoinedEventsScreenTest {
 
     override suspend fun declineInvitation(eventId: String, userId: String) = Unit
 
+    override suspend fun removeInvitation(eventId: String, userId: String) {
+      TODO("Not yet implemented")
+    }
+
     override suspend fun joinEvent(eventId: String, userId: String) = Unit
 
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) =
@@ -431,6 +435,14 @@ class JoinedEventsScreenTest {
     ) = Unit
 
     override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
+
+    override suspend fun getEventInvitations(eventUid: String) = emptyList<String>()
+
+    override suspend fun removeInvitationFromEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) = Unit
   }
 
   @Test
