@@ -43,6 +43,7 @@ import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
+import com.github.se.studentconnect.ui.screen.profile.ProfileNavigationCallbacks
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileSettingsScreen
 import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
@@ -347,12 +348,14 @@ internal fun MainAppContent(
             ProfileScreen(
                 currentUserId = currentUserId,
                 userRepository = userRepository,
-                onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
-                onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
-                onNavigateToFriendsList = { userId ->
-                  navController.navigate(ProfileRoutes.friendsList(userId))
-                },
-                onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) })
+                navigationCallbacks =
+                    ProfileNavigationCallbacks(
+                        onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
+                        onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
+                        onNavigateToFriendsList = { userId ->
+                          navController.navigate(ProfileRoutes.friendsList(userId))
+                        },
+                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) }))
           }
 
           // Joined Events Screen

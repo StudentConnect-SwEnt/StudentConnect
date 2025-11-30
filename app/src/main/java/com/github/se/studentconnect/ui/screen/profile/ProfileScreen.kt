@@ -33,14 +33,27 @@ import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import com.google.firebase.firestore.FirebaseFirestore
 
 /**
+ * Navigation callbacks for ProfileScreen
+ *
+ * @param onNavigateToSettings Callback to navigate to settings/edit profile screen
+ * @param onNavigateToUserCard Callback to navigate to user card screen
+ * @param onNavigateToFriendsList Callback to navigate to friends list screen with userId parameter
+ * @param onNavigateToJoinedEvents Callback to navigate to joined events screen
+ */
+data class ProfileNavigationCallbacks(
+    val onNavigateToSettings: (() -> Unit)? = null,
+    val onNavigateToUserCard: (() -> Unit)? = null,
+    val onNavigateToFriendsList: ((String) -> Unit)? = null,
+    val onNavigateToJoinedEvents: (() -> Unit)? = null
+)
+
+/**
  * Profile screen showing user information and stats. Main profile view for the StudentConnect app.
  *
  * @param currentUserId The ID of the current user (default for demo purposes)
  * @param userRepository Repository for user data operations
  * @param viewModel ViewModel for profile screen
- * @param onNavigateToSettings Callback to navigate to settings/edit profile screen
- * @param onNavigateToUserCard Callback to navigate to user card screen
- * @param onNavigateToFriendsList Callback to navigate to friends list screen with userId parameter
+ * @param navigationCallbacks Navigation callbacks grouped in a data class
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -53,10 +66,7 @@ fun ProfileScreen(
           friendsRepository = FriendsRepositoryProvider.repository,
           currentUserId = currentUserId)
     },
-    onNavigateToSettings: (() -> Unit)? = null,
-    onNavigateToUserCard: (() -> Unit)? = null,
-    onNavigateToFriendsList: ((String) -> Unit)? = null,
-    onNavigateToJoinedEvents: (() -> Unit)? = null,
+    navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
     modifier: Modifier = Modifier
 ) {
   val user by viewModel.user.collectAsState()
@@ -105,16 +115,16 @@ fun ProfileScreen(
                   user = currentUser,
                   stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
                   onFriendsClick = {
-                    onNavigateToFriendsList?.invoke(currentUserId)
+                    navigationCallbacks.onNavigateToFriendsList?.invoke(currentUserId)
                         ?: Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
                   },
-                  onEventsClick = { onNavigateToJoinedEvents?.invoke() },
+                  onEventsClick = { navigationCallbacks.onNavigateToJoinedEvents?.invoke() },
                   onEditClick = {
-                    onNavigateToSettings?.invoke()
+                    navigationCallbacks.onNavigateToSettings?.invoke()
                         ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
                   },
                   onUserCardClick = {
-                    onNavigateToUserCard?.invoke()
+                    navigationCallbacks.onNavigateToUserCard?.invoke()
                         ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
                   })
             }

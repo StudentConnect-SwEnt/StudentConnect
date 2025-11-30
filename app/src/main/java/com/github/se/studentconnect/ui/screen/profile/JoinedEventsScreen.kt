@@ -154,7 +154,7 @@ private fun FilterTabs(selectedFilter: EventFilter, onFilterSelected: (EventFilt
   val tabs = mapOf(EventFilter.Past to pastTitle, EventFilter.Upcoming to upcomingTitle)
   val selectedIndex = tabs.keys.indexOf(selectedFilter)
 
-  TabRow(
+  PrimaryTabRow(
       selectedTabIndex = selectedIndex,
       modifier = Modifier.fillMaxWidth().testTag(JoinedEventsScreenTestTags.TAB_ROW)) {
         tabs.forEach { (filter, title) ->
@@ -184,13 +184,8 @@ private fun EventsList(events: List<Event>, onEventClick: (Event) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventCard(event: Event, onClick: () -> Unit) {
-  val isPrivate = event is Event.Private
   val dateFormat = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
   val formattedDate = dateFormat.format(event.start.toDate())
-
-  val eventImageDescription = stringResource(R.string.content_description_event_image)
-  val publicEventDescription = stringResource(R.string.content_description_public_event)
-  val privateEventDescription = stringResource(R.string.content_description_private_event)
 
   Card(
       onClick = onClick,
@@ -210,73 +205,103 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
                                     listOf(
                                         MaterialTheme.colorScheme.primaryContainer,
                                         MaterialTheme.colorScheme.primary)))) {
-              Row(
-                  modifier = Modifier.fillMaxSize().padding(16.dp),
-                  horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Image,
-                        contentDescription = eventImageDescription,
-                        modifier =
-                            Modifier.size(100.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-                        tint = MaterialTheme.colorScheme.onPrimary)
-
-                    Column(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        verticalArrangement = Arrangement.SpaceBetween) {
-                          Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top) {
-                                  Text(
-                                      text = event.title,
-                                      style = MaterialTheme.typography.titleMedium,
-                                      fontWeight = FontWeight.Bold,
-                                      color = MaterialTheme.colorScheme.onPrimary,
-                                      maxLines = 2,
-                                      overflow = TextOverflow.Ellipsis,
-                                      modifier = Modifier.weight(1f))
-
-                                  Icon(
-                                      painter =
-                                          painterResource(
-                                              if (isPrivate) R.drawable.ic_lock
-                                              else R.drawable.ic_web),
-                                      contentDescription =
-                                          if (isPrivate) privateEventDescription
-                                          else publicEventDescription,
-                                      tint = MaterialTheme.colorScheme.onPrimary,
-                                      modifier =
-                                          Modifier.size(24.dp)
-                                              .background(
-                                                  MaterialTheme.colorScheme.onPrimary.copy(
-                                                      alpha = 0.3f),
-                                                  shape = CircleShape)
-                                              .padding(4.dp))
-                                }
-
-                            if (event is Event.Public && event.subtitle.isNotBlank()) {
-                              Spacer(modifier = Modifier.height(4.dp))
-                              Text(
-                                  text = event.subtitle,
-                                  style = MaterialTheme.typography.bodySmall,
-                                  color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                                  maxLines = 1,
-                                  overflow = TextOverflow.Ellipsis)
-                            }
-                          }
-
-                          Text(
-                              text = formattedDate,
-                              style = MaterialTheme.typography.bodySmall,
-                              color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                              fontWeight = FontWeight.Medium)
-                        }
-                  }
+              EventCardContent(event = event, formattedDate = formattedDate)
             }
       }
+}
+
+@Composable
+private fun EventCardContent(event: Event, formattedDate: String) {
+  val eventImageDescription = stringResource(R.string.content_description_event_image)
+
+  Row(
+      modifier = Modifier.fillMaxSize().padding(16.dp),
+      horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Icon(
+            imageVector = Icons.Default.Image,
+            contentDescription = eventImageDescription,
+            modifier =
+                Modifier.size(100.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+            tint = MaterialTheme.colorScheme.onPrimary)
+
+        EventCardDetails(event = event, formattedDate = formattedDate)
+      }
+}
+
+@Composable
+private fun RowScope.EventCardDetails(event: Event, formattedDate: String) {
+  Column(
+      modifier = Modifier.weight(1f).fillMaxHeight(),
+      verticalArrangement = Arrangement.SpaceBetween) {
+        EventCardHeader(event = event)
+        Text(
+            text = formattedDate,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+            fontWeight = FontWeight.Medium)
+      }
+}
+
+@Composable
+private fun EventCardHeader(event: Event) {
+  val isPrivate = event is Event.Private
+  val publicEventDescription = stringResource(R.string.content_description_public_event)
+  val privateEventDescription = stringResource(R.string.content_description_private_event)
+
+  Column {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top) {
+          Text(
+              text = event.title,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onPrimary,
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+              modifier = Modifier.weight(1f))
+
+          EventTypeIcon(
+              isPrivate = isPrivate,
+              publicDescription = publicEventDescription,
+              privateDescription = privateEventDescription)
+        }
+
+    EventSubtitle(event = event)
+  }
+}
+
+@Composable
+private fun EventTypeIcon(
+    isPrivate: Boolean,
+    publicDescription: String,
+    privateDescription: String
+) {
+  Icon(
+      painter = painterResource(if (isPrivate) R.drawable.ic_lock else R.drawable.ic_web),
+      contentDescription = if (isPrivate) privateDescription else publicDescription,
+      tint = MaterialTheme.colorScheme.onPrimary,
+      modifier =
+          Modifier.size(24.dp)
+              .background(
+                  MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f), shape = CircleShape)
+              .padding(4.dp))
+}
+
+@Composable
+private fun EventSubtitle(event: Event) {
+  if (event is Event.Public && event.subtitle.isNotBlank()) {
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(
+        text = event.subtitle,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis)
+  }
 }
 
 // Message shown when there are no events

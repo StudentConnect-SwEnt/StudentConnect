@@ -275,7 +275,6 @@
     <string name="toast_camera_permission_denied">Camera permission denied</string>
     <string name="toast_camera_storage_error">Unable to access camera storage</string>
     <string name="toast_friends_list_coming_soon">Friends list coming soon</string>
-    <string name="toast_event_history_coming_soon">Event history coming soon</string>
     <string name="toast_edit_profile">Edit Profile</string>
     <string name="toast_user_card">User Card</string>
 
