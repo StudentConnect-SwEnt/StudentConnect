@@ -29,36 +29,58 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.exifinterface.media.ExifInterface
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.components.EventSelectionDropdown
+import com.github.se.studentconnect.ui.components.EventSelectionState
 import java.io.IOException
 
 private val ACTION_BUTTON_SIZE = 64.dp
 private val ACTION_ICON_SIZE = 32.dp
 private val ACTIONS_BOTTOM_PADDING = 32.dp
 private val ACTIONS_SPACING = 48.dp
+private val EVENT_SELECTOR_TOP_PADDING = 48.dp
+private val EVENT_SELECTOR_HORIZONTAL_PADDING = 24.dp
 
 /**
  * Screen that displays a preview of captured photo or video with options to accept or retake.
  *
  * @param mediaUri The URI of the captured media
  * @param isVideo Whether the media is a video (true) or photo (false)
- * @param onAccept Callback when user accepts the media
+ * @param onAccept Callback when user accepts the media with selected event
  * @param onRetake Callback when user wants to retake
+ * @param eventSelectionState State for loading joined events
+ * @param onLoadEvents Callback to load user's joined events
  * @param modifier Modifier for the screen
  */
 @Composable
 fun MediaPreviewScreen(
     mediaUri: Uri,
     isVideo: Boolean,
-    onAccept: () -> Unit,
+    onAccept: (Event?) -> Unit,
     onRetake: () -> Unit,
+    eventSelectionState: EventSelectionState = EventSelectionState.Success(emptyList()),
+    onLoadEvents: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+  var selectedEvent by remember { mutableStateOf<Event?>(null) }
+
   Box(modifier = modifier.fillMaxSize().background(Color.Black).testTag("media_preview_screen")) {
     if (isVideo) {
       VideoPreview(videoUri = mediaUri, modifier = Modifier.fillMaxSize())
     } else {
       PhotoPreview(imageUri = mediaUri, modifier = Modifier.fillMaxSize())
     }
+
+    // Event selection dropdown at top
+    EventSelectionDropdown(
+        state = eventSelectionState,
+        selectedEvent = selectedEvent,
+        onEventSelected = { selectedEvent = it },
+        onLoadEvents = onLoadEvents,
+        modifier =
+            Modifier.align(Alignment.TopCenter)
+                .padding(top = EVENT_SELECTOR_TOP_PADDING, start = EVENT_SELECTOR_HORIZONTAL_PADDING, end = EVENT_SELECTOR_HORIZONTAL_PADDING)
+                .testTag("media_preview_event_selector"))
 
     // Action buttons
     Row(
@@ -83,19 +105,22 @@ fun MediaPreviewScreen(
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
 
-          // Accept button
+          // Accept button - disabled until an event is selected
+          val isAcceptEnabled = selectedEvent != null
           IconButton(
-              onClick = onAccept,
+              onClick = { if (isAcceptEnabled) onAccept(selectedEvent) },
+              enabled = isAcceptEnabled,
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          Color(0xFF4CAF50).copy(alpha = 0.8f),
+                          if (isAcceptEnabled) Color(0xFF4CAF50).copy(alpha = 0.8f)
+                          else Color.Gray.copy(alpha = 0.4f),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_accept")) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.content_description_accept),
-                    tint = Color.White,
+                    tint = if (isAcceptEnabled) Color.White else Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
         }
@@ -234,4 +259,109 @@ private fun VideoPreview(videoUri: Uri, modifier: Modifier = Modifier) {
         }
       },
       modifier = modifier.testTag("video_preview"))
+}
+
+// ============================================================================
+// PREVIEWS
+// ============================================================================
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Media Preview - No Event Selected")
+@Composable
+private fun MediaPreviewNoEventPreview() {
+    val mockEvents = listOf(
+        Event.Public(
+            uid = "1",
+            ownerId = "u1",
+            title = "Tech Meetup 2024",
+            description = "A great tech meetup",
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Join developers"
+        ),
+        Event.Public(
+            uid = "2",
+            ownerId = "u2",
+            title = "Music Festival",
+            description = "Live music all night",
+            start = com.google.firebase.Timestamp.now(),
+            isFlash = false,
+            subtitle = "Best bands"
+        )
+    )
+    com.github.se.studentconnect.ui.theme.AppTheme {
+        Box(Modifier.fillMaxSize().background(Color.DarkGray)) {
+            EventSelectionDropdown(
+                state = EventSelectionState.Success(mockEvents),
+                selectedEvent = null,
+                onEventSelected = {},
+                onLoadEvents = {},
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = EVENT_SELECTOR_TOP_PADDING, start = EVENT_SELECTOR_HORIZONTAL_PADDING, end = EVENT_SELECTOR_HORIZONTAL_PADDING)
+            )
+            Row(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = ACTIONS_BOTTOM_PADDING),
+                horizontalArrangement = Arrangement.spacedBy(ACTIONS_SPACING)
+            ) {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.size(ACTION_BUTTON_SIZE).background(Color.White.copy(alpha = 0.2f), androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(Icons.Default.Close, null, Modifier.size(ACTION_ICON_SIZE), Color.White)
+                }
+                IconButton(
+                    onClick = {},
+                    enabled = false,
+                    modifier = Modifier.size(ACTION_BUTTON_SIZE).background(Color.Gray.copy(alpha = 0.4f), androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(Icons.Default.Check, null, Modifier.size(ACTION_ICON_SIZE), Color.White.copy(alpha = 0.5f))
+                }
+            }
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Media Preview - Event Selected")
+@Composable
+private fun MediaPreviewWithEventPreview() {
+    val mockEvent = Event.Public(
+        uid = "1",
+        ownerId = "u1",
+        title = "Tech Meetup 2024",
+        description = "A great tech meetup",
+        start = com.google.firebase.Timestamp.now(),
+        isFlash = false,
+        subtitle = "Join developers"
+    )
+    com.github.se.studentconnect.ui.theme.AppTheme {
+        Box(Modifier.fillMaxSize().background(Color.DarkGray)) {
+            EventSelectionDropdown(
+                state = EventSelectionState.Success(listOf(mockEvent)),
+                selectedEvent = mockEvent,
+                onEventSelected = {},
+                onLoadEvents = {},
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = EVENT_SELECTOR_TOP_PADDING, start = EVENT_SELECTOR_HORIZONTAL_PADDING, end = EVENT_SELECTOR_HORIZONTAL_PADDING)
+            )
+            Row(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = ACTIONS_BOTTOM_PADDING),
+                horizontalArrangement = Arrangement.spacedBy(ACTIONS_SPACING)
+            ) {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.size(ACTION_BUTTON_SIZE).background(Color.White.copy(alpha = 0.2f), androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(Icons.Default.Close, null, Modifier.size(ACTION_ICON_SIZE), Color.White)
+                }
+                IconButton(
+                    onClick = {},
+                    enabled = true,
+                    modifier = Modifier.size(ACTION_BUTTON_SIZE).background(Color(0xFF4CAF50).copy(alpha = 0.8f), androidx.compose.foundation.shape.CircleShape)
+                ) {
+                    Icon(Icons.Default.Check, null, Modifier.size(ACTION_ICON_SIZE), Color.White)
+                }
+            }
+        }
+    }
 }

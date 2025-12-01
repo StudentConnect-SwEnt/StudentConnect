@@ -25,12 +25,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.camera.CameraView
+import com.github.se.studentconnect.ui.components.EventSelectionState
 
-/** Minimal story capture preview that toggles between live camera and inactive placeholder. */
+/**
+ * Minimal story capture preview that toggles between live camera and inactive placeholder.
+ *
+ * @param onBackClick Callback when user wants to go back
+ * @param onStoryAccepted Callback when user accepts the media with selected event
+ * @param eventSelectionState State for loading joined events
+ * @param onLoadEvents Callback to load user's joined events
+ * @param modifier Modifier for the screen
+ * @param isActive Whether the camera is active
+ * @param onPreviewStateChanged Callback when preview state changes
+ */
 @Composable
 fun StoryCaptureScreen(
     onBackClick: () -> Unit,
+    onStoryAccepted: (Uri, Boolean, Event?) -> Unit = { _, _, _ -> },
+    eventSelectionState: EventSelectionState = EventSelectionState.Success(emptyList()),
+    onLoadEvents: () -> Unit = {},
     modifier: Modifier = Modifier,
     isActive: Boolean = true,
     onPreviewStateChanged: (Boolean) -> Unit = {}
@@ -48,9 +63,9 @@ fun StoryCaptureScreen(
       MediaPreviewScreen(
           mediaUri = capturedMediaUri!!,
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
-          onAccept = {
-            // Handle accept - you can implement story upload here
-            Log.d("StoryCaptureScreen", "Media accepted: $capturedMediaUri")
+          onAccept = { selectedEvent ->
+            Log.d("StoryCaptureScreen", "Media accepted: $capturedMediaUri, event: ${selectedEvent?.title}")
+            onStoryAccepted(capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
             showPreview = false
             capturedMediaUri = null
           },
@@ -58,7 +73,9 @@ fun StoryCaptureScreen(
             // Go back to camera
             showPreview = false
             capturedMediaUri = null
-          })
+          },
+          eventSelectionState = eventSelectionState,
+          onLoadEvents = onLoadEvents)
     } else if (isActive) {
       // Show camera view
       CameraView(
