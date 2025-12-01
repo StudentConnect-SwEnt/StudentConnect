@@ -6,6 +6,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.repository.LocationRepository
 import com.github.se.studentconnect.repository.LocationResult
+import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.github.se.studentconnect.ui.screen.home.HomeTabMode
@@ -37,6 +38,7 @@ class HomePageViewModelScoringTest {
   private lateinit var viewModel: HomePageViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var mockOrganizationRepository: OrganizationRepository
   private lateinit var mockContext: Context
   private lateinit var mockLocationRepository: LocationRepository
 
@@ -86,6 +88,7 @@ class HomePageViewModelScoringTest {
     Dispatchers.setMain(testDispatcher)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    mockOrganizationRepository = mock(OrganizationRepository::class.java)
     mockContext = mock(Context::class.java)
     mockLocationRepository = mock(LocationRepository::class.java)
   }
@@ -136,7 +139,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -155,7 +163,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -198,7 +211,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -223,7 +241,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -247,7 +270,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -267,7 +295,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -327,7 +360,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.FOR_YOU)
     advanceUntilIdle()
@@ -385,7 +423,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.DISCOVER)
     advanceUntilIdle()
@@ -419,7 +462,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.EVENTS)
     advanceUntilIdle()
@@ -464,7 +512,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.FOR_YOU)
     advanceUntilIdle()
@@ -523,7 +576,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.FOR_YOU)
     advanceUntilIdle()
@@ -561,7 +619,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -595,7 +658,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -627,7 +695,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -660,7 +733,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -707,7 +785,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
     viewModel.selectTab(HomeTabMode.FOR_YOU)
     advanceUntilIdle()
@@ -768,7 +851,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -808,7 +896,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -859,7 +952,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val eventsOnDate = viewModel.getEventsForDate(targetDate)
@@ -896,7 +994,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val eventsOnDate = viewModel.getEventsForDate(targetDate)
@@ -946,7 +1049,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val filterData =
@@ -1004,7 +1112,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val filterData =
@@ -1060,7 +1173,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val filterData =
@@ -1102,7 +1220,12 @@ class HomePageViewModelScoringTest {
 
     // Act
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     val filterData =
@@ -1127,7 +1250,12 @@ class HomePageViewModelScoringTest {
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, mockContext, mockLocationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            mockOrganizationRepository,
+            mockContext,
+            mockLocationRepository)
     advanceUntilIdle()
 
     // Add data after initialization
