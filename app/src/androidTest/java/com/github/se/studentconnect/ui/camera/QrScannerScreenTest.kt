@@ -141,6 +141,141 @@ class QrScannerScreenTest {
 
     composeTestRule.runOnIdle { assertEquals(listOf("user-999"), detectedIds) }
   }
+
+  @Test
+  fun qrScannerScreen_showsStoryModeUi_whenEnabled() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            isActive = true,
+            showStoryModeUi = true,
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_story_controls).assertIsDisplayed()
+  }
+
+  @Test
+  fun qrScannerScreen_hidesInstructions_whenStoryModeEnabled() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            isActive = true,
+            showStoryModeUi = true,
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_instructions).assertDoesNotExist()
+  }
+
+  @Test
+  fun qrScannerScreen_showsFocusFrame() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_focus).assertIsDisplayed()
+  }
+
+  @Test
+  fun qrScannerScreen_showsErrorMessage() {
+    val factory = TestAnalyzerFactory()
+
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) },
+            analyzerProvider = factory)
+      }
+    }
+
+    composeTestRule.runOnIdle { factory.signalError(Throwable("Test error message")) }
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_error).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Test error message").assertIsDisplayed()
+  }
+
+  @Test
+  fun qrScannerScreen_errorMessageCleared_afterNewDetection() {
+    val factory = TestAnalyzerFactory()
+
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) },
+            analyzerProvider = factory)
+      }
+    }
+
+    composeTestRule.runOnIdle { factory.signalError(Throwable("Error")) }
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_error).assertIsDisplayed()
+
+    composeTestRule.runOnIdle { factory.triggerDetection("user-123") }
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_error).assertDoesNotExist()
+  }
+
+  @Test
+  fun storyModeControls_photoMode_showsPhotoText() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            isActive = true,
+            showStoryModeUi = true,
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithText("Tap the button to take a photo").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyModeSelector_showsPhotoAndVideoOptions() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            isActive = true,
+            showStoryModeUi = true,
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithText("PHOTO").assertIsDisplayed()
+    composeTestRule.onNodeWithText("VIDEO").assertIsDisplayed()
+  }
+
+  @Test
+  fun captureButtonPreview_visible_whenStoryModeEnabled() {
+    composeTestRule.setContent {
+      AppTheme {
+        QrScannerScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            isActive = true,
+            showStoryModeUi = true,
+            cameraContent = { Box(Modifier.fillMaxSize().testTag("camera_stub")) })
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.qr_scanner_story_capture_button).assertIsDisplayed()
+  }
 }
 
 private class TestAnalyzerFactory : AnalyzerProvider {

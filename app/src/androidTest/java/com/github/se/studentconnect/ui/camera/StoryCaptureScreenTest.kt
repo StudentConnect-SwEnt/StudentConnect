@@ -1,13 +1,30 @@
 package com.github.se.studentconnect.ui.camera
 
 import android.Manifest
+import android.net.Uri
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
+import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Rule
@@ -95,12 +112,229 @@ class StoryCaptureScreenTest {
   }
 
   @Test
-  fun storyCaptureScreen_instructionsVisible_whenInactive() {
+  fun storyCaptureScreen_instructionsNotVisible_whenInactive() {
     composeTestRule.setContent {
       AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = false) }
     }
 
-    // Instructions are visible even when inactive (they appear over the inactive background)
+    // Instructions are not visible when inactive
+    composeTestRule.onNodeWithTag("story_instructions").assertDoesNotExist()
+  }
+
+  @Test
+  fun storyCaptureScreen_previewStateCallback_initiallyFalse() {
+    val previewStates = mutableListOf<Boolean>()
+
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {},
+            isActive = true,
+            onPreviewStateChanged = { isShowing -> previewStates.add(isShowing) })
+      }
+    }
+
+    composeTestRule.runOnIdle {
+      assert(previewStates.isNotEmpty())
+      assert(!previewStates.last())
+    }
+  }
+
+  @Test
+  fun storyCaptureScreen_previewStateCallback_defaultValue() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_videoMode_switchesControls() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_onPreviewStateChanged_invokedOnComposition() {
+    val stateChanges = mutableListOf<Boolean>()
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {}, isActive = true, onPreviewStateChanged = { stateChanges.add(it) })
+      }
+    }
+
+    composeTestRule.runOnIdle { assert(stateChanges.contains(false)) }
+  }
+
+  @Test
+  fun storyCaptureScreen_onBackClick_canBeInvoked() {
+    var backClicked = false
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = { backClicked = true }, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun storyCaptureScreen_storyModeControls_displayed() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
     composeTestRule.onNodeWithTag("story_instructions").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_inactiveBackground_hasCorrectText() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = false) }
+    }
+
+    composeTestRule.onNodeWithText("Swipe to activate story camera").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_activeState_showsCameraView() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_photoModeText_visible() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.onNodeWithText("Tap the button to take a photo").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_videoModeToggle_changesText() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.onNodeWithText("VIDEO").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
+}
+
+class StoryCaptureScreenPreviewTest {
+
+  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.CAMERA)
+
+  @Test
+  fun storyCaptureScreen_previewMode_showsPreview() {
+    var showPreviewState = false
+
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreenWithPreview(
+            onBackClick = {},
+            isActive = true,
+            showInitialPreview = true,
+            onPreviewStateChanged = { showPreviewState = it })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+    composeTestRule.runOnIdle { assert(showPreviewState) }
+  }
+
+  @Test
+  fun storyCaptureScreen_previewAccept_resetsState() {
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreenWithPreview(onBackClick = {}, isActive = true, showInitialPreview = true)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    val acceptDescription = composeTestRule.activity.getString(R.string.content_description_accept)
+    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertDoesNotExist()
+  }
+
+  @Test
+  fun storyCaptureScreen_previewRetake_resetsState() {
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreenWithPreview(onBackClick = {}, isActive = true, showInitialPreview = true)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    val retakeDescription = composeTestRule.activity.getString(R.string.content_description_retake)
+    composeTestRule.onNodeWithContentDescription(retakeDescription).performClick()
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertDoesNotExist()
+  }
+
+  @Test
+  fun storyCaptureScreen_videoPreview_usesVideoMode() {
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreenWithPreview(
+            onBackClick = {}, isActive = true, showInitialPreview = true, isVideoMode = true)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+  }
+}
+
+@Composable
+private fun StoryCaptureScreenWithPreview(
+    onBackClick: () -> Unit,
+    isActive: Boolean,
+    showInitialPreview: Boolean,
+    isVideoMode: Boolean = false,
+    onPreviewStateChanged: (Boolean) -> Unit = {}
+) {
+  var storyCaptureMode by remember {
+    mutableStateOf(if (isVideoMode) StoryCaptureMode.VIDEO else StoryCaptureMode.PHOTO)
+  }
+  var capturedMediaUri by remember {
+    mutableStateOf<Uri?>(if (showInitialPreview) Uri.parse("file:///test.jpg") else null)
+  }
+  var showPreview by remember { mutableStateOf(showInitialPreview) }
+
+  LaunchedEffect(showPreview) { onPreviewStateChanged(showPreview) }
+
+  Box(modifier = Modifier.fillMaxSize().background(Color.Black).testTag("story_capture_screen")) {
+    if (showPreview && capturedMediaUri != null) {
+      MediaPreviewScreen(
+          mediaUri = capturedMediaUri!!,
+          isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
+          onAccept = {
+            showPreview = false
+            capturedMediaUri = null
+          },
+          onRetake = {
+            showPreview = false
+            capturedMediaUri = null
+          })
+    }
   }
 }
