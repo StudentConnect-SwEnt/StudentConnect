@@ -33,4 +33,16 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
     val docRef = db.collection(COLLECTION_NAME).document()
     return docRef.id
   }
+
+  override suspend fun getAllOrganizations(): List<Organization> {
+    return try {
+      val snapshot = db.collection(COLLECTION_NAME).get().await()
+      snapshot.documents.mapNotNull { document ->
+        Organization.fromMap(document.data ?: emptyMap())
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("OrganizationRepo", "Failed to get all organizations", e)
+      emptyList()
+    }
+  }
 }

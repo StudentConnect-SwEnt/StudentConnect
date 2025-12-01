@@ -27,7 +27,7 @@ class OrganizationRepositoryLocal : OrganizationRepository {
     return UUID.randomUUID().toString()
   }
 
-  suspend fun getAllOrganizations(): List<Organization> {
+  override suspend fun getAllOrganizations(): List<Organization> {
     return organizations.toList()
   }
 }
