@@ -103,7 +103,9 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.setContent {
       ProfileScreen(
-          currentUserId = testUser.userId, viewModel = viewModel, onNavigateToSettings = {})
+          currentUserId = testUser.userId,
+          viewModel = viewModel,
+          navigationCallbacks = ProfileNavigationCallbacks(onNavigateToSettings = {}))
     }
 
     composeTestRule.waitForIdle()
@@ -120,7 +122,9 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.setContent {
       ProfileScreen(
-          currentUserId = testUser.userId, viewModel = viewModel, onNavigateToUserCard = {})
+          currentUserId = testUser.userId,
+          viewModel = viewModel,
+          navigationCallbacks = ProfileNavigationCallbacks(onNavigateToUserCard = {}))
     }
 
     composeTestRule.waitForIdle()
@@ -141,7 +145,9 @@ class ProfileScreenAndroidTest {
       ProfileScreen(
           currentUserId = testUser.userId,
           viewModel = viewModel,
-          onNavigateToSettings = { navigateToSettingsCalled = true })
+          navigationCallbacks =
+              ProfileNavigationCallbacks(
+                  onNavigateToSettings = { navigateToSettingsCalled = true }))
     }
 
     composeTestRule.waitForIdle()
@@ -164,7 +170,9 @@ class ProfileScreenAndroidTest {
       ProfileScreen(
           currentUserId = testUser.userId,
           viewModel = viewModel,
-          onNavigateToUserCard = { navigateToUserCardCalled = true })
+          navigationCallbacks =
+              ProfileNavigationCallbacks(
+                  onNavigateToUserCard = { navigateToUserCardCalled = true }))
     }
 
     composeTestRule.waitForIdle()

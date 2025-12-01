@@ -19,6 +19,7 @@ object Route {
   const val SEARCH = "search"
 
   const val VISITOR_PROFILE = "visitorProfile/{userId}"
+  const val JOINED_EVENTS = "joinedEvents"
   const val ORGANIZATION_PROFILE = "organizationProfile/{organizationId}"
 
   const val USER_ID_ARG = "userId"
@@ -78,6 +79,8 @@ sealed class Screen(
       Screen(route = Route.ACTIVITIES, name = "Activities", isTopLevelDestination = true)
 
   object Profile : Screen(route = Route.PROFILE, name = "Profile", isTopLevelDestination = true)
+
+  object JoinedEvents : Screen(route = Route.JOINED_EVENTS, name = "Joined Events")
 
   object CreatePublicEvent :
       Screen(route = Route.CREATE_PUBLIC_EVENT, name = "Create Public Event")
