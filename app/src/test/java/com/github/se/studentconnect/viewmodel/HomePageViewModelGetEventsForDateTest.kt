@@ -35,7 +35,8 @@ class HomePageViewModelGetEventsForDateTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
   }
 
   @After

@@ -75,7 +75,8 @@ class HomePageViewModelTest {
 
   @Test
   fun initialState_isLoadingTrue() = runTest {
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
 
     val uiState = viewModel.uiState.value
     // Initially, the view model loads events, so isLoading might be true or false depending on
@@ -91,7 +92,8 @@ class HomePageViewModelTest {
     eventRepository.addEvent(testEvent2)
 
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -105,7 +107,8 @@ class HomePageViewModelTest {
   @Test
   fun loadAllEvents_withNoEvents_returnsEmptyList() = runTest {
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -117,7 +120,8 @@ class HomePageViewModelTest {
   @Test
   fun refresh_reloadsEvents() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     var uiState = viewModel.uiState.value
@@ -143,7 +147,8 @@ class HomePageViewModelTest {
     eventRepository.addEvent(testEvent1)
 
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
 
     // Check loading state during initialization
     val initialState = viewModel.uiState.value
@@ -162,7 +167,8 @@ class HomePageViewModelTest {
     eventRepository.addEvent(testEvent1)
 
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert - verify the state flow has been updated correctly
@@ -174,7 +180,8 @@ class HomePageViewModelTest {
   @Test
   fun refresh_setsLoadingState() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act
@@ -203,7 +210,8 @@ class HomePageViewModelTest {
     eventRepository.addEvent(event3)
 
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -221,7 +229,8 @@ class HomePageViewModelTest {
     eventRepository.addEvent(testEvent2)
 
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert - should only load visible events (Public events in this case)
@@ -233,7 +242,8 @@ class HomePageViewModelTest {
   @Test
   fun refresh_multipleTimesInSequence_worksCorrectly() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - first refresh
@@ -257,7 +267,8 @@ class HomePageViewModelTest {
   @Test
   fun viewModel_handlesEmptyRepository() = runTest {
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -271,7 +282,8 @@ class HomePageViewModelTest {
     // Arrange
     eventRepository.addEvent(testEvent1)
     eventRepository.addEvent(testEvent2)
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // The viewModel loads stories automatically in init
@@ -298,7 +310,8 @@ class HomePageViewModelTest {
   @Test
   fun getAvailableFilters_returnsFilterOptions() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act
@@ -311,7 +324,8 @@ class HomePageViewModelTest {
   @Test
   fun selectTab_updatesSelectedTab_toForYou() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act
@@ -326,7 +340,8 @@ class HomePageViewModelTest {
   @Test
   fun selectTab_updatesSelectedTab_toEvents() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act
@@ -341,7 +356,8 @@ class HomePageViewModelTest {
   @Test
   fun selectTab_updatesSelectedTab_toDiscover() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act
@@ -356,7 +372,8 @@ class HomePageViewModelTest {
   @Test
   fun selectTab_switchesBetweenTabs() = runTest {
     // Arrange
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - switch from default (FOR_YOU) to EVENTS
@@ -381,7 +398,8 @@ class HomePageViewModelTest {
   @Test
   fun initialState_hasDefaultTabForYou() = runTest {
     // Act
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Assert
@@ -393,7 +411,8 @@ class HomePageViewModelTest {
   fun selectTab_doesNotAffectOtherUiState() = runTest {
     // Arrange
     eventRepository.addEvent(testEvent1)
-    viewModel = HomePageViewModel(eventRepository, userRepository, organizationRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     val initialState = viewModel.uiState.value
