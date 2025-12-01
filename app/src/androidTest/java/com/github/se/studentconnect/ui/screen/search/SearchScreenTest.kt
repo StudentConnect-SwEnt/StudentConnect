@@ -11,6 +11,10 @@ import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
+import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -76,6 +80,27 @@ class SearchScreenTest {
     }
   }
 
+  private suspend fun initOrganizationRepository() {
+    OrganizationRepositoryProvider.repository = OrganizationRepositoryLocal()
+
+    for (i in 1..10) {
+      val id = "org$i"
+      val name = "Organization $i"
+      val type = OrganizationType.Association
+      val createdBy = "user1"
+      val description = "Description for organization $i"
+
+      OrganizationRepositoryProvider.repository.saveOrganization(
+          Organization(
+              id = id,
+              name = name,
+              type = type,
+              description = description,
+              createdBy = createdBy,
+          ))
+    }
+  }
+
   @Composable
   private fun TestSearchScreen() {
     SearchScreen()
@@ -85,6 +110,7 @@ class SearchScreenTest {
   fun setup() = runTest {
     initUserRepository()
     initEventRepository()
+    initOrganizationRepository()
     composeTestRule.setContent { AppTheme { TestSearchScreen() } }
     composeTestRule.waitForIdle() // wait for first composition
   }
@@ -97,7 +123,7 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
 
-    // Wait until users/events have been loaded and UI updated
+    // Wait until users/events/organisations have been loaded and UI updated
     composeTestRule.waitUntil(timeoutMillis = 5_000) {
       composeTestRule
           .onAllNodesWithTag(C.Tag.user_search_result)
@@ -106,11 +132,17 @@ class SearchScreenTest {
           composeTestRule
               .onAllNodesWithTag(C.Tag.event_search_result)
               .fetchSemanticsNodes()
+              .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.organisation_search_result)
+              .fetchSemanticsNodes()
               .isNotEmpty()
     }
 
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsDisplayed()
   }
@@ -129,6 +161,8 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
   }
@@ -150,6 +184,8 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsDisplayed()
   }
@@ -171,6 +207,8 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsDisplayed()
   }
@@ -188,6 +226,31 @@ class SearchScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun testSearchOrganisationDisplayed() {
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).performTextInput("organization")
+    composeTestRule.waitForIdle()
+
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.organisation_search_result)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.search_screen).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.back_button).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.search_input_field).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.user_search_result).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.user_search_result_title).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.organisation_search_result_title).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result).assertIsNotDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_search_result_title).assertIsNotDisplayed()
   }

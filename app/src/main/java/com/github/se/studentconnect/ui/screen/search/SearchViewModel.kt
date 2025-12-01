@@ -59,8 +59,10 @@ class SearchViewModel(
 
   private suspend fun getAllOrganizations(): List<Organization> {
     return try {
-      // Try to get all organizations if the repository supports it (like OrganizationRepositoryLocal)
-      if (organizationRepository is com.github.se.studentconnect.repository.OrganizationRepositoryLocal) {
+      // Try to get all organizations if the repository supports it (like
+      // OrganizationRepositoryLocal)
+      if (organizationRepository
+          is com.github.se.studentconnect.repository.OrganizationRepositoryLocal) {
         organizationRepository.getAllOrganizations()
       } else {
         emptyList()

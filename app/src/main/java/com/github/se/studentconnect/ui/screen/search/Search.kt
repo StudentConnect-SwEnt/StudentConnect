@@ -26,7 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -72,20 +71,12 @@ fun SearchScreen(
     viewModel: SearchViewModel = viewModel(),
 ) {
   Scaffold(
-      modifier =
-          modifier
-              .fillMaxSize()
-              .background(BackgroundColor)
-              .testTag(C.Tag.search_screen),
+      modifier = modifier.fillMaxSize().background(BackgroundColor).testTag(C.Tag.search_screen),
       containerColor = BackgroundColor,
       topBar = { SearchTopBar(viewModel, navController) },
   ) { innerPadding ->
     LazyColumn(
-        modifier =
-            modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(BackgroundColor),
+        modifier = modifier.padding(innerPadding).fillMaxSize().background(BackgroundColor),
         verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
       item {
@@ -208,9 +199,9 @@ private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostCont
 private fun PersonCard(user: User, navController: NavHostController) {
   Card(
       modifier =
-          Modifier.width(160.dp)
-              .height(200.dp)
-              .clickable { navController.navigate(Route.visitorProfile(user.userId)) },
+          Modifier.width(160.dp).height(200.dp).clickable {
+            navController.navigate(Route.visitorProfile(user.userId))
+          },
       shape = RoundedCornerShape(24.dp),
       colors = CardDefaults.cardColors(containerColor = CardColor),
       elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -249,8 +240,7 @@ private fun OrganizationsSection(viewModel: SearchViewModel) {
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = TextColorPrimary,
-        modifier =
-            Modifier.padding(bottom = 16.dp).testTag(C.Tag.organisation_search_result_title),
+        modifier = Modifier.padding(bottom = 16.dp).testTag(C.Tag.organisation_search_result_title),
     )
     LazyRow(
         modifier = Modifier.testTag(C.Tag.organisation_search_result),
@@ -354,10 +344,7 @@ private fun PlaceholderShapes() {
   ) {
     // Triangle-like blob
     Box(
-        modifier =
-            Modifier.size(24.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(PlaceholderColor),
+        modifier = Modifier.size(24.dp).clip(RoundedCornerShape(8.dp)).background(PlaceholderColor),
     )
     // Starburst (represented as circle with different shape)
     Box(modifier = Modifier.size(28.dp).clip(CircleShape).background(PlaceholderColor))
