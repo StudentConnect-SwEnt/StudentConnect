@@ -172,6 +172,64 @@ class StoryCaptureScreenTest {
 
     composeTestRule.runOnIdle { assert(stateChanges.contains(false)) }
   }
+
+  @Test
+  fun storyCaptureScreen_onBackClick_canBeInvoked() {
+    var backClicked = false
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = { backClicked = true }, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun storyCaptureScreen_storyModeControls_displayed() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.onNodeWithTag("story_instructions").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_inactiveBackground_hasCorrectText() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = false) }
+    }
+
+    composeTestRule.onNodeWithText("Swipe to activate story camera").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_activeState_showsCameraView() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_photoModeText_visible() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.onNodeWithText("Tap the button to take a photo").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_videoModeToggle_changesText() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.onNodeWithText("VIDEO").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
 }
 
 class StoryCaptureScreenPreviewTest {

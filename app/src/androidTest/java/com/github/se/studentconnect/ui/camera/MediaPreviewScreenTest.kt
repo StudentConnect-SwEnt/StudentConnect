@@ -127,4 +127,61 @@ class MediaPreviewScreenTest {
 
     composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
   }
+
+  @Test
+  fun photoPreview_handlesInvalidUri() {
+    val invalidUri = Uri.parse("file:///nonexistent.jpg")
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(mediaUri = invalidUri, isVideo = false, onAccept = {}, onRetake = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("media_preview_actions").assertIsDisplayed()
+  }
+
+  @Test
+  fun videoPreview_handlesInvalidUri() {
+    val invalidUri = Uri.parse("file:///nonexistent.mp4")
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(mediaUri = invalidUri, isVideo = true, onAccept = {}, onRetake = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+  }
+
+  @Test
+  fun photoPreview_displaysWithValidBitmap() {
+    val bitmap =
+        android.graphics.Bitmap.createBitmap(100, 100, android.graphics.Bitmap.Config.ARGB_8888)
+    val tempFile = File(context.cacheDir, "valid_photo.jpg")
+    tempFile.outputStream().use { out ->
+      bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, out)
+    }
+    val validUri = Uri.fromFile(tempFile)
+
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(mediaUri = validUri, isVideo = false, onAccept = {}, onRetake = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+    tempFile.delete()
+  }
+
+  @Test
+  fun videoPreview_rendersVideoTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(mediaUri = testImageUri, isVideo = true, onAccept = {}, onRetake = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+  }
 }
