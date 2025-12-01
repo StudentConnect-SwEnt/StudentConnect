@@ -42,15 +42,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
-import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -279,42 +275,3 @@ private fun EventCard(
     }
 }
 
-// ============================================================================
-// PREVIEW
-// ============================================================================
-
-@Preview(showBackground = true)
-@Composable
-private fun EventSelectionPreview() {
-    val mockEvents = listOf(
-        Event.Public(
-            uid = "1",
-            ownerId = "u1",
-            title = "Tech Meetup",
-            description = "A great tech meetup",
-            start = Timestamp.now(),
-            isFlash = false,
-            subtitle = "Join developers"
-        ),
-        Event.Public(
-            uid = "2",
-            ownerId = "u2",
-            title = "Music Night",
-            description = "Live music",
-            location = Location(0.0, 0.0, "Geneva"),
-            start = Timestamp.now(),
-            isFlash = false,
-            subtitle = "Best bands"
-        )
-    )
-    AppTheme {
-        var selected by remember { mutableStateOf<Event?>(null) }
-        EventSelectionDropdown(
-            state = EventSelectionState.Success(mockEvents),
-            selectedEvent = selected,
-            onEventSelected = { selected = it },
-            onLoadEvents = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
