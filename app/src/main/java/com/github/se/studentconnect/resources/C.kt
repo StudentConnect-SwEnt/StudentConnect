@@ -125,5 +125,16 @@ object C {
     const val org_suggestions_card_image = "organization_card_image"
     const val org_suggestions_card_title = "organization_card_title"
     const val org_suggestions_card_subtitle = "organization_card_subtitle"
+
+    // Event selection dropdown test tags
+    const val event_selection_button = "event_selection_button"
+    const val event_selection_dropdown = "event_selection_dropdown"
+    const val event_selection_title = "event_selection_title"
+    const val event_selection_close = "event_selection_close"
+    const val event_selection_list = "event_selection_list"
+    const val event_selection_empty = "event_selection_empty"
+    const val event_selection_loading = "event_selection_loading"
+    const val event_selection_error = "event_selection_error"
+    const val event_selection_card_prefix = "event_selection_card"
   }
 }
