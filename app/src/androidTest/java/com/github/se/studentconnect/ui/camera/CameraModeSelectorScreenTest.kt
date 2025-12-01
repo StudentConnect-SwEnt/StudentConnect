@@ -31,7 +31,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -50,7 +49,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = { backClicks++ },
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -67,7 +65,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -86,7 +83,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.STORY)
       }
     }
@@ -103,7 +99,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -126,7 +121,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.STORY)
       }
     }
@@ -153,7 +147,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = initialMode.value)
       }
     }
@@ -181,7 +174,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = { userId -> detectedUserIds.add(userId) },
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -193,23 +185,19 @@ class CameraModeSelectorScreenTest {
   }
 
   @Test
-  fun cameraModeSelectorScreen_onStoryCapture_invokesCallback() {
-    val capturedImages = mutableListOf<ByteArray>()
-
+  fun cameraModeSelectorScreen_storyMode_displaysCorrectly() {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = { bytes -> capturedImages.add(bytes) },
             initialMode = CameraMode.STORY)
       }
     }
 
-    // This test verifies the callback is passed through to StoryCaptureScreen
-    // Actual capture functionality will be tested when implemented
+    // This test verifies story mode displays correctly
     composeTestRule.waitForIdle()
-    assertTrue(capturedImages.isEmpty())
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
 
   @Test
@@ -219,7 +207,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.QR_SCAN)
       }
     }
@@ -248,7 +235,6 @@ class CameraModeSelectorScreenTest {
         CameraModeSelectorScreen(
             onBackClick = {},
             onProfileDetected = {},
-            onStoryCapture = {},
             initialMode = CameraMode.STORY)
       }
     }
