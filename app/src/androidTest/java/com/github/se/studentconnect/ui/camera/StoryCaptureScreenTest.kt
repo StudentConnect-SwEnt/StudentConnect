@@ -23,10 +23,15 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.google.firebase.Timestamp
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -229,6 +234,34 @@ class StoryCaptureScreenTest {
     composeTestRule.onNodeWithText("VIDEO").performClick()
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_onStoryAccepted_receivesEvent() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    var acceptedEvent: Event? = null
+
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {},
+            isActive = true,
+            onStoryAccepted = { _, _, selectedEvent -> acceptedEvent = selectedEvent },
+            eventSelectionState = EventSelectionState.Success(listOf(event)),
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
 }
 

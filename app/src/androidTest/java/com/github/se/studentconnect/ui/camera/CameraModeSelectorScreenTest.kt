@@ -9,10 +9,15 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
+import android.net.Uri
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.CameraMode
 import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.google.firebase.Timestamp
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -241,5 +246,23 @@ class CameraModeSelectorScreenTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("camera_mode_selector").assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_onStoryAccepted_receivesEventParameter() {
+    var acceptedEvent: Event? = null
+
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {},
+            onProfileDetected = {},
+            onStoryAccepted = { _, _, selectedEvent -> acceptedEvent = selectedEvent },
+            initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
 }

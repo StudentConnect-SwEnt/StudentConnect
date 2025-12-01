@@ -9,10 +9,17 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.google.firebase.Timestamp
 import java.io.File
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -183,5 +190,54 @@ class MediaPreviewScreenTest {
     }
 
     composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_passesSelectedEvent() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    var acceptedEvent: Event? = null
+    var acceptCalled = false
+
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = { selectedEvent ->
+              acceptedEvent = selectedEvent
+              acceptCalled = true
+            },
+            onRetake = {},
+            eventSelectionState = EventSelectionState.Success(listOf(event)))
+      }
+    }
+
+    // Without event selected, button should be disabled (onAccept not called)
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
+    composeTestRule.runOnIdle { assert(!acceptCalled) }
+
+    // Select an event and accept
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.waitForIdle()
+
+    val acceptDescription =
+        composeTestRule.activity.getString(
+            com.github.se.studentconnect.R.string.content_description_accept)
+    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+
+    composeTestRule.runOnIdle {
+      assert(acceptCalled)
+      assertNotNull(acceptedEvent)
+      assertEquals(event.uid, acceptedEvent!!.uid)
+    }
   }
 }
