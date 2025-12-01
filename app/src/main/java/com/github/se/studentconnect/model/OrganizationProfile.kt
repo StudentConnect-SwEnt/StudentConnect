@@ -26,7 +26,6 @@ data class OrganizationProfile(
     require(name.length <= MAX_NAME_LENGTH) {
       "Organization name cannot exceed $MAX_NAME_LENGTH characters"
     }
-    require(description.isNotBlank()) { "Organization description cannot be blank" }
     require(description.length <= MAX_DESCRIPTION_LENGTH) {
       "Organization description cannot exceed $MAX_DESCRIPTION_LENGTH characters"
     }

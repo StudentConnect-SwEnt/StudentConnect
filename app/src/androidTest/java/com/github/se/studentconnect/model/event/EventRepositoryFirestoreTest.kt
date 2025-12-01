@@ -1111,7 +1111,21 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   fun getEventsByOrganization_returnsEventsOwnedByOrganization() {
     runBlocking {
       signIn("owner")
+      val currentOwnerId = getCurrentUserId()
       val orgId = "org123"
+
+      // Create the organization first
+      FirebaseEmulator.firestore
+          .collection("organizations")
+          .document(orgId)
+          .set(
+              mapOf(
+                  "id" to orgId,
+                  "name" to "Test Organization",
+                  "type" to "Association",
+                  "createdBy" to currentOwnerId,
+                  "memberUids" to listOf(currentOwnerId)))
+          .await()
 
       val event1 =
           Event.Public(
@@ -1135,10 +1149,27 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               now,
               isFlash = false,
               subtitle = "")
+
+      // Create another organization for the "other" event
+      val otherOrgId = "other_org"
+      signIn("other")
+      val otherOwnerId = getCurrentUserId()
+      FirebaseEmulator.firestore
+          .collection("organizations")
+          .document(otherOrgId)
+          .set(
+              mapOf(
+                  "id" to otherOrgId,
+                  "name" to "Other Organization",
+                  "type" to "Association",
+                  "createdBy" to otherOwnerId,
+                  "memberUids" to listOf(otherOwnerId)))
+          .await()
+
       val otherEvent =
           Event.Public(
               repository.getNewUid(),
-              "other_org",
+              otherOrgId,
               "Other Org Event",
               "Sub",
               "desc",
@@ -1147,9 +1178,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
               isFlash = false,
               subtitle = "")
 
+      repository.addEvent(otherEvent)
+
+      signIn("owner")
       repository.addEvent(event1)
       repository.addEvent(event2)
-      repository.addEvent(otherEvent)
 
       val orgEvents = repository.getEventsByOrganization(orgId)
 

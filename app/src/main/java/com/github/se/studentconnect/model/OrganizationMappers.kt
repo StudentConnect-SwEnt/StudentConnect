@@ -98,9 +98,21 @@ fun Event.toOrganizationEvent(): OrganizationEvent {
   val cardDate = dateFormat.format(this.start.toDate())
 
   // Calculate subtitle (e.g., "Tomorrow", "Today", "In 3 days")
-  val today = java.util.Calendar.getInstance()
+  val today =
+      java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+      }
   val eventDate =
-      java.util.Calendar.getInstance().apply { time = this@toOrganizationEvent.start.toDate() }
+      java.util.Calendar.getInstance().apply {
+        time = this@toOrganizationEvent.start.toDate()
+        set(java.util.Calendar.HOUR_OF_DAY, 0)
+        set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0)
+        set(java.util.Calendar.MILLISECOND, 0)
+      }
 
   val daysDifference =
       ((eventDate.timeInMillis - today.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()

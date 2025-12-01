@@ -36,7 +36,12 @@ class UserRepositoryLocal : UserRepository {
     val sortedUsers = users.sortedBy { it.userId }
     val startIndex =
         if (lastUserId != null) {
-          sortedUsers.indexOfFirst { it.userId == lastUserId } + 1
+          val index = sortedUsers.indexOfFirst { it.userId == lastUserId }
+          if (index == -1) {
+            // If lastUserId is not found, return empty result
+            return emptyList<User>() to false
+          }
+          index + 1
         } else {
           0
         }
@@ -71,6 +76,7 @@ class UserRepositoryLocal : UserRepository {
     joinedEvents.remove(userId)
     invitations.remove(userId)
     favoriteEvents.remove(userId)
+    followedOrganizations.remove(userId)
   }
 
   override suspend fun getUsersByUniversity(university: String): List<User> {

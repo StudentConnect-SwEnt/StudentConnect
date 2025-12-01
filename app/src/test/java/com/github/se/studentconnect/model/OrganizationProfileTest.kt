@@ -51,9 +51,11 @@ class OrganizationProfileTest {
     OrganizationProfile(organizationId = "org_1", name = "", description = "Desc")
   }
 
-  @Test(expected = IllegalArgumentException::class)
-  fun `OrganizationProfile with blank description throws exception`() {
-    OrganizationProfile(organizationId = "org_1", name = "Test", description = "")
+  @Test
+  fun `OrganizationProfile with blank description is allowed`() {
+    val organization =
+        OrganizationProfile(organizationId = "org_1", name = "Test", description = "")
+    assertEquals("", organization.description)
   }
 
   @Test(expected = IllegalArgumentException::class)

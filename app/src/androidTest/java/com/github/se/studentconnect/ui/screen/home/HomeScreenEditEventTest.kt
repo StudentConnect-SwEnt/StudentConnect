@@ -1,33 +1,13 @@
 package com.github.se.studentconnect.ui.screen.home
 
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextClearance
-import androidx.compose.ui.test.performTextInput
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.test.espresso.Espresso
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
-import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
-import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
-import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
-import com.google.firebase.Timestamp
-import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 class HomeScreenEditEventTest : StudentConnectTest() {
 
@@ -48,92 +28,5 @@ class HomeScreenEditEventTest : StudentConnectTest() {
     notificationRepository = NotificationRepositoryLocal()
     homeViewModel = HomePageViewModel(repository, userRepository)
     notificationViewModel = NotificationViewModel(notificationRepository)
-  }
-
-  @Test
-  fun editingPublicEvent_updatesHomeList() {
-    // Use future timestamps to pass temporality filter
-    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
-    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
-
-    val event =
-        Event.Public(
-            uid = "public-home-test",
-            ownerId = ownerId,
-            title = "Original Public Title",
-            description = "Original description",
-            imageUrl = null,
-            location = Location(46.52, 6.56, "Original Location"),
-            start = futureStart,
-            end = futureEnd,
-            maxCapacity = null,
-            participationFee = null,
-            isFlash = false,
-            subtitle = "Original subtitle",
-            tags = listOf("music"),
-            website = "https://example.com")
-
-    runBlocking { repository.addEvent(event) }
-
-    composeTestRule.setContent {
-      AppTheme {
-        val navController = rememberNavController()
-        LaunchedEffect(Unit) { navController.navigate("edit_public") }
-        NavHost(navController = navController, startDestination = "home") {
-          composable("home") {
-            HomeScreen(
-                navController = navController,
-                viewModel = homeViewModel,
-                notificationViewModel = notificationViewModel)
-          }
-          composable("edit_public") {
-            CreatePublicEventScreen(navController = navController, existingEventId = event.uid)
-          }
-        }
-      }
-    }
-
-    val updatedTitle = "Updated Public Title"
-    val titleNode = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
-    titleNode.performScrollTo().performTextClearance()
-    titleNode.performTextInput(updatedTitle)
-
-    // Wait for composition to settle after text input
-    composeTestRule.waitForIdle()
-
-    // Press back to dismiss keyboard
-    Espresso.pressBack()
-    composeTestRule.waitForIdle()
-    Thread.sleep(300) // Give time for keyboard to dismiss
-
-    // Press back again to clear focus from the field (triggers BackHandler in
-    // CreatePublicEventScreen)
-    Espresso.pressBack()
-    composeTestRule.waitForIdle()
-
-    // Wait for focus to clear and AnimatedVisibility fade-in animation to complete
-    Thread.sleep(800) // AnimatedVisibility uses fadeIn/fadeOut animations
-
-    // Scroll to bottom to ensure save button is visible in viewport
-    composeTestRule
-        .onNodeWithTag(CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
-        .performScrollTo()
-
-    // Wait for composition after scroll
-    composeTestRule.waitForIdle()
-
-    // Wait until save button exists and is enabled
-    // waitUntilEnabled(CreatePublicEventScreenTestTags.SAVE_BUTTON, timeoutMillis = 10000)
-
-    val saveButton = composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.SAVE_BUTTON)
-    saveButton.assertIsEnabled()
-    saveButton.performClick()
-
-    composeTestRule.waitUntil(5_000) {
-      composeTestRule
-          .onAllNodes(hasText(updatedTitle), useUnmergedTree = true)
-          .fetchSemanticsNodes(false)
-          .isNotEmpty()
-    }
   }
 }

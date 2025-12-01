@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.profile.edit
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
@@ -75,6 +76,13 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun editBioScreen_displaysCorrectTitle() {
+    // Wait for the screen to load
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      composeTestRule
+          .onAllNodesWithText("Edit Bio")
+          .fetchSemanticsNodes(atLeastOneRootRequired = false)
+          .isNotEmpty()
+    }
     composeTestRule.onNodeWithText("Edit Bio").assertExists()
   }
 
@@ -239,8 +247,12 @@ class EditBioScreenFirebaseTest : StudentConnectTest() {
     // Create a long bio (but within limits)
     val longBio = "A".repeat(400)
 
-    composeTestRule.onNodeWithText("Original bio text for testing").performTextClearance()
-    composeTestRule.onNodeWithText(ProfileConstants.PLACEHOLDER_BIO).performTextInput(longBio)
+    // Use performTextReplacement instead of performTextInput for long strings
+    // performTextInput simulates typing each character which is very slow for 400 chars
+    composeTestRule.onNodeWithText("Original bio text for testing").performTextReplacement(longBio)
+
+    // Wait for the UI to update with the new text
+    composeTestRule.waitForIdle()
 
     // Character count should show the correct length
     composeTestRule.onNodeWithText("400 / ${ProfileConstants.MAX_BIO_LENGTH}").assertExists()

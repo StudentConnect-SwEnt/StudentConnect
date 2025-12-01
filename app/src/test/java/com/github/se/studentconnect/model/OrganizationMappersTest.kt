@@ -272,8 +272,7 @@ class OrganizationMappersTest {
 
     val orgEvent = eventTomorrow.toOrganizationEvent()
 
-    // The subtitle should be either "Tomorrow" or "In 1 days" depending on exact timing
-    assertTrue(orgEvent.subtitle == "Tomorrow" || orgEvent.subtitle == "In 1 days")
+    assertEquals("Tomorrow", orgEvent.subtitle)
   }
 
   @Test
