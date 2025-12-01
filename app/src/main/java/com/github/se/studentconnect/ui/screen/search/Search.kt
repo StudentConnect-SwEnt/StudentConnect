@@ -190,231 +190,183 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostController) {
+private fun <T> SearchResultSection(
+    title: String,
+    items: List<T>,
+    titleTestTag: String,
+    listTestTag: String,
+    navController: NavHostController,
+    cardContent: @Composable (T) -> Unit
+) {
   Column(modifier = Modifier.fillMaxWidth().height(SectionDimensions.HEIGHT)) {
     Text(
-        text = "People",
+        text = title,
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onSurface,
         modifier =
             Modifier.padding(
                     start = SearchBarDimensions.HORIZONTAL_PADDING,
                     bottom = SectionDimensions.SPACING)
-                .testTag(C.Tag.user_search_result_title),
+                .testTag(titleTestTag),
     )
     LazyRow(
-        modifier = Modifier.testTag(C.Tag.user_search_result),
+        modifier = Modifier.testTag(listTestTag),
         horizontalArrangement = Arrangement.spacedBy(SectionDimensions.SPACING),
     ) {
       item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
-      items(viewModel.state.value.shownUsers) { user ->
+      items(items) { item -> cardContent(item) }
+      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
+    }
+  }
+}
+
+@Composable
+private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostController) {
+  SearchResultSection(
+      title = "People",
+      items = viewModel.state.value.shownUsers,
+      titleTestTag = C.Tag.user_search_result_title,
+      listTestTag = C.Tag.user_search_result,
+      navController = navController) { user ->
         PersonCard(user = user, navController = navController)
       }
-      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
+}
+
+@Composable
+private fun rememberImageBitmap(imageId: String?, logTag: String): ImageBitmap? {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, imageId, repository) {
+        value =
+            imageId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { android.util.Log.e(logTag, "Failed to download image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+  return imageBitmap
+}
+
+@Composable
+private fun SearchCard(
+    onClick: () -> Unit,
+    imageBitmap: ImageBitmap?,
+    defaultIcon: @Composable () -> Unit,
+    title: String,
+    subtitle: String
+) {
+  Card(
+      modifier =
+          Modifier.width(CardDimensions.WIDTH)
+              .height(CardDimensions.HEIGHT)
+              .clickable(onClick = onClick),
+      shape = RoundedCornerShape(CardDimensions.CORNER_RADIUS),
+      colors =
+          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+  ) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(CardDimensions.PADDING),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Box(
+          modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 4.dp),
+          contentAlignment = Alignment.Center) {
+            if (imageBitmap != null) {
+              Image(
+                  bitmap = imageBitmap,
+                  contentDescription = title,
+                  modifier = Modifier.size(CardDimensions.ICON_SIZE).clip(CircleShape),
+                  contentScale = ContentScale.Crop,
+              )
+            } else {
+              defaultIcon()
+            }
+          }
+      Column(
+          verticalArrangement = Arrangement.spacedBy(2.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+          }
     }
   }
 }
 
 @Composable
 private fun PersonCard(user: User, navController: NavHostController) {
-  val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("PersonCard", "Failed to download profile image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
-
-  Card(
-      modifier =
-          Modifier.width(CardDimensions.WIDTH).height(CardDimensions.HEIGHT).clickable {
-            navController.navigate(Route.visitorProfile(user.userId))
-          },
-      shape = RoundedCornerShape(CardDimensions.CORNER_RADIUS),
-      colors =
-          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(CardDimensions.PADDING),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Box(
-          modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 4.dp),
-          contentAlignment = Alignment.Center) {
-            if (imageBitmap != null) {
-              Image(
-                  bitmap = imageBitmap!!,
-                  contentDescription = "Profile picture",
-                  modifier = Modifier.size(CardDimensions.ICON_SIZE).clip(CircleShape),
-                  contentScale = ContentScale.Crop,
-              )
-            } else {
-              Icon(
-                  imageVector = Icons.Default.Person,
-                  contentDescription = "Default profile picture",
-                  modifier = Modifier.size(CardDimensions.ICON_SIZE),
-                  tint = MaterialTheme.colorScheme.primary,
-              )
-            }
-          }
-      Column(
-          verticalArrangement = Arrangement.spacedBy(2.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "${user.firstName} ${user.lastName}",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "@${user.username}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-          }
-    }
-  }
+  val imageBitmap = rememberImageBitmap(user.profilePictureUrl, "PersonCard")
+  SearchCard(
+      onClick = { navController.navigate(Route.visitorProfile(user.userId)) },
+      imageBitmap = imageBitmap,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.Person,
+            contentDescription = "Default profile picture",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = "${user.firstName} ${user.lastName}",
+      subtitle = "@${user.username}")
 }
 
 @Composable
 private fun OrganizationsSection(viewModel: SearchViewModel, navController: NavHostController) {
-  Column(modifier = Modifier.fillMaxWidth().height(SectionDimensions.HEIGHT)) {
-    Text(
-        text = "Organisations",
-        style = MaterialTheme.typography.headlineSmall,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier =
-            Modifier.padding(
-                    start = SearchBarDimensions.HORIZONTAL_PADDING,
-                    bottom = SectionDimensions.SPACING)
-                .testTag(C.Tag.organisation_search_result_title),
-    )
-    LazyRow(
-        modifier = Modifier.testTag(C.Tag.organisation_search_result),
-        horizontalArrangement = Arrangement.spacedBy(SectionDimensions.SPACING),
-    ) {
-      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
-      items(viewModel.state.value.shownOrganizations) { organization ->
+  SearchResultSection(
+      title = "Organisations",
+      items = viewModel.state.value.shownOrganizations,
+      titleTestTag = C.Tag.organisation_search_result_title,
+      listTestTag = C.Tag.organisation_search_result,
+      navController = navController) { organization ->
         OrganizationCard(organization = organization, navController = navController)
       }
-      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
-    }
-  }
 }
 
 @Composable
 private fun OrganizationCard(organization: Organization, navController: NavHostController) {
-  val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val logoId = organization.logoUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, logoId, repository) {
-        value =
-            logoId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("OrganizationCard", "Failed to download logo: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
-
-  Card(
-      modifier =
-          Modifier.width(CardDimensions.WIDTH).height(CardDimensions.HEIGHT).clickable {
-            navController.navigate(Route.organizationProfile(organization.id))
-          },
-      shape = RoundedCornerShape(CardDimensions.CORNER_RADIUS),
-      colors =
-          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(CardDimensions.PADDING),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Box(
-          modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 4.dp),
-          contentAlignment = Alignment.Center) {
-            if (imageBitmap != null) {
-              Image(
-                  bitmap = imageBitmap!!,
-                  contentDescription = "Organization logo",
-                  modifier = Modifier.size(CardDimensions.ICON_SIZE).clip(CircleShape),
-                  contentScale = ContentScale.Crop,
-              )
-            } else {
-              Icon(
-                  imageVector = Icons.Default.Groups,
-                  contentDescription = "Default organization logo",
-                  modifier = Modifier.size(CardDimensions.ICON_SIZE),
-                  tint = MaterialTheme.colorScheme.primary,
-              )
-            }
-          }
-      Column(
-          verticalArrangement = Arrangement.spacedBy(2.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = organization.name,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "@${organization.name.lowercase().replace(" ", "")}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-          }
-    }
-  }
+  val imageBitmap = rememberImageBitmap(organization.logoUrl, "OrganizationCard")
+  SearchCard(
+      onClick = { navController.navigate(Route.organizationProfile(organization.id)) },
+      imageBitmap = imageBitmap,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.Groups,
+            contentDescription = "Default organization logo",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = organization.name,
+      subtitle = "@${organization.name.lowercase().replace(" ", "")}")
 }
 
 @Composable
 private fun EventsSection(viewModel: SearchViewModel, navController: NavHostController) {
-  Column(modifier = Modifier.fillMaxWidth().height(SectionDimensions.HEIGHT)) {
-    Text(
-        text = "Events",
-        style = MaterialTheme.typography.headlineSmall,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier =
-            Modifier.padding(
-                    start = SearchBarDimensions.HORIZONTAL_PADDING,
-                    bottom = SectionDimensions.SPACING)
-                .testTag(C.Tag.event_search_result_title),
-    )
-    LazyRow(
-        modifier = Modifier.testTag(C.Tag.event_search_result),
-        horizontalArrangement = Arrangement.spacedBy(SectionDimensions.SPACING),
-    ) {
-      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
-      items(viewModel.state.value.shownEvents) { event ->
+  SearchResultSection(
+      title = "Events",
+      items = viewModel.state.value.shownEvents,
+      titleTestTag = C.Tag.event_search_result_title,
+      listTestTag = C.Tag.event_search_result,
+      navController = navController) { event ->
         EventCard(event = event, navController = navController)
       }
-      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
-    }
-  }
 }
 
 @Composable
