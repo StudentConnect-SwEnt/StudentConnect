@@ -117,7 +117,8 @@ class MapViewModel(
       try {
         val events = eventRepository.getAllVisibleEvents()
         val currentTime = com.google.firebase.Timestamp.now()
-        val futureEvents = events.filter { it.end?.seconds!! >= currentTime.seconds }
+        val futureEvents =
+            events.filter { event -> event.end?.let { it.seconds >= currentTime.seconds } ?: true }
         val eventsWithLocation = futureEvents.filter { it.location != null }
         android.util.Log.d(
             "MapViewModel",
