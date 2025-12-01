@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,10 +28,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.story.StoryRepositoryProvider
+import com.github.se.studentconnect.ui.components.EventSelectionState
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 enum class CameraMode {
@@ -44,19 +50,42 @@ enum class CameraMode {
 fun CameraModeSelectorScreen(
     onBackClick: () -> Unit,
     onProfileDetected: (String) -> Unit,
-    onStoryCapture: (ByteArray) -> Unit,
+    onStoryAccepted: (Uri, Boolean, Event?) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier,
     initialMode: CameraMode = CameraMode.QR_SCAN
 ) {
+  val context = LocalContext.current
   val pagerState =
       rememberPagerState(initialPage = initialMode.ordinal, pageCount = { CameraMode.entries.size })
   val coroutineScope = rememberCoroutineScope()
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
 
+  // Event selection state for stories
+  var eventSelectionState by remember { mutableStateOf<EventSelectionState>(EventSelectionState.Success(emptyList())) }
+
   // React to changes in initialMode
   LaunchedEffect(initialMode) {
     if (pagerState.currentPage != initialMode.ordinal) {
       pagerState.scrollToPage(initialMode.ordinal)
+    }
+  }
+
+  // Function to load joined events
+  val loadJoinedEvents: () -> Unit = {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    if (userId != null) {
+      eventSelectionState = EventSelectionState.Loading
+      coroutineScope.launch {
+        try {
+          val storyRepository = StoryRepositoryProvider.getRepository(context)
+          val events = storyRepository.getUserJoinedEvents(userId)
+          eventSelectionState = EventSelectionState.Success(events)
+        } catch (e: Exception) {
+          eventSelectionState = EventSelectionState.Error(e.message)
+        }
+      }
+    } else {
+      eventSelectionState = EventSelectionState.Success(emptyList())
     }
   }
 
@@ -67,6 +96,9 @@ fun CameraModeSelectorScreen(
         CameraMode.STORY -> {
           StoryCaptureScreen(
               onBackClick = onBackClick,
+              onStoryAccepted = onStoryAccepted,
+              eventSelectionState = eventSelectionState,
+              onLoadEvents = loadJoinedEvents,
               isActive = pagerState.currentPage == page,
               onPreviewStateChanged = { isPreviewShowing ->
                 isStoryPreviewShowing = isPreviewShowing

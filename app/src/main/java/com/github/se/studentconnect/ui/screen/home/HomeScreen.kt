@@ -423,9 +423,9 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryCapture = { _ ->
-                              // For now, just return to home page
-                              // TODO: Implement story upload functionality
+                            onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                              // TODO: Implement story upload with storyRepository.uploadStory()
+                              // mediaUri: captured media, isVideo: true if video, selectedEvent: linked event
                               onQRScannerClosed()
                               cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
