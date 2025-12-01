@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -186,15 +187,22 @@ private fun EventsList(events: List<Event>, onEventClick: (Event) -> Unit) {
 private fun EventCard(event: Event, onClick: () -> Unit) {
   val dateFormat = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
   val formattedDate = dateFormat.format(event.start.toDate())
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate sizes relative to screen width
+  val cardHeight = screenWidth * 0.35f
+  val cornerRadius = screenWidth * 0.04f
+  val cardElevation = screenWidth * 0.01f
 
   Card(
       onClick = onClick,
       modifier =
           Modifier.fillMaxWidth()
-              .height(140.dp)
+              .height(cardHeight)
               .testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
-      shape = RoundedCornerShape(16.dp),
-      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+      shape = RoundedCornerShape(cornerRadius),
+      elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)) {
         Box(
             modifier =
                 Modifier.fillMaxSize()
@@ -213,16 +221,24 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
 @Composable
 private fun EventCardContent(event: Event, formattedDate: String) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate sizes relative to screen width
+  val contentPadding = screenWidth * 0.04f
+  val contentSpacing = screenWidth * 0.04f
+  val imageSize = screenWidth * 0.25f
+  val imageCornerRadius = screenWidth * 0.03f
 
   Row(
-      modifier = Modifier.fillMaxSize().padding(16.dp),
-      horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+      modifier = Modifier.fillMaxSize().padding(contentPadding),
+      horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
         Icon(
             imageVector = Icons.Default.Image,
             contentDescription = eventImageDescription,
             modifier =
-                Modifier.size(100.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                Modifier.size(imageSize)
+                    .clip(RoundedCornerShape(imageCornerRadius))
                     .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
             tint = MaterialTheme.colorScheme.onPrimary)
 
@@ -280,21 +296,32 @@ private fun EventTypeIcon(
     publicDescription: String,
     privateDescription: String
 ) {
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+
+  // Calculate sizes relative to screen width
+  val iconSize = screenWidth * 0.06f
+  val iconPadding = screenWidth * 0.01f
+
   Icon(
       painter = painterResource(if (isPrivate) R.drawable.ic_lock else R.drawable.ic_web),
       contentDescription = if (isPrivate) privateDescription else publicDescription,
       tint = MaterialTheme.colorScheme.onPrimary,
       modifier =
-          Modifier.size(24.dp)
+          Modifier.size(iconSize)
               .background(
                   MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f), shape = CircleShape)
-              .padding(4.dp))
+              .padding(iconPadding))
 }
 
 @Composable
 private fun EventSubtitle(event: Event) {
   if (event is Event.Public && event.subtitle.isNotBlank()) {
-    Spacer(modifier = Modifier.height(4.dp))
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val subtitleSpacing = screenWidth * 0.01f
+
+    Spacer(modifier = Modifier.height(subtitleSpacing))
     Text(
         text = event.subtitle,
         style = MaterialTheme.typography.bodySmall,
@@ -307,9 +334,15 @@ private fun EventSubtitle(event: Event) {
 // Message shown when there are no events
 @Composable
 private fun EmptyEventsState(selectedFilter: EventFilter) {
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
+  val emptyStatePadding = screenWidth * 0.08f
+
   Column(
       modifier =
-          Modifier.fillMaxSize().padding(32.dp).testTag(JoinedEventsScreenTestTags.EMPTY_STATE),
+          Modifier.fillMaxSize()
+              .padding(emptyStatePadding)
+              .testTag(JoinedEventsScreenTestTags.EMPTY_STATE),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center) {
         val title =
