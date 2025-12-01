@@ -108,15 +108,39 @@ class SearchViewModel(
 
   private fun getEventsForQuery(query: String) =
       if (query.isBlank()) _state.value.allEvents
-      else _state.value.allEvents.filter { e -> e.title.contains(query, ignoreCase = true) }
+      else
+          _state.value.allEvents.filter { event ->
+            val matchesTitle = event.title.contains(query, ignoreCase = true)
+            val matchesDescription = event.description.contains(query, ignoreCase = true)
+            val matchesTags =
+                when (event) {
+                  is Event.Public -> event.tags.any { it.contains(query, ignoreCase = true) }
+                  else -> false
+                }
+            matchesTitle || matchesDescription || matchesTags
+          }
 
   private fun getUsersForQuery(query: String) =
       if (query.isBlank()) _state.value.allUsers
-      else _state.value.allUsers.filter { it.userId.startsWith(query, ignoreCase = true) }
+      else
+          _state.value.allUsers.filter { user ->
+            val matchesUsername = user.username.contains(query, ignoreCase = true)
+            val matchesFirstName = user.firstName.contains(query, ignoreCase = true)
+            val matchesLastName = user.lastName.contains(query, ignoreCase = true)
+            val matchesFullName = user.getFullName().contains(query, ignoreCase = true)
+            matchesUsername || matchesFirstName || matchesLastName || matchesFullName
+          }
 
   private fun getOrganizationsForQuery(query: String) =
       if (query.isBlank()) _state.value.allOrganizations
-      else _state.value.allOrganizations.filter { it.name.contains(query, ignoreCase = true) }
+      else
+          _state.value.allOrganizations.filter { org ->
+            val matchesName = org.name.contains(query, ignoreCase = true)
+            val matchesDescription = org.description?.contains(query, ignoreCase = true) ?: false
+            val matchesDomains = org.mainDomains.any { it.contains(query, ignoreCase = true) }
+            val matchesType = org.type.name.contains(query, ignoreCase = true)
+            matchesName || matchesDescription || matchesDomains || matchesType
+          }
 
   /** Checks if there are any events to show. */
   fun hasEvents() = state.value.shownEvents.isNotEmpty()
