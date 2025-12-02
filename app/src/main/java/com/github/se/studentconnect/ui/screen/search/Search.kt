@@ -371,43 +371,17 @@ private fun EventsSection(viewModel: SearchViewModel, navController: NavHostCont
 
 @Composable
 private fun EventCard(event: Event, navController: NavHostController) {
-  Card(
-      modifier =
-          Modifier.width(CardDimensions.WIDTH).height(CardDimensions.HEIGHT).clickable {
-            navController.navigate(Route.eventView(event.uid, false))
-          },
-      shape = RoundedCornerShape(CardDimensions.CORNER_RADIUS),
-      colors =
-          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(CardDimensions.PADDING),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-      Box(
-          modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 4.dp),
-          contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = Icons.Default.ConfirmationNumber,
-                contentDescription = "Event ticket icon",
-                modifier = Modifier.size(CardDimensions.ICON_SIZE),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-          }
-      Column(
-          verticalArrangement = Arrangement.spacedBy(2.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = event.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-          }
-    }
-  }
+  SearchCard(
+      onClick = { navController.navigate(Route.eventView(event.uid, false)) },
+      imageBitmap = null,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.ConfirmationNumber,
+            contentDescription = "Event ticket icon",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = event.title,
+      subtitle = "")
 }
