@@ -124,11 +124,16 @@ class SearchViewModel(
       if (query.isBlank()) _state.value.allUsers
       else
           _state.value.allUsers.filter { user ->
+            val matchesUserId = user.userId.contains(query, ignoreCase = true)
             val matchesUsername = user.username.contains(query, ignoreCase = true)
             val matchesFirstName = user.firstName.contains(query, ignoreCase = true)
             val matchesLastName = user.lastName.contains(query, ignoreCase = true)
             val matchesFullName = user.getFullName().contains(query, ignoreCase = true)
-            matchesUsername || matchesFirstName || matchesLastName || matchesFullName
+            matchesUserId ||
+                matchesUsername ||
+                matchesFirstName ||
+                matchesLastName ||
+                matchesFullName
           }
 
   private fun getOrganizationsForQuery(query: String) =
