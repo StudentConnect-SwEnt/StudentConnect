@@ -79,7 +79,10 @@ fun MediaPreviewScreen(
         onLoadEvents = onLoadEvents,
         modifier =
             Modifier.align(Alignment.TopCenter)
-                .padding(top = EVENT_SELECTOR_TOP_PADDING, start = EVENT_SELECTOR_HORIZONTAL_PADDING, end = EVENT_SELECTOR_HORIZONTAL_PADDING)
+                .padding(
+                    top = EVENT_SELECTOR_TOP_PADDING,
+                    start = EVENT_SELECTOR_HORIZONTAL_PADDING,
+                    end = EVENT_SELECTOR_HORIZONTAL_PADDING)
                 .testTag("media_preview_event_selector"))
 
     // Action buttons
@@ -260,4 +263,3 @@ private fun VideoPreview(videoUri: Uri, modifier: Modifier = Modifier) {
       },
       modifier = modifier.testTag("video_preview"))
 }
-

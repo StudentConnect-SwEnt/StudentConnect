@@ -22,246 +22,227 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class EventSelectionDropdownTest {
 
-    @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    private fun createMockEvent(uid: String, title: String): Event {
-        return Event.Public(
-            uid = uid,
-            ownerId = "owner1",
-            title = title,
-            description = "Description",
-            start = Timestamp.now(),
-            isFlash = false,
-            subtitle = "Subtitle"
-        )
+  private fun createMockEvent(uid: String, title: String): Event {
+    return Event.Public(
+        uid = uid,
+        ownerId = "owner1",
+        title = title,
+        description = "Description",
+        start = Timestamp.now(),
+        isFlash = false,
+        subtitle = "Subtitle")
+  }
+
+  @Test
+  fun eventSelectionDropdown_displaysButtonWithPlaceholderOrEventTitle() {
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val placeholderText = context.getString(R.string.event_selection_button_label)
+    val event = createMockEvent("1", "Tech Meetup")
+
+    // Test placeholder
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
+    composeTestRule.onNodeWithText(placeholderText).assertIsDisplayed()
+
+    // Test event title
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+    composeTestRule.onNodeWithText("Tech Meetup").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_clickButton_opensDialog() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_displaysButtonWithPlaceholderOrEventTitle() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val placeholderText = context.getString(R.string.event_selection_button_label)
-        val event = createMockEvent("1", "Tech Meetup")
-        
-        // Test placeholder
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
-        composeTestRule.onNodeWithText(placeholderText).assertIsDisplayed()
-        
-        // Test event title
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = event,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
-        composeTestRule.onNodeWithText("Tech Meetup").assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_clickButton_callsOnLoadEvents() {
+    var loadEventsCalled = false
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = { loadEventsCalled = true })
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_clickButton_opensDialog() {
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    assertTrue(loadEventsCalled)
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+  @Test
+  fun eventSelectionDropdown_displaysLoadingState() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Loading,
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_clickButton_callsOnLoadEvents() {
-        var loadEventsCalled = false
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = { loadEventsCalled = true }
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_loading).assertIsDisplayed()
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        assertTrue(loadEventsCalled)
+  @Test
+  fun eventSelectionDropdown_displaysErrorState() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Error(),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_displaysLoadingState() {
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Loading,
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_error).assertIsDisplayed()
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_loading).assertIsDisplayed()
+  @Test
+  fun eventSelectionDropdown_displaysEmptyState() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_displaysErrorState() {
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Error(),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_empty).assertIsDisplayed()
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_error).assertIsDisplayed()
-    }
-
-    @Test
-    fun eventSelectionDropdown_displaysEmptyState() {
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_empty).assertIsDisplayed()
-    }
-
-    @Test
-    fun eventSelectionDropdown_displaysEventsList() {
-        val events = listOf(
+  @Test
+  fun eventSelectionDropdown_displaysEventsList() {
+    val events =
+        listOf(
             createMockEvent("1", "Event 1"),
             createMockEvent("2", "Event 2"),
-            createMockEvent("3", "Event 3")
-        )
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(events),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_list).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Event 2").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Event 3").assertIsDisplayed()
+            createMockEvent("3", "Event 3"))
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(events),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_selectEvent_callsOnEventSelected() {
-        val event = createMockEvent("1", "Event 1")
-        var selectedEvent: Event? = null
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(listOf(event)),
-                    selectedEvent = selectedEvent,
-                    onEventSelected = { selectedEvent = it },
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_list).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event 2").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Event 3").assertIsDisplayed()
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
-        composeTestRule.runOnIdle {
-            assertEquals(event, selectedEvent)
-        }
+  @Test
+  fun eventSelectionDropdown_selectEvent_callsOnEventSelected() {
+    val event = createMockEvent("1", "Event 1")
+    var selectedEvent: Event? = null
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
     }
 
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.runOnIdle { assertEquals(event, selectedEvent) }
+  }
 
-    @Test
-    fun eventSelectionDropdown_deselectEvent_callsOnEventSelectedWithNull() {
-        val event = createMockEvent("1", "Event 1")
-        var selectedEvent: Event? = event
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(listOf(event)),
-                    selectedEvent = selectedEvent,
-                    onEventSelected = { selectedEvent = it },
-                    onLoadEvents = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
-        composeTestRule.runOnIdle {
-            assertEquals(null, selectedEvent)
-        }
+  @Test
+  fun eventSelectionDropdown_deselectEvent_callsOnEventSelectedWithNull() {
+    val event = createMockEvent("1", "Event 1")
+    var selectedEvent: Event? = event
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_closeButton_closesDialog() {
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(emptyList()),
-                    selectedEvent = null,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.runOnIdle { assertEquals(null, selectedEvent) }
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_close).performClick()
-        // Dialog should close after clicking close
-        composeTestRule.waitForIdle()
+  @Test
+  fun eventSelectionDropdown_closeButton_closesDialog() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
 
-    @Test
-    fun eventSelectionDropdown_selectedEvent_showsCheckmark() {
-        val event = createMockEvent("1", "Event 1")
-        composeTestRule.setContent {
-            AppTheme {
-                EventSelectionDropdown(
-                    state = EventSelectionState.Success(listOf(event)),
-                    selectedEvent = event,
-                    onEventSelected = {},
-                    onLoadEvents = {}
-                )
-            }
-        }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_close).performClick()
+    // Dialog should close after clicking close
+    composeTestRule.waitForIdle()
+  }
 
-        composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-        composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  @Test
+  fun eventSelectionDropdown_selectedEvent_showsCheckmark() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
     }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
 }
-

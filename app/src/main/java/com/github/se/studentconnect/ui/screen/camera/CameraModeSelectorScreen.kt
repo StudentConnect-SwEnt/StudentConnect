@@ -61,7 +61,9 @@ fun CameraModeSelectorScreen(
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
 
   // Event selection state for stories
-  var eventSelectionState by remember { mutableStateOf<EventSelectionState>(EventSelectionState.Success(emptyList())) }
+  var eventSelectionState by remember {
+    mutableStateOf<EventSelectionState>(EventSelectionState.Success(emptyList()))
+  }
 
   // React to changes in initialMode
   LaunchedEffect(initialMode) {

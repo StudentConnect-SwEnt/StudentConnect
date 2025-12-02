@@ -30,8 +30,6 @@ import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 

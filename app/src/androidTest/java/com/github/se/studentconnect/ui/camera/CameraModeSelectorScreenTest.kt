@@ -9,15 +9,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
-import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.CameraMode
 import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
-import com.google.firebase.Timestamp
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -34,9 +30,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.QR_SCAN)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
       }
     }
 
@@ -68,9 +62,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.QR_SCAN)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
       }
     }
 
@@ -86,9 +78,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.STORY)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
       }
     }
 
@@ -102,9 +92,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.QR_SCAN)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
       }
     }
 
@@ -124,9 +112,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.STORY)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
       }
     }
 
@@ -150,9 +136,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = initialMode.value)
+            onBackClick = {}, onProfileDetected = {}, initialMode = initialMode.value)
       }
     }
 
@@ -194,9 +178,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.STORY)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
       }
     }
 
@@ -210,9 +192,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.QR_SCAN)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
       }
     }
 
@@ -238,9 +218,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.setContent {
       AppTheme {
         CameraModeSelectorScreen(
-            onBackClick = {},
-            onProfileDetected = {},
-            initialMode = CameraMode.STORY)
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
       }
     }
 
