@@ -228,13 +228,11 @@ class UserRepositoryFirestoreTest {
     val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
     whenever(mockCollectionReference.get()).thenReturn(mockTask)
 
-    // Act & Assert
-    try {
-      repository.getAllUsers()
-      assert(false) { "Should have thrown exception" }
-    } catch (e: Exception) {
-      assert(e == exception)
-    }
+    // Act
+    val result = repository.getAllUsers()
+
+    // Assert - Should return empty list on failure (graceful degradation)
+    assert(result.isEmpty())
   }
 
   @Test
