@@ -519,7 +519,8 @@ private fun StoryCaptureScreenWithPreview(
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
           initialSelectedEvent = events.firstOrNull(),
           onAccept = { selectedEvent ->
-            onStoryAccepted(capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
+            onStoryAccepted(
+                capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
             showPreview = false
             capturedMediaUri = null
           },
