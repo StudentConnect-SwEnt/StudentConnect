@@ -255,9 +255,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
         .collection(FOLLOWED_ORGANIZATIONS)
         .document(organizationId)
         .set(
-            mapOf(
-                "organizationId" to organizationId,
-                "followedAt" to FieldValue.serverTimestamp()))
+            mapOf("organizationId" to organizationId, "followedAt" to FieldValue.serverTimestamp()))
         .await()
   }
 

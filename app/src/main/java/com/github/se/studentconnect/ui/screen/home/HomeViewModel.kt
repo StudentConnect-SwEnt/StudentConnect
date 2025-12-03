@@ -18,7 +18,6 @@ import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryProvider
-import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.ui.utils.FilterData
 import java.util.Calendar
 import java.util.Date

@@ -15,6 +15,7 @@ class UserRepositoryLocal : UserRepository {
   private val joinedEvents = mutableMapOf<String, MutableList<String>>()
   private val invitations = mutableMapOf<String, MutableList<Invitation>>()
   private val favoriteEvents = mutableMapOf<String, MutableList<String>>()
+  private val followedOrganizations = mutableMapOf<String, MutableList<String>>()
 
   override suspend fun getUserById(userId: String): User? {
     return users.find { it.userId == userId }
@@ -163,5 +164,20 @@ class UserRepositoryLocal : UserRepository {
     // Case-insensitive check: normalize to lowercase for comparison
     val normalizedUsername = username.lowercase()
     return users.none { it.username.lowercase() == normalizedUsername }
+  }
+
+  override suspend fun followOrganization(userId: String, organizationId: String) {
+    val userOrganizations = followedOrganizations.getOrPut(userId) { mutableListOf() }
+    if (!userOrganizations.contains(organizationId)) {
+      userOrganizations.add(organizationId)
+    }
+  }
+
+  override suspend fun unfollowOrganization(userId: String, organizationId: String) {
+    followedOrganizations[userId]?.remove(organizationId)
+  }
+
+  override suspend fun getFollowedOrganizations(userId: String): List<String> {
+    return followedOrganizations[userId] ?: emptyList()
   }
 }
