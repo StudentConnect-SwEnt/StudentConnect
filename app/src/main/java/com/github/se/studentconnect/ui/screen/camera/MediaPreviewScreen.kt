@@ -41,6 +41,10 @@ private val ACTIONS_BOTTOM_PADDING = 32.dp
 private val ACTIONS_SPACING = 48.dp
 private val EVENT_SELECTOR_TOP_PADDING = 48.dp
 private val EVENT_SELECTOR_HORIZONTAL_PADDING = 24.dp
+private const val BUTTON_BACKGROUND_ALPHA = 0.2f
+private const val DISABLED_BUTTON_ALPHA = 0.4f
+private const val ENABLED_BUTTON_ALPHA = 0.8f
+private const val DISABLED_ICON_ALPHA = 0.5f
 
 /** Configuration for the event selection behaviour within the media preview. */
 data class EventSelectionConfig(
@@ -104,7 +108,7 @@ fun MediaPreviewScreen(
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          Color.White.copy(alpha = 0.2f),
+                          Color.White.copy(alpha = BUTTON_BACKGROUND_ALPHA),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_retake")) {
                 Icon(
@@ -122,8 +126,11 @@ fun MediaPreviewScreen(
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          if (isAcceptEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                          else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                          if (isAcceptEnabled)
+                              MaterialTheme.colorScheme.primary.copy(alpha = ENABLED_BUTTON_ALPHA)
+                          else
+                              MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                  alpha = DISABLED_BUTTON_ALPHA),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_accept")) {
                 Icon(
@@ -131,7 +138,9 @@ fun MediaPreviewScreen(
                     contentDescription = stringResource(R.string.content_description_accept),
                     tint =
                         if (isAcceptEnabled) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                alpha = DISABLED_ICON_ALPHA),
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
         }

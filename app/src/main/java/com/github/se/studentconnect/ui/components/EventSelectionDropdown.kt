@@ -52,11 +52,42 @@ import com.github.se.studentconnect.resources.C
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// Button dimensions
 private val BUTTON_CORNER_RADIUS = 24.dp
+private val BUTTON_HORIZONTAL_PADDING = 16.dp
+private val BUTTON_VERTICAL_PADDING = 12.dp
+private val BUTTON_ICON_SIZE = 20.dp
+private val BUTTON_ICON_SPACING = 8.dp
+
+// Dialog dimensions
 private val DIALOG_CORNER_RADIUS = 16.dp
 private val DIALOG_MAX_HEIGHT = 500.dp
+private val DIALOG_PADDING = 16.dp
+private val DIALOG_TONAL_ELEVATION = 8.dp
+private val DIALOG_HEADER_ICON_SIZE = 24.dp
+private val DIALOG_HEADER_SPACING = 16.dp
+
+// Card dimensions
 private val CARD_HEIGHT = 72.dp
 private val CARD_SPACING = 8.dp
+private val CARD_CORNER_RADIUS = 12.dp
+private val CARD_PADDING = 12.dp
+private val CARD_CONTENT_SPACING = 4.dp
+private val CARD_SELECTED_ELEVATION = 2.dp
+private val CARD_UNSELECTED_ELEVATION = 0.dp
+
+// Loading/empty state dimensions
+private val LOADING_INDICATOR_SIZE = 24.dp
+private val LOADING_TEXT_SPACING = 8.dp
+private val LIST_CONTENT_PADDING = 4.dp
+
+// Checkmark dimensions
+private val CHECKMARK_BOX_SIZE = 24.dp
+private val CHECKMARK_ICON_SIZE = 14.dp
+private val CHECKMARK_SPACING = 8.dp
+
+// Date format pattern
+private const val DATE_FORMAT_PATTERN = "MMM d, yyyy"
 
 /**
  * Represents the UI state for the event selection component.
@@ -150,15 +181,17 @@ private fun EventSelectionTriggerButton(
       shape = RoundedCornerShape(BUTTON_CORNER_RADIUS),
       color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = BUTTON_HORIZONTAL_PADDING, vertical = BUTTON_VERTICAL_PADDING),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
               Icon(
                   Icons.Default.Event,
                   contentDescription = null,
-                  modifier = Modifier.size(20.dp),
+                  modifier = Modifier.size(BUTTON_ICON_SIZE),
                   tint = MaterialTheme.colorScheme.primary)
-              Spacer(Modifier.width(8.dp))
+              Spacer(Modifier.width(BUTTON_ICON_SPACING))
               Text(
                   text = selectedEvent?.title ?: label,
                   style = MaterialTheme.typography.bodyMedium,
@@ -186,10 +219,10 @@ private fun EventSelectionDialog(
                 .testTag(C.Tag.event_selection_dropdown),
         shape = RoundedCornerShape(DIALOG_CORNER_RADIUS),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp) {
-          Column(Modifier.padding(16.dp)) {
+        tonalElevation = DIALOG_TONAL_ELEVATION) {
+          Column(Modifier.padding(DIALOG_PADDING)) {
             EventSelectionDialogHeader(onDismiss = onDismiss)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(DIALOG_HEADER_SPACING))
             EventSelectionDialogContent(
                 state = state,
                 selectedEvent = selectedEvent,
@@ -208,7 +241,8 @@ private fun EventSelectionDialogHeader(onDismiss: () -> Unit) {
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold)
     IconButton(
-        onClick = onDismiss, modifier = Modifier.size(24.dp).testTag(C.Tag.event_selection_close)) {
+        onClick = onDismiss,
+        modifier = Modifier.size(DIALOG_HEADER_ICON_SIZE).testTag(C.Tag.event_selection_close)) {
           Icon(
               Icons.Default.Close,
               stringResource(R.string.content_description_close_event_selection))
@@ -241,8 +275,8 @@ private fun EventSelectionLoadingState() {
       Modifier.fillMaxWidth().height(CARD_HEIGHT).testTag(C.Tag.event_selection_loading),
       Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          CircularProgressIndicator(Modifier.size(24.dp))
-          Spacer(Modifier.height(8.dp))
+          CircularProgressIndicator(Modifier.size(LOADING_INDICATOR_SIZE))
+          Spacer(Modifier.height(LOADING_TEXT_SPACING))
           Text(
               text = stringResource(R.string.event_selection_loading),
               style = MaterialTheme.typography.bodySmall,
@@ -281,7 +315,7 @@ private fun EventSelectionSuccessState(
     LazyColumn(
         modifier = Modifier.testTag(C.Tag.event_selection_list),
         verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
-        contentPadding = PaddingValues(vertical = 4.dp)) {
+        contentPadding = PaddingValues(vertical = LIST_CONTENT_PADDING)) {
           itemsIndexed(events) { index, event ->
             val isSelected = selectedEvent?.uid == event.uid
             EventCard(
@@ -316,11 +350,13 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit, te
               .clickable(onClick = onClick)
               .semantics { contentDescription = cardContentDescription }
               .testTag("${C.Tag.event_selection_card_prefix}_$testTagIndex"),
-      shape = RoundedCornerShape(12.dp),
+      shape = RoundedCornerShape(CARD_CORNER_RADIUS),
       colors = CardDefaults.cardColors(containerColor = bgColor),
-      elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)) {
+      elevation =
+          CardDefaults.cardElevation(
+              defaultElevation = if (isSelected) CARD_SELECTED_ELEVATION else CARD_UNSELECTED_ELEVATION)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(CARD_PADDING),
             verticalAlignment = Alignment.CenterVertically) {
               Column(Modifier.weight(1f)) {
                 Text(
@@ -329,24 +365,25 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit, te
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis)
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(CARD_CONTENT_SPACING))
                 Text(
                     text =
-                        SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+                        SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
                             .format(event.start.toDate()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }
               if (isSelected) {
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(CHECKMARK_SPACING))
                 Box(
-                    Modifier.size(24.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
+                    Modifier.size(CHECKMARK_BOX_SIZE)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
                     Alignment.Center) {
                       Icon(
                           Icons.Default.Check,
                           contentDescription =
                               stringResource(R.string.content_description_selected_event_checkmark),
-                          modifier = Modifier.size(14.dp),
+                          modifier = Modifier.size(CHECKMARK_ICON_SIZE),
                           tint = MaterialTheme.colorScheme.onPrimary)
                     }
               }
