@@ -3,6 +3,8 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -28,6 +30,7 @@ class HomePageViewModelFilterTest {
   private lateinit var viewModel: HomePageViewModel
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var organizationRepository: OrganizationRepositoryLocal
 
   // EPFL Rolex Learning Center location
   private val epflLocation = Location(46.5191, 6.5668, "EPFL")
@@ -113,13 +116,21 @@ class HomePageViewModelFilterTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    // Setup AuthenticationProvider with test user for tests that use toggleFavorite
+    AuthenticationProvider.testUserId = "test-user-123"
+    AuthenticationProvider.local = false
+
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    organizationRepository = OrganizationRepositoryLocal()
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    // Clean up authentication state
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
   }
 
   @Test
@@ -129,7 +140,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInLausanne)
     eventRepository.addEvent(eventInGeneva)
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events within 10km of EPFL
@@ -155,7 +167,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL)
     eventRepository.addEvent(eventInGeneva)
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with no location specified
@@ -180,7 +193,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventNoLocation)
     eventRepository.addEvent(eventAtEPFL)
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with large radius (>= 100km)
@@ -205,7 +219,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventNoLocation)
     eventRepository.addEvent(eventAtEPFL)
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with small radius (< 100km)
@@ -230,7 +245,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL) // Free event
     eventRepository.addEvent(eventWithFee) // 25 CHF event
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events starting at 10 CHF
@@ -256,7 +272,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL) // Free event
     eventRepository.addEvent(eventWithFee) // 25 CHF event
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events from 0 CHF
@@ -282,7 +299,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInLausanne) // Culture
     eventRepository.addEvent(eventWithFee) // Workshop
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology events
@@ -309,7 +327,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInLausanne) // Culture
     eventRepository.addEvent(eventWithFee) // Workshop
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology OR Culture events
@@ -336,7 +355,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL)
     eventRepository.addEvent(eventInLausanne)
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Mark one event as favorite
@@ -367,7 +387,8 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventWithFee) // Workshop @ EPFL, 25 CHF
     eventRepository.addEvent(eventInGeneva) // Business @ Geneva, Free
 
-    viewModel = HomePageViewModel(eventRepository, userRepository)
+    viewModel =
+        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology events within 10km of EPFL, free

@@ -15,6 +15,7 @@ class UserRepositoryLocal : UserRepository {
   private val joinedEvents = mutableMapOf<String, MutableList<String>>()
   private val invitations = mutableMapOf<String, MutableList<Invitation>>()
   private val favoriteEvents = mutableMapOf<String, MutableList<String>>()
+  private val followedOrganizations = mutableMapOf<String, MutableList<String>>()
 
   override suspend fun getUserById(userId: String): User? {
     return users.find { it.userId == userId }
@@ -35,7 +36,12 @@ class UserRepositoryLocal : UserRepository {
     val sortedUsers = users.sortedBy { it.userId }
     val startIndex =
         if (lastUserId != null) {
-          sortedUsers.indexOfFirst { it.userId == lastUserId } + 1
+          val index = sortedUsers.indexOfFirst { it.userId == lastUserId }
+          if (index == -1) {
+            // If lastUserId is not found, return empty result
+            return emptyList<User>() to false
+          }
+          index + 1
         } else {
           0
         }
@@ -70,6 +76,7 @@ class UserRepositoryLocal : UserRepository {
     joinedEvents.remove(userId)
     invitations.remove(userId)
     favoriteEvents.remove(userId)
+    followedOrganizations.remove(userId)
   }
 
   override suspend fun getUsersByUniversity(university: String): List<User> {
@@ -163,5 +170,20 @@ class UserRepositoryLocal : UserRepository {
     // Case-insensitive check: normalize to lowercase for comparison
     val normalizedUsername = username.lowercase()
     return users.none { it.username.lowercase() == normalizedUsername }
+  }
+
+  override suspend fun followOrganization(userId: String, organizationId: String) {
+    val userOrganizations = followedOrganizations.getOrPut(userId) { mutableListOf() }
+    if (!userOrganizations.contains(organizationId)) {
+      userOrganizations.add(organizationId)
+    }
+  }
+
+  override suspend fun unfollowOrganization(userId: String, organizationId: String) {
+    followedOrganizations[userId]?.remove(organizationId)
+  }
+
+  override suspend fun getFollowedOrganizations(userId: String): List<String> {
+    return followedOrganizations[userId] ?: emptyList()
   }
 }

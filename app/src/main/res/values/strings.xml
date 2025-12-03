@@ -452,6 +452,14 @@
     <string name="org_suggestions_title">Organizations</string>
     <string name="content_description_organization_image">Organization image</string>
 
+    <!-- Organization event time labels -->
+    <string name="org_event_time_today">Today</string>
+    <string name="org_event_time_tomorrow">Tomorrow</string>
+    <plurals name="org_event_time_in_days">
+        <item quantity="one">In %d day</item>
+        <item quantity="other">In %d days</item>
+    </plurals>
+
     <!-- Organization screen strings -->
     <string name="organization_type_association">Association</string>
     <string name="organization_type_student_club">Student Club</string>

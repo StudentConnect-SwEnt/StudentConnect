@@ -15,6 +15,12 @@ service cloud.firestore {
       return request.auth.uid == request.resource.data.ownerId;
     }
 
+    // Check if the user is the creator of an organization
+    function isOrganizationCreator(orgId) {
+      return exists(/databases/$(database)/documents/organizations/$(orgId)) &&
+             get(/databases/$(database)/documents/organizations/$(orgId)).data.createdBy == request.auth.uid;
+    }
+
     // Check if user is in the 'participants' subcollection of an event
     function isParticipant(eventId) {
       return exists(/databases/$(database)/documents/events/$(eventId)/participants/$(request.auth.uid));
@@ -79,15 +85,24 @@ service cloud.firestore {
       allow list: if request.auth != null;
 
       // Allow authenticated users to create events, ensuring the ownerId is their own UID
-      allow create: if request.auth != null && isRequestOwner();
+      // OR they are the creator of the organization specified as ownerId
+      allow create: if request.auth != null &&
+                       (isRequestOwner() ||
+                        isOrganizationCreator(request.resource.data.ownerId));
 
       // Allow updates only by the event owner, and prevent changing ownership
+      // OR by the organization creator if the event is owned by their organization
       allow update: if request.auth != null &&
-                       isResourceOwner() &&
-                       isRequestOwner();
+                       (isResourceOwner() ||
+                        isOrganizationCreator(resource.data.ownerId)) &&
+                       (isRequestOwner() ||
+                        isOrganizationCreator(request.resource.data.ownerId));
 
       // Allow deletes only by the event owner
-      allow delete: if request.auth != null && isResourceOwner();
+      // OR by the organization creator if the event is owned by their organization
+      allow delete: if request.auth != null &&
+                       (isResourceOwner() ||
+                        isOrganizationCreator(resource.data.ownerId));
 
       // Subcollection: participants
       match /participants/{userId} {

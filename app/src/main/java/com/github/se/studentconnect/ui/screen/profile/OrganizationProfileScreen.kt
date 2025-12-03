@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -123,8 +124,9 @@ private object OrganizationProfileConstants {
 fun OrganizationProfileScreen(
     organizationId: String? = null,
     onBackClick: () -> Unit = {},
-    viewModel: OrganizationProfileViewModel = viewModel {
-      OrganizationProfileViewModel(organizationId)
+    viewModel: OrganizationProfileViewModel = run {
+      val context = LocalContext.current
+      viewModel { OrganizationProfileViewModel(organizationId, context) }
     },
     modifier: Modifier = Modifier
 ) {

@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.repository
 
+import android.util.Log
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 
@@ -181,4 +182,42 @@ interface UserRepository {
    * @return true if the username is available, false if it's already taken.
    */
   suspend fun checkUsernameAvailability(username: String): Boolean
+
+  /**
+   * Adds an organization to the user's list of followed organizations.
+   *
+   * @param userId The unique identifier of the user.
+   * @param organizationId The unique identifier of the organization to follow.
+   */
+  suspend fun followOrganization(userId: String, organizationId: String) {
+    // Default implementation: log warning
+    Log.w(
+        "UserRepository",
+        "followOrganization called but not implemented for user=$userId, org=$organizationId")
+  }
+
+  /**
+   * Removes an organization from the user's list of followed organizations.
+   *
+   * @param userId The unique identifier of the user.
+   * @param organizationId The unique identifier of the organization to unfollow.
+   */
+  suspend fun unfollowOrganization(userId: String, organizationId: String) {
+    // Default implementation: log warning
+    Log.w(
+        "UserRepository",
+        "unfollowOrganization called but not implemented for user=$userId, org=$organizationId")
+  }
+
+  /**
+   * Retrieves all organizations that a user is following.
+   *
+   * @param userId The unique identifier of the user.
+   * @return A list of organization IDs that the user is following.
+   */
+  suspend fun getFollowedOrganizations(userId: String): List<String> {
+    // Default implementation: log warning and return empty list
+    Log.w("UserRepository", "getFollowedOrganizations called but not implemented for user=$userId")
+    return emptyList()
+  }
 }

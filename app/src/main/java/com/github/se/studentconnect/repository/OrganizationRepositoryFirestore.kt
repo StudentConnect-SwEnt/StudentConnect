@@ -29,11 +29,6 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
     }
   }
 
-  override suspend fun getNewOrganizationId(): String {
-    val docRef = db.collection(COLLECTION_NAME).document()
-    return docRef.id
-  }
-
   override suspend fun getAllOrganizations(): List<Organization> {
     return try {
       val snapshot = db.collection(COLLECTION_NAME).get().await()
@@ -44,5 +39,10 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
       android.util.Log.e("OrganizationRepo", "Failed to get all organizations", e)
       emptyList()
     }
+  }
+
+  override suspend fun getNewOrganizationId(): String {
+    val docRef = db.collection(COLLECTION_NAME).document()
+    return docRef.id
   }
 }
