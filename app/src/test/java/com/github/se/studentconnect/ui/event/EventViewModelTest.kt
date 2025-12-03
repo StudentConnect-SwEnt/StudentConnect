@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.event
 
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
@@ -10,9 +10,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.ui.event.EventUiState
-import com.github.se.studentconnect.ui.event.EventViewModel
-import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.google.firebase.Timestamp
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -21,6 +18,7 @@ import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -785,8 +783,7 @@ class EventViewModelTest {
     val privateField = EventViewModel::class.java.getDeclaredField("_uiState")
     privateField.isAccessible = true
     @Suppress("UNCHECKED_CAST")
-    val stateFlow =
-        privateField.get(viewModel) as kotlinx.coroutines.flow.MutableStateFlow<EventUiState>
+    val stateFlow = privateField.get(viewModel) as MutableStateFlow<EventUiState>
     stateFlow.value = stateBefore
 
     viewModel.hideInviteFriendsDialog()
