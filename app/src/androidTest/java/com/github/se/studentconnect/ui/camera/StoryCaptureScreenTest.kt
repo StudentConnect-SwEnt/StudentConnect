@@ -17,12 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
-import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.EventSelectionState
@@ -305,10 +303,7 @@ class StoryCaptureScreenPreviewTest {
     composeTestRule.setContent {
       AppTheme {
         StoryCaptureScreenWithPreview(
-            onBackClick = {},
-            isActive = true,
-            showInitialPreview = true,
-            events = listOf(event))
+            onBackClick = {}, isActive = true, showInitialPreview = true, events = listOf(event))
       }
     }
 
