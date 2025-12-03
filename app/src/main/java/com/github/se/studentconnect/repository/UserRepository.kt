@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.repository
 
+import android.util.Log
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 
@@ -189,7 +190,10 @@ interface UserRepository {
    * @param organizationId The unique identifier of the organization to follow.
    */
   suspend fun followOrganization(userId: String, organizationId: String) {
-    // Default implementation: do nothing
+    // Default implementation: log warning
+    Log.w(
+        "UserRepository",
+        "followOrganization called but not implemented for user=$userId, org=$organizationId")
   }
 
   /**
@@ -199,7 +203,10 @@ interface UserRepository {
    * @param organizationId The unique identifier of the organization to unfollow.
    */
   suspend fun unfollowOrganization(userId: String, organizationId: String) {
-    // Default implementation: do nothing
+    // Default implementation: log warning
+    Log.w(
+        "UserRepository",
+        "unfollowOrganization called but not implemented for user=$userId, org=$organizationId")
   }
 
   /**
@@ -209,7 +216,8 @@ interface UserRepository {
    * @return A list of organization IDs that the user is following.
    */
   suspend fun getFollowedOrganizations(userId: String): List<String> {
-    // Default implementation: return empty list
+    // Default implementation: log warning and return empty list
+    Log.w("UserRepository", "getFollowedOrganizations called but not implemented for user=$userId")
     return emptyList()
   }
 }

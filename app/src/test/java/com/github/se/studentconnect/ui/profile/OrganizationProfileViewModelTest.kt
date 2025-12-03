@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.profile
 
+import android.content.Context
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -10,6 +12,8 @@ import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
 import java.util.Date
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,6 +33,7 @@ class OrganizationProfileViewModelTest {
   private lateinit var organizationRepository: OrganizationRepositoryLocal
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var mockContext: Context
 
   private val testOrganization =
       Organization(
@@ -85,9 +90,21 @@ class OrganizationProfileViewModelTest {
     organizationRepository = OrganizationRepositoryLocal()
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+
+    // Mock Context for string resources
+    mockContext = mockk(relaxed = true)
+    every { mockContext.getString(R.string.org_event_time_today) } returns "Today"
+    every { mockContext.getString(R.string.org_event_time_tomorrow) } returns "Tomorrow"
+    every { mockContext.getString(R.string.org_event_time_in_days, any()) } answers
+        {
+          val days = arg<Int>(0)
+          "In $days days"
+        }
+
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -176,6 +193,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = null,
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -208,6 +226,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -233,6 +252,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -255,6 +275,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -276,6 +297,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -295,6 +317,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -322,6 +345,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -345,6 +369,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -367,6 +392,7 @@ class OrganizationProfileViewModelTest {
     val viewModelNew =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -383,6 +409,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -399,6 +426,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -418,6 +446,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -444,6 +473,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -467,6 +497,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)
@@ -502,6 +533,7 @@ class OrganizationProfileViewModelTest {
     viewModel =
         OrganizationProfileViewModel(
             organizationId = "test_org",
+            context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
             userRepository = userRepository)

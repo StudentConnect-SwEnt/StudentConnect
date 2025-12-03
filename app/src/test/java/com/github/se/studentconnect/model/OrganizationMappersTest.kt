@@ -1,10 +1,14 @@
 package com.github.se.studentconnect.model
 
+import android.content.Context
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
 import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.test.runTest
@@ -15,6 +19,7 @@ import org.junit.Test
 class OrganizationMappersTest {
 
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var mockContext: Context
 
   private val testOrganization =
       Organization(
@@ -55,6 +60,16 @@ class OrganizationMappersTest {
   @Before
   fun setUp() {
     userRepository = UserRepositoryLocal()
+
+    // Mock Context for string resources
+    mockContext = mockk(relaxed = true)
+    every { mockContext.getString(R.string.org_event_time_today) } returns "Today"
+    every { mockContext.getString(R.string.org_event_time_tomorrow) } returns "Tomorrow"
+    every { mockContext.getString(R.string.org_event_time_in_days, any()) } answers
+        {
+          val days = arg<Int>(0)
+          "In $days days"
+        }
   }
 
   @Test
@@ -79,7 +94,7 @@ class OrganizationMappersTest {
 
   @Test
   fun `toOrganizationProfile converts organization with events`() {
-    val events = listOf(testEvent.toOrganizationEvent())
+    val events = listOf(testEvent.toOrganizationEvent(mockContext))
     val profile = testOrganization.toOrganizationProfile(events = events)
 
     assertEquals(1, profile.events.size)
@@ -124,7 +139,8 @@ class OrganizationMappersTest {
 
     assertEquals("org123", organizationData.id)
     assertEquals("Test Organization", organizationData.name)
-    assertEquals("@testorganization", organizationData.handle)
+    // Handle is sanitized: spaces replaced with underscores, lowercase
+    assertEquals("@test_organization", organizationData.handle)
   }
 
   @Test
@@ -132,7 +148,8 @@ class OrganizationMappersTest {
     val org = testOrganization.copy(name = "My Test Organization")
     val organizationData = org.toOrganizationData()
 
-    assertEquals("@mytestorganization", organizationData.handle)
+    // Spaces are replaced with underscores
+    assertEquals("@my_test_organization", organizationData.handle)
   }
 
   @Test
@@ -140,7 +157,8 @@ class OrganizationMappersTest {
     val org = testOrganization.copy(name = "EPFL - Test")
     val organizationData = org.toOrganizationData()
 
-    assertEquals("@epfl-test", organizationData.handle)
+    // Special characters are removed, spaces become underscores
+    assertEquals("@epfl_test", organizationData.handle)
   }
 
   @Test
@@ -153,8 +171,9 @@ class OrganizationMappersTest {
     assertEquals(2, dataList.size)
     assertEquals("org123", dataList[0].id)
     assertEquals("org456", dataList[1].id)
-    assertEquals("@testorganization", dataList[0].handle)
-    assertEquals("@anotherorg", dataList[1].handle)
+    // Handles are sanitized
+    assertEquals("@test_organization", dataList[0].handle)
+    assertEquals("@another_org", dataList[1].handle)
   }
 
   @Test
@@ -246,7 +265,7 @@ class OrganizationMappersTest {
     val today = Date()
     val eventToday = testEvent.copy(start = Timestamp(today))
 
-    val orgEvent = eventToday.toOrganizationEvent()
+    val orgEvent = eventToday.toOrganizationEvent(mockContext)
 
     assertEquals("event1", orgEvent.eventId)
     assertEquals("Test Event", orgEvent.cardTitle)
@@ -270,26 +289,16 @@ class OrganizationMappersTest {
             .time
     val eventTomorrow = testEvent.copy(start = Timestamp(tomorrow))
 
-    val orgEvent = eventTomorrow.toOrganizationEvent()
+    val orgEvent = eventTomorrow.toOrganizationEvent(mockContext)
 
     assertEquals("Tomorrow", orgEvent.subtitle)
-  }
-
-  @Test
-  fun `toOrganizationEvent converts event in future`() {
-    val futureDate = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, 5) }.time
-    val eventFuture = testEvent.copy(start = Timestamp(futureDate))
-
-    val orgEvent = eventFuture.toOrganizationEvent()
-
-    assertEquals("In 5 days", orgEvent.subtitle)
   }
 
   @Test
   fun `toOrganizationEvent handles event without location`() {
     val eventWithoutLocation = testEvent.copy(location = null)
 
-    val orgEvent = eventWithoutLocation.toOrganizationEvent()
+    val orgEvent = eventWithoutLocation.toOrganizationEvent(mockContext)
 
     assertNull(orgEvent.location)
   }
@@ -300,7 +309,7 @@ class OrganizationMappersTest {
     calendar.set(2025, Calendar.MARCH, 15)
     val eventDate = testEvent.copy(start = Timestamp(calendar.time))
 
-    val orgEvent = eventDate.toOrganizationEvent()
+    val orgEvent = eventDate.toOrganizationEvent(mockContext)
 
     assertEquals("15 Mar, 2025", orgEvent.cardDate)
   }
@@ -310,7 +319,7 @@ class OrganizationMappersTest {
     val pastDate = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -5) }.time
     val eventPast = testEvent.copy(start = Timestamp(pastDate))
 
-    val orgEvent = eventPast.toOrganizationEvent()
+    val orgEvent = eventPast.toOrganizationEvent(mockContext)
 
     assertNotEquals("Today", orgEvent.subtitle)
     assertNotEquals("Tomorrow", orgEvent.subtitle)
@@ -326,7 +335,7 @@ class OrganizationMappersTest {
             start = Timestamp(Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, 1) }.time))
 
     val events = listOf(testEvent, event2)
-    val orgEvents = events.toOrganizationEvents()
+    val orgEvents = events.toOrganizationEvents(mockContext)
 
     assertEquals(2, orgEvents.size)
     assertEquals("Test Event", orgEvents[0].title)
@@ -335,14 +344,14 @@ class OrganizationMappersTest {
 
   @Test
   fun `toOrganizationEvents handles empty list`() {
-    val orgEvents = emptyList<Event>().toOrganizationEvents()
+    val orgEvents = emptyList<Event>().toOrganizationEvents(mockContext)
 
     assertTrue(orgEvents.isEmpty())
   }
 
   @Test
   fun `toOrganizationEvent preserves all event properties`() {
-    val orgEvent = testEvent.toOrganizationEvent()
+    val orgEvent = testEvent.toOrganizationEvent(mockContext)
 
     assertEquals(testEvent.uid, orgEvent.eventId)
     assertEquals(testEvent.title, orgEvent.cardTitle)

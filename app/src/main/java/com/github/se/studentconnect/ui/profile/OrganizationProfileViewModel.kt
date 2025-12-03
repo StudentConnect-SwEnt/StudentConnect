@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.profile
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.OrganizationProfile
@@ -29,6 +31,7 @@ data class OrganizationProfileUiState(
     val organization: OrganizationProfile? = null,
     val selectedTab: OrganizationTab = OrganizationTab.EVENTS,
     val isLoading: Boolean = false,
+    val isFollowLoading: Boolean = false,
     val error: String? = null
 )
 
@@ -38,17 +41,34 @@ data class OrganizationProfileUiState(
  * Manages organization data, tab selection, and follow/unfollow actions.
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
+ * @param context Android context for accessing string resources
  * @param organizationRepository The repository to fetch organization data from
  * @param eventRepository The repository to fetch event data from
  * @param userRepository The repository to fetch user data from
  */
 class OrganizationProfileViewModel(
     private val organizationId: String? = null,
+    private val context: Context,
     private val organizationRepository: OrganizationRepository =
         OrganizationRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
+
+  companion object {
+    private const val TAG = "OrganizationProfileVM"
+    // Constants for UI dimensions and styling
+    const val AVATAR_BANNER_HEIGHT = 120
+    const val AVATAR_SIZE = 80
+    const val AVATAR_BORDER_WIDTH = 3
+    const val AVATAR_ICON_SIZE = 40
+    const val EVENT_CARD_WIDTH = 140
+    const val EVENT_CARD_HEIGHT = 100
+    const val MEMBER_AVATAR_SIZE = 72
+    const val MEMBER_ICON_SIZE = 36
+    const val GRID_COLUMNS = 2
+    const val MEMBERS_GRID_HEIGHT = 400
+  }
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
@@ -83,8 +103,9 @@ class OrganizationProfileViewModel(
         // Fetch events for this organization
         val events =
             try {
-              eventRepository.getEventsByOrganization(organizationId).toOrganizationEvents()
+              eventRepository.getEventsByOrganization(organizationId).toOrganizationEvents(context)
             } catch (e: Exception) {
+              Log.e(TAG, "Failed to fetch events for organization $organizationId", e)
               emptyList() // If fetching events fails, use empty list
             }
 
@@ -93,6 +114,7 @@ class OrganizationProfileViewModel(
             try {
               fetchOrganizationMembers(organization.memberUids, userRepository)
             } catch (e: Exception) {
+              Log.e(TAG, "Failed to fetch members for organization $organizationId", e)
               emptyList() // If fetching members fails, use empty list
             }
 
@@ -137,36 +159,33 @@ class OrganizationProfileViewModel(
     val currentOrg = _uiState.value.organization ?: return
     val userId = currentUserId ?: return
 
-    // Optimistically update UI
-    val updatedOrg = currentOrg.copy(isFollowing = !currentOrg.isFollowing)
-    _uiState.value = _uiState.value.copy(organization = updatedOrg)
+    // Prevent rapid toggles - guard with loading flag
+    if (_uiState.value.isFollowLoading) {
+      Log.d(TAG, "Follow toggle already in progress, ignoring")
+      return
+    }
 
-    // Persist to backend
+    // Set loading flag
+    _uiState.value = _uiState.value.copy(isFollowLoading = true)
+
+    // Persist to backend first, then update UI based on result
     viewModelScope.launch {
       try {
-        if (updatedOrg.isFollowing) {
+        val newFollowingState = !currentOrg.isFollowing
+        if (newFollowingState) {
           userRepository.followOrganization(userId, currentOrg.organizationId)
         } else {
           userRepository.unfollowOrganization(userId, currentOrg.organizationId)
         }
+
+        // Update UI after successful backend operation
+        val updatedOrg = currentOrg.copy(isFollowing = newFollowingState)
+        _uiState.value = _uiState.value.copy(organization = updatedOrg, isFollowLoading = false)
       } catch (e: Exception) {
-        // Revert on failure
-        _uiState.value = _uiState.value.copy(organization = currentOrg)
+        Log.e(TAG, "Failed to toggle follow status", e)
+        // Keep current state on failure
+        _uiState.value = _uiState.value.copy(isFollowLoading = false)
       }
     }
-  }
-
-  companion object {
-    // Constants for UI dimensions and styling
-    const val AVATAR_BANNER_HEIGHT = 120
-    const val AVATAR_SIZE = 80
-    const val AVATAR_BORDER_WIDTH = 3
-    const val AVATAR_ICON_SIZE = 40
-    const val EVENT_CARD_WIDTH = 140
-    const val EVENT_CARD_HEIGHT = 100
-    const val MEMBER_AVATAR_SIZE = 72
-    const val MEMBER_ICON_SIZE = 36
-    const val GRID_COLUMNS = 2
-    const val MEMBERS_GRID_HEIGHT = 400
   }
 }

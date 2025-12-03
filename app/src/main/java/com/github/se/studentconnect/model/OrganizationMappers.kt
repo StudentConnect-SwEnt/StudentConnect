@@ -1,9 +1,13 @@
 package com.github.se.studentconnect.model
 
+import android.content.Context
+import android.util.Log
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
+import com.github.se.studentconnect.utils.HandleUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -34,11 +38,15 @@ fun Organization.toOrganizationProfile(
  * Converts a backend Organization model to the simplified OrganizationData model used for
  * suggestions.
  *
+ * Note: This generates a handle client-side for display purposes only. The backend should be the
+ * source of truth for organization handles.
+ *
  * @return OrganizationData for suggestion cards
  */
 fun Organization.toOrganizationData(): OrganizationData {
-  // Generate a handle from the organization name if not available
-  val handle = "@${this.name.lowercase().replace(" ", "")}"
+  // Generate a sanitized handle from the organization name
+  // This is for display purposes only - backend validation is required for persistence
+  val handle = HandleUtils.generateHandle(this.name, prefix = "@")
   return OrganizationData(id = this.id, name = this.name, handle = handle)
 }
 
@@ -83,6 +91,10 @@ suspend fun fetchOrganizationMembers(
       val user = userRepository.getUserById(uid)
       user?.toOrganizationMember(defaultRole)
     } catch (e: Exception) {
+      Log.e(
+          "OrganizationMappers",
+          "Failed to fetch user with ID $uid for organization member list",
+          e)
       null // Skip users that can't be fetched
     }
   }
@@ -91,9 +103,10 @@ suspend fun fetchOrganizationMembers(
 /**
  * Converts an Event to an OrganizationEvent for display in the organization profile.
  *
+ * @param context Android context for accessing string resources
  * @return OrganizationEvent for UI display
  */
-fun Event.toOrganizationEvent(): OrganizationEvent {
+fun Event.toOrganizationEvent(context: Context): OrganizationEvent {
   val dateFormat = SimpleDateFormat("d MMM, yyyy", Locale.ENGLISH)
   val cardDate = dateFormat.format(this.start.toDate())
 
@@ -119,9 +132,9 @@ fun Event.toOrganizationEvent(): OrganizationEvent {
 
   val subtitle =
       when {
-        daysDifference == 0 -> "Today"
-        daysDifference == 1 -> "Tomorrow"
-        daysDifference > 1 -> "In $daysDifference days"
+        daysDifference == 0 -> context.getString(R.string.org_event_time_today)
+        daysDifference == 1 -> context.getString(R.string.org_event_time_tomorrow)
+        daysDifference > 1 -> context.getString(R.string.org_event_time_in_days, daysDifference)
         else -> cardDate
       }
 
@@ -137,8 +150,9 @@ fun Event.toOrganizationEvent(): OrganizationEvent {
 /**
  * Converts a list of Events to OrganizationEvents.
  *
+ * @param context Android context for accessing string resources
  * @return List of OrganizationEvents
  */
-fun List<Event>.toOrganizationEvents(): List<OrganizationEvent> {
-  return this.map { it.toOrganizationEvent() }
+fun List<Event>.toOrganizationEvents(context: Context): List<OrganizationEvent> {
+  return this.map { it.toOrganizationEvent(context) }
 }
