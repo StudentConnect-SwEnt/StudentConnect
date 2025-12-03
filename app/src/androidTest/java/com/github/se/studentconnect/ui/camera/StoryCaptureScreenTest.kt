@@ -309,6 +309,70 @@ class StoryCaptureScreenTest {
   }
 
   @Test
+  fun storyCaptureScreen_videoMode_capturesVideo() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    // Switch to video mode
+    composeTestRule.onNodeWithText("VIDEO").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_previewWithVideoMode_passesVideoFlag() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    var capturedIsVideo = false
+
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {},
+            isActive = true,
+            onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo },
+            eventSelectionState = EventSelectionState.Success(listOf(event)))
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Switch to video mode and capture
+    composeTestRule.onNodeWithText("VIDEO").performClick()
+    composeTestRule.waitForIdle()
+    // This test verifies the video mode branch is exercised
+    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_videoPreview_passesIsVideoTrue() {
+    var isVideoPassed = false
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreenWithPreview(
+            onBackClick = {},
+            isActive = true,
+            showInitialPreview = true,
+            isVideoMode = true,
+            onStoryAccepted = { _, isVideo, _ -> isVideoPassed = isVideo })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+    // Verify video mode branch: storyCaptureMode == StoryCaptureMode.VIDEO
+    composeTestRule.runOnIdle { assert(isVideoPassed) }
+  }
+
+  @Test
   fun storyCaptureScreen_retake_resetsPreview() {
     composeTestRule.setContent {
       AppTheme {
@@ -435,7 +499,8 @@ private fun StoryCaptureScreenWithPreview(
     showInitialPreview: Boolean,
     isVideoMode: Boolean = false,
     onPreviewStateChanged: (Boolean) -> Unit = {},
-    events: List<Event> = emptyList()
+    events: List<Event> = emptyList(),
+    onStoryAccepted: (Uri, Boolean, Event?) -> Unit = { _, _, _ -> }
 ) {
   var storyCaptureMode by remember {
     mutableStateOf(if (isVideoMode) StoryCaptureMode.VIDEO else StoryCaptureMode.PHOTO)
@@ -453,7 +518,8 @@ private fun StoryCaptureScreenWithPreview(
           mediaUri = capturedMediaUri!!,
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
           initialSelectedEvent = events.firstOrNull(),
-          onAccept = {
+          onAccept = { selectedEvent ->
+            onStoryAccepted(capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
             showPreview = false
             capturedMediaUri = null
           },

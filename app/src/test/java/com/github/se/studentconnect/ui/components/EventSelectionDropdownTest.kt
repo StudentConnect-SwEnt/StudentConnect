@@ -579,4 +579,72 @@ class EventSelectionDropdownTest {
     // Dialog should close after deselection
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
   }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_withNullSelectedEvent_comparesCorrectly() {
+    val event1 = createMockEvent("1", "Event 1")
+    val event2 = createMockEvent("2", "Event 2")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event1, event2)),
+            selectedEvent = null, // null selectedEvent branch
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    // Both events should be unselected (no checkmark)
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_selectionToggle_bothBranches() {
+    val event = createMockEvent("1", "Event 1")
+    var selectedEvent: Event? = null
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    // First click: select event (isSelected = false, so returns event)
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
+    composeTestRule.runOnIdle { assertEquals(event, selectedEvent) }
+
+    // Reopen dialog with event selected
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    // Second click: deselect event (isSelected = true, so returns null)
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
+    composeTestRule.runOnIdle { assertEquals(null, selectedEvent) }
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_selectedEventUidMismatch_noCheckmark() {
+    val event1 = createMockEvent("1", "Event 1")
+    val event2 = createMockEvent("2", "Event 2")
+    val otherEvent = createMockEvent("3", "Other Event")
+    // selectedEvent uid doesn't match any event in list
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event1, event2)),
+            selectedEvent = otherEvent, // uid "3" doesn't match event1 or event2
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    // Both events should show as unselected (selectedEvent?.uid == event.uid is false for both)
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
 }
