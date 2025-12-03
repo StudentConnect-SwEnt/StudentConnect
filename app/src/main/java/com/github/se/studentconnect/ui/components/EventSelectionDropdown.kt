@@ -279,12 +279,7 @@ private fun EventSelectionSuccessState(
 }
 
 @Composable
-private fun EventCard(
-    event: Event,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    testTagIndex: Int = -1
-) {
+private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit, testTagIndex: Int) {
   val bgColor =
       if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer
@@ -301,9 +296,7 @@ private fun EventCard(
               .height(CARD_HEIGHT)
               .clickable(onClick = onClick)
               .semantics { contentDescription = cardContentDescription }
-              .testTag(
-                  if (testTagIndex >= 0) "${C.Tag.event_selection_card_prefix}_$testTagIndex"
-                  else "${C.Tag.event_selection_card_prefix}_${event.uid}"),
+              .testTag("${C.Tag.event_selection_card_prefix}_$testTagIndex"),
       shape = RoundedCornerShape(12.dp),
       colors = CardDefaults.cardColors(containerColor = bgColor),
       elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)) {

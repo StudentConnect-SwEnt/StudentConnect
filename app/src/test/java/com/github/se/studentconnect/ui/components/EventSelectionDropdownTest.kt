@@ -1,8 +1,10 @@
 package com.github.se.studentconnect.ui.components
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -47,9 +49,9 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag(C.Tag.event_selection_empty).assertIsDisplayed()
   }
 
-  // Covers: selectedEvent!=null (lines 122, 144, 147)
+  // Covers: selectedEvent!=null (lines 122, 144, 147), showDialog=false (line 102)
   @Test
-  fun eventSelected_showsEventTitle() {
+  fun eventSelected_showsEventTitle_dialogNotShownInitially() {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
@@ -57,6 +59,8 @@ class EventSelectionDropdownTest {
       }
     }
     composeTestRule.onNodeWithText("My Event").assertIsDisplayed()
+    // Dialog should NOT be shown until button is clicked (showDialog=false branch)
+    composeTestRule.onAllNodesWithTag(C.Tag.event_selection_dropdown).assertCountEquals(0)
   }
 
   // Covers: when(state) Loading (line 208)
