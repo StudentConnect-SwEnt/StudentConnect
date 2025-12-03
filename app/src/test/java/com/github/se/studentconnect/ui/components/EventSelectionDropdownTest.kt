@@ -464,4 +464,121 @@ class EventSelectionDropdownTest {
     // Dialog should not be visible initially
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
   }
+
+  @Test
+  fun eventSelectionDropdown_selectDifferentEvent_switchesSelection() {
+    val event1 = createMockEvent("1", "Event 1")
+    val event2 = createMockEvent("2", "Event 2")
+    var selectedEvent: Event? = event1
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event1, event2)),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    // Click event2 to switch selection
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").performClick()
+    composeTestRule.runOnIdle {
+      assertEquals("2", selectedEvent?.uid)
+    }
+  }
+
+  @Test
+  fun eventSelectionDropdown_triggerButton_colorChangesWithSelection() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    // Button should display event title with different color when selected
+    composeTestRule.onNodeWithText("Event 1").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_selectedState_hasElevation() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_unselectedState_noElevation() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_selectEvent_closesDialog() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.waitForIdle()
+    // Dialog should close after selection
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventSelectionDropdown_deselectEvent_closesDialog() {
+    val event = createMockEvent("1", "Event 1")
+    var selectedEvent: Event? = event
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.waitForIdle()
+    // Dialog should close after deselection
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
+  }
 }

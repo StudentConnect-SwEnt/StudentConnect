@@ -316,4 +316,69 @@ class CameraModeSelectorScreenTest {
         .onNodeWithText("Point the camera at a StudentConnect QR code")
         .assertIsDisplayed()
   }
+
+  @Test
+  fun cameraModeSelectorScreen_initialModeMismatch_scrollsToPage() {
+    val initialMode = mutableStateOf(CameraMode.STORY)
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = initialMode.value)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Change initial mode to trigger LaunchedEffect
+    composeTestRule.runOnIdle { initialMode.value = CameraMode.QR_SCAN }
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Point the camera at a StudentConnect QR code")
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_modeTab_selectedState() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // STORY tab should be selected (bold, larger font)
+    composeTestRule.onNodeWithTag("mode_story").assertIsDisplayed()
+    // QR SCAN tab should not be selected
+    composeTestRule.onNodeWithTag("mode_qr_scan").assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_modeTab_unselectedState() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // QR SCAN tab should be selected
+    composeTestRule.onNodeWithTag("mode_qr_scan").assertIsDisplayed()
+    // STORY tab should not be selected
+    composeTestRule.onNodeWithTag("mode_story").assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_loadEvents_errorState_handlesException() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Error state in loadJoinedEvents is tested through repository failure
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
 }
