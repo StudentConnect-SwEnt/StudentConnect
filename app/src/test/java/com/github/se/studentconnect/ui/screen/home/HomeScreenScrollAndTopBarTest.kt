@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
 import androidx.test.core.app.ApplicationProvider
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -128,9 +129,7 @@ class HomeScreenScrollAndTopBarTest {
             fromUserId: String
         ) {}
 
-        override suspend fun getInvitations(
-            userId: String
-        ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+        override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
 
         override suspend fun acceptInvitation(eventId: String, userId: String) {}
 

@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
@@ -369,8 +370,7 @@ class JoinedEventsScreenTest {
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
         Unit
 
-    override suspend fun getInvitations(userId: String) =
-        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
+    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
 

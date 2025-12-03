@@ -1,9 +1,9 @@
 package com.github.se.studentconnect.model.user
 
 import android.util.Log
+import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore

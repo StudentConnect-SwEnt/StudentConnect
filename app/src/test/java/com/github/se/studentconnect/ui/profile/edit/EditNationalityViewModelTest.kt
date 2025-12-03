@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.profile.edit
 
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -389,8 +390,7 @@ class EditNationalityViewModelTest {
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
         Unit
 
-    override suspend fun getInvitations(userId: String) =
-        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
+    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
 

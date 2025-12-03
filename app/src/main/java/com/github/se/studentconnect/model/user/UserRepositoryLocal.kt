@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
+import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.activities.InvitationStatus
 import java.util.UUID
 
 /**

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.media.MediaRepository
@@ -112,9 +113,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
 
-    override suspend fun getInvitations(
-        userId: String
-    ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+    override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) {}
 

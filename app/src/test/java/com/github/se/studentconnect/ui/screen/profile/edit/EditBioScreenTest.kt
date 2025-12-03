@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile.edit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
@@ -606,8 +607,7 @@ class EditBioScreenTest {
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
         Unit
 
-    override suspend fun getInvitations(userId: String) =
-        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
+    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
 
