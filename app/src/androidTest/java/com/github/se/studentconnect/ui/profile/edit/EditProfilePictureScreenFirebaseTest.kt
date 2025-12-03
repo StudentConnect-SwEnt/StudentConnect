@@ -13,9 +13,11 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.waitUntil
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
@@ -178,9 +180,17 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun takePhotoOption_enablesSaveButton() {
-    composeTestRule.waitForIdle()
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
     val saveButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_save))
+
+    // Wait for button to appear
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      composeTestRule
+          .onAllNodesWithText(ctx.getString(R.string.button_save))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
     saveButton.assertExists().assertIsNotEnabled()
 
     // Permission result + TakePicture result
