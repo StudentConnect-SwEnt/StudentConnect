@@ -40,10 +40,7 @@ class EventSelectionDropdownTest {
         ApplicationProvider.getApplicationContext<android.content.Context>()
             .getString(R.string.event_selection_button_label)
     composeTestRule.setContent {
-      AppTheme {
-        EventSelectionDropdown(
-            EventSelectionState.Success(emptyList()), null, {}, {})
-      }
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(emptyList()), null, {}, {}) }
     }
     composeTestRule.onNodeWithText(placeholder).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
@@ -97,14 +94,16 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithText(defaultError).assertIsDisplayed()
   }
 
-  // Covers: isSelected=false (lines 267, 272, 289, 305, 309, 328), events.isEmpty()=false (line 253)
+  // Covers: isSelected=false (lines 267, 272, 289, 305, 309, 328), events.isEmpty()=false (line
+  // 253)
   @Test
   fun selectEvent_callsOnEventSelectedWithEvent() {
     val event = mockEvent("1", "Event 1")
     var selected: Event? = null
     composeTestRule.setContent {
       AppTheme {
-        EventSelectionDropdown(EventSelectionState.Success(listOf(event)), null, { selected = it }, {})
+        EventSelectionDropdown(
+            EventSelectionState.Success(listOf(event)), null, { selected = it }, {})
       }
     }
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
@@ -120,7 +119,8 @@ class EventSelectionDropdownTest {
     var selected: Event? = event
     composeTestRule.setContent {
       AppTheme {
-        EventSelectionDropdown(EventSelectionState.Success(listOf(event)), event, { selected = it }, {})
+        EventSelectionDropdown(
+            EventSelectionState.Success(listOf(event)), event, { selected = it }, {})
       }
     }
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
@@ -128,4 +128,3 @@ class EventSelectionDropdownTest {
     composeTestRule.runOnIdle { assertEquals(null, selected) }
   }
 }
-

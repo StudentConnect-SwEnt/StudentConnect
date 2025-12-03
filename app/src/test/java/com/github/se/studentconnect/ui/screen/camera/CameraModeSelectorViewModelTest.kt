@@ -42,46 +42,55 @@ class CameraModeSelectorViewModelTest {
 
   // Covers: userId!=null, try success (lines 26-31)
   @Test
-  fun loadJoinedEvents_success() = runTest(testDispatcher) {
-    val events = listOf(
-        Event.Public(uid = "1", ownerId = "o", title = "E", description = "d",
-            start = Timestamp.now(), isFlash = false, subtitle = "s"))
-    AuthenticationProvider.testUserId = "user1"
-    coEvery { repository.getUserJoinedEvents("user1") } returns events
+  fun loadJoinedEvents_success() =
+      runTest(testDispatcher) {
+        val events =
+            listOf(
+                Event.Public(
+                    uid = "1",
+                    ownerId = "o",
+                    title = "E",
+                    description = "d",
+                    start = Timestamp.now(),
+                    isFlash = false,
+                    subtitle = "s"))
+        AuthenticationProvider.testUserId = "user1"
+        coEvery { repository.getUserJoinedEvents("user1") } returns events
 
-    val vm = CameraModeSelectorViewModel(repository)
-    vm.loadJoinedEvents()
-    advanceUntilIdle()
+        val vm = CameraModeSelectorViewModel(repository)
+        vm.loadJoinedEvents()
+        advanceUntilIdle()
 
-    assertTrue(vm.eventSelectionState.value is EventSelectionState.Success)
-    assertEquals(events, (vm.eventSelectionState.value as EventSelectionState.Success).events)
-  }
+        assertTrue(vm.eventSelectionState.value is EventSelectionState.Success)
+        assertEquals(events, (vm.eventSelectionState.value as EventSelectionState.Success).events)
+      }
 
   // Covers: userId!=null, catch exception (lines 32-34)
   @Test
-  fun loadJoinedEvents_error() = runTest(testDispatcher) {
-    AuthenticationProvider.testUserId = "user1"
-    coEvery { repository.getUserJoinedEvents("user1") } throws RuntimeException("fail")
+  fun loadJoinedEvents_error() =
+      runTest(testDispatcher) {
+        AuthenticationProvider.testUserId = "user1"
+        coEvery { repository.getUserJoinedEvents("user1") } throws RuntimeException("fail")
 
-    val vm = CameraModeSelectorViewModel(repository)
-    vm.loadJoinedEvents()
-    advanceUntilIdle()
+        val vm = CameraModeSelectorViewModel(repository)
+        vm.loadJoinedEvents()
+        advanceUntilIdle()
 
-    assertTrue(vm.eventSelectionState.value is EventSelectionState.Error)
-    assertEquals("fail", (vm.eventSelectionState.value as EventSelectionState.Error).error)
-  }
+        assertTrue(vm.eventSelectionState.value is EventSelectionState.Error)
+        assertEquals("fail", (vm.eventSelectionState.value as EventSelectionState.Error).error)
+      }
 
   // Covers: userId==null (lines 36-38)
   @Test
-  fun loadJoinedEvents_noUser_returnsEmpty() = runTest(testDispatcher) {
-    AuthenticationProvider.testUserId = ""
+  fun loadJoinedEvents_noUser_returnsEmpty() =
+      runTest(testDispatcher) {
+        AuthenticationProvider.testUserId = ""
 
-    val vm = CameraModeSelectorViewModel(repository)
-    vm.loadJoinedEvents()
-    advanceUntilIdle()
+        val vm = CameraModeSelectorViewModel(repository)
+        vm.loadJoinedEvents()
+        advanceUntilIdle()
 
-    assertTrue(vm.eventSelectionState.value is EventSelectionState.Success)
-    assertTrue((vm.eventSelectionState.value as EventSelectionState.Success).events.isEmpty())
-  }
+        assertTrue(vm.eventSelectionState.value is EventSelectionState.Success)
+        assertTrue((vm.eventSelectionState.value as EventSelectionState.Success).events.isEmpty())
+      }
 }
-
