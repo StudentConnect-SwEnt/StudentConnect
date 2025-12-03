@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.net.Uri
 import androidx.activity.ComponentActivity
@@ -6,13 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.core.net.toUri
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.ui.screen.signup.regularuser.AddPictureScreen
-import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,9 +51,9 @@ class AddPictureScreenTest {
     composeScreen()
 
     // Test that the screen renders without crashing
-    assertTrue("Screen should render successfully", true)
+    Assert.assertTrue("Screen should render successfully", true)
     // The continue button should be disabled initially since no image is selected
-    assertNull(
+    Assert.assertNull(
         "No profile picture should be set initially", viewModel.state.value.profilePictureUri)
   }
 
@@ -71,7 +66,8 @@ class AddPictureScreenTest {
     // For now, we test the ViewModel behavior
     viewModel.setProfilePictureUri(PLACEHOLDER)
 
-    assertEquals("Placeholder should be set", PLACEHOLDER, viewModel.state.value.profilePictureUri)
+    Assert.assertEquals(
+        "Placeholder should be set", PLACEHOLDER, viewModel.state.value.profilePictureUri)
     // Note: skipInvoked would be true if the Skip button was actually clicked
   }
 
@@ -82,7 +78,7 @@ class AddPictureScreenTest {
     // Test that we can simulate image picker success by directly updating the ViewModel
     viewModel.setProfilePictureUri(PICKER_SUCCESS_URI)
 
-    assertEquals(
+    Assert.assertEquals(
         "Profile picture URI should be set",
         PICKER_SUCCESS_URI,
         viewModel.state.value.profilePictureUri)
@@ -95,7 +91,8 @@ class AddPictureScreenTest {
     // Test that we can simulate image picker dismissal by clearing the ViewModel
     viewModel.setProfilePictureUri(null)
 
-    assertNull("Profile picture URI should remain null", viewModel.state.value.profilePictureUri)
+    Assert.assertNull(
+        "Profile picture URI should remain null", viewModel.state.value.profilePictureUri)
   }
 
   @Test
@@ -104,7 +101,7 @@ class AddPictureScreenTest {
     composeScreen(onBack = { backInvoked += 1 })
 
     // Simulate back button action
-    assertEquals("Back should not be invoked yet", 0, backInvoked)
+    Assert.assertEquals("Back should not be invoked yet", 0, backInvoked)
   }
 
   @Test
@@ -113,13 +110,13 @@ class AddPictureScreenTest {
 
     // Test ViewModel state changes
     viewModel.setProfilePictureUri("content://external".toUri())
-    assertEquals(
+    Assert.assertEquals(
         "Profile picture should be set",
         "content://external".toUri(),
         viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri(null)
-    assertNull("Profile picture should be cleared", viewModel.state.value.profilePictureUri)
+    Assert.assertNull("Profile picture should be cleared", viewModel.state.value.profilePictureUri)
   }
 
   @Test
@@ -130,7 +127,7 @@ class AddPictureScreenTest {
     // This tests the SkipButton onClick callback behavior
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
 
-    assertEquals(
+    Assert.assertEquals(
         "Placeholder should be set in ViewModel",
         DEFAULT_PLACEHOLDER,
         viewModel.state.value.profilePictureUri)
@@ -144,7 +141,7 @@ class AddPictureScreenTest {
     // This simulates what would happen when the image picker callback is invoked
     viewModel.setProfilePictureUri(PICKER_SUCCESS_URI)
 
-    assertEquals(
+    Assert.assertEquals(
         "Profile picture URI should be set",
         PICKER_SUCCESS_URI,
         viewModel.state.value.profilePictureUri)
@@ -159,7 +156,8 @@ class AddPictureScreenTest {
     viewModel.setProfilePictureUri(null)
 
     // State should remain unchanged (null)
-    assertNull("Profile picture URI should remain null", viewModel.state.value.profilePictureUri)
+    Assert.assertNull(
+        "Profile picture URI should remain null", viewModel.state.value.profilePictureUri)
   }
 
   @Test
@@ -170,7 +168,7 @@ class AddPictureScreenTest {
     viewModel.setProfilePictureUri("   ".toUri())
 
     // Blank URIs should be filtered out by the ViewModel
-    assertNull(
+    Assert.assertNull(
         "Blank profile picture URI should be filtered out", viewModel.state.value.profilePictureUri)
   }
 
@@ -183,7 +181,7 @@ class AddPictureScreenTest {
 
     // The LaunchedEffect should synchronize the local state
     // We can verify this by checking that the ViewModel state is updated
-    assertEquals(
+    Assert.assertEquals(
         "ViewModel state should be updated",
         "initial-uri".toUri(),
         viewModel.state.value.profilePictureUri)
@@ -195,20 +193,20 @@ class AddPictureScreenTest {
 
     // Test null state
     viewModel.setProfilePictureUri(null)
-    assertNull("Should handle null state", viewModel.state.value.profilePictureUri)
+    Assert.assertNull("Should handle null state", viewModel.state.value.profilePictureUri)
 
     // Test blank state
     viewModel.setProfilePictureUri("".toUri())
-    assertNull("Should handle blank state", viewModel.state.value.profilePictureUri)
+    Assert.assertNull("Should handle blank state", viewModel.state.value.profilePictureUri)
 
     // Test valid state
     viewModel.setProfilePictureUri("valid-uri".toUri())
-    assertEquals(
+    Assert.assertEquals(
         "Should handle valid state", "valid-uri".toUri(), viewModel.state.value.profilePictureUri)
 
     // Test placeholder state
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-    assertEquals(
+    Assert.assertEquals(
         "Should handle placeholder state",
         DEFAULT_PLACEHOLDER,
         viewModel.state.value.profilePictureUri)
@@ -220,18 +218,18 @@ class AddPictureScreenTest {
 
     // Test no selection (null)
     viewModel.setProfilePictureUri(null)
-    assertNull("Should handle null selection", viewModel.state.value.profilePictureUri)
+    Assert.assertNull("Should handle null selection", viewModel.state.value.profilePictureUri)
 
     // Test placeholder selection
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-    assertEquals(
+    Assert.assertEquals(
         "Should handle placeholder selection",
         DEFAULT_PLACEHOLDER,
         viewModel.state.value.profilePictureUri)
 
     // Test actual image selection
     viewModel.setProfilePictureUri("content://image/123".toUri())
-    assertEquals(
+    Assert.assertEquals(
         "Should handle actual image selection",
         "content://image/123".toUri(),
         viewModel.state.value.profilePictureUri)
@@ -243,7 +241,7 @@ class AddPictureScreenTest {
     composeScreen(onBack = { backInvoked = true })
 
     // Verify callback is registered (though we can't easily test the actual click in unit tests)
-    assertFalse("Back should not be invoked initially", backInvoked)
+    Assert.assertFalse("Back should not be invoked initially", backInvoked)
   }
 
   @Test
@@ -252,7 +250,7 @@ class AddPictureScreenTest {
     composeScreen(onContinue = { continueInvoked = true })
 
     // Verify callback is registered (though we can't easily test the actual click in unit tests)
-    assertFalse("Continue should not be invoked initially", continueInvoked)
+    Assert.assertFalse("Continue should not be invoked initially", continueInvoked)
   }
 
   @Test
@@ -261,18 +259,18 @@ class AddPictureScreenTest {
 
     // Test UploadCard with no selection
     viewModel.setProfilePictureUri(null)
-    assertNull("Should handle null selection", viewModel.state.value.profilePictureUri)
+    Assert.assertNull("Should handle null selection", viewModel.state.value.profilePictureUri)
 
     // Test UploadCard with placeholder selection
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-    assertEquals(
+    Assert.assertEquals(
         "Should handle placeholder selection",
         DEFAULT_PLACEHOLDER,
         viewModel.state.value.profilePictureUri)
 
     // Test UploadCard with actual image selection
     viewModel.setProfilePictureUri("content://image/123".toUri())
-    assertEquals(
+    Assert.assertEquals(
         "Should handle actual image selection",
         "content://image/123".toUri(),
         viewModel.state.value.profilePictureUri)
@@ -287,20 +285,21 @@ class AddPictureScreenTest {
 
     // Test various edge cases that might affect the rendering logic
     viewModel.setProfilePictureUri("".toUri())
-    assertNull("Empty string should be filtered out", viewModel.state.value.profilePictureUri)
+    Assert.assertNull(
+        "Empty string should be filtered out", viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri("   ".toUri())
-    assertNull(
+    Assert.assertNull(
         "Whitespace-only string should be filtered out", viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri("valid-uri".toUri())
-    assertEquals(
+    Assert.assertEquals(
         "Valid URI should be preserved",
         "valid-uri".toUri(),
         viewModel.state.value.profilePictureUri)
 
     viewModel.setProfilePictureUri(DEFAULT_PLACEHOLDER)
-    assertEquals(
+    Assert.assertEquals(
         "Placeholder should be preserved",
         DEFAULT_PLACEHOLDER,
         viewModel.state.value.profilePictureUri)

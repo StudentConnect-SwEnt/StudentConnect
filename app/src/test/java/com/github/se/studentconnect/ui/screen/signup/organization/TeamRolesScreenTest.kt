@@ -1,8 +1,5 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
-import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesState
-import com.github.se.studentconnect.ui.screen.signup.organization.calculateExpandedState
-import com.github.se.studentconnect.ui.screen.signup.organization.shouldExpandOnTextChange
 import org.junit.Assert
 import org.junit.Test
 

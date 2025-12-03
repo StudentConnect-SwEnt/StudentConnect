@@ -1,17 +1,13 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryRow
 import com.github.se.studentconnect.ui.components.loadCountries
-import com.github.se.studentconnect.ui.screen.signup.regularuser.NationalityScreen
-import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,17 +40,17 @@ class NationalityScreenTest {
   fun `screen reflects nationality validity when selection changes`() {
     composeNationalityScreen()
 
-    assertFalse(viewModel.isNationalityValid)
+    Assert.assertFalse(viewModel.isNationalityValid)
 
     viewModel.setNationality("us")
     runOnIdle()
 
-    assertTrue(viewModel.isNationalityValid)
+    Assert.assertTrue(viewModel.isNationalityValid)
 
     viewModel.setNationality("")
     runOnIdle()
 
-    assertFalse(viewModel.isNationalityValid)
+    Assert.assertFalse(viewModel.isNationalityValid)
   }
 
   @Test
@@ -63,30 +59,30 @@ class NationalityScreenTest {
 
     composeNationalityScreen()
 
-    assertEquals("FR", viewModel.state.value.nationality)
+    Assert.assertEquals("FR", viewModel.state.value.nationality)
   }
 
   @Test
   fun `loadCountries returns sorted locales with flags`() {
     val countries = loadCountries()
 
-    assertTrue(countries.isNotEmpty())
-    assertEquals(countries.sortedBy { it.name }, countries)
+    Assert.assertTrue(countries.isNotEmpty())
+    Assert.assertEquals(countries.sortedBy { it.name }, countries)
 
     val france = countries.first { it.code == "FR" }
-    assertEquals("France", france.name)
-    assertEquals(2, france.flag.codePointCount(0, france.flag.length))
+    Assert.assertEquals("France", france.name)
+    Assert.assertEquals(2, france.flag.codePointCount(0, france.flag.length))
   }
 
   @Test
   fun `countryCodeToEmoji maps valid iso to flag`() {
-    assertEquals("🇺🇸", invokeCountryCodeToEmoji("us"))
+    Assert.assertEquals("🇺🇸", invokeCountryCodeToEmoji("us"))
   }
 
   @Test
   fun `countryCodeToEmoji falls back for invalid input`() {
-    assertEquals("🌐", invokeCountryCodeToEmoji("invalid"))
-    assertEquals("🌐", invokeCountryCodeToEmoji("Z"))
+    Assert.assertEquals("🌐", invokeCountryCodeToEmoji("invalid"))
+    Assert.assertEquals("🌐", invokeCountryCodeToEmoji("Z"))
   }
 
   @Test
@@ -105,7 +101,7 @@ class NationalityScreenTest {
 
     runOnIdle()
     onSelect()
-    assertEquals(1, clickCount)
+    Assert.assertEquals(1, clickCount)
   }
 
   private fun composeNationalityScreen() {

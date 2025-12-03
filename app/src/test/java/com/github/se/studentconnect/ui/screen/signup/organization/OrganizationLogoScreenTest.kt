@@ -1,9 +1,7 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.net.Uri
 import com.github.se.studentconnect.model.organization.OrganizationType
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpStep
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import org.junit.Assert.*
 import org.junit.Test
 

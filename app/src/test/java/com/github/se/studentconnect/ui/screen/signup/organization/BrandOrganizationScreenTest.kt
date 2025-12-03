@@ -1,12 +1,8 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.github.se.studentconnect.ui.screen.signup.organization.BrandOrganizationContent
-import com.github.se.studentconnect.ui.screen.signup.organization.BrandOrganizationScreen
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
-import com.github.se.studentconnect.ui.screen.signup.organization.SocialLinkField
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 import org.junit.After
 import org.junit.Assert

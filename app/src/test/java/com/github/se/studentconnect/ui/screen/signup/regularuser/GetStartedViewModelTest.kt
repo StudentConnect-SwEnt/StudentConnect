@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import android.content.Context
 import androidx.credentials.Credential
@@ -9,8 +9,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialInterruptedException
 import com.github.se.studentconnect.model.authentication.AuthRepository
-import com.github.se.studentconnect.ui.screen.signup.regularuser.AuthUIState
-import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedViewModel
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -19,6 +18,7 @@ import io.mockk.mockk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -26,7 +26,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,8 +71,7 @@ class GetStartedViewModelTest {
         val credential = mockk<CustomCredential>()
         val firebaseUser = mockk<FirebaseUser>()
         every { credential.type } returns
-            com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
-                .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         every { credentialResponse.credential } returns credential
         coEvery {
           credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>())
@@ -85,10 +84,10 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertSame(firebaseUser, state.user)
-        assertNull(state.errorMsg)
-        assertFalse(state.signedOut)
+        Assert.assertFalse(state.isLoading)
+        Assert.assertSame(firebaseUser, state.user)
+        Assert.assertNull(state.errorMsg)
+        Assert.assertFalse(state.signedOut)
       }
 
   @Test
@@ -97,8 +96,7 @@ class GetStartedViewModelTest {
         // Arrange
         val credential = mockk<CustomCredential>()
         every { credential.type } returns
-            com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
-                .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         every { credentialResponse.credential } returns credential
         coEvery {
           credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>())
@@ -112,10 +110,10 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertNull(state.user)
-        assertEquals(failure.localizedMessage, state.errorMsg)
-        assertTrue(state.signedOut)
+        Assert.assertFalse(state.isLoading)
+        Assert.assertNull(state.user)
+        Assert.assertEquals(failure.localizedMessage, state.errorMsg)
+        Assert.assertTrue(state.signedOut)
       }
 
   @Test
@@ -136,9 +134,9 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertNull(state.user)
-        assertEquals(failure.localizedMessage, state.errorMsg)
-        assertTrue(state.signedOut)
+        Assert.assertNull(state.user)
+        Assert.assertEquals(failure.localizedMessage, state.errorMsg)
+        Assert.assertTrue(state.signedOut)
         coVerify(exactly = 1) { repository.signInWithGoogle(credential) }
       }
 
@@ -156,9 +154,9 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertEquals("Sign-in cancelled", state.errorMsg)
-        assertTrue(state.signedOut)
-        assertNull(state.user)
+        Assert.assertEquals("Sign-in cancelled", state.errorMsg)
+        Assert.assertTrue(state.signedOut)
+        Assert.assertNull(state.user)
       }
 
   @Test
@@ -175,9 +173,9 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertTrue(state.errorMsg!!.contains("Unexpected error"))
-        assertTrue(state.signedOut)
-        assertNull(state.user)
+        Assert.assertTrue(state.errorMsg!!.contains("Unexpected error"))
+        Assert.assertTrue(state.signedOut)
+        Assert.assertNull(state.user)
       }
 
   @Test
@@ -194,9 +192,9 @@ class GetStartedViewModelTest {
 
         // Assert
         val state = viewModel.uiState.value
-        assertTrue(state.errorMsg!!.startsWith("Authentication failed"))
-        assertTrue(state.signedOut)
-        assertNull(state.user)
+        Assert.assertTrue(state.errorMsg!!.startsWith("Authentication failed"))
+        Assert.assertTrue(state.signedOut)
+        Assert.assertNull(state.user)
       }
 
   @Test
@@ -205,14 +203,12 @@ class GetStartedViewModelTest {
         // Arrange
         val credential = mockk<CustomCredential>()
         every { credential.type } returns
-            com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
-                .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         every { credentialResponse.credential } returns credential
 
         val field = GetStartedViewModel::class.java.getDeclaredField("_uiState")
         field.isAccessible = true
-        @Suppress("UNCHECKED_CAST")
-        val flow = field.get(viewModel) as kotlinx.coroutines.flow.MutableStateFlow<AuthUIState>
+        @Suppress("UNCHECKED_CAST") val flow = field.get(viewModel) as MutableStateFlow<AuthUIState>
         flow.value = AuthUIState(isLoading = true)
 
         // Act
@@ -231,8 +227,7 @@ class GetStartedViewModelTest {
         // Arrange: force an error state
         val credential = mockk<CustomCredential>()
         every { credential.type } returns
-            com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion
-                .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         every { credentialResponse.credential } returns credential
         coEvery {
           credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>())
@@ -242,12 +237,12 @@ class GetStartedViewModelTest {
 
         viewModel.signIn(context, credentialManager)
         advanceUntilIdle()
-        assertNotNull(viewModel.uiState.value.errorMsg)
+        Assert.assertNotNull(viewModel.uiState.value.errorMsg)
 
         // Act
         viewModel.clearErrorMsg()
 
         // Assert
-        assertNull(viewModel.uiState.value.errorMsg)
+        Assert.assertNull(viewModel.uiState.value.errorMsg)
       }
 }

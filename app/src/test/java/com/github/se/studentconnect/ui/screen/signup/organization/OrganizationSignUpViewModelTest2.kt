@@ -1,11 +1,9 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.net.Uri
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpStep
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -13,7 +11,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-class OrganizationSignUpViewModelTest {
+class OrganizationSignUpViewModelTest2 {
 
   private lateinit var vm: OrganizationSignUpViewModel
 

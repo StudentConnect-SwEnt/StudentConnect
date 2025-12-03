@@ -1,13 +1,19 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.regularuser
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextReplacement
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screen.signup.regularuser.UsernameTextField
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule

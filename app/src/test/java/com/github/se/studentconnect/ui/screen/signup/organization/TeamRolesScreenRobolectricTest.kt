@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -16,12 +16,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.OrganizationRole
-import com.github.se.studentconnect.ui.screen.signup.organization.RolesFormCard
-import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesCallbacks
-import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesContent
-import com.github.se.studentconnect.ui.screen.signup.organization.TeamRolesState
-import com.github.se.studentconnect.ui.screen.signup.organization.calculateExpandedState
-import com.github.se.studentconnect.ui.screen.signup.organization.shouldExpandOnTextChange
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.signup
+package com.github.se.studentconnect.ui.screen.signup.organization
 
 import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
@@ -8,8 +8,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationProfileSetupScreen
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
