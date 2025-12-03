@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -29,6 +30,8 @@ import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -342,7 +345,16 @@ class StoryCaptureScreenTest {
 
   @Test
   fun storyCaptureScreen_videoPreview_passesIsVideoTrue() {
-    var isVideoPassed = false
+    var isVideoPassed: Boolean? = null
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
     composeTestRule.setContent {
       AppTheme {
         StoryCaptureScreenWithPreview(
@@ -350,14 +362,22 @@ class StoryCaptureScreenTest {
             isActive = true,
             showInitialPreview = true,
             isVideoMode = true,
+            events = listOf(event),
             onStoryAccepted = { _, isVideo, _ -> isVideoPassed = isVideo })
       }
     }
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
-    // Verify video mode branch: storyCaptureMode == StoryCaptureMode.VIDEO
-    composeTestRule.runOnIdle { assert(isVideoPassed) }
+    // Event is pre-selected via initialSelectedEvent, so accept button should be enabled
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsEnabled()
+    // Accept the preview to trigger onStoryAccepted and verify video mode branch
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle {
+      assertNotNull(isVideoPassed)
+      assertTrue(isVideoPassed == true)
+    }
   }
 
   @Test

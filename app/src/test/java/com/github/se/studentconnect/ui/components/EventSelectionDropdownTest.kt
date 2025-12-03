@@ -601,29 +601,49 @@ class EventSelectionDropdownTest {
   }
 
   @Test
-  fun eventSelectionDropdown_eventCard_selectionToggle_bothBranches() {
+  fun eventSelectionDropdown_eventCard_selectionToggle_selectsEvent() {
     val event = createMockEvent("1", "Event 1")
-    var selectedEvent: Event? = null
+    val selectedEvents = mutableListOf<Event?>()
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
             state = EventSelectionState.Success(listOf(event)),
-            selectedEvent = selectedEvent,
-            onEventSelected = { selectedEvent = it },
+            selectedEvent = null, // Not selected initially
+            onEventSelected = { selectedEvents.add(it) },
             onLoadEvents = {})
       }
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    // First click: select event (isSelected = false, so returns event)
+    // Click: select event (isSelected = false, so returns event)
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
-    composeTestRule.runOnIdle { assertEquals(event, selectedEvent) }
+    composeTestRule.runOnIdle {
+      assertEquals(1, selectedEvents.size)
+      assertEquals(event, selectedEvents.last())
+    }
+  }
 
-    // Reopen dialog with event selected
+  @Test
+  fun eventSelectionDropdown_eventCard_selectionToggle_deselectsEvent() {
+    val event = createMockEvent("1", "Event 1")
+    val selectedEvents = mutableListOf<Event?>()
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = event, // Selected initially
+            onEventSelected = { selectedEvents.add(it) },
+            onLoadEvents = {})
+      }
+    }
+
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    // Second click: deselect event (isSelected = true, so returns null)
+    // Click: deselect event (isSelected = true, so returns null)
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
-    composeTestRule.runOnIdle { assertEquals(null, selectedEvent) }
+    composeTestRule.runOnIdle {
+      assertEquals(1, selectedEvents.size)
+      assertEquals(null, selectedEvents.last())
+    }
   }
 
   @Test
