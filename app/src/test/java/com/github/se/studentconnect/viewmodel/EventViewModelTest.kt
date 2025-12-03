@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.viewmodel
 
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
@@ -8,6 +7,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.event.EventUiState

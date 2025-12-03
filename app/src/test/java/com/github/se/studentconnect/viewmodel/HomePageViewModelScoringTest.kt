@@ -4,6 +4,7 @@ import android.content.Context
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.LocationRepository
 import com.github.se.studentconnect.repository.LocationResult
 import com.github.se.studentconnect.repository.OrganizationRepository
@@ -128,7 +129,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-1"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "John",
             lastName = "Doe",
@@ -200,7 +201,7 @@ class HomePageViewModelScoringTest {
 
     eventRepository.addEvent(event1)
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "John",
             lastName = "Doe",
@@ -231,7 +232,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-4"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Jane",
             lastName = "Smith",
@@ -318,7 +319,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-8"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -381,7 +382,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-9"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -485,7 +486,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-12"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -534,7 +535,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-13"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -840,7 +841,7 @@ class HomePageViewModelScoringTest {
     eventRepository.addEvent(attendedEvent)
     eventRepository.addEvent(newEvent)
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -870,7 +871,7 @@ class HomePageViewModelScoringTest {
     val userId = "test-user-29"
     com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",
@@ -1260,7 +1261,7 @@ class HomePageViewModelScoringTest {
 
     // Add data after initialization
     userRepository.saveUser(
-        com.github.se.studentconnect.model.User(
+        User(
             userId = userId,
             firstName = "Test",
             lastName = "User",

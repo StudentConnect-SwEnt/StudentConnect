@@ -7,12 +7,12 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextInput
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal

@@ -1,6 +1,6 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.user
 
-import org.junit.Assert.*
+import org.junit.Assert
 import org.junit.Test
 
 class UserTest {
@@ -21,20 +21,20 @@ class UserTest {
 
   @Test
   fun testUserCreation() {
-    assertNotNull(validUser)
-    assertEquals("user123", validUser.userId)
-    assertEquals("test@epfl.ch", validUser.email)
-    assertEquals("johndoe", validUser.username)
-    assertEquals("John", validUser.firstName)
-    assertEquals("Doe", validUser.lastName)
-    assertEquals("EPFL", validUser.university)
-    assertEquals(2, validUser.hobbies.size)
-    assertEquals("Football", validUser.hobbies[0])
-    assertEquals("Gaming", validUser.hobbies[1])
-    assertEquals("https://example.com/pic.jpg", validUser.profilePictureUrl)
-    assertEquals("Computer science student", validUser.bio)
-    assertEquals(1000L, validUser.createdAt)
-    assertEquals(1000L, validUser.updatedAt)
+    Assert.assertNotNull(validUser)
+    Assert.assertEquals("user123", validUser.userId)
+    Assert.assertEquals("test@epfl.ch", validUser.email)
+    Assert.assertEquals("johndoe", validUser.username)
+    Assert.assertEquals("John", validUser.firstName)
+    Assert.assertEquals("Doe", validUser.lastName)
+    Assert.assertEquals("EPFL", validUser.university)
+    Assert.assertEquals(2, validUser.hobbies.size)
+    Assert.assertEquals("Football", validUser.hobbies[0])
+    Assert.assertEquals("Gaming", validUser.hobbies[1])
+    Assert.assertEquals("https://example.com/pic.jpg", validUser.profilePictureUrl)
+    Assert.assertEquals("Computer science student", validUser.bio)
+    Assert.assertEquals(1000L, validUser.createdAt)
+    Assert.assertEquals(1000L, validUser.updatedAt)
   }
 
   @Test
@@ -50,9 +50,9 @@ class UserTest {
             hobbies = emptyList(),
             createdAt = 2000L,
             updatedAt = 2000L)
-    assertEquals(0, user.hobbies.size)
-    assertNull(user.profilePictureUrl)
-    assertNull(user.bio)
+    Assert.assertEquals(0, user.hobbies.size)
+    Assert.assertNull(user.profilePictureUrl)
+    Assert.assertNull(user.bio)
   }
 
   @Test
@@ -68,11 +68,11 @@ class UserTest {
             university = "ETHZ")
     val afterCreation = System.currentTimeMillis()
 
-    assertTrue(user.createdAt >= beforeCreation)
-    assertTrue(user.createdAt <= afterCreation)
-    assertTrue(user.updatedAt >= beforeCreation)
-    assertTrue(user.updatedAt <= afterCreation)
-    assertEquals(user.createdAt, user.updatedAt)
+    Assert.assertTrue(user.createdAt >= beforeCreation)
+    Assert.assertTrue(user.createdAt <= afterCreation)
+    Assert.assertTrue(user.updatedAt >= beforeCreation)
+    Assert.assertTrue(user.updatedAt <= afterCreation)
+    Assert.assertEquals(user.createdAt, user.updatedAt)
   }
 
   @Test(expected = IllegalArgumentException::class)
@@ -182,12 +182,12 @@ class UserTest {
 
   @Test
   fun testGetFullName() {
-    assertEquals("John Doe", validUser.getFullName())
+    Assert.assertEquals("John Doe", validUser.getFullName())
   }
 
   @Test
   fun testHasProfilePicture() {
-    assertTrue(validUser.hasProfilePicture())
+    Assert.assertTrue(validUser.hasProfilePicture())
 
     val userWithoutPicture =
         User(
@@ -200,7 +200,7 @@ class UserTest {
             profilePictureUrl = null,
             createdAt = 1000L,
             updatedAt = 1000L)
-    assertFalse(userWithoutPicture.hasProfilePicture())
+    Assert.assertFalse(userWithoutPicture.hasProfilePicture())
 
     val userWithBlankPicture =
         User(
@@ -213,12 +213,12 @@ class UserTest {
             profilePictureUrl = "",
             createdAt = 1000L,
             updatedAt = 1000L)
-    assertFalse(userWithBlankPicture.hasProfilePicture())
+    Assert.assertFalse(userWithBlankPicture.hasProfilePicture())
   }
 
   @Test
   fun testHasBio() {
-    assertTrue(validUser.hasBio())
+    Assert.assertTrue(validUser.hasBio())
 
     val userWithoutBio =
         User(
@@ -231,7 +231,7 @@ class UserTest {
             bio = null,
             createdAt = 1000L,
             updatedAt = 1000L)
-    assertFalse(userWithoutBio.hasBio())
+    Assert.assertFalse(userWithoutBio.hasBio())
 
     val userWithBlankBio =
         User(
@@ -244,7 +244,7 @@ class UserTest {
             bio = "",
             createdAt = 1000L,
             updatedAt = 1000L)
-    assertFalse(userWithBlankBio.hasBio())
+    Assert.assertFalse(userWithBlankBio.hasBio())
   }
 
   @Test
@@ -253,61 +253,61 @@ class UserTest {
     val updatedUser = validUser.update(email = User.UpdateValue.SetValue("newemail@epfl.ch"))
     val afterUpdate = System.currentTimeMillis()
 
-    assertEquals("newemail@epfl.ch", updatedUser.email)
-    assertEquals(validUser.firstName, updatedUser.firstName)
-    assertEquals(validUser.lastName, updatedUser.lastName)
-    assertEquals(validUser.university, updatedUser.university)
-    assertEquals(validUser.hobbies, updatedUser.hobbies)
-    assertEquals(validUser.createdAt, updatedUser.createdAt)
-    assertTrue(updatedUser.updatedAt >= beforeUpdate)
-    assertTrue(updatedUser.updatedAt <= afterUpdate)
-    assertTrue(updatedUser.updatedAt > validUser.updatedAt)
+    Assert.assertEquals("newemail@epfl.ch", updatedUser.email)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals(validUser.lastName, updatedUser.lastName)
+    Assert.assertEquals(validUser.university, updatedUser.university)
+    Assert.assertEquals(validUser.hobbies, updatedUser.hobbies)
+    Assert.assertEquals(validUser.createdAt, updatedUser.createdAt)
+    Assert.assertTrue(updatedUser.updatedAt >= beforeUpdate)
+    Assert.assertTrue(updatedUser.updatedAt <= afterUpdate)
+    Assert.assertTrue(updatedUser.updatedAt > validUser.updatedAt)
   }
 
   @Test
   fun testUpdateFirstName() {
     val updatedUser = validUser.update(firstName = User.UpdateValue.SetValue("Jack"))
-    assertEquals("Jack", updatedUser.firstName)
-    assertEquals(validUser.email, updatedUser.email)
+    Assert.assertEquals("Jack", updatedUser.firstName)
+    Assert.assertEquals(validUser.email, updatedUser.email)
   }
 
   @Test
   fun testUpdateLastName() {
     val updatedUser = validUser.update(lastName = User.UpdateValue.SetValue("Brown"))
-    assertEquals("Brown", updatedUser.lastName)
-    assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals("Brown", updatedUser.lastName)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
   }
 
   @Test
   fun testUpdateUniversity() {
     val updatedUser = validUser.update(university = User.UpdateValue.SetValue("UNIL"))
-    assertEquals("UNIL", updatedUser.university)
-    assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals("UNIL", updatedUser.university)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
   }
 
   @Test
   fun testUpdateHobbies() {
     val newHobbies = listOf("Reading", "Swimming", "Cooking")
     val updatedUser = validUser.update(hobbies = User.UpdateValue.SetValue(newHobbies))
-    assertEquals(newHobbies, updatedUser.hobbies)
-    assertEquals(3, updatedUser.hobbies.size)
-    assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals(newHobbies, updatedUser.hobbies)
+    Assert.assertEquals(3, updatedUser.hobbies.size)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
   }
 
   @Test
   fun testUpdateProfilePictureUrl() {
     val newUrl = "https://example.com/newpic.jpg"
     val updatedUser = validUser.update(profilePictureUrl = User.UpdateValue.SetValue(newUrl))
-    assertEquals(newUrl, updatedUser.profilePictureUrl)
-    assertEquals(validUser.email, updatedUser.email)
+    Assert.assertEquals(newUrl, updatedUser.profilePictureUrl)
+    Assert.assertEquals(validUser.email, updatedUser.email)
   }
 
   @Test
   fun testUpdateBio() {
     val newBio = "Engineering student passionate about AI"
     val updatedUser = validUser.update(bio = User.UpdateValue.SetValue(newBio))
-    assertEquals(newBio, updatedUser.bio)
-    assertEquals(validUser.email, updatedUser.email)
+    Assert.assertEquals(newBio, updatedUser.bio)
+    Assert.assertEquals(validUser.email, updatedUser.email)
   }
 
   @Test
@@ -317,12 +317,12 @@ class UserTest {
             email = User.UpdateValue.SetValue("newemail@epfl.ch"),
             firstName = User.UpdateValue.SetValue("Jack"),
             hobbies = User.UpdateValue.SetValue(listOf("Reading")))
-    assertEquals("newemail@epfl.ch", updatedUser.email)
-    assertEquals("Jack", updatedUser.firstName)
-    assertEquals(1, updatedUser.hobbies.size)
-    assertEquals("Reading", updatedUser.hobbies[0])
-    assertEquals(validUser.lastName, updatedUser.lastName)
-    assertEquals(validUser.university, updatedUser.university)
+    Assert.assertEquals("newemail@epfl.ch", updatedUser.email)
+    Assert.assertEquals("Jack", updatedUser.firstName)
+    Assert.assertEquals(1, updatedUser.hobbies.size)
+    Assert.assertEquals("Reading", updatedUser.hobbies[0])
+    Assert.assertEquals(validUser.lastName, updatedUser.lastName)
+    Assert.assertEquals(validUser.university, updatedUser.university)
   }
 
   @Test
@@ -331,34 +331,34 @@ class UserTest {
     val updatedUser = validUser.update()
     val afterUpdate = System.currentTimeMillis()
 
-    assertEquals(validUser.userId, updatedUser.userId)
-    assertEquals(validUser.email, updatedUser.email)
-    assertEquals(validUser.firstName, updatedUser.firstName)
-    assertEquals(validUser.lastName, updatedUser.lastName)
-    assertEquals(validUser.university, updatedUser.university)
-    assertEquals(validUser.hobbies, updatedUser.hobbies)
-    assertEquals(validUser.profilePictureUrl, updatedUser.profilePictureUrl)
-    assertEquals(validUser.bio, updatedUser.bio)
-    assertEquals(validUser.createdAt, updatedUser.createdAt)
-    assertTrue(updatedUser.updatedAt >= beforeUpdate)
-    assertTrue(updatedUser.updatedAt <= afterUpdate)
+    Assert.assertEquals(validUser.userId, updatedUser.userId)
+    Assert.assertEquals(validUser.email, updatedUser.email)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals(validUser.lastName, updatedUser.lastName)
+    Assert.assertEquals(validUser.university, updatedUser.university)
+    Assert.assertEquals(validUser.hobbies, updatedUser.hobbies)
+    Assert.assertEquals(validUser.profilePictureUrl, updatedUser.profilePictureUrl)
+    Assert.assertEquals(validUser.bio, updatedUser.bio)
+    Assert.assertEquals(validUser.createdAt, updatedUser.createdAt)
+    Assert.assertTrue(updatedUser.updatedAt >= beforeUpdate)
+    Assert.assertTrue(updatedUser.updatedAt <= afterUpdate)
   }
 
   @Test
   fun testToMap() {
     val map = validUser.toMap()
 
-    assertEquals("user123", map["userId"])
-    assertEquals("test@epfl.ch", map["email"])
-    assertEquals("johndoe", map["username"])
-    assertEquals("John", map["firstName"])
-    assertEquals("Doe", map["lastName"])
-    assertEquals("EPFL", map["university"])
-    assertEquals(listOf("Football", "Gaming"), map["hobbies"])
-    assertEquals("https://example.com/pic.jpg", map["profilePictureUrl"])
-    assertEquals("Computer science student", map["bio"])
-    assertEquals(1000L, map["createdAt"])
-    assertEquals(1000L, map["updatedAt"])
+    Assert.assertEquals("user123", map["userId"])
+    Assert.assertEquals("test@epfl.ch", map["email"])
+    Assert.assertEquals("johndoe", map["username"])
+    Assert.assertEquals("John", map["firstName"])
+    Assert.assertEquals("Doe", map["lastName"])
+    Assert.assertEquals("EPFL", map["university"])
+    Assert.assertEquals(listOf("Football", "Gaming"), map["hobbies"])
+    Assert.assertEquals("https://example.com/pic.jpg", map["profilePictureUrl"])
+    Assert.assertEquals("Computer science student", map["bio"])
+    Assert.assertEquals(1000L, map["createdAt"])
+    Assert.assertEquals(1000L, map["updatedAt"])
   }
 
   @Test
@@ -375,17 +375,17 @@ class UserTest {
             updatedAt = 1000L)
     val map = user.toMap()
 
-    assertEquals("user456", map["userId"])
-    assertEquals("test@unil.ch", map["email"])
-    assertEquals("janesmith", map["username"])
-    assertEquals("Jane", map["firstName"])
-    assertEquals("Smith", map["lastName"])
-    assertEquals("UNIL", map["university"])
-    assertEquals(emptyList<String>(), map["hobbies"])
-    assertNull(map["profilePictureUrl"])
-    assertNull(map["bio"])
-    assertEquals(1000L, map["createdAt"])
-    assertEquals(1000L, map["updatedAt"])
+    Assert.assertEquals("user456", map["userId"])
+    Assert.assertEquals("test@unil.ch", map["email"])
+    Assert.assertEquals("janesmith", map["username"])
+    Assert.assertEquals("Jane", map["firstName"])
+    Assert.assertEquals("Smith", map["lastName"])
+    Assert.assertEquals("UNIL", map["university"])
+    Assert.assertEquals(emptyList<String>(), map["hobbies"])
+    Assert.assertNull(map["profilePictureUrl"])
+    Assert.assertNull(map["bio"])
+    Assert.assertEquals(1000L, map["createdAt"])
+    Assert.assertEquals(1000L, map["updatedAt"])
   }
 
   @Test
@@ -406,20 +406,20 @@ class UserTest {
 
     val user = User.fromMap(map)
 
-    assertNotNull(user)
-    assertEquals("user123", user!!.userId)
-    assertEquals("test@epfl.ch", user.email)
-    assertEquals("johndoe", user.username)
-    assertEquals("John", user.firstName)
-    assertEquals("Doe", user.lastName)
-    assertEquals("EPFL", user.university)
-    assertEquals(2, user.hobbies.size)
-    assertEquals("Football", user.hobbies[0])
-    assertEquals("Gaming", user.hobbies[1])
-    assertEquals("https://example.com/pic.jpg", user.profilePictureUrl)
-    assertEquals("Computer science student", user.bio)
-    assertEquals(1000L, user.createdAt)
-    assertEquals(1000L, user.updatedAt)
+    Assert.assertNotNull(user)
+    Assert.assertEquals("user123", user!!.userId)
+    Assert.assertEquals("test@epfl.ch", user.email)
+    Assert.assertEquals("johndoe", user.username)
+    Assert.assertEquals("John", user.firstName)
+    Assert.assertEquals("Doe", user.lastName)
+    Assert.assertEquals("EPFL", user.university)
+    Assert.assertEquals(2, user.hobbies.size)
+    Assert.assertEquals("Football", user.hobbies[0])
+    Assert.assertEquals("Gaming", user.hobbies[1])
+    Assert.assertEquals("https://example.com/pic.jpg", user.profilePictureUrl)
+    Assert.assertEquals("Computer science student", user.bio)
+    Assert.assertEquals(1000L, user.createdAt)
+    Assert.assertEquals(1000L, user.updatedAt)
   }
 
   /*@Test
@@ -466,10 +466,10 @@ class UserTest {
 
     val user = User.fromMap(map)
 
-    assertNotNull(user)
-    assertEquals(2, user!!.hobbies.size) // Only strings should be included
-    assertEquals("Reading", user.hobbies[0])
-    assertEquals("Swimming", user.hobbies[1])
+    Assert.assertNotNull(user)
+    Assert.assertEquals(2, user!!.hobbies.size) // Only strings should be included
+    Assert.assertEquals("Reading", user.hobbies[0])
+    Assert.assertEquals("Swimming", user.hobbies[1])
   }
 
   @Test
@@ -487,9 +487,9 @@ class UserTest {
 
     val user = User.fromMap(map)
 
-    assertNotNull(user)
-    assertEquals(1000L, user!!.createdAt)
-    assertEquals(2000L, user.updatedAt)
+    Assert.assertNotNull(user)
+    Assert.assertEquals(1000L, user!!.createdAt)
+    Assert.assertEquals(2000L, user.updatedAt)
   }
 
   @Test
@@ -502,7 +502,7 @@ class UserTest {
             "university" to "EPFL")
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -515,7 +515,7 @@ class UserTest {
             "university" to "EPFL")
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -528,7 +528,7 @@ class UserTest {
             "university" to "EPFL")
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -541,7 +541,7 @@ class UserTest {
             "university" to "EPFL")
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -554,7 +554,7 @@ class UserTest {
             "lastName" to "Doe")
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -568,13 +568,13 @@ class UserTest {
             "university" to "EPFL")
 
     val user = User.fromMap(map)
-    assertNull(user) // Should return null due to invalid data
+    Assert.assertNull(user) // Should return null due to invalid data
   }
 
   @Test
   fun testFromMapWithEmptyMap() {
     val user = User.fromMap(emptyMap())
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
@@ -594,20 +594,20 @@ class UserTest {
             "updatedAt" to 1000L)
 
     val user = User.fromMap(originalMap)
-    assertNotNull(user)
+    Assert.assertNotNull(user)
 
     val resultMap = user!!.toMap()
-    assertEquals(originalMap["userId"], resultMap["userId"])
-    assertEquals(originalMap["email"], resultMap["email"])
-    assertEquals(originalMap["username"], resultMap["username"])
-    assertEquals(originalMap["firstName"], resultMap["firstName"])
-    assertEquals(originalMap["lastName"], resultMap["lastName"])
-    assertEquals(originalMap["university"], resultMap["university"])
-    assertEquals(originalMap["hobbies"], resultMap["hobbies"])
-    assertEquals(originalMap["profilePictureUrl"], resultMap["profilePictureUrl"])
-    assertEquals(originalMap["bio"], resultMap["bio"])
-    assertEquals(originalMap["createdAt"], resultMap["createdAt"])
-    assertEquals(originalMap["updatedAt"], resultMap["updatedAt"])
+    Assert.assertEquals(originalMap["userId"], resultMap["userId"])
+    Assert.assertEquals(originalMap["email"], resultMap["email"])
+    Assert.assertEquals(originalMap["username"], resultMap["username"])
+    Assert.assertEquals(originalMap["firstName"], resultMap["firstName"])
+    Assert.assertEquals(originalMap["lastName"], resultMap["lastName"])
+    Assert.assertEquals(originalMap["university"], resultMap["university"])
+    Assert.assertEquals(originalMap["hobbies"], resultMap["hobbies"])
+    Assert.assertEquals(originalMap["profilePictureUrl"], resultMap["profilePictureUrl"])
+    Assert.assertEquals(originalMap["bio"], resultMap["bio"])
+    Assert.assertEquals(originalMap["createdAt"], resultMap["createdAt"])
+    Assert.assertEquals(originalMap["updatedAt"], resultMap["updatedAt"])
   }
 
   @Test
@@ -634,8 +634,8 @@ class UserTest {
             createdAt = 1000L,
             updatedAt = 1000L)
 
-    assertEquals(user1, user2)
-    assertEquals(user1.hashCode(), user2.hashCode())
+    Assert.assertEquals(user1, user2)
+    Assert.assertEquals(user1.hashCode(), user2.hashCode())
   }
 
   @Test
@@ -662,18 +662,18 @@ class UserTest {
             createdAt = 1000L,
             updatedAt = 1000L)
 
-    assertNotEquals(user1, user2)
+    Assert.assertNotEquals(user1, user2)
   }
 
   @Test
   fun testCopyFunction() {
     val copiedUser = validUser.copy(firstName = "Jack")
 
-    assertEquals("Jack", copiedUser.firstName)
-    assertEquals(validUser.userId, copiedUser.userId)
-    assertEquals(validUser.email, copiedUser.email)
-    assertEquals(validUser.lastName, copiedUser.lastName)
-    assertEquals(validUser.university, copiedUser.university)
+    Assert.assertEquals("Jack", copiedUser.firstName)
+    Assert.assertEquals(validUser.userId, copiedUser.userId)
+    Assert.assertEquals(validUser.email, copiedUser.email)
+    Assert.assertEquals(validUser.lastName, copiedUser.lastName)
+    Assert.assertEquals(validUser.university, copiedUser.university)
   }
 
   // Edge case tests for extremely long strings
@@ -743,10 +743,10 @@ class UserTest {
             university = maxUniversity,
             bio = maxBio)
 
-    assertEquals(maxFirstName, user.firstName)
-    assertEquals(maxLastName, user.lastName)
-    assertEquals(maxUniversity, user.university)
-    assertEquals(maxBio, user.bio)
+    Assert.assertEquals(maxFirstName, user.firstName)
+    Assert.assertEquals(maxLastName, user.lastName)
+    Assert.assertEquals(maxUniversity, user.university)
+    Assert.assertEquals(maxBio, user.bio)
   }
 
   // Edge case tests for special characters
@@ -761,9 +761,9 @@ class UserTest {
             lastName = "O'Connor-Smith",
             university = "École Polytechnique Fédérale de Lausanne")
 
-    assertEquals("José-María", user.firstName)
-    assertEquals("O'Connor-Smith", user.lastName)
-    assertEquals("École Polytechnique Fédérale de Lausanne", user.university)
+    Assert.assertEquals("José-María", user.firstName)
+    Assert.assertEquals("O'Connor-Smith", user.lastName)
+    Assert.assertEquals("École Polytechnique Fédérale de Lausanne", user.university)
   }
 
   @Test
@@ -777,9 +777,9 @@ class UserTest {
             lastName = "李四",
             university = "苏黎世联邦理工学院")
 
-    assertEquals("张三", user.firstName)
-    assertEquals("李四", user.lastName)
-    assertEquals("苏黎世联邦理工学院", user.university)
+    Assert.assertEquals("张三", user.firstName)
+    Assert.assertEquals("李四", user.lastName)
+    Assert.assertEquals("苏黎世联邦理工学院", user.university)
   }
 
   // Edge case tests for email validation
@@ -834,7 +834,7 @@ class UserTest {
               firstName = "John",
               lastName = "Doe",
               university = "EPFL")
-      assertEquals(email, user.email)
+      Assert.assertEquals(email, user.email)
     }
   }
 
@@ -866,8 +866,8 @@ class UserTest {
             createdAt = now + 1,
             updatedAt = now + 1)
 
-    assertTrue(user2.createdAt > user1.createdAt)
-    assertTrue(user2.updatedAt > user1.updatedAt)
+    Assert.assertTrue(user2.createdAt > user1.createdAt)
+    Assert.assertTrue(user2.updatedAt > user1.updatedAt)
   }
 
   // Test fromMap with missing updatedAt (should fail with new implementation)
@@ -885,7 +885,7 @@ class UserTest {
             )
 
     val user = User.fromMap(map)
-    assertNull(user) // Should fail due to missing updatedAt
+    Assert.assertNull(user) // Should fail due to missing updatedAt
   }
 
   // Test UpdateValue functionality
@@ -896,9 +896,9 @@ class UserTest {
             profilePictureUrl = User.UpdateValue.SetValue(null),
             bio = User.UpdateValue.SetValue(null))
 
-    assertNull(user.profilePictureUrl)
-    assertNull(user.bio)
-    assertEquals(validUser.firstName, user.firstName)
+    Assert.assertNull(user.profilePictureUrl)
+    Assert.assertNull(user.bio)
+    Assert.assertEquals(validUser.firstName, user.firstName)
   }
 
   @Test
@@ -907,8 +907,8 @@ class UserTest {
         validUser.update(
             profilePictureUrl = User.UpdateValue.NoChange(), bio = User.UpdateValue.NoChange())
 
-    assertEquals(validUser.profilePictureUrl, user.profilePictureUrl)
-    assertEquals(validUser.bio, user.bio)
+    Assert.assertEquals(validUser.profilePictureUrl, user.profilePictureUrl)
+    Assert.assertEquals(validUser.bio, user.bio)
   }
 
   @Test
@@ -921,8 +921,8 @@ class UserTest {
             profilePictureUrl = User.UpdateValue.SetValue(newUrl),
             bio = User.UpdateValue.SetValue(newBio))
 
-    assertEquals(newUrl, user.profilePictureUrl)
-    assertEquals(newBio, user.bio)
+    Assert.assertEquals(newUrl, user.profilePictureUrl)
+    Assert.assertEquals(newBio, user.bio)
   }
 
   // Username validation tests
@@ -995,7 +995,7 @@ class UserTest {
               firstName = "John",
               lastName = "Doe",
               university = "EPFL")
-      assertEquals(username, user.username)
+      Assert.assertEquals(username, user.username)
     }
   }
 
@@ -1009,7 +1009,7 @@ class UserTest {
             firstName = "John",
             lastName = "Doe",
             university = "EPFL")
-    assertEquals("abc", user.username)
+    Assert.assertEquals("abc", user.username)
   }
 
   @Test
@@ -1023,13 +1023,13 @@ class UserTest {
             firstName = "John",
             lastName = "Doe",
             university = "EPFL")
-    assertEquals(username, user.username)
+    Assert.assertEquals(username, user.username)
   }
 
   @Test
   fun testToMapIncludesUsername() {
     val map = validUser.toMap()
-    assertEquals("johndoe", map["username"])
+    Assert.assertEquals("johndoe", map["username"])
   }
 
   @Test
@@ -1046,8 +1046,8 @@ class UserTest {
             "updatedAt" to 1000L)
 
     val user = User.fromMap(map)
-    assertNotNull(user)
-    assertEquals("johndoe", user!!.username)
+    Assert.assertNotNull(user)
+    Assert.assertEquals("johndoe", user!!.username)
   }
 
   @Test
@@ -1063,19 +1063,19 @@ class UserTest {
             "updatedAt" to 1000L)
 
     val user = User.fromMap(map)
-    assertNull(user)
+    Assert.assertNull(user)
   }
 
   @Test
   fun testUpdateUsername() {
     val updatedUser = validUser.update(username = User.UpdateValue.SetValue("newusername"))
-    assertEquals("newusername", updatedUser.username)
-    assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertEquals("newusername", updatedUser.username)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
   }
 
   @Test
   fun testUpdateUsernameNoChange() {
     val updatedUser = validUser.update(username = User.UpdateValue.NoChange())
-    assertEquals(validUser.username, updatedUser.username)
+    Assert.assertEquals(validUser.username, updatedUser.username)
   }
 }

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
@@ -342,26 +343,24 @@ class JoinedEventsScreenTest {
       return joinedEvents
     }
 
-    override suspend fun saveUser(user: com.github.se.studentconnect.model.User) = Unit
+    override suspend fun saveUser(user: User) = Unit
 
     override suspend fun leaveEvent(eventId: String, userId: String) = Unit
 
     override suspend fun getUserByEmail(email: String) = null
 
-    override suspend fun getAllUsers() = emptyList<com.github.se.studentconnect.model.User>()
+    override suspend fun getAllUsers() = emptyList<User>()
 
     override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
-        emptyList<com.github.se.studentconnect.model.User>() to false
+        emptyList<User>() to false
 
     override suspend fun updateUser(userId: String, updates: Map<String, Any?>) = Unit
 
     override suspend fun deleteUser(userId: String) = Unit
 
-    override suspend fun getUsersByUniversity(university: String) =
-        emptyList<com.github.se.studentconnect.model.User>()
+    override suspend fun getUsersByUniversity(university: String) = emptyList<User>()
 
-    override suspend fun getUsersByHobby(hobby: String) =
-        emptyList<com.github.se.studentconnect.model.User>()
+    override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
 
     override suspend fun getNewUid() = "new_uid"
 

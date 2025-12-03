@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.ui.profile
 
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

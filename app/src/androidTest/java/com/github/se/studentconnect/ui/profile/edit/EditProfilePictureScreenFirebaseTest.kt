@@ -19,12 +19,12 @@ import androidx.compose.ui.test.performClick
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryFirebaseStorage
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme

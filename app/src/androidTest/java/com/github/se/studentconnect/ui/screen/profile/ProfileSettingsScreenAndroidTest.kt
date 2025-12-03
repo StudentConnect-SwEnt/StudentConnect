@@ -3,7 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.UserRepository
 import kotlinx.coroutines.delay
 import org.junit.Before

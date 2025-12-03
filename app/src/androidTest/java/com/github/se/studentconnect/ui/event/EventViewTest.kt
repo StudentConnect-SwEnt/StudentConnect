@@ -17,11 +17,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView

@@ -1,8 +1,8 @@
 package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.resources.TestResourceProvider

@@ -6,9 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.core.app.ApplicationProvider
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.google.firebase.FirebaseApp

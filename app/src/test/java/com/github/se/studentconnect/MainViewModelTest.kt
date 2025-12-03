@@ -1,6 +1,6 @@
 package com.github.se.studentconnect
 
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.google.firebase.Firebase

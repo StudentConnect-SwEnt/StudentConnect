@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.repository
 
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks

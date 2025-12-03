@@ -4,11 +4,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
