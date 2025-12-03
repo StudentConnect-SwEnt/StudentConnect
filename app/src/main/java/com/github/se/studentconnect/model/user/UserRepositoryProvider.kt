@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.model.user
 
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.runBlocking

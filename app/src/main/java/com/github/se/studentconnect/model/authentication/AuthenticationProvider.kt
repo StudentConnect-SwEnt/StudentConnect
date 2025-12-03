@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.authentication
 
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth

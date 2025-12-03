@@ -1,9 +1,9 @@
 package com.github.se.studentconnect.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

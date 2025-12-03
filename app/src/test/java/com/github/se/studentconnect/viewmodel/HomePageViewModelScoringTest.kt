@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.viewmodel
 
 import android.content.Context
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
@@ -127,7 +128,7 @@ class HomePageViewModelScoringTest {
   fun loadUserHobbies_withValidUser_loadsHobbies() = runTest {
     // Arrange
     val userId = "test-user-1"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -160,7 +161,7 @@ class HomePageViewModelScoringTest {
   fun loadUserHobbies_withNullUser_loadsEmptyList() = runTest {
     // Arrange
     val userId = "non-existent-user"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     // Act
     viewModel =
@@ -183,7 +184,7 @@ class HomePageViewModelScoringTest {
   fun loadUserAttendedEvents_withEvents_loadsAttendedEvents() = runTest {
     // Arrange
     val userId = "test-user-3"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -230,7 +231,7 @@ class HomePageViewModelScoringTest {
   fun loadUserAttendedEvents_withNoEvents_loadsEmptyList() = runTest {
     // Arrange
     val userId = "test-user-4"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -261,7 +262,7 @@ class HomePageViewModelScoringTest {
   fun loadUserPreferences_withLocation_loadsLocation() = runTest {
     // Arrange
     val userId = "test-user-5"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val androidLocation = mock(android.location.Location::class.java)
     `when`(androidLocation.latitude).thenReturn(46.5197)
@@ -290,7 +291,7 @@ class HomePageViewModelScoringTest {
   fun loadUserPreferences_withoutLocation_loadsDefaults() = runTest {
     // Arrange
     val userId = "test-user-6"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     `when`(mockLocationRepository.getCurrentLocation())
         .thenReturn(LocationResult.Error("No location"))
 
@@ -317,7 +318,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_forYouTab_showsAllEvents() = runTest {
     // Arrange
     val userId = "test-user-8"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -380,7 +381,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_discoverTab_filtersOutMatchingHobbies() = runTest {
     // Arrange
     val userId = "test-user-9"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -444,7 +445,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_eventsTab_showsAllEvents() = runTest {
     // Arrange
     val userId = "test-user-11"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -484,7 +485,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_tagSimilarity_withMatchingTags_highScore() = runTest {
     // Arrange
     val userId = "test-user-12"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -533,7 +534,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_tagSimilarity_withNoMatchingTags_lowerScore() = runTest {
     // Arrange
     val userId = "test-user-13"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -599,7 +600,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_distanceScore_withNoLocation_defaultScore() = runTest {
     // Arrange
     val userId = "test-user-17"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     `when`(mockLocationRepository.getCurrentLocation())
         .thenReturn(LocationResult.Error("No location"))
 
@@ -639,7 +640,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_pricePreference_freeEvent_highScore() = runTest {
     // Arrange
     val userId = "test-user-19"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event =
         Event.Public(
@@ -676,7 +677,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_pricePreference_inRangeEvent_highScore() = runTest {
     // Arrange
     val userId = "test-user-20"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event =
         Event.Public(
@@ -715,7 +716,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_timeMatch_morningEvent() = runTest {
     // Arrange
     val userId = "test-user-23"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event =
         Event.Public(
@@ -753,7 +754,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_recencyBoost_soonEvent_highBoost() = runTest {
     // Arrange
     val userId = "test-user-26"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -808,7 +809,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_attendedSimilarity_withMatchingTags() = runTest {
     // Arrange
     val userId = "test-user-28"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val attendedEvent =
         Event.Public(
@@ -869,7 +870,7 @@ class HomePageViewModelScoringTest {
   fun calculateEventScore_attendedSimilarity_withNoAttendedEvents_defaultScore() = runTest {
     // Arrange
     val userId = "test-user-29"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
     userRepository.saveUser(
         User(
             userId = userId,
@@ -916,7 +917,7 @@ class HomePageViewModelScoringTest {
   fun getEventsForDate_withMatchingEvents_returnsEvents() = runTest {
     // Arrange
     val userId = "test-user-31"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DAY_OF_YEAR, 5)
@@ -972,7 +973,7 @@ class HomePageViewModelScoringTest {
   fun getEventsForDate_withNoMatchingEvents_returnsEmpty() = runTest {
     // Arrange
     val userId = "test-user-32"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event =
         Event.Public(
@@ -1015,7 +1016,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_withTagFilter_filtersCorrectly() = runTest {
     // Arrange
     val userId = "test-user-34"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -1078,7 +1079,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_withPriceFilter_filtersCorrectly() = runTest {
     // Arrange
     val userId = "test-user-35"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -1141,7 +1142,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_withLocationFilter_filtersCorrectly() = runTest {
     // Arrange
     val userId = "test-user-36"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event1 =
         Event.Public(
@@ -1202,7 +1203,7 @@ class HomePageViewModelScoringTest {
   fun applyFilters_withNoEventLocation_smallRadiusFilter() = runTest {
     // Arrange
     val userId = "test-user-38"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     val event =
         Event.Public(
@@ -1248,7 +1249,7 @@ class HomePageViewModelScoringTest {
   fun refresh_reloadsAllData() = runTest {
     // Arrange
     val userId = "test-user-40"
-    com.github.se.studentconnect.repository.AuthenticationProvider.testUserId = userId
+    AuthenticationProvider.testUserId = userId
 
     viewModel =
         HomePageViewModel(

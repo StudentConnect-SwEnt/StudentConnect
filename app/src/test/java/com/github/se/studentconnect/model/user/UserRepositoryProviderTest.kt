@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before

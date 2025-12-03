@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
@@ -12,7 +13,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.toOrganizationDataList
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.LocationRepository
 import com.github.se.studentconnect.repository.LocationRepositoryImpl
 import com.github.se.studentconnect.repository.LocationResult

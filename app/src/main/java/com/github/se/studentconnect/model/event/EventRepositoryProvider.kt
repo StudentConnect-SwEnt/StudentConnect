@@ -1,6 +1,7 @@
 // Fake events were created by Gemini
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
@@ -31,7 +32,7 @@ object EventRepositoryProvider {
 
   init {
     runBlocking { fakeEvents.forEach { event -> localRepository.addEvent(event) } }
-    val useLocal = com.github.se.studentconnect.repository.AuthenticationProvider.local
+    val useLocal = AuthenticationProvider.local
     repository = if (useLocal) localRepository else firestoreRepository
   }
 
