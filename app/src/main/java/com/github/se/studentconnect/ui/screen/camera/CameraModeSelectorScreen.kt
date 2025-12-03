@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,10 +34,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.ui.components.EventSelectionState
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 enum class CameraMode {
@@ -60,36 +61,16 @@ fun CameraModeSelectorScreen(
   val coroutineScope = rememberCoroutineScope()
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
 
-  // Event selection state for stories
-  var eventSelectionState by remember {
-    mutableStateOf<EventSelectionState>(EventSelectionState.Success(emptyList()))
-  }
+  // ViewModel for managing event selection state
+  val storyRepository = StoryRepositoryProvider.getRepository(context)
+  val viewModel: CameraModeSelectorViewModel =
+      viewModel(factory = CameraModeSelectorViewModelFactory(storyRepository))
+  val eventSelectionState by viewModel.eventSelectionState.collectAsState()
 
   // React to changes in initialMode
   LaunchedEffect(initialMode) {
     if (pagerState.currentPage != initialMode.ordinal) {
       pagerState.scrollToPage(initialMode.ordinal)
-    }
-  }
-
-  // Function to load joined events
-  // TODO: Move FirebaseAuth access and repository calls to a ViewModel to preserve
-  // unidirectional data flow and improve testability. This will be addressed in a future PR.
-  val loadJoinedEvents: () -> Unit = {
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-    if (userId != null) {
-      eventSelectionState = EventSelectionState.Loading
-      coroutineScope.launch {
-        try {
-          val storyRepository = StoryRepositoryProvider.getRepository(context)
-          val events = storyRepository.getUserJoinedEvents(userId)
-          eventSelectionState = EventSelectionState.Success(events)
-        } catch (e: Exception) {
-          eventSelectionState = EventSelectionState.Error(e.message)
-        }
-      }
-    } else {
-      eventSelectionState = EventSelectionState.Success(emptyList())
     }
   }
 
@@ -102,7 +83,7 @@ fun CameraModeSelectorScreen(
               onBackClick = onBackClick,
               onStoryAccepted = onStoryAccepted,
               eventSelectionState = eventSelectionState,
-              onLoadEvents = loadJoinedEvents,
+              onLoadEvents = { viewModel.loadJoinedEvents() },
               isActive = pagerState.currentPage == page,
               onPreviewStateChanged = { isPreviewShowing ->
                 isStoryPreviewShowing = isPreviewShowing
