@@ -3,7 +3,7 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.model.activities.Activities
 import com.github.se.studentconnect.model.user.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

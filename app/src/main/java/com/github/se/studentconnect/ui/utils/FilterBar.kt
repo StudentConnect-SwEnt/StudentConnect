@@ -54,7 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.model.activities.Activities
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.screen.filters.LocationPickerDialog
 import kotlinx.coroutines.launch
