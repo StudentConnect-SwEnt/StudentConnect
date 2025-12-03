@@ -151,9 +151,7 @@ class EventSelectionDropdownTest {
   fun selectedEvent_cardShowsSelectedState() {
     val events = listOf(mockEvent("1", "Event 1"), mockEvent("2", "Event 2"))
     composeTestRule.setContent {
-      AppTheme {
-        EventSelectionDropdown(EventSelectionState.Success(events), events[0], {}, {})
-      }
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(events), events[0], {}, {}) }
     }
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
