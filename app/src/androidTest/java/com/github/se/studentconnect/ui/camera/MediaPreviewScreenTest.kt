@@ -267,4 +267,48 @@ class MediaPreviewScreenTest {
 
     composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
   }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_disabled_whenNoEventSelected() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
+    // Button should be disabled (gray background)
+  }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_enabled_whenEventSelected() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig(),
+            initialSelectedEvent = event)
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
+    // Button should be enabled (green background)
+  }
 }

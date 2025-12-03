@@ -271,4 +271,49 @@ class CameraModeSelectorScreenTest {
     // Should not crash when userId is null
     composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
+
+  @Test
+  fun cameraModeSelectorScreen_initialModeQRScan_staysOnQRScan() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Should stay on QR scan when initial mode matches current page
+    composeTestRule
+        .onNodeWithText("Point the camera at a StudentConnect QR code")
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_initialModeStory_staysOnStory() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Should stay on story when initial mode matches current page
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_qrScanMode_displaysQrScanner() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.QR_SCAN)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithText("Point the camera at a StudentConnect QR code")
+        .assertIsDisplayed()
+  }
 }

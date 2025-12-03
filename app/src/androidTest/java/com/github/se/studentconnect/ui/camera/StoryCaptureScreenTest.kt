@@ -286,6 +286,27 @@ class StoryCaptureScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.runOnIdle { assert(!previewState) }
   }
+
+  @Test
+  fun storyCaptureScreen_photoMode_displaysPhotoInstructions() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Tap the button to take a photo").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_inactive_showsInactiveMessage() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = false) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("story_inactive").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Swipe to activate story camera").assertIsDisplayed()
+  }
 }
 
 class StoryCaptureScreenPreviewTest {

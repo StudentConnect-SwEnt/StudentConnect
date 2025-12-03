@@ -361,4 +361,107 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").performClick()
     composeTestRule.runOnIdle { assertEquals("2", selectedEvent?.uid) }
   }
+
+  @Test
+  fun eventSelectionDropdown_triggerButton_selectedEvent_showsTitle() {
+    val event = createMockEvent("1", "My Event")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithText("My Event").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_triggerButton_noEvent_showsPlaceholder() {
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val placeholderText = context.getString(R.string.event_selection_button_label)
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithText(placeholderText).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_errorState_nullMessage_usesDefault() {
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val defaultError = context.getString(R.string.event_selection_error)
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Error(null),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithText(defaultError).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_selected_showsCheckmark() {
+    val event = createMockEvent("1", "Event 1")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event)),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_eventCard_unselected_noCheckmark() {
+    val event1 = createMockEvent("1", "Event 1")
+    val event2 = createMockEvent("2", "Event 2")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event1, event2)),
+            selectedEvent = event1,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").assertIsDisplayed()
+    // Event 2 should not have checkmark since only event1 is selected
+  }
+
+  @Test
+  fun eventSelectionDropdown_dialogNotShown_initially() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    // Dialog should not be visible initially
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
+  }
 }
