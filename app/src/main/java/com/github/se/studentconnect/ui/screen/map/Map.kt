@@ -100,6 +100,14 @@ fun MapScreen(
   val uiState by actualViewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
 
+  // Clear friend marker caches when leaving the screen
+  androidx.compose.runtime.DisposableEffect(Unit) {
+    onDispose {
+      actualViewModel.stopSharingLocation()
+      FriendMarkers.clearCaches()
+    }
+  }
+
   val mapViewportState = rememberMapViewportState {
     setCameraOptions {
       zoom(MapConfiguration.Zoom.INITIAL)
@@ -231,6 +239,7 @@ fun MapScreen(
           onEventSelected = { eventUid ->
             actualViewModel.onEvent(MapViewEvent.SelectEvent(eventUid))
           },
+          userRepository = actualViewModel.getUserRepository(),
           modifier =
               Modifier.fillMaxSize()
                   .padding(
@@ -317,6 +326,7 @@ internal fun MapContainer(
     onToggleView: () -> Unit,
     onLocateUser: () -> Unit,
     onEventSelected: (String?) -> Unit,
+    userRepository: com.github.se.studentconnect.repository.UserRepository,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -324,6 +334,7 @@ internal fun MapContainer(
   val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
   val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
   val previousFriendLocations = remember { mutableStateOf<Map<String, FriendLocation>?>(null) }
+  val friendLayersInitialized = remember { mutableStateOf(false) }
   /**
    * Track when an event is initially selected to avoid dismissing the info card during the
    * animation to the event location. This prevents the card from being dismissed due to camera
@@ -465,25 +476,25 @@ internal fun MapContainer(
             // Add friend markers - only in friends view
             // Initialize layers once when entering friends view, then only update data
             MapEffect(!isEventsView, friendLocations) { mapView ->
-              val viewChanged = previousEventsView.value != isEventsView
               val locationsChanged = previousFriendLocations.value != friendLocations
 
               android.util.Log.d(
                   "MapContainer",
-                  "Friend map effect - viewChanged: $viewChanged, locationsChanged: $locationsChanged, friends: ${friendLocations.size}")
-              previousFriendLocations.value = friendLocations
+                  "Friend map effect - isEventsView: $isEventsView, layersInitialized: ${friendLayersInitialized.value}, locationsChanged: $locationsChanged, friends: ${friendLocations.size}")
 
               mapView.mapboxMap.getStyle { style ->
                 if (!isEventsView) {
                   // We're in friends view
-                  if (viewChanged) {
-                    // Just switched to friends view - initialize layers once
+                  if (!friendLayersInitialized.value) {
+                    // First time in friends view - initialize layers
                     android.util.Log.d("MapContainer", "Initializing friend marker layers")
                     FriendMarkers.removeExistingFriendLayers(style)
-                    FriendMarkers.addFriendMarkerIcon(context, style)
                     val features = FriendMarkers.createFriendFeatures(friendLocations)
                     FriendMarkers.addFriendSource(style, features)
                     FriendMarkers.addFriendMarkerLayer(style)
+                    // Preload profile images asynchronously
+                    FriendMarkers.preloadFriendData(context, style, friendLocations, userRepository)
+                    friendLayersInitialized.value = true
                   } else if (locationsChanged) {
                     // Still in friends view, just update the data (no layer recreation)
                     android.util.Log.d(
@@ -491,13 +502,19 @@ internal fun MapContainer(
                         "Updating friend locations (${friendLocations.size} friends)")
                     val features = FriendMarkers.createFriendFeatures(friendLocations)
                     FriendMarkers.updateFriendSource(style, features)
+                    // Preload any new friends
+                    FriendMarkers.preloadFriendData(context, style, friendLocations, userRepository)
                   }
-                } else if (viewChanged) {
+                } else if (friendLayersInitialized.value) {
                   // Just switched to events view - clean up friend layers
                   android.util.Log.d("MapContainer", "Removing friend marker layers")
                   FriendMarkers.removeExistingFriendLayers(style)
+                  friendLayersInitialized.value = false
                 }
               }
+
+              // Update tracking state AFTER processing to ensure proper change detection
+              previousFriendLocations.value = friendLocations
             }
           }
     }
