@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.activities
+package com.github.se.studentconnect.ui.event
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

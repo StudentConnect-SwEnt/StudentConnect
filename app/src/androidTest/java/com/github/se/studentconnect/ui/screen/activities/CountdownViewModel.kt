@@ -3,6 +3,8 @@ package com.github.se.studentconnect.ui.screen.activities
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import com.github.se.studentconnect.ui.event.CountDownViewModel
+import com.github.se.studentconnect.ui.event.TimeUnitBox
 import com.google.firebase.Timestamp
 import java.time.Instant
 import java.time.temporal.ChronoUnit
