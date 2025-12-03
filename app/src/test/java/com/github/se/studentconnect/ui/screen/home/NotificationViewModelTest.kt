@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
@@ -13,15 +13,12 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -48,7 +45,7 @@ class NotificationViewModelTest {
     AuthenticationProvider.testUserId = testUserId
 
     // Setup default mock behavior
-    `when`(mockRepository.listenToNotifications(any(), any())).thenAnswer { {} }
+    Mockito.`when`(mockRepository.listenToNotifications(any(), any())).thenAnswer { {} }
   }
 
   @After
@@ -74,7 +71,7 @@ class NotificationViewModelTest {
             userId = "user-1",
             fromUserId = "user-2",
             fromUserName = "John",
-            timestamp = Timestamp.now(),
+            timestamp = Timestamp.Companion.now(),
             isRead = false)
 
     val original = NotificationUiState()
@@ -96,22 +93,22 @@ class NotificationViewModelTest {
                 userId = "user-1",
                 fromUserId = "user-2",
                 fromUserName = "John",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false),
             Notification.FriendRequest(
                 id = "2",
                 userId = "user-1",
                 fromUserId = "user-3",
                 fromUserName = "Jane",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true),
             Notification.EventStarting(
                 id = "3",
                 userId = "user-1",
                 eventId = "event-1",
                 eventTitle = "Test Event",
-                eventStart = Timestamp.now(),
-                timestamp = Timestamp.now(),
+                eventStart = Timestamp.Companion.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false))
 
     val unreadCount = notifications.count { !it.isRead }
@@ -128,15 +125,15 @@ class NotificationViewModelTest {
                 userId = "user-1",
                 fromUserId = "user-2",
                 fromUserName = "John",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true),
             Notification.EventStarting(
                 id = "2",
                 userId = "user-1",
                 eventId = "event-1",
                 eventTitle = "Test Event",
-                eventStart = Timestamp.now(),
-                timestamp = Timestamp.now(),
+                eventStart = Timestamp.Companion.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true))
 
     val unreadCount = notifications.count { !it.isRead }
@@ -152,7 +149,7 @@ class NotificationViewModelTest {
             userId = "user-1",
             fromUserId = "user-2",
             fromUserName = "John",
-            timestamp = Timestamp.now(),
+            timestamp = Timestamp.Companion.now(),
             isRead = false)
 
     val eventStarting =
@@ -161,8 +158,8 @@ class NotificationViewModelTest {
             userId = "user-1",
             eventId = "event-1",
             eventTitle = "Basketball",
-            eventStart = Timestamp.now(),
-            timestamp = Timestamp.now(),
+            eventStart = Timestamp.Companion.now(),
+            timestamp = Timestamp.Companion.now(),
             isRead = false)
 
     val notifications = listOf(friendRequest, eventStarting)
@@ -187,10 +184,10 @@ class NotificationViewModelTest {
                 userId = testUserId,
                 fromUserId = "user-2",
                 fromUserName = "John",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false))
 
-    `when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
       val callback = it.getArgument<(List<Notification>) -> Unit>(1)
       callback(notifications)
       return@thenAnswer {}
@@ -199,10 +196,10 @@ class NotificationViewModelTest {
     val viewModel = NotificationViewModel(mockRepository)
     advanceUntilIdle()
 
-    verify(mockRepository).listenToNotifications(eq(testUserId), any())
-    assertEquals(1, viewModel.uiState.value.notifications.size)
-    assertEquals(1, viewModel.uiState.value.unreadCount)
-    assertFalse(viewModel.uiState.value.isLoading)
+    Mockito.verify(mockRepository).listenToNotifications(eq(testUserId), any())
+    Assert.assertEquals(1, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.isLoading)
   }
 
   @Test
@@ -212,14 +209,14 @@ class NotificationViewModelTest {
     val viewModel = NotificationViewModel(mockRepository)
     advanceUntilIdle()
 
-    verify(mockRepository, never()).listenToNotifications(any(), any())
-    assertTrue(viewModel.uiState.value.notifications.isEmpty())
-    assertTrue(viewModel.uiState.value.isLoading)
+    Mockito.verify(mockRepository, never()).listenToNotifications(any(), any())
+    Assert.assertTrue(viewModel.uiState.value.notifications.isEmpty())
+    Assert.assertTrue(viewModel.uiState.value.isLoading)
   }
 
   @Test
   fun markAsRead_callsRepositoryWithCorrectId() = runTest {
-    `when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
       val onSuccess = invocation.getArgument<() -> Unit>(1)
       onSuccess()
     }
@@ -230,13 +227,13 @@ class NotificationViewModelTest {
     viewModel.markAsRead("notif-123")
     advanceUntilIdle()
 
-    verify(mockRepository).markAsRead(eq("notif-123"), any(), any())
+    Mockito.verify(mockRepository).markAsRead(eq("notif-123"), any(), any())
   }
 
   @Test
   fun markAsRead_onFailure_logsError() = runTest {
     val testException = Exception("Mark as read failed")
-    `when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
       val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
       onFailure(testException)
     }
@@ -247,12 +244,12 @@ class NotificationViewModelTest {
     viewModel.markAsRead("notif-123")
     advanceUntilIdle()
 
-    verify(mockRepository).markAsRead(eq("notif-123"), any(), any())
+    Mockito.verify(mockRepository).markAsRead(eq("notif-123"), any(), any())
   }
 
   @Test
   fun markAllAsRead_callsRepositoryWithUserId() = runTest {
-    `when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
       val onSuccess = invocation.getArgument<() -> Unit>(1)
       onSuccess()
     }
@@ -263,7 +260,7 @@ class NotificationViewModelTest {
     viewModel.markAllAsRead()
     advanceUntilIdle()
 
-    verify(mockRepository).markAllAsRead(eq(testUserId), any(), any())
+    Mockito.verify(mockRepository).markAllAsRead(eq(testUserId), any(), any())
   }
 
   @Test
@@ -276,13 +273,13 @@ class NotificationViewModelTest {
     viewModel.markAllAsRead()
     advanceUntilIdle()
 
-    verify(mockRepository, never()).markAllAsRead(any(), any(), any())
+    Mockito.verify(mockRepository, never()).markAllAsRead(any(), any(), any())
   }
 
   @Test
   fun markAllAsRead_onFailure_logsError() = runTest {
     val testException = Exception("Mark all as read failed")
-    `when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
       val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
       onFailure(testException)
     }
@@ -293,12 +290,13 @@ class NotificationViewModelTest {
     viewModel.markAllAsRead()
     advanceUntilIdle()
 
-    verify(mockRepository).markAllAsRead(eq(testUserId), any(), any())
+    Mockito.verify(mockRepository).markAllAsRead(eq(testUserId), any(), any())
   }
 
   @Test
   fun deleteNotification_callsRepositoryWithCorrectId() = runTest {
-    `when`(mockRepository.deleteNotification(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.deleteNotification(any(), any(), any())).thenAnswer { invocation
+      ->
       val onSuccess = invocation.getArgument<() -> Unit>(1)
       onSuccess()
     }
@@ -309,13 +307,14 @@ class NotificationViewModelTest {
     viewModel.deleteNotification("notif-456")
     advanceUntilIdle()
 
-    verify(mockRepository).deleteNotification(eq("notif-456"), any(), any())
+    Mockito.verify(mockRepository).deleteNotification(eq("notif-456"), any(), any())
   }
 
   @Test
   fun deleteNotification_onFailure_logsError() = runTest {
     val testException = Exception("Delete failed")
-    `when`(mockRepository.deleteNotification(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.deleteNotification(any(), any(), any())).thenAnswer { invocation
+      ->
       val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
       onFailure(testException)
     }
@@ -326,7 +325,7 @@ class NotificationViewModelTest {
     viewModel.deleteNotification("notif-456")
     advanceUntilIdle()
 
-    verify(mockRepository).deleteNotification(eq("notif-456"), any(), any())
+    Mockito.verify(mockRepository).deleteNotification(eq("notif-456"), any(), any())
   }
 
   @Test
@@ -338,11 +337,11 @@ class NotificationViewModelTest {
                 userId = testUserId,
                 eventId = "event-1",
                 eventTitle = "Tech Meetup",
-                eventStart = Timestamp.now(),
-                timestamp = Timestamp.now(),
+                eventStart = Timestamp.Companion.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true))
 
-    `when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
       val onSuccess = invocation.getArgument<(List<Notification>) -> Unit>(1)
       onSuccess(notifications)
     }
@@ -353,7 +352,7 @@ class NotificationViewModelTest {
     viewModel.refresh()
     advanceUntilIdle()
 
-    verify(mockRepository).getNotifications(eq(testUserId), any(), any())
+    Mockito.verify(mockRepository).getNotifications(eq(testUserId), any(), any())
   }
 
   @Test
@@ -366,7 +365,7 @@ class NotificationViewModelTest {
     viewModel.refresh()
     advanceUntilIdle()
 
-    verify(mockRepository, never()).getNotifications(any(), any(), any())
+    Mockito.verify(mockRepository, never()).getNotifications(any(), any(), any())
   }
 
   @Test
@@ -378,17 +377,17 @@ class NotificationViewModelTest {
                 userId = testUserId,
                 fromUserId = "user-2",
                 fromUserName = "Jane",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false),
             Notification.FriendRequest(
                 id = "2",
                 userId = testUserId,
                 fromUserId = "user-3",
                 fromUserName = "Bob",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true))
 
-    `when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
       val onSuccess = invocation.getArgument<(List<Notification>) -> Unit>(1)
       onSuccess(notifications)
     }
@@ -399,15 +398,15 @@ class NotificationViewModelTest {
     viewModel.refresh()
     advanceUntilIdle()
 
-    assertEquals(2, viewModel.uiState.value.notifications.size)
-    assertEquals(1, viewModel.uiState.value.unreadCount)
-    assertFalse(viewModel.uiState.value.isLoading)
+    Assert.assertEquals(2, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.isLoading)
   }
 
   @Test
   fun refresh_onFailure_stopsLoading() = runTest {
     val testException = Exception("Load failed")
-    `when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
+    Mockito.`when`(mockRepository.getNotifications(any(), any(), any())).thenAnswer { invocation ->
       val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
       onFailure(testException)
     }
@@ -418,13 +417,13 @@ class NotificationViewModelTest {
     viewModel.refresh()
     advanceUntilIdle()
 
-    assertFalse(viewModel.uiState.value.isLoading)
+    Assert.assertFalse(viewModel.uiState.value.isLoading)
   }
 
   @Test
   fun initialization_setsUpListener() = runTest {
     var listenerSetup = false
-    `when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
       listenerSetup = true
       {}
     }
@@ -432,15 +431,16 @@ class NotificationViewModelTest {
     val viewModel = NotificationViewModel(mockRepository)
     advanceUntilIdle()
 
-    assertTrue(listenerSetup)
-    verify(mockRepository).listenToNotifications(eq(testUserId), any())
+    Assert.assertTrue(listenerSetup)
+    Mockito.verify(mockRepository).listenToNotifications(eq(testUserId), any())
   }
 
   @Test
   fun listener_updatesUiStateWithUnreadCount() = runTest {
     val captor = argumentCaptor<(List<Notification>) -> Unit>()
 
-    `when`(mockRepository.listenToNotifications(eq(testUserId), captor.capture())).thenReturn {}
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), captor.capture()))
+        .thenReturn {}
 
     val viewModel = NotificationViewModel(mockRepository)
     advanceUntilIdle()
@@ -452,28 +452,28 @@ class NotificationViewModelTest {
                 userId = testUserId,
                 fromUserId = "user-2",
                 fromUserName = "Alice",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false),
             Notification.FriendRequest(
                 id = "2",
                 userId = testUserId,
                 fromUserId = "user-3",
                 fromUserName = "Bob",
-                timestamp = Timestamp.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = false),
             Notification.EventStarting(
                 id = "3",
                 userId = testUserId,
                 eventId = "event-1",
                 eventTitle = "Workshop",
-                eventStart = Timestamp.now(),
-                timestamp = Timestamp.now(),
+                eventStart = Timestamp.Companion.now(),
+                timestamp = Timestamp.Companion.now(),
                 isRead = true))
 
     captor.firstValue.invoke(notifications)
 
-    assertEquals(3, viewModel.uiState.value.notifications.size)
-    assertEquals(2, viewModel.uiState.value.unreadCount)
-    assertFalse(viewModel.uiState.value.isLoading)
+    Assert.assertEquals(3, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.isLoading)
   }
 }

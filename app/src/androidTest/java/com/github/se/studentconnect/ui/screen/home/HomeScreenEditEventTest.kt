@@ -5,7 +5,6 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.utils.StudentConnectTest
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import org.junit.Before
 import org.junit.Rule
 

@@ -1,5 +1,6 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.notification.Notification
@@ -85,7 +86,7 @@ class NotificationViewModel(
           // UI already updated optimistically
         },
         onFailure = { e ->
-          android.util.Log.e(TAG, "Failed to mark as read", e)
+          Log.e(TAG, "Failed to mark as read", e)
           // Revert optimistic update
           _uiState.update {
             it.copy(
@@ -118,7 +119,7 @@ class NotificationViewModel(
           // UI already updated optimistically
         },
         onFailure = { e ->
-          android.util.Log.e(TAG, "Failed to mark all as read", e)
+          Log.e(TAG, "Failed to mark all as read", e)
           // Revert optimistic update
           _uiState.update {
             it.copy(
@@ -148,7 +149,7 @@ class NotificationViewModel(
           // UI already updated optimistically
         },
         onFailure = { e ->
-          android.util.Log.e(TAG, "Failed to delete notification", e)
+          Log.e(TAG, "Failed to delete notification", e)
           // Revert optimistic update
           _uiState.update {
             it.copy(
@@ -173,7 +174,7 @@ class NotificationViewModel(
           }
         },
         onFailure = { e ->
-          android.util.Log.e(TAG, "Failed to load notifications", e)
+          Log.e(TAG, "Failed to load notifications", e)
           _uiState.update { it.copy(isLoading = false) }
         })
   }

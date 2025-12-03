@@ -19,7 +19,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
