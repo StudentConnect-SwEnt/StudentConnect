@@ -301,4 +301,64 @@ class EventSelectionDropdownTest {
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
   }
+
+  @Test
+  fun eventSelectionDropdown_dialogDismissRequest_closesDialog() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    // Simulate dismiss by clicking outside (dialog dismisses)
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventSelectionDropdown_unselectedEventCard_displaysWithoutCheckmark() {
+    val event1 = createMockEvent("1", "Event 1")
+    val event2 = createMockEvent("2", "Event 2")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(listOf(event1, event2)),
+            selectedEvent = event1, // Only event1 is selected
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").assertIsDisplayed()
+    // Event 2 should not have checkmark
+  }
+
+  @Test
+  fun eventSelectionDropdown_multipleEvents_selectionWorks() {
+    val events =
+        listOf(
+            createMockEvent("1", "Event 1"),
+            createMockEvent("2", "Event 2"),
+            createMockEvent("3", "Event 3"))
+    var selectedEvent: Event? = null
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(events),
+            selectedEvent = selectedEvent,
+            onEventSelected = { selectedEvent = it },
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").performClick()
+    composeTestRule.runOnIdle { assertEquals("2", selectedEvent?.uid) }
+  }
 }

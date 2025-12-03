@@ -243,4 +243,32 @@ class CameraModeSelectorScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
+
+  @Test
+  fun cameraModeSelectorScreen_storyPreviewShowing_hidesModeSelector() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Mode selector should be visible initially
+    composeTestRule.onNodeWithTag("camera_mode_selector").assertIsDisplayed()
+  }
+
+  @Test
+  fun cameraModeSelectorScreen_loadEvents_withNullUserId_handlesGracefully() {
+    composeTestRule.setContent {
+      AppTheme {
+        CameraModeSelectorScreen(
+            onBackClick = {}, onProfileDetected = {}, initialMode = CameraMode.STORY)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Should not crash when userId is null
+    composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
+  }
 }

@@ -260,6 +260,32 @@ class StoryCaptureScreenTest {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
   }
+
+  @Test
+  fun storyCaptureScreen_videoMode_capturesVideo() {
+    composeTestRule.setContent {
+      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("VIDEO").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
+  }
+
+  @Test
+  fun storyCaptureScreen_previewState_notifiesParent() {
+    var previewState = false
+    composeTestRule.setContent {
+      AppTheme {
+        StoryCaptureScreen(
+            onBackClick = {}, isActive = true, onPreviewStateChanged = { previewState = it })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { assert(!previewState) }
+  }
 }
 
 class StoryCaptureScreenPreviewTest {

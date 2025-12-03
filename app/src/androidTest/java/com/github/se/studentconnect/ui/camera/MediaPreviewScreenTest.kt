@@ -234,4 +234,37 @@ class MediaPreviewScreenTest {
       assertEquals(event.uid, acceptedEvent!!.uid)
     }
   }
+
+  @Test
+  fun mediaPreviewScreen_videoPreview_displaysVideoTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = true,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaPreviewScreen_photoPreview_displaysPhotoTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+  }
 }
