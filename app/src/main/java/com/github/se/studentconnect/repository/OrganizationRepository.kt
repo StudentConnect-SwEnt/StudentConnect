@@ -33,11 +33,4 @@ interface OrganizationRepository {
 
   /** Returns a unique ID for a new organization document. */
   suspend fun getNewOrganizationId(): String
-
-  /**
-   * Retrieves all organizations from the database.
-   *
-   * @return A list of all organizations.
-   */
-  suspend fun getAllOrganizations(): List<Organization>
 }
