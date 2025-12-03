@@ -58,10 +58,10 @@ object FriendMarkerConfig {
   const val SOURCE_ID = "friend_source"
   const val LAYER_ID = "friend_layer"
 
-  const val COLOR = "#9333EA" // Purple color for default friend markers
+  const val COLOR_LIVE = "#9333EA" // Purple for actively sharing
+  const val COLOR_STALE = "#9CA3AF" // Grey for last known location
   const val ICON_SIZE = 0.4
 
-  // GeoJSON property keys
   const val PROP_USER_ID = "userId"
   const val PROP_TIMESTAMP = "timestamp"
   const val PROP_IS_LIVE = "isLive"

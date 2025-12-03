@@ -30,32 +30,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Optimized utility object for managing friend markers on the map with profile image caching.
+ * Utility object for managing friend location markers on the map.
  *
- * Features:
- * - Circular profile images with clean design
- * - Purple dot fallback for users without profile images
- * - Green pulsing border for live users, dimmed for last-known locations
- * - LRU cache for profile images and user data to minimize network calls
- * - Async image loading using the same pattern as ProfileScreen
- * - Thread-safe operations
+ * Marker Display Logic:
+ * - **Live locations**: Purple dot or profile picture (active sharing)
+ * - **Stale locations**: Grey dot (last known position, up to 8 hours old)
+ * - Profile images are cached to minimize network calls
+ * - All operations are thread-safe
  */
 object FriendMarkers {
   private const val TAG = "FriendMarkers"
 
-  // Cache for profile image bitmaps (max 50 images, ~10MB)
   private val profileImageCache = LruCache<String, Bitmap>(50)
-
-  // Cache for user data (max 200 users)
   private val userDataCache = LruCache<String, User>(200)
-
-  // Coroutine scope for async operations
   private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-  // Track which user IDs have icons added to the map style
   private val addedIconIds = mutableSetOf<String>()
 
-  /** Removes existing friend marker layers and sources from the map style. */
   fun removeExistingFriendLayers(style: Style) {
     try {
       if (style.styleLayerExists(FriendMarkerConfig.LAYER_ID)) {
@@ -70,54 +60,53 @@ object FriendMarkers {
     }
   }
 
-  /** Creates a circular marker bitmap (purple dot for default, or profile image). */
+  /**
+   * Creates a circular marker bitmap with appropriate styling based on live status.
+   *
+   * @param sizePixels The size of the marker in pixels
+   * @param innerBitmap Optional profile image bitmap
+   * @param isLive Whether the location is actively being shared
+   * @return Styled marker bitmap (purple/profile for live, grey for stale)
+   */
   private fun createMarkerBitmap(
       sizePixels: Int = 120,
       innerBitmap: Bitmap? = null,
-      isLive: Boolean = false
+      isLive: Boolean = true
   ): Bitmap {
     val bitmap = Bitmap.createBitmap(sizePixels, sizePixels, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val radius = sizePixels / 2f
-
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
+    // Draw the main circle (profile image or solid color)
     if (innerBitmap != null) {
-      // Draw circular mask for profile image
+      // Circular profile image
       canvas.drawCircle(radius, radius, radius, paint)
       paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
       val scaledBitmap = Bitmap.createScaledBitmap(innerBitmap, sizePixels, sizePixels, true)
       canvas.drawBitmap(scaledBitmap, 0f, 0f, paint)
       paint.xfermode = null
-      if (scaledBitmap != innerBitmap) {
-        scaledBitmap.recycle()
-      }
+      if (scaledBitmap != innerBitmap) scaledBitmap.recycle()
     } else {
-      // Draw purple circle for users without profile image
+      // Solid color dot: purple for live, grey for stale
       paint.style = Paint.Style.FILL
-      paint.color = android.graphics.Color.parseColor(FriendMarkerConfig.COLOR)
+      paint.color =
+          android.graphics.Color.parseColor(
+              if (isLive) FriendMarkerConfig.COLOR_LIVE else FriendMarkerConfig.COLOR_STALE)
       canvas.drawCircle(radius, radius, radius, paint)
     }
-
-    // Add border (green for live, white for last-known)
-    paint.apply {
-      style = Paint.Style.STROKE
-      strokeWidth = sizePixels * 0.10f
-      color =
-          if (isLive) {
-            android.graphics.Color.parseColor("#10B981") // Green for live
-          } else {
-            android.graphics.Color.parseColor("#E5E7EB") // Light gray for last-known
-          }
-    }
-    canvas.drawCircle(radius, radius, radius - paint.strokeWidth / 2, paint)
 
     return bitmap
   }
 
   /**
-   * Loads a profile image for a user and adds it to the map style. Uses the same loading pattern as
-   * ProfileScreen with MediaRepository.
+   * Loads and caches a user's profile image as a map marker icon.
+   *
+   * @param context Android context for image loading
+   * @param style Mapbox style to add the icon to
+   * @param userId User identifier
+   * @param user User data (may contain profile picture URL)
+   * @param isLive Whether the location is actively being shared
    */
   private suspend fun loadAndAddUserIcon(
       context: Context,
@@ -130,14 +119,13 @@ object FriendMarkers {
         try {
           val iconId = getIconIdForUser(userId, isLive)
 
-          // Skip if already added and live status matches
-          if (addedIconIds.contains(iconId) && style.hasStyleImage(iconId)) {
-            return@withContext
-          }
+          // Skip if icon already exists
+          if (addedIconIds.contains(iconId) && style.hasStyleImage(iconId)) return@withContext
 
-          // Check cache first (cache key includes live status)
+          // Check cache first
           val cacheKey = "$userId-$isLive"
-          profileImageCache.get(cacheKey)?.let { cachedBitmap ->
+          val cachedBitmap = profileImageCache.get(cacheKey)
+          if (cachedBitmap != null) {
             if (!style.hasStyleImage(iconId)) {
               style.addImage(iconId, cachedBitmap)
               addedIconIds.add(iconId)
@@ -145,34 +133,8 @@ object FriendMarkers {
             return@withContext
           }
 
-          // Load image using MediaRepository (same as ProfileScreen)
-          val bitmap =
-              if (user?.profilePictureUrl != null) {
-                try {
-                  val mediaRepository = MediaRepositoryProvider.repository
-                  val uri =
-                      withContext(Dispatchers.IO) {
-                        mediaRepository.download(user.profilePictureUrl!!)
-                      }
-
-                  val imageBitmap = loadBitmapFromUri(context, uri, Dispatchers.IO)
-                  val androidBitmap = imageBitmap?.asAndroidBitmap()
-
-                  if (androidBitmap != null) {
-                    val markerBitmap =
-                        createMarkerBitmap(innerBitmap = androidBitmap, isLive = isLive)
-                    profileImageCache.put(cacheKey, markerBitmap)
-                    markerBitmap
-                  } else {
-                    createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
-                  }
-                } catch (e: Exception) {
-                  Log.w(TAG, "Failed to load profile image for $userId, using default", e)
-                  createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
-                }
-              } else {
-                createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
-              }
+          // Load profile image or create default marker
+          val bitmap = loadProfileImageOrDefault(context, user, isLive, cacheKey)
 
           if (!style.hasStyleImage(iconId)) {
             style.addImage(iconId, bitmap)
@@ -183,15 +145,49 @@ object FriendMarkers {
         }
       }
 
-  /** Generates a unique icon ID for each user based on live status. */
-  private fun getIconIdForUser(userId: String, isLive: Boolean): String {
-    val suffix = if (isLive) "live" else "lastknown"
-    return "${FriendMarkerConfig.ICON_ID}_${userId}_$suffix"
+  /**
+   * Loads a user's profile image or creates a default marker.
+   *
+   * @return Bitmap for the map marker
+   */
+  private suspend fun loadProfileImageOrDefault(
+      context: Context,
+      user: User?,
+      isLive: Boolean,
+      cacheKey: String
+  ): Bitmap {
+    val profileUrl = user?.profilePictureUrl
+    if (profileUrl == null) {
+      return createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
+    }
+
+    return try {
+      val mediaRepository = MediaRepositoryProvider.repository
+      val uri = withContext(Dispatchers.IO) { mediaRepository.download(profileUrl) }
+      val imageBitmap = loadBitmapFromUri(context, uri, Dispatchers.IO)
+      val androidBitmap = imageBitmap?.asAndroidBitmap()
+
+      if (androidBitmap != null) {
+        createMarkerBitmap(innerBitmap = androidBitmap, isLive = isLive).also {
+          profileImageCache.put(cacheKey, it)
+        }
+      } else {
+        createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
+      }
+    } catch (e: Exception) {
+      Log.w(TAG, "Failed to load profile image, using default", e)
+      createMarkerBitmap(isLive = isLive).also { profileImageCache.put(cacheKey, it) }
+    }
   }
 
+  private fun getIconIdForUser(userId: String, isLive: Boolean): String =
+      "${FriendMarkerConfig.ICON_ID}_${userId}_${if (isLive) "live" else "stale"}"
+
   /**
-   * Creates GeoJSON features from friend locations. Each feature references the user's unique icon
-   * with live status.
+   * Creates GeoJSON features for friend location markers.
+   *
+   * @param friendLocations Map of user IDs to their locations
+   * @return List of GeoJSON features with location and metadata
    */
   fun createFriendFeatures(friendLocations: Map<String, FriendLocation>): List<Feature> {
     return friendLocations.values.map { location ->
@@ -205,7 +201,6 @@ object FriendMarkers {
     }
   }
 
-  /** Adds a GeoJSON source for friend markers to the map style. */
   fun addFriendSource(style: Style, features: List<Feature>) {
     try {
       val featureCollection = FeatureCollection.fromFeatures(features)
@@ -216,7 +211,6 @@ object FriendMarkers {
     }
   }
 
-  /** Updates the friend marker source with new location data. */
   fun updateFriendSource(style: Style, features: List<Feature>) {
     try {
       if (style.styleSourceExists(FriendMarkerConfig.SOURCE_ID)) {
@@ -228,7 +222,6 @@ object FriendMarkers {
     }
   }
 
-  /** Adds a symbol layer for individual friend markers with per-user icons. */
   fun addFriendMarkerLayer(style: Style) {
     try {
       style.addLayer(
@@ -247,8 +240,13 @@ object FriendMarkers {
   }
 
   /**
-   * Preloads user data and profile images for all friends. Call this when friend locations are
-   * updated to ensure smooth marker rendering.
+   * Preloads user data and profile images for friend markers. Call this when locations update to
+   * ensure smooth rendering.
+   *
+   * @param context Android context
+   * @param style Mapbox style
+   * @param friendLocations Current friend locations to preload
+   * @param userRepository Repository for fetching user data
    */
   fun preloadFriendData(
       context: Context,
@@ -259,16 +257,9 @@ object FriendMarkers {
     scope.launch {
       friendLocations.forEach { (userId, location) ->
         try {
-          // Check cache first
-          var user = userDataCache.get(userId)
-
-          // Fetch if not cached
-          if (user == null) {
-            user = userRepository.getUserById(userId)
-            user?.let { userDataCache.put(userId, it) }
+          val user = userDataCache.get(userId) ?: userRepository.getUserById(userId)?.also {
+            userDataCache.put(userId, it)
           }
-
-          // Load icon with live status
           loadAndAddUserIcon(context, style, userId, user, location.isLive)
         } catch (e: Exception) {
           Log.e(TAG, "Error preloading data for friend $userId", e)
@@ -277,7 +268,6 @@ object FriendMarkers {
     }
   }
 
-  /** Clears all caches. Call when memory is low or user logs out. */
   fun clearCaches() {
     profileImageCache.evictAll()
     userDataCache.evictAll()
