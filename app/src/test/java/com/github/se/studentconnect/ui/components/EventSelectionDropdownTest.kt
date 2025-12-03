@@ -123,4 +123,40 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
     composeTestRule.runOnIdle { assertEquals(null, selected) }
   }
+
+  @Test
+  fun dialogHeader_closeButton_closesDialog() {
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(emptyList()), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_close).performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onAllNodesWithTag(C.Tag.event_selection_dropdown).assertCountEquals(0)
+  }
+
+  @Test
+  fun multipleEvents_displaysAllCards() {
+    val events = listOf(mockEvent("1", "Event 1"), mockEvent("2", "Event 2"))
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(events), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
+
+  @Test
+  fun selectedEvent_cardShowsSelectedState() {
+    val events = listOf(mockEvent("1", "Event 1"), mockEvent("2", "Event 2"))
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(EventSelectionState.Success(events), events[0], {}, {})
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+  }
 }
