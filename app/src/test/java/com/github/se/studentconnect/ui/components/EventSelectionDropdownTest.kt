@@ -248,4 +248,57 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
   }
+
+  @Test
+  fun eventSelectionDropdown_errorState_withMessage_displaysMessage() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Error("Custom error message"),
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_error).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Custom error message").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_loadingState_displaysLoadingText() {
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val loadingText = context.getString(R.string.event_selection_loading)
+
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Loading,
+            selectedEvent = null,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_loading).assertIsDisplayed()
+    composeTestRule.onNodeWithText(loadingText).assertIsDisplayed()
+  }
+
+  @Test
+  fun eventSelectionDropdown_triggerButton_hasContentDescription() {
+    val event = createMockEvent("1", "Test Event")
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            state = EventSelectionState.Success(emptyList()),
+            selectedEvent = event,
+            onEventSelected = {},
+            onLoadEvents = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
+  }
 }

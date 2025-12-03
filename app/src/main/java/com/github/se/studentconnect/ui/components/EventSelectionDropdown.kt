@@ -156,79 +156,109 @@ private fun EventSelectionDialog(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp) {
           Column(Modifier.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-              Text(
-                  stringResource(R.string.event_selection_title),
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold)
-              IconButton(
-                  onClick = onDismiss,
-                  modifier = Modifier.size(24.dp).testTag(C.Tag.event_selection_close)) {
-                    Icon(
-                        Icons.Default.Close,
-                        stringResource(R.string.content_description_close_event_selection))
-                  }
-            }
+            EventSelectionDialogHeader(onDismiss = onDismiss)
             Spacer(Modifier.height(16.dp))
+            EventSelectionDialogContent(
+                state = state,
+                selectedEvent = selectedEvent,
+                onEventSelected = onEventSelected,
+                onDismiss = onDismiss)
+          }
+        }
+  }
+}
 
-            when (state) {
-              is EventSelectionState.Loading -> {
-                Box(
-                    Modifier.fillMaxWidth()
-                        .height(CARD_HEIGHT)
-                        .testTag(C.Tag.event_selection_loading),
-                    Alignment.Center) {
-                      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(Modifier.size(24.dp))
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.event_selection_loading),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
-                    }
-              }
-              is EventSelectionState.Error -> {
-                Box(
-                    Modifier.fillMaxWidth()
-                        .height(CARD_HEIGHT)
-                        .testTag(C.Tag.event_selection_error),
-                    Alignment.Center) {
-                      Text(
-                          stringResource(R.string.event_selection_error),
-                          color = MaterialTheme.colorScheme.error)
-                    }
-              }
-              is EventSelectionState.Success -> {
-                if (state.events.isEmpty()) {
-                  Box(
-                      Modifier.fillMaxWidth()
-                          .height(CARD_HEIGHT)
-                          .testTag(C.Tag.event_selection_empty),
-                      Alignment.Center) {
-                        Text(
-                            stringResource(R.string.event_selection_empty),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
-                } else {
-                  LazyColumn(
-                      modifier = Modifier.testTag(C.Tag.event_selection_list),
-                      verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
-                      contentPadding = PaddingValues(vertical = 4.dp)) {
-                        items(state.events, key = { it.uid }) { event ->
-                          val isSelected = selectedEvent?.uid == event.uid
-                          EventCard(
-                              event = event,
-                              isSelected = isSelected,
-                              onClick = {
-                                onEventSelected(if (isSelected) null else event)
-                                onDismiss()
-                              })
-                        }
-                      }
-                }
-              }
-            }
+@Composable
+private fun EventSelectionDialogHeader(onDismiss: () -> Unit) {
+  Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+    Text(
+        stringResource(R.string.event_selection_title),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold)
+    IconButton(
+        onClick = onDismiss, modifier = Modifier.size(24.dp).testTag(C.Tag.event_selection_close)) {
+          Icon(
+              Icons.Default.Close,
+              stringResource(R.string.content_description_close_event_selection))
+        }
+  }
+}
+
+@Composable
+private fun EventSelectionDialogContent(
+    state: EventSelectionState,
+    selectedEvent: Event?,
+    onEventSelected: (Event?) -> Unit,
+    onDismiss: () -> Unit
+) {
+  when (state) {
+    is EventSelectionState.Loading -> EventSelectionLoadingState()
+    is EventSelectionState.Error -> EventSelectionErrorState(state.message)
+    is EventSelectionState.Success ->
+        EventSelectionSuccessState(
+            events = state.events,
+            selectedEvent = selectedEvent,
+            onEventSelected = onEventSelected,
+            onDismiss = onDismiss)
+  }
+}
+
+@Composable
+private fun EventSelectionLoadingState() {
+  Box(
+      Modifier.fillMaxWidth().height(CARD_HEIGHT).testTag(C.Tag.event_selection_loading),
+      Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          CircularProgressIndicator(Modifier.size(24.dp))
+          Spacer(Modifier.height(8.dp))
+          Text(
+              text = stringResource(R.string.event_selection_loading),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+      }
+}
+
+@Composable
+private fun EventSelectionErrorState(message: String?) {
+  Box(
+      Modifier.fillMaxWidth().height(CARD_HEIGHT).testTag(C.Tag.event_selection_error),
+      Alignment.Center) {
+        Text(
+            text = message ?: stringResource(R.string.event_selection_error),
+            color = MaterialTheme.colorScheme.error)
+      }
+}
+
+@Composable
+private fun EventSelectionSuccessState(
+    events: List<Event>,
+    selectedEvent: Event?,
+    onEventSelected: (Event?) -> Unit,
+    onDismiss: () -> Unit
+) {
+  if (events.isEmpty()) {
+    Box(
+        Modifier.fillMaxWidth().height(CARD_HEIGHT).testTag(C.Tag.event_selection_empty),
+        Alignment.Center) {
+          Text(
+              stringResource(R.string.event_selection_empty),
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+  } else {
+    LazyColumn(
+        modifier = Modifier.testTag(C.Tag.event_selection_list),
+        verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
+        contentPadding = PaddingValues(vertical = 4.dp)) {
+          items(events, key = { it.uid }) { event ->
+            val isSelected = selectedEvent?.uid == event.uid
+            EventCard(
+                event = event,
+                isSelected = isSelected,
+                onClick = {
+                  onEventSelected(if (isSelected) null else event)
+                  onDismiss()
+                })
           }
         }
   }
@@ -243,11 +273,15 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit) {
         MaterialTheme.colorScheme.surfaceContainerLow
       }
 
+  val cardContentDescription =
+      stringResource(R.string.content_description_event_card_select, event.title)
+
   Card(
       modifier =
           Modifier.fillMaxWidth()
               .height(CARD_HEIGHT)
               .clickable(onClick = onClick)
+              .semantics { contentDescription = cardContentDescription }
               .testTag("${C.Tag.event_selection_card_prefix}_${event.uid}"),
       shape = RoundedCornerShape(12.dp),
       colors = CardDefaults.cardColors(containerColor = bgColor),

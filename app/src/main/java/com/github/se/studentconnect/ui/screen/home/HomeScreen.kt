@@ -424,9 +424,9 @@ fun HomeScreen(
                               }
                             },
                             onStoryAccepted = { _, _, _ ->
-                              // TODO: Implement story upload with storyRepository.uploadStory()
-                              // mediaUri: captured media, isVideo: true if video, selectedEvent:
-                              // linked event
+                              // Story upload will be implemented in a future PR
+                              // Parameters: mediaUri (captured media), isVideo (true if video),
+                              // selectedEvent (linked event)
                               onQRScannerClosed()
                               cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
