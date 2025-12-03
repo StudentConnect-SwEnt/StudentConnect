@@ -5,8 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.signup.regularuser.UsernameTextField
 import kotlinx.coroutines.runBlocking
 import org.junit.Before

@@ -3,8 +3,8 @@ package com.github.se.studentconnect.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.google.firebase.Timestamp

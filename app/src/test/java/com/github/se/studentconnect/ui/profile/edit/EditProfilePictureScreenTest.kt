@@ -9,7 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.delay

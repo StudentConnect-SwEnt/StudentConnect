@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

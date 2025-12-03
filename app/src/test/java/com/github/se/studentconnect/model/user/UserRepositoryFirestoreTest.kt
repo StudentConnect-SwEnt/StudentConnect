@@ -1,6 +1,5 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
@@ -122,7 +121,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUserByEmailSuccess() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
@@ -142,7 +141,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUserByEmailNotFound() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))
@@ -161,7 +160,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUserByEmailFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
 
     whenever(mockCollectionReference.whereEqualTo("email", "test@epfl.ch")).thenReturn(mockQuery)
@@ -345,7 +344,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByUniversitySuccess() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
@@ -364,7 +363,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByUniversityEmpty() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereEqualTo("university", "ETHZ")).thenReturn(mockQuery)
@@ -382,7 +381,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUsersByUniversityFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
 
     whenever(mockCollectionReference.whereEqualTo("university", "EPFL")).thenReturn(mockQuery)
@@ -400,7 +399,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByHobbySuccess() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
@@ -420,7 +419,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUsersByHobbyEmpty() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Swimming"))
@@ -439,7 +438,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUsersByHobbyFailure() = runTest {
     // Arrange
     val exception = Exception("Firestore error")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
 
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
@@ -532,7 +531,7 @@ class UserRepositoryFirestoreTest {
                 "createdAt" to 1000L,
                 "updatedAt" to 1000L))
 
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereArrayContains("hobbies", "Football"))
@@ -559,7 +558,7 @@ class UserRepositoryFirestoreTest {
           mockDoc
         }
 
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
@@ -586,8 +585,8 @@ class UserRepositoryFirestoreTest {
           mockDoc
         }
 
-    val mockQuery: com.google.firebase.firestore.Query = mock()
-    val mockQueryAfter: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
+    val mockQueryAfter: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
@@ -608,7 +607,7 @@ class UserRepositoryFirestoreTest {
   fun testGetUsersPaginatedFailure() = runTest {
     // Arrange
     val exception = RuntimeException("Network timeout")
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forException(exception)
 
     whenever(mockCollectionReference.orderBy("userId")).thenReturn(mockQuery)
@@ -829,7 +828,7 @@ class UserRepositoryFirestoreTest {
   @Test
   fun testGetUserByEmailReturnsNullForNonExistent() = runTest {
     // Arrange
-    val mockQuery: com.google.firebase.firestore.Query = mock()
+    val mockQuery: Query = mock()
     val mockTask: Task<QuerySnapshot> = Tasks.forResult(mockQuerySnapshot)
 
     whenever(mockCollectionReference.whereEqualTo("email", "notfound@epfl.ch"))

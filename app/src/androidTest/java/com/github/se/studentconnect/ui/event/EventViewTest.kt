@@ -22,8 +22,8 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp

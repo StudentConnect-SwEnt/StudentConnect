@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
 import kotlinx.coroutines.delay

@@ -13,7 +13,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.Timestamp
 import org.junit.Before

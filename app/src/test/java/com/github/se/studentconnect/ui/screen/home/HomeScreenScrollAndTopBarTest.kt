@@ -12,8 +12,8 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp

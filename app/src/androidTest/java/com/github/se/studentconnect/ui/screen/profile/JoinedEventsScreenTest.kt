@@ -6,8 +6,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import com.google.firebase.Timestamp
 import java.util.Calendar

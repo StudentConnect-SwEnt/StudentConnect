@@ -13,10 +13,10 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp

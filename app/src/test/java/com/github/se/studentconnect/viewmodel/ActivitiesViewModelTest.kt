@@ -3,8 +3,8 @@ package com.github.se.studentconnect.viewmodel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.ui.screen.activities.EventCarouselItem
 import com.github.se.studentconnect.ui.screen.activities.EventTab
 import com.github.se.studentconnect.ui.screen.activities.Invitation

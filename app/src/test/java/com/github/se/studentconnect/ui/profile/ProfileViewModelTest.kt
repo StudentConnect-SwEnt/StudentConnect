@@ -2,7 +2,7 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest

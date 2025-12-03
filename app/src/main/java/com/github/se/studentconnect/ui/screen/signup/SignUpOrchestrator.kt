@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import com.github.se.studentconnect.ui.screen.signup.regularuser.AddPictureScreen
 import com.github.se.studentconnect.ui.screen.signup.regularuser.BasicInfoScreen

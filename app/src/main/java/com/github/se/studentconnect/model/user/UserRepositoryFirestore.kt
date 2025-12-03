@@ -1,7 +1,7 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
+import android.util.Log
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
-import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Timestamp
@@ -69,7 +69,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
       val querySnapshot = db.collection(COLLECTION_NAME).get().await()
       querySnapshot.documents.mapNotNull { document -> User.fromMap(document.data ?: emptyMap()) }
     } catch (e: Exception) {
-      android.util.Log.e("UserRepo", "Failed to get all users", e)
+      Log.e("UserRepo", "Failed to get all users", e)
       emptyList()
     }
   }

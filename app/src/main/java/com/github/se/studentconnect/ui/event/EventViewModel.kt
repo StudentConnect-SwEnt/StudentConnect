@@ -14,9 +14,9 @@ import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollRepository
 import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

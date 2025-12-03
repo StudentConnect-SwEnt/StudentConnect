@@ -3,7 +3,7 @@ package com.github.se.studentconnect.model.story
 import android.content.Context
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 

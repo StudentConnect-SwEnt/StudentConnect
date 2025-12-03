@@ -25,7 +25,7 @@ import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryFirebaseStorage
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.FirebaseEmulator

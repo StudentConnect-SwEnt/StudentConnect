@@ -8,8 +8,8 @@ import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.TicketValidationResult

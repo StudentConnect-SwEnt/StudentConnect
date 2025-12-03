@@ -7,9 +7,9 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import com.google.firebase.Timestamp
 import io.mockk.every

@@ -1,8 +1,8 @@
 package com.github.se.studentconnect.viewmodel
 
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import java.util.*
 import kotlinx.coroutines.Dispatchers

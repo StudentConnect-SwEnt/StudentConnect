@@ -1,6 +1,5 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
-import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse

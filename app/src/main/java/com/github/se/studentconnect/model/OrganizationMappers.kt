@@ -6,7 +6,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.utils.HandleUtils
 import java.text.SimpleDateFormat

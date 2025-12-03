@@ -9,10 +9,10 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.launch
 
 /** Represents the state of the search screen. */

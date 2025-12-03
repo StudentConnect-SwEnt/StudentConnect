@@ -15,7 +15,7 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags

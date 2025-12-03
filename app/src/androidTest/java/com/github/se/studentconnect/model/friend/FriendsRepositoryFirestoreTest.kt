@@ -3,7 +3,7 @@ package com.github.se.studentconnect.model.friend
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.friends.FriendsRepositoryFirestore
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException

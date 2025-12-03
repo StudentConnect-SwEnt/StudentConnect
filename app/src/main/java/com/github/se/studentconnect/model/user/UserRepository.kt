@@ -1,7 +1,6 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.user
 
 import android.util.Log
-import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.screen.activities.Invitation
 
 /**

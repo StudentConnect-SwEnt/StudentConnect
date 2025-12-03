@@ -25,8 +25,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileStats

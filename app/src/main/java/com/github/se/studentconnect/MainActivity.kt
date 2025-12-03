@@ -24,8 +24,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.EventReminderWorker
 import com.github.se.studentconnect.service.NotificationChannelManager

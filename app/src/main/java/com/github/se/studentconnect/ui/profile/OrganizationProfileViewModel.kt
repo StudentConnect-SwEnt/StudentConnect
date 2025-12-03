@@ -10,11 +10,11 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.fetchOrganizationMembers
 import com.github.se.studentconnect.model.toOrganizationEvents
 import com.github.se.studentconnect.model.toOrganizationProfile
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.repository.OrganizationRepository
 import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
