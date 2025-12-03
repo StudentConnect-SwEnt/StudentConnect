@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.visitorProfile
+package com.github.se.studentconnect.ui.screen.visitorprofile
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf

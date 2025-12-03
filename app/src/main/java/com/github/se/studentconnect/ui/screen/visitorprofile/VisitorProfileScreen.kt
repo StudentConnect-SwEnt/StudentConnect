@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.ui.screen.visitorProfile
+package com.github.se.studentconnect.ui.screen.visitorprofile
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement

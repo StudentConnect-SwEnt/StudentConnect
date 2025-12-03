@@ -7,8 +7,8 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.resources.TestResourceProvider
 import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.visitorProfile.FriendRequestStatus
-import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
+import com.github.se.studentconnect.ui.screen.visitorprofile.FriendRequestStatus
+import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
