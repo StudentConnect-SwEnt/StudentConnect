@@ -483,9 +483,7 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     // Click event2 to switch selection
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
-    composeTestRule.runOnIdle {
-      assertEquals("2", selectedEvent?.uid)
-    }
+    composeTestRule.runOnIdle { assertEquals("2", selectedEvent?.uid) }
   }
 
   @Test

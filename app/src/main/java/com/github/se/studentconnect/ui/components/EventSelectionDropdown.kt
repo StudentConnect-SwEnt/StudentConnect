@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,15 +71,11 @@ sealed interface EventSelectionState {
       override val error: String? = null
   ) : EventSelectionState
 
-  data class Success(
-      override val events: List<Event>,
-      override val error: String? = null
-  ) : EventSelectionState
+  data class Success(override val events: List<Event>, override val error: String? = null) :
+      EventSelectionState
 
-  data class Error(
-      override val events: List<Event> = emptyList(),
-      override val error: String?
-  ) : EventSelectionState
+  data class Error(override val events: List<Event> = emptyList(), override val error: String?) :
+      EventSelectionState
 }
 
 /** Button + dialog for selecting an event to link to a story. */
@@ -285,7 +280,10 @@ private fun EventSelectionSuccessState(
 
 @Composable
 private fun EventCard(
-    event: Event, isSelected: Boolean, onClick: () -> Unit, testTagIndex: Int = -1
+    event: Event,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    testTagIndex: Int = -1
 ) {
   val bgColor =
       if (isSelected) {

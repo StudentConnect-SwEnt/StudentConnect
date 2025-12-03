@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
-import com.github.se.studentconnect.ui.components.EventSelectionState
 import kotlinx.coroutines.launch
 
 enum class CameraMode {

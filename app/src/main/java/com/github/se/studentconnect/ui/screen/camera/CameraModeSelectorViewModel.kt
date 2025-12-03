@@ -2,7 +2,6 @@ package com.github.se.studentconnect.ui.screen.camera
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.components.EventSelectionState
@@ -12,15 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /** ViewModel for CameraModeSelectorScreen that manages event selection state. */
-class CameraModeSelectorViewModel(
-    private val storyRepository: StoryRepository
-) : ViewModel() {
+class CameraModeSelectorViewModel(private val storyRepository: StoryRepository) : ViewModel() {
 
-  private val _eventSelectionState = MutableStateFlow<EventSelectionState>(EventSelectionState.Success(emptyList()))
+  private val _eventSelectionState =
+      MutableStateFlow<EventSelectionState>(EventSelectionState.Success(emptyList()))
   val eventSelectionState: StateFlow<EventSelectionState> = _eventSelectionState.asStateFlow()
 
   /** Loads the user's joined events. */
-  // TODO: Implement event caching and duplicate call guarding to avoid unnecessary backend workload.
+  // TODO: Implement event caching and duplicate call guarding to avoid unnecessary backend
+  // workload.
   // This will be addressed in a future PR.
   fun loadJoinedEvents() {
     val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
@@ -41,13 +40,13 @@ class CameraModeSelectorViewModel(
 }
 
 /**
- * Factory for creating CameraModeSelectorViewModel instances with the required StoryRepository dependency.
+ * Factory for creating CameraModeSelectorViewModel instances with the required StoryRepository
+ * dependency.
  *
  * @property storyRepository The StoryRepository to inject into the CameraModeSelectorViewModel
  */
-class CameraModeSelectorViewModelFactory(
-    private val storyRepository: StoryRepository
-) : androidx.lifecycle.ViewModelProvider.Factory {
+class CameraModeSelectorViewModelFactory(private val storyRepository: StoryRepository) :
+    androidx.lifecycle.ViewModelProvider.Factory {
   @Suppress("UNCHECKED_CAST")
   override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(CameraModeSelectorViewModel::class.java)) {
@@ -56,4 +55,3 @@ class CameraModeSelectorViewModelFactory(
     throw IllegalArgumentException("Unknown ViewModel class")
   }
 }
-
