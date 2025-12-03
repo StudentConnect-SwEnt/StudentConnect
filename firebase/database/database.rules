@@ -1,0 +1,52 @@
+{
+  "rules": {
+    // --- FRIENDS LOCATIONS COLLECTION ---
+    // Real-time location sharing between friends on the map
+    // 
+    // Database structure:
+    //   friends_locations/
+    //     {userId}/
+    //       latitude: number (-90 to 90)
+    //       longitude: number (-180 to 180)
+    //       timestamp: number (milliseconds since epoch)
+    
+    "friends_locations": {
+      "$userId": {
+        // Allow any authenticated user to read location data
+        // (Friend filtering happens in application logic)
+        ".read": "auth != null",
+        
+        // Allow users to write only their own location data
+        ".write": "auth != null && auth.uid == $userId",
+        
+        // Validate that location data contains required fields
+        ".validate": "newData.hasChildren(['latitude', 'longitude', 'timestamp', 'isLive'])",
+        
+        "latitude": {
+          // Validate latitude is a number within valid range (-90 to 90)
+          ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+        },
+        
+        "longitude": {
+          // Validate longitude is a number within valid range (-180 to 180)
+          ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+        },
+        
+        "timestamp": {
+          // Validate timestamp is a positive number (milliseconds since epoch)
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        
+        "isLive": {
+          // Validate isLive is a boolean
+          ".validate": "newData.isBoolean()"
+        },
+        
+        // Reject any additional fields beyond the three required ones
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
