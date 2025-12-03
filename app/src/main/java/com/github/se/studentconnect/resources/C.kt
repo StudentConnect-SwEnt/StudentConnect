@@ -58,6 +58,8 @@ object C {
     const val back_button = "back_button"
     const val user_search_result = "user_search_result"
     const val user_search_result_title = "user_search_result_title"
+    const val organisation_search_result = "organisation_search_result"
+    const val organisation_search_result_title = "organisation_search_result_title"
     const val event_search_result = "event_search_result"
     const val event_search_result_title = "event_search_result_title"
 
