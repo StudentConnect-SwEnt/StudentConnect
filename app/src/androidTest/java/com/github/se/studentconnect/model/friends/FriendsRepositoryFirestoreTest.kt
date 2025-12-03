@@ -1,7 +1,6 @@
-package com.github.se.studentconnect.model.friend
+package com.github.se.studentconnect.model.friends
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.se.studentconnect.model.friends.FriendsRepositoryFirestore
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.utils.FirebaseEmulator
