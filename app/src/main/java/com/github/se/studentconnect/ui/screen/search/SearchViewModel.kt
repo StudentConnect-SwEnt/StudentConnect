@@ -57,13 +57,7 @@ class SearchViewModel(
 
   private suspend fun getAllUsers() = userRepository.getAllUsers()
 
-  private suspend fun getAllOrganizations(): List<Organization> {
-    return try {
-      organizationRepository.getAllOrganizations()
-    } catch (e: Exception) {
-      emptyList()
-    }
-  }
+  private suspend fun getAllOrganizations() = organizationRepository.getAllOrganizations()
 
   private fun update(block: (SearchState) -> SearchState) {
     _state.value = block(_state.value)
@@ -82,28 +76,20 @@ class SearchViewModel(
     setShownOrganizations(getOrganizationsForQuery(query))
   }
 
-  private fun setShownEvents(events: List<Event>) = update {
-    it.copy(shownEvents = events.ifEmpty { emptyList() })
-  }
+  private fun setShownEvents(events: List<Event>) = update { it.copy(shownEvents = events) }
 
-  private fun setShownUsers(users: List<User>) = update {
-    it.copy(shownUsers = users.ifEmpty { emptyList() })
-  }
+  private fun setShownUsers(users: List<User>) = update { it.copy(shownUsers = users) }
 
   private fun setShownOrganizations(organizations: List<Organization>) = update {
-    it.copy(shownOrganizations = organizations.ifEmpty { emptyList() })
+    it.copy(shownOrganizations = organizations)
   }
 
-  private fun setAllEvents(events: List<Event>) = update {
-    it.copy(allEvents = events.ifEmpty { emptyList() })
-  }
+  private fun setAllEvents(events: List<Event>) = update { it.copy(allEvents = events) }
 
-  private fun setAllUsers(users: List<User>) = update {
-    it.copy(allUsers = users.ifEmpty { emptyList() })
-  }
+  private fun setAllUsers(users: List<User>) = update { it.copy(allUsers = users) }
 
   private fun setAllOrganizations(organizations: List<Organization>) = update {
-    it.copy(allOrganizations = organizations.ifEmpty { emptyList() })
+    it.copy(allOrganizations = organizations)
   }
 
   private fun getEventsForQuery(query: String) =

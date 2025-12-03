@@ -64,10 +64,12 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
   }
 
   override suspend fun getAllUsers(): List<User> {
-    val querySnapshot = db.collection(COLLECTION_NAME).get().await()
-
-    return querySnapshot.documents.mapNotNull { document ->
-      User.fromMap(document.data ?: emptyMap())
+    return try {
+      val querySnapshot = db.collection(COLLECTION_NAME).get().await()
+      querySnapshot.documents.mapNotNull { document -> User.fromMap(document.data ?: emptyMap()) }
+    } catch (e: Exception) {
+      android.util.Log.e("UserRepo", "Failed to get all users", e)
+      emptyList()
     }
   }
 

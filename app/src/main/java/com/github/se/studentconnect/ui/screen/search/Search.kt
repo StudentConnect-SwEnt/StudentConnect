@@ -354,7 +354,7 @@ private fun OrganizationCard(organization: Organization, navController: NavHostC
         )
       },
       title = organization.name,
-      subtitle = "@${organization.name.lowercase().replace(" ", "")}")
+      subtitle = organization.type.name)
 }
 
 @Composable
