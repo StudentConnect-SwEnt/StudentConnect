@@ -1,6 +1,6 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.organization
 
-import com.github.se.studentconnect.model.organization.Organization
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -36,7 +36,7 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
         Organization.fromMap(document.data ?: emptyMap())
       }
     } catch (e: Exception) {
-      android.util.Log.e("OrganizationRepo", "Failed to get all organizations", e)
+      Log.e("OrganizationRepo", "Failed to get all organizations", e)
       emptyList()
     }
   }

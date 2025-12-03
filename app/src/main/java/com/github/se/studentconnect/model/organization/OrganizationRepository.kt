@@ -1,6 +1,4 @@
-package com.github.se.studentconnect.repository
-
-import com.github.se.studentconnect.model.organization.Organization
+package com.github.se.studentconnect.model.organization
 
 /**
  * Repository interface for Organization operations.

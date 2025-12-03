@@ -1,15 +1,15 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.organization
 
 import android.content.Context
 import android.util.Log
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.utils.HandleUtils
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 /**
@@ -113,19 +113,19 @@ fun Event.toOrganizationEvent(context: Context): OrganizationEvent {
 
   // Calculate subtitle (e.g., "Tomorrow", "Today", "In 3 days")
   val today =
-      java.util.Calendar.getInstance().apply {
-        set(java.util.Calendar.HOUR_OF_DAY, 0)
-        set(java.util.Calendar.MINUTE, 0)
-        set(java.util.Calendar.SECOND, 0)
-        set(java.util.Calendar.MILLISECOND, 0)
+      Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
       }
   val eventDate =
-      java.util.Calendar.getInstance().apply {
+      Calendar.getInstance().apply {
         time = this@toOrganizationEvent.start.toDate()
-        set(java.util.Calendar.HOUR_OF_DAY, 0)
-        set(java.util.Calendar.MINUTE, 0)
-        set(java.util.Calendar.SECOND, 0)
-        set(java.util.Calendar.MILLISECOND, 0)
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
       }
 
   val daysDifference =

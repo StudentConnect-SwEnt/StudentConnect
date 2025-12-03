@@ -1,7 +1,5 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.organization
 
-import com.github.se.studentconnect.model.organization.Organization
-import com.github.se.studentconnect.model.organization.OrganizationType
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
@@ -176,9 +174,7 @@ class OrganizationRepositoryLocalTest {
             ageRanges = listOf("18-25", "26-35"),
             typicalEventSize = "Large",
             roles = listOf(),
-            socialLinks =
-                com.github.se.studentconnect.model.organization.SocialLinks(
-                    website = "https://example.com"),
+            socialLinks = SocialLinks(website = "https://example.com"),
             createdBy = "creator")
 
     repository.saveOrganization(fullOrg)

@@ -1,13 +1,12 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.organization
 
-import com.github.se.studentconnect.model.organization.Organization
-import com.github.se.studentconnect.model.organization.OrganizationType
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -115,7 +114,7 @@ class OrganizationRepositoryFirestoreTest {
   fun getAllOrganizations_returns_list_of_organizations() = runBlocking {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
-    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+    val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
     val doc1 = mockk<DocumentSnapshot>(relaxed = true)
     val doc2 = mockk<DocumentSnapshot>(relaxed = true)
 
@@ -171,7 +170,7 @@ class OrganizationRepositoryFirestoreTest {
   fun getAllOrganizations_returns_empty_list_when_no_organizations() = runBlocking {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
-    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+    val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
 
     every { db.collection("organizations") } returns collection
     every { collection.get() } returns Tasks.forResult(querySnapshot)
@@ -187,7 +186,7 @@ class OrganizationRepositoryFirestoreTest {
   fun getAllOrganizations_skips_invalid_documents() = runBlocking {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
-    val querySnapshot = mockk<com.google.firebase.firestore.QuerySnapshot>(relaxed = true)
+    val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
     val validDoc = mockk<DocumentSnapshot>(relaxed = true)
     val invalidDoc = mockk<DocumentSnapshot>(relaxed = true)
 

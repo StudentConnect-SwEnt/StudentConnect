@@ -1,10 +1,9 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.organization
 
 import android.content.Context
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.google.firebase.Timestamp
@@ -26,7 +25,7 @@ class OrganizationMappersTest {
       Organization(
           id = "org123",
           name = "Test Organization",
-          type = com.github.se.studentconnect.model.organization.OrganizationType.Association,
+          type = OrganizationType.Association,
           description = "A test organization description",
           logoUrl = "https://example.com/logo.png",
           memberUids = listOf("user1", "user2"),

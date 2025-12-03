@@ -10,14 +10,14 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.model.toOrganizationDataList
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.toOrganizationDataList
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.repository.LocationRepository
 import com.github.se.studentconnect.repository.LocationRepositoryImpl
 import com.github.se.studentconnect.repository.LocationResult
-import com.github.se.studentconnect.repository.OrganizationRepository
-import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
 import java.util.Calendar
 import java.util.Date

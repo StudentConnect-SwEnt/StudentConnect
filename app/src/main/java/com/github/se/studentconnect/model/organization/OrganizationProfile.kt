@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.organization
 
 /**
  * Represents an Organization in the StudentConnect application.

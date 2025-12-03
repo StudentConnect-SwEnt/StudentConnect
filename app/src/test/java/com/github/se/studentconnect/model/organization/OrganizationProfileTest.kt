@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.model
+package com.github.se.studentconnect.model.organization
 
 import org.junit.Assert.*
 import org.junit.Test

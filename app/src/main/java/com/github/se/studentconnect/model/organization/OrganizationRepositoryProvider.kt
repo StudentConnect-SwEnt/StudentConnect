@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.organization
 
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore

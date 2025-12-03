@@ -14,9 +14,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationType
-import com.github.se.studentconnect.repository.OrganizationRepository
-import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationInfoScreenTestTags
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpViewModel
