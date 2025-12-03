@@ -65,9 +65,11 @@ class OrganizationMappersTest {
     mockContext = mockk(relaxed = true)
     every { mockContext.getString(R.string.org_event_time_today) } returns "Today"
     every { mockContext.getString(R.string.org_event_time_tomorrow) } returns "Tomorrow"
-    every { mockContext.getString(R.string.org_event_time_in_days, any()) } answers
+    every {
+      mockContext.resources.getQuantityString(R.plurals.org_event_time_in_days, any(), any())
+    } answers
         {
-          val days = arg<Int>(0)
+          val days = arg<Int>(1)
           "In $days days"
         }
   }
