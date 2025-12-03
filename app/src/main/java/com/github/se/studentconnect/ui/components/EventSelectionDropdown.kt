@@ -99,8 +99,8 @@ fun EventSelectionDropdown(
       modifier = modifier,
       onClick = {
         showDialog = true
-        // TODO: Cache loaded events in ViewModel to avoid reloading on every dialog open.
-        // This will be addressed in a future PR when implementing event caching.
+        // TODO: Event caching and duplicate call guarding will be implemented in a future PR
+        // to avoid reloading events on every dialog open.
         onLoadEvents()
       })
 

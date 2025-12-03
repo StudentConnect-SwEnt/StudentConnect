@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.camera
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.components.EventSelectionState
@@ -19,6 +20,8 @@ class CameraModeSelectorViewModel(
   val eventSelectionState: StateFlow<EventSelectionState> = _eventSelectionState.asStateFlow()
 
   /** Loads the user's joined events. */
+  // TODO: Implement event caching and duplicate call guarding to avoid unnecessary backend workload.
+  // This will be addressed in a future PR.
   fun loadJoinedEvents() {
     val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
     if (userId != null) {
