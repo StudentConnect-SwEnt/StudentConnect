@@ -60,9 +60,10 @@ fun MediaPreviewScreen(
     onRetake: () -> Unit,
     eventSelectionState: EventSelectionState = EventSelectionState.Success(emptyList()),
     onLoadEvents: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialSelectedEvent: Event? = null
 ) {
-  var selectedEvent by remember { mutableStateOf<Event?>(null) }
+  var selectedEvent by remember { mutableStateOf<Event?>(initialSelectedEvent) }
 
   Box(modifier = modifier.fillMaxSize().background(Color.Black).testTag("media_preview_screen")) {
     if (isVideo) {

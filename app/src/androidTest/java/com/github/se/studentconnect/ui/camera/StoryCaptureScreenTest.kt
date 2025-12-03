@@ -22,7 +22,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
@@ -308,11 +307,6 @@ class StoryCaptureScreenPreviewTest {
     }
 
     composeTestRule.waitForIdle()
-    // Select event before accepting
-    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
-    composeTestRule.waitForIdle()
-
     composeTestRule.onNodeWithTag("media_preview_accept").performClick()
 
     composeTestRule.waitForIdle()
@@ -372,6 +366,7 @@ private fun StoryCaptureScreenWithPreview(
       MediaPreviewScreen(
           mediaUri = capturedMediaUri!!,
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
+          initialSelectedEvent = events.firstOrNull(),
           onAccept = {
             showPreview = false
             capturedMediaUri = null
