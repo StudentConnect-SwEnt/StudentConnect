@@ -48,12 +48,15 @@ data class OrganizationProfileUiState(
  */
 class OrganizationProfileViewModel(
     private val organizationId: String? = null,
-    private val context: Context,
+    context: Context,
     private val organizationRepository: OrganizationRepository =
         OrganizationRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository
 ) : ViewModel() {
+
+  // Use application context to avoid memory leaks
+  private val appContext: Context = context.applicationContext
 
   companion object {
     private const val TAG = "OrganizationProfileVM"
@@ -103,7 +106,9 @@ class OrganizationProfileViewModel(
         // Fetch events for this organization
         val events =
             try {
-              eventRepository.getEventsByOrganization(organizationId).toOrganizationEvents(context)
+              eventRepository
+                  .getEventsByOrganization(organizationId)
+                  .toOrganizationEvents(appContext)
             } catch (e: Exception) {
               Log.e(TAG, "Failed to fetch events for organization $organizationId", e)
               emptyList() // If fetching events fails, use empty list

@@ -455,7 +455,10 @@
     <!-- Organization event time labels -->
     <string name="org_event_time_today">Today</string>
     <string name="org_event_time_tomorrow">Tomorrow</string>
-    <string name="org_event_time_in_days">In %d days</string>
+    <plurals name="org_event_time_in_days">
+        <item quantity="one">In %d day</item>
+        <item quantity="other">In %d days</item>
+    </plurals>
 
     <!-- Organization screen strings -->
     <string name="organization_type_association">Association</string>

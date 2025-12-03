@@ -134,7 +134,9 @@ fun Event.toOrganizationEvent(context: Context): OrganizationEvent {
       when {
         daysDifference == 0 -> context.getString(R.string.org_event_time_today)
         daysDifference == 1 -> context.getString(R.string.org_event_time_tomorrow)
-        daysDifference > 1 -> context.getString(R.string.org_event_time_in_days, daysDifference)
+        daysDifference > 1 ->
+            context.resources.getQuantityString(
+                R.plurals.org_event_time_in_days, daysDifference, daysDifference)
         else -> cardDate
       }
 
