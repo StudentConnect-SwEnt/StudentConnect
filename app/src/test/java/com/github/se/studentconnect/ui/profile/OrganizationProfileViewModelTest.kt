@@ -93,6 +93,7 @@ class OrganizationProfileViewModelTest {
 
     // Mock Context for string resources
     mockContext = mockk(relaxed = true)
+    every { mockContext.applicationContext } returns mockContext
     every { mockContext.getString(R.string.org_event_time_today) } returns "Today"
     every { mockContext.getString(R.string.org_event_time_tomorrow) } returns "Tomorrow"
     every {
