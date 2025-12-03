@@ -10,9 +10,9 @@ import com.github.se.studentconnect.model.friends.FriendsLocationRepository
 import com.github.se.studentconnect.model.friends.FriendsLocationRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.repository.LocationConfig
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationResult
+import com.github.se.studentconnect.model.map.LocationConfig
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationResult
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.mapbox.geojson.Point

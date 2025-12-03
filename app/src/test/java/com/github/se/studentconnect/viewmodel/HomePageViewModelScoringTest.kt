@@ -5,11 +5,11 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationResult
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationResult
 import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.github.se.studentconnect.ui.screen.home.HomeTabMode
 import com.github.se.studentconnect.ui.screen.home.PreferredTimeOfDay

@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.repository
+package com.github.se.studentconnect.model.map
 
 import android.Manifest
 import android.annotation.SuppressLint

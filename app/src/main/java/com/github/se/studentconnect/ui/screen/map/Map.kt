@@ -56,8 +56,8 @@ import com.github.se.studentconnect.BuildConfig
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendLocation
-import com.github.se.studentconnect.repository.LocationRepositoryImpl
-import com.github.se.studentconnect.repository.RequestLocationPermission
+import com.github.se.studentconnect.model.map.LocationRepositoryImpl
+import com.github.se.studentconnect.model.map.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
 import com.google.firebase.Timestamp
 import com.mapbox.geojson.Point
