@@ -12,7 +12,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
-import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
 import org.junit.Before

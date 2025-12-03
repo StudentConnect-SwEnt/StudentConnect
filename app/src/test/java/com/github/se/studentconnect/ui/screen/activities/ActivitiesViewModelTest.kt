@@ -1,22 +1,26 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.activities
 
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.user.UserRepository
-import com.github.se.studentconnect.ui.screen.activities.EventCarouselItem
-import com.github.se.studentconnect.ui.screen.activities.EventTab
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationCarouselItem
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Timestamp
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -38,7 +42,7 @@ class ActivitiesViewModelTest {
           description = "Test Description",
           imageUrl = null,
           location = null,
-          start = Timestamp.now(),
+          start = Timestamp.Companion.now(),
           end = null,
           maxCapacity = 50u,
           participationFee = null,
@@ -51,7 +55,7 @@ class ActivitiesViewModelTest {
           eventId = "event456",
           from = "inviter123",
           status = InvitationStatus.Pending,
-          timestamp = Timestamp.now())
+          timestamp = Timestamp.Companion.now())
 
   @Before
   fun setup() {
@@ -76,9 +80,9 @@ class ActivitiesViewModelTest {
   fun initialStateIsCorrect() {
     val state = viewModel.uiState.value
 
-    assertEquals(EventTab.Upcoming, state.selectedTab)
-    assertTrue(state.items.isEmpty())
-    assertTrue(state.isLoading)
+    Assert.assertEquals(EventTab.Upcoming, state.selectedTab)
+    Assert.assertTrue(state.items.isEmpty())
+    Assert.assertTrue(state.isLoading)
   }
 
   @Test
@@ -86,7 +90,7 @@ class ActivitiesViewModelTest {
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
-    assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
+    Assert.assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
   }
 
   @Test
@@ -105,8 +109,8 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state.items.isEmpty())
-    assertFalse(state.isLoading)
+    Assert.assertTrue(state.items.isEmpty())
+    Assert.assertFalse(state.isLoading)
   }
 
   @Test
@@ -120,10 +124,10 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertFalse(state.isLoading)
-    assertEquals(1, state.items.size)
-    assertTrue(state.items[0] is EventCarouselItem)
-    assertEquals(futureEvent.uid, state.items[0].uid)
+    Assert.assertFalse(state.isLoading)
+    Assert.assertEquals(1, state.items.size)
+    Assert.assertTrue(state.items[0] is EventCarouselItem)
+    Assert.assertEquals(futureEvent.uid, state.items[0].uid)
   }
 
   @Test
@@ -140,7 +144,7 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state.items.isEmpty())
+    Assert.assertTrue(state.items.isEmpty())
   }
 
   @Test
@@ -155,7 +159,7 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals(1, state.items.size)
+    Assert.assertEquals(1, state.items.size)
   }
 
   @Test
@@ -170,13 +174,13 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertFalse(state.isLoading)
-    assertEquals(1, state.items.size)
-    assertTrue(state.items[0] is InvitationCarouselItem)
+    Assert.assertFalse(state.isLoading)
+    Assert.assertEquals(1, state.items.size)
+    Assert.assertTrue(state.items[0] is InvitationCarouselItem)
 
     val invitationItem = state.items[0] as InvitationCarouselItem
-    assertEquals(mockInvitation.eventId, invitationItem.uid)
-    assertEquals("John", invitationItem.invitedBy)
+    Assert.assertEquals(mockInvitation.eventId, invitationItem.uid)
+    Assert.assertEquals("John", invitationItem.invitedBy)
   }
 
   @Test
@@ -191,7 +195,7 @@ class ActivitiesViewModelTest {
 
     val state = viewModel.uiState.value
     val invitationItem = state.items[0] as InvitationCarouselItem
-    assertEquals("Anonymous", invitationItem.invitedBy)
+    Assert.assertEquals("Anonymous", invitationItem.invitedBy)
   }
 
   @Test
@@ -210,9 +214,9 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertFalse(state.isLoading)
-    assertEquals(1, state.items.size)
-    assertTrue(state.items[0] is EventCarouselItem)
+    Assert.assertFalse(state.isLoading)
+    Assert.assertEquals(1, state.items.size)
+    Assert.assertTrue(state.items[0] is EventCarouselItem)
   }
 
   @Test
@@ -227,7 +231,7 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertTrue(state.items.isEmpty())
+    Assert.assertTrue(state.items.isEmpty())
   }
 
   @Test
@@ -241,8 +245,8 @@ class ActivitiesViewModelTest {
 
     val state = viewModel.uiState.value
     // Should only contain the successfully loaded event
-    assertEquals(1, state.items.size)
-    assertEquals("event2", state.items[0].uid)
+    Assert.assertEquals(1, state.items.size)
+    Assert.assertEquals("event2", state.items[0].uid)
   }
 
   @Test
@@ -277,7 +281,7 @@ class ActivitiesViewModelTest {
 
     // Invitation should be removed from items
     val state = viewModel.uiState.value
-    assertTrue(state.items.none { it.uid == mockInvitation.eventId })
+    Assert.assertTrue(state.items.none { it.uid == mockInvitation.eventId })
   }
 
   @Test
@@ -310,8 +314,8 @@ class ActivitiesViewModelTest {
     val state = viewModel.uiState.value
     val updatedItem =
         state.items.find { it.uid == mockInvitation.eventId } as? InvitationCarouselItem
-    assertNotNull(updatedItem)
-    assertEquals(InvitationStatus.Declined, updatedItem?.invitation?.status)
+    Assert.assertNotNull(updatedItem)
+    Assert.assertEquals(InvitationStatus.Declined, updatedItem?.invitation?.status)
   }
 
   @Test
@@ -330,6 +334,6 @@ class ActivitiesViewModelTest {
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    assertEquals(3, state.items.size)
+    Assert.assertEquals(3, state.items.size)
   }
 }
