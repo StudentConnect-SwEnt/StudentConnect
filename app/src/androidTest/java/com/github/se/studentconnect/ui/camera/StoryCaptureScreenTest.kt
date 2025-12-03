@@ -24,6 +24,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
@@ -291,15 +292,33 @@ class StoryCaptureScreenPreviewTest {
 
   @Test
   fun storyCaptureScreen_previewAccept_resetsState() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+
     composeTestRule.setContent {
       AppTheme {
-        StoryCaptureScreenWithPreview(onBackClick = {}, isActive = true, showInitialPreview = true)
+        StoryCaptureScreenWithPreview(
+            onBackClick = {},
+            isActive = true,
+            showInitialPreview = true,
+            events = listOf(event))
       }
     }
 
     composeTestRule.waitForIdle()
-    val acceptDescription = composeTestRule.activity.getString(R.string.content_description_accept)
-    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+    // Select event before accepting
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("media_preview_screen").assertDoesNotExist()
@@ -314,8 +333,7 @@ class StoryCaptureScreenPreviewTest {
     }
 
     composeTestRule.waitForIdle()
-    val retakeDescription = composeTestRule.activity.getString(R.string.content_description_retake)
-    composeTestRule.onNodeWithContentDescription(retakeDescription).performClick()
+    composeTestRule.onNodeWithTag("media_preview_retake").performClick()
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag("media_preview_screen").assertDoesNotExist()
@@ -341,7 +359,8 @@ private fun StoryCaptureScreenWithPreview(
     isActive: Boolean,
     showInitialPreview: Boolean,
     isVideoMode: Boolean = false,
-    onPreviewStateChanged: (Boolean) -> Unit = {}
+    onPreviewStateChanged: (Boolean) -> Unit = {},
+    events: List<Event> = emptyList()
 ) {
   var storyCaptureMode by remember {
     mutableStateOf(if (isVideoMode) StoryCaptureMode.VIDEO else StoryCaptureMode.PHOTO)
@@ -365,7 +384,8 @@ private fun StoryCaptureScreenWithPreview(
           onRetake = {
             showPreview = false
             capturedMediaUri = null
-          })
+          },
+          eventSelectionState = EventSelectionState.Success(events))
     }
   }
 }

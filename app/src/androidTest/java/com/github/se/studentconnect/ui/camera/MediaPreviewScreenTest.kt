@@ -84,16 +84,22 @@ class MediaPreviewScreenTest {
       }
     }
 
-    val retakeDescription =
-        composeTestRule.activity.getString(
-            com.github.se.studentconnect.R.string.content_description_retake)
-    composeTestRule.onNodeWithContentDescription(retakeDescription).performClick()
+    composeTestRule.onNodeWithTag("media_preview_retake").performClick()
     composeTestRule.runOnIdle { assert(retakeClicked) }
   }
 
   @Test
   fun mediaPreviewScreen_acceptButton_invokesCallback() {
     var acceptClicked = false
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
 
     composeTestRule.setContent {
       AppTheme {
@@ -101,14 +107,17 @@ class MediaPreviewScreenTest {
             mediaUri = testImageUri,
             isVideo = false,
             onAccept = { acceptClicked = true },
-            onRetake = {})
+            onRetake = {},
+            eventSelectionState = EventSelectionState.Success(listOf(event)))
       }
     }
 
-    val acceptDescription =
-        composeTestRule.activity.getString(
-            com.github.se.studentconnect.R.string.content_description_accept)
-    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+    // Select an event first
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
     composeTestRule.runOnIdle { assert(acceptClicked) }
   }
 
@@ -228,10 +237,7 @@ class MediaPreviewScreenTest {
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
     composeTestRule.waitForIdle()
 
-    val acceptDescription =
-        composeTestRule.activity.getString(
-            com.github.se.studentconnect.R.string.content_description_accept)
-    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
 
     composeTestRule.runOnIdle {
       assert(acceptCalled)

@@ -36,12 +36,10 @@ class EventSelectionDropdownTest {
   }
 
   @Test
-  fun eventSelectionDropdown_displaysButtonWithPlaceholderOrEventTitle() {
+  fun eventSelectionDropdown_displaysPlaceholderWhenNoEventSelected() {
     val context = ApplicationProvider.getApplicationContext<android.content.Context>()
     val placeholderText = context.getString(R.string.event_selection_button_label)
-    val event = createMockEvent("1", "Tech Meetup")
 
-    // Test placeholder
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
@@ -53,8 +51,12 @@ class EventSelectionDropdownTest {
     }
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
     composeTestRule.onNodeWithText(placeholderText).assertIsDisplayed()
+  }
 
-    // Test event title
+  @Test
+  fun eventSelectionDropdown_displaysEventTitleWhenSelected() {
+    val event = createMockEvent("1", "Tech Meetup")
+
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
@@ -64,6 +66,7 @@ class EventSelectionDropdownTest {
             onLoadEvents = {})
       }
     }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).assertIsDisplayed()
     composeTestRule.onNodeWithText("Tech Meetup").assertIsDisplayed()
   }
 
