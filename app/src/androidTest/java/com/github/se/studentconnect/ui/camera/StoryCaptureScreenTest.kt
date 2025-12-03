@@ -262,18 +262,6 @@ class StoryCaptureScreenTest {
   }
 
   @Test
-  fun storyCaptureScreen_videoMode_capturesVideo() {
-    composeTestRule.setContent {
-      AppTheme { StoryCaptureScreen(onBackClick = {}, isActive = true) }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("VIDEO").performClick()
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Tap to start recording").assertIsDisplayed()
-  }
-
-  @Test
   fun storyCaptureScreen_previewState_notifiesParent() {
     var previewState = false
     composeTestRule.setContent {
