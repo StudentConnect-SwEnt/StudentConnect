@@ -73,6 +73,8 @@ fun CameraModeSelectorScreen(
   }
 
   // Function to load joined events
+  // TODO: Move FirebaseAuth access and repository calls to a ViewModel to preserve
+  // unidirectional data flow and improve testability. This will be addressed in a future PR.
   val loadJoinedEvents: () -> Unit = {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     if (userId != null) {

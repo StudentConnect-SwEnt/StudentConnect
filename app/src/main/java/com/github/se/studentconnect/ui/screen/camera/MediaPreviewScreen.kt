@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -121,14 +122,16 @@ fun MediaPreviewScreen(
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          if (isAcceptEnabled) Color(0xFF4CAF50).copy(alpha = 0.8f)
-                          else Color.Gray.copy(alpha = 0.4f),
+                          if (isAcceptEnabled) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                          else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_accept")) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.content_description_accept),
-                    tint = if (isAcceptEnabled) Color.White else Color.White.copy(alpha = 0.5f),
+                    tint =
+                        if (isAcceptEnabled) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
         }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -83,6 +84,8 @@ fun EventSelectionDropdown(
       modifier = modifier,
       onClick = {
         showDialog = true
+        // TODO: Cache loaded events in ViewModel to avoid reloading on every dialog open.
+        // This will be addressed in a future PR when implementing event caching.
         onLoadEvents()
       })
 
@@ -250,7 +253,7 @@ private fun EventSelectionSuccessState(
         modifier = Modifier.testTag(C.Tag.event_selection_list),
         verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
         contentPadding = PaddingValues(vertical = 4.dp)) {
-          items(events, key = { it.uid }) { event ->
+          itemsIndexed(events) { index, event ->
             val isSelected = selectedEvent?.uid == event.uid
             EventCard(
                 event = event,
@@ -258,14 +261,17 @@ private fun EventSelectionSuccessState(
                 onClick = {
                   onEventSelected(if (isSelected) null else event)
                   onDismiss()
-                })
+                },
+                testTagIndex = index)
           }
         }
   }
 }
 
 @Composable
-private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit) {
+private fun EventCard(
+    event: Event, isSelected: Boolean, onClick: () -> Unit, testTagIndex: Int = -1
+) {
   val bgColor =
       if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer
@@ -282,7 +288,9 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit) {
               .height(CARD_HEIGHT)
               .clickable(onClick = onClick)
               .semantics { contentDescription = cardContentDescription }
-              .testTag("${C.Tag.event_selection_card_prefix}_${event.uid}"),
+              .testTag(
+                  if (testTagIndex >= 0) "${C.Tag.event_selection_card_prefix}_$testTagIndex"
+                  else "${C.Tag.event_selection_card_prefix}_${event.uid}"),
       shape = RoundedCornerShape(12.dp),
       colors = CardDefaults.cardColors(containerColor = bgColor),
       elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)) {

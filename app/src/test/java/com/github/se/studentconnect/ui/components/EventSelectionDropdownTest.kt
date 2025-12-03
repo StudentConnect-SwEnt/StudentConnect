@@ -190,7 +190,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
     composeTestRule.runOnIdle { assertEquals(event, selectedEvent) }
   }
 
@@ -209,7 +209,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
     composeTestRule.runOnIdle { assertEquals(null, selectedEvent) }
   }
 
@@ -246,7 +246,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
   }
 
   @Test
@@ -335,7 +335,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
     // Event 2 should not have checkmark
   }
 
@@ -358,7 +358,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
     composeTestRule.runOnIdle { assertEquals("2", selectedEvent?.uid) }
   }
 
@@ -427,7 +427,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
   }
 
   @Test
@@ -445,7 +445,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
     // Event 2 should not have checkmark since only event1 is selected
   }
 
@@ -482,7 +482,7 @@ class EventSelectionDropdownTest {
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     // Click event2 to switch selection
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_2").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
     composeTestRule.runOnIdle {
       assertEquals("2", selectedEvent?.uid)
     }
@@ -519,7 +519,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
   }
 
   @Test
@@ -536,7 +536,7 @@ class EventSelectionDropdownTest {
     }
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
   }
 
   @Test
