@@ -157,4 +157,67 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").assertIsDisplayed()
     composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").assertIsDisplayed()
   }
+
+  @Test
+  fun openDialog_callsOnLoadEvents() {
+    var loadEventsCalled = false
+    composeTestRule.setContent {
+      AppTheme {
+        EventSelectionDropdown(
+            EventSelectionState.Success(emptyList()), null, {}, { loadEventsCalled = true })
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.runOnIdle { assertEquals(true, loadEventsCalled) }
+  }
+
+  @Test
+  fun dialog_showsTitleAndContent() {
+    val title =
+        ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.event_selection_title)
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(emptyList()), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
+    composeTestRule.onNodeWithText(title).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_close).assertIsDisplayed()
+  }
+
+  @Test
+  fun loadingState_showsLoadingText() {
+    val loadingText =
+        ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.event_selection_loading)
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Loading(), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_loading).assertIsDisplayed()
+    composeTestRule.onNodeWithText(loadingText).assertIsDisplayed()
+  }
+
+  @Test
+  fun successState_eventCardShowsTitle() {
+    val event = mockEvent("1", "Test Event Title")
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(listOf(event)), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithText("Test Event Title").assertIsDisplayed()
+  }
+
+  @Test
+  fun emptyState_showsEmptyText() {
+    val emptyText =
+        ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.event_selection_empty)
+    composeTestRule.setContent {
+      AppTheme { EventSelectionDropdown(EventSelectionState.Success(emptyList()), null, {}, {}) }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
+    composeTestRule.onNodeWithTag(C.Tag.event_selection_empty).assertIsDisplayed()
+    composeTestRule.onNodeWithText(emptyText).assertIsDisplayed()
+  }
 }
