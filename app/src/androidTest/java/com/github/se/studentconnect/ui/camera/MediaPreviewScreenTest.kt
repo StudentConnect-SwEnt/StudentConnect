@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.components.EventSelectionState
+import com.github.se.studentconnect.ui.screen.camera.EventSelectionConfig
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
@@ -106,7 +107,8 @@ class MediaPreviewScreenTest {
             isVideo = false,
             onAccept = { acceptClicked = true },
             onRetake = {},
-            eventSelectionState = EventSelectionState.Success(listOf(event)),
+            eventSelectionConfig =
+                EventSelectionConfig(state = EventSelectionState.Success(listOf(event))),
             initialSelectedEvent = event)
       }
     }
@@ -218,7 +220,8 @@ class MediaPreviewScreenTest {
               acceptCalled = true
             },
             onRetake = {},
-            eventSelectionState = EventSelectionState.Success(listOf(event)),
+            eventSelectionConfig =
+                EventSelectionConfig(state = EventSelectionState.Success(listOf(event))),
             initialSelectedEvent = event)
       }
     }

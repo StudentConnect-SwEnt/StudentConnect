@@ -423,7 +423,7 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                            onStoryAccepted = { _, _, _ ->
                               // TODO: Implement story upload with storyRepository.uploadStory()
                               // mediaUri: captured media, isVideo: true if video, selectedEvent:
                               // linked event

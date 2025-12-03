@@ -77,8 +77,8 @@ fun StoryCaptureScreen(
             showPreview = false
             capturedMediaUri = null
           },
-          eventSelectionState = eventSelectionState,
-          onLoadEvents = onLoadEvents)
+          eventSelectionConfig =
+              EventSelectionConfig(state = eventSelectionState, onLoadEvents = onLoadEvents))
     } else if (isActive) {
       // Show camera view
       CameraView(

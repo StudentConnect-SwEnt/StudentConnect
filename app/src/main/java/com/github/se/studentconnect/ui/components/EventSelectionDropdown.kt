@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,15 +78,42 @@ fun EventSelectionDropdown(
 ) {
   var showDialog by remember { mutableStateOf(false) }
 
-  // Trigger button
+  EventSelectionTriggerButton(
+      selectedEvent = selectedEvent,
+      modifier = modifier,
+      onClick = {
+        showDialog = true
+        onLoadEvents()
+      })
+
+  if (showDialog) {
+    EventSelectionDialog(
+        state = state,
+        selectedEvent = selectedEvent,
+        onEventSelected = onEventSelected,
+        onDismiss = { showDialog = false })
+  }
+}
+
+@Composable
+private fun EventSelectionTriggerButton(
+    selectedEvent: Event?,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+  val label = stringResource(R.string.event_selection_button_label)
+  val baseDescription = stringResource(R.string.content_description_event_selection_button)
+  val noEventDescription = stringResource(R.string.event_selection_no_event)
+
+  val semanticsDescription =
+      if (selectedEvent != null) "$baseDescription: ${selectedEvent.title}" else noEventDescription
+
   Surface(
       modifier =
           modifier
               .clip(RoundedCornerShape(BUTTON_CORNER_RADIUS))
-              .clickable {
-                showDialog = true
-                onLoadEvents()
-              }
+              .clickable { onClick() }
+              .semantics { contentDescription = semanticsDescription }
               .testTag(C.Tag.event_selection_button),
       shape = RoundedCornerShape(BUTTON_CORNER_RADIUS),
       color = MaterialTheme.colorScheme.surfaceContainerHigh) {
@@ -94,13 +123,12 @@ fun EventSelectionDropdown(
             verticalAlignment = Alignment.CenterVertically) {
               Icon(
                   Icons.Default.Event,
-                  null,
-                  Modifier.size(20.dp),
-                  MaterialTheme.colorScheme.primary)
+                  contentDescription = null,
+                  modifier = Modifier.size(20.dp),
+                  tint = MaterialTheme.colorScheme.primary)
               Spacer(Modifier.width(8.dp))
               Text(
-                  text =
-                      selectedEvent?.title ?: stringResource(R.string.event_selection_button_label),
+                  text = selectedEvent?.title ?: label,
                   style = MaterialTheme.typography.bodyMedium,
                   color =
                       if (selectedEvent != null) MaterialTheme.colorScheme.onSurface
@@ -109,90 +137,100 @@ fun EventSelectionDropdown(
                   overflow = TextOverflow.Ellipsis)
             }
       }
+}
 
-  // Dialog
-  if (showDialog) {
-    Dialog(onDismissRequest = { showDialog = false }) {
-      Surface(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .heightIn(max = DIALOG_MAX_HEIGHT)
-                  .testTag(C.Tag.event_selection_dropdown),
-          shape = RoundedCornerShape(DIALOG_CORNER_RADIUS),
-          color = MaterialTheme.colorScheme.surface,
-          tonalElevation = 8.dp) {
-            Column(Modifier.padding(16.dp)) {
-              // Header
-              Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.event_selection_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold)
-                IconButton(
-                    onClick = { showDialog = false },
-                    modifier = Modifier.size(24.dp).testTag(C.Tag.event_selection_close)) {
-                      Icon(
-                          Icons.Default.Close,
-                          stringResource(R.string.content_description_close_event_selection))
+@Composable
+private fun EventSelectionDialog(
+    state: EventSelectionState,
+    selectedEvent: Event?,
+    onEventSelected: (Event?) -> Unit,
+    onDismiss: () -> Unit
+) {
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth()
+                .heightIn(max = DIALOG_MAX_HEIGHT)
+                .testTag(C.Tag.event_selection_dropdown),
+        shape = RoundedCornerShape(DIALOG_CORNER_RADIUS),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp) {
+          Column(Modifier.padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+              Text(
+                  stringResource(R.string.event_selection_title),
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold)
+              IconButton(
+                  onClick = onDismiss,
+                  modifier = Modifier.size(24.dp).testTag(C.Tag.event_selection_close)) {
+                    Icon(
+                        Icons.Default.Close,
+                        stringResource(R.string.content_description_close_event_selection))
+                  }
+            }
+            Spacer(Modifier.height(16.dp))
+
+            when (state) {
+              is EventSelectionState.Loading -> {
+                Box(
+                    Modifier.fillMaxWidth()
+                        .height(CARD_HEIGHT)
+                        .testTag(C.Tag.event_selection_loading),
+                    Alignment.Center) {
+                      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(Modifier.size(24.dp))
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.event_selection_loading),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
                     }
               }
-              Spacer(Modifier.height(16.dp))
-
-              // Content
-              when (state) {
-                is EventSelectionState.Loading -> {
+              is EventSelectionState.Error -> {
+                Box(
+                    Modifier.fillMaxWidth()
+                        .height(CARD_HEIGHT)
+                        .testTag(C.Tag.event_selection_error),
+                    Alignment.Center) {
+                      Text(
+                          stringResource(R.string.event_selection_error),
+                          color = MaterialTheme.colorScheme.error)
+                    }
+              }
+              is EventSelectionState.Success -> {
+                if (state.events.isEmpty()) {
                   Box(
                       Modifier.fillMaxWidth()
                           .height(CARD_HEIGHT)
-                          .testTag(C.Tag.event_selection_loading),
-                      Alignment.Center) {
-                        CircularProgressIndicator(Modifier.size(24.dp))
-                      }
-                }
-                is EventSelectionState.Error -> {
-                  Box(
-                      Modifier.fillMaxWidth()
-                          .height(CARD_HEIGHT)
-                          .testTag(C.Tag.event_selection_error),
+                          .testTag(C.Tag.event_selection_empty),
                       Alignment.Center) {
                         Text(
-                            stringResource(R.string.event_selection_error),
-                            color = MaterialTheme.colorScheme.error)
+                            stringResource(R.string.event_selection_empty),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                       }
-                }
-                is EventSelectionState.Success -> {
-                  if (state.events.isEmpty()) {
-                    Box(
-                        Modifier.fillMaxWidth()
-                            .height(CARD_HEIGHT)
-                            .testTag(C.Tag.event_selection_empty),
-                        Alignment.Center) {
-                          Text(
-                              stringResource(R.string.event_selection_empty),
-                              color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                  LazyColumn(
+                      modifier = Modifier.testTag(C.Tag.event_selection_list),
+                      verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
+                      contentPadding = PaddingValues(vertical = 4.dp)) {
+                        items(state.events, key = { it.uid }) { event ->
+                          val isSelected = selectedEvent?.uid == event.uid
+                          EventCard(
+                              event = event,
+                              isSelected = isSelected,
+                              onClick = {
+                                onEventSelected(if (isSelected) null else event)
+                                onDismiss()
+                              })
                         }
-                  } else {
-                    LazyColumn(
-                        modifier = Modifier.testTag(C.Tag.event_selection_list),
-                        verticalArrangement = Arrangement.spacedBy(CARD_SPACING),
-                        contentPadding = PaddingValues(vertical = 4.dp)) {
-                          items(state.events, key = { it.uid }) { event ->
-                            val isSelected = selectedEvent?.uid == event.uid
-                            EventCard(
-                                event = event,
-                                isSelected = isSelected,
-                                onClick = {
-                                  onEventSelected(if (isSelected) null else event)
-                                  showDialog = false
-                                })
-                          }
-                        }
-                  }
+                      }
                 }
               }
             }
           }
-    }
+        }
   }
 }
 
@@ -239,9 +277,10 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit) {
                     Alignment.Center) {
                       Icon(
                           Icons.Default.Check,
-                          null,
-                          Modifier.size(14.dp),
-                          MaterialTheme.colorScheme.onPrimary)
+                          contentDescription =
+                              stringResource(R.string.content_description_selected_event_checkmark),
+                          modifier = Modifier.size(14.dp),
+                          tint = MaterialTheme.colorScheme.onPrimary)
                     }
               }
             }

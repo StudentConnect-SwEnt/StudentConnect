@@ -23,6 +23,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.components.EventSelectionState
+import com.github.se.studentconnect.ui.screen.camera.EventSelectionConfig
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureMode
 import com.github.se.studentconnect.ui.screen.camera.StoryCaptureScreen
@@ -375,7 +376,7 @@ private fun StoryCaptureScreenWithPreview(
             showPreview = false
             capturedMediaUri = null
           },
-          eventSelectionState = EventSelectionState.Success(events))
+          eventSelectionConfig = EventSelectionConfig(state = EventSelectionState.Success(events)))
     }
   }
 }

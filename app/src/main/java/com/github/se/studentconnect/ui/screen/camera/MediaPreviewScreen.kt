@@ -41,6 +41,12 @@ private val ACTIONS_SPACING = 48.dp
 private val EVENT_SELECTOR_TOP_PADDING = 48.dp
 private val EVENT_SELECTOR_HORIZONTAL_PADDING = 24.dp
 
+/** Configuration for the event selection behaviour within the media preview. */
+data class EventSelectionConfig(
+    val state: EventSelectionState = EventSelectionState.Success(emptyList()),
+    val onLoadEvents: () -> Unit = {}
+)
+
 /**
  * Screen that displays a preview of captured photo or video with options to accept or retake.
  *
@@ -48,8 +54,7 @@ private val EVENT_SELECTOR_HORIZONTAL_PADDING = 24.dp
  * @param isVideo Whether the media is a video (true) or photo (false)
  * @param onAccept Callback when user accepts the media with selected event
  * @param onRetake Callback when user wants to retake
- * @param eventSelectionState State for loading joined events
- * @param onLoadEvents Callback to load user's joined events
+ * @param eventSelectionConfig Configuration for loading and displaying joined events
  * @param modifier Modifier for the screen
  */
 @Composable
@@ -58,8 +63,7 @@ fun MediaPreviewScreen(
     isVideo: Boolean,
     onAccept: (Event?) -> Unit,
     onRetake: () -> Unit,
-    eventSelectionState: EventSelectionState = EventSelectionState.Success(emptyList()),
-    onLoadEvents: () -> Unit = {},
+    eventSelectionConfig: EventSelectionConfig = EventSelectionConfig(),
     modifier: Modifier = Modifier,
     initialSelectedEvent: Event? = null
 ) {
@@ -74,10 +78,10 @@ fun MediaPreviewScreen(
 
     // Event selection dropdown at top
     EventSelectionDropdown(
-        state = eventSelectionState,
+        state = eventSelectionConfig.state,
         selectedEvent = selectedEvent,
         onEventSelected = { selectedEvent = it },
-        onLoadEvents = onLoadEvents,
+        onLoadEvents = eventSelectionConfig.onLoadEvents,
         modifier =
             Modifier.align(Alignment.TopCenter)
                 .padding(
