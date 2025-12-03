@@ -1,13 +1,12 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
-import com.github.se.studentconnect.ui.screen.home.HomeTabMode
 import com.google.firebase.Timestamp
+import java.util.Date
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -23,7 +22,7 @@ import org.junit.Before
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class HomePageViewModelTest {
+class HomePageViewModelTest2 {
 
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var viewModel: HomePageViewModel
@@ -32,7 +31,7 @@ class HomePageViewModelTest {
   private lateinit var organizationRepository: OrganizationRepositoryLocal
 
   // Create timestamps for future events (1 hour from now)
-  private val futureTime = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+  private val futureTime = Timestamp(Date(System.currentTimeMillis() + 3600000))
 
   private val testEvent1 =
       Event.Public(

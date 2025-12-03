@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import android.content.Context
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
@@ -10,10 +10,6 @@ import com.github.se.studentconnect.model.map.LocationResult
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
-import com.github.se.studentconnect.ui.screen.home.HomeTabMode
-import com.github.se.studentconnect.ui.screen.home.PreferredTimeOfDay
-import com.github.se.studentconnect.ui.screen.home.UserPreferences
 import com.github.se.studentconnect.ui.utils.FilterData
 import com.google.firebase.Timestamp
 import java.util.Calendar

@@ -1,11 +1,10 @@
-package com.github.se.studentconnect.viewmodel
+package com.github.se.studentconnect.ui.screen.home
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.ui.screen.home.HomePageViewModel
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
