@@ -58,27 +58,46 @@ private val DIALOG_MAX_HEIGHT = 500.dp
 private val CARD_HEIGHT = 72.dp
 private val CARD_SPACING = 8.dp
 
-/** UI state for event selection with unified data fields. */
+/**
+ * Represents the UI state for the event selection component.
+ *
+ * This sealed interface provides a type-safe way to represent loading, success, and error states
+ * when fetching events that the user has joined.
+ */
 sealed interface EventSelectionState {
-  /** The list of events, available in all states. */
+  /** The list of events available in this state. */
   val events: List<Event>
 
-  /** Error message, if any. */
+  /** Error message if the state represents a failure, null otherwise. */
   val error: String?
 
+  /** Indicates that events are currently being loaded. */
   data class Loading(
       override val events: List<Event> = emptyList(),
       override val error: String? = null
   ) : EventSelectionState
 
+  /** Indicates that events were successfully loaded. */
   data class Success(override val events: List<Event>, override val error: String? = null) :
       EventSelectionState
 
+  /** Indicates that an error occurred while loading events. */
   data class Error(override val events: List<Event> = emptyList(), override val error: String?) :
       EventSelectionState
 }
 
-/** Button + dialog for selecting an event to link to a story. */
+/**
+ * A composable that displays a button to select an event to link to a story.
+ *
+ * When clicked, it opens a dialog showing the user's joined events. The user can select one event
+ * to link to their story, or deselect the currently selected event.
+ *
+ * @param state The current state of event loading (Loading, Success, or Error)
+ * @param selectedEvent The currently selected event, or null if none selected
+ * @param onEventSelected Callback invoked when an event is selected or deselected
+ * @param onLoadEvents Callback to trigger loading of events when the dialog opens
+ * @param modifier Optional modifier for the trigger button
+ */
 @Composable
 fun EventSelectionDropdown(
     state: EventSelectionState,

@@ -20,6 +20,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/** Tests for [CameraModeSelectorViewModel]. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CameraModeSelectorViewModelTest {
 
@@ -40,7 +41,6 @@ class CameraModeSelectorViewModelTest {
     AuthenticationProvider.testUserId = originalUserId
   }
 
-  // Covers: userId!=null, try success (lines 26-31)
   @Test
   fun loadJoinedEvents_success() =
       runTest(testDispatcher) {
@@ -65,7 +65,6 @@ class CameraModeSelectorViewModelTest {
         assertEquals(events, (vm.eventSelectionState.value as EventSelectionState.Success).events)
       }
 
-  // Covers: userId!=null, catch exception (lines 32-34)
   @Test
   fun loadJoinedEvents_error() =
       runTest(testDispatcher) {
@@ -80,7 +79,6 @@ class CameraModeSelectorViewModelTest {
         assertEquals("fail", (vm.eventSelectionState.value as EventSelectionState.Error).error)
       }
 
-  // Covers: userId==null (lines 36-38)
   @Test
   fun loadJoinedEvents_noUser_returnsEmpty() =
       runTest(testDispatcher) {

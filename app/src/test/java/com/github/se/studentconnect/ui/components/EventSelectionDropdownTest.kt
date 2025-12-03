@@ -20,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
+/** Tests for [EventSelectionDropdown] composable. */
 @RunWith(RobolectricTestRunner::class)
 class EventSelectionDropdownTest {
 
@@ -35,7 +36,6 @@ class EventSelectionDropdownTest {
           isFlash = false,
           subtitle = "sub")
 
-  // Covers: selectedEvent=null (lines 122, 144, 147), Success empty (line 253)
   @Test
   fun noEventSelected_showsPlaceholderAndEmptyState() {
     val placeholder =
@@ -49,7 +49,6 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag(C.Tag.event_selection_empty).assertIsDisplayed()
   }
 
-  // Covers: selectedEvent!=null (lines 122, 144, 147), showDialog=false (line 102)
   @Test
   fun eventSelected_showsEventTitle_dialogNotShownInitially() {
     composeTestRule.setContent {
@@ -59,11 +58,9 @@ class EventSelectionDropdownTest {
       }
     }
     composeTestRule.onNodeWithText("My Event").assertIsDisplayed()
-    // Dialog should NOT be shown until button is clicked (showDialog=false branch)
     composeTestRule.onAllNodesWithTag(C.Tag.event_selection_dropdown).assertCountEquals(0)
   }
 
-  // Covers: when(state) Loading (line 208)
   @Test
   fun loadingState_showsLoadingIndicator() {
     composeTestRule.setContent {
@@ -73,7 +70,6 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithTag(C.Tag.event_selection_loading).assertIsDisplayed()
   }
 
-  // Covers: when(state) Error (line 209), message!=null (line 241)
   @Test
   fun errorState_withMessage_showsCustomMessage() {
     composeTestRule.setContent {
@@ -85,7 +81,6 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithText("Network error").assertIsDisplayed()
   }
 
-  // Covers: message==null (line 241)
   @Test
   fun errorState_nullMessage_showsDefaultMessage() {
     val defaultError =
@@ -98,8 +93,6 @@ class EventSelectionDropdownTest {
     composeTestRule.onNodeWithText(defaultError).assertIsDisplayed()
   }
 
-  // Covers: isSelected=false (lines 267, 272, 289, 305, 309, 328), events.isEmpty()=false (line
-  // 253)
   @Test
   fun selectEvent_callsOnEventSelectedWithEvent() {
     val event = mockEvent("1", "Event 1")
@@ -116,7 +109,6 @@ class EventSelectionDropdownTest {
     composeTestRule.runOnIdle { assertEquals(event, selected) }
   }
 
-  // Covers: isSelected=true (lines 267, 272, 289, 309, 328)
   @Test
   fun deselectEvent_callsOnEventSelectedWithNull() {
     val event = mockEvent("1", "Event 1")
