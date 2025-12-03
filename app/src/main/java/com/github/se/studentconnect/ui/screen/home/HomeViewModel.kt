@@ -407,7 +407,7 @@ constructor(
 
           val locationMatch =
               if (event.location == null) {
-                filters.radiusKm >= 100f
+                filters.location == null
               } else {
                 if (filters.location == null) return@filter true
                 val distance = calculateHaversineDistance(event.location!!, filters.location)
