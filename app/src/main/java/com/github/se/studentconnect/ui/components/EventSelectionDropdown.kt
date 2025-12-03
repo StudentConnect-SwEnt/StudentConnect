@@ -183,7 +183,8 @@ private fun EventSelectionTriggerButton(
         Row(
             modifier =
                 Modifier.fillMaxWidth()
-                    .padding(horizontal = BUTTON_HORIZONTAL_PADDING, vertical = BUTTON_VERTICAL_PADDING),
+                    .padding(
+                        horizontal = BUTTON_HORIZONTAL_PADDING, vertical = BUTTON_VERTICAL_PADDING),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
               Icon(
@@ -354,7 +355,8 @@ private fun EventCard(event: Event, isSelected: Boolean, onClick: () -> Unit, te
       colors = CardDefaults.cardColors(containerColor = bgColor),
       elevation =
           CardDefaults.cardElevation(
-              defaultElevation = if (isSelected) CARD_SELECTED_ELEVATION else CARD_UNSELECTED_ELEVATION)) {
+              defaultElevation =
+                  if (isSelected) CARD_SELECTED_ELEVATION else CARD_UNSELECTED_ELEVATION)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(CARD_PADDING),
             verticalAlignment = Alignment.CenterVertically) {
