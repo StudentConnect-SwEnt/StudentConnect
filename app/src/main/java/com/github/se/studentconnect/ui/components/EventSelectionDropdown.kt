@@ -59,13 +59,28 @@ private val DIALOG_MAX_HEIGHT = 500.dp
 private val CARD_HEIGHT = 72.dp
 private val CARD_SPACING = 8.dp
 
-/** UI state for event selection. */
-sealed class EventSelectionState {
-  data object Loading : EventSelectionState()
+/** UI state for event selection with unified data fields. */
+sealed interface EventSelectionState {
+  /** The list of events, available in all states. */
+  val events: List<Event>
 
-  data class Success(val events: List<Event>) : EventSelectionState()
+  /** Error message, if any. */
+  val error: String?
 
-  data class Error(val message: String? = null) : EventSelectionState()
+  data class Loading(
+      override val events: List<Event> = emptyList(),
+      override val error: String? = null
+  ) : EventSelectionState
+
+  data class Success(
+      override val events: List<Event>,
+      override val error: String? = null
+  ) : EventSelectionState
+
+  data class Error(
+      override val events: List<Event> = emptyList(),
+      override val error: String?
+  ) : EventSelectionState
 }
 
 /** Button + dialog for selecting an event to link to a story. */
@@ -196,7 +211,7 @@ private fun EventSelectionDialogContent(
 ) {
   when (state) {
     is EventSelectionState.Loading -> EventSelectionLoadingState()
-    is EventSelectionState.Error -> EventSelectionErrorState(state.message)
+    is EventSelectionState.Error -> EventSelectionErrorState(state.error)
     is EventSelectionState.Success ->
         EventSelectionSuccessState(
             events = state.events,

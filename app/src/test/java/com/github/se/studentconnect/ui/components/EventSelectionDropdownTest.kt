@@ -108,7 +108,7 @@ class EventSelectionDropdownTest {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
-            state = EventSelectionState.Loading,
+            state = EventSelectionState.Loading(),
             selectedEvent = null,
             onEventSelected = {},
             onLoadEvents = {})
@@ -124,7 +124,7 @@ class EventSelectionDropdownTest {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
-            state = EventSelectionState.Error(),
+            state = EventSelectionState.Error(error = null),
             selectedEvent = null,
             onEventSelected = {},
             onLoadEvents = {})
@@ -254,7 +254,7 @@ class EventSelectionDropdownTest {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
-            state = EventSelectionState.Error("Custom error message"),
+            state = EventSelectionState.Error(error = "Custom error message"),
             selectedEvent = null,
             onEventSelected = {},
             onLoadEvents = {})
@@ -274,7 +274,7 @@ class EventSelectionDropdownTest {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
-            state = EventSelectionState.Loading,
+            state = EventSelectionState.Loading(),
             selectedEvent = null,
             onEventSelected = {},
             onLoadEvents = {})
@@ -402,7 +402,7 @@ class EventSelectionDropdownTest {
     composeTestRule.setContent {
       AppTheme {
         EventSelectionDropdown(
-            state = EventSelectionState.Error(null),
+            state = EventSelectionState.Error(error = null),
             selectedEvent = null,
             onEventSelected = {},
             onLoadEvents = {})
@@ -554,7 +554,7 @@ class EventSelectionDropdownTest {
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
     composeTestRule.waitForIdle()
     // Dialog should close after selection
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()
@@ -576,7 +576,7 @@ class EventSelectionDropdownTest {
 
     composeTestRule.onNodeWithTag(C.Tag.event_selection_button).performClick()
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertIsDisplayed()
-    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_1").performClick()
+    composeTestRule.onNodeWithTag("${C.Tag.event_selection_card_prefix}_0").performClick()
     composeTestRule.waitForIdle()
     // Dialog should close after deselection
     composeTestRule.onNodeWithTag(C.Tag.event_selection_dropdown).assertDoesNotExist()

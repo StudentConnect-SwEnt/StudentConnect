@@ -22,13 +22,13 @@ class CameraModeSelectorViewModel(
   fun loadJoinedEvents() {
     val userId = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
     if (userId != null) {
-      _eventSelectionState.value = EventSelectionState.Loading
+      _eventSelectionState.value = EventSelectionState.Loading()
       viewModelScope.launch {
         try {
           val events = storyRepository.getUserJoinedEvents(userId)
           _eventSelectionState.value = EventSelectionState.Success(events)
         } catch (e: Exception) {
-          _eventSelectionState.value = EventSelectionState.Error(e.message)
+          _eventSelectionState.value = EventSelectionState.Error(error = e.message)
         }
       }
     } else {
