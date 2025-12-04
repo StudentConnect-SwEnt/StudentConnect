@@ -57,14 +57,14 @@ class FriendsLocationRepositoryFirebaseTest {
 
   @Test
   fun removeUserLocation_callsRemoveValue() = runTest {
-    every { mockUserLocationRef.removeValue() } returns Tasks.forResult(null)
+    every { mockUserLocationRef.updateChildren(any()) } returns Tasks.forResult(null)
     repository.removeUserLocation("user123")
-    verify { mockUserLocationRef.removeValue() }
+    verify { mockUserLocationRef.updateChildren(any()) }
   }
 
   @Test
   fun removeUserLocation_throwsExceptionOnFailure() = runTest {
-    every { mockUserLocationRef.removeValue() } returns
+    every { mockUserLocationRef.updateChildren(any()) } returns
         Tasks.forException(Exception("Firebase error"))
     try {
       repository.removeUserLocation("user123")
@@ -120,6 +120,7 @@ class FriendsLocationRepositoryFirebaseTest {
     every { mockSnapshot.child("longitude").getValue(Double::class.java) } returns 6.5668
     every { mockSnapshot.child("timestamp").getValue(Long::class.java) } returns
         System.currentTimeMillis()
+    every { mockSnapshot.child("isLive").getValue(Boolean::class.java) } returns true
 
     val listenerSlot = slot<ValueEventListener>()
     every { mockFriendRef.addValueEventListener(capture(listenerSlot)) } answers
@@ -160,6 +161,7 @@ class FriendsLocationRepositoryFirebaseTest {
     every { mockSnapshot.child("longitude").getValue(Double::class.java) } returns 7.0
     every { mockSnapshot.child("timestamp").getValue(Long::class.java) } returns
         System.currentTimeMillis()
+    every { mockSnapshot.child("isLive").getValue(Boolean::class.java) } returns false
 
     val listenerSlot = slot<ValueEventListener>()
     every { mockFriendRef.addValueEventListener(capture(listenerSlot)) } answers
