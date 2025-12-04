@@ -63,10 +63,10 @@ class ProfileHeaderAndroidTest {
     // Verify buttons
     composeTestRule.onNodeWithText("Edit").assertIsDisplayed()
     composeTestRule.onNodeWithText("Card").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Logout").assertIsDisplayed()
-      composeTestRule.onNodeWithText("Yes").assertIsNotDisplayed()
-      composeTestRule.onNodeWithText("No").assertIsNotDisplayed()
-      composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Logout").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Yes").assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("No").assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsNotDisplayed()
   }
 
   @Test
@@ -135,19 +135,18 @@ class ProfileHeaderAndroidTest {
     assert(cardClicked)
   }
 
-    @Test
-    fun profileHeader_logoutButtonClickable() {
-        composeTestRule.setContent {
-            ProfileHeader(
-                user = testUser,
-                stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-                onFriendsClick = {},
-                onEventsClick = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("Logout").assertHasClickAction()
+  @Test
+  fun profileHeader_logoutButtonClickable() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
     }
+
+    composeTestRule.onNodeWithText("Logout").assertHasClickAction()
+  }
 
   @Test
   fun profileHeader_hidesEditButtonWhenCallbackNull() {
@@ -350,67 +349,64 @@ class ProfileHeaderAndroidTest {
     composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
   }
 
-    @Test
-    fun profileHeader_logoutConfirmationDialogAppears() {
-        composeTestRule.setContent {
-            ProfileHeader(
-                user = testUser,
-                stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-                onFriendsClick = {},
-                onEventsClick = {}
-            )
-        }
-
-        // Click the Logout button
-        composeTestRule.onNodeWithText("Logout").performClick()
-
-        // Verify that the confirmation dialog appears
-        composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Yes").assertIsDisplayed()
-        composeTestRule.onNodeWithText("No").assertIsDisplayed()
+  @Test
+  fun profileHeader_logoutConfirmationDialogAppears() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
-    @Test
-    fun profileHeader_logoutConfirmationDialogCancels() {
-        composeTestRule.setContent {
-            ProfileHeader(
-                user = testUser,
-                stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-                onFriendsClick = {},
-                onEventsClick = {}
-            )
-        }
+    // Click the Logout button
+    composeTestRule.onNodeWithText("Logout").performClick()
 
-        // Click the Logout button
-        composeTestRule.onNodeWithText("Logout").performClick()
+    // Verify that the confirmation dialog appears
+    composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Yes").assertIsDisplayed()
+    composeTestRule.onNodeWithText("No").assertIsDisplayed()
+  }
 
-        // Click the No button to cancel logout
-        composeTestRule.onNodeWithText("No").performClick()
-
-        // Verify that the confirmation dialog is dismissed
-        composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsNotDisplayed()
-        composeTestRule.onNodeWithText("Yes").assertIsNotDisplayed()
-        composeTestRule.onNodeWithText("No").assertIsNotDisplayed()
+  @Test
+  fun profileHeader_logoutConfirmationDialogCancels() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
-    @Test
-    fun profileHeader_logoutConfirmationDialogConfirms() {
-        var logoutConfirmed = false
-        composeTestRule.setContent {
-            ProfileHeader(
-                user = testUser,
-                stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-                onFriendsClick = {},
-                onEventsClick = {},
-                onLogoutClick = { logoutConfirmed = true }
-            )
-        }
+    // Click the Logout button
+    composeTestRule.onNodeWithText("Logout").performClick()
 
-        // Click the Logout button
-        composeTestRule.onNodeWithText("Logout").performClick()
-        // Click the Yes button to confirm logout
-        composeTestRule.onNodeWithText("Yes").performClick()
-        // Verify that the logout was confirmed
-        assert(logoutConfirmed)
+    // Click the No button to cancel logout
+    composeTestRule.onNodeWithText("No").performClick()
+
+    // Verify that the confirmation dialog is dismissed
+    composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("Yes").assertIsNotDisplayed()
+    composeTestRule.onNodeWithText("No").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun profileHeader_logoutConfirmationDialogConfirms() {
+    var logoutConfirmed = false
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          onLogoutClick = { logoutConfirmed = true })
     }
+
+    // Click the Logout button
+    composeTestRule.onNodeWithText("Logout").performClick()
+    // Click the Yes button to confirm logout
+    composeTestRule.onNodeWithText("Yes").performClick()
+    // Verify that the logout was confirmed
+    assert(logoutConfirmed)
+  }
 }
