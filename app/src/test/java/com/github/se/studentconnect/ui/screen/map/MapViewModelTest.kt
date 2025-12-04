@@ -42,7 +42,11 @@ class MapViewModelTest {
     every { friendsLocationRepository.stopListening() } just Runs
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository, mockUserRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
   }
 
   @After

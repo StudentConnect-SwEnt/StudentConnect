@@ -51,7 +51,8 @@ class MapViewModelFriendLocationTest {
     every { friendsLocationRepo.observeFriendLocations(any(), any()) } returns flowOf(emptyMap())
     every { friendsLocationRepo.startListening() } just Runs
     every { friendsLocationRepo.stopListening() } just Runs
-    viewModel = MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
+    viewModel =
+        MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
   }
 
   @After
@@ -72,7 +73,8 @@ class MapViewModelFriendLocationTest {
     coEvery { friendsRepo.getFriends("user123") } returns friendIds
     every { friendsLocationRepo.observeFriendLocations("user123", friendIds) } returns
         flowOf(locations)
-    viewModel = MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
+    viewModel =
+        MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
     testDispatcher.scheduler.advanceUntilIdle()
     assertEquals(1, viewModel.uiState.value.friendLocations.size)
   }
