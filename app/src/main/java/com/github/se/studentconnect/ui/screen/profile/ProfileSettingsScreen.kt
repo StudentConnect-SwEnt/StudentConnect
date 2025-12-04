@@ -35,12 +35,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -51,7 +49,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
@@ -59,10 +56,9 @@ import com.github.se.studentconnect.ui.profile.EditableProfileField
 import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
 import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Profile Settings screen showing user information with edit functionality. This is the detailed
@@ -273,21 +269,7 @@ private fun ProfileHeaderSection(
     modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "ProfileSettingsScreen", "Failed to download profile image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUser(context, user)
 
   Column(
       modifier = modifier.fillMaxWidth(),
@@ -303,7 +285,7 @@ private fun ProfileHeaderSection(
               contentAlignment = Alignment.Center) {
                 if (imageBitmap != null) {
                   Image(
-                      bitmap = imageBitmap!!,
+                      bitmap = imageBitmap,
                       contentDescription =
                           stringResource(R.string.content_description_profile_picture),
                       modifier = Modifier.fillMaxSize(),

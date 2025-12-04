@@ -33,11 +33,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -46,14 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.FriendsListViewModel
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.Dispatchers
 
 /** Friends list screen showing all friends for a given user. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,17 +173,7 @@ private fun FriendsList(
 @Composable
 private fun FriendItem(friend: User, onFriendClick: (String) -> Unit) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = friend.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUser(context, friend)
 
   Row(
       modifier =
@@ -203,7 +189,7 @@ private fun FriendItem(friend: User, onFriendClick: (String) -> Unit) {
             contentAlignment = Alignment.Center) {
               if (imageBitmap != null) {
                 Image(
-                    bitmap = imageBitmap!!,
+                    bitmap = imageBitmap,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
                     modifier =

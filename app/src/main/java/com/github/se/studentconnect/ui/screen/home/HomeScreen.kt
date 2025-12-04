@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,9 +14,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,6 +77,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -98,10 +102,12 @@ import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FavoritesConfig
 import com.github.se.studentconnect.ui.utils.FilterBar
+import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -137,7 +143,7 @@ fun SlidingTabSelector(
 ) {
   val tabs = HomeTabMode.entries
   val selectedIndex = tabs.indexOf(selectedTab)
-  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
 
   // Calculate responsive padding based on screen width
@@ -162,24 +168,22 @@ fun SlidingTabSelector(
 @Composable
 private fun TabIndicator(selectedIndex: Int) {
   val indicatorOffsetFraction by
-      androidx.compose.animation.core.animateFloatAsState(
+      animateFloatAsState(
           targetValue = selectedIndex / 3f,
           animationSpec = tween(durationMillis = 300),
           label = "tab_indicator_offset")
 
-  androidx.compose.foundation.layout.BoxWithConstraints(
-      modifier = Modifier.fillMaxWidth().height(40.dp)) {
-        val containerWidth = maxWidth
-        Box(
-            modifier =
-                Modifier.width(containerWidth / 3f)
-                    .fillMaxHeight()
-                    .offset(x = containerWidth * indicatorOffsetFraction)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(20.dp))
-                    .testTag(HomeScreenTestTags.TAB_INDICATOR))
-      }
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(40.dp)) {
+    val containerWidth = maxWidth
+    Box(
+        modifier =
+            Modifier.width(containerWidth / 3f)
+                .fillMaxHeight()
+                .offset(x = containerWidth * indicatorOffsetFraction)
+                .background(
+                    color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp))
+                .testTag(HomeScreenTestTags.TAB_INDICATOR))
+  }
 }
 
 @Composable
@@ -196,7 +200,7 @@ private fun TabLabels(
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.TabItem(
+private fun RowScope.TabItem(
     tab: HomeTabMode,
     isSelected: Boolean,
     onTabSelected: (HomeTabMode) -> Unit
@@ -293,7 +297,7 @@ fun HomeScreen(
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
     onCalendarDismiss: () -> Unit = {},
-    onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
+    onApplyFilters: (FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {},
@@ -1133,7 +1137,7 @@ private suspend fun scrollToDate(
         buildDateHeaderIndexMap(events, hasTopContent, hasOrganizations, organizationsCount)
 
     // Find the target date header string
-    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+    val targetDateHeader = formatDateHeader(Timestamp(targetDate))
 
     // Look up the index in our map
     val targetIndex = dateHeaderIndexMap[targetDateHeader]

@@ -2,6 +2,7 @@
 // https://proandroiddev.com/swipeable-image-carousel-with-smooth-animations-in-jetpack-compose-76eacdc89bfb
 package com.github.se.studentconnect.ui.screen.activities
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -42,7 +43,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +63,7 @@ import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.google.firebase.Timestamp
 import java.util.*
 
@@ -364,6 +368,8 @@ fun CarouselCard(
           }
   val isLive = now >= item.start && now < endTime
   val isPrivate = item is Event.Private
+  val context = LocalContext.current
+  val imageBitmap = loadBitmapFromEvent(context, item)
 
   Card(
       onClick = onEventClick,
@@ -375,15 +381,27 @@ fun CarouselCard(
               modifier = Modifier.fillMaxSize().padding(24.dp),
               verticalArrangement = Arrangement.Bottom,
               horizontalAlignment = Alignment.Start) {
-                Icon(
-                    imageVector = Icons.Default.Image,
-                    contentDescription = "Event Image",
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                    tint = MaterialTheme.colorScheme.onPrimary)
+                if (imageBitmap != null) {
+                  Image(
+                      imageBitmap,
+                      contentDescription = "Event Image",
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .weight(1f)
+                              .clip(RoundedCornerShape(16.dp))
+                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                      contentScale = ContentScale.Crop)
+                } else {
+                  Icon(
+                      imageVector = Icons.Default.Image,
+                      contentDescription = "Event Image",
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .weight(1f)
+                              .clip(RoundedCornerShape(16.dp))
+                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                      tint = MaterialTheme.colorScheme.onPrimary)
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -465,6 +483,8 @@ fun InvitationCarouselCard(
 
   val isDeclined = item.invitation.status == InvitationStatus.Declined || declineState
   val cardAlpha = if (isDeclined) 0.7f else 1.0f
+  val context = LocalContext.current
+  val imageBitmap = loadBitmapFromEvent(context, item.event)
 
   Card(
       onClick = onCardClick,
@@ -477,15 +497,27 @@ fun InvitationCarouselCard(
           modifier = Modifier.fillMaxSize().padding(24.dp),
           verticalArrangement = Arrangement.Bottom,
           horizontalAlignment = Alignment.Start) {
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = "Event Image",
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                tint = MaterialTheme.colorScheme.onPrimary)
+            if (imageBitmap != null) {
+              Image(
+                  imageBitmap,
+                  contentDescription = "Event Image",
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f)
+                          .clip(RoundedCornerShape(16.dp))
+                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                  contentScale = ContentScale.Crop)
+            } else {
+              Icon(
+                  imageVector = Icons.Default.Image,
+                  contentDescription = "Event Image",
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .weight(1f)
+                          .clip(RoundedCornerShape(16.dp))
+                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
+                  tint = MaterialTheme.colorScheme.onPrimary)
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

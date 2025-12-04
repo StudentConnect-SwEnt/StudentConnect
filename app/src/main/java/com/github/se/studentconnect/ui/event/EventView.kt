@@ -30,7 +30,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -49,7 +48,6 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.event.CountDownDisplay
 import com.github.se.studentconnect.ui.event.CountDownViewModel
@@ -62,9 +60,9 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
@@ -117,7 +115,6 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
-  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -267,20 +264,7 @@ private fun BaseEventView(
   val participantCount = uiState.participantCount
 
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = event.imageUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromEvent(context, event)
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -307,7 +291,7 @@ private fun BaseEventView(
         Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
           if (imageBitmap != null) {
             Image(
-                bitmap = imageBitmap!!,
+                bitmap = imageBitmap,
                 contentDescription = stringResource(R.string.content_description_event_image),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop)
@@ -956,6 +940,8 @@ private fun AttendeeItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val imageBitmap = loadBitmapFromUser(context, attendee)
   Row(
       modifier =
           modifier
@@ -965,11 +951,19 @@ private fun AttendeeItem(
       horizontalArrangement = Arrangement.spacedBy(10.dp),
       verticalAlignment = Alignment.CenterVertically,
   ) {
-    Image(
-        painter = painterResource(R.drawable.ic_user),
-        contentDescription = "attendee image",
-        Modifier.size(48.dp),
-    )
+    if (imageBitmap != null) {
+      Image(
+          bitmap = imageBitmap,
+          contentDescription = "attendee image",
+          Modifier.size(48.dp).clip(CircleShape),
+          contentScale = ContentScale.Crop)
+    } else {
+      Image(
+          painter = painterResource(R.drawable.ic_user),
+          contentDescription = "attendee image",
+          Modifier.size(48.dp),
+      )
+    }
     Column {
       Text(
           attendee.firstName + " " + attendee.lastName,

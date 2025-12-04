@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import java.util.Locale
 
 @Composable
@@ -142,6 +147,8 @@ internal fun VisitorProfileInfoCard(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically) {
+          val context = LocalContext.current
+          val imageBitmap = loadBitmapFromUser(context, user)
           val initials =
               listOf(user.firstName, user.lastName)
                   .mapNotNull { it.firstOrNull()?.toString() }
@@ -149,19 +156,31 @@ internal fun VisitorProfileInfoCard(
                   .ifBlank { user.username.take(2) }
                   .uppercase(Locale.getDefault())
 
-          Surface(
-              modifier = Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
-              shape = CircleShape,
-              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-              tonalElevation = 0.dp) {
-                Box(contentAlignment = Alignment.Center) {
-                  Text(
-                      text = initials,
-                      style =
-                          MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                      color = MaterialTheme.colorScheme.primary)
+          if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = "profile picture",
+                modifier =
+                    Modifier.size(72.dp).clip(CircleShape).semantics {
+                      testTag = C.Tag.visitor_profile_avatar
+                    },
+                contentScale = ContentScale.Crop)
+          } else {
+            Surface(
+                modifier =
+                    Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                tonalElevation = 0.dp) {
+                  Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = initials,
+                        style =
+                            MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary)
+                  }
                 }
-              }
+          }
 
           Spacer(modifier = Modifier.width(16.dp))
 
