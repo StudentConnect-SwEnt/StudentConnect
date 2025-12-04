@@ -73,7 +73,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -83,7 +82,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -108,7 +106,6 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
@@ -131,6 +128,8 @@ import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.viewmodel.NotificationUiState
 import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
@@ -1070,7 +1069,6 @@ private fun NotificationContent(
 @Composable
 private fun NotificationIcon(notification: Notification) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
 
   when (notification) {
     is Notification.FriendRequest -> {
@@ -1078,21 +1076,10 @@ private fun NotificationIcon(notification: Notification) {
       LaunchedEffect(user) {
         user = UserRepositoryProvider.repository.getUserById(notification.userId)
       }
-      val imageBitmap by
-          produceState<ImageBitmap?>(initialValue = null, user?.profilePictureUrl, repository) {
-            value =
-                user?.profilePictureUrl?.let { id ->
-                  runCatching { repository.download(id) }
-                      .onFailure {
-                        Log.e("eventViewImage", "Failed to download event image: $id", it)
-                      }
-                      .getOrNull()
-                      ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-                }
-          }
+      val imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
       if (imageBitmap != null) {
         Image(
-            imageBitmap!!,
+            imageBitmap,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
         )
@@ -1109,21 +1096,10 @@ private fun NotificationIcon(notification: Notification) {
       LaunchedEffect(event) {
         event = EventRepositoryProvider.repository.getEvent(notification.eventId)
       }
-      val imageBitmap by
-          produceState<ImageBitmap?>(initialValue = null, event?.imageUrl, repository) {
-            value =
-                event?.imageUrl?.let { id ->
-                  runCatching { repository.download(id) }
-                      .onFailure {
-                        Log.e("eventViewImage", "Failed to download event image: $id", it)
-                      }
-                      .getOrNull()
-                      ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-                }
-          }
+      val imageBitmap = event?.let { loadBitmapFromEvent(context, event) }
       if (imageBitmap != null) {
         Image(
-            imageBitmap!!,
+            imageBitmap,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
         )

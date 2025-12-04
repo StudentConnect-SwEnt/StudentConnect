@@ -64,6 +64,7 @@ import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.Dispatchers
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 
 /** Data class holding profile statistics */
 data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
@@ -117,20 +118,7 @@ fun ProfileHeader(
           onOrganizationClick = callbacks.onOrganizationClick)
   val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("ProfileHeader", "Failed to download profile image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUser(context, user)
 
   Column(
       modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.profile_header_padding)),
