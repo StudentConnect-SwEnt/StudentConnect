@@ -371,6 +371,12 @@
     <string name="event_label_owner">Owner</string>
     <string name="event_button_return">Return to Event</string>
     
+    <!-- Leave event confirmation dialog -->
+    <string name="leave_event_confirmation_title">Leave Event</string>
+    <string name="leave_event_confirmation_message">Are you sure you want to leave this event?</string>
+    <string name="leave_event_confirm">Leave</string>
+    <string name="leave_event_cancel">Cancel</string>
+    
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
     <string name="event_placeholder_title">My new event</string>
