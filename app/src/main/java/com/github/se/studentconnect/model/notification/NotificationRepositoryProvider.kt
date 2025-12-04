@@ -1,24 +1,11 @@
 package com.github.se.studentconnect.model.notification
 
+import com.github.se.studentconnect.model.BaseRepositoryProvider
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+
 /** Singleton provider for NotificationRepository */
-object NotificationRepositoryProvider {
-  private var _repository: NotificationRepository? = null
-
-  /** Gets the current repository instance */
-  val repository: NotificationRepository
-    get() = _repository ?: throw IllegalStateException("NotificationRepository not initialized")
-
-  /**
-   * Sets the repository instance
-   *
-   * @param repository The repository to use
-   */
-  fun setRepository(repository: NotificationRepository) {
-    _repository = repository
-  }
-
-  /** Clears the repository instance (useful for testing) */
-  fun clearRepository() {
-    _repository = null
-  }
+object NotificationRepositoryProvider : BaseRepositoryProvider<NotificationRepository>() {
+  override fun getCurrentRepository(): NotificationRepository =
+      NotificationRepositoryFirestore(Firebase.firestore)
 }

@@ -45,8 +45,8 @@ class EventReminderWorkerTest {
     notificationRepository = mock(NotificationRepository::class.java)
 
     // Set up the repository providers
-    EventRepositoryProvider.repository = eventRepository
-    NotificationRepositoryProvider.setRepository(notificationRepository)
+    EventRepositoryProvider.overrideForTests(eventRepository)
+    NotificationRepositoryProvider.overrideForTests(notificationRepository)
 
     worker = TestListenableWorkerBuilder<EventReminderWorker>(context).build()
   }

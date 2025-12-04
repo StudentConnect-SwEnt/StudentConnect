@@ -61,13 +61,11 @@ class NotificationListenerServiceTest {
     every { mockAuth.currentUser } returns mockUser
 
     // Set mock repository
-    NotificationRepositoryProvider.setRepository(mockRepository)
+    NotificationRepositoryProvider.overrideForTests(mockRepository)
   }
 
   @After
   fun tearDown() {
-    // Clear repository
-    NotificationRepositoryProvider.clearRepository()
     unmockkAll()
   }
 
