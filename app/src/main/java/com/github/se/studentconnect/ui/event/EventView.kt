@@ -342,9 +342,7 @@ private fun BaseEventView(
         value =
             profileId?.let { id ->
               runCatching { repository.download(id) }
-                  .onFailure {
-                    Log.e("eventViewImage", "Failed to download event image: $id", it)
-                  }
+                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
