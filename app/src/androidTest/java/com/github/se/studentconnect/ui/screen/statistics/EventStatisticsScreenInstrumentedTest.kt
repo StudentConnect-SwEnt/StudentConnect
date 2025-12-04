@@ -336,5 +336,4 @@ class EventStatisticsScreenInstrumentedTest {
     }
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
   }
-
 }
