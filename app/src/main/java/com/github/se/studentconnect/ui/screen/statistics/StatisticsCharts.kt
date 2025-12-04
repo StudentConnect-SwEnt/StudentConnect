@@ -48,7 +48,67 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.JoinRateData
 import com.github.se.studentconnect.resources.C
 
-private const val PERCENTAGE_FORMAT = "%d%%"
+internal const val PERCENTAGE_FORMAT = "%d%%"
+
+/** Calculates chart points from data for line chart. */
+internal fun calculateChartPoints(
+    data: List<JoinRateData>,
+    chartWidth: Float,
+    chartHeight: Float,
+    paddingTop: Float
+): List<Offset> {
+  if (data.isEmpty()) return emptyList()
+
+  val maxValue = data.maxOfOrNull { it.cumulativeJoins } ?: 1
+  val minValue = StatisticsConstants.LINE_CHART_MIN_VALUE
+
+  return data.mapIndexed { index, point ->
+    val x =
+        if (data.size > 1) {
+          (index.toFloat() / (data.size - 1)) * chartWidth
+        } else {
+          chartWidth / 2
+        }
+    val y =
+        paddingTop +
+            chartHeight *
+                (1 -
+                    (point.cumulativeJoins - minValue).toFloat() /
+                        (maxValue - minValue).coerceAtLeast(1))
+    Offset(x, y)
+  }
+}
+
+/** Creates a fill path for the line chart gradient. */
+internal fun createFillPath(points: List<Offset>, bottomY: Float): Path {
+  if (points.isEmpty()) return Path()
+
+  return Path().apply {
+    moveTo(points.first().x, bottomY)
+    points.forEach { lineTo(it.x, it.y) }
+    lineTo(points.last().x, bottomY)
+    close()
+  }
+}
+
+/** Creates a line path connecting all points. */
+internal fun createLinePath(points: List<Offset>): Path {
+  if (points.isEmpty()) return Path()
+
+  return Path().apply {
+    moveTo(points.first().x, points.first().y)
+    for (i in 1 until points.size) {
+      lineTo(points[i].x, points[i].y)
+    }
+  }
+}
+
+/** Determines if a label should be shown at the given index. */
+internal fun shouldShowLabelAtIndex(index: Int, dataSize: Int): Boolean {
+  return index == 0 ||
+      index == dataSize - 1 ||
+      dataSize <= StatisticsConstants.LINE_CHART_MAX_LABELS
+}
 
 /**
  * Animated horizontal bar chart for displaying distribution data.
@@ -245,73 +305,36 @@ fun AnimatedLineChart(
         val chartHeight = size.height - paddingBottom - paddingTop
         val chartWidth = size.width
 
-        val maxValue = data.maxOfOrNull { it.cumulativeJoins } ?: 1
-        val minValue = StatisticsConstants.LINE_CHART_MIN_VALUE
-
-        val points =
-            data.mapIndexed { index, point ->
-              val x =
-                  if (data.size > 1) {
-                    (index.toFloat() / (data.size - 1)) * chartWidth
-                  } else {
-                    chartWidth / 2
-                  }
-              val y =
-                  paddingTop +
-                      chartHeight *
-                          (1 -
-                              (point.cumulativeJoins - minValue).toFloat() /
-                                  (maxValue - minValue).coerceAtLeast(1))
-              Offset(x, y)
-            }
+        val points = calculateChartPoints(data, chartWidth, chartHeight, paddingTop)
 
         // Draw gradient fill
         if (points.size >= StatisticsConstants.MIN_POINTS_FOR_LINE) {
-          val fillPath =
-              Path().apply {
-                moveTo(points.first().x, size.height - paddingBottom)
-                points.forEach { lineTo(it.x, it.y) }
-                lineTo(points.last().x, size.height - paddingBottom)
-                close()
-              }
+          val fillPath = createFillPath(points, size.height - paddingBottom)
+          val fillGradient =
+              Brush.verticalGradient(
+                  colors =
+                      listOf(
+                          fillColor.copy(alpha = StatisticsConstants.FILL_GRADIENT_START_ALPHA),
+                          fillColor.copy(alpha = StatisticsConstants.FILL_GRADIENT_END_ALPHA)))
 
           clipRect(right = chartWidth * animatedProgress) {
-            drawPath(
-                path = fillPath,
-                brush =
-                    Brush.verticalGradient(
-                        colors =
-                            listOf(
-                                fillColor.copy(
-                                    alpha = StatisticsConstants.FILL_GRADIENT_START_ALPHA),
-                                fillColor.copy(
-                                    alpha = StatisticsConstants.FILL_GRADIENT_END_ALPHA))))
+            drawPath(path = fillPath, brush = fillGradient)
           }
         }
 
         // Draw line
         if (points.size >= StatisticsConstants.MIN_POINTS_FOR_LINE) {
-          val linePath =
-              Path().apply {
-                moveTo(points.first().x, points.first().y)
-                for (i in 1 until points.size) {
-                  lineTo(points[i].x, points[i].y)
-                }
-              }
+          val linePath = createLinePath(points)
+          val lineStyle =
+              Stroke(width = StatisticsConstants.LINE_STROKE_WIDTH.toPx(), cap = StrokeCap.Round)
 
           clipRect(right = chartWidth * animatedProgress) {
-            drawPath(
-                path = linePath,
-                color = lineColor,
-                style =
-                    Stroke(
-                        width = StatisticsConstants.LINE_STROKE_WIDTH.toPx(),
-                        cap = StrokeCap.Round))
+            drawPath(path = linePath, color = lineColor, style = lineStyle)
           }
         }
 
         // Draw points
-        points.forEachIndexed { index, point ->
+        points.forEach { point ->
           if (point.x <= chartWidth * animatedProgress) {
             drawCircle(
                 color = lineColor,
@@ -327,15 +350,11 @@ fun AnimatedLineChart(
         // Draw labels
         val labelStyle =
             TextStyle(fontSize = StatisticsConstants.LINE_LABEL_FONT_SIZE, color = labelColor)
-
-        data.forEachIndexed { index, point ->
-          if (index == 0 ||
-              index == data.size - 1 ||
-              data.size <= StatisticsConstants.LINE_CHART_MAX_LABELS) {
-            val textLayout = textMeasurer.measure(point.label, labelStyle)
+        data.forEachIndexed { index, dataPoint ->
+          if (shouldShowLabelAtIndex(index, data.size)) {
+            val textLayout = textMeasurer.measure(dataPoint.label, labelStyle)
             val x = points[index].x - textLayout.size.width / 2
             val y = size.height - paddingBottom + StatisticsConstants.LINE_LABEL_OFFSET.toPx()
-
             drawText(
                 textLayoutResult = textLayout,
                 topLeft = Offset(x.coerceIn(0f, chartWidth - textLayout.size.width), y))
