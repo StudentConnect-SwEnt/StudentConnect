@@ -421,22 +421,26 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val participants = getEventParticipants(eventUid)
     val totalAttendees = participants.size
 
-    // Fetch user data for participants to calculate distributions
-    val userDataList =
-        participants.mapNotNull { participant ->
-          try {
-            val userDoc = db.collection("users").document(participant.uid).get().await()
-            if (userDoc.exists()) {
-              Triple(
-                  userDoc.getString("birthday"),
-                  userDoc.getString("university"),
-                  participant.joinedAt)
-            } else null
-          } catch (e: Exception) {
-            Log.e("EventRepositoryFirestore", "Error fetching user data for ${participant.uid}", e)
-            null
-          }
+    // Fetch user data in batches using whereIn (max 30 IDs per query)
+    val participantMap = participants.associateBy { it.uid }
+    val userDataList = mutableListOf<Triple<String?, String?, com.google.firebase.Timestamp?>>()
+
+    participants.map { it.uid }.chunked(30).forEach { uidBatch ->
+      try {
+        val querySnapshot =
+            db.collection("users")
+                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uidBatch)
+                .get()
+                .await()
+
+        querySnapshot.documents.forEach { doc ->
+          val joinedAt = participantMap[doc.id]?.joinedAt
+          userDataList.add(Triple(doc.getString("birthday"), doc.getString("university"), joinedAt))
         }
+      } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Error fetching user batch", e)
+      }
+    }
 
     // Calculate age distribution
     val ageGroups = mutableMapOf<String, Int>()
