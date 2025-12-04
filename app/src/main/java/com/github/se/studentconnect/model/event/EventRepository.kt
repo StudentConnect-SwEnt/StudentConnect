@@ -132,7 +132,6 @@ interface EventRepository {
    * @throws Exception if the event is not found or statistics cannot be computed.
    */
   suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
-    // Default implementation returns empty statistics
-    return EventStatistics.empty(eventUid)
+    throw NotImplementedError("getEventStatistics not implemented for this repository")
   }
 }
