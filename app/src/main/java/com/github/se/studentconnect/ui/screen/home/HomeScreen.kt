@@ -67,6 +67,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -76,6 +77,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -98,6 +100,7 @@ import coil.request.ImageRequest
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
@@ -112,8 +115,10 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // UI Constants
@@ -939,7 +944,8 @@ private fun FriendRequestActions(
 @Composable
 fun StoryItem(
     name: String,
-    avatarRes: Int,
+    avatarRes: Int? = null,
+    avatarUrl: String? = null,
     viewed: Boolean,
     onClick: () -> Unit,
     contentDescription: String? = null,
@@ -949,13 +955,26 @@ fun StoryItem(
   val finalContentDescription = contentDescription ?: defaultContentDescription
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
+
+  // Download profile picture using MediaRepository (same as profile screen)
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
+        value =
+            avatarUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("StoryItem", "Failed to download profile image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
-          Image(
-              painter = painterResource(avatarRes),
-              contentDescription = finalContentDescription,
+          Box(
               modifier =
                   Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
                       .clip(CircleShape)
@@ -963,7 +982,40 @@ fun StoryItem(
                           width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
                           color = borderColor,
                           shape = CircleShape)
-                      .clickable(onClick = onClick))
+                      .clickable(onClick = onClick),
+              contentAlignment = Alignment.Center) {
+                when {
+                  imageBitmap != null -> {
+                    // Show downloaded profile picture
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription = finalContentDescription,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop)
+                  }
+                  avatarRes != null -> {
+                    // Show local drawable
+                    Image(
+                        painter = painterResource(avatarRes),
+                        contentDescription = finalContentDescription,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop)
+                  }
+                  else -> {
+                    // Show default avatar with initial
+                    Box(
+                        modifier =
+                            Modifier.fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center) {
+                          Text(
+                              text = name.take(1).uppercase(),
+                              style = MaterialTheme.typography.titleLarge,
+                              color = MaterialTheme.colorScheme.primary)
+                        }
+                  }
+                }
+              }
           Text(
               text = name,
               modifier =
@@ -1043,12 +1095,14 @@ fun StoriesRow(
           val (seenStories, totalStories) = storyCounts
           val allStoriesViewed = seenStories >= totalStories
 
-          // Get the first story's username for display
-          val displayName = eventStories[event.uid]?.firstOrNull()?.username ?: event.title
+          // Get the first story's user info for display
+          val firstStory = eventStories[event.uid]?.firstOrNull()
+          val displayName = firstStory?.username ?: event.title
+          val profilePictureUrl = firstStory?.profilePictureUrl
 
           StoryItem(
               name = displayName,
-              avatarRes = R.drawable.avatar_12, // Default avatar for now
+              avatarUrl = profilePictureUrl,
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
               contentDescription = stringResource(R.string.content_description_event_story),
@@ -1072,6 +1126,23 @@ fun StoryViewer(
   val currentUserId =
       com.github.se.studentconnect.model.authentication.AuthenticationProvider.currentUser
   var showDeleteConfirmation by remember { mutableStateOf(false) }
+
+  // Get current story's profile picture URL
+  val currentProfilePictureUrl =
+      if (stories.isNotEmpty()) stories[currentStoryIndex].profilePictureUrl else null
+
+  // Download profile picture using MediaRepository (same as profile screen)
+  val repository = MediaRepositoryProvider.repository
+  val avatarBitmap by
+      produceState<ImageBitmap?>(initialValue = null, currentProfilePictureUrl, repository) {
+        value =
+            currentProfilePictureUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { Log.e("StoryViewer", "Failed to download profile image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
 
   AnimatedVisibility(
       visible = isVisible,
@@ -1102,27 +1173,27 @@ fun StoryViewer(
               modifier =
                   Modifier.fillMaxSize()
                       .background(Color.Black)
-                      .pointerInput(Unit) {
+                      .pointerInput(stories.size, currentStoryIndex) {
                         detectTapGestures(
                             onTap = { offset ->
                               val screenWidth = size.width
-                              if (offset.x < screenWidth / 3) {
+                              // Use half screen for left/right navigation (like Instagram)
+                              if (offset.x < screenWidth / 2) {
                                 // Tap on left side - previous story
                                 if (currentStoryIndex > 0) {
                                   currentStoryIndex--
                                 } else {
+                                  // First story, dismiss
                                   onDismiss()
                                 }
-                              } else if (offset.x > screenWidth * 2 / 3) {
+                              } else {
                                 // Tap on right side - next story
                                 if (currentStoryIndex < stories.size - 1) {
                                   currentStoryIndex++
                                 } else {
+                                  // Last story, dismiss
                                   onDismiss()
                                 }
-                              } else {
-                                // Tap in middle - dismiss
-                                onDismiss()
                               }
                             })
                       }
@@ -1203,13 +1274,29 @@ fun StoryViewer(
                             .padding(horizontal = 16.dp, vertical = 48.dp)
                             .align(Alignment.TopStart),
                     verticalAlignment = Alignment.CenterVertically) {
-                      // Avatar placeholder
+                      // User avatar using downloaded bitmap
                       Box(
                           modifier =
                               Modifier.size(40.dp)
-                                  .background(
-                                      MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                      shape = CircleShape))
+                                  .clip(CircleShape)
+                                  .background(Color.White.copy(alpha = 0.2f)),
+                          contentAlignment = Alignment.Center) {
+                            if (avatarBitmap != null) {
+                              Image(
+                                  bitmap = avatarBitmap!!,
+                                  contentDescription =
+                                      "Profile picture of ${currentStory.username}",
+                                  modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                  contentScale = ContentScale.Crop)
+                            } else {
+                              // Show initial as fallback
+                              Text(
+                                  text = currentStory.username.take(1).uppercase(),
+                                  style = MaterialTheme.typography.titleMedium,
+                                  color = Color.White,
+                                  fontWeight = FontWeight.Bold)
+                            }
+                          }
                       Spacer(modifier = Modifier.width(12.dp))
                       Column {
                         Text(

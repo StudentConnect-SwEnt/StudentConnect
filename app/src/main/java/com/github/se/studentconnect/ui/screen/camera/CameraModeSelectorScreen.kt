@@ -17,8 +17,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -180,7 +182,7 @@ fun CameraModeSelectorScreen(
         }
 
     // Bottom mode selector (like iPhone camera) - hide when story preview is showing
-    if (!isStoryPreviewShowing) {
+    if (!isStoryPreviewShowing && !isUploading) {
       Row(
           modifier =
               Modifier.align(Alignment.BottomCenter)
@@ -206,6 +208,26 @@ fun CameraModeSelectorScreen(
                   }
                 },
                 modifier = Modifier.testTag("mode_qr_scan"))
+          }
+    }
+
+    // Upload loading overlay
+    if (isUploading) {
+      Box(
+          modifier =
+              Modifier.fillMaxSize()
+                  .background(Color.Black.copy(alpha = 0.7f))
+                  .testTag("upload_loading_overlay"),
+          contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                  CircularProgressIndicator(color = Color.White)
+                  Text(
+                      text = "Uploading story...",
+                      color = Color.White,
+                      style = MaterialTheme.typography.bodyLarge)
+                }
           }
     }
   }

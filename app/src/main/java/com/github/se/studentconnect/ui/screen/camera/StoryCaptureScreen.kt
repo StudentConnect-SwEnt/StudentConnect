@@ -108,9 +108,7 @@ fun StoryCaptureScreen(
           imageCaptureConfig = {
             // Use 16:9 for full-screen portrait capture (will be rotated to 9:16)
             setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
-          },
-          // Use front camera for stories (like Instagram/Snapchat)
-          cameraSelector = androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA)
+          })
 
       // Only show mode controls when not showing preview
       Column(
