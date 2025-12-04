@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +42,7 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -74,6 +78,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -86,10 +93,13 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -244,7 +254,11 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: HomePageViewModel = run {
       val context = LocalContext.current
-      viewModel { HomePageViewModel(context = context, locationRepository = null) }
+      val storyRepository = StoryRepositoryProvider.getRepository(context)
+      viewModel {
+        HomePageViewModel(
+            context = context, locationRepository = null, storyRepository = storyRepository)
+      }
     },
     notificationViewModel: NotificationViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
@@ -272,7 +286,8 @@ fun HomeScreen(
       onFavoriteToggle = viewModel::toggleFavorite,
       onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
       onClearScrollTarget = { viewModel.clearScrollTarget() },
-      onTabSelected = { tab -> viewModel.selectTab(tab) })
+      onTabSelected = { tab -> viewModel.selectTab(tab) },
+      onRefreshStories = { viewModel.refreshStories() })
 }
 
 /** Core Home screen implementation containing pager, filters, notifications, and stories. */
@@ -297,11 +312,13 @@ fun HomeScreen(
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {},
-    onTabSelected: (HomeTabMode) -> Unit = {}
+    onTabSelected: (HomeTabMode) -> Unit = {},
+    onRefreshStories: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   var selectedStory by remember { mutableStateOf<Event?>(null) }
+  var selectedStoryIndex by remember { mutableStateOf(0) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
       notificationViewModel?.uiState?.collectAsState()?.value ?: NotificationUiState()
@@ -410,14 +427,15 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryAccepted = { _, _, _ ->
-                              // Story upload will be implemented in a future PR
-                              // Parameters: mediaUri (captured media), isVideo (true if video),
-                              // selectedEvent (linked event)
+                            onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                              // Story upload happens in CameraModeSelectorScreen
+                              // After upload completes, refresh only the stories (not everything)
                               onQRScannerClosed()
                               cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
+                                // Refresh only stories to avoid showing loading spinner
+                                onRefreshStories()
                               }
                             },
                             initialMode = cameraMode)
@@ -497,10 +515,12 @@ fun HomeScreen(
                                                 },
                                                 onClick = { event, seenStories ->
                                                   selectedStory = event
+                                                  selectedStoryIndex = seenStories
                                                   showStoryViewer = true
                                                   onClickStory(event, seenStories)
                                                 },
-                                                stories = uiState.subscribedEventsStories)
+                                                stories = uiState.subscribedEventsStories,
+                                                eventStories = uiState.eventStories)
                                           })
                                     }
                                   }
@@ -513,9 +533,40 @@ fun HomeScreen(
             }
 
         // Story Viewer Overlay
-        selectedStory?.let { story ->
-          StoryViewer(
-              event = story, isVisible = showStoryViewer, onDismiss = { showStoryViewer = false })
+        selectedStory?.let { event ->
+          val stories = uiState.eventStories[event.uid] ?: emptyList()
+          val context = LocalContext.current
+          val storyRepository = remember { StoryRepositoryProvider.getRepository(context) }
+
+          if (stories.isNotEmpty()) {
+            StoryViewer(
+                event = event,
+                stories = stories,
+                initialStoryIndex = selectedStoryIndex,
+                isVisible = showStoryViewer,
+                onDismiss = { showStoryViewer = false },
+                onDeleteStory = { storyId ->
+                  coroutineScope.launch {
+                    try {
+                      val currentUserId =
+                          com.github.se.studentconnect.model.authentication.AuthenticationProvider
+                              .currentUser
+                      val success = storyRepository.deleteStory(storyId, currentUserId)
+
+                      if (success) {
+                        Toast.makeText(context, "Story deleted", Toast.LENGTH_SHORT).show()
+                        // Refresh stories to update the UI
+                        onRefreshStories()
+                      } else {
+                        Toast.makeText(context, "Failed to delete story", Toast.LENGTH_SHORT).show()
+                      }
+                    } catch (e: Exception) {
+                      Log.e("HomeScreen", "Error deleting story", e)
+                      Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                  }
+                })
+          }
         }
 
         // Handle scroll to date functionality
@@ -929,7 +980,8 @@ fun StoryItem(
 fun StoriesRow(
     onAddStoryClick: () -> Unit,
     onClick: (Event, Int) -> Unit,
-    stories: Map<Event, Pair<Int, Int>>
+    stories: Map<Event, Pair<Int, Int>>,
+    eventStories: Map<String, List<StoryWithUser>> = emptyMap()
 ) {
   // Filter stories to only show events with actual stories (totalStories > 0)
   val eventsWithStories =
@@ -986,12 +1038,16 @@ fun StoriesRow(
               }
         }
 
-        // Existing stories
+        // Existing stories - display username of first story uploader
         items(eventsWithStories.toList()) { (event, storyCounts) ->
           val (seenStories, totalStories) = storyCounts
           val allStoriesViewed = seenStories >= totalStories
+
+          // Get the first story's username for display
+          val displayName = eventStories[event.uid]?.firstOrNull()?.username ?: event.title
+
           StoryItem(
-              name = event.title,
+              name = displayName,
               avatarRes = R.drawable.avatar_12, // Default avatar for now
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
@@ -1002,7 +1058,21 @@ fun StoriesRow(
 }
 
 @Composable
-fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
+fun StoryViewer(
+    event: Event,
+    stories: List<StoryWithUser>,
+    initialStoryIndex: Int = 0,
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    onDeleteStory: (String) -> Unit = {}
+) {
+  var currentStoryIndex by
+      remember(event.uid) { mutableStateOf(initialStoryIndex.coerceIn(0, stories.size - 1)) }
+  val context = LocalContext.current
+  val currentUserId =
+      com.github.se.studentconnect.model.authentication.AuthenticationProvider.currentUser
+  var showDeleteConfirmation by remember { mutableStateOf(false) }
+
   AnimatedVisibility(
       visible = isVisible,
       enter =
@@ -1012,47 +1082,222 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
           fadeOut(animationSpec = tween(200)) +
               scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
       modifier = Modifier.fillMaxSize().zIndex(1000f)) {
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .background(Color.Black)
-                    .clickable { onDismiss() }
-                    .testTag("story_viewer")) {
-              // Close button
-              IconButton(
-                  onClick = onDismiss,
-                  modifier =
-                      Modifier.align(Alignment.TopEnd)
-                          .padding(16.dp)
-                          .testTag("story_close_button")) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription =
-                            stringResource(R.string.content_description_close_story),
-                        tint = Color.White)
-                  }
+        if (stories.isEmpty()) {
+          // Fallback if no stories
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(Color.Black)
+                      .clickable { onDismiss() }
+                      .testTag("story_viewer")) {
+                Text(
+                    text = "No stories available",
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Center))
+              }
+        } else {
+          val currentStory = stories[currentStoryIndex]
 
-              // Story content - placeholder image for now
-              Box(
-                  modifier = Modifier.fillMaxSize().padding(vertical = 80.dp),
-                  contentAlignment = Alignment.Center) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center) {
-                          Image(
-                              painter = painterResource(id = R.drawable.avatar_12),
-                              contentDescription =
-                                  stringResource(R.string.content_description_story_content),
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(Color.Black)
+                      .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { offset ->
+                              val screenWidth = size.width
+                              if (offset.x < screenWidth / 3) {
+                                // Tap on left side - previous story
+                                if (currentStoryIndex > 0) {
+                                  currentStoryIndex--
+                                } else {
+                                  onDismiss()
+                                }
+                              } else if (offset.x > screenWidth * 2 / 3) {
+                                // Tap on right side - next story
+                                if (currentStoryIndex < stories.size - 1) {
+                                  currentStoryIndex++
+                                } else {
+                                  onDismiss()
+                                }
+                              } else {
+                                // Tap in middle - dismiss
+                                onDismiss()
+                              }
+                            })
+                      }
+                      .testTag("story_viewer")) {
+                // Story media content - FIRST so it's in the background
+                when (currentStory.story.mediaType) {
+                  com.github.se.studentconnect.model.story.MediaType.IMAGE -> {
+                    // Display image using Coil, rotated -90 degrees and filling entire screen
+                    androidx.compose.foundation.layout.BoxWithConstraints(
+                        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                          val screenWidth = maxWidth
+                          val screenHeight = maxHeight
+
+                          // After rotation, width becomes height and vice versa
+                          // So we need to use the screen's height for the image's width
+                          AsyncImage(
+                              model =
+                                  ImageRequest.Builder(LocalContext.current)
+                                      .data(currentStory.story.mediaUrl)
+                                      .crossfade(true)
+                                      .build(),
+                              contentDescription = "Story image by ${currentStory.username}",
                               modifier =
-                                  Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
-                          Spacer(modifier = Modifier.height(16.dp))
-                          Text(
-                              text = event.title,
-                              color = Color.White,
-                              style = MaterialTheme.typography.headlineSmall)
+                                  Modifier.width(screenHeight).height(screenWidth).graphicsLayer {
+                                    rotationZ = 90f
+                                  },
+                              contentScale = ContentScale.Crop,
+                              onError = {
+                                Log.e(
+                                    "StoryViewer",
+                                    "Error loading image: ${currentStory.story.mediaUrl}")
+                              })
                         }
                   }
-            }
+                  com.github.se.studentconnect.model.story.MediaType.VIDEO -> {
+                    // For now, show a placeholder for videos
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                      Column(
+                          horizontalAlignment = Alignment.CenterHorizontally,
+                          verticalArrangement = Arrangement.Center) {
+                            Text(
+                                text = "Video Story",
+                                color = Color.White,
+                                style = MaterialTheme.typography.headlineSmall)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Video playback will be available soon",
+                                color = Color.White.copy(alpha = 0.7f),
+                                style = MaterialTheme.typography.bodyMedium)
+                          }
+                    }
+                  }
+                }
+
+                // Story progress indicators - ON TOP
+                Row(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 16.dp)
+                            .align(Alignment.TopCenter),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                      stories.forEachIndexed { index, _ ->
+                        Box(
+                            modifier =
+                                Modifier.weight(1f)
+                                    .height(2.dp)
+                                    .background(
+                                        if (index <= currentStoryIndex) Color.White
+                                        else Color.White.copy(alpha = 0.3f),
+                                        shape = RoundedCornerShape(1.dp)))
+                      }
+                    }
+
+                // User info header
+                Row(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 48.dp)
+                            .align(Alignment.TopStart),
+                    verticalAlignment = Alignment.CenterVertically) {
+                      // Avatar placeholder
+                      Box(
+                          modifier =
+                              Modifier.size(40.dp)
+                                  .background(
+                                      MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                      shape = CircleShape))
+                      Spacer(modifier = Modifier.width(12.dp))
+                      Column {
+                        Text(
+                            text = currentStory.username,
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold)
+                        Text(
+                            text = event.title,
+                            color = Color.White.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodySmall)
+                      }
+                    }
+
+                // Close button
+                IconButton(
+                    onClick = onDismiss,
+                    modifier =
+                        Modifier.align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .testTag("story_close_button")) {
+                      Icon(
+                          imageVector = Icons.Default.Close,
+                          contentDescription =
+                              stringResource(R.string.content_description_close_story),
+                          tint = Color.White)
+                    }
+
+                // Delete button (only show if user owns the current story)
+                val currentStory = stories[currentStoryIndex]
+                if (currentStory.userId == currentUserId) {
+                  IconButton(
+                      onClick = { showDeleteConfirmation = true },
+                      modifier =
+                          Modifier.align(Alignment.BottomStart)
+                              .padding(16.dp)
+                              .testTag("story_delete_button")) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete story",
+                            tint = Color.Red,
+                            modifier = Modifier.size(32.dp))
+                      }
+                }
+
+                // Delete confirmation dialog
+                if (showDeleteConfirmation) {
+                  androidx.compose.material3.AlertDialog(
+                      onDismissRequest = { showDeleteConfirmation = false },
+                      title = { Text("Delete Story") },
+                      text = {
+                        Text(
+                            "Are you sure you want to delete this story? This action cannot be undone.")
+                      },
+                      confirmButton = {
+                        Button(
+                            onClick = {
+                              showDeleteConfirmation = false
+                              val storyToDelete = stories[currentStoryIndex]
+                              onDeleteStory(storyToDelete.story.storyId)
+                              // If this was the last story or only story, dismiss viewer
+                              if (stories.size == 1) {
+                                onDismiss()
+                              } else if (currentStoryIndex >= stories.size - 1) {
+                                // If we're at the last story, go to previous
+                                currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
+                              }
+                              // If we're not at the last story, the index stays the same
+                              // and shows the next story automatically
+                            },
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error)) {
+                              Text("Delete")
+                            }
+                      },
+                      dismissButton = {
+                        Button(
+                            onClick = { showDeleteConfirmation = false },
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                              Text("Cancel")
+                            }
+                      })
+                }
+              }
+        }
       }
 }
 

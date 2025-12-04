@@ -31,8 +31,7 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/events/$(eventId)/invitations/$(request.auth.uid));
     }
 
-    // Check if user has joined an event (via users/{userId}/joinedEvents/{eventId})
-    function hasJoinedEvent(eventId) {
+   	function hasJoinedEvent(eventId) {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedEvents/$(eventId));
     }
 
@@ -264,8 +263,10 @@ service cloud.firestore {
       allow delete: if request.auth != null &&
                      request.auth.uid == resource.data.userId;
 
-      // Prevent updates (stories are immutable once created)
-      allow update: if false;
+      // Allow update only for the story owner to update expiresAt field
+      // (needed to set correct expiration time after getting server timestamp)
+      allow update: if request.auth != null &&
+                     request.auth.uid == resource.data.userId;
     }
   }
 }

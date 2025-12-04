@@ -54,6 +54,11 @@ fun StoryCaptureScreen(
   var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
   var showPreview by remember { mutableStateOf(false) }
 
+  // Get screen dimensions to calculate aspect ratio for portrait mode
+  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val screenHeight = configuration.screenHeightDp
+  val screenWidth = configuration.screenWidthDp
+
   // Notify parent when preview state changes
   LaunchedEffect(showPreview) { onPreviewStateChanged(showPreview) }
 
@@ -80,7 +85,7 @@ fun StoryCaptureScreen(
           eventSelectionConfig =
               EventSelectionConfig(state = eventSelectionState, onLoadEvents = onLoadEvents))
     } else if (isActive) {
-      // Show camera view
+      // Show camera view with full-screen configuration
       CameraView(
           modifier = Modifier.fillMaxSize(),
           enableImageCapture = storyCaptureMode == StoryCaptureMode.PHOTO,
@@ -97,7 +102,15 @@ fun StoryCaptureScreen(
             showPreview = true
           },
           onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
-          noPermission = { PermissionRequired(onBackClick = onBackClick) })
+          noPermission = { PermissionRequired(onBackClick = onBackClick) },
+          // Configure for full-screen story capture
+          // Use 16:9 aspect ratio which will be captured in portrait orientation
+          imageCaptureConfig = {
+            // Use 16:9 for full-screen portrait capture (will be rotated to 9:16)
+            setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
+          },
+          // Use front camera for stories (like Instagram/Snapchat)
+          cameraSelector = androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA)
 
       // Only show mode controls when not showing preview
       Column(

@@ -16,6 +16,7 @@ import com.github.se.studentconnect.model.map.LocationResult
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.organization.toOrganizationDataList
+import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -55,9 +56,18 @@ enum class PreferredTimeOfDay {
   ANY
 }
 
+/** Story with user information for display. */
+data class StoryWithUser(
+    val story: com.github.se.studentconnect.model.story.Story,
+    val username: String,
+    val userId: String
+)
+
 /** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
+    val eventStories: Map<String, List<StoryWithUser>> =
+        emptyMap(), // eventId -> list of stories with user info
     val events: List<Event> = emptyList(),
     val organizations: List<OrganizationData> = emptyList(),
     val isLoading: Boolean = true,
@@ -80,7 +90,8 @@ constructor(
     private val context: Context? = null,
     private val locationRepository: LocationRepository? = null,
     private val organizationRepository: OrganizationRepository =
-        OrganizationRepositoryProvider.repository
+        OrganizationRepositoryProvider.repository,
+    private val storyRepository: StoryRepository? = null
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -131,7 +142,7 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
   }
 
@@ -232,27 +243,91 @@ constructor(
     }
   }
 
-  private fun loadAllSubscribedEventsStories() {
+  private fun loadAllSubscribedEventsStories(showLoading: Boolean = false) {
     viewModelScope.launch {
       try {
-        // Get all visible events to show stories for
-        val allEvents = eventRepository.getAllVisibleEvents()
-
-        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
-        // Create stories with Pair(totalStories, seenStories)
-        // For demo: take first 10 events, mix of seen and unseen stories
-        allEvents.take(10).forEachIndexed { index, event ->
-          val totalStories = if (index < 3) 3 else 5
-          val seenStories = if (index == 0) 1 else 0 // First one is partially seen
-          allEventsStory[event] = Pair(totalStories, seenStories)
+        // Only show loading state if explicitly requested (e.g., initial load)
+        if (showLoading) {
+          _uiState.update { it.copy(isLoading = true) }
         }
 
-        Log.d("HomePageViewModel", "Loaded ${allEventsStory.size} stories")
+        if (storyRepository == null || context == null) {
+          Log.w(
+              "HomePageViewModel", "StoryRepository or context not available, using empty stories")
+          _uiState.update {
+            it.copy(
+                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+          }
+          return@launch
+        }
 
-        _uiState.update { it.copy(subscribedEventsStories = allEventsStory) }
+        // Get user's joined events to show stories for
+        val currentUser = currentUserId
+        if (currentUser == null) {
+          Log.w("HomePageViewModel", "No current user, cannot load stories")
+          _uiState.update {
+            it.copy(
+                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+          }
+          return@launch
+        }
+
+        val joinedEvents = storyRepository.getUserJoinedEvents(currentUser)
+        Log.d("HomePageViewModel", "User has joined ${joinedEvents.size} events")
+
+        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+        val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
+
+        // For each joined event, get its stories
+        for (event in joinedEvents) {
+          val stories = storyRepository.getEventStories(event.uid)
+          if (stories.isNotEmpty()) {
+            // Pair(seenStories, totalStories)
+            // For now, all stories are marked as unseen (seenStories = 0)
+            // You can implement tracking of seen stories later
+            allEventsStory[event] = Pair(0, stories.size)
+
+            // Fetch user information for each story
+            val storiesWithUsers =
+                stories.mapNotNull { story ->
+                  try {
+                    val user = userRepository.getUserById(story.userId)
+                    if (user != null) {
+                      StoryWithUser(story = story, username = user.username, userId = user.userId)
+                    } else {
+                      Log.w("HomePageViewModel", "User not found for story ${story.storyId}")
+                      null
+                    }
+                  } catch (e: Exception) {
+                    Log.e("HomePageViewModel", "Error fetching user for story ${story.storyId}", e)
+                    null
+                  }
+                }
+
+            eventStoriesMap[event.uid] = storiesWithUsers
+
+            Log.d(
+                "HomePageViewModel",
+                "Event ${event.title} has ${stories.size} stories from ${storiesWithUsers.size} users")
+          }
+        }
+
+        Log.d("HomePageViewModel", "Loaded stories for ${allEventsStory.size} events")
+        Log.d("HomePageViewModel", "EventStories map size: ${eventStoriesMap.size}")
+        Log.d("HomePageViewModel", "EventStories keys: ${eventStoriesMap.keys.joinToString()}")
+
+        _uiState.update {
+          it.copy(
+              subscribedEventsStories = allEventsStory,
+              eventStories = eventStoriesMap,
+              isLoading = false)
+        }
       } catch (e: Exception) {
         Log.e("HomePageViewModel", "Error loading stories", e)
-        _uiState.update { it.copy(subscribedEventsStories = emptyMap()) }
+        _uiState.update {
+          it.copy(
+              subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+        }
       }
     }
   }
@@ -621,8 +696,13 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
+  }
+
+  /** Reloads only story data without triggering a full refresh or loading spinner. */
+  fun refreshStories() {
+    loadAllSubscribedEventsStories(showLoading = false)
   }
 
   /** Shows the calendar modal. */

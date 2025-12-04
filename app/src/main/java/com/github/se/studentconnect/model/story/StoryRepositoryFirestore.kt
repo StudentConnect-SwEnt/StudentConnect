@@ -52,26 +52,35 @@ class StoryRepositoryFirestore(
 
   override suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String): Story? {
     return try {
+      android.util.Log.d("StoryRepository", "Step 1: Detecting media type for URI: $fileUri")
       // Detect media type (image or video)
       val mediaType = MediaTypeDetector.detectMediaType(context, fileUri)
+      android.util.Log.d("StoryRepository", "Step 2: Media type detected: $mediaType")
 
       // Compress only images before upload (videos are uploaded as-is)
       val uriToUpload =
           if (mediaType == MediaType.IMAGE) {
+            android.util.Log.d("StoryRepository", "Step 3: Compressing image...")
             ImageCompressor.compressImage(context, fileUri) ?: fileUri
           } else {
+            android.util.Log.d("StoryRepository", "Step 3: Skipping compression for video")
             fileUri
           }
+      android.util.Log.d("StoryRepository", "Step 4: URI to upload: $uriToUpload")
 
       // Generate storage path: stories/{eventId}/{userId}/{timestamp}
       val timestamp = System.currentTimeMillis()
       val storagePath = "$STORAGE_PATH_PREFIX/$eventId/$userId/$timestamp"
+      android.util.Log.d("StoryRepository", "Step 5: Storage path: $storagePath")
 
       // Upload to Firebase Storage
+      android.util.Log.d("StoryRepository", "Step 6: Uploading to Firebase Storage...")
       val mediaUrl = mediaRepository.upload(uriToUpload, storagePath)
+      android.util.Log.d("StoryRepository", "Step 7: Upload complete. Media URL: $mediaUrl")
 
       // Create Firestore document
       val storyId = db.collection(STORIES_COLLECTION).document().id
+      android.util.Log.d("StoryRepository", "Step 8: Created story ID: $storyId")
 
       // Calculate temporary expiresAt (will be updated with correct value based on server
       // timestamp)
@@ -91,7 +100,9 @@ class StoryRepositoryFirestore(
               "expiresAt" to tempExpiresAt,
               "mediaType" to mediaType.value)
 
+      android.util.Log.d("StoryRepository", "Step 9: Saving to Firestore...")
       db.collection(STORIES_COLLECTION).document(storyId).set(storyData).await()
+      android.util.Log.d("StoryRepository", "Step 10: Saved to Firestore successfully")
 
       // Fetch the document back to get the actual serverTimestamp for createdAt
       val savedDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
@@ -105,6 +116,7 @@ class StoryRepositoryFirestore(
       // Update document with correct expiresAt if it differs from temporary value
       // (usually it will, since server timestamp may differ from client timestamp)
       if (actualExpiresAt.compareTo(tempExpiresAt) != 0) {
+        android.util.Log.d("StoryRepository", "Step 11: Updating expiresAt timestamp...")
         savedDoc.reference.update("expiresAt", actualExpiresAt).await()
       }
 
@@ -112,8 +124,13 @@ class StoryRepositoryFirestore(
       val finalDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
       val finalData = finalDoc.data ?: emptyMap()
 
-      Story.fromMap(finalData)
+      val story = Story.fromMap(finalData)
+      android.util.Log.d("StoryRepository", "Step 12: Story creation complete: $story")
+      story
     } catch (e: Exception) {
+      android.util.Log.e(
+          "StoryRepository", "Error uploading story: ${e.javaClass.simpleName} - ${e.message}", e)
+      e.printStackTrace()
       null
     }
   }

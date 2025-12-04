@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.ui.screen.camera
 
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import kotlinx.coroutines.launch
@@ -57,8 +61,12 @@ fun CameraModeSelectorScreen(
   val context = LocalContext.current
   val pagerState =
       rememberPagerState(initialPage = initialMode.ordinal, pageCount = { CameraMode.entries.size })
-  val coroutineScope = rememberCoroutineScope()
+  // Use lifecycleScope to prevent cancellation on navigation for story upload
+  val lifecycleOwner = LocalLifecycleOwner.current
+  // Use rememberCoroutineScope for UI operations (page navigation)
+  val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
+  var isUploading by remember { mutableStateOf(false) }
 
   // ViewModel for managing event selection state
   val storyRepository = StoryRepositoryProvider.getRepository(context)
@@ -80,7 +88,68 @@ fun CameraModeSelectorScreen(
         CameraMode.STORY -> {
           StoryCaptureScreen(
               onBackClick = onBackClick,
-              onStoryAccepted = onStoryAccepted,
+              onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                // Upload story to Firestore
+                if (selectedEvent != null && !isUploading) {
+                  val currentUserId = AuthenticationProvider.currentUser
+                  if (currentUserId.isNotEmpty()) {
+                    isUploading = true
+                    Toast.makeText(context, "Uploading story...", Toast.LENGTH_SHORT).show()
+
+                    // Use lifecycleOwner.lifecycleScope to prevent cancellation on navigation
+                    lifecycleOwner.lifecycleScope.launch {
+                      try {
+                        Log.d(
+                            "CameraModeSelectorScreen",
+                            "Starting story upload - Event: ${selectedEvent.uid}, User: $currentUserId, URI: $mediaUri")
+
+                        val story =
+                            storyRepository.uploadStory(mediaUri, selectedEvent.uid, currentUserId)
+
+                        if (story != null) {
+                          Log.d(
+                              "CameraModeSelectorScreen",
+                              "Story uploaded successfully: ${story.storyId}, mediaUrl: ${story.mediaUrl}")
+                          Toast.makeText(context, "Story uploaded!", Toast.LENGTH_SHORT).show()
+                          // Call the original callback ONLY AFTER successful upload
+                          onStoryAccepted(mediaUri, isVideo, selectedEvent)
+                        } else {
+                          Log.e(
+                              "CameraModeSelectorScreen",
+                              "Failed to upload story: uploadStory returned null. Check Firebase permissions and media file.")
+                          Toast.makeText(
+                                  context,
+                                  "Failed to upload story. Check connection and permissions.",
+                                  Toast.LENGTH_LONG)
+                              .show()
+                        }
+                      } catch (e: Exception) {
+                        Log.e(
+                            "CameraModeSelectorScreen",
+                            "Exception during story upload: ${e.javaClass.simpleName} - ${e.message}",
+                            e)
+                        e.printStackTrace()
+                        Toast.makeText(context, "Upload error: ${e.message}", Toast.LENGTH_LONG)
+                            .show()
+                      } finally {
+                        isUploading = false
+                      }
+                    }
+                  } else {
+                    Log.e("CameraModeSelectorScreen", "User not authenticated")
+                    Toast.makeText(
+                            context, "You must be logged in to upload stories", Toast.LENGTH_SHORT)
+                        .show()
+                  }
+                } else if (isUploading) {
+                  Toast.makeText(context, "Upload in progress...", Toast.LENGTH_SHORT).show()
+                } else {
+                  Log.w("CameraModeSelectorScreen", "No event selected for story")
+                  Toast.makeText(
+                          context, "Please select an event for your story", Toast.LENGTH_SHORT)
+                      .show()
+                }
+              },
               eventSelectionState = eventSelectionState,
               onLoadEvents = { viewModel.loadJoinedEvents() },
               isActive = pagerState.currentPage == page,
