@@ -617,10 +617,7 @@ class ProfileScreenViewModelTest {
 
     override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
 
-    override suspend fun getEventStatistics(
-        eventUid: String,
-        followerCount: Int
-    ): EventStatistics {
+    override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
       throw NotImplementedError("Not needed for tests")
     }
   }
