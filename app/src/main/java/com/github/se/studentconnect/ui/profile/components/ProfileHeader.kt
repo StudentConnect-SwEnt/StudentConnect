@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -27,8 +29,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
@@ -68,8 +74,10 @@ fun ProfileHeader(
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onUserCardClick: (() -> Unit)? = null,
+    onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
@@ -226,6 +234,24 @@ fun ProfileHeader(
             }
       }
     }
+    Spacer(modifier = Modifier.height(16.dp))
+    Button(
+        { showDialog.value = true },
+        modifier = Modifier.height(48.dp).fillMaxWidth(),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError)) {
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.Logout,
+              contentDescription = "Logout",
+              modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("LogOut")
+        }
+    if (showDialog.value) {
+      Logout(showDialog = showDialog, logOut = onLogoutClick)
+    }
   }
 }
 
@@ -260,4 +286,29 @@ private fun StatItem(
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface)
       }
+}
+
+@Composable
+private fun Logout(showDialog: MutableState<Boolean>, logOut: () -> Unit) {
+  val buttonWidth = 80.dp
+  Dialog(onDismissRequest = { showDialog.value = false }) {
+    Box(
+        modifier =
+            Modifier.background(
+                    color = MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                .padding(8.dp)) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Are you sure you want to logout?")
+            Spacer(Modifier.size(4.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()) {
+                  Button(logOut, modifier = Modifier.width(buttonWidth)) { Text("Yes") }
+                  Button({ showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
+                    Text("No")
+                  }
+                }
+          }
+        }
+  }
 }

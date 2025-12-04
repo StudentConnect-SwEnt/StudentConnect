@@ -67,7 +67,8 @@ fun ProfileScreen(
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    logOut: () -> Unit,
 ) {
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
@@ -126,7 +127,8 @@ fun ProfileScreen(
                   onUserCardClick = {
                     navigationCallbacks.onNavigateToUserCard?.invoke()
                         ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                  })
+                  },
+                  onLogoutClick = logOut)
             }
       }
     }
