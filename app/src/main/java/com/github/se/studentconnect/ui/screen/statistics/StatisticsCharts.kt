@@ -246,7 +246,7 @@ fun AnimatedLineChart(
         val chartWidth = size.width
 
         val maxValue = data.maxOfOrNull { it.cumulativeJoins } ?: 1
-        val minValue = 0
+        val minValue = StatisticsConstants.LINE_CHART_MIN_VALUE
 
         val points =
             data.mapIndexed { index, point ->

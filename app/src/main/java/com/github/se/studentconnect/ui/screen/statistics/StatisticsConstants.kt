@@ -56,6 +56,7 @@ object StatisticsConstants {
   const val MAX_DONUT_SEGMENTS = 6
   const val LINE_CHART_MAX_LABELS = 5
   const val MIN_POINTS_FOR_LINE = 2
+  const val LINE_CHART_MIN_VALUE = 0
 
   // Chart angles
   const val CHART_START_ANGLE = -90f
