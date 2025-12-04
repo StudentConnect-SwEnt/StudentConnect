@@ -281,7 +281,7 @@ internal fun MapContainer(
     onToggleView: () -> Unit,
     onLocateUser: () -> Unit,
     onEventSelected: (String?) -> Unit,
-    userRepository: com.github.se.studentconnect.repository.UserRepository,
+    userRepository: com.github.se.studentconnect.model.user.UserRepository,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
