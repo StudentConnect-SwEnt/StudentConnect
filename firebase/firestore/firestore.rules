@@ -31,7 +31,8 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/events/$(eventId)/invitations/$(request.auth.uid));
     }
 
-   	function hasJoinedEvent(eventId) {
+    // Check if user has joined an event (via users/{userId}/joinedEvents/{eventId})
+    function hasJoinedEvent(eventId) {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedEvents/$(eventId));
     }
 
@@ -249,10 +250,13 @@ service cloud.firestore {
     // --- STORIES COLLECTION ---
     
     match /stories/{storyId} {
-      // Allow read if user has joined the event OR is friend with the story creator
+      // Allow read if:
+      // 1. User is the story owner (can always see their own stories)
+      // 2. User has joined the event AND is a friend with the story creator
       allow get, list: if request.auth != null &&
-                        (hasJoinedEvent(resource.data.eventId) ||
-                         isFriendOfStoryCreator(resource.data.userId));
+                        (request.auth.uid == resource.data.userId ||
+                         (hasJoinedEvent(resource.data.eventId) &&
+                          isFriendOfStoryCreator(resource.data.userId)));
 
       // Allow create if user has joined the event and userId matches authenticated user
       allow create: if request.auth != null &&
@@ -263,10 +267,8 @@ service cloud.firestore {
       allow delete: if request.auth != null &&
                      request.auth.uid == resource.data.userId;
 
-      // Allow update only for the story owner to update expiresAt field
-      // (needed to set correct expiration time after getting server timestamp)
-      allow update: if request.auth != null &&
-                     request.auth.uid == resource.data.userId;
+      // Prevent updates (stories are immutable once created)
+      allow update: if false;
     }
   }
 }

@@ -9,6 +9,8 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
@@ -91,7 +93,8 @@ constructor(
     private val locationRepository: LocationRepository? = null,
     private val organizationRepository: OrganizationRepository =
         OrganizationRepositoryProvider.repository,
-    private val storyRepository: StoryRepository? = null
+    private val storyRepository: StoryRepository? = null,
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -275,6 +278,16 @@ constructor(
         val joinedEvents = storyRepository.getUserJoinedEvents(currentUser)
         Log.d("HomePageViewModel", "User has joined ${joinedEvents.size} events")
 
+        // Get user's friends list for story visibility filtering
+        val userFriends =
+            try {
+              friendsRepository.getFriends(currentUser).toSet()
+            } catch (e: Exception) {
+              Log.e("HomePageViewModel", "Error loading friends list", e)
+              emptySet()
+            }
+        Log.d("HomePageViewModel", "User has ${userFriends.size} friends")
+
         val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
         val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
 
@@ -282,33 +295,42 @@ constructor(
         for (event in joinedEvents) {
           val stories = storyRepository.getEventStories(event.uid)
           if (stories.isNotEmpty()) {
-            // Pair(seenStories, totalStories)
-            // For now, all stories are marked as unseen (seenStories = 0)
-            // You can implement tracking of seen stories later
-            allEventsStory[event] = Pair(0, stories.size)
-
-            // Fetch user information for each story
-            val storiesWithUsers =
-                stories.mapNotNull { story ->
-                  try {
-                    val user = userRepository.getUserById(story.userId)
-                    if (user != null) {
-                      StoryWithUser(story = story, username = user.username, userId = user.userId)
-                    } else {
-                      Log.w("HomePageViewModel", "User not found for story ${story.storyId}")
-                      null
-                    }
-                  } catch (e: Exception) {
-                    Log.e("HomePageViewModel", "Error fetching user for story ${story.storyId}", e)
-                    null
-                  }
+            // Filter stories: only show if story creator is the current user or a friend
+            val visibleStories =
+                stories.filter { story ->
+                  story.userId == currentUser || userFriends.contains(story.userId)
                 }
 
-            eventStoriesMap[event.uid] = storiesWithUsers
+            if (visibleStories.isNotEmpty()) {
+              // Pair(seenStories, totalStories)
+              // For now, all stories are marked as unseen (seenStories = 0)
+              // You can implement tracking of seen stories later
+              allEventsStory[event] = Pair(0, visibleStories.size)
 
-            Log.d(
-                "HomePageViewModel",
-                "Event ${event.title} has ${stories.size} stories from ${storiesWithUsers.size} users")
+              // Fetch user information for each visible story
+              val storiesWithUsers =
+                  visibleStories.mapNotNull { story ->
+                    try {
+                      val user = userRepository.getUserById(story.userId)
+                      if (user != null) {
+                        StoryWithUser(story = story, username = user.username, userId = user.userId)
+                      } else {
+                        Log.w("HomePageViewModel", "User not found for story ${story.storyId}")
+                        null
+                      }
+                    } catch (e: Exception) {
+                      Log.e(
+                          "HomePageViewModel", "Error fetching user for story ${story.storyId}", e)
+                      null
+                    }
+                  }
+
+              eventStoriesMap[event.uid] = storiesWithUsers
+
+              Log.d(
+                  "HomePageViewModel",
+                  "Event ${event.title} has ${visibleStories.size} visible stories (filtered from ${stories.size} total)")
+            }
           }
         }
 
