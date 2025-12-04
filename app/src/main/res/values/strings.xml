@@ -141,8 +141,7 @@
     <string name="button_reject">Reject</string>
     <string name="button_get_started_with_google">Get Started With Google</string>
     <string name="button_start_now">Start Now</string>
-    <string name="button_logout">Logout</string>
-    
+
     <!-- Content descriptions -->
     <string name="content_description_back">Back</string>
     <string name="content_description_profile_picture">Profile Picture</string>

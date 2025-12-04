@@ -21,11 +21,14 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -151,7 +154,12 @@ fun ProfileHeader(
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        UserInformation(user = user, showUsername = showUsername, isVisitorMode = isVisitorMode)
+        UserInformation(
+            user = user,
+            showUsername = showUsername,
+            isVisitorMode = isVisitorMode,
+            onLogoutClick = callbacks.onLogoutClick,
+            showDialog = showDialog)
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
@@ -159,10 +167,7 @@ fun ProfileHeader(
         if (isVisitorMode && friendButtonsContent != null) {
           friendButtonsContent()
         } else {
-          ActionButtons(
-              actions = actions,
-              onLogoutClick = callbacks.onLogoutClick,
-              showDialog = showDialog)
+          ActionButtons(actions = actions)
         }
       }
 }
@@ -207,6 +212,8 @@ private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modif
  * @param user The user whose information to display
  * @param showUsername Whether to show the username below the name
  * @param isVisitorMode Whether this is a visitor profile
+ * @param onLogoutClick Callback for logout action (null in visitor mode)
+ * @param showDialog State for showing logout confirmation dialog
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -214,21 +221,43 @@ private fun UserInformation(
     user: User,
     showUsername: Boolean = false,
     isVisitorMode: Boolean = false,
+    onLogoutClick: (() -> Unit)? = null,
+    showDialog: MutableState<Boolean>,
     modifier: Modifier = Modifier
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
-    // User Name
-    Text(
-        text = user.getFullName(),
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier =
-            if (isVisitorMode)
-                Modifier.testTag(
-                    com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
-            else Modifier)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
+          // User Name
+          Text(
+              text = user.getFullName(),
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.Bold,
+              fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
+              color = MaterialTheme.colorScheme.onSurface,
+              modifier =
+                  if (isVisitorMode)
+                      Modifier.testTag(
+                          com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
+                  else Modifier)
+
+          // Logout icon button (only in own profile mode)
+          if (!isVisitorMode && onLogoutClick != null) {
+            IconButton(
+                onClick = { showDialog.value = true },
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
+                modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size))) {
+                  Icon(
+                      imageVector = Icons.AutoMirrored.Filled.Logout,
+                      contentDescription = stringResource(R.string.content_description_logout))
+                }
+            if (showDialog.value) {
+              LogoutDialog(showDialog = showDialog, logOut = onLogoutClick)
+            }
+          }
+        }
 
     // Username (if showUsername is true)
     if (showUsername) {
@@ -250,7 +279,8 @@ private fun UserInformation(
           style = MaterialTheme.typography.bodyMedium,
           fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
           color = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.fillMaxWidth())
+          // modifier = Modifier.fillMaxWidth()
+      )
 
       Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
     }
@@ -286,20 +316,13 @@ private fun UserInformation(
 }
 
 /**
- * Action buttons section (Edit, User Card, Organizations, Logout).
+ * Action buttons section (Edit, User Card, Organizations).
  *
  * @param actions Profile action callbacks
- * @param onLogoutClick Callback for logout action
- * @param showDialog State for showing logout confirmation dialog
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun ActionButtons(
-    actions: ProfileActions,
-    onLogoutClick: (() -> Unit)?,
-    showDialog: MutableState<Boolean>,
-    modifier: Modifier = Modifier
-) {
+private fun ActionButtons(actions: ProfileActions, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth()) {
     // Buttons Row: Edit and User Card
     Row(
@@ -381,29 +404,8 @@ private fun ActionButtons(
                 fontWeight = FontWeight.Medium)
           }
     }
-<<<<<<< HEAD
-    // Logout Button
-    if (onLogoutClick != null) {
-      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_large)))
-      Button(
-          onClick = { showDialog.value = true },
-          modifier =
-              Modifier.fillMaxWidth().height(dimensionResource(R.dimen.profile_button_height)),
-          colors =
-              ButtonDefaults.buttonColors(
-                  containerColor = MaterialTheme.colorScheme.error,
-                  contentColor = MaterialTheme.colorScheme.onError),
-          shape = RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius))) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Logout,
-                contentDescription = stringResource(R.string.content_description_logout),
-                modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size)))
-            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_medium)))
-            Text(
-                text = stringResource(R.string.button_logout),
-                fontSize = dimensionResource(R.dimen.profile_button_text_size).value.sp,
-                fontWeight = FontWeight.Medium)
-          }
+  }
+}
       if (showDialog.value) {
         LogoutDialog(showDialog = showDialog, logOut = onLogoutClick)
       }
