@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
@@ -29,6 +32,7 @@ class ProfileScreenViewModelTest {
   private lateinit var testScope: TestScope
   private lateinit var userRepository: TestUserRepository
   private lateinit var friendsRepository: TestFriendsRepository
+  private lateinit var eventRepository: TestEventRepository
   private lateinit var viewModel: ProfileScreenViewModel
 
   private val testUser =
@@ -52,6 +56,7 @@ class ProfileScreenViewModelTest {
 
     userRepository = TestUserRepository(testUser)
     friendsRepository = TestFriendsRepository()
+    eventRepository = TestEventRepository()
   }
 
   @After
@@ -66,6 +71,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -84,6 +90,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -100,6 +107,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -116,6 +124,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -132,6 +141,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -148,6 +158,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         assertTrue(viewModel.isLoading.value)
@@ -166,6 +177,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -184,6 +196,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -202,6 +215,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -218,6 +232,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -240,6 +255,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -262,6 +278,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -282,6 +299,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -296,6 +314,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         viewModel.loadPinnedEvents()
@@ -313,6 +332,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -329,6 +349,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -345,6 +366,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -424,6 +446,12 @@ class ProfileScreenViewModelTest {
     override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
 
     override suspend fun checkUsernameAvailability(username: String) = true
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
   }
 
   private class TestFriendsRepository(
@@ -457,5 +485,52 @@ class ProfileScreenViewModelTest {
     override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
       TODO("Not yet implemented")
     }
+  }
+
+  private class TestEventRepository(
+      var events: Map<String, Event> = emptyMap()
+  ) : EventRepository {
+
+    override fun getNewUid() = "new_event_uid"
+
+    override suspend fun getAllVisibleEvents() = events.values.toList()
+
+    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean) =
+        events.values.filter(predicate)
+
+    override suspend fun getEventsByOrganization(organizationId: String) = emptyList<Event>()
+
+    override suspend fun getEvent(eventUid: String) =
+        events[eventUid] ?: throw Exception("Event not found")
+
+    override suspend fun getEventParticipants(eventUid: String) = emptyList<EventParticipant>()
+
+    override suspend fun addEvent(event: Event) = Unit
+
+    override suspend fun editEvent(eventUid: String, newEvent: Event) = Unit
+
+    override suspend fun deleteEvent(eventUid: String) = Unit
+
+    override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) =
+        Unit
+
+    override suspend fun addInvitationToEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) = Unit
+
+    override suspend fun getEventInvitations(eventUid: String) = emptyList<String>()
+
+    override suspend fun removeInvitationFromEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) = Unit
+
+    override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
+
+    override suspend fun getEventStatistics(eventUid: String, followerCount: Int) =
+        throw NotImplementedError("getEventStatistics not implemented for this test repository")
   }
 }

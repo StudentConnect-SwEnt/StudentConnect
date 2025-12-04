@@ -528,6 +528,11 @@ class EditProfilePictureScreenTest {
     override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
+      override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+      override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+      override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
   }
 
   private class FakeMediaRepository : MediaRepository {
@@ -543,5 +548,6 @@ class EditProfilePictureScreenTest {
     override suspend fun download(id: String): Uri = Uri.parse("file:///$id")
 
     override suspend fun delete(id: String) = Unit
+
   }
 }
