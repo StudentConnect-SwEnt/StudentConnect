@@ -25,6 +25,7 @@ class MapViewModelTest {
       com.github.se.studentconnect.model.friends.FriendsRepository
   private lateinit var friendsLocationRepository:
       com.github.se.studentconnect.model.friends.FriendsLocationRepository
+  private lateinit var mockUserRepository: com.github.se.studentconnect.model.user.UserRepository
   private lateinit var viewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -35,12 +36,13 @@ class MapViewModelTest {
     eventRepository = mockk()
     friendsRepository = mockk()
     friendsLocationRepository = mockk()
+    mockUserRepository = mockk(relaxed = true)
     coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
     coEvery { friendsRepository.getFriends(any()) } returns emptyList()
     every { friendsLocationRepository.stopListening() } just Runs
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository, eventRepository, friendsRepository, friendsLocationRepository, mockUserRepository)
   }
 
   @After

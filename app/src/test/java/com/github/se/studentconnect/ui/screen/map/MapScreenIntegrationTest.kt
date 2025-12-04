@@ -25,6 +25,7 @@ class MapScreenIntegrationTest {
       com.github.se.studentconnect.model.friends.FriendsRepository
   private lateinit var mockFriendsLocationRepository:
       com.github.se.studentconnect.model.friends.FriendsLocationRepository
+  private lateinit var mockUserRepository: com.github.se.studentconnect.model.user.UserRepository
   private lateinit var mockContext: Context
   private lateinit var mapViewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
@@ -42,6 +43,8 @@ class MapScreenIntegrationTest {
 
     mockFriendsLocationRepository = mockk()
     every { mockFriendsLocationRepository.stopListening() } just Runs
+
+    mockUserRepository = mockk(relaxed = true)
 
     mockLocationRepository = mockk()
     mockContext = mockk(relaxed = true)
@@ -62,7 +65,8 @@ class MapScreenIntegrationTest {
             mockLocationRepository,
             mockEventRepository,
             mockFriendsRepository,
-            mockFriendsLocationRepository)
+            mockFriendsLocationRepository,
+            mockUserRepository)
   }
 
   @After
