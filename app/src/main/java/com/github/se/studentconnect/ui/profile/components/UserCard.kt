@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -51,11 +49,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.userqr.UserQRCode
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import kotlinx.coroutines.Dispatchers
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 
 // STYLING CONSTANTS
 private val CARD_SHAPE = RoundedCornerShape(16.dp)
@@ -172,22 +168,7 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
-
-  // Load profile picture using the loadBitmapFromUri utility
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("UserCard", "Failed to download profile image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUser(context, user)
 
   CardContainer(modifier = modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -222,7 +203,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                       stringResource(R.string.content_description_profile_picture)
                   if (imageBitmap != null) {
                     Image(
-                        bitmap = imageBitmap!!,
+                        bitmap = imageBitmap,
                         contentDescription = profilePictureDescription,
                         modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop)
