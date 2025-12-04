@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.screen.map
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
-import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.friends.FriendLocation
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
