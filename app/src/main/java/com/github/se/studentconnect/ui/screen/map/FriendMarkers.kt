@@ -9,10 +9,10 @@ import android.graphics.PorterDuffXfermode
 import android.util.Log
 import android.util.LruCache
 import androidx.compose.ui.graphics.asAndroidBitmap
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
