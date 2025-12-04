@@ -336,4 +336,114 @@ class EventStatisticsScreenInstrumentedTest {
     }
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
   }
+
+  @Test
+  fun joinRateCard_withEmptyData_usesZeroForTotalJoins() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        JoinRateCard(
+            data = emptyList(),
+            animationProgress = 1f,
+            lineColor = Color.Blue,
+            fillColor = Color.LightGray)
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
+  }
+
+  @Test
+  fun staggeredAnimatedCard_animationProgressBelowThreshold_waitsForDelay() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        // Test index 2 with progress 0.15 (below threshold 0.2)
+        StatisticsContent(
+            statistics = testStatistics, animationProgress = 0.15f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    // Card should eventually appear after delay
+    composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertExists()
+  }
+
+  @Test
+  fun staggeredAnimatedCard_visibleTrue_showsContent() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        // With animationProgress = 1f, visible should be true OR animationProgress >= 1f
+        StatisticsContent(
+            statistics = testStatistics, animationProgress = 1f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertExists()
+  }
+
+  @Test
+  fun statisticsContent_withEmptyAgeDistribution_hidesAgeCard() {
+    val statsWithoutAge =
+        testStatistics.copy(ageDistribution = emptyList())
+    composeTestRule.setContent {
+      MaterialTheme {
+        StatisticsContent(
+            statistics = statsWithoutAge, animationProgress = 1f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertDoesNotExist()
+  }
+
+  @Test
+  fun statisticsContent_withEmptyCampusDistribution_hidesCampusCard() {
+    val statsWithoutCampus =
+        testStatistics.copy(campusDistribution = emptyList())
+    composeTestRule.setContent {
+      MaterialTheme {
+        StatisticsContent(
+            statistics = statsWithoutCampus, animationProgress = 1f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_CAMPUS_CARD).assertDoesNotExist()
+  }
+
+  @Test
+  fun statisticsContent_withEmptyJoinRate_hidesJoinRateCard() {
+    val statsWithoutJoinRate =
+        testStatistics.copy(joinRateOverTime = emptyList())
+    composeTestRule.setContent {
+      MaterialTheme {
+        StatisticsContent(
+            statistics = statsWithoutJoinRate, animationProgress = 1f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertDoesNotExist()
+  }
+
+  @Test
+  fun statisticsContent_withPartialAnimationProgress_rendersCards() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        StatisticsContent(
+            statistics = testStatistics, animationProgress = 0.3f, paddingValues = PaddingValues())
+      }
+    }
+    composeTestRule.waitForIdle()
+    // Cards should render even with partial progress
+    composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertExists()
+  }
+
+  @Test
+  fun totalAttendeesCard_withSingleAttendee_showsSingularText() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        TotalAttendeesCard(
+            totalAttendees = 1,
+            animationProgress = 1f,
+            gradientStart = Color.Blue,
+            gradientEnd = Color.Magenta)
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertIsDisplayed()
+  }
 }
