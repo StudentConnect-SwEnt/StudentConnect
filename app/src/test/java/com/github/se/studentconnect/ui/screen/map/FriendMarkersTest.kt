@@ -1,9 +1,13 @@
 package com.github.se.studentconnect.ui.screen.map
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.friends.FriendLocation
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.mapbox.geojson.Feature
@@ -15,22 +19,40 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [29], manifest = Config.NONE)
 class FriendMarkersTest {
 
   private lateinit var mockStyle: Style
   private lateinit var mockContext: Context
   private lateinit var mockDrawable: Drawable
   private lateinit var mockUserRepository: UserRepository
+  private lateinit var mockMediaRepository: MediaRepository
 
   @Before
   fun setUp() {
     mockStyle = mockk(relaxed = true)
-    mockContext = mockk(relaxed = true)
+    mockContext = ApplicationProvider.getApplicationContext()
     mockDrawable = mockk(relaxed = true)
     mockUserRepository = mockk(relaxed = true)
+    mockMediaRepository = mockk(relaxed = true)
+
     mockkStatic(ContextCompat::class)
     every { ContextCompat.getDrawable(any(), any()) } returns mockDrawable
+
+    // Mock MediaRepositoryProvider
+    mockkObject(MediaRepositoryProvider)
+    every { MediaRepositoryProvider.repository } returns mockMediaRepository
+
+    // Mock Style methods
+    every { mockStyle.hasStyleImage(any()) } returns false
+    every { mockStyle.addImage(any(), any<Bitmap>()) } just Runs
+    every { mockStyle.styleLayerExists(any()) } returns false
+    every { mockStyle.styleSourceExists(any()) } returns false
   }
 
   @After
@@ -859,5 +881,305 @@ class FriendMarkersTest {
 
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
     kotlinx.coroutines.delay(500)
+  }
+
+  // ===== Robolectric Integration Tests for Maximum Coverage =====
+
+  @Test
+  fun preloadFriendData_executesCreateMarkerBitmapForLiveLocation() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Verify bitmap was created and added to style
+    verify(timeout = 2000) {
+      mockStyle.addImage(match { it.contains("user1") && it.contains("live") }, any<Bitmap>())
+    }
+  }
+
+  @Test
+  fun preloadFriendData_executesCreateMarkerBitmapForStaleLocation() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, false))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Verify stale marker was created
+    verify(timeout = 2000) {
+      mockStyle.addImage(match { it.contains("user1") && it.contains("stale") }, any<Bitmap>())
+    }
+  }
+
+  @Test
+  fun preloadFriendData_usesCachedBitmap() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+
+    // First call - creates bitmap
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Second call - should use cached bitmap
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Should still work with cache
+    verify(atLeast = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesProfileUrlDownloadFailure() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser =
+        mockk<User>(relaxed = true) {
+          every { profilePictureUrl } returns "https://example.com/profile.jpg"
+        }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+    coEvery { mockMediaRepository.download(any()) } throws Exception("Download failed")
+
+    // Should fall back to default marker
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Verify fallback bitmap was created
+    verify(timeout = 2000) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesNullBitmapFromUri() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser =
+        mockk<User>(relaxed = true) {
+          every { profilePictureUrl } returns "https://example.com/profile.jpg"
+        }
+    val mockUri = mockk<android.net.Uri>(relaxed = true)
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+    coEvery { mockMediaRepository.download(any()) } returns mockUri
+
+    // loadBitmapFromUri will return null in this test environment
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Should fall back to default marker
+    verify(timeout = 2000) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_skipsWhenIconAlreadyExists() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+
+    // First call
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Now mock that icon exists
+    every { mockStyle.hasStyleImage(any()) } returns true
+
+    // Second call should skip
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Should not add image again
+    verify(atMost = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesMultipleUsersWithDifferentStates() = runTest {
+    val locations =
+        mapOf(
+            "live1" to FriendLocation("live1", 46.5191, 6.5668, 1000L, true),
+            "stale1" to FriendLocation("stale1", 46.5200, 6.5700, 2000L, false),
+            "live2" to FriendLocation("live2", 46.5210, 6.5710, 3000L, true))
+
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    coEvery { mockUserRepository.getUserById(any()) } returns mockUser
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(500)
+
+    // Verify all markers were created
+    verify(timeout = 2000, atLeast = 3) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun clearCaches_clearsProfileImageCache() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+
+    // Load data to populate cache
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Clear caches
+    FriendMarkers.clearCaches()
+
+    // Reset mock to track new calls
+    clearMocks(mockStyle, answers = false)
+    every { mockStyle.hasStyleImage(any()) } returns false
+    every { mockStyle.addImage(any(), any<Bitmap>()) } just Runs
+
+    // Load again - should recreate bitmap (not use cache)
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    verify(timeout = 2000) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesUserRepositoryReturningNull() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+
+    coEvery { mockUserRepository.getUserById("user1") } returns null
+
+    // Should handle null user gracefully
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Should still create default marker
+    verify(timeout = 2000) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesStyleAddImageException() = runTest {
+    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+    every { mockStyle.addImage(any(), any<Bitmap>()) } throws RuntimeException("Style error")
+
+    // Should handle exception gracefully and log error
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(300)
+
+    // Should have attempted to add image
+    verify(timeout = 2000, atLeast = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_handlesConcurrentRequests() = runTest {
+    val locations =
+        mapOf(
+            "user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true),
+            "user2" to FriendLocation("user2", 46.5200, 6.5700, 2000L, false))
+
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    coEvery { mockUserRepository.getUserById(any()) } returns mockUser
+
+    // Launch multiple concurrent preload operations
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+
+    kotlinx.coroutines.delay(500)
+
+    // Should handle concurrent requests gracefully
+    verify(timeout = 2000, atLeast = 2) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_mixedProfileUrlScenarios() = runTest {
+    val locations =
+        mapOf(
+            "noUrl" to FriendLocation("noUrl", 46.5191, 6.5668, 1000L, true),
+            "emptyUrl" to FriendLocation("emptyUrl", 46.5200, 6.5700, 2000L, false),
+            "validUrl" to FriendLocation("validUrl", 46.5210, 6.5710, 3000L, true))
+
+    val userNoUrl = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    val userEmptyUrl = mockk<User>(relaxed = true) { every { profilePictureUrl } returns "" }
+    val userValidUrl =
+        mockk<User>(relaxed = true) {
+          every { profilePictureUrl } returns "https://example.com/profile.jpg"
+        }
+
+    coEvery { mockUserRepository.getUserById("noUrl") } returns userNoUrl
+    coEvery { mockUserRepository.getUserById("emptyUrl") } returns userEmptyUrl
+    coEvery { mockUserRepository.getUserById("validUrl") } returns userValidUrl
+    coEvery { mockMediaRepository.download(any()) } throws Exception("Download failed")
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(500)
+
+    // All should create markers (fallback for failed download)
+    verify(timeout = 2000, atLeast = 3) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun getIconIdForUser_generatesCorrectFormat() {
+    val locations =
+        mapOf(
+            "user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true),
+            "user2" to FriendLocation("user2", 46.5200, 6.5700, 2000L, false))
+
+    val features = FriendMarkers.createFriendFeatures(locations)
+
+    // Verify icon IDs have correct format
+    val liveIconId = features[0].getStringProperty(FriendMarkerConfig.PROP_ICON_ID)
+    val staleIconId = features[1].getStringProperty(FriendMarkerConfig.PROP_ICON_ID)
+
+    assertTrue(liveIconId.startsWith(FriendMarkerConfig.ICON_ID))
+    assertTrue(liveIconId.contains("user1"))
+    assertTrue(liveIconId.endsWith("live"))
+
+    assertTrue(staleIconId.startsWith(FriendMarkerConfig.ICON_ID))
+    assertTrue(staleIconId.contains("user2"))
+    assertTrue(staleIconId.endsWith("stale"))
+  }
+
+  @Test
+  fun preloadFriendData_exercisesBothCreateMarkerBitmapBranches() = runTest {
+    // Test both branches of createMarkerBitmap: with innerBitmap and without
+    val locations =
+        mapOf(
+            "userLiveNoImage" to FriendLocation("userLiveNoImage", 46.5191, 6.5668, 1000L, true),
+            "userStaleNoImage" to FriendLocation("userStaleNoImage", 46.5200, 6.5700, 2000L, false))
+
+    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    coEvery { mockUserRepository.getUserById(any()) } returns mockUser
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(500)
+
+    // Both live (purple) and stale (grey) markers should be created
+    verify(timeout = 2000, atLeast = 2) { mockStyle.addImage(any(), any<Bitmap>()) }
+  }
+
+  @Test
+  fun preloadFriendData_exercisesLoadProfileImageOrDefaultBranches() = runTest {
+    val locations =
+        mapOf(
+            "nullUrl" to FriendLocation("nullUrl", 46.5191, 6.5668, 1000L, true),
+            "failedDownload" to FriendLocation("failedDownload", 46.5200, 6.5700, 2000L, false))
+
+    val userNullUrl = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    val userFailedDownload =
+        mockk<User>(relaxed = true) {
+          every { profilePictureUrl } returns "https://example.com/fail.jpg"
+        }
+
+    coEvery { mockUserRepository.getUserById("nullUrl") } returns userNullUrl
+    coEvery { mockUserRepository.getUserById("failedDownload") } returns userFailedDownload
+    coEvery { mockMediaRepository.download(any()) } throws Exception("Network error")
+
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(500)
+
+    // Both should create default markers
+    verify(timeout = 2000, atLeast = 2) { mockStyle.addImage(any(), any<Bitmap>()) }
   }
 }
