@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.statistics
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -196,7 +197,9 @@ class EventStatisticsScreenInstrumentedTest {
                               contentDescription = "Back")
                         }
                   })
-            }) { _ ->
+            }) { paddingValues ->
+              // Test only checks button clickability, padding not needed for this test
+              Box(modifier = Modifier.padding(paddingValues))
             }
       }
     }
