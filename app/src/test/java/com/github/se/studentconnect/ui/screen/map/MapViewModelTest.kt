@@ -215,7 +215,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
@@ -251,7 +255,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
@@ -286,7 +294,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("nonexistent"))
@@ -316,7 +328,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
@@ -349,7 +365,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
@@ -380,7 +400,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
@@ -424,7 +448,11 @@ class MapViewModelTest {
     coEvery { eventRepository.getAllVisibleEvents() } returns listOf(event)
     viewModel =
         MapViewModel(
-            locationRepository, eventRepository, friendsRepository, friendsLocationRepository)
+            locationRepository,
+            eventRepository,
+            friendsRepository,
+            friendsLocationRepository,
+            mockUserRepository)
     advanceUntilIdle()
 
     viewModel.onEvent(MapViewEvent.SelectEvent("event123"))
