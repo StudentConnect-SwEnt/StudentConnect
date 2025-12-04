@@ -312,6 +312,7 @@ private fun Logout(showDialog: MutableState<Boolean>, logOut: () -> Unit) {
                   Button(logOut, modifier = Modifier.width(buttonWidth)) {
                     Text(stringResource(R.string.button_yes))
                   }
+                  Spacer(Modifier.size(16.dp))
                   Button({ showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
                     Text(stringResource(R.string.button_no))
                   }
