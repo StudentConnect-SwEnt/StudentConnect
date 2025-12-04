@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.activities.Activities
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.components.TopicChipGrid

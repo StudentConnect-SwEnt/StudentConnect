@@ -44,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.activities.Activities
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
 import com.github.se.studentconnect.ui.screen.signup.SignUpLargeSpacer
 import com.github.se.studentconnect.ui.screen.signup.SignUpPrimaryButton
