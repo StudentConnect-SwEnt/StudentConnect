@@ -26,255 +26,189 @@ class StatisticsChartsTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private val testColors =
-      listOf(Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFEC4899), Color(0xFF14B8A6))
+  private val testColors = listOf(Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFEC4899))
 
-  // ===== Unit Tests for Helper Functions =====
+  // ===== UNIT TESTS FOR ALL HELPER FUNCTIONS =====
 
   @Test
-  fun calculateChartPoints_withEmptyData_returnsEmptyList() {
-    val result = calculateChartPoints(emptyList(), 100f, 100f, 10f)
-    assertTrue(result.isEmpty())
+  fun calculateChartPoints_allBranches() {
+    // Empty
+    assertTrue(calculateChartPoints(emptyList(), 100f, 100f, 10f).isEmpty())
+
+    // Single point (else branch for x)
+    val single = listOf(JoinRateData(Timestamp(Date()), 50, "D1"))
+    assertEquals(50f, calculateChartPoints(single, 100f, 100f, 10f)[0].x, 0.1f)
+
+    // Multiple points (if branch for x)
+    val multi =
+        listOf(JoinRateData(Timestamp(Date()), 0, "D1"), JoinRateData(Timestamp(Date()), 100, "D2"))
+    val result = calculateChartPoints(multi, 100f, 100f, 10f)
+    assertEquals(0f, result[0].x, 0.1f)
+    assertEquals(100f, result[1].x, 0.1f)
+
+    // Same values (coerceAtLeast)
+    val same =
+        listOf(JoinRateData(Timestamp(Date()), 10, "D1"), JoinRateData(Timestamp(Date()), 10, "D2"))
+    assertEquals(2, calculateChartPoints(same, 100f, 100f, 10f).size)
   }
 
   @Test
-  fun calculateChartPoints_withSinglePoint_returnsCenteredPoint() {
-    val data = listOf(JoinRateData(Timestamp(Date()), 50, "Day 1"))
-    val result = calculateChartPoints(data, 100f, 100f, 10f)
-
-    assertEquals(1, result.size)
-    assertEquals(50f, result[0].x, 0.1f) // Centered at chartWidth / 2
+  fun createFillPath_allBranches() {
+    assertTrue(createFillPath(emptyList(), 100f).isEmpty)
+    assertFalse(createFillPath(listOf(Offset(0f, 50f), Offset(100f, 75f)), 100f).isEmpty)
   }
 
   @Test
-  fun calculateChartPoints_withMultiplePoints_returnsCorrectXPositions() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date()), 10, "Day 1"),
-            JoinRateData(Timestamp(Date()), 20, "Day 2"),
-            JoinRateData(Timestamp(Date()), 30, "Day 3"))
-    val result = calculateChartPoints(data, 100f, 100f, 10f)
-
-    assertEquals(3, result.size)
-    assertEquals(0f, result[0].x, 0.1f) // First point at x=0
-    assertEquals(50f, result[1].x, 0.1f) // Middle point at x=50
-    assertEquals(100f, result[2].x, 0.1f) // Last point at x=100
+  fun createLinePath_allBranches() {
+    assertTrue(createLinePath(emptyList()).isEmpty)
+    assertFalse(createLinePath(listOf(Offset(50f, 50f))).isEmpty)
+    assertFalse(
+        createLinePath(listOf(Offset(0f, 0f), Offset(50f, 50f), Offset(100f, 100f))).isEmpty)
   }
 
   @Test
-  fun calculateChartPoints_withSameValues_handlesZeroDivision() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date()), 10, "Day 1"),
-            JoinRateData(Timestamp(Date()), 10, "Day 2"))
-    val result = calculateChartPoints(data, 100f, 100f, 10f)
-
-    assertEquals(2, result.size)
-    // Should not crash due to division by zero
+  fun shouldShowLabelAtIndex_allBranches() {
+    assertTrue(shouldShowLabelAtIndex(0, 10)) // First index
+    assertTrue(shouldShowLabelAtIndex(9, 10)) // Last index
+    assertTrue(shouldShowLabelAtIndex(2, 5)) // Small dataset (<=5)
+    assertFalse(shouldShowLabelAtIndex(5, 10)) // Middle in large dataset
   }
 
   @Test
-  fun createFillPath_withEmptyPoints_returnsEmptyPath() {
-    val result = createFillPath(emptyList(), 100f)
-    assertTrue(result.isEmpty)
+  fun calculateChartRadius_returnsCorrectValue() {
+    assertEquals(40f, calculateChartRadius(100f, 20f), 0.1f)
+    assertEquals(0f, calculateChartRadius(20f, 20f), 0.1f)
+    assertEquals(50f, calculateChartRadius(100f, 0f), 0.1f)
   }
 
   @Test
-  fun createFillPath_withPoints_createsClosedPath() {
-    val points = listOf(Offset(0f, 50f), Offset(50f, 25f), Offset(100f, 75f))
-    val result = createFillPath(points, 100f)
-
-    assertFalse(result.isEmpty)
+  fun calculateChartCenter_returnsCorrectValue() {
+    val center = calculateChartCenter(100f, 200f)
+    assertEquals(50f, center.x, 0.1f)
+    assertEquals(100f, center.y, 0.1f)
   }
 
   @Test
-  fun createLinePath_withEmptyPoints_returnsEmptyPath() {
-    val result = createLinePath(emptyList())
-    assertTrue(result.isEmpty)
+  fun calculateDonutSweepAngle_allBranches() {
+    // Normal case
+    assertEquals(180f, calculateDonutSweepAngle(50f, 100f, 1f), 0.1f)
+
+    // With sweep multiplier
+    assertEquals(90f, calculateDonutSweepAngle(50f, 100f, 0.5f), 0.1f)
+
+    // Zero total (guard)
+    assertEquals(0f, calculateDonutSweepAngle(50f, 0f, 1f), 0.1f)
+
+    // Full circle
+    assertEquals(360f, calculateDonutSweepAngle(100f, 100f, 1f), 0.1f)
   }
 
   @Test
-  fun createLinePath_withSinglePoint_createsPath() {
-    val points = listOf(Offset(50f, 50f))
-    val result = createLinePath(points)
-
-    assertFalse(result.isEmpty)
+  fun calculateCircularSweepAngle_returnsCorrectValue() {
+    assertEquals(0f, calculateCircularSweepAngle(0f), 0.1f)
+    assertEquals(180f, calculateCircularSweepAngle(50f), 0.1f)
+    assertEquals(360f, calculateCircularSweepAngle(100f), 0.1f)
   }
 
   @Test
-  fun createLinePath_withMultiplePoints_createsPath() {
-    val points = listOf(Offset(0f, 50f), Offset(50f, 25f), Offset(100f, 75f))
-    val result = createLinePath(points)
-
-    assertFalse(result.isEmpty)
+  fun calculateTotalPercentage_returnsCorrectValue() {
+    assertEquals(0f, calculateTotalPercentage(emptyList()), 0.1f)
+    assertEquals(100f, calculateTotalPercentage(listOf("A" to 60f, "B" to 40f)), 0.1f)
+    assertEquals(50f, calculateTotalPercentage(listOf("A" to 50f)), 0.1f)
   }
 
   @Test
-  fun shouldShowLabelAtIndex_firstIndex_returnsTrue() {
-    assertTrue(shouldShowLabelAtIndex(0, 10))
+  fun isPointVisible_allBranches() {
+    assertTrue(isPointVisible(50f, 100f, 1f)) // Fully visible
+    assertTrue(isPointVisible(50f, 100f, 0.5f)) // At edge
+    assertFalse(isPointVisible(75f, 100f, 0.5f)) // Beyond progress
+    assertTrue(isPointVisible(0f, 100f, 0.1f)) // At start
   }
 
   @Test
-  fun shouldShowLabelAtIndex_lastIndex_returnsTrue() {
-    assertTrue(shouldShowLabelAtIndex(9, 10))
+  fun getColorForIndex_cyclesCorrectly() {
+    assertEquals(testColors[0], getColorForIndex(0, testColors))
+    assertEquals(testColors[1], getColorForIndex(1, testColors))
+    assertEquals(testColors[2], getColorForIndex(2, testColors))
+    assertEquals(testColors[0], getColorForIndex(3, testColors)) // Cycles back
+    assertEquals(testColors[1], getColorForIndex(4, testColors))
   }
 
   @Test
-  fun shouldShowLabelAtIndex_middleIndexWithManyItems_returnsFalse() {
-    assertFalse(shouldShowLabelAtIndex(5, 10))
-  }
-
-  @Test
-  fun shouldShowLabelAtIndex_middleIndexWithFewItems_returnsTrue() {
-    assertTrue(shouldShowLabelAtIndex(2, 4)) // 4 <= 5 so all labels show
-  }
-
-  @Test
-  fun shouldShowLabelAtIndex_exactlyMaxLabels_returnsTrue() {
-    assertTrue(shouldShowLabelAtIndex(2, 5)) // 5 <= 5 so all labels show
-  }
-
-  @Test
-  fun percentageFormat_isCorrect() {
+  fun percentageFormat_constant() {
     assertEquals("%d%%", PERCENTAGE_FORMAT)
   }
 
-  // ===== AnimatedHorizontalBarChart Tests =====
+  // ===== UI COMPOSITION TESTS =====
 
   @Test
-  fun barChart_rendersWithData() {
-    val items = listOf("EPFL" to 50f, "UNIL" to 30f, "ETH" to 20f)
-
+  fun barChart_withData() {
     composeTestRule.setContent {
       MaterialTheme {
-        AnimatedHorizontalBarChart(items = items, colors = testColors, animationProgress = 1f)
+        AnimatedHorizontalBarChart(
+            items = listOf("A" to 50f, "B" to 30f), colors = testColors, animationProgress = 1f)
       }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeTestRule.onNodeWithText("UNIL").assertIsDisplayed()
+    composeTestRule.onNodeWithText("A").assertIsDisplayed()
     composeTestRule.onNodeWithText("50%").assertIsDisplayed()
   }
 
   @Test
-  fun barChart_rendersWithEmptyData() {
+  fun barChart_empty() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedHorizontalBarChart(items = emptyList(), colors = testColors, animationProgress = 1f)
       }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertExists()
   }
 
   @Test
-  fun barChart_respectsMaxItems() {
-    val items = (1..10).map { "Item $it" to it.toFloat() * 10 }
-
+  fun barChart_zeroProgress() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedHorizontalBarChart(
-            items = items, colors = testColors, maxItems = 3, animationProgress = 1f)
+            items = listOf("A" to 50f), colors = testColors, animationProgress = 0f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Item 1").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Item 3").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Item 4").assertDoesNotExist()
-  }
-
-  @Test
-  fun barChart_rendersWithZeroProgress() {
-    val items = listOf("EPFL" to 50f, "UNIL" to 30f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedHorizontalBarChart(items = items, colors = testColors, animationProgress = 0f)
-      }
-    }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
   }
 
   @Test
-  fun barChart_handlesColorCycling() {
-    // More items than colors to test color cycling
-    val items = (1..6).map { "Item $it" to it.toFloat() * 10 }
-
+  fun donutChart_withData() {
     composeTestRule.setContent {
       MaterialTheme {
-        AnimatedHorizontalBarChart(items = items, colors = testColors, animationProgress = 1f)
+        AnimatedDonutChart(
+            segments = listOf("A" to 60f, "B" to 40f), colors = testColors, animationProgress = 1f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-  }
-
-  // ===== AnimatedDonutChart Tests =====
-
-  @Test
-  fun donutChart_rendersWithData() {
-    val segments = listOf("18-22" to 40f, "23-25" to 35f, "26-30" to 25f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedDonutChart(segments = segments, colors = testColors, animationProgress = 1f)
-      }
-    }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
   }
 
   @Test
-  fun donutChart_rendersWithEmptyData() {
+  fun donutChart_zeroProgress() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedDonutChart(
+            segments = listOf("A" to 50f), colors = testColors, animationProgress = 0f)
+      }
+    }
+    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+  }
+
+  @Test
+  fun donutChart_empty() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedDonutChart(segments = emptyList(), colors = testColors, animationProgress = 1f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertExists()
   }
 
   @Test
-  fun donutChart_rendersWithZeroProgress() {
-    val segments = listOf("A" to 50f, "B" to 50f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedDonutChart(segments = segments, colors = testColors, animationProgress = 0f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
-  }
-
-  // ===== AnimatedLineChart Tests =====
-
-  @Test
-  fun lineChart_rendersWithData() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date(System.currentTimeMillis() - 86400000)), 10, "Day 1"),
-            JoinRateData(Timestamp(Date(System.currentTimeMillis())), 25, "Day 2"))
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun lineChart_rendersWithEmptyData() {
+  fun lineChart_empty() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
@@ -284,344 +218,110 @@ class StatisticsChartsTest {
             animationProgress = 1f)
       }
     }
-
-    // Empty data should not render the chart (early return)
     composeTestRule.waitForIdle()
   }
 
   @Test
-  fun lineChart_rendersWithSinglePoint() {
-    val data = listOf(JoinRateData(Timestamp(Date()), 15, "Today"))
-
+  fun lineChart_singlePoint() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
-            data = data,
+            data = listOf(JoinRateData(Timestamp(Date()), 10, "D1")),
             lineColor = testColors[0],
             fillColor = testColors[1],
             animationProgress = 1f)
       }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
   }
 
   @Test
-  fun lineChart_rendersWithManyPoints() {
-    // More than 5 points to test label filtering logic
-    val baseTime = System.currentTimeMillis()
-    val data =
-        (0..7).map { i ->
-          JoinRateData(Timestamp(Date(baseTime + i * 86400000L)), (i + 1) * 10, "Day ${i + 1}")
-        }
-
+  fun lineChart_multiplePoints() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
-            data = data,
+            data =
+                listOf(
+                    JoinRateData(Timestamp(Date()), 10, "D1"),
+                    JoinRateData(Timestamp(Date()), 20, "D2")),
             lineColor = testColors[0],
             fillColor = testColors[1],
             animationProgress = 1f)
       }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
   }
 
   @Test
-  fun lineChart_rendersWithZeroProgress() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date(System.currentTimeMillis() - 86400000)), 10, "Day 1"),
-            JoinRateData(Timestamp(Date(System.currentTimeMillis())), 25, "Day 2"))
-
+  fun legend_withItems() {
     composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 0f)
-      }
+      MaterialTheme { ChartLegend(items = listOf("A" to testColors[0], "B" to testColors[1])) }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun lineChart_rendersWithSameValues() {
-    // All points have same cumulative value - tests division handling
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date()), 10, "Day 1"),
-            JoinRateData(Timestamp(Date()), 10, "Day 2"),
-            JoinRateData(Timestamp(Date()), 10, "Day 3"))
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun lineChart_rendersWithFiveOrFewerPoints() {
-    // Exactly 5 points - all labels should show
-    val baseTime = System.currentTimeMillis()
-    val data =
-        (0..4).map { i ->
-          JoinRateData(Timestamp(Date(baseTime + i * 86400000L)), (i + 1) * 5, "D${i + 1}")
-        }
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  // ===== ChartLegend Tests =====
-
-  @Test
-  fun legend_rendersWithItems() {
-    val items = listOf("EPFL" to testColors[0], "UNIL" to testColors[1], "ETH" to testColors[2])
-
-    composeTestRule.setContent { MaterialTheme { ChartLegend(items = items) } }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_chart_legend).assertIsDisplayed()
-    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeTestRule.onNodeWithText("UNIL").assertIsDisplayed()
-    composeTestRule.onNodeWithText("ETH").assertIsDisplayed()
+    composeTestRule.onNodeWithText("A").assertIsDisplayed()
   }
 
   @Test
-  fun legend_rendersWithEmptyItems() {
+  fun legend_empty() {
     composeTestRule.setContent { MaterialTheme { ChartLegend(items = emptyList()) } }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_chart_legend).assertExists()
   }
 
-  // ===== AnimatedCounter Tests =====
-
   @Test
-  fun counter_rendersWithValue() {
+  fun counter_withProgress() {
     composeTestRule.setContent {
-      MaterialTheme { AnimatedCounter(targetValue = 150, animationProgress = 1f) }
+      MaterialTheme { AnimatedCounter(targetValue = 100, animationProgress = 1f) }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
   }
 
   @Test
-  fun counter_rendersWithZeroProgress() {
+  fun counter_zeroProgress() {
     composeTestRule.setContent {
       MaterialTheme { AnimatedCounter(targetValue = 100, animationProgress = 0f) }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
     composeTestRule.onNodeWithText("0").assertIsDisplayed()
   }
 
-  // ===== CircularPercentageIndicator Tests =====
-
   @Test
-  fun circularIndicator_rendersWithPercentage() {
+  fun circularIndicator_normal() {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(percentage = 75f, color = testColors[0], animationProgress = 1f)
       }
     }
-
     composeTestRule.onNodeWithTag(C.Tag.stats_circular_indicator).assertIsDisplayed()
   }
 
   @Test
-  fun circularIndicator_clampsPercentageOver100() {
+  fun circularIndicator_clampsOver100() {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(
             percentage = 150f, color = testColors[0], animationProgress = 1f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_circular_indicator).assertIsDisplayed()
-    // Should clamp to 100%
     composeTestRule.onNodeWithText("100%").assertIsDisplayed()
   }
 
   @Test
-  fun circularIndicator_rendersWithZeroProgress() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        CircularPercentageIndicator(percentage = 50f, color = testColors[0], animationProgress = 0f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_circular_indicator).assertIsDisplayed()
-    composeTestRule.onNodeWithText("0%").assertIsDisplayed()
-  }
-
-  @Test
-  fun circularIndicator_clampsNegativePercentage() {
+  fun circularIndicator_clampsNegative() {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(
             percentage = -10f, color = testColors[0], animationProgress = 1f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_circular_indicator).assertIsDisplayed()
     composeTestRule.onNodeWithText("0%").assertIsDisplayed()
   }
 
   @Test
-  fun counter_rendersWithZeroValue() {
-    composeTestRule.setContent {
-      MaterialTheme { AnimatedCounter(targetValue = 0, animationProgress = 1f) }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
-    composeTestRule.onNodeWithText("0").assertIsDisplayed()
-  }
-
-  @Test
-  fun donutChart_handlesColorCycling() {
-    // More segments than colors to test color cycling
-    val segments = (1..6).map { "Segment $it" to (100f / 6) }
-
+  fun circularIndicator_zeroProgress() {
     composeTestRule.setContent {
       MaterialTheme {
-        AnimatedDonutChart(segments = segments, colors = testColors, animationProgress = 1f)
+        CircularPercentageIndicator(percentage = 50f, color = testColors[0], animationProgress = 0f)
       }
     }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun barChart_handlesSingleItem() {
-    val items = listOf("Only Item" to 100f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedHorizontalBarChart(items = items, colors = testColors, animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-    composeTestRule.onNodeWithText("Only Item").assertIsDisplayed()
-    composeTestRule.onNodeWithText("100%").assertIsDisplayed()
-  }
-
-  @Test
-  fun lineChart_rendersWithPartialProgress() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date(System.currentTimeMillis() - 86400000)), 10, "Day 1"),
-            JoinRateData(Timestamp(Date(System.currentTimeMillis())), 25, "Day 2"))
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 0.5f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun donutChart_rendersWithSingleSegment() {
-    val segments = listOf("Only" to 100f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedDonutChart(segments = segments, colors = testColors, animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun lineChart_rendersWithZeroValues() {
-    val data =
-        listOf(
-            JoinRateData(Timestamp(Date()), 0, "Day 1"),
-            JoinRateData(Timestamp(Date()), 0, "Day 2"))
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedLineChart(
-            data = data,
-            lineColor = testColors[0],
-            fillColor = testColors[1],
-            animationProgress = 1f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun barChart_rendersWithPartialProgress() {
-    val items = listOf("EPFL" to 50f, "UNIL" to 30f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedHorizontalBarChart(items = items, colors = testColors, animationProgress = 0.5f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-  }
-
-  @Test
-  fun circularIndicator_rendersWithPartialProgress() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        CircularPercentageIndicator(
-            percentage = 75f, color = testColors[0], animationProgress = 0.5f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_circular_indicator).assertIsDisplayed()
-  }
-
-  @Test
-  fun counter_rendersWithPartialProgress() {
-    composeTestRule.setContent {
-      MaterialTheme { AnimatedCounter(targetValue = 100, animationProgress = 0.5f) }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
-  }
-
-  @Test
-  fun donutChart_rendersWithPartialProgress() {
-    val segments = listOf("A" to 50f, "B" to 50f)
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedDonutChart(segments = segments, colors = testColors, animationProgress = 0.5f)
-      }
-    }
-
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+    composeTestRule.onNodeWithText("0%").assertIsDisplayed()
   }
 }

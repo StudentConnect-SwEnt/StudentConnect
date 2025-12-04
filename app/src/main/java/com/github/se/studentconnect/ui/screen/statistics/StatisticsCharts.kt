@@ -110,6 +110,46 @@ internal fun shouldShowLabelAtIndex(index: Int, dataSize: Int): Boolean {
       dataSize <= StatisticsConstants.LINE_CHART_MAX_LABELS
 }
 
+/** Calculates the radius for a circular chart given size and stroke width. */
+internal fun calculateChartRadius(minDimension: Float, strokeWidth: Float): Float {
+  return (minDimension - strokeWidth) / 2
+}
+
+/** Calculates the center point for a chart. */
+internal fun calculateChartCenter(width: Float, height: Float): Offset {
+  return Offset(width / 2, height / 2)
+}
+
+/** Calculates sweep angle for a donut chart segment. */
+internal fun calculateDonutSweepAngle(
+    percentage: Float,
+    totalPercentage: Float,
+    sweepMultiplier: Float
+): Float {
+  if (totalPercentage == 0f) return 0f
+  return (percentage / totalPercentage) * StatisticsConstants.FULL_CIRCLE_DEGREES * sweepMultiplier
+}
+
+/** Calculates sweep angle for circular percentage indicator. */
+internal fun calculateCircularSweepAngle(percentage: Float): Float {
+  return (percentage / StatisticsConstants.PERCENTAGE_MAX) * StatisticsConstants.FULL_CIRCLE_DEGREES
+}
+
+/** Calculates total percentage from segments. */
+internal fun calculateTotalPercentage(segments: List<Pair<String, Float>>): Float {
+  return segments.sumOf { it.second.toDouble() }.toFloat()
+}
+
+/** Determines if a point should be visible based on animation progress. */
+internal fun isPointVisible(pointX: Float, chartWidth: Float, animatedProgress: Float): Boolean {
+  return pointX <= chartWidth * animatedProgress
+}
+
+/** Gets color for an index with cycling. */
+internal fun getColorForIndex(index: Int, colors: List<Color>): Color {
+  return colors[index % colors.size]
+}
+
 /**
  * Animated horizontal bar chart for displaying distribution data.
  *
@@ -231,22 +271,20 @@ fun AnimatedDonutChart(
                   contentDescription = chartDescription
                 }) {
               val strokeWidth = StatisticsConstants.DONUT_STROKE_WIDTH.toPx()
-              val radius = (size.minDimension - strokeWidth) / 2
-              val center = Offset(size.width / 2, size.height / 2)
+              val radius = calculateChartRadius(size.minDimension, strokeWidth)
+              val center = calculateChartCenter(size.width, size.height)
 
               var startAngle = StatisticsConstants.CHART_START_ANGLE
-              val totalPercentage = segments.sumOf { it.second.toDouble() }.toFloat()
+              val totalPercentage = calculateTotalPercentage(segments)
               val sweepMultiplier = animatedSweep.value
 
               segments.forEachIndexed { index, (_, percentage) ->
                 val sweepAngle =
-                    (percentage / totalPercentage) *
-                        StatisticsConstants.FULL_CIRCLE_DEGREES *
-                        sweepMultiplier
-                val color = colors[index % colors.size]
+                    calculateDonutSweepAngle(percentage, totalPercentage, sweepMultiplier)
+                val segmentColor = getColorForIndex(index, colors)
 
                 drawArc(
-                    color = color,
+                    color = segmentColor,
                     startAngle = startAngle,
                     sweepAngle = sweepAngle,
                     useCenter = false,
@@ -335,7 +373,7 @@ fun AnimatedLineChart(
 
         // Draw points
         points.forEach { point ->
-          if (point.x <= chartWidth * animatedProgress) {
+          if (isPointVisible(point.x, chartWidth, animatedProgress)) {
             drawCircle(
                 color = lineColor,
                 radius = StatisticsConstants.LINE_POINT_RADIUS.toPx(),
@@ -466,8 +504,8 @@ fun CircularPercentageIndicator(
                   contentDescription = chartDescription
                 }) {
               val strokeWidth = StatisticsConstants.CIRCULAR_INDICATOR_STROKE.toPx()
-              val radius = (size.minDimension - strokeWidth) / 2
-              val center = Offset(size.width / 2, size.height / 2)
+              val radius = calculateChartRadius(size.minDimension, strokeWidth)
+              val center = calculateChartCenter(size.width, size.height)
 
               // Background circle
               drawCircle(
@@ -477,9 +515,7 @@ fun CircularPercentageIndicator(
                   style = Stroke(width = strokeWidth))
 
               // Progress arc
-              val sweepAngle =
-                  (animatedPercentage / StatisticsConstants.PERCENTAGE_MAX) *
-                      StatisticsConstants.FULL_CIRCLE_DEGREES
+              val sweepAngle = calculateCircularSweepAngle(animatedPercentage)
               drawArc(
                   color = color,
                   startAngle = StatisticsConstants.CHART_START_ANGLE,
