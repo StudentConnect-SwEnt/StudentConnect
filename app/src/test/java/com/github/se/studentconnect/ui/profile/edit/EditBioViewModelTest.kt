@@ -445,6 +445,7 @@ class EditBioViewModelTest {
     override suspend fun getUsersByHobby(hobby: String) = emptyList<User>()
 
     override suspend fun getNewUid() = "new_uid"
+
     override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit

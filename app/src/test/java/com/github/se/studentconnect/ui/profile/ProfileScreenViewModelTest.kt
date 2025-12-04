@@ -487,9 +487,7 @@ class ProfileScreenViewModelTest {
     }
   }
 
-  private class TestEventRepository(
-      var events: Map<String, Event> = emptyMap()
-  ) : EventRepository {
+  private class TestEventRepository(var events: Map<String, Event> = emptyMap()) : EventRepository {
 
     override fun getNewUid() = "new_event_uid"
 

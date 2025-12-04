@@ -90,7 +90,6 @@ class HomeScreenStoriesTest {
         ) {}
 
         override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
-
       }
 
   private val fakeUserRepository =
@@ -153,11 +152,12 @@ class HomeScreenStoriesTest {
         override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
 
         override suspend fun checkUsernameAvailability(username: String): Boolean = true
-          override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
 
-          override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+        override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
 
-          override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+        override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+        override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
       }
 
   private val fakeNotificationRepository =

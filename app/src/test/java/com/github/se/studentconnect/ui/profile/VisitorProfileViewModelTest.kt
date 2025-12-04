@@ -157,13 +157,14 @@ class VisitorProfileViewModelTest {
       override suspend fun getFavoriteEvents(userId: String): List<String> {
         TODO("Not yet implemented")
       }
-        override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
 
-        override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+      override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
 
-        override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+      override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
-        override suspend fun checkUsernameAvailability(username: String): Boolean {
+      override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
+      override suspend fun checkUsernameAvailability(username: String): Boolean {
         TODO("Not yet implemented")
       }
 
