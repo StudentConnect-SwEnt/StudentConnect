@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,10 +33,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -45,13 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 
 /** Data class holding all visitor profile screen callbacks */
 data class VisitorProfileCallbacks(
@@ -330,6 +340,20 @@ internal fun VisitorProfileInfoCard(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically) {
+          val context = LocalContext.current
+          val repository = MediaRepositoryProvider.repository
+          val imageBitmap by
+              produceState<ImageBitmap?>(initialValue = null, user.profilePictureUrl, repository) {
+                value =
+                    user.profilePictureUrl?.let { id ->
+                      runCatching { repository.download(id) }
+                          .onFailure {
+                            Log.e("eventViewImage", "Failed to download event image: $id", it)
+                          }
+                          .getOrNull()
+                          ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+                    }
+              }
           val initials =
               listOf(user.firstName, user.lastName)
                   .mapNotNull { it.firstOrNull()?.toString() }
@@ -337,19 +361,31 @@ internal fun VisitorProfileInfoCard(
                   .ifBlank { user.username.take(2) }
                   .uppercase(Locale.getDefault())
 
-          Surface(
-              modifier = Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
-              shape = CircleShape,
-              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-              tonalElevation = 0.dp) {
-                Box(contentAlignment = Alignment.Center) {
-                  Text(
-                      text = initials,
-                      style =
-                          MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                      color = MaterialTheme.colorScheme.primary)
+          if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap!!,
+                contentDescription = "profile picture",
+                modifier =
+                    Modifier.size(72.dp).clip(CircleShape).semantics {
+                      testTag = C.Tag.visitor_profile_avatar
+                    },
+                contentScale = ContentScale.Crop)
+          } else {
+            Surface(
+                modifier =
+                    Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                tonalElevation = 0.dp) {
+                  Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = initials,
+                        style =
+                            MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary)
+                  }
                 }
-              }
+          }
 
           Spacer(modifier = Modifier.width(16.dp))
 
