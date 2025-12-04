@@ -265,7 +265,7 @@ internal fun MainAppContent(
     onTabSelected: (Tab) -> Unit,
     shouldOpenQRScanner: Boolean,
     onQRScannerStateChange: (Boolean) -> Unit,
-    logOut: () -> Unit
+    logOut: () -> Unit = {}
 ) {
   // Track whether camera mode selector is currently active to conditionally hide bottom nav
   var isCameraActive by remember { mutableStateOf(false) }
