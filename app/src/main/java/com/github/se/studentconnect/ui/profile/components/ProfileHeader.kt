@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -247,7 +247,7 @@ fun ProfileHeader(
               contentDescription = "Logout",
               modifier = Modifier.size(20.dp))
           Spacer(modifier = Modifier.width(8.dp))
-          Text("LogOut")
+          Text(stringResource(R.string.button_logout))
         }
     if (showDialog.value) {
       Logout(showDialog = showDialog, logOut = onLogoutClick)
@@ -288,6 +288,12 @@ private fun StatItem(
       }
 }
 
+/**
+ * A logout confirmation dialog.
+ *
+ * @param showDialog Mutable state controlling the visibility of the dialog
+ * @param logOut Callback to execute on logout confirmation
+ */
 @Composable
 private fun Logout(showDialog: MutableState<Boolean>, logOut: () -> Unit) {
   val buttonWidth = 80.dp
@@ -298,14 +304,16 @@ private fun Logout(showDialog: MutableState<Boolean>, logOut: () -> Unit) {
                     color = MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
                 .padding(8.dp)) {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Are you sure you want to logout?")
+            Text(stringResource(R.string.text_logout_popup))
             Spacer(Modifier.size(4.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()) {
-                  Button(logOut, modifier = Modifier.width(buttonWidth)) { Text("Yes") }
+                modifier = Modifier.clipToBounds()) {
+                  Button(logOut, modifier = Modifier.width(buttonWidth)) {
+                    Text(stringResource(R.string.button_yes))
+                  }
                   Button({ showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
-                    Text("No")
+                    Text(stringResource(R.string.button_no))
                   }
                 }
           }
