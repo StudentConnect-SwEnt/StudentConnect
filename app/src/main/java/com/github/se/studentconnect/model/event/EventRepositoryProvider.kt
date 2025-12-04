@@ -14,6 +14,5 @@ import com.google.firebase.firestore.firestore
  * - local = false: Uses Firestore for production
  */
 object EventRepositoryProvider : BaseRepositoryProvider<EventRepository>() {
-  override fun getCurrentRepository(): EventRepository =
-      EventRepositoryFirestore(Firebase.firestore)
+  override fun createRepository(): EventRepository = EventRepositoryFirestore(Firebase.firestore)
 }

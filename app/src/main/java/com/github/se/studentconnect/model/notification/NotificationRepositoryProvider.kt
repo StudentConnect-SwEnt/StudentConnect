@@ -6,6 +6,6 @@ import com.google.firebase.firestore.firestore
 
 /** Singleton provider for NotificationRepository */
 object NotificationRepositoryProvider : BaseRepositoryProvider<NotificationRepository>() {
-  override fun getCurrentRepository(): NotificationRepository =
+  override fun createRepository(): NotificationRepository =
       NotificationRepositoryFirestore(Firebase.firestore)
 }

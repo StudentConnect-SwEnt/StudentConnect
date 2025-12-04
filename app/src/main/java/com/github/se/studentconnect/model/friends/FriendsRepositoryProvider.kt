@@ -6,6 +6,6 @@ import com.google.firebase.firestore.firestore
 
 /** Provides a single instance of the FriendsRepository in the app. */
 object FriendsRepositoryProvider : BaseRepositoryProvider<FriendsRepository>() {
-  override fun getCurrentRepository(): FriendsRepository =
+  override fun createRepository(): FriendsRepository =
       FriendsRepositoryFirestore(Firebase.firestore)
 }

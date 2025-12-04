@@ -6,5 +6,5 @@ import com.google.firebase.firestore.firestore
 
 /** Provides instances of UserRepository. */
 object UserRepositoryProvider : BaseRepositoryProvider<UserRepository>() {
-  override fun getCurrentRepository(): UserRepository = UserRepositoryFirestore(Firebase.firestore)
+  override fun createRepository(): UserRepository = UserRepositoryFirestore(Firebase.firestore)
 }

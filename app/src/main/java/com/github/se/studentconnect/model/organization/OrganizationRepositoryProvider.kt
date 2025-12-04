@@ -11,6 +11,6 @@ import com.google.firebase.firestore.firestore
  * testing similar to UserRepositoryProvider.
  */
 object OrganizationRepositoryProvider : BaseRepositoryProvider<OrganizationRepository>() {
-  override fun getCurrentRepository(): OrganizationRepository =
+  override fun createRepository(): OrganizationRepository =
       OrganizationRepositoryFirestore(Firebase.firestore)
 }

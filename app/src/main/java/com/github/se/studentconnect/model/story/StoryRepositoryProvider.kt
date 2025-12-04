@@ -13,7 +13,7 @@ import com.google.firebase.firestore.firestore
  * Uses Firestore implementation for production.
  */
 object StoryRepositoryProvider : BaseRepositoryProvider<StoryRepository>() {
-  override fun getCurrentRepository() =
+  override fun createRepository() =
       StoryRepositoryFirestore(
           db = Firebase.firestore,
           mediaRepository = MediaRepositoryProvider.repository,
