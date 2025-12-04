@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,10 +66,8 @@ import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.google.firebase.Timestamp
 import java.util.*
 import kotlinx.coroutines.Dispatchers
