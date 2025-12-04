@@ -10,19 +10,14 @@ import androidx.annotation.VisibleForTesting
  */
 abstract class BaseRepositoryProvider<T : Repository> : RepositoryProvider<T> {
 
-  /**
-   * Factory for the default repository. Will only be called if no test override is set and someone
-   * actually needs the repository.
-   */
-  protected abstract fun createDefaultRepository(): T
-
-  private val defaultRepository by lazy { createDefaultRepository() }
+  /** Will only be called if no test override is set and someone actually needs the repository. */
+  protected abstract fun getRepository(): T
 
   // Test override (null in production)
   @Volatile private var testRepository: T? = null
 
-  override val repository: T
-    get() = testRepository ?: defaultRepository
+  final override val repository: T
+    get() = testRepository ?: getRepository()
 
   @VisibleForTesting(otherwise = VisibleForTesting.NONE)
   fun overrideForTests(repository: T) {
