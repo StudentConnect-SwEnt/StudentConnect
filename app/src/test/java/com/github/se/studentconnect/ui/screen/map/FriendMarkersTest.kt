@@ -17,7 +17,7 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.Style
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -52,8 +52,8 @@ class FriendMarkersTest {
     // Clear caches before each test
     FriendMarkers.clearCaches()
 
-    // Set up test dispatcher for Main
-    Dispatchers.setMain(StandardTestDispatcher())
+    // Set up test dispatcher for Main - use Unconfined to execute immediately
+    Dispatchers.setMain(UnconfinedTestDispatcher())
 
     mockStyle = mockk(relaxed = true)
     mockContext = ApplicationProvider.getApplicationContext()
