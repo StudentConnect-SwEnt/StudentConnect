@@ -74,7 +74,7 @@ fun ProfileHeader(
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onUserCardClick: (() -> Unit)? = null,
-    onLogoutClick: () -> Unit,
+    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
   val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
