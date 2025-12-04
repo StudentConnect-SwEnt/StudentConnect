@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,75 +67,69 @@ fun AnimatedHorizontalBarChart(
     animationProgress: Float = 1f,
     modifier: Modifier = Modifier
 ) {
-    val displayItems = items.take(maxItems)
-    val maxValue = displayItems.maxOfOrNull { it.second } ?: 1f
-    val chartDescription = stringResource(R.string.content_description_stats_chart)
+  val displayItems = items.take(maxItems)
+  val maxValue = displayItems.maxOfOrNull { it.second } ?: 1f
+  val chartDescription = stringResource(R.string.content_description_stats_chart)
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(C.Tag.stats_bar_chart)
-            .semantics { contentDescription = chartDescription },
-        verticalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)
-    ) {
+  Column(
+      modifier =
+          modifier.fillMaxWidth().testTag(C.Tag.stats_bar_chart).semantics {
+            contentDescription = chartDescription
+          },
+      verticalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)) {
         displayItems.forEachIndexed { index, (label, value) ->
-            val color = colors[index % colors.size]
-            val animatedWidth by animateFloatAsState(
-                targetValue = if (animationProgress > 0f) (value / maxValue) else 0f,
-                animationSpec = tween(
-                    durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
-                    delayMillis = index * StatisticsConstants.BAR_ANIMATION_DELAY_PER_ITEM,
-                    easing = FastOutSlowInEasing
-                ),
-                label = "bar_width_$index"
-            )
+          val color = colors[index % colors.size]
+          val animatedWidth by
+              animateFloatAsState(
+                  targetValue = if (animationProgress > 0f) (value / maxValue) else 0f,
+                  animationSpec =
+                      tween(
+                          durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
+                          delayMillis = index * StatisticsConstants.BAR_ANIMATION_DELAY_PER_ITEM,
+                          easing = FastOutSlowInEasing),
+                  label = "bar_width_$index")
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = String.format(PERCENTAGE_FORMAT, value.toInt()),
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                        color = color
-                    )
+          Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                  Text(
+                      text = label,
+                      style = MaterialTheme.typography.bodySmall,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.weight(1f))
+                  Text(
+                      text = String.format(PERCENTAGE_FORMAT, value.toInt()),
+                      style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                      color = color)
                 }
 
-                Spacer(modifier = Modifier.height(StatisticsConstants.BAR_LABEL_SPACING))
+            Spacer(modifier = Modifier.height(StatisticsConstants.BAR_LABEL_SPACING))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
+            Box(
+                modifier =
+                    Modifier.fillMaxWidth()
                         .height(StatisticsConstants.BAR_HEIGHT)
                         .clip(RoundedCornerShape(StatisticsConstants.BAR_CORNER_RADIUS))
-                        .background(color.copy(alpha = StatisticsConstants.BACKGROUND_ALPHA))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(animatedWidth)
-                            .height(StatisticsConstants.BAR_HEIGHT)
-                            .clip(RoundedCornerShape(StatisticsConstants.BAR_CORNER_RADIUS))
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        color,
-                                        color.copy(alpha = StatisticsConstants.GRADIENT_END_ALPHA)
-                                    )
-                                )
-                            )
-                    )
+                        .background(color.copy(alpha = StatisticsConstants.BACKGROUND_ALPHA))) {
+                  Box(
+                      modifier =
+                          Modifier.fillMaxWidth(animatedWidth)
+                              .height(StatisticsConstants.BAR_HEIGHT)
+                              .clip(RoundedCornerShape(StatisticsConstants.BAR_CORNER_RADIUS))
+                              .background(
+                                  Brush.horizontalGradient(
+                                      colors =
+                                          listOf(
+                                              color,
+                                              color.copy(
+                                                  alpha =
+                                                      StatisticsConstants.GRADIENT_END_ALPHA)))))
                 }
-            }
+          }
         }
-    }
+      }
 }
 
 /**
@@ -154,43 +147,42 @@ fun AnimatedDonutChart(
     animationProgress: Float = 1f,
     modifier: Modifier = Modifier
 ) {
-    val animatedSweep = remember { Animatable(0f) }
-    val chartDescription = stringResource(R.string.content_description_stats_chart)
+  val animatedSweep = remember { Animatable(0f) }
+  val chartDescription = stringResource(R.string.content_description_stats_chart)
 
-    LaunchedEffect(animationProgress) {
-        if (animationProgress > 0f) {
-            animatedSweep.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(
-                    durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
-                    easing = FastOutSlowInEasing
-                )
-            )
-        }
+  LaunchedEffect(animationProgress) {
+    if (animationProgress > 0f) {
+      animatedSweep.animateTo(
+          targetValue = 1f,
+          animationSpec =
+              tween(
+                  durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
+                  easing = FastOutSlowInEasing))
     }
+  }
 
-    Box(
-        modifier = modifier
-            .size(StatisticsConstants.DONUT_CHART_SIZE)
-            .testTag(C.Tag.stats_donut_chart),
-        contentAlignment = Alignment.Center
-    ) {
+  Box(
+      modifier =
+          modifier.size(StatisticsConstants.DONUT_CHART_SIZE).testTag(C.Tag.stats_donut_chart),
+      contentAlignment = Alignment.Center) {
         Canvas(
-            modifier = Modifier
-                .size(StatisticsConstants.DONUT_CHART_SIZE)
-                .semantics { contentDescription = chartDescription }
-        ) {
-            val strokeWidth = StatisticsConstants.DONUT_STROKE_WIDTH.toPx()
-            val radius = (size.minDimension - strokeWidth) / 2
-            val center = Offset(size.width / 2, size.height / 2)
+            modifier =
+                Modifier.size(StatisticsConstants.DONUT_CHART_SIZE).semantics {
+                  contentDescription = chartDescription
+                }) {
+              val strokeWidth = StatisticsConstants.DONUT_STROKE_WIDTH.toPx()
+              val radius = (size.minDimension - strokeWidth) / 2
+              val center = Offset(size.width / 2, size.height / 2)
 
-            var startAngle = StatisticsConstants.CHART_START_ANGLE
-            val totalPercentage = segments.sumOf { it.second.toDouble() }.toFloat()
-            val sweepMultiplier = animatedSweep.value
+              var startAngle = StatisticsConstants.CHART_START_ANGLE
+              val totalPercentage = segments.sumOf { it.second.toDouble() }.toFloat()
+              val sweepMultiplier = animatedSweep.value
 
-            segments.forEachIndexed { index, (_, percentage) ->
-                val sweepAngle = (percentage / totalPercentage) *
-                    StatisticsConstants.FULL_CIRCLE_DEGREES * sweepMultiplier
+              segments.forEachIndexed { index, (_, percentage) ->
+                val sweepAngle =
+                    (percentage / totalPercentage) *
+                        StatisticsConstants.FULL_CIRCLE_DEGREES *
+                        sweepMultiplier
                 val color = colors[index % colors.size]
 
                 drawArc(
@@ -200,13 +192,12 @@ fun AnimatedDonutChart(
                     useCenter = false,
                     topLeft = Offset(center.x - radius, center.y - radius),
                     size = Size(radius * 2, radius * 2),
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
 
                 startAngle += sweepAngle
+              }
             }
-        }
-    }
+      }
 }
 
 /**
@@ -226,29 +217,29 @@ fun AnimatedLineChart(
     animationProgress: Float = 1f,
     modifier: Modifier = Modifier
 ) {
-    val textMeasurer = rememberTextMeasurer()
-    val chartDescription = stringResource(R.string.content_description_stats_chart)
-    val pointInnerColor = MaterialTheme.colorScheme.surface
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+  val textMeasurer = rememberTextMeasurer()
+  val chartDescription = stringResource(R.string.content_description_stats_chart)
+  val pointInnerColor = MaterialTheme.colorScheme.surface
+  val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-    val animatedProgress by animateFloatAsState(
-        targetValue = animationProgress,
-        animationSpec = tween(
-            durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
-            easing = FastOutSlowInEasing
-        ),
-        label = "line_progress"
-    )
+  val animatedProgress by
+      animateFloatAsState(
+          targetValue = animationProgress,
+          animationSpec =
+              tween(
+                  durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
+                  easing = FastOutSlowInEasing),
+          label = "line_progress")
 
-    if (data.isEmpty()) return
+  if (data.isEmpty()) return
 
-    Canvas(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(StatisticsConstants.LINE_CHART_HEIGHT)
-            .testTag(C.Tag.stats_line_chart)
-            .semantics { contentDescription = chartDescription }
-    ) {
+  Canvas(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .height(StatisticsConstants.LINE_CHART_HEIGHT)
+              .testTag(C.Tag.stats_line_chart)
+              .semantics { contentDescription = chartDescription }) {
         val paddingBottom = StatisticsConstants.LINE_CHART_PADDING_BOTTOM.toPx()
         val paddingTop = StatisticsConstants.LINE_CHART_PADDING_TOP.toPx()
         val chartHeight = size.height - paddingBottom - paddingTop
@@ -257,95 +248,100 @@ fun AnimatedLineChart(
         val maxValue = data.maxOfOrNull { it.cumulativeJoins } ?: 1
         val minValue = 0
 
-        val points = data.mapIndexed { index, point ->
-            val x = if (data.size > 1) {
-                (index.toFloat() / (data.size - 1)) * chartWidth
-            } else {
-                chartWidth / 2
+        val points =
+            data.mapIndexed { index, point ->
+              val x =
+                  if (data.size > 1) {
+                    (index.toFloat() / (data.size - 1)) * chartWidth
+                  } else {
+                    chartWidth / 2
+                  }
+              val y =
+                  paddingTop +
+                      chartHeight *
+                          (1 -
+                              (point.cumulativeJoins - minValue).toFloat() /
+                                  (maxValue - minValue).coerceAtLeast(1))
+              Offset(x, y)
             }
-            val y = paddingTop + chartHeight *
-                (1 - (point.cumulativeJoins - minValue).toFloat() / (maxValue - minValue).coerceAtLeast(1))
-            Offset(x, y)
-        }
 
         // Draw gradient fill
         if (points.size >= StatisticsConstants.MIN_POINTS_FOR_LINE) {
-            val fillPath = Path().apply {
+          val fillPath =
+              Path().apply {
                 moveTo(points.first().x, size.height - paddingBottom)
                 points.forEach { lineTo(it.x, it.y) }
                 lineTo(points.last().x, size.height - paddingBottom)
                 close()
-            }
+              }
 
-            clipRect(right = chartWidth * animatedProgress) {
-                drawPath(
-                    path = fillPath,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            fillColor.copy(alpha = StatisticsConstants.FILL_GRADIENT_START_ALPHA),
-                            fillColor.copy(alpha = StatisticsConstants.FILL_GRADIENT_END_ALPHA)
-                        )
-                    )
-                )
-            }
+          clipRect(right = chartWidth * animatedProgress) {
+            drawPath(
+                path = fillPath,
+                brush =
+                    Brush.verticalGradient(
+                        colors =
+                            listOf(
+                                fillColor.copy(
+                                    alpha = StatisticsConstants.FILL_GRADIENT_START_ALPHA),
+                                fillColor.copy(
+                                    alpha = StatisticsConstants.FILL_GRADIENT_END_ALPHA))))
+          }
         }
 
         // Draw line
         if (points.size >= StatisticsConstants.MIN_POINTS_FOR_LINE) {
-            val linePath = Path().apply {
+          val linePath =
+              Path().apply {
                 moveTo(points.first().x, points.first().y)
                 for (i in 1 until points.size) {
-                    lineTo(points[i].x, points[i].y)
+                  lineTo(points[i].x, points[i].y)
                 }
-            }
+              }
 
-            clipRect(right = chartWidth * animatedProgress) {
-                drawPath(
-                    path = linePath,
-                    color = lineColor,
-                    style = Stroke(
+          clipRect(right = chartWidth * animatedProgress) {
+            drawPath(
+                path = linePath,
+                color = lineColor,
+                style =
+                    Stroke(
                         width = StatisticsConstants.LINE_STROKE_WIDTH.toPx(),
-                        cap = StrokeCap.Round
-                    )
-                )
-            }
+                        cap = StrokeCap.Round))
+          }
         }
 
         // Draw points
         points.forEachIndexed { index, point ->
-            if (point.x <= chartWidth * animatedProgress) {
-                drawCircle(
-                    color = lineColor,
-                    radius = StatisticsConstants.LINE_POINT_RADIUS.toPx(),
-                    center = point
-                )
-                drawCircle(
-                    color = pointInnerColor,
-                    radius = StatisticsConstants.LINE_POINT_INNER_RADIUS.toPx(),
-                    center = point
-                )
-            }
+          if (point.x <= chartWidth * animatedProgress) {
+            drawCircle(
+                color = lineColor,
+                radius = StatisticsConstants.LINE_POINT_RADIUS.toPx(),
+                center = point)
+            drawCircle(
+                color = pointInnerColor,
+                radius = StatisticsConstants.LINE_POINT_INNER_RADIUS.toPx(),
+                center = point)
+          }
         }
 
         // Draw labels
-        val labelStyle = TextStyle(
-            fontSize = StatisticsConstants.LINE_LABEL_FONT_SIZE,
-            color = labelColor
-        )
+        val labelStyle =
+            TextStyle(fontSize = StatisticsConstants.LINE_LABEL_FONT_SIZE, color = labelColor)
 
         data.forEachIndexed { index, point ->
-            if (index == 0 || index == data.size - 1 || data.size <= StatisticsConstants.LINE_CHART_MAX_LABELS) {
-                val textLayout = textMeasurer.measure(point.label, labelStyle)
-                val x = points[index].x - textLayout.size.width / 2
-                val y = size.height - paddingBottom + StatisticsConstants.LINE_LABEL_OFFSET.toPx()
+          if (index == 0 ||
+              index == data.size - 1 ||
+              data.size <= StatisticsConstants.LINE_CHART_MAX_LABELS) {
+            val textLayout = textMeasurer.measure(point.label, labelStyle)
+            val x = points[index].x - textLayout.size.width / 2
+            val y = size.height - paddingBottom + StatisticsConstants.LINE_LABEL_OFFSET.toPx()
 
-                drawText(
-                    textLayoutResult = textLayout,
-                    topLeft = Offset(x.coerceIn(0f, chartWidth - textLayout.size.width), y)
-                )
-            }
+            drawText(
+                textLayoutResult = textLayout,
+                topLeft = Offset(x.coerceIn(0f, chartWidth - textLayout.size.width), y))
+          }
         }
-    }
+      }
 }
 
 /**
@@ -356,37 +352,28 @@ fun AnimatedLineChart(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ChartLegend(
-    items: List<Pair<String, Color>>,
-    modifier: Modifier = Modifier
-) {
-    FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(C.Tag.stats_chart_legend),
-        horizontalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_ITEM_SPACING),
-        verticalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)
-    ) {
+fun ChartLegend(items: List<Pair<String, Color>>, modifier: Modifier = Modifier) {
+  FlowRow(
+      modifier = modifier.fillMaxWidth().testTag(C.Tag.stats_chart_legend),
+      horizontalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_ITEM_SPACING),
+      verticalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)) {
         items.forEach { (label, color) ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)
-            ) {
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(StatisticsConstants.LEGEND_SPACING)) {
                 Box(
-                    modifier = Modifier
-                        .size(StatisticsConstants.LEGEND_DOT_SIZE)
-                        .clip(CircleShape)
-                        .background(color)
-                )
+                    modifier =
+                        Modifier.size(StatisticsConstants.LEGEND_DOT_SIZE)
+                            .clip(CircleShape)
+                            .background(color))
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                    overflow = TextOverflow.Ellipsis)
+              }
         }
-    }
+      }
 }
 
 /**
@@ -404,20 +391,19 @@ fun AnimatedCounter(
     style: TextStyle = MaterialTheme.typography.headlineLarge,
     modifier: Modifier = Modifier
 ) {
-    val animatedValue by animateFloatAsState(
-        targetValue = if (animationProgress > 0f) targetValue.toFloat() else 0f,
-        animationSpec = tween(
-            durationMillis = StatisticsConstants.COUNTER_ANIMATION_DURATION,
-            easing = FastOutSlowInEasing
-        ),
-        label = "counter"
-    )
+  val animatedValue by
+      animateFloatAsState(
+          targetValue = if (animationProgress > 0f) targetValue.toFloat() else 0f,
+          animationSpec =
+              tween(
+                  durationMillis = StatisticsConstants.COUNTER_ANIMATION_DURATION,
+                  easing = FastOutSlowInEasing),
+          label = "counter")
 
-    Text(
-        text = animatedValue.toInt().toString(),
-        style = style,
-        modifier = modifier.testTag(C.Tag.stats_animated_counter)
-    )
+  Text(
+      text = animatedValue.toInt().toString(),
+      style = style,
+      modifier = modifier.testTag(C.Tag.stats_animated_counter))
 }
 
 /**
@@ -435,63 +421,62 @@ fun CircularPercentageIndicator(
     animationProgress: Float = 1f,
     modifier: Modifier = Modifier
 ) {
-    val chartDescription = stringResource(R.string.content_description_stats_chart)
+  val chartDescription = stringResource(R.string.content_description_stats_chart)
 
-    val animatedPercentage by animateFloatAsState(
-        targetValue = if (animationProgress > 0f) {
-            percentage.coerceIn(0f, StatisticsConstants.PERCENTAGE_MAX)
-        } else 0f,
-        animationSpec = tween(
-            durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
-            easing = FastOutSlowInEasing
-        ),
-        label = "circular_percentage"
-    )
+  val animatedPercentage by
+      animateFloatAsState(
+          targetValue =
+              if (animationProgress > 0f) {
+                percentage.coerceIn(0f, StatisticsConstants.PERCENTAGE_MAX)
+              } else 0f,
+          animationSpec =
+              tween(
+                  durationMillis = StatisticsConstants.CHART_ANIMATION_DURATION,
+                  easing = FastOutSlowInEasing),
+          label = "circular_percentage")
 
-    Box(
-        modifier = modifier
-            .size(StatisticsConstants.CIRCULAR_INDICATOR_SIZE)
-            .testTag(C.Tag.stats_circular_indicator),
-        contentAlignment = Alignment.Center
-    ) {
+  Box(
+      modifier =
+          modifier
+              .size(StatisticsConstants.CIRCULAR_INDICATOR_SIZE)
+              .testTag(C.Tag.stats_circular_indicator),
+      contentAlignment = Alignment.Center) {
         Canvas(
-            modifier = Modifier
-                .size(StatisticsConstants.CIRCULAR_INDICATOR_SIZE)
-                .semantics { contentDescription = chartDescription }
-        ) {
-            val strokeWidth = StatisticsConstants.CIRCULAR_INDICATOR_STROKE.toPx()
-            val radius = (size.minDimension - strokeWidth) / 2
-            val center = Offset(size.width / 2, size.height / 2)
+            modifier =
+                Modifier.size(StatisticsConstants.CIRCULAR_INDICATOR_SIZE).semantics {
+                  contentDescription = chartDescription
+                }) {
+              val strokeWidth = StatisticsConstants.CIRCULAR_INDICATOR_STROKE.toPx()
+              val radius = (size.minDimension - strokeWidth) / 2
+              val center = Offset(size.width / 2, size.height / 2)
 
-            // Background circle
-            drawCircle(
-                color = color.copy(alpha = StatisticsConstants.BACKGROUND_ALPHA),
-                radius = radius,
-                center = center,
-                style = Stroke(width = strokeWidth)
-            )
+              // Background circle
+              drawCircle(
+                  color = color.copy(alpha = StatisticsConstants.BACKGROUND_ALPHA),
+                  radius = radius,
+                  center = center,
+                  style = Stroke(width = strokeWidth))
 
-            // Progress arc
-            val sweepAngle = (animatedPercentage / StatisticsConstants.PERCENTAGE_MAX) *
-                StatisticsConstants.FULL_CIRCLE_DEGREES
-            drawArc(
-                color = color,
-                startAngle = StatisticsConstants.CHART_START_ANGLE,
-                sweepAngle = sweepAngle,
-                useCenter = false,
-                topLeft = Offset(center.x - radius, center.y - radius),
-                size = Size(radius * 2, radius * 2),
-                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-            )
-        }
+              // Progress arc
+              val sweepAngle =
+                  (animatedPercentage / StatisticsConstants.PERCENTAGE_MAX) *
+                      StatisticsConstants.FULL_CIRCLE_DEGREES
+              drawArc(
+                  color = color,
+                  startAngle = StatisticsConstants.CHART_START_ANGLE,
+                  sweepAngle = sweepAngle,
+                  useCenter = false,
+                  topLeft = Offset(center.x - radius, center.y - radius),
+                  size = Size(radius * 2, radius * 2),
+                  style = Stroke(width = strokeWidth, cap = StrokeCap.Round))
+            }
 
         // Percentage text
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = String.format(PERCENTAGE_FORMAT, animatedPercentage.toInt()),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = color
-            )
+          Text(
+              text = String.format(PERCENTAGE_FORMAT, animatedPercentage.toInt()),
+              style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+              color = color)
         }
-    }
+      }
 }
