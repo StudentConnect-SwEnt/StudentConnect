@@ -425,22 +425,26 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val participantMap = participants.associateBy { it.uid }
     val userDataList = mutableListOf<Triple<String?, String?, com.google.firebase.Timestamp?>>()
 
-    participants.map { it.uid }.chunked(30).forEach { uidBatch ->
-      try {
-        val querySnapshot =
-            db.collection("users")
-                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uidBatch)
-                .get()
-                .await()
+    participants
+        .map { it.uid }
+        .chunked(30)
+        .forEach { uidBatch ->
+          try {
+            val querySnapshot =
+                db.collection("users")
+                    .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uidBatch)
+                    .get()
+                    .await()
 
-        querySnapshot.documents.forEach { doc ->
-          val joinedAt = participantMap[doc.id]?.joinedAt
-          userDataList.add(Triple(doc.getString("birthday"), doc.getString("university"), joinedAt))
+            querySnapshot.documents.forEach { doc ->
+              val joinedAt = participantMap[doc.id]?.joinedAt
+              userDataList.add(
+                  Triple(doc.getString("birthday"), doc.getString("university"), joinedAt))
+            }
+          } catch (e: Exception) {
+            Log.e("EventRepositoryFirestore", "Error fetching user batch", e)
+          }
         }
-      } catch (e: Exception) {
-        Log.e("EventRepositoryFirestore", "Error fetching user batch", e)
-      }
-    }
 
     // Calculate age distribution
     val ageGroups = mutableMapOf<String, Int>()
@@ -468,7 +472,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     // Calculate campus distribution
     val campusGroups = mutableMapOf<String, Int>()
     userDataList.forEach { (_, university, _) ->
-      val campus = university ?: AgeGroups.UNKNOWN  // UI layer maps to R.string.stats_unknown_campus
+      val campus = university ?: AgeGroups.UNKNOWN // UI layer maps to R.string.stats_unknown_campus
       campusGroups[campus] = (campusGroups[campus] ?: 0) + 1
     }
 

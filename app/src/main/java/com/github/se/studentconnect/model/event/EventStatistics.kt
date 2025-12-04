@@ -74,15 +74,15 @@ object AgeGroups {
 
   val all = listOf(UNDER_18, AGE_18_22, AGE_23_25, AGE_26_30, AGE_30_PLUS)
 
-    /**
-     * Calculates age from birthday string in DD/MM/YYYY format.
-     *
-     * Note: This format must match [User.birthdate] and [BirthdayFormatter.dateFormatter].
-     * If the app's date format changes, update this parser accordingly.
-     *
-     * @param birthdate Birthday string in DD/MM/YYYY format (e.g., "31/12/1980").
-     * @return Age in years, or null if parsing fails.
-     */
+  /**
+   * Calculates age from birthday string in DD/MM/YYYY format.
+   *
+   * Note: This format must match [User.birthdate] and [BirthdayFormatter.dateFormatter]. If the
+   * app's date format changes, update this parser accordingly.
+   *
+   * @param birthdate Birthday string in DD/MM/YYYY format (e.g., "31/12/1980").
+   * @return Age in years, or null if parsing fails.
+   */
   fun calculateAge(birthdate: String?): Int? {
     if (birthdate.isNullOrBlank()) return null
     return try {
