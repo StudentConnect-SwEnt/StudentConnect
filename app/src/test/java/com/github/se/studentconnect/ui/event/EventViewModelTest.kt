@@ -882,4 +882,43 @@ class EventViewModelTest {
     // Active polls should be fetched after joining
     assertNotNull(uiState.activePolls)
   }
+
+  @Test
+  fun initialState_leaveConfirmDialogNotShown() {
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showLeaveConfirmDialog)
+  }
+
+  @Test
+  fun showLeaveConfirmDialog_updatesUiState() {
+    // Act
+    viewModel.showLeaveConfirmDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showLeaveConfirmDialog)
+  }
+
+  @Test
+  fun hideLeaveConfirmDialog_updatesUiState() {
+    // Arrange
+    viewModel.showLeaveConfirmDialog()
+    assertTrue(viewModel.uiState.value.showLeaveConfirmDialog)
+
+    // Act
+    viewModel.hideLeaveConfirmDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showLeaveConfirmDialog)
+  }
+
+  @Test
+  fun hideLeaveConfirmDialog_whenNotShown_doesNotCrash() {
+    // Act & Assert - should not crash
+    viewModel.hideLeaveConfirmDialog()
+
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showLeaveConfirmDialog)
+  }
 }
