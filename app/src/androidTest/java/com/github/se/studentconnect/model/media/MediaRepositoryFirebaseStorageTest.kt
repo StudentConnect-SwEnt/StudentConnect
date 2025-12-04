@@ -22,7 +22,7 @@ import org.junit.Test
  */
 class MediaRepositoryFirebaseStorageTest : StudentConnectTest() {
 
-  private lateinit var repo: MediaRepository
+  private val repo = MediaRepositoryProvider.repository
   private lateinit var tempFile: File
   private var uploadedId: String? = null
 
@@ -34,8 +34,6 @@ class MediaRepositoryFirebaseStorageTest : StudentConnectTest() {
   @Before
   override fun setUp() {
     super.setUp()
-    repo = MediaRepositoryFirebaseStorage()
-    MediaRepositoryProvider.repository = repo
 
     // Create a small text file to upload.
     val context = InstrumentationRegistry.getInstrumentation().targetContext

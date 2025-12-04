@@ -45,8 +45,8 @@ class OrganizationSignUpOrchestratorTest {
     mockOrgRepository = mock(OrganizationRepository::class.java)
     mockMediaRepository = mock(MediaRepository::class.java)
 
-    OrganizationRepositoryProvider.repository = mockOrgRepository
-    MediaRepositoryProvider.repository = mockMediaRepository
+    OrganizationRepositoryProvider.overrideForTests(mockOrgRepository)
+    MediaRepositoryProvider.overrideForTests(mockMediaRepository)
   }
 
   @Test

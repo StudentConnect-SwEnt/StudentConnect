@@ -29,7 +29,6 @@ class EditProfilePictureScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var repository: TestUserRepository
-  private lateinit var fakeMediaRepository: FakeMediaRepository
 
   companion object {
     @BeforeClass
@@ -41,7 +40,7 @@ class EditProfilePictureScreenTest {
         FirebaseApp.initializeApp(context)
       }
       // Initialize MediaRepositoryProvider with a fake repository
-      MediaRepositoryProvider.repository = FakeMediaRepository()
+      MediaRepositoryProvider.overrideForTests(FakeMediaRepository)
     }
   }
 
@@ -67,8 +66,7 @@ class EditProfilePictureScreenTest {
   fun setUp() {
     repository = TestUserRepository(testUser)
     navigatedBack = false
-    fakeMediaRepository = FakeMediaRepository()
-    MediaRepositoryProvider.repository = fakeMediaRepository
+    MediaRepositoryProvider.overrideForTests(FakeMediaRepository)
   }
 
   @Test
@@ -530,7 +528,7 @@ class EditProfilePictureScreenTest {
     }
   }
 
-  private class FakeMediaRepository : MediaRepository {
+  private object FakeMediaRepository : MediaRepository {
     val uploads = mutableListOf<Pair<Uri, String?>>()
     var lastUploadPath: String? = null
 

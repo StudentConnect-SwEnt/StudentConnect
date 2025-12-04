@@ -81,7 +81,7 @@ class SearchScreenTest {
   }
 
   private suspend fun initOrganizationRepository() {
-    OrganizationRepositoryProvider.repository = OrganizationRepositoryLocal()
+    OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
 
     for (i in 1..10) {
       val id = "org$i"

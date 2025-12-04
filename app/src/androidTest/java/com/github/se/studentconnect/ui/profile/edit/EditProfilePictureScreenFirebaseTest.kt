@@ -22,8 +22,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
-import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.model.media.MediaRepositoryFirebaseStorage
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
@@ -56,22 +54,17 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
       EventRepositoryFirestore(FirebaseEmulator.firestore)
 
   private lateinit var userRepository: UserRepositoryFirestore
-  private lateinit var mediaRepository: MediaRepositoryFirebaseStorage
   private lateinit var registryOwner: QueueingActivityResultRegistryOwner
   private lateinit var tempImageFile: File
   private lateinit var tempImageUri: Uri
   private lateinit var testUser: User
 
   private val uploadedIds = mutableListOf<String>()
-  private var originalMediaRepository: MediaRepository? = null
 
   @Before
   override fun setUp() {
     super.setUp()
     userRepository = UserRepositoryFirestore(FirebaseEmulator.firestore)
-    mediaRepository = MediaRepositoryFirebaseStorage(FirebaseEmulator.storage)
-    originalMediaRepository = MediaRepositoryProvider.repository
-    MediaRepositoryProvider.repository = mediaRepository
 
     val uid = currentUser.uid
     testUser =
@@ -103,12 +96,12 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @After
   override fun tearDown() {
+    val mediaRepository = MediaRepositoryProvider.repository
     runTest {
       uploadedIds.forEach { path -> runCatching { mediaRepository.delete(path) } }
       runCatching { userRepository.deleteUser(testUser.userId) }
     }
     tempImageFile.delete()
-    originalMediaRepository?.let { MediaRepositoryProvider.repository = it }
     super.tearDown()
   }
 

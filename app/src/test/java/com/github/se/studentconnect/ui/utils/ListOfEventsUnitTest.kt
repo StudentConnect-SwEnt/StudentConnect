@@ -54,28 +54,27 @@ class ListOfEventsUnitTest {
       FirebaseApp.initializeApp(context)
     }
 
-    // Le reste de votre 'setUp' est correct
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "unused"
 
           override suspend fun download(id: String): Uri = Uri.EMPTY
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
   }
 
   @Test
   fun eventCard_shows_default_image_when_download_fails() {
     // repository that throws when downloading to simulate failure
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "u"
 
           override suspend fun download(id: String): Uri = throw RuntimeException("fail")
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
 
     val event =
         Event.Public(
@@ -117,14 +116,14 @@ class ListOfEventsUnitTest {
     assertNotNull(tmpFile)
 
     // repository that returns the file:// uri
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "u"
 
           override suspend fun download(id: String): Uri = Uri.fromFile(tmpFile)
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
 
     val event =
         Event.Public(
