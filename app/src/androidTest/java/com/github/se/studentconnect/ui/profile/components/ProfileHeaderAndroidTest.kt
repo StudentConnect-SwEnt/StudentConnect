@@ -145,7 +145,7 @@ class ProfileHeaderAndroidTest {
           onEventsClick = {})
     }
 
-    composeTestRule.onNodeWithText("Logout").assertHasClickAction()
+    composeTestRule.onNodeWithContentDescription("Logout").assertHasClickAction()
   }
 
   @Test
