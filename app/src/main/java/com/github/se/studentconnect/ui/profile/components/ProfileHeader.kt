@@ -98,6 +98,16 @@ fun ProfileHeader(
       }
 
   Column(modifier = modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.Start) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+      IconButton(
+          onClick = { showDialog.value = true },
+          colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = "Logout",
+            )
+          }
+    }
     // Top Row: Profile Picture + Stats
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -144,27 +154,13 @@ fun ProfileHeader(
         }
 
     Spacer(modifier = Modifier.height(16.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-      // User Name
-      Text(
-          text = user.getFullName(),
-          style = MaterialTheme.typography.titleLarge,
-          fontWeight = FontWeight.Bold,
-          fontSize = 20.sp,
-          color = MaterialTheme.colorScheme.onSurface)
-      IconButton(
-          onClick = { showDialog.value = true },
-          colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
-          modifier = Modifier.size(24.dp)) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Logout,
-                contentDescription = "Logout",
-            )
-          }
-    }
+    // User Name
+    Text(
+        text = user.getFullName(),
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        color = MaterialTheme.colorScheme.onSurface)
 
     Spacer(modifier = Modifier.height(4.dp))
 
