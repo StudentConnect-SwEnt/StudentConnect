@@ -57,7 +57,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -66,8 +65,6 @@ import com.github.se.studentconnect.model.event.CampusData
 import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.event.JoinRateData
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.theme.AppTheme
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 
 /**
@@ -547,154 +544,4 @@ private fun MetricRow(label: String, value: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
       }
-}
-
-// ============================================================================
-// PREVIEWS
-// ============================================================================
-
-/** Sample data for previews */
-private object PreviewData {
-  private val previewTimestamp = Timestamp(java.util.Date())
-
-  val sampleStatistics =
-      EventStatistics(
-          eventId = "preview_event",
-          totalAttendees = 142,
-          ageDistribution =
-              listOf(
-                  AgeGroupData(ageRange = "18-22", count = 68, percentage = 47.9f),
-                  AgeGroupData(ageRange = "23-25", count = 45, percentage = 31.7f),
-                  AgeGroupData(ageRange = "26-30", count = 22, percentage = 15.5f),
-                  AgeGroupData(ageRange = "30+", count = 7, percentage = 4.9f)),
-          campusDistribution =
-              listOf(
-                  CampusData(campusName = "EPFL", count = 78, percentage = 54.9f),
-                  CampusData(campusName = "UNIL", count = 32, percentage = 22.5f),
-                  CampusData(campusName = "ETH Zurich", count = 18, percentage = 12.7f),
-                  CampusData(campusName = "UniGe", count = 10, percentage = 7.0f),
-                  CampusData(campusName = "Other", count = 4, percentage = 2.8f)),
-          joinRateOverTime =
-              listOf(
-                  JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 12, label = "Nov 1"),
-                  JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 35, label = "Nov 5"),
-                  JoinRateData(
-                      timestamp = previewTimestamp, cumulativeJoins = 67, label = "Nov 10"),
-                  JoinRateData(
-                      timestamp = previewTimestamp, cumulativeJoins = 98, label = "Nov 15"),
-                  JoinRateData(
-                      timestamp = previewTimestamp, cumulativeJoins = 142, label = "Nov 20")),
-          followerCount = 350,
-          attendeesFollowersRate = 40.6f)
-}
-
-@Preview(showBackground = true, name = "Statistics Content - Light")
-@Composable
-private fun StatisticsContentPreviewLight() {
-  AppTheme(darkTheme = false) {
-    StatisticsContent(
-        statistics = PreviewData.sampleStatistics,
-        animationProgress = 1f,
-        paddingValues = PaddingValues())
-  }
-}
-
-@Preview(showBackground = true, name = "Statistics Content - Dark")
-@Composable
-private fun StatisticsContentPreviewDark() {
-  AppTheme(darkTheme = true) {
-    StatisticsContent(
-        statistics = PreviewData.sampleStatistics,
-        animationProgress = 1f,
-        paddingValues = PaddingValues())
-  }
-}
-
-@Preview(showBackground = true, name = "Loading State")
-@Composable
-private fun LoadingStatePreview() {
-  AppTheme { LoadingState(modifier = Modifier.fillMaxSize()) }
-}
-
-@Preview(showBackground = true, name = "Error State")
-@Composable
-private fun ErrorStatePreview() {
-  AppTheme {
-    ErrorState(
-        message = stringResource(R.string.stats_preview_error_message),
-        onRetry = {},
-        modifier = Modifier.fillMaxSize())
-  }
-}
-
-/**
- * Standalone statistics screen with sample data for interactive preview. This composable shows the
- * complete screen with TopAppBar, back button, and all statistics cards. Use "Run Preview" in
- * Android Studio to deploy this to an emulator/device.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EventStatisticsScreenPreviewable() {
-  var backClicked by remember { mutableStateOf(false) }
-
-  AppTheme {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-          TopAppBar(
-              title = {
-                Text(
-                    text = stringResource(R.string.stats_screen_title),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
-              },
-              navigationIcon = {
-                IconButton(
-                    onClick = { backClicked = true },
-                    modifier = Modifier.testTag(C.Tag.STATS_BACK_BUTTON)) {
-                      Icon(
-                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = stringResource(R.string.content_description_back))
-                    }
-              },
-              actions = {
-                IconButton(
-                    onClick = { /* Refresh action for preview */},
-                    modifier = Modifier.testTag(C.Tag.STATS_REFRESH_BUTTON)) {
-                      Icon(
-                          imageVector = Icons.Default.Refresh,
-                          contentDescription =
-                              stringResource(R.string.content_description_refresh_stats))
-                    }
-              },
-              colors =
-                  TopAppBarDefaults.topAppBarColors(
-                      containerColor = MaterialTheme.colorScheme.surface),
-              modifier = Modifier.testTag(C.Tag.STATS_TOP_BAR))
-        }) { paddingValues ->
-          if (backClicked) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-              Text(
-                  text = "Back button clicked! (Preview mode)",
-                  style = MaterialTheme.typography.titleLarge)
-            }
-          } else {
-            StatisticsContent(
-                statistics = PreviewData.sampleStatistics,
-                animationProgress = 1f,
-                paddingValues = paddingValues)
-          }
-        }
-  }
-}
-
-@Preview(
-    showBackground = true,
-    showSystemUi = true,
-    name = "Event Statistics - Full Screen",
-    device =
-        "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait")
-@Composable
-private fun EventStatisticsFullScreenPreview() {
-  EventStatisticsScreenPreviewable()
 }
