@@ -661,4 +661,7 @@
     <string name="content_description_edit">Edit</string>
     <string name="content_description_user_card">User Card</string>
     <string name="content_description_organizations">Organizations</string>
+    <string name="content_description_logout">Logout</string>
+    <string name="button_logout">Logout</string>
+    <string name="dialog_logout_confirmation">Are you sure you want to logout?</string>
 </resources>

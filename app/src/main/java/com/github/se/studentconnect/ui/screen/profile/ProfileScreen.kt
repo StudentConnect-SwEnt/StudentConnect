@@ -46,6 +46,7 @@ import com.google.firebase.firestore.FirebaseFirestore
  * @param onNavigateToJoinedEvents Callback to navigate to joined events screen
  * @param onNavigateToEventDetails Callback to navigate to event details screen
  * @param onNavigateToOrganizationManagement Callback to navigate to organization management screen
+ * @param onLogout Callback to handle logout action
  */
 data class ProfileNavigationCallbacks(
     val onNavigateToSettings: (() -> Unit)? = null,
@@ -53,7 +54,8 @@ data class ProfileNavigationCallbacks(
     val onNavigateToFriendsList: ((String) -> Unit)? = null,
     val onNavigateToJoinedEvents: (() -> Unit)? = null,
     val onNavigateToEventDetails: ((String) -> Unit)? = null,
-    val onNavigateToOrganizationManagement: (() -> Unit)? = null
+    val onNavigateToOrganizationManagement: (() -> Unit)? = null,
+    val onLogout: (() -> Unit)? = null
 )
 
 /**
@@ -78,7 +80,8 @@ fun ProfileScreen(
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    logOut: () -> Unit,
 ) {
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
@@ -150,7 +153,11 @@ fun ProfileScreen(
                           onUserCardClick = {
                             navigationCallbacks.onNavigateToUserCard?.invoke()
                                 ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                          }))
+                          },
+                          onOrganizationClick = {
+                            navigationCallbacks.onNavigateToOrganizationManagement?.invoke()
+                          },
+                          onLogoutClick = logOut))
 
               // Pinned events section
               PinnedEventsSection(
