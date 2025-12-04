@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -339,20 +340,41 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun statisticsContent_allCardsWithData_rendersAll() {
-    composeTestRule.mainClock.autoAdvance = false
     composeTestRule.setContent {
       MaterialTheme {
         StatisticsContent(
             statistics = testStatistics, animationProgress = 1f, paddingValues = PaddingValues())
       }
     }
-    // Advance time to ensure all staggered animations complete
-    composeTestRule.mainClock.advanceTimeBy(3000)
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertExists()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertExists()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertExists()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_CAMPUS_CARD).assertExists()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertExists()
+    // Wait for all cards to be rendered - AnimatedVisibility enter animations need time
+    // Card animation duration is ~500ms, so wait for all cards with sufficient timeout
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule
+          .onAllNodesWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD)
+          .fetchSemanticsNodes()
+          .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.STATS_FOLLOWERS_CARD)
+              .fetchSemanticsNodes()
+              .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.STATS_AGE_CARD)
+              .fetchSemanticsNodes()
+              .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.STATS_CAMPUS_CARD)
+              .fetchSemanticsNodes()
+              .isNotEmpty() &&
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.STATS_TIMELINE_CARD)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+    }
+    // Now assert they are all displayed
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_CAMPUS_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
   }
 }
