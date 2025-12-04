@@ -518,10 +518,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     val dayGrouped =
         sorted.groupBy { participant ->
           calendar.timeInMillis = participant.joinedAt!!.seconds * 1000
-          calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-          calendar.set(java.util.Calendar.MINUTE, 0)
-          calendar.set(java.util.Calendar.SECOND, 0)
-          calendar.set(java.util.Calendar.MILLISECOND, 0)
+          calendar[java.util.Calendar.HOUR_OF_DAY] = 0
+          calendar[java.util.Calendar.MINUTE] = 0
+          calendar[java.util.Calendar.SECOND] = 0
+          calendar[java.util.Calendar.MILLISECOND] = 0
           calendar.timeInMillis
         }
 

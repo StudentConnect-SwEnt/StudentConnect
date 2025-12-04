@@ -90,9 +90,9 @@ object AgeGroups {
       val year = parts[2].toIntOrNull() ?: return null
 
       val now = java.util.Calendar.getInstance()
-      val currentYear = now.get(java.util.Calendar.YEAR)
-      val currentMonth = now.get(java.util.Calendar.MONTH) + 1
-      val currentDay = now.get(java.util.Calendar.DAY_OF_MONTH)
+      val currentYear = now[java.util.Calendar.YEAR]
+      val currentMonth = now[java.util.Calendar.MONTH] + 1
+      val currentDay = now[java.util.Calendar.DAY_OF_MONTH]
 
       var age = currentYear - year
       if (currentMonth < month || (currentMonth == month && currentDay < day)) {
