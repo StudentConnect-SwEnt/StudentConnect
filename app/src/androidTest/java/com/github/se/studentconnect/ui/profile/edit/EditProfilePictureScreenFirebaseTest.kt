@@ -126,6 +126,16 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
   @Test
   fun saveButton_becomesClickableAfterSelectingPhoto() {
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+
+    // Wait for the screen to finish loading before checking for the Save button
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      composeTestRule
+          .onAllNodesWithText(ctx.getString(R.string.button_save))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
     val saveButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_save))
     saveButton.assertExists().assertIsNotEnabled()
 

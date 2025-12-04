@@ -50,7 +50,7 @@ class FriendMarkersTest {
 
     // Mock Style methods
     every { mockStyle.hasStyleImage(any()) } returns false
-    every { mockStyle.addImage(any(), any<Bitmap>()) } just Runs
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns mockk()
     every { mockStyle.styleLayerExists(any()) } returns false
     every { mockStyle.styleSourceExists(any()) } returns false
   }
@@ -1032,7 +1032,7 @@ class FriendMarkersTest {
     // Reset mock to track new calls
     clearMocks(mockStyle, answers = false)
     every { mockStyle.hasStyleImage(any()) } returns false
-    every { mockStyle.addImage(any(), any<Bitmap>()) } just Runs
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns mockk()
 
     // Load again - should recreate bitmap (not use cache)
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
