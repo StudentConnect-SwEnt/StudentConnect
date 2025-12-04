@@ -3,9 +3,9 @@ package com.github.se.studentconnect.ui.screen.profile
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import com.github.se.studentconnect.ui.profile.components.UserCard
 import org.junit.After

@@ -1,7 +1,8 @@
 package com.github.se.studentconnect.ui.profile.edit
 
-import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -452,8 +453,7 @@ class EditBioViewModelTest {
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) =
         Unit
 
-    override suspend fun getInvitations(userId: String) =
-        emptyList<com.github.se.studentconnect.ui.screen.activities.Invitation>()
+    override suspend fun getInvitations(userId: String) = emptyList<Invitation>()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) = Unit
 

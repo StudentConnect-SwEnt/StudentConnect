@@ -5,7 +5,7 @@ import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.utils.ImageCompressor
 import com.github.se.studentconnect.utils.MediaTypeDetector
 import com.google.firebase.Timestamp
