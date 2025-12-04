@@ -3,7 +3,6 @@ package com.github.se.studentconnect.ui.activities
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,7 +30,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +48,6 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.event.CountDownDisplay
 import com.github.se.studentconnect.ui.event.CountDownViewModel
@@ -63,9 +60,9 @@ import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
@@ -267,18 +264,7 @@ private fun BaseEventView(
   val participantCount = uiState.participantCount
 
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = event.imageUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromEvent(context, event)
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -305,7 +291,7 @@ private fun BaseEventView(
         Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
           if (imageBitmap != null) {
             Image(
-                bitmap = imageBitmap!!,
+                bitmap = imageBitmap,
                 contentDescription = stringResource(R.string.content_description_event_image),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop)
@@ -955,17 +941,7 @@ private fun AttendeeItem(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, attendee.profilePictureUrl, repository) {
-        value =
-            attendee.profilePictureUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUser(context, attendee)
   Row(
       modifier =
           modifier
@@ -977,7 +953,7 @@ private fun AttendeeItem(
   ) {
     if (imageBitmap != null) {
       Image(
-          bitmap = imageBitmap!!,
+          bitmap = imageBitmap,
           contentDescription = "attendee image",
           Modifier.size(48.dp).clip(CircleShape),
           contentScale = ContentScale.Crop)

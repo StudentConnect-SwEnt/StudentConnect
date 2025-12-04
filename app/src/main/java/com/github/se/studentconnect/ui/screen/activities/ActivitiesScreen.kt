@@ -2,7 +2,6 @@
 // https://proandroiddev.com/swipeable-image-carousel-with-smooth-animations-in-jetpack-compose-76eacdc89bfb
 package com.github.se.studentconnect.ui.screen.activities
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -35,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -65,12 +62,10 @@ import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.google.firebase.Timestamp
 import java.util.*
-import kotlinx.coroutines.Dispatchers
 
 sealed interface CarouselDisplayItem {
   val uid: String
@@ -374,17 +369,7 @@ fun CarouselCard(
   val isLive = now >= item.start && now < endTime
   val isPrivate = item is Event.Private
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, item.imageUrl, repository) {
-        value =
-            item.imageUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromEvent(context, item)
 
   Card(
       onClick = onEventClick,
@@ -398,7 +383,7 @@ fun CarouselCard(
               horizontalAlignment = Alignment.Start) {
                 if (imageBitmap != null) {
                   Image(
-                      imageBitmap!!,
+                      imageBitmap,
                       contentDescription = "Event Image",
                       modifier =
                           Modifier.fillMaxWidth()
@@ -499,17 +484,7 @@ fun InvitationCarouselCard(
   val isDeclined = item.invitation.status == InvitationStatus.Declined || declineState
   val cardAlpha = if (isDeclined) 0.7f else 1.0f
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, item.event.imageUrl, repository) {
-        value =
-            item.event.imageUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { Log.e("eventViewImage", "Failed to download event image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromEvent(context, item.event)
 
   Card(
       onClick = onCardClick,
@@ -524,7 +499,7 @@ fun InvitationCarouselCard(
           horizontalAlignment = Alignment.Start) {
             if (imageBitmap != null) {
               Image(
-                  imageBitmap!!,
+                  imageBitmap,
                   contentDescription = "Event Image",
                   modifier =
                       Modifier.fillMaxWidth()

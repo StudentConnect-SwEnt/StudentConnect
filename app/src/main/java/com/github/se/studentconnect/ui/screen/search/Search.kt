@@ -36,8 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,13 +50,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import kotlinx.coroutines.Dispatchers
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUriComposable
 
 // UI Constants
 private object CardDimensions {
@@ -235,17 +231,7 @@ private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostCont
 @Composable
 private fun rememberImageBitmap(imageId: String?, logTag: String): ImageBitmap? {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, imageId, repository) {
-        value =
-            imageId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { android.util.Log.e(logTag, "Failed to download image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap = loadBitmapFromUriComposable(context, imageId)
   return imageBitmap
 }
 

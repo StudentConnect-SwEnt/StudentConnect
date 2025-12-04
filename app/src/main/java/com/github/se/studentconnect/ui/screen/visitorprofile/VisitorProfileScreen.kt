@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
-import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -31,13 +30,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -47,12 +44,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import java.util.Locale
-import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun VisitorProfileScreen(
@@ -153,19 +148,7 @@ internal fun VisitorProfileInfoCard(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically) {
           val context = LocalContext.current
-          val repository = MediaRepositoryProvider.repository
-          val imageBitmap by
-              produceState<ImageBitmap?>(initialValue = null, user.profilePictureUrl, repository) {
-                value =
-                    user.profilePictureUrl?.let { id ->
-                      runCatching { repository.download(id) }
-                          .onFailure {
-                            Log.e("eventViewImage", "Failed to download event image: $id", it)
-                          }
-                          .getOrNull()
-                          ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-                    }
-              }
+          val imageBitmap = loadBitmapFromUser(context, user)
           val initials =
               listOf(user.firstName, user.lastName)
                   .mapNotNull { it.firstOrNull()?.toString() }
@@ -175,7 +158,7 @@ internal fun VisitorProfileInfoCard(
 
           if (imageBitmap != null) {
             Image(
-                bitmap = imageBitmap!!,
+                bitmap = imageBitmap,
                 contentDescription = "profile picture",
                 modifier =
                     Modifier.size(72.dp).clip(CircleShape).semantics {
