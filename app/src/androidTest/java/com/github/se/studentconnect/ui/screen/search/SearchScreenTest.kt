@@ -30,7 +30,7 @@ class SearchScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private suspend fun initUserRepository() {
-    UserRepositoryProvider.repository = UserRepositoryLocal()
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
 
     for (i in 1..10) {
       val uid = "user$i"
