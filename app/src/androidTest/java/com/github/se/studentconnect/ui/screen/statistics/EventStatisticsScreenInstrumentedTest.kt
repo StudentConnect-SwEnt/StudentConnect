@@ -380,8 +380,7 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun statisticsContent_withEmptyAgeDistribution_hidesAgeCard() {
-    val statsWithoutAge =
-        testStatistics.copy(ageDistribution = emptyList())
+    val statsWithoutAge = testStatistics.copy(ageDistribution = emptyList())
     composeTestRule.setContent {
       MaterialTheme {
         StatisticsContent(
@@ -394,12 +393,13 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun statisticsContent_withEmptyCampusDistribution_hidesCampusCard() {
-    val statsWithoutCampus =
-        testStatistics.copy(campusDistribution = emptyList())
+    val statsWithoutCampus = testStatistics.copy(campusDistribution = emptyList())
     composeTestRule.setContent {
       MaterialTheme {
         StatisticsContent(
-            statistics = statsWithoutCampus, animationProgress = 1f, paddingValues = PaddingValues())
+            statistics = statsWithoutCampus,
+            animationProgress = 1f,
+            paddingValues = PaddingValues())
       }
     }
     composeTestRule.waitForIdle()
@@ -408,12 +408,13 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun statisticsContent_withEmptyJoinRate_hidesJoinRateCard() {
-    val statsWithoutJoinRate =
-        testStatistics.copy(joinRateOverTime = emptyList())
+    val statsWithoutJoinRate = testStatistics.copy(joinRateOverTime = emptyList())
     composeTestRule.setContent {
       MaterialTheme {
         StatisticsContent(
-            statistics = statsWithoutJoinRate, animationProgress = 1f, paddingValues = PaddingValues())
+            statistics = statsWithoutJoinRate,
+            animationProgress = 1f,
+            paddingValues = PaddingValues())
       }
     }
     composeTestRule.waitForIdle()
