@@ -91,10 +91,10 @@ fun ProfileScreen(
   val editProfileText = stringResource(R.string.toast_edit_profile)
   val userCardText = stringResource(R.string.toast_user_card)
 
-  // Reload profile data when screen resumes
+  // Reload profile data when screen becomes visible
   DisposableEffect(lifecycleOwner) {
     val observer = LifecycleEventObserver { _, event ->
-      if (event == Lifecycle.Event.ON_RESUME) {
+      if (event == Lifecycle.Event.ON_RESUME || event == Lifecycle.Event.ON_START) {
         viewModel.loadUserProfile()
         viewModel.loadPinnedEvents()
       }
