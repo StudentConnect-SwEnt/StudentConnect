@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
@@ -38,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -381,6 +381,7 @@ private fun ActionButtons(
                 fontWeight = FontWeight.Medium)
           }
     }
+<<<<<<< HEAD
     // Logout Button
     if (onLogoutClick != null) {
       Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_large)))
@@ -464,7 +465,7 @@ private fun LogoutDialog(showDialog: MutableState<Boolean>, logOut: () -> Unit) 
                 .padding(dimensionResource(R.dimen.profile_spacing_large))) {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = stringResource(R.string.dialog_logout_confirmation),
+                text = stringResource(R.string.text_logout_popup),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer)
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_medium)))

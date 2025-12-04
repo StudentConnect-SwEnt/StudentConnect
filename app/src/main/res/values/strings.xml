@@ -141,6 +141,7 @@
     <string name="button_reject">Reject</string>
     <string name="button_get_started_with_google">Get Started With Google</string>
     <string name="button_start_now">Start Now</string>
+    <string name="button_logout">Logout</string>
     
     <!-- Content descriptions -->
     <string name="content_description_back">Back</string>
@@ -207,6 +208,7 @@
     <string name="text_empty_upcoming_description">You haven\'t joined any events yet. Explore to find some!</string>
     <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>
     <string name="text_empty_past_description">Events you have attended will appear here.</string>
+    <string name="text_logout_popup">Are you sure you want to logout?</string>
     
     <!-- Common buttons -->
     <string name="button_ok">OK</string>
