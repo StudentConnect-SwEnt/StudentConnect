@@ -416,4 +416,128 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
     participantRef.delete().await()
   }
+
+  override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    val participants = getEventParticipants(eventUid)
+    val totalAttendees = participants.size
+
+    // Fetch user data for participants to calculate distributions
+    val userDataList = participants.mapNotNull { participant ->
+      try {
+        val userDoc = db.collection("users").document(participant.uid).get().await()
+        if (userDoc.exists()) {
+          Triple(
+              userDoc.getString("birthday"),
+              userDoc.getString("university"),
+              participant.joinedAt
+          )
+        } else null
+      } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Error fetching user data for ${participant.uid}", e)
+        null
+      }
+    }
+
+    // Calculate age distribution
+    val ageGroups = mutableMapOf<String, Int>()
+    AgeGroups.all.forEach { ageGroups[it] = 0 }
+    ageGroups[AgeGroups.UNKNOWN] = 0
+
+    userDataList.forEach { (birthday, _, _) ->
+      val age = AgeGroups.calculateAge(birthday)
+      val group = AgeGroups.getAgeGroup(age)
+      ageGroups[group] = (ageGroups[group] ?: 0) + 1
+    }
+
+    val ageDistribution = ageGroups
+        .filter { it.value > 0 }
+        .map { (range, count) ->
+          AgeGroupData(
+              ageRange = range,
+              count = count,
+              percentage = if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f
+          )
+        }
+        .sortedByDescending { it.count }
+
+    // Calculate campus distribution
+    val campusGroups = mutableMapOf<String, Int>()
+    userDataList.forEach { (_, university, _) ->
+      val campus = university ?: "Unknown"
+      campusGroups[campus] = (campusGroups[campus] ?: 0) + 1
+    }
+
+    val campusDistribution = campusGroups
+        .map { (name, count) ->
+          CampusData(
+              campusName = name,
+              count = count,
+              percentage = if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f
+          )
+        }
+        .sortedByDescending { it.count }
+
+    // Calculate join rate over time
+    val joinRateOverTime = calculateJoinRateOverTime(participants)
+
+    // Calculate attendees/followers rate
+    val attendeesFollowersRate = if (followerCount > 0) {
+      (totalAttendees.toFloat() / followerCount) * 100f
+    } else {
+      0f
+    }
+
+    return EventStatistics(
+        eventId = eventUid,
+        totalAttendees = totalAttendees,
+        ageDistribution = ageDistribution,
+        campusDistribution = campusDistribution,
+        joinRateOverTime = joinRateOverTime,
+        followerCount = followerCount,
+        attendeesFollowersRate = attendeesFollowersRate
+    )
+  }
+
+  /**
+   * Calculates the join rate over time, grouping registrations by day.
+   */
+  private fun calculateJoinRateOverTime(participants: List<EventParticipant>): List<JoinRateData> {
+    if (participants.isEmpty()) return emptyList()
+
+    // Sort by join time
+    val sorted = participants
+        .filter { it.joinedAt != null }
+        .sortedBy { it.joinedAt!!.seconds }
+
+    if (sorted.isEmpty()) return emptyList()
+
+    // Group by day and calculate cumulative joins
+    val calendar = java.util.Calendar.getInstance()
+    val dayFormat = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
+    val joinsByDay = mutableListOf<JoinRateData>()
+    var cumulative = 0
+
+    val dayGrouped = sorted.groupBy { participant ->
+      calendar.timeInMillis = participant.joinedAt!!.seconds * 1000
+      calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+      calendar.set(java.util.Calendar.MINUTE, 0)
+      calendar.set(java.util.Calendar.SECOND, 0)
+      calendar.set(java.util.Calendar.MILLISECOND, 0)
+      calendar.timeInMillis
+    }
+
+    dayGrouped.toSortedMap().forEach { (dayMillis, dayParticipants) ->
+      cumulative += dayParticipants.size
+      calendar.timeInMillis = dayMillis
+      joinsByDay.add(
+          JoinRateData(
+              timestamp = com.google.firebase.Timestamp(java.util.Date(dayMillis)),
+              cumulativeJoins = cumulative,
+              label = dayFormat.format(java.util.Date(dayMillis))
+          )
+      )
+    }
+
+    return joinsByDay
+  }
 }
