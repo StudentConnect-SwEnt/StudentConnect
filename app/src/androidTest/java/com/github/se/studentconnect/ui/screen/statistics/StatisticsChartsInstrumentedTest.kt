@@ -14,8 +14,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Instrumented tests for StatisticsCharts components.
- * These tests run on a real device/emulator and execute Canvas drawing code.
+ * Instrumented tests for StatisticsCharts components. These tests run on a real device/emulator and
+ * execute Canvas drawing code.
  */
 class StatisticsChartsInstrumentedTest {
 
@@ -44,9 +44,7 @@ class StatisticsChartsInstrumentedTest {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedDonutChart(
-            segments = listOf("Only" to 100f),
-            colors = testColors,
-            animationProgress = 1f)
+            segments = listOf("Only" to 100f), colors = testColors, animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
@@ -57,10 +55,11 @@ class StatisticsChartsInstrumentedTest {
 
   @Test
   fun lineChart_executesCanvasDrawing_multiplePoints() {
-    val data = listOf(
-        JoinRateData(Timestamp(Date()), 10, "D1"),
-        JoinRateData(Timestamp(Date()), 30, "D2"),
-        JoinRateData(Timestamp(Date()), 25, "D3"))
+    val data =
+        listOf(
+            JoinRateData(Timestamp(Date()), 10, "D1"),
+            JoinRateData(Timestamp(Date()), 30, "D2"),
+            JoinRateData(Timestamp(Date()), 25, "D3"))
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -115,10 +114,7 @@ class StatisticsChartsInstrumentedTest {
   fun circularIndicator_executesCanvasDrawing() {
     composeTestRule.setContent {
       MaterialTheme {
-        CircularPercentageIndicator(
-            percentage = 75f,
-            color = testColors[0],
-            animationProgress = 1f)
+        CircularPercentageIndicator(percentage = 75f, color = testColors[0], animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
@@ -130,9 +126,7 @@ class StatisticsChartsInstrumentedTest {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(
-            percentage = 100f,
-            color = testColors[0],
-            animationProgress = 1f)
+            percentage = 100f, color = testColors[0], animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
@@ -143,10 +137,7 @@ class StatisticsChartsInstrumentedTest {
   fun circularIndicator_executesCanvasDrawing_zeroProgress() {
     composeTestRule.setContent {
       MaterialTheme {
-        CircularPercentageIndicator(
-            percentage = 0f,
-            color = testColors[0],
-            animationProgress = 1f)
+        CircularPercentageIndicator(percentage = 0f, color = testColors[0], animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
@@ -177,7 +168,8 @@ class StatisticsChartsInstrumentedTest {
   fun legend_executesAllPaths() {
     composeTestRule.setContent {
       MaterialTheme {
-        ChartLegend(items = listOf("A" to testColors[0], "B" to testColors[1], "C" to testColors[2]))
+        ChartLegend(
+            items = listOf("A" to testColors[0], "B" to testColors[1], "C" to testColors[2]))
       }
     }
     composeTestRule.waitForIdle()
@@ -189,12 +181,9 @@ class StatisticsChartsInstrumentedTest {
   @Test
   fun counter_executesAllPaths() {
     composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedCounter(targetValue = 500, animationProgress = 1f)
-      }
+      MaterialTheme { AnimatedCounter(targetValue = 500, animationProgress = 1f) }
     }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
   }
 }
-
