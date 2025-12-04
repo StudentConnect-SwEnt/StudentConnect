@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,10 +25,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepository
 import com.github.se.studentconnect.repository.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
+import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import com.google.firebase.firestore.FirebaseFirestore
@@ -44,7 +47,8 @@ data class ProfileNavigationCallbacks(
     val onNavigateToSettings: (() -> Unit)? = null,
     val onNavigateToUserCard: (() -> Unit)? = null,
     val onNavigateToFriendsList: ((String) -> Unit)? = null,
-    val onNavigateToJoinedEvents: (() -> Unit)? = null
+    val onNavigateToJoinedEvents: (() -> Unit)? = null,
+    val onNavigateToEventDetails: ((String) -> Unit)? = null
 )
 
 /**
@@ -64,6 +68,7 @@ fun ProfileScreen(
       ProfileScreenViewModel(
           userRepository = userRepository,
           friendsRepository = FriendsRepositoryProvider.repository,
+          eventRepository = EventRepositoryProvider.repository,
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
@@ -72,20 +77,26 @@ fun ProfileScreen(
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
   val eventsCount by viewModel.eventsCount.collectAsState()
+  val pinnedEvents by viewModel.pinnedEvents.collectAsState()
 
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
 
-  // Pre-fetch string resources for use in callbacks
+  // Dynamic top padding based on screen width
+  val topPadding = screenWidth * 0.04f
+
   val friendsListComingSoon = stringResource(R.string.toast_friends_list_coming_soon)
   val editProfileText = stringResource(R.string.toast_edit_profile)
   val userCardText = stringResource(R.string.toast_user_card)
 
-  // Reload data when screen becomes visible again
+  // Reload profile data when screen resumes
   DisposableEffect(lifecycleOwner) {
     val observer = LifecycleEventObserver { _, event ->
       if (event == Lifecycle.Event.ON_RESUME) {
         viewModel.loadUserProfile()
+        viewModel.loadPinnedEvents()
       }
     }
     lifecycleOwner.lifecycle.addObserver(observer)
@@ -95,7 +106,7 @@ fun ProfileScreen(
   Scaffold(modifier = modifier) { paddingValues ->
     when (val currentUser = user) {
       null -> {
-        // Loading state
+        // Show loading spinner while data loads
         Box(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             contentAlignment = Alignment.Center) {
@@ -107,10 +118,10 @@ fun ProfileScreen(
             modifier =
                 Modifier.fillMaxSize()
                     .padding(paddingValues)
-                    .padding(top = 16.dp)
+                    .padding(top = topPadding)
                     .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top) {
-              // Profile Header Section (Profile Picture + Stats + User Info)
+              // Profile header with picture, stats, and user info
               ProfileHeader(
                   user = currentUser,
                   stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
@@ -126,6 +137,13 @@ fun ProfileScreen(
                   onUserCardClick = {
                     navigationCallbacks.onNavigateToUserCard?.invoke()
                         ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
+                  })
+
+              // Pinned events section
+              PinnedEventsSection(
+                  pinnedEvents = pinnedEvents,
+                  onEventClick = { event ->
+                    navigationCallbacks.onNavigateToEventDetails?.invoke(event.uid)
                   })
             }
       }

@@ -23,7 +23,8 @@ data class JoinedEventsUiState(
     val allEvents: List<Event> = emptyList(),
     val filteredEvents: List<Event> = emptyList(),
     val selectedFilter: EventFilter = EventFilter.Past,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val pinnedEventIds: List<String> = emptyList()
 )
 
 @OptIn(FlowPreview::class)
@@ -35,12 +36,36 @@ class JoinedEventsViewModel(
   private val _uiState = MutableStateFlow(JoinedEventsUiState())
   val uiState: StateFlow<JoinedEventsUiState> = _uiState.asStateFlow()
 
-  // Search query is separate from uiState so the TextField updates immediately
   private val _searchQuery = MutableStateFlow("")
   val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+  private val _snackbarMessage = MutableStateFlow<String?>(null)
+  val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
+
   init {
     setupDebouncedSearch()
+    loadPinnedEventIds()
+  }
+
+  // Clear the snackbar message after showing it to the user
+  fun clearSnackbarMessage() {
+    _snackbarMessage.value = null
+  }
+
+  // Load the list of pinned event IDs for the current user
+  private fun loadPinnedEventIds() {
+    val currentUserId = AuthenticationProvider.currentUser
+    if (currentUserId.isEmpty()) return
+
+    viewModelScope.launch {
+      try {
+        val pinnedIds = userRepository.getPinnedEvents(currentUserId)
+        android.util.Log.d("JoinedEventsVM", "Loaded pinned IDs: $pinnedIds")
+        _uiState.update { it.copy(pinnedEventIds = pinnedIds) }
+      } catch (e: Exception) {
+        android.util.Log.e("JoinedEventsVM", "Failed to load pinned IDs", e)
+      }
+    }
   }
 
   // Load all events the user has joined or created
@@ -54,14 +79,15 @@ class JoinedEventsViewModel(
       try {
         val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
 
-        // Also include events the user owns
+        loadPinnedEventIds()
+
         val allVisibleEvents = eventRepository.getAllVisibleEvents()
         val ownedEvents = allVisibleEvents.filter { it.ownerId == currentUserId }
 
-        // Combine both lists and remove duplicates
+        // Combine joined and owned events, remove duplicates
         val allEventIds = (joinedEventIds + ownedEvents.map { it.uid }).distinct()
 
-        // Fetch the actual event objects, skip any that fail to load
+        // Fetch event details, skip any that fail to load
         val allEvents =
             allEventIds.mapNotNull { eventId ->
               try {
@@ -79,25 +105,25 @@ class JoinedEventsViewModel(
     }
   }
 
-  // Wait 300ms after user stops typing before applying the search filter
+  // Wait 300ms after user stops typing before searching
   private fun setupDebouncedSearch() {
     viewModelScope.launch {
       _searchQuery.debounce(SEARCH_DEBOUNCE_MILLIS).collect { applyFilters() }
     }
   }
 
-  // Update search query instantly (filtering happens after debounce)
+  // Update the search query
   fun updateSearchQuery(query: String) {
     _searchQuery.value = query
   }
 
-  // Switch between Past and Upcoming events
+  // Switch between Past and Upcoming event filters
   fun updateFilter(filter: EventFilter) {
     _uiState.update { it.copy(selectedFilter = filter) }
     applyFilters()
   }
 
-  // Apply both time-based and search-based filtering
+  // Apply time-based and search filters to the event list
   private fun applyFilters() {
     val currentState = _uiState.value
     val currentSearchQuery = _searchQuery.value
@@ -106,7 +132,7 @@ class JoinedEventsViewModel(
     val filtered =
         currentState.allEvents
             .filter { event ->
-              // If event has no end time, assume it lasts 3 hours
+              // If no end time, assume event lasts 3 hours
               val endTime =
                   event.end
                       ?: run {
@@ -126,7 +152,7 @@ class JoinedEventsViewModel(
               matchesFilter
             }
             .filter { event ->
-              // Show all events if search is empty, otherwise filter by title
+              // Filter by title if search query is not empty
               if (currentSearchQuery.isBlank()) {
                 true
               } else {
@@ -138,7 +164,46 @@ class JoinedEventsViewModel(
     _uiState.update { it.copy(filteredEvents = filtered) }
   }
 
+  // Pin or unpin an event
+  fun togglePinEvent(eventId: String, maxPinnedMessage: String) {
+    val currentUserId = AuthenticationProvider.currentUser
+    if (currentUserId.isEmpty()) return
+
+    viewModelScope.launch {
+      try {
+        val currentPinnedIds = _uiState.value.pinnedEventIds
+        val isPinned = currentPinnedIds.contains(eventId)
+
+        android.util.Log.d(
+            "JoinedEventsVM",
+            "Toggle pin for event: $eventId, isPinned: $isPinned, currentPinned: $currentPinnedIds")
+
+        if (isPinned) {
+          userRepository.removePinnedEvent(currentUserId, eventId)
+          val newPinnedIds = currentPinnedIds - eventId
+          _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
+          android.util.Log.d("JoinedEventsVM", "Unpinned event, new list: $newPinnedIds")
+        } else {
+          // Check if user already has 3 pinned events
+          if (currentPinnedIds.size >= MAX_PINNED_EVENTS) {
+            _snackbarMessage.value = maxPinnedMessage
+            return@launch
+          }
+          userRepository.addPinnedEvent(currentUserId, eventId)
+          val newPinnedIds = currentPinnedIds + eventId
+          _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
+          android.util.Log.d("JoinedEventsVM", "Pinned event, new list: $newPinnedIds")
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("JoinedEventsVM", "Failed to toggle pin", e)
+        // Reload pinned IDs to sync with server
+        loadPinnedEventIds()
+      }
+    }
+  }
+
   companion object {
     private const val SEARCH_DEBOUNCE_MILLIS = 300L
+    private const val MAX_PINNED_EVENTS = 3
   }
 }

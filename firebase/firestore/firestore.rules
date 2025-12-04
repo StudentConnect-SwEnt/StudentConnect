@@ -216,6 +216,12 @@ service cloud.firestore {
         allow get, list: if request.auth != null && request.auth.uid == userId;
         allow create, delete: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Subcollection: pinnedEvents
+      match /pinnedEvents/{eventId} {
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -34,7 +35,7 @@ import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// Test tags for UI testing
+// Test tags for automated UI testing
 object JoinedEventsScreenTestTags {
   const val JOINED_EVENTS_SCREEN = "joined_events_screen"
   const val TOP_APP_BAR = "joined_events_top_app_bar"
@@ -49,13 +50,13 @@ object JoinedEventsScreenTestTags {
   fun tab(title: String) = "tab_$title"
 }
 
-// Filter options to show past or upcoming events
+// Filter options: show past or upcoming events
 enum class EventFilter {
   Past,
   Upcoming
 }
 
-// Main screen showing all events the user has joined
+// Screen showing all events the user has joined
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinedEventsScreen(
@@ -65,18 +66,32 @@ fun JoinedEventsScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val searchQuery by viewModel.searchQuery.collectAsState()
+  val snackbarMessage by viewModel.snackbarMessage.collectAsState()
   val selectedFilter = uiState.selectedFilter
   val filteredEvents = uiState.filteredEvents
   val isLoading = uiState.isLoading
+  val pinnedEventIds = uiState.pinnedEventIds
 
   // Load events when the screen first appears
   LaunchedEffect(Unit) { viewModel.loadJoinedEvents() }
 
   val titleMyEvents = stringResource(R.string.title_my_events)
   val backToProfileDescription = stringResource(R.string.content_description_back_to_profile)
+  val maxPinnedMessage = stringResource(R.string.snackbar_max_pinned_events)
+
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  // Show snackbar message when available
+  LaunchedEffect(snackbarMessage) {
+    snackbarMessage?.let {
+      snackbarHostState.showSnackbar(it)
+      viewModel.clearSnackbarMessage()
+    }
+  }
 
   Scaffold(
       modifier = Modifier.testTag(JoinedEventsScreenTestTags.JOINED_EVENTS_SCREEN),
+      snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
       topBar = {
         CenterAlignedTopAppBar(
             title = { Text(titleMyEvents) },
@@ -102,7 +117,7 @@ fun JoinedEventsScreen(
 
           Spacer(modifier = Modifier.height(spacing.extraSmall))
 
-          // Swipe down to refresh the list
+          // Pull down to refresh events
           PullToRefreshBox(
               isRefreshing = isLoading,
               onRefresh = { viewModel.loadJoinedEvents() },
@@ -114,8 +129,13 @@ fun JoinedEventsScreen(
                   else -> {
                     EventsList(
                         events = filteredEvents,
+                        pinnedEventIds = pinnedEventIds,
+                        selectedFilter = selectedFilter,
                         onEventClick = { event ->
                           navController.navigate(Route.eventView(event.uid, true))
+                        },
+                        onPinClick = { eventId ->
+                          viewModel.togglePinEvent(eventId, maxPinnedMessage)
                         })
                   }
                 }
@@ -168,24 +188,42 @@ private fun FilterTabs(selectedFilter: EventFilter, onFilterSelected: (EventFilt
       }
 }
 
-// Scrollable list of event cards
+// Scrollable list of events
 @Composable
-private fun EventsList(events: List<Event>, onEventClick: (Event) -> Unit) {
+private fun EventsList(
+    events: List<Event>,
+    pinnedEventIds: List<String>,
+    selectedFilter: EventFilter,
+    onEventClick: (Event) -> Unit,
+    onPinClick: (String) -> Unit
+) {
   LazyColumn(
       modifier = Modifier.fillMaxSize().testTag(JoinedEventsScreenTestTags.EVENT_LIST),
       contentPadding = PaddingValues(horizontal = spacing.medium),
       verticalArrangement = Arrangement.spacedBy(spacing.small)) {
         items(items = events, key = { it.uid }) { event ->
-          EventCard(event = event, onClick = { onEventClick(event) })
+          EventCard(
+              event = event,
+              isPinned = pinnedEventIds.contains(event.uid),
+              showPinButton = selectedFilter == EventFilter.Past,
+              onClick = { onEventClick(event) },
+              onPinClick = { onPinClick(event.uid) })
         }
       }
 }
 
-// Individual event card showing event details
+// Event card with details
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EventCard(event: Event, onClick: () -> Unit) {
-  val dateFormat = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
+private fun EventCard(
+    event: Event,
+    isPinned: Boolean,
+    showPinButton: Boolean,
+    onClick: () -> Unit,
+    onPinClick: () -> Unit
+) {
+  val dateFormatPattern = stringResource(R.string.date_format_joined_event)
+  val dateFormat = SimpleDateFormat(dateFormatPattern, Locale.getDefault())
   val formattedDate = dateFormat.format(event.start.toDate())
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
@@ -213,13 +251,24 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
                                     listOf(
                                         MaterialTheme.colorScheme.primaryContainer,
                                         MaterialTheme.colorScheme.primary)))) {
-              EventCardContent(event = event, formattedDate = formattedDate)
+              EventCardContent(
+                  event = event,
+                  formattedDate = formattedDate,
+                  isPinned = isPinned,
+                  showPinButton = showPinButton,
+                  onPinClick = onPinClick)
             }
       }
 }
 
 @Composable
-private fun EventCardContent(event: Event, formattedDate: String) {
+private fun EventCardContent(
+    event: Event,
+    formattedDate: String,
+    isPinned: Boolean,
+    showPinButton: Boolean,
+    onPinClick: () -> Unit
+) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
@@ -230,20 +279,31 @@ private fun EventCardContent(event: Event, formattedDate: String) {
   val imageSize = screenWidth * 0.25f
   val imageCornerRadius = screenWidth * 0.03f
 
-  Row(
-      modifier = Modifier.fillMaxSize().padding(contentPadding),
-      horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
-        Icon(
-            imageVector = Icons.Default.Image,
-            contentDescription = eventImageDescription,
-            modifier =
-                Modifier.size(imageSize)
-                    .clip(RoundedCornerShape(imageCornerRadius))
-                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-            tint = MaterialTheme.colorScheme.onPrimary)
+  Box(modifier = Modifier.fillMaxSize()) {
+    Row(
+        modifier = Modifier.fillMaxSize().padding(contentPadding),
+        horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
+          Icon(
+              imageVector = Icons.Default.Image,
+              contentDescription = eventImageDescription,
+              modifier =
+                  Modifier.size(imageSize)
+                      .clip(RoundedCornerShape(imageCornerRadius))
+                      .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+              tint = MaterialTheme.colorScheme.onPrimary)
 
-        EventCardDetails(event = event, formattedDate = formattedDate)
-      }
+          EventCardDetails(event = event, formattedDate = formattedDate)
+        }
+
+    // Pin button (only shown for past events)
+    if (showPinButton) {
+      val pinButtonPadding = screenWidth * 0.02f
+      PinButton(
+          isPinned = isPinned,
+          onClick = onPinClick,
+          modifier = Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
+    }
+  }
 }
 
 @Composable
@@ -331,7 +391,7 @@ private fun EventSubtitle(event: Event) {
   }
 }
 
-// Message shown when there are no events
+// Empty state when no events are found
 @Composable
 private fun EmptyEventsState(selectedFilter: EventFilter) {
   val configuration = LocalConfiguration.current
@@ -370,12 +430,40 @@ private fun EmptyEventsState(selectedFilter: EventFilter) {
       }
 }
 
-// Spacing values used throughout the screen
-private val spacing: JoinedEventsSpacing
-  @Composable get() = JoinedEventsSpacing
+// Pin button to pin or unpin events
+@Composable
+private fun PinButton(isPinned: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+  val pinDescription = stringResource(R.string.content_description_pin_event)
+  val unpinDescription = stringResource(R.string.content_description_unpin_event)
+  val configuration = LocalConfiguration.current
+  val screenWidth = configuration.screenWidthDp.dp
 
-private object JoinedEventsSpacing {
-  val extraSmall = 8.dp
-  val small = 12.dp
-  val medium = 16.dp
+  // Dynamic icon size based on screen width
+  val iconSize = screenWidth * 0.06f
+
+  IconButton(onClick = onClick, modifier = modifier) {
+    Icon(
+        imageVector = Icons.Filled.PushPin,
+        contentDescription = if (isPinned) unpinDescription else pinDescription,
+        tint =
+            if (isPinned) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f),
+        modifier = Modifier.size(iconSize))
+  }
 }
+
+// Spacing values used throughout the screen (dynamic based on screen width)
+private val spacing: JoinedEventsSpacing
+  @Composable
+  get() {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    return JoinedEventsSpacing(
+        extraSmall = screenWidth * 0.02f, small = screenWidth * 0.03f, medium = screenWidth * 0.04f)
+  }
+
+private data class JoinedEventsSpacing(
+    val extraSmall: androidx.compose.ui.unit.Dp,
+    val small: androidx.compose.ui.unit.Dp,
+    val medium: androidx.compose.ui.unit.Dp
+)

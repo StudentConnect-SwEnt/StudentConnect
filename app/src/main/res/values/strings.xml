@@ -506,4 +506,13 @@
     <string name="content_description_back_to_profile">Back to Profile</string>
     <string name="placeholder_search_events_joined">Search events…</string>
 
+    <!-- Pinned Events -->
+    <string name="pinned_events_title">Pinned Events</string>
+    <string name="pinned_events_empty_state">Pin your favorite past events to display them here :)</string>
+    <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
+    <string name="content_description_pin_event">Pin event</string>
+    <string name="content_description_unpin_event">Unpin event</string>
+    <string name="date_format_pinned_event">dd MMM, yyyy</string>
+    <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
+
 </resources>
