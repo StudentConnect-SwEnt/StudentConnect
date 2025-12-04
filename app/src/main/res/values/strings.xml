@@ -370,7 +370,13 @@
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
     <string name="event_button_return">Return to Event</string>
-    
+
+    <!-- Leave event confirmation dialog -->
+    <string name="leave_event_confirmation_title">Leave Event</string>
+    <string name="leave_event_confirmation_message">Are you sure you want to leave this event?</string>
+    <string name="leave_event_confirm">Leave</string>
+    <string name="leave_event_cancel">Cancel</string>
+
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
     <string name="event_placeholder_title">My new event</string>
@@ -451,6 +457,14 @@
     <!-- Organization suggestions -->
     <string name="org_suggestions_title">Organizations</string>
     <string name="content_description_organization_image">Organization image</string>
+
+    <!-- Organization event time labels -->
+    <string name="org_event_time_today">Today</string>
+    <string name="org_event_time_tomorrow">Tomorrow</string>
+    <plurals name="org_event_time_in_days">
+        <item quantity="one">In %d day</item>
+        <item quantity="other">In %d days</item>
+    </plurals>
 
     <!-- Organization screen strings -->
     <string name="organization_type_association">Association</string>
