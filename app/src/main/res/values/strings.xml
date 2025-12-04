@@ -545,6 +545,12 @@
     <string name="content_description_stats_chart">Statistics chart</string>
     <string name="content_description_stats_card">Statistics card</string>
     <string name="content_description_refresh_stats">Refresh statistics</string>
+    <string name="stats_error_unknown">An unknown error occurred</string>
+    <string name="stats_percentage_format">%.1f</string>
+    <string name="stats_percentage_symbol">%</string>
+    <string name="stats_label_separator">: %1$d</string>
+    <string name="stats_legend_format">%1$s (%2$d)</string>
+    <string name="stats_preview_error_message">Network connection failed. Please check your internet connection and try again.</string>
 
     <!-- Event Selection for Stories -->
     <string name="event_selection_button_label">Link to Event</string>
