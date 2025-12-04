@@ -81,7 +81,7 @@ fun ProfileScreen(
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
     modifier: Modifier = Modifier,
-    logOut: () -> Unit,
+    logOut: () -> Unit = {},
 ) {
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
