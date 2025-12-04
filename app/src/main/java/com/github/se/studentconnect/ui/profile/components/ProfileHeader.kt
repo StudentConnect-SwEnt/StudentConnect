@@ -475,6 +475,7 @@ private fun LogoutDialog(showDialog: MutableState<Boolean>, logOut: () -> Unit) 
                   Button(onClick = logOut, modifier = Modifier.width(buttonWidth)) {
                     Text(stringResource(R.string.button_yes))
                   }
+                  Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_large)))
                   Button(
                       onClick = { showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
                         Text(stringResource(R.string.button_no))
