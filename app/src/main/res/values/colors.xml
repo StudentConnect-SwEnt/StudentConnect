@@ -7,4 +7,30 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Statistics Chart Colors - Vibrant and Modern Palette -->
+    <color name="stats_chart_1">#FF6366F1</color>  <!-- Indigo -->
+    <color name="stats_chart_2">#FF8B5CF6</color>  <!-- Violet -->
+    <color name="stats_chart_3">#FFEC4899</color>  <!-- Pink -->
+    <color name="stats_chart_4">#FF14B8A6</color>  <!-- Teal -->
+    <color name="stats_chart_5">#FFF59E0B</color>  <!-- Amber -->
+    <color name="stats_chart_6">#FF10B981</color>  <!-- Emerald -->
+    <color name="stats_chart_7">#FF3B82F6</color>  <!-- Blue -->
+    <color name="stats_chart_8">#FFF97316</color>  <!-- Orange -->
+
+    <!-- Statistics Card Gradients -->
+    <color name="stats_gradient_start">#FF6366F1</color>
+    <color name="stats_gradient_end">#FF8B5CF6</color>
+    <color name="stats_card_highlight">#1A6366F1</color>
+
+    <!-- Statistics Accent Colors -->
+    <color name="stats_success">#FF10B981</color>
+    <color name="stats_warning">#FFF59E0B</color>
+    <color name="stats_info">#FF3B82F6</color>
+
+    <!-- Shimmer Effect Colors -->
+    <color name="shimmer_base">#FFE5E7EB</color>
+    <color name="shimmer_highlight">#FFF9FAFB</color>
+    <color name="shimmer_base_dark">#FF374151</color>
+    <color name="shimmer_highlight_dark">#FF4B5563</color>
 </resources>
