@@ -137,19 +137,18 @@ class ProfileHeaderAndroidTest {
     assert(cardClicked)
   }
 
-    @Test
-    fun profileHeader_logoutButtonClickable() {
-        composeTestRule.setContent {
-            ProfileHeader(
-                user = testUser,
-                stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-                onFriendsClick = {},
-                onEventsClick = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("Logout").assertHasClickAction()
+  @Test
+  fun profileHeader_logoutButtonClickable() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks =
+              ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}, onLogoutClick = {}))
     }
+
+    composeTestRule.onNodeWithContentDescription("Logout").assertHasClickAction()
+  }
 
   @Test
   fun profileHeader_hidesEditButtonWhenCallbackNull() {
