@@ -1,6 +1,10 @@
 package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventParticipant
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
@@ -29,6 +33,7 @@ class ProfileScreenViewModelTest {
   private lateinit var testScope: TestScope
   private lateinit var userRepository: TestUserRepository
   private lateinit var friendsRepository: TestFriendsRepository
+  private lateinit var eventRepository: TestEventRepository
   private lateinit var viewModel: ProfileScreenViewModel
 
   private val testUser =
@@ -52,6 +57,7 @@ class ProfileScreenViewModelTest {
 
     userRepository = TestUserRepository(testUser)
     friendsRepository = TestFriendsRepository()
+    eventRepository = TestEventRepository()
   }
 
   @After
@@ -66,6 +72,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -84,6 +91,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -100,6 +108,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -116,6 +125,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -132,6 +142,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -148,6 +159,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         assertTrue(viewModel.isLoading.value)
@@ -166,6 +178,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -184,6 +197,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -202,6 +216,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -218,6 +233,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -240,6 +256,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -262,6 +279,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -282,6 +300,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -296,6 +315,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         viewModel.loadPinnedEvents()
@@ -313,6 +333,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -329,6 +350,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -345,6 +367,7 @@ class ProfileScreenViewModelTest {
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -356,6 +379,92 @@ class ProfileScreenViewModelTest {
 
         assertNull(viewModel.error.value)
         assertEquals(testUser, viewModel.user.value)
+      }
+
+  @Test
+  fun `viewModel counts both joined and created events`() =
+      testScope.runTest {
+        // User has joined 2 events
+        userRepository.joinedEventIds = listOf("event1", "event2")
+
+        // User has created 3 events
+        val createdEvent1 =
+            Event.Private(
+                uid = "event3",
+                ownerId = testUser.userId,
+                title = "Created Event 1",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent2 =
+            Event.Private(
+                uid = "event4",
+                ownerId = testUser.userId,
+                title = "Created Event 2",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent3 =
+            Event.Private(
+                uid = "event5",
+                ownerId = testUser.userId,
+                title = "Created Event 3",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+
+        eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should count 2 joined + 3 created = 5 total
+        assertEquals(5, viewModel.eventsCount.value)
+      }
+
+  @Test
+  fun `viewModel avoids counting duplicate events when user joined their own created event`() =
+      testScope.runTest {
+        // User has joined events including one they created
+        userRepository.joinedEventIds = listOf("event1", "event2", "event3")
+
+        // User has created events (event2 is also in joinedEvents)
+        val createdEvent1 =
+            Event.Private(
+                uid = "event2",
+                ownerId = testUser.userId,
+                title = "Created Event 1",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent2 =
+            Event.Private(
+                uid = "event4",
+                ownerId = testUser.userId,
+                title = "Created Event 2",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+
+        eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should count unique events: event1, event2, event3, event4 = 4 total (no duplicates)
+        assertEquals(4, viewModel.eventsCount.value)
       }
 
   // Test helper classes
@@ -456,6 +565,63 @@ class ProfileScreenViewModelTest {
 
     override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
       TODO("Not yet implemented")
+    }
+  }
+
+  private class TestEventRepository(
+      var createdEvents: List<Event> = emptyList(),
+      var shouldThrowError: Boolean = false
+  ) : EventRepository {
+
+    override fun getNewUid(): String = "new_event_uid"
+
+    override suspend fun getAllVisibleEvents(): List<Event> = emptyList()
+
+    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> =
+        emptyList()
+
+    override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+      if (shouldThrowError) throw Exception("Events fetch failed")
+      return createdEvents.filter { it.ownerId == organizationId }
+    }
+
+    override suspend fun getEvent(eventUid: String): Event {
+      throw NotImplementedError("Not needed for tests")
+    }
+
+    override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
+        emptyList()
+
+    override suspend fun addEvent(event: Event) = Unit
+
+    override suspend fun editEvent(eventUid: String, newEvent: Event) = Unit
+
+    override suspend fun deleteEvent(eventUid: String) = Unit
+
+    override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) =
+        Unit
+
+    override suspend fun addInvitationToEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) = Unit
+
+    override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+    override suspend fun removeInvitationFromEvent(
+        eventUid: String,
+        invitedUser: String,
+        currentUserId: String
+    ) = Unit
+
+    override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
+
+    override suspend fun getEventStatistics(
+        eventUid: String,
+        followerCount: Int
+    ): EventStatistics {
+      throw NotImplementedError("Not needed for tests")
     }
   }
 }

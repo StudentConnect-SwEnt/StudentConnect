@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
@@ -17,11 +18,13 @@ import kotlinx.coroutines.launch
  *
  * @param userRepository Repository for user data operations
  * @param friendsRepository Repository for friends data operations
+ * @param eventRepository Repository for event data operations
  * @param currentUserId The ID of the current user
  */
 class ProfileScreenViewModel(
     private val userRepository: UserRepository,
     private val friendsRepository: FriendsRepository,
+    private val eventRepository: EventRepository,
     private val currentUserId: String
 ) : ViewModel() {
 
@@ -95,11 +98,19 @@ class ProfileScreenViewModel(
     }
   }
 
-  /** Loads the count of joined events for the current user. */
+  /** Loads the count of events for the current user (both joined and created). */
   private suspend fun loadEventsCount() {
     try {
+      // Get joined events
       val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
-      _eventsCount.value = joinedEventIds.size
+
+      // Get created events
+      val createdEvents = eventRepository.getEventsByOrganization(currentUserId)
+      val createdEventIds = createdEvents.map { it.uid }
+
+      // Combine and remove duplicates
+      val allEventIds = (joinedEventIds + createdEventIds).toSet()
+      _eventsCount.value = allEventIds.size
     } catch (exception: Exception) {
       Log.e(TAG, "Failed to load events count for user: $currentUserId", exception)
       // If events loading fails, set count to 0
