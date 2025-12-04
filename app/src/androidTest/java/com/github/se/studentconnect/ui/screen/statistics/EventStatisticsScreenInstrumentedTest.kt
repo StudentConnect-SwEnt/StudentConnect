@@ -134,7 +134,8 @@ class EventStatisticsScreenInstrumentedTest {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = "stats") {
           composable("stats") {
-            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+            EventStatisticsScreen(
+                eventUid = testEventUid, navController = navController, viewModel = viewModel)
           }
         }
       }
@@ -152,16 +153,15 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun eventStatisticsScreen_refreshButton_callsRefresh() {
-    runBlocking {
-      viewModel.loadStatistics(testEventUid)
-    }
+    runBlocking { viewModel.loadStatistics(testEventUid) }
 
     composeTestRule.setContent {
       MaterialTheme {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = "stats") {
           composable("stats") {
-            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+            EventStatisticsScreen(
+                eventUid = testEventUid, navController = navController, viewModel = viewModel)
           }
         }
       }
@@ -184,7 +184,8 @@ class EventStatisticsScreenInstrumentedTest {
         val navController = rememberNavController()
         NavHost(navController = navController, startDestination = "stats") {
           composable("stats") {
-            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+            EventStatisticsScreen(
+                eventUid = testEventUid, navController = navController, viewModel = viewModel)
           }
         }
       }
@@ -455,7 +456,6 @@ class EventStatisticsScreenInstrumentedTest {
 
     composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertExists()
   }
-
 
   @Test
   fun staggeredAnimatedCard_animationProgressAtOne_showsImmediately() {
