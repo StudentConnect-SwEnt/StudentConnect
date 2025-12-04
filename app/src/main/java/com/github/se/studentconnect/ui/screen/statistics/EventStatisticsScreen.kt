@@ -113,10 +113,13 @@ fun EventStatisticsScreen(
                   modifier = Modifier.testTag(C.Tag.STATS_REFRESH_BUTTON)) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = stringResource(R.string.content_description_refresh_stats))
+                        contentDescription =
+                            stringResource(R.string.content_description_refresh_stats))
                   }
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.testTag(C.Tag.STATS_TOP_BAR))
       }) { paddingValues ->
         when {
@@ -399,12 +402,13 @@ internal fun AttendeesFollowersCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Column(
-                  verticalArrangement =
-                      Arrangement.spacedBy(StatisticsConstants.MEDIUM_SPACING)) {
+                  verticalArrangement = Arrangement.spacedBy(StatisticsConstants.MEDIUM_SPACING)) {
                     MetricRow(
-                        label = stringResource(R.string.stats_attendees), value = attendees.toString())
+                        label = stringResource(R.string.stats_attendees),
+                        value = attendees.toString())
                     MetricRow(
-                        label = stringResource(R.string.stats_followers), value = followers.toString())
+                        label = stringResource(R.string.stats_followers),
+                        value = followers.toString())
                     Text(
                         text =
                             "${String.format(stringResource(R.string.stats_percentage_format), rate)}${stringResource(R.string.stats_percentage_symbol)} ${stringResource(R.string.stats_of_followers)}",
@@ -439,14 +443,12 @@ internal fun AgeDistributionCard(
                   modifier = Modifier.size(StatisticsConstants.DONUT_CHART_SIZE))
               ChartLegend(
                   items =
-                      data
-                          .take(StatisticsConstants.MAX_LEGEND_ITEMS)
-                          .mapIndexed { index, item ->
-                            String.format(
-                                stringResource(R.string.stats_legend_format),
-                                item.ageRange,
-                                item.count) to colors[index % colors.size]
-                          },
+                      data.take(StatisticsConstants.MAX_LEGEND_ITEMS).mapIndexed { index, item ->
+                        String.format(
+                            stringResource(R.string.stats_legend_format),
+                            item.ageRange,
+                            item.count) to colors[index % colors.size]
+                      },
                   modifier =
                       Modifier.weight(1f).padding(start = StatisticsConstants.CONTENT_SPACING))
             }
@@ -576,8 +578,10 @@ private object PreviewData {
               listOf(
                   JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 12, label = "Nov 1"),
                   JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 35, label = "Nov 5"),
-                  JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 67, label = "Nov 10"),
-                  JoinRateData(timestamp = previewTimestamp, cumulativeJoins = 98, label = "Nov 15"),
+                  JoinRateData(
+                      timestamp = previewTimestamp, cumulativeJoins = 67, label = "Nov 10"),
+                  JoinRateData(
+                      timestamp = previewTimestamp, cumulativeJoins = 98, label = "Nov 15"),
                   JoinRateData(
                       timestamp = previewTimestamp, cumulativeJoins = 142, label = "Nov 20")),
           followerCount = 350,
@@ -624,9 +628,9 @@ private fun ErrorStatePreview() {
 }
 
 /**
- * Standalone statistics screen with sample data for interactive preview.
- * This composable shows the complete screen with TopAppBar, back button, and all statistics cards.
- * Use "Run Preview" in Android Studio to deploy this to an emulator/device.
+ * Standalone statistics screen with sample data for interactive preview. This composable shows the
+ * complete screen with TopAppBar, back button, and all statistics cards. Use "Run Preview" in
+ * Android Studio to deploy this to an emulator/device.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -655,24 +659,25 @@ fun EventStatisticsScreenPreviewable() {
               },
               actions = {
                 IconButton(
-                    onClick = { /* Refresh action for preview */ },
+                    onClick = { /* Refresh action for preview */},
                     modifier = Modifier.testTag(C.Tag.STATS_REFRESH_BUTTON)) {
                       Icon(
                           imageVector = Icons.Default.Refresh,
-                          contentDescription = stringResource(R.string.content_description_refresh_stats))
+                          contentDescription =
+                              stringResource(R.string.content_description_refresh_stats))
                     }
               },
-              colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+              colors =
+                  TopAppBarDefaults.topAppBarColors(
+                      containerColor = MaterialTheme.colorScheme.surface),
               modifier = Modifier.testTag(C.Tag.STATS_TOP_BAR))
         }) { paddingValues ->
           if (backClicked) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center) {
-                  Text(
-                      text = "Back button clicked! (Preview mode)",
-                      style = MaterialTheme.typography.titleLarge)
-                }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Text(
+                  text = "Back button clicked! (Preview mode)",
+                  style = MaterialTheme.typography.titleLarge)
+            }
           } else {
             StatisticsContent(
                 statistics = PreviewData.sampleStatistics,
@@ -687,9 +692,9 @@ fun EventStatisticsScreenPreviewable() {
     showBackground = true,
     showSystemUi = true,
     name = "Event Statistics - Full Screen",
-    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait")
+    device =
+        "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait")
 @Composable
 private fun EventStatisticsFullScreenPreview() {
   EventStatisticsScreenPreviewable()
 }
-

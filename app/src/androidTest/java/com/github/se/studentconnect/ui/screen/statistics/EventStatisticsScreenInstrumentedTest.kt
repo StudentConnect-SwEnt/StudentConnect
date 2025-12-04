@@ -98,7 +98,8 @@ class EventStatisticsScreenInstrumentedTest {
   fun mainScreen_successState_displaysContent() {
     val uiState =
         mutableStateOf(
-            EventStatisticsUiState(isLoading = false, statistics = testStatistics, animationProgress = 1f))
+            EventStatisticsUiState(
+                isLoading = false, statistics = testStatistics, animationProgress = 1f))
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -195,7 +196,8 @@ class EventStatisticsScreenInstrumentedTest {
                               contentDescription = "Back")
                         }
                   })
-            }) { _ -> }
+            }) { _ ->
+            }
       }
     }
 
@@ -345,4 +347,3 @@ class EventStatisticsScreenInstrumentedTest {
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertExists()
   }
 }
-

@@ -36,8 +36,7 @@ class EventStatisticsScreenTest {
           totalAttendees = 42,
           ageDistribution =
               listOf(AgeGroupData("18-22", 20, 47.6f), AgeGroupData("23-25", 15, 35.7f)),
-          campusDistribution =
-              listOf(CampusData("EPFL", 25, 59.5f), CampusData("UNIL", 17, 40.5f)),
+          campusDistribution = listOf(CampusData("EPFL", 25, 59.5f), CampusData("UNIL", 17, 40.5f)),
           joinRateOverTime =
               listOf(
                   JoinRateData(Timestamp(Date()), 10, "Day 1"),
@@ -145,9 +144,7 @@ class EventStatisticsScreenTest {
     composeTestRule.setContent {
       MaterialTheme {
         CampusDistributionCard(
-            data = listOf(CampusData("EPFL", 30, 60f)),
-            animationProgress = 1f,
-            colors = testColors)
+            data = listOf(CampusData("EPFL", 30, 60f)), animationProgress = 1f, colors = testColors)
       }
     }
     composeTestRule.onNodeWithText("Campus Distribution").assertIsDisplayed()
@@ -283,7 +280,10 @@ class EventStatisticsScreenTest {
     composeTestRule.setContent {
       MaterialTheme {
         JoinRateCard(
-            data = emptyList(), animationProgress = 1f, lineColor = Color.Blue, fillColor = Color.LightGray)
+            data = emptyList(),
+            animationProgress = 1f,
+            lineColor = Color.Blue,
+            fillColor = Color.LightGray)
       }
     }
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
@@ -304,4 +304,3 @@ class EventStatisticsScreenTest {
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
   }
 }
-

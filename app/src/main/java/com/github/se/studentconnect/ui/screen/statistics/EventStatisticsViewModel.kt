@@ -38,7 +38,8 @@ data class EventStatisticsUiState(
  */
 class EventStatisticsViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val organizationRepository: OrganizationRepository = OrganizationRepositoryProvider.repository
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventStatisticsUiState())
@@ -90,4 +91,3 @@ class EventStatisticsViewModel(
     currentEventUid?.let { loadStatistics(it) }
   }
 }
-
