@@ -3,6 +3,11 @@ package com.github.se.studentconnect.model.event
 
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -131,5 +136,73 @@ class EventRepositoryLocal : EventRepository {
       throw NoSuchElementException(
           "Participant with UID $participantUid not found in event $eventUid.")
     }
+  }
+
+  override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    val participants = getEventParticipants(eventUid)
+    val totalAttendees = participants.size
+
+    // For local testing, return simplified statistics
+    // Age and campus distributions are empty since we don't have user data in local repo
+    val ageDistribution = emptyList<AgeGroupData>()
+    val campusDistribution = emptyList<CampusData>()
+
+    // Calculate join rate over time from participants
+    val joinRateOverTime = calculateJoinRateOverTime(participants)
+
+    // Calculate attendees/followers rate
+    val attendeesFollowersRate =
+        if (followerCount > 0) {
+          (totalAttendees.toFloat() / followerCount) * 100f
+        } else {
+          0f
+        }
+
+    return EventStatistics(
+        eventId = eventUid,
+        totalAttendees = totalAttendees,
+        ageDistribution = ageDistribution,
+        campusDistribution = campusDistribution,
+        joinRateOverTime = joinRateOverTime,
+        followerCount = followerCount,
+        attendeesFollowersRate = attendeesFollowersRate)
+  }
+
+  /** Calculates the join rate over time, grouping registrations by day. */
+  private fun calculateJoinRateOverTime(participants: List<EventParticipant>): List<JoinRateData> {
+    if (participants.isEmpty()) return emptyList()
+
+    // Sort by join time
+    val sorted = participants.filter { it.joinedAt != null }.sortedBy { it.joinedAt!!.seconds }
+
+    if (sorted.isEmpty()) return emptyList()
+
+    // Group by day and calculate cumulative joins
+    val calendar = java.util.Calendar.getInstance()
+    val dayFormat = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
+    val joinsByDay = mutableListOf<JoinRateData>()
+    var cumulative = 0
+
+    val dayGrouped =
+        sorted.groupBy { participant ->
+          calendar.timeInMillis = participant.joinedAt!!.seconds * 1000
+          calendar[java.util.Calendar.HOUR_OF_DAY] = 0
+          calendar[java.util.Calendar.MINUTE] = 0
+          calendar[java.util.Calendar.SECOND] = 0
+          calendar[java.util.Calendar.MILLISECOND] = 0
+          calendar.timeInMillis
+        }
+
+    dayGrouped.toSortedMap().forEach { (dayMillis, dayParticipants) ->
+      cumulative += dayParticipants.size
+      calendar.timeInMillis = dayMillis
+      joinsByDay.add(
+          JoinRateData(
+              timestamp = com.google.firebase.Timestamp(java.util.Date(dayMillis)),
+              cumulativeJoins = cumulative,
+              label = dayFormat.format(java.util.Date(dayMillis))))
+    }
+
+    return joinsByDay
   }
 }

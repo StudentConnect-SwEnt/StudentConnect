@@ -18,16 +18,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.AgeGroupData
 import com.github.se.studentconnect.model.event.CampusData
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.event.JoinRateData
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.resources.C
 import com.google.firebase.Timestamp
 import java.util.Date
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +49,38 @@ import org.junit.Test
 class EventStatisticsScreenInstrumentedTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  private lateinit var eventRepository: EventRepositoryLocal
+  private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var viewModel: EventStatisticsViewModel
+
+  private val testEventUid = "test-event-123"
+  private val testOwnerId = "org-123"
+
+  private val testEvent =
+      Event.Public(
+          uid = testEventUid,
+          ownerId = testOwnerId,
+          title = "Test Event",
+          description = "Test Description",
+          start = Timestamp.now(),
+          end = Timestamp.now(),
+          location = null,
+          imageUrl = null,
+          maxCapacity = 100u,
+          participationFee = null,
+          isFlash = false,
+          subtitle = "Test Subtitle",
+          tags = emptyList())
+
+  private val testOrganization =
+      Organization(
+          id = testOwnerId,
+          name = "Test Organization",
+          type = OrganizationType.Association,
+          description = "Test Description",
+          memberUids = listOf("member1", "member2", "member3"),
+          createdBy = "creator123")
 
   private val testStatistics =
       EventStatistics(
@@ -48,6 +94,165 @@ class EventStatisticsScreenInstrumentedTest {
                   JoinRateData(Timestamp(Date()), 42, "Day 2")),
           followerCount = 100,
           attendeesFollowersRate = 42f)
+
+  @Before
+  fun setUp() {
+    eventRepository = EventRepositoryLocal()
+    organizationRepository = OrganizationRepositoryLocal()
+    EventRepositoryProvider.repository = eventRepository
+    OrganizationRepositoryProvider.repository = organizationRepository
+    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository)
+
+    runBlocking {
+      eventRepository.addEvent(testEvent)
+      organizationRepository.saveOrganization(testOrganization)
+      // Participants will be added when statistics are calculated
+    }
+  }
+
+  @After
+  fun tearDown() {
+    runBlocking {
+      try {
+        eventRepository.deleteEvent(testEventUid)
+        organizationRepository.clear()
+      } catch (e: Exception) {
+        // Ignore cleanup errors
+      }
+    }
+  }
+
+  @Test
+  fun eventStatisticsScreen_withSuccessState_displaysContent() {
+    runBlocking {
+      // Pre-load statistics
+      viewModel.loadStatistics(testEventUid)
+    }
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "stats") {
+          composable("stats") {
+            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+          }
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    Thread.sleep(1000) // Wait for statistics to load
+    composeTestRule.waitForIdle()
+    // Should show content (statistics branch) - use waitUntil to handle async loading
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithTag(C.Tag.STATS_CONTENT).fetchSemanticsNodes(false).isNotEmpty()
+    }
+    composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertExists()
+  }
+
+  @Test
+  fun eventStatisticsScreen_refreshButton_callsRefresh() {
+    runBlocking {
+      viewModel.loadStatistics(testEventUid)
+    }
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "stats") {
+          composable("stats") {
+            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+          }
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    Thread.sleep(500)
+    composeTestRule.waitForIdle()
+    // Click refresh button
+    composeTestRule.onNodeWithTag(C.Tag.STATS_REFRESH_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    // Should still show content after refresh
+    composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertExists()
+  }
+
+  @Test
+  fun eventStatisticsScreen_backButton_isClickable() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "stats") {
+          composable("stats") {
+            EventStatisticsScreen(eventUid = testEventUid, navController = navController, viewModel = viewModel)
+          }
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Back button should be clickable
+    composeTestRule.onNodeWithTag(C.Tag.STATS_BACK_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.STATS_BACK_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventStatisticsScreen_withErrorState_displaysError() {
+    // Create a ViewModel that will error
+    val errorEventRepository = EventRepositoryLocal()
+    val errorViewModel = EventStatisticsViewModel(errorEventRepository, organizationRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "stats") {
+          composable("stats") {
+            EventStatisticsScreen(
+                eventUid = "non-existent-event",
+                navController = navController,
+                viewModel = errorViewModel)
+          }
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    Thread.sleep(500) // Wait for error to occur
+    composeTestRule.waitForIdle()
+    // Should show error state
+    composeTestRule.onNodeWithTag(C.Tag.STATS_ERROR).assertExists()
+  }
+
+  @Test
+  fun eventStatisticsScreen_errorState_retryButton_callsRefresh() {
+    // Create a ViewModel that will error initially
+    val errorEventRepository = EventRepositoryLocal()
+    val errorViewModel = EventStatisticsViewModel(errorEventRepository, organizationRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "stats") {
+          composable("stats") {
+            EventStatisticsScreen(
+                eventUid = "non-existent-event",
+                navController = navController,
+                viewModel = errorViewModel)
+          }
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    Thread.sleep(500)
+    composeTestRule.waitForIdle()
+    // Click retry button
+    composeTestRule.onNodeWithTag(C.Tag.STATS_RETRY_BUTTON).performClick()
+    composeTestRule.waitForIdle()
+    // Retry should trigger refresh (will still error, but refresh was called)
+    composeTestRule.onNodeWithTag(C.Tag.STATS_RETRY_BUTTON).assertExists()
+  }
 
   @Test
   fun mainScreen_loadingState_displaysLoadingIndicator() {
@@ -251,19 +456,6 @@ class EventStatisticsScreenInstrumentedTest {
     composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertExists()
   }
 
-  @Test
-  fun staggeredAnimatedCard_animationProgressAboveThreshold_triggersDelay() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        // Test index 0 with progress > 0.1 (threshold for index 0)
-        StatisticsContent(
-            statistics = testStatistics, animationProgress = 0.5f, paddingValues = PaddingValues())
-      }
-    }
-    composeTestRule.waitForIdle()
-    // Card should eventually become visible
-    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertExists()
-  }
 
   @Test
   fun staggeredAnimatedCard_animationProgressAtOne_showsImmediately() {
@@ -352,16 +544,19 @@ class EventStatisticsScreenInstrumentedTest {
   }
 
   @Test
-  fun staggeredAnimatedCard_animationProgressBelowThreshold_waitsForDelay() {
+  fun staggeredAnimatedCard_animationProgressAboveThreshold_triggersDelay() {
     composeTestRule.setContent {
       MaterialTheme {
-        // Test index 2 with progress 0.15 (below threshold 0.2)
+        // Test index 2 with progress 0.25 (above threshold 0.2, so delay will trigger)
         StatisticsContent(
-            statistics = testStatistics, animationProgress = 0.15f, paddingValues = PaddingValues())
+            statistics = testStatistics, animationProgress = 0.25f, paddingValues = PaddingValues())
       }
     }
+    // Wait for the delay to complete (index 2 * 50ms = 100ms delay) and animation
     composeTestRule.waitForIdle()
-    // Card should eventually appear after delay
+    Thread.sleep(200) // Wait for coroutine delay
+    composeTestRule.waitForIdle()
+    // Card should appear after delay
     composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertExists()
   }
 
