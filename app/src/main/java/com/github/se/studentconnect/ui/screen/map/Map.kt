@@ -100,7 +100,6 @@ fun MapScreen(
   val uiState by actualViewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
 
-  // Clear friend marker caches when leaving the screen
   androidx.compose.runtime.DisposableEffect(Unit) {
     onDispose {
       actualViewModel.stopSharingLocation()
@@ -137,17 +136,10 @@ fun MapScreen(
       onPermissionGranted = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(true)) },
       onPermissionDenied = { actualViewModel.onEvent(MapViewEvent.SetLocationPermission(false)) })
 
-  /**
-   * Handle initial navigation to target location and/or event. When both location and event UID are
-   * provided, the event selection animation takes precedence to ensure proper zoom level and info
-   * card display.
-   */
   LaunchedEffect(targetLatitude, targetLongitude, targetEventUid) {
     if (targetLatitude != null && targetLongitude != null) {
       actualViewModel.onEvent(
           MapViewEvent.SetTargetLocation(targetLatitude, targetLongitude, targetZoom))
-      // Only animate to coordinates if we're not also selecting an event
-      // (event selection will handle the animation)
       if (targetEventUid == null) {
         actualViewModel.animateToTarget(
             mapViewportState, targetLatitude, targetLongitude, targetZoom)
@@ -162,11 +154,6 @@ fun MapScreen(
     }
   }
 
-  /**
-   * Animate to selected event location when event selection triggers an animation request. This
-   * ensures smooth camera transitions when events are selected programmatically or by user
-   * interaction.
-   */
   LaunchedEffect(uiState.shouldAnimateToSelectedEvent) {
     if (uiState.shouldAnimateToSelectedEvent && uiState.selectedEventLocation != null) {
       actualViewModel.animateToSelectedEvent(mapViewportState)
@@ -174,11 +161,6 @@ fun MapScreen(
     }
   }
 
-  /**
-   * Automatically select event when navigating to the map with a target event UID (e.g., from
-   * EventView). Waits for events to be loaded before triggering selection to ensure the event data
-   * is available.
-   */
   LaunchedEffect(targetEventUid, uiState.events) {
     if (targetEventUid != null && uiState.events.isNotEmpty()) {
       actualViewModel.onEvent(MapViewEvent.SelectEvent(targetEventUid))
@@ -192,7 +174,6 @@ fun MapScreen(
     }
   }
 
-  // Share location periodically when in friends view with permission
   LaunchedEffect(uiState.hasLocationPermission, uiState.isEventsView) {
     if (uiState.hasLocationPermission && !uiState.isEventsView) {
       while (true) {
@@ -200,11 +181,6 @@ fun MapScreen(
         kotlinx.coroutines.delay(LocationSharingConfig.UPDATE_INTERVAL_MS)
       }
     }
-  }
-
-  // Stop sharing location when leaving the screen
-  androidx.compose.runtime.DisposableEffect(Unit) {
-    onDispose { actualViewModel.stopSharingLocation() }
   }
 
   Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
@@ -293,26 +269,7 @@ internal fun SearchBar(
 }
 
 /**
- * Container for the Mapbox map with event markers, friend markers, and action buttons.
- *
- * Handles:
- * - Map rendering with Mapbox SDK
- * - Event marker display with clustering
- * - Friend location marker display (real-time)
- * - User location puck
- * - Dynamic layer management based on view state
- *
- * @param mapViewportState Viewport state for camera control
- * @param hasLocationPermission Whether location permission is granted
- * @param isEventsView Whether currently in events view (vs friends view)
- * @param events List of events to display as markers
- * @param friendLocations Map of friend locations to display as markers
- * @param selectedEvent Currently selected event to display info for
- * @param selectedEventLocation Geographic location of the selected event
- * @param onToggleView Callback to toggle between views
- * @param onLocateUser Callback to center map on user location
- * @param onEventSelected Callback when an event marker is clicked
- * @param modifier Modifier to be applied to the container
+ * Map container with event/friend markers and user location tracking.
  */
 @Composable
 internal fun MapContainer(
@@ -330,23 +287,16 @@ internal fun MapContainer(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  // Track previous state to avoid unnecessary updates
   val previousEventsView = remember { mutableStateOf<Boolean?>(null) }
   val previousEvents = remember { mutableStateOf<List<Event>?>(null) }
   val previousFriendLocations = remember { mutableStateOf<Map<String, FriendLocation>?>(null) }
   val friendLayersInitialized = remember { mutableStateOf(false) }
-  /**
-   * Track when an event is initially selected to avoid dismissing the info card during the
-   * animation to the event location. This prevents the card from being dismissed due to camera
-   * movement during the automatic animation.
-   */
   val isAnimatingToEvent = remember { mutableStateOf(false) }
 
-  // Set animation flag when event is selected and reset after animation completes
   LaunchedEffect(selectedEvent) {
     if (selectedEvent != null) {
       isAnimatingToEvent.value = true
-      kotlinx.coroutines.delay(1000) // Wait for animation to complete (1 second)
+      kotlinx.coroutines.delay(1000)
       isAnimatingToEvent.value = false
     }
   }
@@ -370,23 +320,14 @@ internal fun MapContainer(
                 pulsingEnabled = true
               }
 
-              /**
-               * Add click listener for event markers. When a marker is clicked, select the
-               * corresponding event and display its info card. When clicking on empty map space,
-               * clear the selection.
-               */
               mapView.mapboxMap.addOnMapClickListener { point ->
                 val screenCoordinate = mapView.mapboxMap.pixelForCoordinate(point)
-
-                // Query rendered features at the click point to check if an event marker was
-                // clicked
                 mapView.mapboxMap.queryRenderedFeatures(
                     com.mapbox.maps.RenderedQueryGeometry(screenCoordinate),
                     com.mapbox.maps.RenderedQueryOptions(
                         listOf(EventMarkerConfig.LAYER_ID), null)) { expected ->
                       expected.value?.let { features ->
                         if (features.isNotEmpty()) {
-                          // Extract event UID from the marker feature and select it
                           val eventUid =
                               features[0]
                                   .queriedFeature
@@ -394,41 +335,23 @@ internal fun MapContainer(
                                   .getStringProperty(EventMarkerConfig.PROP_UID)
                           onEventSelected(eventUid)
                         } else {
-                          // Clicked on map, not on a marker - clear selection
                           onEventSelected(null)
                         }
-                      }
-                          ?: run {
-                            // Error querying features - clear selection
-                            onEventSelected(null)
-                          }
+                      } ?: onEventSelected(null)
                     }
                 true
               }
             }
 
-            /**
-             * Add camera change listener to dismiss the event info card when the user scrolls away
-             * from the event location. This provides intuitive UX where the card automatically
-             * closes when the user moves the map significantly.
-             */
             MapEffect(selectedEvent, selectedEventLocation) { mapView ->
               if (selectedEvent != null && selectedEventLocation != null) {
                 mapView.mapboxMap.subscribeCameraChanged { _ ->
-                  // Skip camera change checks during initial animation to prevent premature
-                  // dismissal
                   if (!isAnimatingToEvent.value) {
                     val currentCenter = mapView.mapboxMap.cameraState.center
-
-                    // Calculate Euclidean distance between current center and selected event
-                    // location
                     val latDiff = currentCenter.latitude() - selectedEventLocation.latitude()
                     val lonDiff = currentCenter.longitude() - selectedEventLocation.longitude()
                     val distance = kotlin.math.sqrt(latDiff * latDiff + lonDiff * lonDiff)
-
-                    // Dismiss if user scrolled more than threshold (approximately 50 meters)
-                    val dismissThreshold = 0.0005
-                    if (distance > dismissThreshold) {
+                    if (distance > 0.0005) {
                       onEventSelected(null)
                     }
                   }
@@ -436,45 +359,25 @@ internal fun MapContainer(
               }
             }
 
-            // Add event markers with clustering - only in events view
-            // Check if state actually changed before updating
             MapEffect(isEventsView, events) { mapView ->
               val hasChanged =
                   previousEventsView.value != isEventsView || previousEvents.value != events
-
               if (hasChanged) {
-                android.util.Log.d(
-                    "MapContainer",
-                    "Map state changed - isEventsView: $isEventsView, events count: ${events.size}")
                 previousEventsView.value = isEventsView
                 previousEvents.value = events
-
                 mapView.mapboxMap.getStyle { style ->
                   EventMarkers.removeExistingEventLayers(style)
-
                   if (isEventsView && events.isNotEmpty()) {
-                    android.util.Log.d("MapContainer", "Adding event markers to map")
                     EventMarkers.addEventMarkerIcon(context, style)
                     val features = EventMarkers.createEventFeatures(events)
-                    if (features.isEmpty()) {
-                      android.util.Log.w(
-                          "MapContainer",
-                          "No features created from ${events.size} events - they may be missing location data")
-                    }
                     EventMarkers.addEventSource(style, features)
                     EventMarkers.addClusterLayers(style)
                     EventMarkers.addIndividualMarkerLayer(style)
-                  } else {
-                    android.util.Log.d(
-                        "MapContainer",
-                        "Not showing markers - isEventsView: $isEventsView, events.isEmpty(): ${events.isEmpty()}")
                   }
                 }
               }
             }
 
-            // Add friend markers - only in friends view
-            // Initialize layers once when entering friends view, then only update data
             MapEffect(!isEventsView, friendLocations) { mapView ->
               val locationsChanged = previousFriendLocations.value != friendLocations
 
@@ -519,7 +422,6 @@ internal fun MapContainer(
           }
     }
 
-    // Display event info card when an event is selected
     selectedEvent?.let { event ->
       EventInfoCard(
           event = event,
@@ -536,16 +438,7 @@ internal fun MapContainer(
 }
 
 /**
- * Floating action buttons overlaid on the map for user interactions.
- *
- * Displays:
- * - "Locate Me" button (if location permission granted)
- * - "Toggle View" button (Events/Friends)
- *
- * @param hasLocationPermission Whether to show the location button
- * @param isEventsView Current view state for button icon
- * @param onLocateUser Callback to center map on user
- * @param onToggleView Callback to toggle view
+ * Map action buttons for location and view toggling.
  */
 @Composable
 internal fun BoxScope.MapActionButtons(
@@ -593,12 +486,7 @@ internal fun BoxScope.MapActionButtons(
 }
 
 /**
- * Event info card that displays basic event information when a marker is clicked. Styled like a
- * callout bubble with a pointer at the bottom to indicate connection to the marker.
- *
- * @param event The event to display information for
- * @param onClose Callback when the close button is clicked
- * @param modifier Modifier to be applied to the card
+ * Event info card with callout pointer.
  */
 @Composable
 internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
@@ -630,19 +518,17 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                       }
                     }
 
-                Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                 Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
 
-                // Event subtitle (for public events)
-                if (event is Event.Public) {
+                 if (event is Event.Public) {
                   Text(
                       text = event.subtitle,
                       style = MaterialTheme.typography.bodyMedium,
                       color = MaterialTheme.colorScheme.onSurfaceVariant)
-                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
-                }
+                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                 }
 
-                // Location
-                event.location?.let { location ->
+                 event.location?.let { location ->
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -655,11 +541,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface)
                   }
-                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
-                }
+                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                 }
 
-                // Start time
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                 Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector = Icons.Default.AccessTime,
                       contentDescription = "Time",
@@ -669,11 +554,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                   Text(
                       text = formatTimestamp(event.start),
                       style = MaterialTheme.typography.bodyMedium,
-                      color = MaterialTheme.colorScheme.onSurface)
-                }
+                       color = MaterialTheme.colorScheme.onSurface)
+                 }
 
-                // Max capacity
-                event.maxCapacity?.let { capacity ->
+                 event.maxCapacity?.let { capacity ->
                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -688,11 +572,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                         color = MaterialTheme.colorScheme.onSurface)
                   }
                 }
-              }
-            }
+               }
+             }
 
-        // Pointer/arrow pointing down to the marker
-        Box(
+         Box(
             modifier =
                 Modifier.size(16.dp, 8.dp)
                     .background(
@@ -707,21 +590,11 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
       }
 }
 
-/**
- * Formats a Firebase Timestamp to a readable date/time string.
- *
- * @param timestamp The timestamp to format
- * @return Formatted string like "Jan 15, 2025 2:30 PM"
- */
 internal fun formatTimestamp(timestamp: Timestamp): String {
   val dateFormat = SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault())
   return dateFormat.format(timestamp.toDate())
 }
 
-/**
- * Detects if the app is running in an Android instrumentation test environment. This allows us to
- * use the mock map during Android tests without changing build config.
- */
 internal fun isInAndroidTest(): Boolean {
   return try {
     // Check if we're actually running in a test, not just if test classes exist

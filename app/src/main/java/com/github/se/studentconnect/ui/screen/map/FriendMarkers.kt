@@ -46,6 +46,7 @@ object FriendMarkers {
   private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
   private val addedIconIds = mutableSetOf<String>()
 
+  /** Removes existing friend marker layers and sources from the map style. */
   fun removeExistingFriendLayers(style: Style) {
     try {
       if (style.styleLayerExists(FriendMarkerConfig.LAYER_ID)) {
@@ -201,6 +202,7 @@ object FriendMarkers {
     }
   }
 
+  /** Adds a GeoJSON source for friend markers to the map style. */
   fun addFriendSource(style: Style, features: List<Feature>) {
     try {
       val featureCollection = FeatureCollection.fromFeatures(features)
@@ -211,6 +213,7 @@ object FriendMarkers {
     }
   }
 
+  /** Updates the friend marker source with new location data. */
   fun updateFriendSource(style: Style, features: List<Feature>) {
     try {
       if (style.styleSourceExists(FriendMarkerConfig.SOURCE_ID)) {
@@ -222,6 +225,7 @@ object FriendMarkers {
     }
   }
 
+  /** Adds a symbol layer for individual friend markers with per-user icons. */
   fun addFriendMarkerLayer(style: Style) {
     try {
       style.addLayer(
@@ -268,6 +272,7 @@ object FriendMarkers {
     }
   }
 
+  /** Clears all caches. Call when memory is low or user logs out. */
   fun clearCaches() {
     profileImageCache.evictAll()
     userDataCache.evictAll()
