@@ -41,27 +41,27 @@ class EventViewUnitTest {
     }
 
     // default repository to avoid real Firebase usage
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "unused"
 
           override suspend fun download(id: String): Uri = Uri.EMPTY
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
   }
 
   @Test
   fun eventView_shows_icon_when_image_download_fails() {
     // repo that errors on download
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "u"
 
           override suspend fun download(id: String): Uri = throw RuntimeException("fail")
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
 
     val event =
         Event.Public(
@@ -114,14 +114,14 @@ class EventViewUnitTest {
     val tmpFile = File(context.cacheDir, "event_test_img.png")
     tmpFile.outputStream().use { it.write(bytes) }
 
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "u"
 
           override suspend fun download(id: String): Uri = Uri.fromFile(tmpFile)
 
           override suspend fun delete(id: String) = Unit
-        }
+        })
 
     val event =
         Event.Public(

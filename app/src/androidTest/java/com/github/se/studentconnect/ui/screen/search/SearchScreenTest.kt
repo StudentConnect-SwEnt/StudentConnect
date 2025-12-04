@@ -30,7 +30,7 @@ class SearchScreenTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private suspend fun initUserRepository() {
-    UserRepositoryProvider.repository = UserRepositoryLocal()
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
 
     for (i in 1..10) {
       val uid = "user$i"
@@ -56,7 +56,7 @@ class SearchScreenTest {
   }
 
   private suspend fun initEventRepository() {
-    EventRepositoryProvider.repository = EventRepositoryLocal()
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
 
     for (i in 1..10) {
       val uid = "e$i"
@@ -81,7 +81,7 @@ class SearchScreenTest {
   }
 
   private suspend fun initOrganizationRepository() {
-    OrganizationRepositoryProvider.repository = OrganizationRepositoryLocal()
+    OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
 
     for (i in 1..10) {
       val id = "org$i"

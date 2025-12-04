@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.model.location
 
+import com.github.se.studentconnect.model.Repository
+
 /** Represents a repository that manages locations. */
-fun interface LocationRepository {
+fun interface LocationRepository : Repository {
   /**
    * Searches for locations that match the given query string.
    *

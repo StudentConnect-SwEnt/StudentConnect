@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.model.friends
 
+import com.github.se.studentconnect.model.Repository
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
  * This interface defines operations for reading and writing location data to Firebase Realtime
  * Database, allowing friends to see each other's live positions on the map.
  */
-interface FriendsLocationRepository {
+interface FriendsLocationRepository : Repository {
 
   /**
    * Observes the real-time locations of all friends for the given user.

@@ -35,7 +35,7 @@ class AddPictureScreenTest {
 
   @Before
   fun setUp() {
-    MediaRepositoryProvider.repository = NoopMediaRepository
+    MediaRepositoryProvider.overrideForTests(NoopMediaRepository)
     controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     viewModel = SignUpViewModel()
   }

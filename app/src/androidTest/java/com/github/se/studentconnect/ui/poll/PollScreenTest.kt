@@ -59,7 +59,7 @@ class PollScreenTest {
   fun setup() {
     pollRepository = PollRepositoryLocal()
     eventRepository = EventRepositoryLocal()
-    EventRepositoryProvider.repository = eventRepository
+    EventRepositoryProvider.overrideForTests(eventRepository)
 
     // Set default auth
     AuthenticationProvider.testUserId = testUserId

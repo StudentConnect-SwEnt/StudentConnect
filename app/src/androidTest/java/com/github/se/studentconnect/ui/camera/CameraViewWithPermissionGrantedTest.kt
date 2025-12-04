@@ -10,8 +10,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.rule.GrantPermissionRule
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.utils.StudentConnectTest
 import java.io.File
 import junit.framework.TestCase.assertTrue
@@ -26,11 +24,6 @@ class CameraViewWithPermissionGrantedTest : StudentConnectTest() {
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(android.Manifest.permission.CAMERA)
-
-  override fun createInitializedRepository(): EventRepository {
-    // Unused for camera tests but required by StudentConnectTest
-    return EventRepositoryProvider.repository
-  }
 
   @Test
   fun cameraView_rendersDefaultButton_whenPermissionGranted() {

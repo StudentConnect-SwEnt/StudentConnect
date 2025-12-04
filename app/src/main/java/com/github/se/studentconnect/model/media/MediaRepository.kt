@@ -3,12 +3,13 @@
 package com.github.se.studentconnect.model.media
 
 import android.net.Uri
+import com.github.se.studentconnect.model.Repository
 
 /**
  * Minimal abstraction for uploading, downloading, and deleting media files. Optionally allows
  * specifying a custom storage path.
  */
-interface MediaRepository {
+interface MediaRepository : Repository {
 
   /**
    * Upload a file.

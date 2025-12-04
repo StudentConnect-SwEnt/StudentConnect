@@ -32,7 +32,8 @@
     <string name="error_failed_to_save_birthday">Failed to save birthday</string>
     <string name="error_failed_to_load_birthday">Failed to load birthday</string>
     <string name="error_failed_to_remove_birthday">Failed to remove birthday</string>
-    
+    <string name="error_failed_to_load_events">Failed to load events: %s</string>
+
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
     <string name="success_university_updated">University updated successfully</string>
@@ -566,4 +567,5 @@
     <string name="date_format_pinned_event">dd MMM, yyyy</string>
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
 
+    <string name="anonymous">Anonymous</string>
 </resources>

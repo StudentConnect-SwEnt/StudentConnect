@@ -76,8 +76,8 @@ class MainActivityComposeTest {
     mockNotificationRepository = mockk(relaxed = true)
 
     // Set up repository - directly assign to the var property
-    UserRepositoryProvider.repository = mockUserRepository
-    NotificationRepositoryProvider.setRepository(mockNotificationRepository)
+    UserRepositoryProvider.overrideForTests(mockUserRepository)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
 
     // Mock repository methods
     coEvery { mockUserRepository.getUserById(any()) } returns null

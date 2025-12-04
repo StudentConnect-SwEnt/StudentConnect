@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.model.event
 
+import com.github.se.studentconnect.model.Repository
+
 /** Represents a repository that manages events. */
-interface EventRepository {
+interface EventRepository : Repository {
 
   /**
    * Generates and returns a new unique identifier for an event.

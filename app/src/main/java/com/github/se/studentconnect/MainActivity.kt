@@ -22,8 +22,6 @@ import androidx.navigation.navArgument
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
-import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -56,7 +54,6 @@ import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewM
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
@@ -75,10 +72,6 @@ class MainActivity : ComponentActivity() {
 
     // Initialize notification channels
     NotificationChannelManager.createNotificationChannels(this)
-
-    // Initialize notification repository
-    NotificationRepositoryProvider.setRepository(
-        NotificationRepositoryFirestore(FirebaseFirestore.getInstance()))
 
     // Schedule periodic event reminder worker (runs every 15 minutes)
     val eventReminderRequest =
