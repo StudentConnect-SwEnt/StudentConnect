@@ -37,6 +37,7 @@ data class EventUiState(
     val activePolls: List<Poll> = emptyList(),
     val showCreatePollDialog: Boolean = false,
     val showInviteFriendsDialog: Boolean = false,
+    val showLeaveConfirmDialog: Boolean = false,
     val friends: List<User> = emptyList(),
     val invitedFriendIds: Set<String> = emptySet(),
     val initialInvitedFriendIds: Set<String> = emptySet(),
@@ -205,6 +206,14 @@ class EventViewModel(
 
   fun hideCreatePollDialog() {
     _uiState.update { it.copy(showCreatePollDialog = false) }
+  }
+
+  fun showLeaveConfirmDialog() {
+    _uiState.update { it.copy(showLeaveConfirmDialog = true) }
+  }
+
+  fun hideLeaveConfirmDialog() {
+    _uiState.update { it.copy(showLeaveConfirmDialog = false) }
   }
 
   /** Opens the invite friends dialog and triggers loading the friend list + existing invites. */
