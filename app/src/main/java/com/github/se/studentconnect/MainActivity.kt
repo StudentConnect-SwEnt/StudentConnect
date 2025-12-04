@@ -355,7 +355,10 @@ internal fun MainAppContent(
                         onNavigateToFriendsList = { userId ->
                           navController.navigate(ProfileRoutes.friendsList(userId))
                         },
-                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) }))
+                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) },
+                        onNavigateToEventDetails = { eventId ->
+                          navController.navigate(Route.eventView(eventId, true))
+                        }))
           }
 
           // Joined Events Screen
