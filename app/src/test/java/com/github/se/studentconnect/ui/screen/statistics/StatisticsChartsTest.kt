@@ -31,47 +31,87 @@ class StatisticsChartsTest {
   // ===== UNIT TESTS FOR ALL HELPER FUNCTIONS =====
 
   @Test
-  fun calculateChartPoints_allBranches() {
-    // Empty
+  fun calculateChartPoints_conditionCoverage() {
+    // Condition 1: data.isEmpty() - TRUE
     assertTrue(calculateChartPoints(emptyList(), 100f, 100f, 10f).isEmpty())
 
-    // Single point (else branch for x)
+    // Condition 1: data.isEmpty() - FALSE (non-empty)
     val single = listOf(JoinRateData(Timestamp(Date()), 50, "D1"))
+    assertFalse(calculateChartPoints(single, 100f, 100f, 10f).isEmpty())
+
+    // Condition 2: data.size > 1 - FALSE (single point, else branch)
     assertEquals(50f, calculateChartPoints(single, 100f, 100f, 10f)[0].x, 0.1f)
 
-    // Multiple points (if branch for x)
+    // Condition 2: data.size > 1 - TRUE (multiple points, if branch)
     val multi =
         listOf(JoinRateData(Timestamp(Date()), 0, "D1"), JoinRateData(Timestamp(Date()), 100, "D2"))
     val result = calculateChartPoints(multi, 100f, 100f, 10f)
     assertEquals(0f, result[0].x, 0.1f)
     assertEquals(100f, result[1].x, 0.1f)
 
-    // Same values (coerceAtLeast)
+    // Condition 3: coerceAtLeast(1) - when maxValue == minValue (division would be 0)
     val same =
         listOf(JoinRateData(Timestamp(Date()), 10, "D1"), JoinRateData(Timestamp(Date()), 10, "D2"))
     assertEquals(2, calculateChartPoints(same, 100f, 100f, 10f).size)
+
+    // Condition 3: coerceAtLeast(1) - normal case (maxValue != minValue)
+    val different =
+        listOf(JoinRateData(Timestamp(Date()), 0, "D1"), JoinRateData(Timestamp(Date()), 100, "D2"))
+    assertEquals(2, calculateChartPoints(different, 100f, 100f, 10f).size)
   }
 
   @Test
-  fun createFillPath_allBranches() {
+  fun createFillPath_conditionCoverage() {
+    // Condition: points.isEmpty() - TRUE
     assertTrue(createFillPath(emptyList(), 100f).isEmpty)
+
+    // Condition: points.isEmpty() - FALSE (single point)
+    assertFalse(createFillPath(listOf(Offset(50f, 50f)), 100f).isEmpty)
+
+    // Condition: points.isEmpty() - FALSE (multiple points)
     assertFalse(createFillPath(listOf(Offset(0f, 50f), Offset(100f, 75f)), 100f).isEmpty)
+    assertFalse(
+        createFillPath(listOf(Offset(0f, 0f), Offset(50f, 50f), Offset(100f, 100f)), 100f).isEmpty)
   }
 
   @Test
-  fun createLinePath_allBranches() {
+  fun createLinePath_conditionCoverage() {
+    // Condition 1: points.isEmpty() - TRUE
     assertTrue(createLinePath(emptyList()).isEmpty)
+
+    // Condition 1: points.isEmpty() - FALSE, loop doesn't execute (size == 1)
     assertFalse(createLinePath(listOf(Offset(50f, 50f))).isEmpty)
+
+    // Condition 1: points.isEmpty() - FALSE, loop executes (size == 2)
+    assertFalse(createLinePath(listOf(Offset(0f, 0f), Offset(100f, 100f))).isEmpty)
+
+    // Condition 1: points.isEmpty() - FALSE, loop executes multiple times (size > 2)
     assertFalse(
         createLinePath(listOf(Offset(0f, 0f), Offset(50f, 50f), Offset(100f, 100f))).isEmpty)
   }
 
   @Test
-  fun shouldShowLabelAtIndex_allBranches() {
-    assertTrue(shouldShowLabelAtIndex(0, 10)) // First index
-    assertTrue(shouldShowLabelAtIndex(9, 10)) // Last index
-    assertTrue(shouldShowLabelAtIndex(2, 5)) // Small dataset (<=5)
-    assertFalse(shouldShowLabelAtIndex(5, 10)) // Middle in large dataset
+  fun shouldShowLabelAtIndex_conditionCoverage() {
+    // Condition: index == 0 || index == dataSize - 1 || dataSize <= MAX_LABELS(5)
+
+    // index == 0 TRUE (short-circuits)
+    assertTrue(shouldShowLabelAtIndex(0, 10))
+    assertTrue(shouldShowLabelAtIndex(0, 3))
+
+    // index == 0 FALSE, index == dataSize-1 TRUE
+    assertTrue(shouldShowLabelAtIndex(9, 10))
+    assertTrue(shouldShowLabelAtIndex(5, 6))
+
+    // index == 0 FALSE, index == dataSize-1 FALSE, dataSize <= 5 TRUE
+    assertTrue(shouldShowLabelAtIndex(2, 5))
+    assertTrue(shouldShowLabelAtIndex(1, 4))
+    assertTrue(shouldShowLabelAtIndex(2, 3))
+
+    // ALL FALSE: index != 0, index != last, dataSize > 5
+    assertFalse(shouldShowLabelAtIndex(3, 10))
+    assertFalse(shouldShowLabelAtIndex(5, 10))
+    assertFalse(shouldShowLabelAtIndex(1, 8))
+    assertFalse(shouldShowLabelAtIndex(4, 9))
   }
 
   @Test
@@ -89,18 +129,17 @@ class StatisticsChartsTest {
   }
 
   @Test
-  fun calculateDonutSweepAngle_allBranches() {
-    // Normal case
-    assertEquals(180f, calculateDonutSweepAngle(50f, 100f, 1f), 0.1f)
-
-    // With sweep multiplier
-    assertEquals(90f, calculateDonutSweepAngle(50f, 100f, 0.5f), 0.1f)
-
-    // Zero total (guard)
+  fun calculateDonutSweepAngle_conditionCoverage() {
+    // Condition: totalPercentage == 0f - TRUE (guard returns 0)
     assertEquals(0f, calculateDonutSweepAngle(50f, 0f, 1f), 0.1f)
+    assertEquals(0f, calculateDonutSweepAngle(0f, 0f, 1f), 0.1f)
+    assertEquals(0f, calculateDonutSweepAngle(100f, 0f, 0.5f), 0.1f)
 
-    // Full circle
+    // Condition: totalPercentage == 0f - FALSE (normal calculation)
+    assertEquals(180f, calculateDonutSweepAngle(50f, 100f, 1f), 0.1f)
+    assertEquals(90f, calculateDonutSweepAngle(50f, 100f, 0.5f), 0.1f)
     assertEquals(360f, calculateDonutSweepAngle(100f, 100f, 1f), 0.1f)
+    assertEquals(120f, calculateDonutSweepAngle(33.33f, 100f, 1f), 0.1f)
   }
 
   @Test
@@ -118,11 +157,25 @@ class StatisticsChartsTest {
   }
 
   @Test
-  fun isPointVisible_allBranches() {
-    assertTrue(isPointVisible(50f, 100f, 1f)) // Fully visible
-    assertTrue(isPointVisible(50f, 100f, 0.5f)) // At edge
-    assertFalse(isPointVisible(75f, 100f, 0.5f)) // Beyond progress
-    assertTrue(isPointVisible(0f, 100f, 0.1f)) // At start
+  fun isPointVisible_conditionCoverage() {
+    // Condition: pointX <= chartWidth * animatedProgress
+
+    // pointX < threshold (clearly TRUE)
+    assertTrue(isPointVisible(10f, 100f, 1f))
+    assertTrue(isPointVisible(0f, 100f, 0.5f))
+
+    // pointX == threshold (boundary TRUE)
+    assertTrue(isPointVisible(50f, 100f, 0.5f))
+    assertTrue(isPointVisible(100f, 100f, 1f))
+
+    // pointX > threshold (FALSE)
+    assertFalse(isPointVisible(51f, 100f, 0.5f))
+    assertFalse(isPointVisible(75f, 100f, 0.5f))
+    assertFalse(isPointVisible(100f, 100f, 0.5f))
+
+    // Edge: zero progress
+    assertTrue(isPointVisible(0f, 100f, 0f))
+    assertFalse(isPointVisible(1f, 100f, 0f))
   }
 
   @Test

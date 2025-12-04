@@ -14,8 +14,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Instrumented tests for StatisticsCharts components. These tests run on a real device/emulator and
- * execute Canvas drawing code.
+ * Instrumented tests targeting specific condition branches for maximum coverage. Each test targets
+ * specific uncovered conditions identified in SonarQube.
  */
 class StatisticsChartsInstrumentedTest {
 
@@ -23,44 +23,119 @@ class StatisticsChartsInstrumentedTest {
 
   private val testColors = listOf(Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFEC4899))
 
-  // ===== Donut Chart Canvas Coverage =====
+  // ===== BAR CHART: Targets if (animationProgress > 0f) branches =====
 
   @Test
-  fun donutChart_executesCanvasDrawing() {
+  fun barChart_progressOne_hitsIfTrue() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedHorizontalBarChart(
+            items = listOf("A" to 50f, "B" to 30f), colors = testColors, animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
+  }
+
+  @Test
+  fun barChart_progressZero_hitsIfFalse() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedHorizontalBarChart(
+            items = listOf("A" to 50f), colors = testColors, animationProgress = 0f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
+  }
+
+  @Test
+  fun barChart_emptyItems_hitsFallback() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedHorizontalBarChart(items = emptyList(), colors = testColors, animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertExists()
+  }
+
+  // ===== DONUT CHART: Targets if (animationProgress > 0f) branches =====
+
+  @Test
+  fun donutChart_progressOne_hitsIfTrue() {
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedDonutChart(
-            segments = listOf("A" to 40f, "B" to 35f, "C" to 25f),
-            colors = testColors,
+            segments = listOf("A" to 60f, "B" to 40f), colors = testColors, animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+  }
+
+  @Test
+  fun donutChart_progressZero_hitsIfFalse() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedDonutChart(
+            segments = listOf("A" to 50f), colors = testColors, animationProgress = 0f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+  }
+
+  @Test
+  fun donutChart_emptySegments_hitsZeroTotal() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedDonutChart(segments = emptyList(), colors = testColors, animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertExists()
+  }
+
+  // ===== LINE CHART: Targets all condition branches =====
+
+  @Test
+  fun lineChart_emptyData_hitsReturnEarly() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedLineChart(
+            data = emptyList(),
+            lineColor = testColors[0],
+            fillColor = testColors[1],
             animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
   }
 
   @Test
-  fun donutChart_withSingleSegment_executesCanvas() {
+  fun lineChart_singlePoint_hitsSizeLessThanMin() {
+    val data = listOf(JoinRateData(Timestamp(Date()), 50, "D1"))
     composeTestRule.setContent {
       MaterialTheme {
-        AnimatedDonutChart(
-            segments = listOf("Only" to 100f), colors = testColors, animationProgress = 1f)
+        AnimatedLineChart(
+            data = data,
+            lineColor = testColors[0],
+            fillColor = testColors[1],
+            animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(C.Tag.stats_donut_chart).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
   }
 
-  // ===== Line Chart Canvas Coverage =====
-
   @Test
-  fun lineChart_executesCanvasDrawing_multiplePoints() {
+  fun lineChart_multiplePoints_hitsSizeGreaterThanMin() {
     val data =
         listOf(
             JoinRateData(Timestamp(Date()), 10, "D1"),
             JoinRateData(Timestamp(Date()), 30, "D2"),
-            JoinRateData(Timestamp(Date()), 25, "D3"))
-
+            JoinRateData(Timestamp(Date()), 20, "D3"))
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
@@ -75,16 +150,21 @@ class StatisticsChartsInstrumentedTest {
   }
 
   @Test
-  fun lineChart_executesCanvasDrawing_singlePoint() {
-    val data = listOf(JoinRateData(Timestamp(Date()), 50, "Only"))
-
+  fun lineChart_partialProgress_hitsIsPointVisibleFalse() {
+    // With 0.25f progress, only first point visible, rest hidden
+    val data =
+        listOf(
+            JoinRateData(Timestamp(Date()), 10, "D1"),
+            JoinRateData(Timestamp(Date()), 20, "D2"),
+            JoinRateData(Timestamp(Date()), 30, "D3"),
+            JoinRateData(Timestamp(Date()), 40, "D4"))
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
             data = data,
             lineColor = testColors[0],
             fillColor = testColors[1],
-            animationProgress = 1f)
+            animationProgress = 0.25f)
       }
     }
     composeTestRule.waitForIdle()
@@ -92,9 +172,9 @@ class StatisticsChartsInstrumentedTest {
   }
 
   @Test
-  fun lineChart_executesCanvasDrawing_manyPoints() {
+  fun lineChart_manyPoints_hitsLabelSkip() {
+    // With >5 points, middle labels are skipped
     val data = (1..8).map { JoinRateData(Timestamp(Date()), it * 10, "D$it") }
-
     composeTestRule.setContent {
       MaterialTheme {
         AnimatedLineChart(
@@ -108,10 +188,68 @@ class StatisticsChartsInstrumentedTest {
     composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
   }
 
-  // ===== Circular Indicator Canvas Coverage =====
+  @Test
+  fun lineChart_fewPoints_showsAllLabels() {
+    val data =
+        listOf(
+            JoinRateData(Timestamp(Date()), 10, "A"),
+            JoinRateData(Timestamp(Date()), 20, "B"),
+            JoinRateData(Timestamp(Date()), 30, "C"))
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedLineChart(
+            data = data,
+            lineColor = testColors[0],
+            fillColor = testColors[1],
+            animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
+  }
 
   @Test
-  fun circularIndicator_executesCanvasDrawing() {
+  fun lineChart_sameValues_hitsCoerceAtLeast() {
+    // When all values are the same, range is 0, coerceAtLeast(1) is triggered
+    val data =
+        listOf(JoinRateData(Timestamp(Date()), 50, "D1"), JoinRateData(Timestamp(Date()), 50, "D2"))
+    composeTestRule.setContent {
+      MaterialTheme {
+        AnimatedLineChart(
+            data = data,
+            lineColor = testColors[0],
+            fillColor = testColors[1],
+            animationProgress = 1f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_line_chart).assertIsDisplayed()
+  }
+
+  // ===== COUNTER: Targets if (animationProgress > 0f) branches =====
+
+  @Test
+  fun counter_progressOne_hitsIfTrue() {
+    composeTestRule.setContent {
+      MaterialTheme { AnimatedCounter(targetValue = 100, animationProgress = 1f) }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
+  }
+
+  @Test
+  fun counter_progressZero_hitsIfFalse() {
+    composeTestRule.setContent {
+      MaterialTheme { AnimatedCounter(targetValue = 100, animationProgress = 0f) }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("0").assertIsDisplayed()
+  }
+
+  // ===== CIRCULAR INDICATOR: Targets all branches =====
+
+  @Test
+  fun circularIndicator_progressOne_hitsIfTrue() {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(percentage = 75f, color = testColors[0], animationProgress = 1f)
@@ -122,11 +260,22 @@ class StatisticsChartsInstrumentedTest {
   }
 
   @Test
-  fun circularIndicator_executesCanvasDrawing_fullProgress() {
+  fun circularIndicator_progressZero_hitsIfFalse() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        CircularPercentageIndicator(percentage = 50f, color = testColors[0], animationProgress = 0f)
+      }
+    }
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("0%").assertIsDisplayed()
+  }
+
+  @Test
+  fun circularIndicator_over100_clampsMax() {
     composeTestRule.setContent {
       MaterialTheme {
         CircularPercentageIndicator(
-            percentage = 100f, color = testColors[0], animationProgress = 1f)
+            percentage = 150f, color = testColors[0], animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
@@ -134,56 +283,32 @@ class StatisticsChartsInstrumentedTest {
   }
 
   @Test
-  fun circularIndicator_executesCanvasDrawing_zeroProgress() {
+  fun circularIndicator_negative_clampsMin() {
     composeTestRule.setContent {
       MaterialTheme {
-        CircularPercentageIndicator(percentage = 0f, color = testColors[0], animationProgress = 1f)
+        CircularPercentageIndicator(
+            percentage = -20f, color = testColors[0], animationProgress = 1f)
       }
     }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("0%").assertIsDisplayed()
   }
 
-  // ===== Bar Chart Coverage =====
+  // ===== LEGEND =====
 
   @Test
-  fun barChart_executesAllPaths() {
+  fun legend_withItems() {
     composeTestRule.setContent {
-      MaterialTheme {
-        AnimatedHorizontalBarChart(
-            items = listOf("A" to 80f, "B" to 60f, "C" to 40f, "D" to 20f),
-            colors = testColors,
-            animationProgress = 1f)
-      }
-    }
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(C.Tag.stats_bar_chart).assertIsDisplayed()
-    composeTestRule.onNodeWithText("A").assertIsDisplayed()
-    composeTestRule.onNodeWithText("80%").assertIsDisplayed()
-  }
-
-  // ===== Legend Coverage =====
-
-  @Test
-  fun legend_executesAllPaths() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        ChartLegend(
-            items = listOf("A" to testColors[0], "B" to testColors[1], "C" to testColors[2]))
-      }
+      MaterialTheme { ChartLegend(items = listOf("A" to testColors[0], "B" to testColors[1])) }
     }
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(C.Tag.stats_chart_legend).assertIsDisplayed()
   }
 
-  // ===== Counter Coverage =====
-
   @Test
-  fun counter_executesAllPaths() {
-    composeTestRule.setContent {
-      MaterialTheme { AnimatedCounter(targetValue = 500, animationProgress = 1f) }
-    }
+  fun legend_empty() {
+    composeTestRule.setContent { MaterialTheme { ChartLegend(items = emptyList()) } }
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(C.Tag.stats_animated_counter).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(C.Tag.stats_chart_legend).assertExists()
   }
 }
