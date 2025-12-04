@@ -138,5 +138,13 @@ object C {
     const val event_selection_loading = "event_selection_loading"
     const val event_selection_error = "event_selection_error"
     const val event_selection_card_prefix = "event_selection_card"
+
+    // Statistics chart component test tags
+    const val stats_bar_chart = "stats_bar_chart"
+    const val stats_donut_chart = "stats_donut_chart"
+    const val stats_line_chart = "stats_line_chart"
+    const val stats_chart_legend = "stats_chart_legend"
+    const val stats_animated_counter = "stats_animated_counter"
+    const val stats_circular_indicator = "stats_circular_indicator"
   }
 }
