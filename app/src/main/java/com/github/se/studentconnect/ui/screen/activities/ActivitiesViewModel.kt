@@ -12,6 +12,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Timestamp
 import java.util.Calendar
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +32,8 @@ class ActivitiesViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ActivitiesUiState())
   val uiState: StateFlow<ActivitiesUiState> = _uiState.asStateFlow()
+
+  private var refreshJob: Job? = null
 
   fun onTabSelected(tab: EventTab) {
     _uiState.update { it.copy(selectedTab = tab) }
@@ -82,113 +85,126 @@ class ActivitiesViewModel(
       return
     }
 
-    viewModelScope.launch {
-      _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+    refreshJob?.cancel()
 
-      val now = Timestamp.now()
-      val items: List<CarouselDisplayItem> =
-          when (uiState.value.selectedTab) {
-            EventTab.Upcoming -> {
-              val joinedEventIds = userRepository.getJoinedEvents(userUid)
+    refreshJob =
+        viewModelScope.launch {
+          val requestedTab = uiState.value.selectedTab
 
-              val allVisibleEvents =
-                  try {
-                    eventRepository.getAllVisibleEvents()
-                  } catch (e: Exception) {
-                    _uiState.update {
-                      it.copy(
-                          errorMessage = "Failed to load events: ${e.message ?: "Unknown error"}")
-                    }
-                    emptyList()
-                  }
+          _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-              val eventsFromAllVisible =
-                  allVisibleEvents.filter { ev ->
-                    ev.ownerId == userUid || joinedEventIds.contains(ev.uid)
-                  }
+          val now = Timestamp.now()
+          val items: List<CarouselDisplayItem> =
+              when (requestedTab) {
+                EventTab.Upcoming -> {
+                  val joinedEventIds = userRepository.getJoinedEvents(userUid)
 
-              val joinedOnlyIds =
-                  joinedEventIds.filterNot { id -> eventsFromAllVisible.any { it.uid == id } }
+                  val allVisibleEvents =
+                      try {
+                        eventRepository.getAllVisibleEvents()
+                      } catch (e: Exception) {
+                        _uiState.update {
+                          it.copy(
+                              errorMessage =
+                                  "Failed to load events: ${e.message ?: "Unknown error"}")
+                        }
+                        emptyList()
+                      }
 
-              val joinedEvents =
-                  joinedOnlyIds.mapNotNull { eventId ->
+                  val eventsFromAllVisible =
+                      allVisibleEvents.filter { ev ->
+                        ev.ownerId == userUid || joinedEventIds.contains(ev.uid)
+                      }
+
+                  val joinedOnlyIds =
+                      joinedEventIds.filterNot { id -> eventsFromAllVisible.any { it.uid == id } }
+
+                  val joinedEvents =
+                      joinedOnlyIds.mapNotNull { eventId ->
+                        try {
+                          eventRepository.getEvent(eventId)
+                        } catch (_: Exception) {
+                          null
+                        }
+                      }
+
+                  (eventsFromAllVisible + joinedEvents)
+                      .filter { event ->
+                        val endTime =
+                            event.end
+                                ?: run {
+                                  val cal = Calendar.getInstance()
+                                  cal.time = event.start.toDate()
+                                  cal.add(Calendar.HOUR_OF_DAY, 3)
+                                  Timestamp(cal.time)
+                                }
+                        endTime > now
+                      }
+                      .map { EventCarouselItem(it) }
+                }
+                EventTab.Invitations -> {
+                  val invitations = userRepository.getInvitations(userUid)
+                  invitations.mapNotNull { invitation ->
                     try {
-                      eventRepository.getEvent(eventId)
+                      val event = eventRepository.getEvent(invitation.eventId)
+                      val sender = userRepository.getUserById(invitation.from)
+                      InvitationCarouselItem(
+                          invitation = invitation,
+                          event = event,
+                          invitedBy = sender?.firstName ?: "Anonymous")
                     } catch (_: Exception) {
                       null
                     }
                   }
+                }
+                EventTab.Past -> {
+                  val joinedEvents = userRepository.getJoinedEvents(userUid)
 
-              val now = Timestamp.now()
-              (eventsFromAllVisible + joinedEvents)
-                  .filter { event ->
-                    val endTime =
-                        event.end
-                            ?: run {
-                              val cal = Calendar.getInstance()
-                              cal.time = event.start.toDate()
-                              cal.add(Calendar.HOUR_OF_DAY, 3)
-                              Timestamp(cal.time)
-                            }
-                    endTime > now
-                  }
-                  .map { EventCarouselItem(it) }
-            }
-            EventTab.Invitations -> {
-              val invitations = userRepository.getInvitations(userUid)
-              invitations.mapNotNull { invitation ->
-                try {
-                  val event = eventRepository.getEvent(invitation.eventId)
-                  val sender = userRepository.getUserById(invitation.from)
-                  InvitationCarouselItem(
-                      invitation = invitation,
-                      event = event,
-                      invitedBy = sender?.firstName ?: "Anonymous")
-                } catch (_: Exception) {
-                  null
+                  val allVisibleEvents =
+                      try {
+                        eventRepository.getAllVisibleEvents()
+                      } catch (e: Exception) {
+                        _uiState.update {
+                          it.copy(
+                              errorMessage =
+                                  "Failed to load events: ${e.message ?: "Unknown error"}")
+                        }
+                        emptyList()
+                      }
+                  val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
+
+                  val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
+
+                  allEventIds
+                      .mapNotNull { eventId ->
+                        try {
+                          eventRepository.getEvent(eventId)
+                        } catch (_: Exception) {
+                          null
+                        }
+                      }
+                      .filter { event ->
+                        val endTime =
+                            event.end
+                                ?: run {
+                                  val cal = Calendar.getInstance()
+                                  cal.time = event.start.toDate()
+                                  cal.add(Calendar.HOUR_OF_DAY, 3)
+                                  Timestamp(cal.time)
+                                }
+                        endTime <= now
+                      }
+                      .map { EventCarouselItem(it) }
                 }
               }
-            }
-            EventTab.Past -> {
-              val joinedEvents = userRepository.getJoinedEvents(userUid)
 
-              val allVisibleEvents =
-                  try {
-                    eventRepository.getAllVisibleEvents()
-                  } catch (e: Exception) {
-                    _uiState.update {
-                      it.copy(
-                          errorMessage = "Failed to load events: ${e.message ?: "Unknown error"}")
-                    }
-                    emptyList()
-                  }
-              val ownedEvents = allVisibleEvents.filter { it.ownerId == userUid }
-
-              val allEventIds = (joinedEvents + ownedEvents.map { it.uid }).distinct()
-
-              allEventIds
-                  .mapNotNull { eventId ->
-                    try {
-                      eventRepository.getEvent(eventId)
-                    } catch (_: Exception) {
-                      null
-                    }
-                  }
-                  .filter { event ->
-                    val endTime =
-                        event.end
-                            ?: run {
-                              val cal = Calendar.getInstance()
-                              cal.time = event.start.toDate()
-                              cal.add(Calendar.HOUR_OF_DAY, 3)
-                              Timestamp(cal.time)
-                            }
-                    endTime <= now
-                  }
-                  .map { EventCarouselItem(it) }
+          _uiState.update { currentState ->
+            if (currentState.selectedTab == requestedTab) {
+              currentState.copy(items = items, isLoading = false)
+            } else {
+              currentState
             }
           }
-      _uiState.update { it.copy(items = items, isLoading = false) }
-    }
+        }
   }
 }
