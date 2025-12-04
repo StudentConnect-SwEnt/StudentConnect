@@ -261,9 +261,9 @@ object FriendMarkers {
     scope.launch {
       friendLocations.forEach { (userId, location) ->
         try {
-          val user = userDataCache.get(userId) ?: userRepository.getUserById(userId)?.also {
-            userDataCache.put(userId, it)
-          }
+          val user =
+              userDataCache.get(userId)
+                  ?: userRepository.getUserById(userId)?.also { userDataCache.put(userId, it) }
           loadAndAddUserIcon(context, style, userId, user, location.isLive)
         } catch (e: Exception) {
           Log.e(TAG, "Error preloading data for friend $userId", e)

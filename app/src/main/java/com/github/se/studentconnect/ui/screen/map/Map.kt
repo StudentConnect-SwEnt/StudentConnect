@@ -268,9 +268,7 @@ internal fun SearchBar(
               unfocusedTextColor = MaterialTheme.colorScheme.onSurface))
 }
 
-/**
- * Map container with event/friend markers and user location tracking.
- */
+/** Map container with event/friend markers and user location tracking. */
 @Composable
 internal fun MapContainer(
     mapViewportState: MapViewportState,
@@ -437,9 +435,7 @@ internal fun MapContainer(
   }
 }
 
-/**
- * Map action buttons for location and view toggling.
- */
+/** Map action buttons for location and view toggling. */
 @Composable
 internal fun BoxScope.MapActionButtons(
     hasLocationPermission: Boolean,
@@ -485,9 +481,7 @@ internal fun BoxScope.MapActionButtons(
       }
 }
 
-/**
- * Event info card with callout pointer.
- */
+/** Event info card with callout pointer. */
 @Composable
 internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier = Modifier) {
   Column(
@@ -518,17 +512,17 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                       }
                     }
 
-                 Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
 
-                 if (event is Event.Public) {
+                if (event is Event.Public) {
                   Text(
                       text = event.subtitle,
                       style = MaterialTheme.typography.bodyMedium,
                       color = MaterialTheme.colorScheme.onSurfaceVariant)
-                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
-                 }
+                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                }
 
-                 event.location?.let { location ->
+                event.location?.let { location ->
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -541,10 +535,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface)
                   }
-                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
-                 }
+                  Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
+                }
 
-                 Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                   Icon(
                       imageVector = Icons.Default.AccessTime,
                       contentDescription = "Time",
@@ -554,10 +548,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                   Text(
                       text = formatTimestamp(event.start),
                       style = MaterialTheme.typography.bodyMedium,
-                       color = MaterialTheme.colorScheme.onSurface)
-                 }
+                      color = MaterialTheme.colorScheme.onSurface)
+                }
 
-                 event.maxCapacity?.let { capacity ->
+                event.maxCapacity?.let { capacity ->
                   Spacer(modifier = Modifier.height(Padding.VERTICAL_SPACING))
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -572,10 +566,10 @@ internal fun EventInfoCard(event: Event, onClose: () -> Unit, modifier: Modifier
                         color = MaterialTheme.colorScheme.onSurface)
                   }
                 }
-               }
-             }
+              }
+            }
 
-         Box(
+        Box(
             modifier =
                 Modifier.size(16.dp, 8.dp)
                     .background(
