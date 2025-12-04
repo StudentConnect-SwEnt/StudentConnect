@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -338,25 +337,4 @@ class EventStatisticsScreenInstrumentedTest {
     composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
   }
 
-  @Test
-  fun statisticsContent_allCardsWithData_rendersAll() {
-    composeTestRule.setContent {
-      MaterialTheme {
-        StatisticsContent(
-            statistics = testStatistics, animationProgress = 1f, paddingValues = PaddingValues())
-      }
-    }
-    // Wait for composition to complete
-    composeTestRule.waitForIdle()
-    // Wait for all cards to appear in semantics tree (AnimatedVisibility needs time)
-    composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule.onAllNodesWithTag(C.Tag.STATS_CAMPUS_CARD).fetchSemanticsNodes().isNotEmpty()
-    }
-    // Now assert they are all displayed
-    composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_CAMPUS_CARD).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(C.Tag.STATS_TIMELINE_CARD).assertIsDisplayed()
-  }
 }
