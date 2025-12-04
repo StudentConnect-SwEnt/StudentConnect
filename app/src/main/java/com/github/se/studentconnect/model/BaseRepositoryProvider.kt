@@ -8,8 +8,7 @@ import androidx.annotation.VisibleForTesting
  * - In production: exposes repo via `repository` (read-only).
  * - In tests: repo can be swapped via `overrideForTests`.
  */
-abstract class BaseRepositoryProvider<T : Repository>(defaultRepository: T) :
-    RepositoryProvider<T> {
+abstract class BaseRepositoryProvider<T : Repository> : RepositoryProvider<T> {
 
   /**
    * Factory for the default repository. Will only be called if no test override is set and someone
