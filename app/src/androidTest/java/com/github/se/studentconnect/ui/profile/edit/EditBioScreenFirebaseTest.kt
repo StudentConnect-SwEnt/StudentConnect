@@ -3,8 +3,6 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileConstants
@@ -29,9 +27,6 @@ import org.junit.Test
 class EditBioScreenFirebaseTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  override fun createInitializedRepository(): EventRepository =
-      EventRepositoryFirestore(FirebaseEmulator.firestore)
 
   private lateinit var userRepository: UserRepositoryFirestore
   private lateinit var testUser: User

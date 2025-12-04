@@ -7,7 +7,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -22,14 +24,16 @@ class ActivitiesScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  override fun createInitializedRepository() = EventRepositoryLocal()
-
   private lateinit var ownerId: String
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var activitiesViewModel: ActivitiesViewModel
+  private lateinit var repository: EventRepository
 
   @Before
   fun setup() {
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    repository = EventRepositoryProvider.repository
+
     ownerId = currentUser.uid
     userRepository = UserRepositoryLocal()
     activitiesViewModel = ActivitiesViewModel(repository, userRepository)

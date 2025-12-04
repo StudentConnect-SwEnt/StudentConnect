@@ -11,8 +11,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
@@ -56,10 +55,6 @@ class EndToEndTest : FirestoreStudentConnectTest() {
       GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private lateinit var scenario: ActivityScenario<MainActivity>
-
-  override fun createInitializedRepository(): EventRepository {
-    return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
-  }
 
   @NoAnonymousSignIn
   @Test
@@ -163,7 +158,8 @@ class EndToEndTest : FirestoreStudentConnectTest() {
   }
 
   private fun createEventMadeByOtherUser(eventTitle: String): String {
-    val eventUid = repository.getNewUid()
+    val eventRepository = EventRepositoryProvider.repository
+    val eventUid = eventRepository.getNewUid()
 
     runTest {
       val uniqueSuffix = System.currentTimeMillis()
@@ -178,7 +174,7 @@ class EndToEndTest : FirestoreStudentConnectTest() {
       val startDate = Date(System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000)
       val endDate = Date(startDate.time + 2L * 60 * 60 * 1000)
 
-      repository.addEvent(
+      eventRepository.addEvent(
           Event.Public(
               uid = eventUid,
               ownerId = currentUser.uid,

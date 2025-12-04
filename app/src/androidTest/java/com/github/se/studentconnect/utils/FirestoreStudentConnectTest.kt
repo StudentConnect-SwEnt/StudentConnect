@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.utils
 
 import android.util.Log
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore.Companion.EVENTS_COLLECTION_PATH
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.test.runTest
@@ -36,10 +34,6 @@ open class FirestoreStudentConnectTest : StudentConnectTest() {
 
     val count = getEventsCount()
     assert(count == 0) { "Test collection is not empty after clearing, count: ${count}" }
-  }
-
-  override fun createInitializedRepository(): EventRepository {
-    return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
   }
 
   @Before

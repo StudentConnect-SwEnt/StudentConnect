@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.utils.StudentConnectTest
@@ -11,8 +11,6 @@ import org.junit.Rule
 class HomeScreenEditEventTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  override fun createInitializedRepository() = EventRepositoryLocal()
 
   private lateinit var ownerId: String
   private lateinit var userRepository: UserRepositoryLocal
@@ -25,7 +23,7 @@ class HomeScreenEditEventTest : StudentConnectTest() {
     ownerId = currentUser.uid
     userRepository = UserRepositoryLocal()
     notificationRepository = NotificationRepositoryLocal()
-    homeViewModel = HomePageViewModel(repository, userRepository)
+    homeViewModel = HomePageViewModel(EventRepositoryProvider.repository, userRepository)
     notificationViewModel = NotificationViewModel(notificationRepository)
   }
 }

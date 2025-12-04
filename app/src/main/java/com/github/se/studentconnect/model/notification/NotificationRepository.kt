@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.model.notification
 
+import com.github.se.studentconnect.model.Repository
+
 /** Repository interface for managing notifications */
-interface NotificationRepository {
+interface NotificationRepository : Repository {
 
   /**
    * Gets all notifications for a user

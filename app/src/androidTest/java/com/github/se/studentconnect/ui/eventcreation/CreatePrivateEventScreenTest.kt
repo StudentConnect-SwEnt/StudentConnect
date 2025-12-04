@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import org.junit.Before
@@ -17,10 +18,9 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  override fun createInitializedRepository() = EventRepositoryLocal()
-
   @Before
   fun setUpContent() {
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
     composeTestRule.setContent { AppTheme { CreatePrivateEventScreen() } }
   }
 

@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.model.story
 
+import android.content.Context
 import android.net.Uri
+import com.github.se.studentconnect.model.Repository
 import com.github.se.studentconnect.model.event.Event
 
 /**
@@ -10,7 +12,7 @@ import com.github.se.studentconnect.model.event.Event
  * - Users who joined the event
  * - Friends of the story creator (even if they haven't joined the event)
  */
-interface StoryRepository {
+interface StoryRepository : Repository {
 
   /**
    * Gets all events that a user has joined.
@@ -26,9 +28,10 @@ interface StoryRepository {
    * @param fileUri The local URI of the media file to upload
    * @param eventId The event this story is linked to
    * @param userId The user creating the story
+   * @param context The application context
    * @return The created Story, or null if upload fails
    */
-  suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String): Story?
+  suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String, context: Context): Story?
 
   /**
    * Gets all stories for a specific event, filtering out expired stories.
