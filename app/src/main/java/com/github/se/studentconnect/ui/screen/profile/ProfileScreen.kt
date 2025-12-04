@@ -12,8 +12,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -67,8 +70,10 @@ fun ProfileScreen(
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    logout: () -> Unit = {},
 ) {
+  val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
   val eventsCount by viewModel.eventsCount.collectAsState()
@@ -92,7 +97,9 @@ fun ProfileScreen(
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
 
-  Scaffold(modifier = modifier) { paddingValues ->
+  Scaffold(
+      modifier = modifier,
+  ) { paddingValues ->
     when (val currentUser = user) {
       null -> {
         // Loading state
@@ -126,7 +133,8 @@ fun ProfileScreen(
                   onUserCardClick = {
                     navigationCallbacks.onNavigateToUserCard?.invoke()
                         ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                  })
+                  },
+                  onLogoutClick = logout)
             }
       }
     }

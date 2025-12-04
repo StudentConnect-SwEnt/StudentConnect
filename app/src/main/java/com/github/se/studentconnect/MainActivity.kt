@@ -231,7 +231,8 @@ private fun AppNavigationOrchestrator(
           selectedTab = selectedTab,
           onTabSelected = onTabSelected,
           shouldOpenQRScanner = shouldOpenQRScanner,
-          onQRScannerStateChange = onQRScannerStateChange)
+          onQRScannerStateChange = onQRScannerStateChange,
+          logout = { viewModel.onLogoutComplete() })
     }
   }
 }
@@ -255,7 +256,8 @@ internal fun MainAppContent(
     selectedTab: Tab,
     onTabSelected: (Tab) -> Unit,
     shouldOpenQRScanner: Boolean,
-    onQRScannerStateChange: (Boolean) -> Unit
+    onQRScannerStateChange: (Boolean) -> Unit,
+    logout: () -> Unit = {}
 ) {
   // Track whether camera mode selector is currently active to conditionally hide bottom nav
   var isCameraActive by remember { mutableStateOf(false) }
@@ -348,7 +350,8 @@ internal fun MainAppContent(
                         onNavigateToFriendsList = { userId ->
                           navController.navigate(ProfileRoutes.friendsList(userId))
                         },
-                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) }))
+                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) }),
+                logout = logout)
           }
 
           // Joined Events Screen

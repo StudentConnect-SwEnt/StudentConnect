@@ -17,21 +17,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
@@ -68,8 +77,10 @@ fun ProfileHeader(
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onUserCardClick: (() -> Unit)? = null,
+    onLogoutClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+  val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
@@ -87,6 +98,16 @@ fun ProfileHeader(
       }
 
   Column(modifier = modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.Start) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+      IconButton(
+          onClick = { showDialog.value = true },
+          colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = "Logout",
+            )
+          }
+    }
     // Top Row: Profile Picture + Stats
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -133,7 +154,6 @@ fun ProfileHeader(
         }
 
     Spacer(modifier = Modifier.height(16.dp))
-
     // User Name
     Text(
         text = user.getFullName(),
@@ -151,7 +171,8 @@ fun ProfileHeader(
           style = MaterialTheme.typography.bodyMedium,
           fontSize = 14.sp,
           color = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.fillMaxWidth())
+          // modifier = Modifier.fillMaxWidth()
+      )
 
       Spacer(modifier = Modifier.height(4.dp))
     }
@@ -225,6 +246,9 @@ fun ProfileHeader(
               Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
       }
+      if (showDialog.value) {
+        Logout(showDialog = showDialog, logOut = onLogoutClick)
+      }
     }
   }
 }
@@ -260,4 +284,38 @@ private fun StatItem(
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface)
       }
+}
+
+/**
+ * A logout confirmation dialog.
+ *
+ * @param showDialog Mutable state controlling the visibility of the dialog
+ * @param logOut Callback to execute on logout confirmation
+ */
+@Composable
+private fun Logout(showDialog: MutableState<Boolean>, logOut: () -> Unit) {
+  val buttonWidth = 80.dp
+  Dialog(onDismissRequest = { showDialog.value = false }) {
+    Box(
+        modifier =
+            Modifier.background(
+                    color = MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                .padding(8.dp)) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.text_logout_popup))
+            Spacer(Modifier.size(4.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.clipToBounds()) {
+                  Button(logOut, modifier = Modifier.width(buttonWidth)) {
+                    Text(stringResource(R.string.button_yes))
+                  }
+                  Spacer(Modifier.size(16.dp))
+                  Button({ showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
+                    Text(stringResource(R.string.button_no))
+                  }
+                }
+          }
+        }
+  }
 }
