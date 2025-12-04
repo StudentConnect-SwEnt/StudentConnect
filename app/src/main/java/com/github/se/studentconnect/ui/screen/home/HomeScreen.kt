@@ -105,12 +105,13 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.repository.UserRepositoryProvider
