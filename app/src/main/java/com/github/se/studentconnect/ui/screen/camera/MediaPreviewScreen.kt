@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,36 +30,70 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.exifinterface.media.ExifInterface
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.components.EventSelectionDropdown
+import com.github.se.studentconnect.ui.components.EventSelectionState
 import java.io.IOException
 
 private val ACTION_BUTTON_SIZE = 64.dp
 private val ACTION_ICON_SIZE = 32.dp
 private val ACTIONS_BOTTOM_PADDING = 32.dp
 private val ACTIONS_SPACING = 48.dp
+private val EVENT_SELECTOR_TOP_PADDING = 48.dp
+private val EVENT_SELECTOR_HORIZONTAL_PADDING = 24.dp
+private const val BUTTON_BACKGROUND_ALPHA = 0.2f
+private const val DISABLED_BUTTON_ALPHA = 0.4f
+private const val ENABLED_BUTTON_ALPHA = 0.8f
+private const val DISABLED_ICON_ALPHA = 0.5f
+
+/** Configuration for the event selection behaviour within the media preview. */
+data class EventSelectionConfig(
+    val state: EventSelectionState = EventSelectionState.Success(emptyList()),
+    val onLoadEvents: () -> Unit = {}
+)
 
 /**
  * Screen that displays a preview of captured photo or video with options to accept or retake.
  *
  * @param mediaUri The URI of the captured media
  * @param isVideo Whether the media is a video (true) or photo (false)
- * @param onAccept Callback when user accepts the media
+ * @param onAccept Callback when user accepts the media with selected event
  * @param onRetake Callback when user wants to retake
+ * @param eventSelectionConfig Configuration for loading and displaying joined events
  * @param modifier Modifier for the screen
  */
 @Composable
 fun MediaPreviewScreen(
     mediaUri: Uri,
     isVideo: Boolean,
-    onAccept: () -> Unit,
+    onAccept: (Event?) -> Unit,
     onRetake: () -> Unit,
-    modifier: Modifier = Modifier
+    eventSelectionConfig: EventSelectionConfig = EventSelectionConfig(),
+    modifier: Modifier = Modifier,
+    initialSelectedEvent: Event? = null
 ) {
+  var selectedEvent by remember { mutableStateOf<Event?>(initialSelectedEvent) }
+
   Box(modifier = modifier.fillMaxSize().background(Color.Black).testTag("media_preview_screen")) {
     if (isVideo) {
       VideoPreview(videoUri = mediaUri, modifier = Modifier.fillMaxSize())
     } else {
       PhotoPreview(imageUri = mediaUri, modifier = Modifier.fillMaxSize())
     }
+
+    // Event selection dropdown at top
+    EventSelectionDropdown(
+        state = eventSelectionConfig.state,
+        selectedEvent = selectedEvent,
+        onEventSelected = { selectedEvent = it },
+        onLoadEvents = eventSelectionConfig.onLoadEvents,
+        modifier =
+            Modifier.align(Alignment.TopCenter)
+                .padding(
+                    top = EVENT_SELECTOR_TOP_PADDING,
+                    start = EVENT_SELECTOR_HORIZONTAL_PADDING,
+                    end = EVENT_SELECTOR_HORIZONTAL_PADDING)
+                .testTag("media_preview_event_selector"))
 
     // Action buttons
     Row(
@@ -73,7 +108,7 @@ fun MediaPreviewScreen(
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          Color.White.copy(alpha = 0.2f),
+                          Color.White.copy(alpha = BUTTON_BACKGROUND_ALPHA),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_retake")) {
                 Icon(
@@ -83,19 +118,29 @@ fun MediaPreviewScreen(
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
 
-          // Accept button
+          // Accept button - disabled until an event is selected
+          val isAcceptEnabled = selectedEvent != null
           IconButton(
-              onClick = onAccept,
+              onClick = { if (isAcceptEnabled) onAccept(selectedEvent) },
+              enabled = isAcceptEnabled,
               modifier =
                   Modifier.size(ACTION_BUTTON_SIZE)
                       .background(
-                          Color(0xFF4CAF50).copy(alpha = 0.8f),
+                          if (isAcceptEnabled)
+                              MaterialTheme.colorScheme.primary.copy(alpha = ENABLED_BUTTON_ALPHA)
+                          else
+                              MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                  alpha = DISABLED_BUTTON_ALPHA),
                           shape = androidx.compose.foundation.shape.CircleShape)
                       .testTag("media_preview_accept")) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.content_description_accept),
-                    tint = Color.White,
+                    tint =
+                        if (isAcceptEnabled) MaterialTheme.colorScheme.onPrimary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                alpha = DISABLED_ICON_ALPHA),
                     modifier = Modifier.size(ACTION_ICON_SIZE))
               }
         }

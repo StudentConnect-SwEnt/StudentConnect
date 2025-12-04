@@ -516,4 +516,16 @@
     <string name="content_description_back_to_profile">Back to Profile</string>
     <string name="placeholder_search_events_joined">Search events…</string>
 
+    <!-- Event Selection for Stories -->
+    <string name="event_selection_button_label">Link to Event</string>
+    <string name="event_selection_title">Select an Event</string>
+    <string name="event_selection_empty">No joined events available</string>
+    <string name="event_selection_loading">Loading events…</string>
+    <string name="event_selection_error">Failed to load events</string>
+    <string name="event_selection_no_event">No event selected</string>
+    <string name="content_description_event_selection_button">Select event to link to story</string>
+    <string name="content_description_event_card_select">Select %s event</string>
+    <string name="content_description_close_event_selection">Close event selection</string>
+    <string name="content_description_selected_event_checkmark">Event selected</string>
+
 </resources>

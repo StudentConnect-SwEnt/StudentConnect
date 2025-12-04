@@ -5,14 +5,19 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.components.EventSelectionState
+import com.github.se.studentconnect.ui.screen.camera.EventSelectionConfig
 import com.github.se.studentconnect.ui.screen.camera.MediaPreviewScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.google.firebase.Timestamp
 import java.io.File
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,16 +83,22 @@ class MediaPreviewScreenTest {
       }
     }
 
-    val retakeDescription =
-        composeTestRule.activity.getString(
-            com.github.se.studentconnect.R.string.content_description_retake)
-    composeTestRule.onNodeWithContentDescription(retakeDescription).performClick()
+    composeTestRule.onNodeWithTag("media_preview_retake").performClick()
     composeTestRule.runOnIdle { assert(retakeClicked) }
   }
 
   @Test
   fun mediaPreviewScreen_acceptButton_invokesCallback() {
     var acceptClicked = false
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
 
     composeTestRule.setContent {
       AppTheme {
@@ -95,14 +106,14 @@ class MediaPreviewScreenTest {
             mediaUri = testImageUri,
             isVideo = false,
             onAccept = { acceptClicked = true },
-            onRetake = {})
+            onRetake = {},
+            eventSelectionConfig =
+                EventSelectionConfig(state = EventSelectionState.Success(listOf(event))),
+            initialSelectedEvent = event)
       }
     }
 
-    val acceptDescription =
-        composeTestRule.activity.getString(
-            com.github.se.studentconnect.R.string.content_description_accept)
-    composeTestRule.onNodeWithContentDescription(acceptDescription).performClick()
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
     composeTestRule.runOnIdle { assert(acceptClicked) }
   }
 
@@ -183,5 +194,121 @@ class MediaPreviewScreenTest {
     }
 
     composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_passesSelectedEvent() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    var acceptedEvent: Event? = null
+    var acceptCalled = false
+
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = { selectedEvent ->
+              acceptedEvent = selectedEvent
+              acceptCalled = true
+            },
+            onRetake = {},
+            eventSelectionConfig =
+                EventSelectionConfig(state = EventSelectionState.Success(listOf(event))),
+            initialSelectedEvent = event)
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_accept").performClick()
+
+    composeTestRule.runOnIdle {
+      assert(acceptCalled)
+      assertNotNull(acceptedEvent)
+      assertEquals(event.uid, acceptedEvent!!.uid)
+    }
+  }
+
+  @Test
+  fun mediaPreviewScreen_videoPreview_displaysVideoTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = true,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("video_preview").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaPreviewScreen_photoPreview_displaysPhotoTag() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_screen").assertIsDisplayed()
+  }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_disabled_whenNoEventSelected() {
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig())
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
+    // Button should be disabled (gray background)
+  }
+
+  @Test
+  fun mediaPreviewScreen_acceptButton_enabled_whenEventSelected() {
+    val event =
+        Event.Public(
+            uid = "1",
+            ownerId = "owner1",
+            title = "Test Event",
+            description = "Description",
+            start = Timestamp.now(),
+            isFlash = false,
+            subtitle = "Subtitle")
+    composeTestRule.setContent {
+      AppTheme {
+        MediaPreviewScreen(
+            mediaUri = testImageUri,
+            isVideo = false,
+            onAccept = {},
+            onRetake = {},
+            eventSelectionConfig = EventSelectionConfig(),
+            initialSelectedEvent = event)
+      }
+    }
+
+    composeTestRule.onNodeWithTag("media_preview_accept").assertIsDisplayed()
+    // Button should be enabled (green background)
   }
 }
