@@ -346,31 +346,9 @@ class EventStatisticsScreenInstrumentedTest {
             statistics = testStatistics, animationProgress = 1f, paddingValues = PaddingValues())
       }
     }
-    // Wait for all cards to be rendered - AnimatedVisibility enter animations need time
-    // Card animation duration is ~500ms, so wait for all cards with sufficient timeout
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      composeTestRule
-          .onAllNodesWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD)
-          .fetchSemanticsNodes()
-          .isNotEmpty() &&
-          composeTestRule
-              .onAllNodesWithTag(C.Tag.STATS_FOLLOWERS_CARD)
-              .fetchSemanticsNodes()
-              .isNotEmpty() &&
-          composeTestRule
-              .onAllNodesWithTag(C.Tag.STATS_AGE_CARD)
-              .fetchSemanticsNodes()
-              .isNotEmpty() &&
-          composeTestRule
-              .onAllNodesWithTag(C.Tag.STATS_CAMPUS_CARD)
-              .fetchSemanticsNodes()
-              .isNotEmpty() &&
-          composeTestRule
-              .onAllNodesWithTag(C.Tag.STATS_TIMELINE_CARD)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
-    }
-    // Now assert they are all displayed
+    // Wait for composition and animations to complete
+    composeTestRule.waitForIdle()
+    // assertIsDisplayed automatically waits for nodes to appear, so we can assert directly
     composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(C.Tag.STATS_AGE_CARD).assertIsDisplayed()
