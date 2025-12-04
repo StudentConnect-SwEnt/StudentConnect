@@ -56,7 +56,7 @@ class SearchScreenTest {
   }
 
   private suspend fun initEventRepository() {
-    EventRepositoryProvider.repository = EventRepositoryLocal()
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
 
     for (i in 1..10) {
       val uid = "e$i"

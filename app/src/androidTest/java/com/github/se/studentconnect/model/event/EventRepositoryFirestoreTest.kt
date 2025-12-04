@@ -29,6 +29,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
   private val userRepository: UserRepository
     get() = UserRepositoryProvider.repository
 
+  private val repository: EventRepository
+    get() = EventRepositoryProvider.repository
+
   private var ownerId = ""
   private var participantId = ""
   private var invitedId = ""
