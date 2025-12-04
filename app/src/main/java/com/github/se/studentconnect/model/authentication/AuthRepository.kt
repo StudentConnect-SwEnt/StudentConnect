@@ -1,10 +1,11 @@
 package com.github.se.studentconnect.model.authentication
 
 import androidx.credentials.Credential
+import com.github.se.studentconnect.model.Repository
 import com.google.firebase.auth.FirebaseUser
 
 /** Handles authentication operations such as signing in with Google and signing out. */
-interface AuthRepository {
+interface AuthRepository : Repository {
 
   /**
    * Signs in the user using a Google account through the Credential Manager API.

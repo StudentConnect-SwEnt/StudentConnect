@@ -1,12 +1,14 @@
 package com.github.se.studentconnect.model.organization
 
+import com.github.se.studentconnect.model.Repository
+
 /**
  * Repository interface for Organization operations.
  *
  * This interface defines the contract for organization data operations, allowing for different
  * implementations (e.g., Firestore, local database, mock for testing).
  */
-interface OrganizationRepository {
+interface OrganizationRepository : Repository {
   /**
    * Creates or updates an organization in the database.
    *

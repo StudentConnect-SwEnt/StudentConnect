@@ -1,11 +1,13 @@
 package com.github.se.studentconnect.model.poll
 
+import com.github.se.studentconnect.model.Repository
+
 /**
  * Repository interface for managing polls and votes.
  *
  * Polls are stored as subcollections under event documents in Firestore: events/{eventUid}/polls
  */
-interface PollRepository {
+interface PollRepository : Repository {
 
   /**
    * Generates and returns a new unique identifier for a poll.

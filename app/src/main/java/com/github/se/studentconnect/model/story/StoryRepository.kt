@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.model.story
 
 import android.net.Uri
+import com.github.se.studentconnect.model.Repository
 import com.github.se.studentconnect.model.event.Event
 
 /**
@@ -10,7 +11,7 @@ import com.github.se.studentconnect.model.event.Event
  * - Users who joined the event
  * - Friends of the story creator (even if they haven't joined the event)
  */
-interface StoryRepository {
+interface StoryRepository : Repository {
 
   /**
    * Gets all events that a user has joined.

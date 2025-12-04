@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.model.friends
 
+import com.github.se.studentconnect.model.Repository
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
  * This interface defines the contract for friend management operations, allowing for different
  * implementations (e.g., Firestore, local database, mock for testing).
  */
-interface FriendsRepository {
+interface FriendsRepository : Repository {
 
   /**
    * Retrieves the list of friend IDs for a given user.

@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.model.user
 
 import android.util.Log
+import com.github.se.studentconnect.model.Repository
 import com.github.se.studentconnect.model.activities.Invitation
 
 /**
@@ -9,7 +10,7 @@ import com.github.se.studentconnect.model.activities.Invitation
  * This interface defines the contract for user data operations, allowing for different
  * implementations (e.g., Firestore, local database, mock for testing).
  */
-interface UserRepository {
+interface UserRepository : Repository {
 
   suspend fun leaveEvent(eventId: String, userId: String)
   /**
