@@ -63,7 +63,7 @@ class ProfileHeaderAndroidTest {
     // Verify buttons
     composeTestRule.onNodeWithText("Edit").assertIsDisplayed()
     composeTestRule.onNodeWithText("Card").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Logout").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Logout").assertIsDisplayed()
     composeTestRule.onNodeWithText("Yes").assertIsNotDisplayed()
     composeTestRule.onNodeWithText("No").assertIsNotDisplayed()
     composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsNotDisplayed()
@@ -360,7 +360,7 @@ class ProfileHeaderAndroidTest {
     }
 
     // Click the Logout button
-    composeTestRule.onNodeWithText("Logout").performClick()
+    composeTestRule.onNodeWithContentDescription("Logout").performClick()
 
     // Verify that the confirmation dialog appears
     composeTestRule.onNodeWithText("Are you sure you want to logout?").assertIsDisplayed()
@@ -379,7 +379,7 @@ class ProfileHeaderAndroidTest {
     }
 
     // Click the Logout button
-    composeTestRule.onNodeWithText("Logout").performClick()
+    composeTestRule.onNodeWithContentDescription("Logout").performClick()
 
     // Click the No button to cancel logout
     composeTestRule.onNodeWithText("No").performClick()
@@ -403,7 +403,7 @@ class ProfileHeaderAndroidTest {
     }
 
     // Click the Logout button
-    composeTestRule.onNodeWithText("Logout").performClick()
+    composeTestRule.onNodeWithContentDescription("Logout").performClick()
     // Click the Yes button to confirm logout
     composeTestRule.onNodeWithText("Yes").performClick()
     // Verify that the logout was confirmed

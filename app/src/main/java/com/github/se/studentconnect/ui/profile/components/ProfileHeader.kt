@@ -21,10 +21,13 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -141,14 +144,27 @@ fun ProfileHeader(
         }
 
     Spacer(modifier = Modifier.height(16.dp))
-
-    // User Name
-    Text(
-        text = user.getFullName(),
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        color = MaterialTheme.colorScheme.onSurface)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      // User Name
+      Text(
+          text = user.getFullName(),
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.Bold,
+          fontSize = 20.sp,
+          color = MaterialTheme.colorScheme.onSurface)
+      IconButton(
+          onClick = { showDialog.value = true },
+          colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
+          modifier = Modifier.size(24.dp)) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = "Logout",
+            )
+          }
+    }
 
     Spacer(modifier = Modifier.height(4.dp))
 
@@ -159,7 +175,8 @@ fun ProfileHeader(
           style = MaterialTheme.typography.bodyMedium,
           fontSize = 14.sp,
           color = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.fillMaxWidth())
+          // modifier = Modifier.fillMaxWidth()
+      )
 
       Spacer(modifier = Modifier.height(4.dp))
     }
@@ -233,24 +250,9 @@ fun ProfileHeader(
               Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
       }
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-    Button(
-        { showDialog.value = true },
-        modifier = Modifier.height(48.dp).fillMaxWidth(),
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError)) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.Logout,
-              contentDescription = "Logout",
-              modifier = Modifier.size(20.dp))
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(stringResource(R.string.button_logout))
-        }
-    if (showDialog.value) {
-      Logout(showDialog = showDialog, logOut = onLogoutClick)
+      if (showDialog.value) {
+        Logout(showDialog = showDialog, logOut = onLogoutClick)
+      }
     }
   }
 }
