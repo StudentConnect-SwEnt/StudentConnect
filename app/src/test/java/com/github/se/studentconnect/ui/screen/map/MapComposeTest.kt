@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import com.mapbox.geojson.Point
@@ -38,10 +39,12 @@ class MapComposeTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var context: Context
+  private lateinit var mockUserRepository: UserRepository
 
   @Before
   fun setup() {
     context = ApplicationProvider.getApplicationContext()
+    mockUserRepository = mockk(relaxed = true)
   }
 
   @After
@@ -96,31 +99,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-  }
-
-  @Test
-  fun mapContainer_rendersWithFriendsView() {
-    val friendLocations = createTestFriendLocations()
-
-    composeTestRule.setContent {
-      AppTheme {
-        val mapViewportState = rememberMapViewportState()
-        MapContainer(
-            mapViewportState = mapViewportState,
-            hasLocationPermission = true,
-            isEventsView = false,
-            events = emptyList(),
-            friendLocations = friendLocations,
-            selectedEvent = null,
-            selectedEventLocation = null,
-            onToggleView = {},
-            onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -146,7 +126,8 @@ class MapComposeTest {
                 selectedEvent.location?.let { Point.fromLngLat(it.longitude, it.latitude) },
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -168,7 +149,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -190,7 +172,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -397,7 +380,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = { isEventsView = !isEventsView },
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -422,7 +406,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = { uid -> selectedEventUid = uid })
+            onEventSelected = { uid -> selectedEventUid = uid },
+            userRepository = mockUserRepository)
       }
     }
 

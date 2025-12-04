@@ -49,21 +49,8 @@ class FriendMarkersTest {
     verify(exactly = 0) { mockStyle.removeStyleSource(any()) }
   }
 
-  @Test
-  fun addFriendMarkerIcon_addsIconWhenNotExists() {
-    every { mockStyle.hasStyleImage(FriendMarkerConfig.ICON_ID) } returns false
-    FriendMarkers.addFriendMarkerIcon(mockContext, mockStyle)
-    verify { ContextCompat.getDrawable(mockContext, R.drawable.ic_map_friends) }
-    verify { mockDrawable.setTint(any()) }
-    verify { mockStyle.addImage(FriendMarkerConfig.ICON_ID, any<android.graphics.Bitmap>()) }
-  }
-
-  @Test
-  fun addFriendMarkerIcon_doesNotAddWhenExists() {
-    every { mockStyle.hasStyleImage(FriendMarkerConfig.ICON_ID) } returns true
-    FriendMarkers.addFriendMarkerIcon(mockContext, mockStyle)
-    verify(exactly = 0) { mockStyle.addImage(any(), any<android.graphics.Bitmap>()) }
-  }
+  // Note: addFriendMarkerIcon was removed in favor of per-user profile image icons
+  // Icon loading is now handled by preloadFriendData() which loads profile images asynchronously
 
   @Test
   fun createFriendFeatures_createsCorrectNumberOfFeatures() {
