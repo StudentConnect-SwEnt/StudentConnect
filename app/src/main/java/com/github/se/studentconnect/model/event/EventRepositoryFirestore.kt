@@ -468,7 +468,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     // Calculate campus distribution
     val campusGroups = mutableMapOf<String, Int>()
     userDataList.forEach { (_, university, _) ->
-      val campus = university ?: "Unknown"
+      val campus = university ?: AgeGroups.UNKNOWN  // UI layer maps to R.string.stats_unknown_campus
       campusGroups[campus] = (campusGroups[campus] ?: 0) + 1
     }
 

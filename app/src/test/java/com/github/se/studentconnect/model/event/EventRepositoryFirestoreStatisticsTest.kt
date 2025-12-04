@@ -116,7 +116,7 @@ class EventRepositoryFirestoreStatisticsTest {
         assertEquals(2, epflData?.count)
         assertEquals(50f, epflData?.percentage)
         
-        val unknownCampus = result.campusDistribution.find { it.campusName == "Unknown" }
+        val unknownCampus = result.campusDistribution.find { it.campusName == AgeGroups.UNKNOWN }
         assertEquals(1, unknownCampus?.count)
 
         assertTrue(result.joinRateOverTime.isNotEmpty())
