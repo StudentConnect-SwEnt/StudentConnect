@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,14 +53,13 @@ fun CameraModeSelectorScreen(
     modifier: Modifier = Modifier,
     initialMode: CameraMode = CameraMode.QR_SCAN
 ) {
-  val context = LocalContext.current
   val pagerState =
       rememberPagerState(initialPage = initialMode.ordinal, pageCount = { CameraMode.entries.size })
   val coroutineScope = rememberCoroutineScope()
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
 
   // ViewModel for managing event selection state
-  val storyRepository = StoryRepositoryProvider.getRepository(context)
+  val storyRepository = StoryRepositoryProvider.repository
   val viewModel: CameraModeSelectorViewModel =
       viewModel(factory = CameraModeSelectorViewModelFactory(storyRepository))
   val eventSelectionState by viewModel.eventSelectionState.collectAsState()

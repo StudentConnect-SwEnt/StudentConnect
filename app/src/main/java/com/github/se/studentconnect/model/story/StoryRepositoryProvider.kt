@@ -1,6 +1,6 @@
 package com.github.se.studentconnect.model.story
 
-import android.content.Context
+import com.github.se.studentconnect.model.BaseRepositoryProvider
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
@@ -12,13 +12,11 @@ import com.google.firebase.firestore.firestore
  *
  * Uses Firestore implementation for production.
  */
-object StoryRepositoryProvider {
-  fun getRepository(context: Context): StoryRepository {
-    return StoryRepositoryFirestore(
-        db = Firebase.firestore,
-        mediaRepository = MediaRepositoryProvider.repository,
-        userRepository = UserRepositoryProvider.repository,
-        eventRepository = EventRepositoryProvider.repository,
-        context = context)
-  }
+object StoryRepositoryProvider : BaseRepositoryProvider<StoryRepository>() {
+  override fun getCurrentRepository() =
+      StoryRepositoryFirestore(
+          db = Firebase.firestore,
+          mediaRepository = MediaRepositoryProvider.repository,
+          userRepository = UserRepositoryProvider.repository,
+          eventRepository = EventRepositoryProvider.repository)
 }
