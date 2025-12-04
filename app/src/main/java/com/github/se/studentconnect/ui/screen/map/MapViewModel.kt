@@ -10,9 +10,9 @@ import com.github.se.studentconnect.model.friends.FriendsLocationRepository
 import com.github.se.studentconnect.model.friends.FriendsLocationRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.repository.LocationConfig
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationResult
+import com.github.se.studentconnect.model.map.LocationConfig
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationResult
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.mapbox.geojson.Point
@@ -116,11 +116,14 @@ class MapViewModel(
     viewModelScope.launch {
       try {
         val events = eventRepository.getAllVisibleEvents()
-        val eventsWithLocation = events.filter { it.location != null }
+        val currentTime = com.google.firebase.Timestamp.now()
+        val futureEvents =
+            events.filter { event -> event.end?.let { it.seconds >= currentTime.seconds } ?: true }
+        val eventsWithLocation = futureEvents.filter { it.location != null }
         android.util.Log.d(
             "MapViewModel",
-            "Loaded ${events.size} events, ${eventsWithLocation.size} have locations")
-        _uiState.value = _uiState.value.copy(events = events)
+            "Loaded ${events.size} events, ${futureEvents.size} are future, ${eventsWithLocation.size} have locations")
+        _uiState.value = _uiState.value.copy(events = futureEvents)
       } catch (e: Exception) {
         android.util.Log.e("MapViewModel", "Failed to load events", e)
         _uiState.value = _uiState.value.copy(errorMessage = "Failed to load events: ${e.message}")

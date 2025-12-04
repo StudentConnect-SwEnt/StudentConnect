@@ -3,9 +3,9 @@
 package com.github.se.studentconnect.model.event
 
 import android.util.Log
+import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
@@ -246,6 +246,20 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return getAllVisibleEvents().filter(predicate)
   }
 
+  override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+    val querySnapshot =
+        db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("ownerId", organizationId).get().await()
+
+    return querySnapshot.documents.mapNotNull { doc ->
+      try {
+        eventFromDocumentSnapshot(doc)
+      } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Failed to parse event for organization", e)
+        null
+      }
+    }
+  }
+
   override suspend fun getEvent(eventUid: String): Event {
     val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
     val documentSnapshot = getEventDocument(eventUid)
@@ -401,5 +415,134 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
             .document(participantUid)
 
     participantRef.delete().await()
+  }
+
+  override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    val participants = getEventParticipants(eventUid)
+    val totalAttendees = participants.size
+
+    // Fetch user data in batches using whereIn (max 30 IDs per query)
+    val participantMap = participants.associateBy { it.uid }
+    val userDataList = mutableListOf<Triple<String?, String?, com.google.firebase.Timestamp?>>()
+
+    participants
+        .map { it.uid }
+        .chunked(30)
+        .forEach { uidBatch ->
+          try {
+            val querySnapshot =
+                db.collection("users")
+                    .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uidBatch)
+                    .get()
+                    .await()
+
+            querySnapshot.documents.forEach { doc ->
+              val joinedAt = participantMap[doc.id]?.joinedAt
+              userDataList.add(
+                  Triple(doc.getString("birthday"), doc.getString("university"), joinedAt))
+            }
+          } catch (e: Exception) {
+            Log.e("EventRepositoryFirestore", "Error fetching user batch", e)
+          }
+        }
+
+    // Calculate age distribution
+    val ageGroups = mutableMapOf<String, Int>()
+    AgeGroups.all.forEach { ageGroups[it] = 0 }
+    ageGroups[AgeGroups.UNKNOWN] = 0
+
+    userDataList.forEach { (birthday, _, _) ->
+      val age = AgeGroups.calculateAge(birthday)
+      val group = AgeGroups.getAgeGroup(age)
+      ageGroups[group] = (ageGroups[group] ?: 0) + 1
+    }
+
+    val ageDistribution =
+        ageGroups
+            .filter { it.value > 0 }
+            .map { (range, count) ->
+              AgeGroupData(
+                  ageRange = range,
+                  count = count,
+                  percentage =
+                      if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f)
+            }
+            .sortedByDescending { it.count }
+
+    // Calculate campus distribution
+    val campusGroups = mutableMapOf<String, Int>()
+    userDataList.forEach { (_, university, _) ->
+      val campus = university ?: AgeGroups.UNKNOWN // UI layer maps to R.string.stats_unknown_campus
+      campusGroups[campus] = (campusGroups[campus] ?: 0) + 1
+    }
+
+    val campusDistribution =
+        campusGroups
+            .map { (name, count) ->
+              CampusData(
+                  campusName = name,
+                  count = count,
+                  percentage =
+                      if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f)
+            }
+            .sortedByDescending { it.count }
+
+    // Calculate join rate over time
+    val joinRateOverTime = calculateJoinRateOverTime(participants)
+
+    // Calculate attendees/followers rate
+    val attendeesFollowersRate =
+        if (followerCount > 0) {
+          (totalAttendees.toFloat() / followerCount) * 100f
+        } else {
+          0f
+        }
+
+    return EventStatistics(
+        eventId = eventUid,
+        totalAttendees = totalAttendees,
+        ageDistribution = ageDistribution,
+        campusDistribution = campusDistribution,
+        joinRateOverTime = joinRateOverTime,
+        followerCount = followerCount,
+        attendeesFollowersRate = attendeesFollowersRate)
+  }
+
+  /** Calculates the join rate over time, grouping registrations by day. */
+  private fun calculateJoinRateOverTime(participants: List<EventParticipant>): List<JoinRateData> {
+    if (participants.isEmpty()) return emptyList()
+
+    // Sort by join time
+    val sorted = participants.filter { it.joinedAt != null }.sortedBy { it.joinedAt!!.seconds }
+
+    if (sorted.isEmpty()) return emptyList()
+
+    // Group by day and calculate cumulative joins
+    val calendar = java.util.Calendar.getInstance()
+    val dayFormat = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
+    val joinsByDay = mutableListOf<JoinRateData>()
+    var cumulative = 0
+
+    val dayGrouped =
+        sorted.groupBy { participant ->
+          calendar.timeInMillis = participant.joinedAt!!.seconds * 1000
+          calendar[java.util.Calendar.HOUR_OF_DAY] = 0
+          calendar[java.util.Calendar.MINUTE] = 0
+          calendar[java.util.Calendar.SECOND] = 0
+          calendar[java.util.Calendar.MILLISECOND] = 0
+          calendar.timeInMillis
+        }
+
+    dayGrouped.toSortedMap().forEach { (dayMillis, dayParticipants) ->
+      cumulative += dayParticipants.size
+      calendar.timeInMillis = dayMillis
+      joinsByDay.add(
+          JoinRateData(
+              timestamp = com.google.firebase.Timestamp(java.util.Date(dayMillis)),
+              cumulativeJoins = cumulative,
+              label = dayFormat.format(java.util.Date(dayMillis))))
+    }
+
+    return joinsByDay
   }
 }

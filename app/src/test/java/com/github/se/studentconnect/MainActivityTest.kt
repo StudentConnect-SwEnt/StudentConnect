@@ -9,6 +9,7 @@ import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import com.google.firebase.FirebaseApp
@@ -60,7 +61,7 @@ class MainActivityTest {
     NotificationRepositoryProvider.setRepository(mockNotificationRepo)
 
     // Setup UserRepositoryProvider with mock (it uses a property, not a setter method)
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     // UserRepositoryProvider.repository is already initialized, we can use it as-is
   }
 
@@ -391,7 +392,7 @@ class MainActivityTest {
 
   @Test
   fun mainViewModel_checkInitialAuthState_withNoUser_goesToAuthentication() {
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     val viewModel = MainViewModel(mockUserRepo)
 
     viewModel.checkInitialAuthState()
@@ -406,7 +407,7 @@ class MainActivityTest {
 
   @Test
   fun mainViewModel_onUserSignedIn_updatesState() {
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     val viewModel = MainViewModel(mockUserRepo)
 
     coEvery { mockUserRepo.getUserById(any()) } returns null
@@ -423,7 +424,7 @@ class MainActivityTest {
 
   @Test
   fun mainViewModel_onUserProfileCreated_updatesState() {
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     val viewModel = MainViewModel(mockUserRepo)
 
     viewModel.onUserProfileCreated()
@@ -434,7 +435,7 @@ class MainActivityTest {
 
   @Test
   fun mainViewModelFactory_createsViewModel() {
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     val factory = MainViewModelFactory(mockUserRepo)
 
     val viewModel = factory.create(MainViewModel::class.java)
@@ -445,7 +446,7 @@ class MainActivityTest {
 
   @Test
   fun mainViewModel_uiState_canBeObserved() {
-    val mockUserRepo = mockk<com.github.se.studentconnect.repository.UserRepository>(relaxed = true)
+    val mockUserRepo = mockk<UserRepository>(relaxed = true)
     val viewModel = MainViewModel(mockUserRepo)
 
     val state = viewModel.uiState.value

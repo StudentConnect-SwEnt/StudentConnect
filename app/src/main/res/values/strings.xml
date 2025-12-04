@@ -172,7 +172,9 @@
     <string name="content_description_upload_photo">Upload photo</string>
     <string name="content_description_owner">Owner</string>
     <string name="content_description_accept">Accept</string>
+    <string name="content_description_retake">Retake</string>
     <string name="content_description_decline">Decline</string>
+    <string name="content_description_captured_photo">Captured photo</string>
     <string name="content_description_center_on_my_location">Center on my location</string>
     <string name="content_description_public_event">Public Event</string>
     <string name="content_description_private_event">Private Event</string>
@@ -505,6 +507,41 @@
     <string name="title_my_events">My Events</string>
     <string name="content_description_back_to_profile">Back to Profile</string>
     <string name="placeholder_search_events_joined">Search events…</string>
+
+    <!-- Event Statistics Screen -->
+    <string name="stats_screen_title">Event Statistics</string>
+    <string name="stats_total_attendees">Total Attendees</string>
+    <string name="stats_age_distribution">Age Distribution</string>
+    <string name="stats_campus_distribution">Campus Distribution</string>
+    <string name="stats_join_rate">Registration Timeline</string>
+    <string name="stats_attendees_followers">Attendees / Followers</string>
+    <string name="stats_registrations">registrations</string>
+    <string name="stats_of_followers">of followers</string>
+    <string name="stats_followers">followers</string>
+    <string name="stats_attendees">attendees</string>
+    <string name="stats_no_data">No data available</string>
+    <string name="stats_loading">Loading statistics…</string>
+    <string name="stats_error_loading">Failed to load statistics</string>
+    <string name="stats_retry">Retry</string>
+    <string name="stats_people">people</string>
+    <string name="stats_person">person</string>
+    <string name="stats_unknown_campus">Unknown</string>
+    <string name="stats_unknown_age">Unknown</string>
+    <string name="content_description_stats_chart">Statistics chart</string>
+    <string name="content_description_stats_card">Statistics card</string>
+    <string name="content_description_refresh_stats">Refresh statistics</string>
+
+    <!-- Event Selection for Stories -->
+    <string name="event_selection_button_label">Link to Event</string>
+    <string name="event_selection_title">Select an Event</string>
+    <string name="event_selection_empty">No joined events available</string>
+    <string name="event_selection_loading">Loading events…</string>
+    <string name="event_selection_error">Failed to load events</string>
+    <string name="event_selection_no_event">No event selected</string>
+    <string name="content_description_event_selection_button">Select event to link to story</string>
+    <string name="content_description_event_card_select">Select %s event</string>
+    <string name="content_description_close_event_selection">Close event selection</string>
+    <string name="content_description_selected_event_checkmark">Event selected</string>
 
     <!-- Pinned Events -->
     <string name="pinned_events_title">Pinned Events</string>

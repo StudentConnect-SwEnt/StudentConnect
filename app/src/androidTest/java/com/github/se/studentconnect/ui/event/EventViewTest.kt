@@ -17,13 +17,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
@@ -1826,5 +1826,165 @@ class EventViewTest {
 
     composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST).assertIsNotDisplayed()
+  }
+
+  @Test
+  fun eventView_leaveConfirmDialog_notDisplayedInitially() {
+    AuthenticationProvider.testUserId = "test-user"
+
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
+      }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Leave confirmation dialog should not be displayed initially
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_DIALOG)
+          .assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_leaveButton_click_showsConfirmDialog() {
+    AuthenticationProvider.testUserId = "test-user"
+
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
+      }
+
+      // Create a fresh ViewModel to ensure the participant is recognized
+      val freshViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { freshViewModel.fetchEvent(testEvent.uid) }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = freshViewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Click the leave button
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).performClick()
+
+      // Assert - confirmation dialog should be displayed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_DIALOG).assertIsDisplayed()
+      composeTestRule.onNodeWithText("Leave Event").assertIsDisplayed()
+      composeTestRule
+          .onNodeWithText("Are you sure you want to leave this event?")
+          .assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_leaveConfirmDialog_cancelButton_dismissesDialog() {
+    AuthenticationProvider.testUserId = "test-user"
+
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
+      }
+
+      // Create a fresh ViewModel
+      val freshViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { freshViewModel.fetchEvent(testEvent.uid) }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = freshViewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Open the dialog
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Click cancel button
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_CANCEL).performClick()
+
+      // Assert - dialog should be dismissed
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_DIALOG)
+          .assertDoesNotExist()
+      // User should still be joined (leave button should still be visible)
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_leaveConfirmDialog_confirmButton_leavesEvent() {
+    AuthenticationProvider.testUserId = "test-user"
+
+    try {
+      runBlocking {
+        eventRepository.addParticipantToEvent(testEvent.uid, EventParticipant("test-user"))
+      }
+
+      // Create a fresh ViewModel
+      val freshViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { freshViewModel.fetchEvent(testEvent.uid) }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = freshViewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Open the dialog
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Click confirm button
+      composeTestRule.onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_CONFIRM).performClick()
+
+      // Assert - dialog should be dismissed and user should have left
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.LEAVE_CONFIRMATION_DIALOG)
+          .assertDoesNotExist()
+      // Join button should now be visible instead of leave
+      composeTestRule.onNodeWithTag(EventViewTestTags.JOIN_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 }

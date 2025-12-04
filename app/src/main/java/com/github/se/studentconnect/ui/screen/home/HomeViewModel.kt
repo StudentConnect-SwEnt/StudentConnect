@@ -4,17 +4,20 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.model.activities.Activities
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationRepositoryImpl
-import com.github.se.studentconnect.repository.LocationResult
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationRepositoryImpl
+import com.github.se.studentconnect.model.map.LocationResult
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.toOrganizationDataList
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
 import java.util.Calendar
 import java.util.Date
@@ -56,6 +59,7 @@ enum class PreferredTimeOfDay {
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
     val events: List<Event> = emptyList(),
+    val organizations: List<OrganizationData> = emptyList(),
     val isLoading: Boolean = true,
     val isCalendarVisible: Boolean = false,
     val selectedDate: Date? = null,
@@ -74,7 +78,9 @@ constructor(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val context: Context? = null,
-    private val locationRepository: LocationRepository? = null
+    private val locationRepository: LocationRepository? = null,
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -126,6 +132,21 @@ constructor(
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+    loadOrganizations()
+  }
+
+  /** Loads organization suggestions from the repository. */
+  private fun loadOrganizations() {
+    viewModelScope.launch {
+      try {
+        val organizations = organizationRepository.getAllOrganizations()
+        val organizationDataList = organizations.toOrganizationDataList()
+        _uiState.update { it.copy(organizations = organizationDataList) }
+      } catch (e: Exception) {
+        Log.e("HomePageViewModel", "Error loading organizations", e)
+        _uiState.update { it.copy(organizations = emptyList()) }
+      }
+    }
   }
 
   private fun loadUserHobbies() {
@@ -407,7 +428,7 @@ constructor(
 
           val locationMatch =
               if (event.location == null) {
-                filters.radiusKm >= 100f
+                filters.location == null || filters.radiusKm >= 100f
               } else {
                 if (filters.location == null) return@filter true
                 val distance = calculateHaversineDistance(event.location!!, filters.location)
@@ -593,7 +614,7 @@ constructor(
   /** Returns the static list of available filter chips for the UI. */
   fun getAvailableFilters(): List<String> = Activities.filterOptions
 
-  /** Reloads events, favorites, and story data. */
+  /** Reloads events, favorites, story data, and organizations. */
   fun refresh() {
     loadUserHobbies()
     loadUserAttendedEvents()
@@ -601,6 +622,7 @@ constructor(
     loadAllEvents()
     loadFavoriteEvents()
     loadAllSubscribedEventsStories()
+    loadOrganizations()
   }
 
   /** Shows the calendar modal. */

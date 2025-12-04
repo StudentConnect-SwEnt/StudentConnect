@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.user.User
 
 object InviteFriendsDialogTestTags {
   const val DIALOG = "inviteFriendsDialog"

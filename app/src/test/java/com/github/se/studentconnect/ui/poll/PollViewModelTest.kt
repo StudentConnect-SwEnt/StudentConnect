@@ -1,10 +1,10 @@
 package com.github.se.studentconnect.ui.poll
 
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepository
 import com.github.se.studentconnect.model.poll.PollVote
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.google.firebase.Timestamp
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers

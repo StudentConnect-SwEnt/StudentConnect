@@ -28,6 +28,18 @@ interface EventRepository {
   suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event>
 
   /**
+   * Retrieves all events owned by a specific organization.
+   *
+   * @param organizationId The unique identifier of the organization.
+   * @return A list of [Event] objects owned by the organization.
+   * @throws Exception if the retrieval fails.
+   */
+  suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+    // Default implementation: return empty list
+    return emptyList()
+  }
+
+  /**
    * Retrieves a specific event by its unique identifier.
    *
    * @param eventUid The unique identifier of the event to retrieve.
@@ -110,4 +122,16 @@ interface EventRepository {
    * @throws Exception if the participant is not found.
    */
   suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String)
+
+  /**
+   * Retrieves comprehensive statistics for a specific event.
+   *
+   * @param eventUid The unique identifier of the event.
+   * @param followerCount Number of followers for the organization hosting the event.
+   * @return [EventStatistics] containing all metrics for the event.
+   * @throws Exception if the event is not found or statistics cannot be computed.
+   */
+  suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    throw NotImplementedError("getEventStatistics not implemented for this repository")
+  }
 }

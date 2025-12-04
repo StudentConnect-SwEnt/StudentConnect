@@ -19,7 +19,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
-import com.github.se.studentconnect.model.Activities
+import com.github.se.studentconnect.model.activities.Activities
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.TopicChip
 import com.github.se.studentconnect.ui.components.TopicChipGridTestTags

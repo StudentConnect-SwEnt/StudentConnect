@@ -5,10 +5,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
@@ -88,27 +90,22 @@ class StoryRepositoryFirestoreInstrumentedTest {
 
     override suspend fun getUserByEmail(email: String) = null
 
-    override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> = emptyList()
+    override suspend fun getAllUsers(): List<User> = emptyList()
 
     override suspend fun getUsersPaginated(
         limit: Int,
         lastUserId: String?
-    ): Pair<List<com.github.se.studentconnect.model.User>, Boolean> =
-        emptyList<com.github.se.studentconnect.model.User>() to false
+    ): Pair<List<User>, Boolean> = emptyList<User>() to false
 
-    override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
+    override suspend fun saveUser(user: User) {}
 
     override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
 
     override suspend fun deleteUser(userId: String) {}
 
-    override suspend fun getUsersByUniversity(
-        university: String
-    ): List<com.github.se.studentconnect.model.User> = emptyList()
+    override suspend fun getUsersByUniversity(university: String): List<User> = emptyList()
 
-    override suspend fun getUsersByHobby(
-        hobby: String
-    ): List<com.github.se.studentconnect.model.User> = emptyList()
+    override suspend fun getUsersByHobby(hobby: String): List<User> = emptyList()
 
     override suspend fun getNewUid() = "new-uid"
 
@@ -116,9 +113,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
 
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
 
-    override suspend fun getInvitations(
-        userId: String
-    ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+    override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
 
     override suspend fun acceptInvitation(eventId: String, userId: String) {}
 

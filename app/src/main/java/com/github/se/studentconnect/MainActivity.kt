@@ -24,8 +24,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.EventReminderWorker
 import com.github.se.studentconnect.service.NotificationChannelManager
@@ -51,8 +51,8 @@ import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
-import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileScreen
-import com.github.se.studentconnect.ui.screen.visitorProfile.VisitorProfileViewModel
+import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
+import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth

@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,9 +60,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.OrganizationEvent
-import com.github.se.studentconnect.model.OrganizationMember
-import com.github.se.studentconnect.model.OrganizationProfile
+import com.github.se.studentconnect.model.organization.OrganizationEvent
+import com.github.se.studentconnect.model.organization.OrganizationMember
+import com.github.se.studentconnect.model.organization.OrganizationProfile
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.AVATAR_BANNER_HEIGHT
@@ -123,8 +124,9 @@ private object OrganizationProfileConstants {
 fun OrganizationProfileScreen(
     organizationId: String? = null,
     onBackClick: () -> Unit = {},
-    viewModel: OrganizationProfileViewModel = viewModel {
-      OrganizationProfileViewModel(organizationId)
+    viewModel: OrganizationProfileViewModel = run {
+      val context = LocalContext.current
+      viewModel { OrganizationProfileViewModel(organizationId, context) }
     },
     modifier: Modifier = Modifier
 ) {

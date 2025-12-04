@@ -3,8 +3,8 @@ package com.github.se.studentconnect.model.event
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
 import com.google.firebase.Timestamp
@@ -1103,6 +1103,277 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val eventUids = events.map { it.uid }
 
       Assert.assertFalse(eventUids.contains(privateEvent.uid))
+    }
+  }
+
+  // Tests for getEventsByOrganization
+  @Test
+  fun getEventsByOrganization_returnsEventsOwnedByOrganization() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val orgId = "org123"
+
+      // Create the organization first
+      FirebaseEmulator.firestore
+          .collection("organizations")
+          .document(orgId)
+          .set(
+              mapOf(
+                  "id" to orgId,
+                  "name" to "Test Organization",
+                  "type" to "Association",
+                  "createdBy" to currentOwnerId,
+                  "memberUids" to listOf(currentOwnerId)))
+          .await()
+
+      val event1 =
+          Event.Public(
+              repository.getNewUid(),
+              orgId,
+              "Org Event 1",
+              "Sub1",
+              "desc1",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      val event2 =
+          Event.Public(
+              repository.getNewUid(),
+              orgId,
+              "Org Event 2",
+              "Sub2",
+              "desc2",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      // Create another organization for the "other" event
+      val otherOrgId = "other_org"
+      signIn("other")
+      val otherOwnerId = getCurrentUserId()
+      FirebaseEmulator.firestore
+          .collection("organizations")
+          .document(otherOrgId)
+          .set(
+              mapOf(
+                  "id" to otherOrgId,
+                  "name" to "Other Organization",
+                  "type" to "Association",
+                  "createdBy" to otherOwnerId,
+                  "memberUids" to listOf(otherOwnerId)))
+          .await()
+
+      val otherEvent =
+          Event.Public(
+              repository.getNewUid(),
+              otherOrgId,
+              "Other Org Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      repository.addEvent(otherEvent)
+
+      signIn("owner")
+      repository.addEvent(event1)
+      repository.addEvent(event2)
+
+      val orgEvents = repository.getEventsByOrganization(orgId)
+
+      Assert.assertEquals(2, orgEvents.size)
+      Assert.assertTrue(orgEvents.any { it.uid == event1.uid })
+      Assert.assertTrue(orgEvents.any { it.uid == event2.uid })
+      Assert.assertFalse(orgEvents.any { it.uid == otherEvent.uid })
+    }
+  }
+
+  @Test
+  fun getEventsByOrganization_returnsEmptyListWhenNoEvents() {
+    runBlocking {
+      signIn("owner")
+      val orgId = "org_without_events"
+
+      val events = repository.getEventsByOrganization(orgId)
+
+      Assert.assertTrue(events.isEmpty())
+    }
+  }
+
+  @Test
+  fun getEventsByOrganization_returnsPublicAndPrivateEvents() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val orgId = currentOwnerId // Using user as organization owner
+
+      val publicEvent =
+          Event.Public(
+              repository.getNewUid(),
+              orgId,
+              "Public Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      val privateEvent =
+          Event.Private(
+              repository.getNewUid(), orgId, "Private Event", "desc", start = now, isFlash = false)
+
+      repository.addEvent(publicEvent)
+      repository.addEvent(privateEvent)
+
+      val orgEvents = repository.getEventsByOrganization(orgId)
+
+      Assert.assertEquals(2, orgEvents.size)
+      Assert.assertTrue(orgEvents.any { it is Event.Public && it.uid == publicEvent.uid })
+      Assert.assertTrue(orgEvents.any { it is Event.Private && it.uid == privateEvent.uid })
+    }
+  }
+
+  @Test
+  fun getEventsByOrganization_handlesMalformedEvents() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val orgId = currentOwnerId
+
+      // Add a valid event
+      val validEvent =
+          Event.Public(
+              repository.getNewUid(),
+              orgId,
+              "Valid Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      repository.addEvent(validEvent)
+
+      // Add a malformed event directly to Firestore
+      val malformedUid = repository.getNewUid()
+      FirebaseEmulator.firestore
+          .collection("events")
+          .document(malformedUid)
+          .set(
+              mapOf(
+                  "type" to "public", "ownerId" to orgId, "title" to "Broken"
+                  // Missing required fields
+                  ))
+          .await()
+
+      val orgEvents = repository.getEventsByOrganization(orgId)
+
+      // Should only return the valid event, skipping the malformed one
+      Assert.assertTrue(orgEvents.any { it.uid == validEvent.uid })
+      Assert.assertFalse(orgEvents.any { it.uid == malformedUid })
+    }
+  }
+
+  @Test
+  fun getEventsByOrganization_filtersCorrectlyByOwnerId() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+
+      signIn("other")
+      val otherOwnerId = getCurrentUserId()
+
+      signIn("owner")
+
+      // Create events with different owners
+      val event1 =
+          Event.Public(
+              repository.getNewUid(),
+              currentOwnerId,
+              "Owner Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+      val event2 =
+          Event.Public(
+              repository.getNewUid(),
+              otherOwnerId,
+              "Other Event",
+              "Sub",
+              "desc",
+              null,
+              now,
+              isFlash = false,
+              subtitle = "")
+
+      repository.addEvent(event1)
+
+      signIn("other")
+      repository.addEvent(event2)
+
+      // Get events for first owner
+      val ownerEvents = repository.getEventsByOrganization(currentOwnerId)
+      Assert.assertEquals(1, ownerEvents.size)
+      Assert.assertEquals(event1.uid, ownerEvents[0].uid)
+
+      // Get events for other owner
+      val otherEvents = repository.getEventsByOrganization(otherOwnerId)
+      Assert.assertEquals(1, otherEvents.size)
+      Assert.assertEquals(event2.uid, otherEvents[0].uid)
+    }
+  }
+
+  @Test
+  fun getEventsByOrganization_returnsEventsWithAllFields() {
+    runBlocking {
+      signIn("owner")
+      val currentOwnerId = getCurrentUserId()
+      val orgId = currentOwnerId
+
+      val fullEvent =
+          Event.Public(
+              uid = repository.getNewUid(),
+              ownerId = orgId,
+              title = "Full Event",
+              subtitle = "Complete",
+              description = "All fields present",
+              imageUrl = "https://example.com/image.png",
+              location = Location(46.5191, 6.5668, "EPFL"),
+              start = now,
+              end = Timestamp(Date(now.seconds * 1000 + 3600000)),
+              maxCapacity = 100u,
+              participationFee = 50u,
+              isFlash = true,
+              tags = listOf("tech", "networking"),
+              website = "https://example.com")
+
+      repository.addEvent(fullEvent)
+
+      val orgEvents = repository.getEventsByOrganization(orgId)
+
+      Assert.assertEquals(1, orgEvents.size)
+      val retrievedEvent = orgEvents[0] as Event.Public
+
+      Assert.assertEquals("Full Event", retrievedEvent.title)
+      Assert.assertEquals("Complete", retrievedEvent.subtitle)
+      Assert.assertEquals("All fields present", retrievedEvent.description)
+      Assert.assertEquals("https://example.com/image.png", retrievedEvent.imageUrl)
+      Assert.assertNotNull(retrievedEvent.location)
+      Assert.assertEquals("EPFL", retrievedEvent.location?.name)
+      Assert.assertNotNull(retrievedEvent.end)
+      Assert.assertEquals(100u.toLong(), retrievedEvent.maxCapacity?.toLong())
+      Assert.assertEquals(50u.toLong(), retrievedEvent.participationFee?.toLong())
+      Assert.assertTrue(retrievedEvent.isFlash)
+      Assert.assertEquals(2, retrievedEvent.tags.size)
+      Assert.assertEquals("https://example.com", retrievedEvent.website)
     }
   }
 }

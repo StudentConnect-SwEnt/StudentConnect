@@ -58,6 +58,8 @@ object C {
     const val back_button = "back_button"
     const val user_search_result = "user_search_result"
     const val user_search_result_title = "user_search_result_title"
+    const val organisation_search_result = "organisation_search_result"
+    const val organisation_search_result_title = "organisation_search_result_title"
     const val event_search_result = "event_search_result"
     const val event_search_result_title = "event_search_result_title"
 
@@ -94,6 +96,9 @@ object C {
     const val qr_scanner_error = "qr_scanner_error"
     const val qr_scanner_permission = "qr_scanner_permission"
     const val qr_scanner_placeholder = "qr_scanner_placeholder"
+    const val qr_scanner_story_controls = "qr_scanner_story_controls"
+    const val qr_scanner_story_toggle = "qr_scanner_story_toggle"
+    const val qr_scanner_story_capture_button = "qr_scanner_story_capture_button"
 
     // Organization profile test tags
     const val org_profile_screen = "org_profile_screen"
@@ -122,5 +127,16 @@ object C {
     const val org_suggestions_card_image = "organization_card_image"
     const val org_suggestions_card_title = "organization_card_title"
     const val org_suggestions_card_subtitle = "organization_card_subtitle"
+
+    // Event selection dropdown test tags
+    const val event_selection_button = "event_selection_button"
+    const val event_selection_dropdown = "event_selection_dropdown"
+    const val event_selection_title = "event_selection_title"
+    const val event_selection_close = "event_selection_close"
+    const val event_selection_list = "event_selection_list"
+    const val event_selection_empty = "event_selection_empty"
+    const val event_selection_loading = "event_selection_loading"
+    const val event_selection_error = "event_selection_error"
+    const val event_selection_card_prefix = "event_selection_card"
   }
 }

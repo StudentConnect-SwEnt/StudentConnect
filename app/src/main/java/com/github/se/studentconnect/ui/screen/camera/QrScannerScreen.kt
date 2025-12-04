@@ -4,14 +4,25 @@ import android.annotation.SuppressLint
 import android.graphics.RectF
 import android.util.Size
 import androidx.camera.core.ImageAnalysis
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -30,6 +41,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -49,6 +61,11 @@ private val ANALYSIS_TARGET_RESOLUTION = Size(720, 720)
 typealias AnalyzerProvider =
     ((String) -> Unit, (Throwable) -> Unit, RectF?) -> ImageAnalysis.Analyzer?
 
+enum class StoryCaptureMode {
+  PHOTO,
+  VIDEO
+}
+
 @SuppressLint("SuspiciousIndentation")
 /** Full-screen QR scanner that manages analyzer lifecycle, ROI, and error messaging. */
 @Composable
@@ -57,6 +74,7 @@ fun QrScannerScreen(
     onProfileDetected: (String) -> Unit,
     modifier: Modifier = Modifier.Companion,
     isActive: Boolean = true,
+    showStoryModeUi: Boolean = false,
     cameraContent: (@Composable (ImageAnalysis.Analyzer?) -> Unit)? = null,
     analyzerProvider: AnalyzerProvider = { onDetected, onError, _ ->
       QrCodeAnalyzer(onDetected, onError)
@@ -64,6 +82,7 @@ fun QrScannerScreen(
 ) {
   var errorMessage by remember { mutableStateOf<String?>(null) }
   var isHandlingResult by remember { mutableStateOf(false) }
+  var storyCaptureMode by remember { mutableStateOf(StoryCaptureMode.PHOTO) }
 
   val latestProfileDetected = rememberUpdatedState(onProfileDetected)
   val latestBackClick = rememberUpdatedState(onBackClick)
@@ -165,24 +184,33 @@ fun QrScannerScreen(
 
         ScannerFocusFrame(modifier = Modifier.Companion.align(Alignment.Companion.Center))
 
-        Column(
-            modifier =
-                Modifier.Companion.align(Alignment.Companion.BottomCenter)
-                    .padding(horizontal = 32.dp, vertical = 160.dp)
-                    .semantics { testTag = C.Tag.qr_scanner_instructions },
-            horizontalAlignment = Alignment.Companion.CenterHorizontally) {
-              Text(
-                  text = "Point the camera at a StudentConnect QR code",
-                  style = MaterialTheme.typography.titleMedium,
-                  textAlign = TextAlign.Companion.Center,
-                  color = Color.Companion.White)
-              Text(
-                  text = "We will automatically open the corresponding profile",
-                  style = MaterialTheme.typography.bodyMedium,
-                  textAlign = TextAlign.Companion.Center,
-                  color = Color.Companion.White.copy(alpha = 0.85f),
-                  modifier = Modifier.Companion.padding(top = 8.dp))
-            }
+        if (showStoryModeUi) {
+          StoryModeControls(
+              selectedMode = storyCaptureMode,
+              onModeSelected = { selected -> storyCaptureMode = selected },
+              modifier =
+                  Modifier.Companion.align(Alignment.Companion.BottomCenter)
+                      .padding(bottom = 72.dp))
+        } else {
+          Column(
+              modifier =
+                  Modifier.Companion.align(Alignment.Companion.BottomCenter)
+                      .padding(horizontal = 32.dp, vertical = 160.dp)
+                      .semantics { testTag = C.Tag.qr_scanner_instructions },
+              horizontalAlignment = Alignment.Companion.CenterHorizontally) {
+                Text(
+                    text = "Point the camera at a StudentConnect QR code",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Companion.Center,
+                    color = Color.Companion.White)
+                Text(
+                    text = "We will automatically open the corresponding profile",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Companion.Center,
+                    color = Color.Companion.White.copy(alpha = 0.85f),
+                    modifier = Modifier.Companion.padding(top = 8.dp))
+              }
+        }
 
         errorMessage?.let { message ->
           Surface(
@@ -261,5 +289,140 @@ private fun InactiveScannerBackground(modifier: Modifier = Modifier.Companion) {
             color = Color.Companion.White.copy(alpha = 0.85f),
             textAlign = TextAlign.Companion.Center,
             modifier = Modifier.Companion.padding(24.dp))
+      }
+}
+
+/** Purely visual story mode slider + capture button to mimic iOS camera behavior. */
+@Composable
+fun StoryModeControls(
+    selectedMode: StoryCaptureMode,
+    onModeSelected: (StoryCaptureMode) -> Unit,
+    modifier: Modifier = Modifier.Companion,
+    showCaptureButton: Boolean = true,
+    infoText: String? =
+        if (selectedMode == StoryCaptureMode.PHOTO) "Tap the button to take a photo"
+        else "Tap to start recording"
+) {
+  Column(
+      modifier = modifier.semantics { testTag = C.Tag.qr_scanner_story_controls },
+      horizontalAlignment = Alignment.Companion.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        StoryModeSelector(
+            selectedMode = selectedMode,
+            onModeSelected = onModeSelected,
+            modifier = Modifier.Companion.padding(horizontal = 24.dp))
+        if (showCaptureButton) {
+          CaptureButtonPreview(selectedMode = selectedMode)
+        }
+        infoText?.let { text ->
+          Text(
+              text = text,
+              style = MaterialTheme.typography.labelLarge,
+              color = Color.Companion.White.copy(alpha = 0.85f))
+        }
+      }
+}
+
+@Composable
+fun StoryModeSelector(
+    selectedMode: StoryCaptureMode,
+    onModeSelected: (StoryCaptureMode) -> Unit,
+    modifier: Modifier = Modifier.Companion
+) {
+  BoxWithConstraints(
+      modifier =
+          modifier
+              .width(240.dp)
+              .height(48.dp)
+              .clip(RoundedCornerShape(24.dp))
+              .background(Color.Companion.White.copy(alpha = 0.12f))
+              .padding(4.dp)
+              .semantics { testTag = C.Tag.qr_scanner_story_toggle }) {
+        val slotWidth = (maxWidth - 8.dp) / StoryCaptureMode.entries.size
+        val indicatorOffset by
+            animateDpAsState(
+                targetValue = slotWidth * selectedMode.ordinal, label = "storyModeIndicator")
+
+        Box(
+            modifier =
+                Modifier.Companion.fillMaxHeight()
+                    .width(slotWidth)
+                    .offset(x = indicatorOffset)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.Companion.White.copy(alpha = 0.25f)))
+
+        Row(modifier = Modifier.Companion.fillMaxWidth()) {
+          StoryModeOption(
+              label = "PHOTO",
+              isSelected = selectedMode == StoryCaptureMode.PHOTO,
+              onClick = { onModeSelected(StoryCaptureMode.PHOTO) },
+              modifier = Modifier.Companion.weight(1f))
+          StoryModeOption(
+              label = "VIDEO",
+              isSelected = selectedMode == StoryCaptureMode.VIDEO,
+              onClick = { onModeSelected(StoryCaptureMode.VIDEO) },
+              modifier = Modifier.Companion.weight(1f))
+        }
+      }
+}
+
+@Composable
+fun StoryModeOption(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.Companion
+) {
+  val textColor by
+      animateColorAsState(
+          targetValue =
+              if (isSelected) Color.Companion.White else Color.Companion.White.copy(alpha = 0.7f),
+          label = "storyModeColor")
+
+  Box(
+      modifier = modifier.fillMaxHeight().clickable(onClick = onClick),
+      contentAlignment = Alignment.Companion.Center) {
+        Text(text = label, style = MaterialTheme.typography.labelLarge, color = textColor)
+      }
+}
+
+@Composable
+fun CaptureButtonPreview(
+    selectedMode: StoryCaptureMode,
+    modifier: Modifier = Modifier,
+    isRecording: Boolean = false
+) {
+  val innerSize by
+      animateDpAsState(
+          targetValue =
+              when {
+                selectedMode == StoryCaptureMode.PHOTO -> 64.dp
+                isRecording -> 32.dp
+                else -> 54.dp
+              },
+          label = "captureInnerSize")
+  val innerShape =
+      when {
+        selectedMode == StoryCaptureMode.PHOTO -> CircleShape
+        isRecording -> RoundedCornerShape(8.dp)
+        else -> RoundedCornerShape(12.dp)
+      }
+  val innerColor =
+      if (selectedMode == StoryCaptureMode.PHOTO) Color.Companion.White else Color(0xFFFF453A)
+
+  Box(
+      modifier = modifier.size(92.dp).semantics { testTag = C.Tag.qr_scanner_story_capture_button },
+      contentAlignment = Alignment.Companion.Center) {
+        Box(
+            modifier =
+                Modifier.Companion.size(92.dp)
+                    .clip(CircleShape)
+                    .background(Color.Companion.White.copy(alpha = 0.18f)))
+        Box(
+            modifier =
+                Modifier.Companion.size(76.dp)
+                    .clip(CircleShape)
+                    .border(3.dp, Color.Companion.White.copy(alpha = 0.9f), CircleShape))
+        Box(modifier = Modifier.Companion.size(innerSize).clip(innerShape).background(innerColor))
       }
 }

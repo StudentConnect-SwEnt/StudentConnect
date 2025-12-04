@@ -2,9 +2,9 @@ package com.github.se.studentconnect.ui.screen.map
 
 import android.location.Location
 import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.repository.LocationConfig
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationResult
+import com.github.se.studentconnect.model.map.LocationConfig
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationResult
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import io.mockk.*
@@ -190,6 +190,8 @@ class MapViewModelTest {
 
   @Test
   fun selectEvent_withValidEventUid_updatesSelectedEventAndLocation() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -199,7 +201,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -223,6 +226,8 @@ class MapViewModelTest {
 
   @Test
   fun selectEvent_withNullEventUid_clearsSelection() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -232,7 +237,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -255,6 +261,8 @@ class MapViewModelTest {
 
   @Test
   fun selectEvent_withInvalidEventUid_doesNotSelectEvent() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -264,7 +272,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -284,6 +293,8 @@ class MapViewModelTest {
 
   @Test
   fun selectEvent_withEventWithoutLocation_doesNotSetLocation() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -291,7 +302,8 @@ class MapViewModelTest {
             title = "Test Event",
             description = "Test Description",
             location = null,
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -312,6 +324,8 @@ class MapViewModelTest {
 
   @Test
   fun clearEventSelectionAnimation_resetsShouldAnimateFlag() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -321,7 +335,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -340,6 +355,8 @@ class MapViewModelTest {
 
   @Test
   fun animateToSelectedEvent_withSelectedEventLocation_callsMapViewportStateFlyTo() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -349,7 +366,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 
@@ -381,6 +399,8 @@ class MapViewModelTest {
 
   @Test
   fun animateToSelectedEvent_usesCorrectZoomLevel() = runTest {
+    val now = com.google.firebase.Timestamp.now()
+    val futureEnd = com.google.firebase.Timestamp(now.seconds + 3600, now.nanoseconds)
     val event =
         com.github.se.studentconnect.model.event.Event.Public(
             uid = "event123",
@@ -390,7 +410,8 @@ class MapViewModelTest {
             location =
                 com.github.se.studentconnect.model.location.Location(
                     46.5197, 6.6323, "Test Location"),
-            start = com.google.firebase.Timestamp.now(),
+            start = now,
+            end = futureEnd,
             isFlash = false,
             subtitle = "Test Subtitle")
 

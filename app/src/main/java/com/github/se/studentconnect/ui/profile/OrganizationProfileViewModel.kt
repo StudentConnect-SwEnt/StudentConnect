@@ -1,12 +1,24 @@
 package com.github.se.studentconnect.ui.profile
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.github.se.studentconnect.model.OrganizationEvent
-import com.github.se.studentconnect.model.OrganizationMember
-import com.github.se.studentconnect.model.OrganizationProfile
+import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationProfile
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.fetchOrganizationMembers
+import com.github.se.studentconnect.model.organization.toOrganizationEvents
+import com.github.se.studentconnect.model.organization.toOrganizationProfile
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /** Tab selection for the organization profile screen. */
 enum class OrganizationTab {
@@ -19,6 +31,7 @@ data class OrganizationProfileUiState(
     val organization: OrganizationProfile? = null,
     val selectedTab: OrganizationTab = OrganizationTab.EVENTS,
     val isLoading: Boolean = false,
+    val isFollowLoading: Boolean = false,
     val error: String? = null
 )
 
@@ -28,30 +41,113 @@ data class OrganizationProfileUiState(
  * Manages organization data, tab selection, and follow/unfollow actions.
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
+ * @param context Android context for accessing string resources
+ * @param organizationRepository The repository to fetch organization data from
+ * @param eventRepository The repository to fetch event data from
+ * @param userRepository The repository to fetch user data from
  */
-// TODO: Inject a repository interface (e.g., OrganizationRepository) to fetch real data
-// instead of using mock data. This will avoid a large refactor later when implementing
-// the backend integration.
-class OrganizationProfileViewModel(private val organizationId: String? = null) : ViewModel() {
+class OrganizationProfileViewModel(
+    private val organizationId: String? = null,
+    context: Context,
+    private val organizationRepository: OrganizationRepository =
+        OrganizationRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
+    private val userRepository: UserRepository = UserRepositoryProvider.repository
+) : ViewModel() {
+
+  // Use application context to avoid memory leaks
+  private val appContext: Context = context.applicationContext
+
+  companion object {
+    private const val TAG = "OrganizationProfileVM"
+    // Constants for UI dimensions and styling
+    const val AVATAR_BANNER_HEIGHT = 120
+    const val AVATAR_SIZE = 80
+    const val AVATAR_BORDER_WIDTH = 3
+    const val AVATAR_ICON_SIZE = 40
+    const val EVENT_CARD_WIDTH = 140
+    const val EVENT_CARD_HEIGHT = 100
+    const val MEMBER_AVATAR_SIZE = 72
+    const val MEMBER_ICON_SIZE = 36
+    const val GRID_COLUMNS = 2
+    const val MEMBERS_GRID_HEIGHT = 400
+  }
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
 
+  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+
   init {
-    // TODO: Replace mock data loading with repository call when backend is implemented
-    // Load mock data for now
     loadOrganizationData()
   }
 
-  /** Loads organization data. Currently uses mock data. */
+  /** Loads organization data from the repository. */
   private fun loadOrganizationData() {
     _uiState.value = _uiState.value.copy(isLoading = true)
 
-    // Mock data - in production, this would fetch from a repository
-    val mockOrganization = createMockOrganization()
+    viewModelScope.launch {
+      try {
+        if (organizationId == null) {
+          _uiState.value =
+              _uiState.value.copy(
+                  isLoading = false, error = "Organization ID is required", organization = null)
+          return@launch
+        }
 
-    _uiState.value =
-        _uiState.value.copy(organization = mockOrganization, isLoading = false, error = null)
+        val organization = organizationRepository.getOrganizationById(organizationId)
+        if (organization == null) {
+          _uiState.value =
+              _uiState.value.copy(
+                  isLoading = false, error = "Organization not found", organization = null)
+          return@launch
+        }
+
+        // Fetch events for this organization
+        val events =
+            try {
+              eventRepository
+                  .getEventsByOrganization(organizationId)
+                  .toOrganizationEvents(appContext)
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to fetch events for organization $organizationId", e)
+              emptyList() // If fetching events fails, use empty list
+            }
+
+        // Fetch members for this organization
+        val members =
+            try {
+              fetchOrganizationMembers(organization.memberUids, userRepository)
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to fetch members for organization $organizationId", e)
+              emptyList() // If fetching members fails, use empty list
+            }
+
+        // Check if current user is following this organization
+        val isFollowing =
+            currentUserId?.let { uid ->
+              try {
+                val followedOrgs = userRepository.getFollowedOrganizations(uid)
+                followedOrgs.contains(organizationId)
+              } catch (e: Exception) {
+                false
+              }
+            } ?: false
+
+        val organizationProfile =
+            organization.toOrganizationProfile(
+                isFollowing = isFollowing, events = events, members = members)
+
+        _uiState.value =
+            _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
+      } catch (e: Exception) {
+        _uiState.value =
+            _uiState.value.copy(
+                isLoading = false,
+                error = "Failed to load organization: ${e.message}",
+                organization = null)
+      }
+    }
   }
 
   /**
@@ -66,66 +162,35 @@ class OrganizationProfileViewModel(private val organizationId: String? = null) :
   /** Toggles the follow status for the organization. */
   fun toggleFollow() {
     val currentOrg = _uiState.value.organization ?: return
-    val updatedOrg = currentOrg.copy(isFollowing = !currentOrg.isFollowing)
-    _uiState.value = _uiState.value.copy(organization = updatedOrg)
-  }
+    val userId = currentUserId ?: return
 
-  /** Creates mock organization data for testing and preview. */
-  private fun createMockOrganization(): OrganizationProfile {
-    val mockEvents =
-        listOf(
-            OrganizationEvent(
-                eventId = "event_1",
-                cardTitle = "EPFL Hackathon",
-                cardDate = "15 dec, 2024",
-                title = "Hackathon EPFL",
-                subtitle = "Tomorrow",
-                location = "EPFL"),
-            OrganizationEvent(
-                eventId = "event_2",
-                cardTitle = "EPFL Hackathon",
-                cardDate = "15 dec, 2024",
-                title = "Hackathon EPFL",
-                subtitle = "Tomorrow",
-                location = "EPFL"))
+    // Prevent rapid toggles - guard with loading flag
+    if (_uiState.value.isFollowLoading) {
+      Log.d(TAG, "Follow toggle already in progress, ignoring")
+      return
+    }
 
-    val mockMembers =
-        listOf(
-            OrganizationMember(
-                memberId = "member_1", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-            OrganizationMember(
-                memberId = "member_2", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-            OrganizationMember(
-                memberId = "member_3", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"),
-            OrganizationMember(
-                memberId = "member_4", name = "Habibi", role = "Owner", avatarUrl = "avatar_12"),
-            OrganizationMember(
-                memberId = "member_5", name = "Habibi", role = "Owner", avatarUrl = "avatar_13"),
-            OrganizationMember(
-                memberId = "member_6", name = "Habibi", role = "Owner", avatarUrl = "avatar_23"))
+    // Set loading flag
+    _uiState.value = _uiState.value.copy(isFollowLoading = true)
 
-    return OrganizationProfile(
-        organizationId = organizationId ?: "org_evolve",
-        name = "Evolve",
-        description =
-            "Evolve est une organisation dédiée au développement du potentiel humain et professionnel.",
-        logoUrl = null,
-        isFollowing = false,
-        events = mockEvents,
-        members = mockMembers)
-  }
+    // Persist to backend first, then update UI based on result
+    viewModelScope.launch {
+      try {
+        val newFollowingState = !currentOrg.isFollowing
+        if (newFollowingState) {
+          userRepository.followOrganization(userId, currentOrg.organizationId)
+        } else {
+          userRepository.unfollowOrganization(userId, currentOrg.organizationId)
+        }
 
-  companion object {
-    // Constants for UI dimensions and styling
-    const val AVATAR_BANNER_HEIGHT = 120
-    const val AVATAR_SIZE = 80
-    const val AVATAR_BORDER_WIDTH = 3
-    const val AVATAR_ICON_SIZE = 40
-    const val EVENT_CARD_WIDTH = 140
-    const val EVENT_CARD_HEIGHT = 100
-    const val MEMBER_AVATAR_SIZE = 72
-    const val MEMBER_ICON_SIZE = 36
-    const val GRID_COLUMNS = 2
-    const val MEMBERS_GRID_HEIGHT = 400
+        // Update UI after successful backend operation
+        val updatedOrg = currentOrg.copy(isFollowing = newFollowingState)
+        _uiState.value = _uiState.value.copy(organization = updatedOrg, isFollowLoading = false)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to toggle follow status", e)
+        // Keep current state on failure
+        _uiState.value = _uiState.value.copy(isFollowLoading = false)
+      }
+    }
   }
 }

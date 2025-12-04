@@ -1,9 +1,9 @@
 package com.github.se.studentconnect.ui.profile.edit
 
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import java.util.Calendar
 import java.util.TimeZone

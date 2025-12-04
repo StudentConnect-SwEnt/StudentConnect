@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,49 +14,106 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.camera.CameraView
+import com.github.se.studentconnect.ui.components.EventSelectionState
 
-/** Minimal story capture preview that toggles between live camera and inactive placeholder. */
+/**
+ * Minimal story capture preview that toggles between live camera and inactive placeholder.
+ *
+ * @param onBackClick Callback when user wants to go back
+ * @param onStoryAccepted Callback when user accepts the media with selected event
+ * @param eventSelectionState State for loading joined events
+ * @param onLoadEvents Callback to load user's joined events
+ * @param modifier Modifier for the screen
+ * @param isActive Whether the camera is active
+ * @param onPreviewStateChanged Callback when preview state changes
+ */
 @Composable
 fun StoryCaptureScreen(
     onBackClick: () -> Unit,
+    onStoryAccepted: (Uri, Boolean, Event?) -> Unit = { _, _, _ -> },
+    eventSelectionState: EventSelectionState = EventSelectionState.Success(emptyList()),
+    onLoadEvents: () -> Unit = {},
     modifier: Modifier = Modifier,
-    isActive: Boolean = true
+    isActive: Boolean = true,
+    onPreviewStateChanged: (Boolean) -> Unit = {}
 ) {
+  var storyCaptureMode by remember { mutableStateOf(StoryCaptureMode.PHOTO) }
+  var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
+  var showPreview by remember { mutableStateOf(false) }
+
+  // Notify parent when preview state changes
+  LaunchedEffect(showPreview) { onPreviewStateChanged(showPreview) }
+
   Box(modifier = modifier.fillMaxSize().background(Color.Black).testTag("story_capture_screen")) {
-    if (isActive) {
+    if (showPreview && capturedMediaUri != null) {
+      // Show preview screen
+      MediaPreviewScreen(
+          mediaUri = capturedMediaUri!!,
+          isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
+          onAccept = { selectedEvent ->
+            Log.d(
+                "StoryCaptureScreen",
+                "Media accepted: $capturedMediaUri, event: ${selectedEvent?.title}")
+            onStoryAccepted(
+                capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
+            showPreview = false
+            capturedMediaUri = null
+          },
+          onRetake = {
+            // Go back to camera
+            showPreview = false
+            capturedMediaUri = null
+          },
+          eventSelectionConfig =
+              EventSelectionConfig(state = eventSelectionState, onLoadEvents = onLoadEvents))
+    } else if (isActive) {
+      // Show camera view
       CameraView(
           modifier = Modifier.fillMaxSize(),
-          enableImageCapture = true,
-          onImageCaptured = {
-            // Capture button does nothing for now
-            // TODO: Implement story capture
+          enableImageCapture = storyCaptureMode == StoryCaptureMode.PHOTO,
+          enableVideoCapture = storyCaptureMode == StoryCaptureMode.VIDEO,
+          captureButton = { isRecording ->
+            CaptureButtonPreview(selectedMode = storyCaptureMode, isRecording = isRecording)
+          },
+          onImageCaptured = { uri ->
+            capturedMediaUri = uri
+            showPreview = true
+          },
+          onVideoCaptured = { uri ->
+            capturedMediaUri = uri
+            showPreview = true
           },
           onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
           noPermission = { PermissionRequired(onBackClick = onBackClick) })
+
+      // Only show mode controls when not showing preview
+      Column(
+          modifier =
+              Modifier.align(Alignment.BottomCenter)
+                  .padding(horizontal = 32.dp, vertical = 160.dp)
+                  .testTag("story_instructions"),
+          horizontalAlignment = Alignment.CenterHorizontally) {
+            StoryModeControls(
+                selectedMode = storyCaptureMode,
+                onModeSelected = { mode -> storyCaptureMode = mode },
+                showCaptureButton = false)
+          }
     } else {
       InactiveCameraBackground()
     }
-
-    // Instructions
-    Column(
-        modifier =
-            Modifier.align(Alignment.BottomCenter)
-                .padding(horizontal = 32.dp, vertical = 200.dp)
-                .testTag("story_instructions"),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-          Text(
-              text = "Tap the button to take a photo",
-              style = MaterialTheme.typography.titleMedium,
-              textAlign = TextAlign.Center,
-              color = Color.White)
-        }
   }
 }
 

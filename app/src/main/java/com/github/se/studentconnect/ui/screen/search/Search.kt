@@ -8,42 +8,82 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.HomeSearchBar
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
+
+// UI Constants
+private object CardDimensions {
+  val WIDTH = 132.dp
+  val HEIGHT = 175.dp
+  val CORNER_RADIUS = 12.dp
+  val PADDING = 12.dp
+  val ICON_SIZE = 64.dp
+}
+
+private object SectionDimensions {
+  val HEIGHT = 210.dp
+  val SPACING = 16.dp
+  val SIDE_PADDING = 4.dp
+}
+
+private object SearchBarDimensions {
+  val CORNER_RADIUS = 28.dp
+  val VERTICAL_PADDING = 12.dp
+  val HORIZONTAL_PADDING = 16.dp
+  val ICON_SPACING = 4.dp
+}
 
 /**
- * The Search screen of the app, allowing users to search for people and events.
+ * The Search screen of the app, allowing users to search for people, organisations and events.
  *
  * @param modifier The modifier to be applied to the screen.
  * @param navController The navigation controller for navigating between screens.
@@ -55,20 +95,31 @@ fun SearchScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: SearchViewModel = viewModel(),
 ) {
-
   Scaffold(
+      modifier = modifier.fillMaxSize().testTag(C.Tag.search_screen),
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = { SearchTopBar(viewModel, navController) },
-      modifier =
-          modifier
-              .fillMaxSize()
-              .background(MaterialTheme.colorScheme.surface)
-              .testTag(C.Tag.search_screen),
   ) { innerPadding ->
-    Column(
-        modifier = modifier.padding(innerPadding),
+    LazyColumn(
+        modifier = modifier.padding(innerPadding).fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      People(viewModel = viewModel, navController = navController)
-      Events(viewModel)
+      item {
+        if (viewModel.hasUsers()) {
+          PeopleSection(viewModel = viewModel, navController = navController)
+        }
+      }
+      item {
+        if (viewModel.hasOrganizations()) {
+          OrganizationsSection(viewModel = viewModel, navController = navController)
+        }
+      }
+      item {
+        if (viewModel.hasEvents()) {
+          EventsSection(viewModel = viewModel, navController = navController)
+        }
+      }
+      item { Spacer(Modifier.height(8.dp)) }
     }
   }
 }
@@ -79,162 +130,258 @@ private fun SearchTopBar(
     viewModel: SearchViewModel,
     navController: NavHostController,
 ) {
-  CenterAlignedTopAppBar(
-      title = {
-        HomeSearchBar(
-            query = viewModel.state.value.query,
-            onQueryChange = { viewModel.setQuery(it) },
-        )
-      },
-      modifier = Modifier.fillMaxWidth(),
-      navigationIcon = {
-        IconButton(
-            onClick = {
-              navController.popBackStack()
-              viewModel.reset()
-            },
-            content = {
-              Icon(
-                  painterResource(R.drawable.ic_placeholder),
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.onSurface,
-              )
-            },
-            modifier = Modifier.testTag(C.Tag.back_button),
-        )
-      },
-      windowInsets =
-          WindowInsets(
-              0.dp,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
-              LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-              LocalConfiguration.current.screenHeightDp.dp * 0.01f,
-          ),
-  )
-}
-
-@Composable
-private fun People(viewModel: SearchViewModel, navController: NavHostController) {
-  if (viewModel.hasUsers())
-      Column {
-        Text(
-            "People",
-            fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-            fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
-            modifier =
-                Modifier.padding(
-                        LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-                        0.dp,
-                        0.dp,
-                        0.dp,
-                    )
-                    .testTag(C.Tag.user_search_result_title),
-        )
-        LazyRow(Modifier.testTag(C.Tag.user_search_result)) {
-          items(viewModel.state.value.shownUsers) { user ->
-            Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f))
-            UserCard(user = user, navController = navController)
-          }
-          item { Spacer(Modifier.size(LocalConfiguration.current.screenWidthDp.dp * 0.02f)) }
-        }
-      }
-}
-
-@Composable
-private fun UserCard(user: User, navController: NavHostController) {
-  Box(
+  Row(
       modifier =
-          Modifier.clickable(
-                  onClick = { navController.navigate(Route.visitorProfile(user.userId)) })
-              .clip(MaterialTheme.shapes.medium)
-              .background(MaterialTheme.colorScheme.secondaryContainer)
-              .padding(16.dp),
+          Modifier.fillMaxWidth()
+              .background(MaterialTheme.colorScheme.surface)
+              .padding(vertical = SearchBarDimensions.VERTICAL_PADDING),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(SearchBarDimensions.ICON_SPACING),
   ) {
-    Column {
-      Image(
-          painterResource(R.drawable.ic_user),
-          contentDescription = null,
-          modifier = Modifier.size(128.dp),
-      )
-      Spacer(Modifier.height(8.dp))
-      Text(
-          text = user.firstName + " " + user.lastName,
-          fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      )
-      Text(user.userId)
-    }
-  }
-}
-
-@Composable
-private fun Events(viewModel: SearchViewModel) {
-
-  if (viewModel.hasEvents())
-      Text(
-          "Events",
-          fontSize = MaterialTheme.typography.headlineSmall.fontSize,
-          fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
-          modifier =
-              Modifier.padding(
-                      LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-                      0.dp,
-                      0.dp,
-                      0.dp,
-                  )
-                  .testTag(C.Tag.event_search_result_title),
-      )
-  LazyColumn(
-      modifier =
-          Modifier.padding(
-                  LocalConfiguration.current.screenWidthDp.dp * 0.02f,
-                  0.dp,
-                  0.dp,
-                  0.dp,
-              )
-              .testTag(C.Tag.event_search_result),
-  ) {
-    items(viewModel.state.value.shownEvents.size) { index ->
-      EventCard(
-          viewModel.state.value.shownEvents[index],
-      )
-      Spacer(Modifier.size(8.dp))
-    }
-  }
-}
-
-@Composable
-private fun EventCard(event: Event) {
-  Row(modifier = Modifier.clickable(onClick = {}), verticalAlignment = Alignment.CenterVertically) {
-    Image(
-        painterResource(R.drawable.ic_ticket),
-        contentDescription = null,
-        modifier = Modifier.size(128.dp),
-    )
-    Column(
-        modifier = Modifier.size(256.dp, 128.dp),
-        verticalArrangement = Arrangement.SpaceEvenly,
+    IconButton(
+        onClick = {
+          navController.popBackStack()
+          viewModel.reset()
+        },
+        modifier = Modifier.testTag(C.Tag.back_button),
     ) {
-      Text(
-          text = event.title,
-          fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
-          fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+      Icon(
+          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+          contentDescription = "Back",
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
-      Text(
-          text = event.ownerId,
-          fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-          fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-      )
-      event.location?.name?.let {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(painterResource(R.drawable.ic_location), contentDescription = null)
+    }
+
+    TextField(
+        value = viewModel.state.value.query,
+        onValueChange = { viewModel.setQuery(it) },
+        placeholder = {
           Text(
-              text = it,
-              fontStyle = MaterialTheme.typography.bodyLarge.fontStyle,
-              fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+              text = "Search",
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
-        }
-      }
-      Icon(painterResource(R.drawable.ic_users), contentDescription = null)
+        },
+        leadingIcon = {
+          Icon(
+              imageVector = Icons.Default.Search,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        },
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            ),
+        shape = RoundedCornerShape(SearchBarDimensions.CORNER_RADIUS),
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(end = SearchBarDimensions.HORIZONTAL_PADDING)
+                .testTag(C.Tag.search_input_field),
+        singleLine = true,
+    )
+  }
+}
+
+@Composable
+private fun <T> SearchResultSection(
+    title: String,
+    items: List<T>,
+    titleTestTag: String,
+    listTestTag: String,
+    navController: NavHostController,
+    cardContent: @Composable (T) -> Unit
+) {
+  Column(modifier = Modifier.fillMaxWidth().height(SectionDimensions.HEIGHT)) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier =
+            Modifier.padding(
+                    start = SearchBarDimensions.HORIZONTAL_PADDING,
+                    bottom = SectionDimensions.SPACING)
+                .testTag(titleTestTag),
+    )
+    LazyRow(
+        modifier = Modifier.testTag(listTestTag),
+        horizontalArrangement = Arrangement.spacedBy(SectionDimensions.SPACING),
+    ) {
+      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
+      items(items) { item -> cardContent(item) }
+      item { Spacer(Modifier.width(SectionDimensions.SIDE_PADDING)) }
     }
   }
+}
+
+@Composable
+private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostController) {
+  SearchResultSection(
+      title = "People",
+      items = viewModel.state.value.shownUsers,
+      titleTestTag = C.Tag.user_search_result_title,
+      listTestTag = C.Tag.user_search_result,
+      navController = navController) { user ->
+        PersonCard(user = user, navController = navController)
+      }
+}
+
+@Composable
+private fun rememberImageBitmap(imageId: String?, logTag: String): ImageBitmap? {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, imageId, repository) {
+        value =
+            imageId?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { android.util.Log.e(logTag, "Failed to download image: $id", it) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+  return imageBitmap
+}
+
+@Composable
+private fun SearchCard(
+    onClick: () -> Unit,
+    imageBitmap: ImageBitmap?,
+    defaultIcon: @Composable () -> Unit,
+    title: String,
+    subtitle: String
+) {
+  Card(
+      modifier =
+          Modifier.width(CardDimensions.WIDTH)
+              .height(CardDimensions.HEIGHT)
+              .clickable(onClick = onClick),
+      shape = RoundedCornerShape(CardDimensions.CORNER_RADIUS),
+      colors =
+          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+  ) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(CardDimensions.PADDING),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Box(
+          modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 4.dp),
+          contentAlignment = Alignment.Center) {
+            if (imageBitmap != null) {
+              Image(
+                  bitmap = imageBitmap,
+                  contentDescription = title,
+                  modifier = Modifier.size(CardDimensions.ICON_SIZE).clip(CircleShape),
+                  contentScale = ContentScale.Crop,
+              )
+            } else {
+              defaultIcon()
+            }
+          }
+      Column(
+          verticalArrangement = Arrangement.spacedBy(2.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+          }
+    }
+  }
+}
+
+@Composable
+private fun PersonCard(user: User, navController: NavHostController) {
+  val imageBitmap = rememberImageBitmap(user.profilePictureUrl, "PersonCard")
+  SearchCard(
+      onClick = { navController.navigate(Route.visitorProfile(user.userId)) },
+      imageBitmap = imageBitmap,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.Person,
+            contentDescription = "Default profile picture",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = "${user.firstName} ${user.lastName}",
+      subtitle = "@${user.username}")
+}
+
+@Composable
+private fun OrganizationsSection(viewModel: SearchViewModel, navController: NavHostController) {
+  SearchResultSection(
+      title = "Organisations",
+      items = viewModel.state.value.shownOrganizations,
+      titleTestTag = C.Tag.organisation_search_result_title,
+      listTestTag = C.Tag.organisation_search_result,
+      navController = navController) { organization ->
+        OrganizationCard(organization = organization, navController = navController)
+      }
+}
+
+@Composable
+private fun OrganizationCard(organization: Organization, navController: NavHostController) {
+  val imageBitmap = rememberImageBitmap(organization.logoUrl, "OrganizationCard")
+  SearchCard(
+      onClick = { navController.navigate(Route.organizationProfile(organization.id)) },
+      imageBitmap = imageBitmap,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.Groups,
+            contentDescription = "Default organization logo",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = organization.name,
+      subtitle = organization.type.name)
+}
+
+@Composable
+private fun EventsSection(viewModel: SearchViewModel, navController: NavHostController) {
+  SearchResultSection(
+      title = "Events",
+      items = viewModel.state.value.shownEvents,
+      titleTestTag = C.Tag.event_search_result_title,
+      listTestTag = C.Tag.event_search_result,
+      navController = navController) { event ->
+        EventCard(event = event, navController = navController)
+      }
+}
+
+@Composable
+private fun EventCard(event: Event, navController: NavHostController) {
+  SearchCard(
+      onClick = { navController.navigate(Route.eventView(event.uid, false)) },
+      imageBitmap = null,
+      defaultIcon = {
+        Icon(
+            imageVector = Icons.Default.ConfirmationNumber,
+            contentDescription = "Event ticket icon",
+            modifier = Modifier.size(CardDimensions.ICON_SIZE),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = event.title,
+      subtitle = "")
 }

@@ -49,7 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
 import com.github.se.studentconnect.ui.components.BirthdayPickerDialog
 import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton

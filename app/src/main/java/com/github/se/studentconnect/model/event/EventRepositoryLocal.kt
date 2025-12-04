@@ -1,8 +1,8 @@
 // Portions of this code were generated with the help of Gemini
 package com.github.se.studentconnect.model.event
 
-import com.github.se.studentconnect.ui.screen.activities.Invitation
-import com.github.se.studentconnect.ui.screen.activities.InvitationStatus
+import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.activities.InvitationStatus
 import java.util.UUID
 
 /**
@@ -25,6 +25,10 @@ class EventRepositoryLocal : EventRepository {
 
   override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> {
     return events.filter(predicate)
+  }
+
+  override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+    return events.filter { it.ownerId == organizationId }
   }
 
   override suspend fun getEvent(eventUid: String): Event {

@@ -3,9 +3,9 @@ package com.github.se.studentconnect.ui.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.friends.FriendsRepository
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

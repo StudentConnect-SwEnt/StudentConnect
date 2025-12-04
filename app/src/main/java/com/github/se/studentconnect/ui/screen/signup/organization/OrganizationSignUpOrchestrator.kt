@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
-import com.github.se.studentconnect.repository.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import kotlinx.coroutines.launch
 
 /**
