@@ -1,8 +1,8 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepository
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.components.EventSelectionState
 import com.google.firebase.Timestamp
 import io.mockk.coEvery

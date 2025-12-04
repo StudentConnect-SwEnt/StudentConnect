@@ -2,8 +2,8 @@ package com.github.se.studentconnect.ui.screen.camera
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.story.StoryRepository
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.components.EventSelectionState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
