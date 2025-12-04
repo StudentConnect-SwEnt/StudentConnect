@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.activities
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
@@ -28,7 +29,8 @@ data class ActivitiesUiState(
 
 class ActivitiesViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val getString: (resId: Int) -> String = { _ -> "" }
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ActivitiesUiState())
   val uiState: StateFlow<ActivitiesUiState> = _uiState.asStateFlow()
@@ -106,7 +108,8 @@ class ActivitiesViewModel(
                         _uiState.update {
                           it.copy(
                               errorMessage =
-                                  "Failed to load events: ${e.message ?: "Unknown error"}")
+                                  getString(R.string.error_failed_to_load_events)
+                                      .format(e.message ?: getString(R.string.error_unknown)))
                         }
                         emptyList()
                       }
@@ -151,7 +154,7 @@ class ActivitiesViewModel(
                       InvitationCarouselItem(
                           invitation = invitation,
                           event = event,
-                          invitedBy = sender?.firstName ?: "Anonymous")
+                          invitedBy = sender?.firstName ?: getString(R.string.anonymous))
                     } catch (_: Exception) {
                       null
                     }
@@ -167,7 +170,8 @@ class ActivitiesViewModel(
                         _uiState.update {
                           it.copy(
                               errorMessage =
-                                  "Failed to load events: ${e.message ?: "Unknown error"}")
+                                  getString(R.string.error_failed_to_load_events)
+                                      .format(e.message ?: getString(R.string.error_unknown)))
                         }
                         emptyList()
                       }
