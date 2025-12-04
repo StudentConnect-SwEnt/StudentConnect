@@ -4,8 +4,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.github.se.studentconnect.HttpClientProvider
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseUser
 import java.lang.reflect.Method
@@ -55,15 +53,7 @@ abstract class StudentConnectTest {
   // rule for NoAnonymousSignIn annotation
   @get:Rule private val methodInfo = MethodInfoRule()
 
-  abstract fun createInitializedRepository(): EventRepository
-
   open fun initializeHTTPClient(): OkHttpClient = FakeHttpClient.getClient()
-
-  val repository: EventRepository
-    get() = EventRepositoryProvider.repository
-
-  val httpClient
-    get() = HttpClientProvider.client
 
   val currentUser: FirebaseUser
     get() = FirebaseEmulator.auth.currentUser!!
@@ -74,7 +64,6 @@ abstract class StudentConnectTest {
 
   @Before
   open fun setUp() {
-    EventRepositoryProvider.repository = createInitializedRepository()
     HttpClientProvider.client = initializeHTTPClient()
 
     // check if @NoAnonymousSignIn is present

@@ -4,8 +4,6 @@ package com.github.se.studentconnect.model.media
 
 import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.utils.StudentConnectTest
 import java.io.File
 import kotlinx.coroutines.test.runTest
@@ -25,11 +23,6 @@ class MediaRepositoryFirebaseStorageTest : StudentConnectTest() {
   private val repo = MediaRepositoryProvider.repository
   private lateinit var tempFile: File
   private var uploadedId: String? = null
-
-  // Required override by StudentConnectTest but not used directly in these tests.
-  override fun createInitializedRepository(): EventRepository {
-    return EventRepositoryProvider.repository
-  }
 
   @Before
   override fun setUp() {

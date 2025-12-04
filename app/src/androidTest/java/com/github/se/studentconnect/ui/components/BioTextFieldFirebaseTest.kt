@@ -6,11 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.theme.AppTheme
-import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.StudentConnectTest
 import org.junit.Before
 import org.junit.Rule
@@ -25,9 +22,6 @@ import org.junit.Test
 class BioTextFieldFirebaseTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  override fun createInitializedRepository(): EventRepository =
-      EventRepositoryFirestore(FirebaseEmulator.firestore)
 
   @Before
   override fun setUp() {

@@ -20,8 +20,6 @@ import androidx.compose.ui.test.performClick
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
@@ -49,9 +47,6 @@ import org.junit.Test
 class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
-
-  override fun createInitializedRepository(): EventRepository =
-      EventRepositoryFirestore(FirebaseEmulator.firestore)
 
   private lateinit var userRepository: UserRepositoryFirestore
   private lateinit var registryOwner: QueueingActivityResultRegistryOwner

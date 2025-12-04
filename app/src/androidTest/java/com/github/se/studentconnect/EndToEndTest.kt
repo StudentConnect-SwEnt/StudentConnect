@@ -11,8 +11,6 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
@@ -56,10 +54,6 @@ class EndToEndTest : FirestoreStudentConnectTest() {
       GrantPermissionRule.grant(android.Manifest.permission.POST_NOTIFICATIONS)
 
   private lateinit var scenario: ActivityScenario<MainActivity>
-
-  override fun createInitializedRepository(): EventRepository {
-    return EventRepositoryFirestore(db = FirebaseEmulator.firestore)
-  }
 
   @NoAnonymousSignIn
   @Test

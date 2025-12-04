@@ -26,9 +26,6 @@ class BioTextFieldFirebaseTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  override fun createInitializedRepository(): EventRepository =
-      EventRepositoryFirestore(FirebaseEmulator.firestore)
-
   @Before
   override fun setUp() {
     super.setUp()
