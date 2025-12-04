@@ -11,13 +11,13 @@ import androidx.annotation.VisibleForTesting
 abstract class BaseRepositoryProvider<T : Repository> : RepositoryProvider<T> {
 
   /** Will only be called if no test override is set and someone actually needs the repository. */
-  protected abstract fun getRepository(): T
+  protected abstract fun getCurrentRepository(): T
 
   // Test override (null in production)
   @Volatile private var testRepository: T? = null
 
   final override val repository: T
-    get() = testRepository ?: getRepository()
+    get() = testRepository ?: getCurrentRepository()
 
   @VisibleForTesting(otherwise = VisibleForTesting.NONE)
   fun overrideForTests(repository: T) {

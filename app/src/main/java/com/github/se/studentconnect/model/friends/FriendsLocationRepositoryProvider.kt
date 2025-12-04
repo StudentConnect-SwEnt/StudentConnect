@@ -6,6 +6,6 @@ import com.google.firebase.database.database
 
 /** Provides a single instance of the FriendsLocationRepository in the app. */
 object FriendsLocationRepositoryProvider : BaseRepositoryProvider<FriendsLocationRepository>() {
-  override fun getRepository(): FriendsLocationRepository =
+  override fun getCurrentRepository(): FriendsLocationRepository =
       FriendsLocationRepositoryFirebase(Firebase.database)
 }

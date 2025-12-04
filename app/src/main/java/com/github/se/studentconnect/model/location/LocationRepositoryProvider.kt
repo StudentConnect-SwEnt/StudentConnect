@@ -10,7 +10,7 @@ object LocationRepositoryProvider : BaseRepositoryProvider<LocationRepository>()
 
   private fun createRepository() = LocationRepositoryNominatim(cachedClient)
 
-  override fun getRepository(): LocationRepository {
+  override fun getCurrentRepository(): LocationRepository {
     // recreate the repository if the client changed
     val currentClient = HttpClientProvider.client
     if (currentClient != cachedClient) {
