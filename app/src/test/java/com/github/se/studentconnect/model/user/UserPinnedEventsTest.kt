@@ -204,8 +204,7 @@ class UserPinnedEventsTest {
     val user = baseUser.copy(pinnedEventIds = emptyList())
 
     user.update(
-        pinnedEventIds =
-            User.UpdateValue.SetValue(listOf("event1", "event2", "event3", "event4")))
+        pinnedEventIds = User.UpdateValue.SetValue(listOf("event1", "event2", "event3", "event4")))
   }
 
   @Test

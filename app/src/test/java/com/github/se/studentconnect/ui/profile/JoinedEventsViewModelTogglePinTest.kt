@@ -247,9 +247,10 @@ class JoinedEventsViewModelTogglePinTest {
   @Test
   fun togglePinEvent_updatesStateOptimistically() = runTest {
     coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns emptyList()
-    coEvery { mockUserRepository.addPinnedEvent(testUserId, event1Id) } coAnswers {
-      kotlinx.coroutines.delay(1000) // Simulate slow network
-    }
+    coEvery { mockUserRepository.addPinnedEvent(testUserId, event1Id) } coAnswers
+        {
+          kotlinx.coroutines.delay(1000) // Simulate slow network
+        }
 
     viewModel.loadJoinedEvents()
     advanceUntilIdle()
@@ -266,8 +267,7 @@ class JoinedEventsViewModelTogglePinTest {
     val pastEvent = createMockPublicEvent(event1Id, "Past Event", daysAgo = 5)
     val upcomingEvent = createMockPublicEvent(event2Id, "Upcoming Event", daysFromNow = 5)
 
-    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns
-        listOf(event1Id, event2Id)
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(event1Id, event2Id)
     coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns listOf(event1Id)
     coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
     coEvery { mockEventRepository.getEvent(event1Id) } returns pastEvent
@@ -292,8 +292,7 @@ class JoinedEventsViewModelTogglePinTest {
     val event1 = createMockPublicEvent(event1Id, "Party Night", daysAgo = 1)
     val event2 = createMockPublicEvent(event2Id, "Meeting", daysAgo = 2)
 
-    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns
-        listOf(event1Id, event2Id)
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(event1Id, event2Id)
     coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns emptyList()
     coEvery { mockUserRepository.addPinnedEvent(testUserId, any()) } just Runs
     coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()

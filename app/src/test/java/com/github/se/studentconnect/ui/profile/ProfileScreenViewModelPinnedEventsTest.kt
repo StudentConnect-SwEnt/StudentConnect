@@ -106,8 +106,7 @@ class ProfileScreenViewModelPinnedEventsTest {
     val event1 = createTestEvent("event1", "Test Event 1")
     val event2 = createTestEvent("event2", "Test Event 2")
 
-    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns
-        listOf("event1", "event2")
+    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns listOf("event1", "event2")
     coEvery { mockEventRepository.getEvent("event1") } returns event1
     coEvery { mockEventRepository.getEvent("event2") } returns event2
 
@@ -158,8 +157,7 @@ class ProfileScreenViewModelPinnedEventsTest {
   fun loadPinnedEvents_handlesEventFetchError() = runTest {
     val event1 = createTestEvent("event1", "Test Event 1")
 
-    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns
-        listOf("event1", "event2")
+    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns listOf("event1", "event2")
     coEvery { mockEventRepository.getEvent("event1") } returns event1
     coEvery { mockEventRepository.getEvent("event2") } throws Exception("Event not found")
 
@@ -179,8 +177,7 @@ class ProfileScreenViewModelPinnedEventsTest {
 
   @Test
   fun loadPinnedEvents_handlesAllEventsFetchError() = runTest {
-    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns
-        listOf("event1", "event2")
+    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns listOf("event1", "event2")
     coEvery { mockEventRepository.getEvent(any()) } throws Exception("Network error")
 
     viewModel =
@@ -264,8 +261,7 @@ class ProfileScreenViewModelPinnedEventsTest {
             end = createTimestamp(daysAgo = 2),
             isFlash = false)
 
-    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns
-        listOf("event1", "event2")
+    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns listOf("event1", "event2")
     coEvery { mockEventRepository.getEvent("event1") } returns publicEvent
     coEvery { mockEventRepository.getEvent("event2") } returns privateEvent
 
