@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.activities
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
@@ -28,6 +29,7 @@ class ActivitiesViewModelTest {
   private lateinit var viewModel: ActivitiesViewModel
   private lateinit var mockEventRepository: EventRepository
   private lateinit var mockUserRepository: UserRepository
+  private lateinit var mockGetString: (Int) -> String
   private val testDispatcher = StandardTestDispatcher()
 
   private val testUserId = "user-123"
@@ -95,9 +97,16 @@ class ActivitiesViewModelTest {
 
     mockEventRepository = mockk(relaxed = true)
     mockUserRepository = mockk(relaxed = true)
+    mockGetString = mockk(relaxed = true)
 
     mockkObject(AuthenticationProvider)
     every { AuthenticationProvider.currentUser } returns testUserId
+
+    // Mock getString responses
+    every { mockGetString(R.string.anonymous) } returns "Anonymous"
+    every { mockGetString(R.string.error_failed_to_load_events) } returns
+        "Failed to load events: %s"
+    every { mockGetString(R.string.error_unknown) } returns "Unknown error"
 
     // Default mock responses
     coEvery { mockUserRepository.getJoinedEvents(any()) } returns emptyList()
@@ -109,7 +118,7 @@ class ActivitiesViewModelTest {
     coEvery { mockUserRepository.declineInvitation(any(), any()) } just Runs
     coEvery { mockEventRepository.addParticipantToEvent(any(), any()) } just Runs
 
-    viewModel = ActivitiesViewModel(mockEventRepository, mockUserRepository)
+    viewModel = ActivitiesViewModel(mockEventRepository, mockUserRepository, mockGetString)
   }
 
   @After
