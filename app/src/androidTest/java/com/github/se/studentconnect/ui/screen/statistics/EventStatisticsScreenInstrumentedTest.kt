@@ -294,7 +294,7 @@ class EventStatisticsScreenInstrumentedTest {
   }
 
   @Test
-  fun attendeesFollowersCard_rateBoundaryValues() {
+  fun attendeesFollowersCard_rateZero_renders() {
     composeTestRule.setContent {
       MaterialTheme {
         AttendeesFollowersCard(
@@ -306,7 +306,10 @@ class EventStatisticsScreenInstrumentedTest {
       }
     }
     composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertIsDisplayed()
+  }
 
+  @Test
+  fun attendeesFollowersCard_rateHundred_renders() {
     composeTestRule.setContent {
       MaterialTheme {
         AttendeesFollowersCard(
@@ -336,12 +339,15 @@ class EventStatisticsScreenInstrumentedTest {
 
   @Test
   fun statisticsContent_allCardsWithData_rendersAll() {
+    composeTestRule.mainClock.autoAdvance = false
     composeTestRule.setContent {
       MaterialTheme {
         StatisticsContent(
             statistics = testStatistics, animationProgress = 1f, paddingValues = PaddingValues())
       }
     }
+    // Advance time to ensure all staggered animations complete
+    composeTestRule.mainClock.advanceTimeBy(3000)
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(C.Tag.STATS_TOTAL_ATTENDEES_CARD).assertExists()
     composeTestRule.onNodeWithTag(C.Tag.STATS_FOLLOWERS_CARD).assertExists()
