@@ -89,6 +89,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -1020,9 +1021,12 @@ fun StoryItem(
               text = name,
               modifier =
                   Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
+                      .width(80.dp)
                       .testTag("story_text_$name"),
               style = MaterialTheme.typography.bodySmall,
-              maxLines = 1)
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+              textAlign = TextAlign.Center)
         }
   }
 }
@@ -1097,11 +1101,10 @@ fun StoriesRow(
 
           // Get the first story's user info for display
           val firstStory = eventStories[event.uid]?.firstOrNull()
-          val displayName = firstStory?.username ?: event.title
           val profilePictureUrl = firstStory?.profilePictureUrl
 
           StoryItem(
-              name = displayName,
+              name = event.title,
               avatarUrl = profilePictureUrl,
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
