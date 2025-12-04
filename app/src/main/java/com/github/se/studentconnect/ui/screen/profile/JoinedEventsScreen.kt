@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -71,6 +72,11 @@ fun JoinedEventsScreen(
   val filteredEvents = uiState.filteredEvents
   val isLoading = uiState.isLoading
   val pinnedEventIds = uiState.pinnedEventIds
+
+  // Log state changes
+  LaunchedEffect(pinnedEventIds) {
+    android.util.Log.d("JoinedEventsScreen", "pinnedEventIds changed: $pinnedEventIds")
+  }
 
   // Load events when the screen first appears
   LaunchedEffect(Unit) { viewModel.loadJoinedEvents() }
@@ -197,19 +203,26 @@ private fun EventsList(
     onEventClick: (Event) -> Unit,
     onPinClick: (String) -> Unit
 ) {
-  LazyColumn(
-      modifier = Modifier.fillMaxSize().testTag(JoinedEventsScreenTestTags.EVENT_LIST),
-      contentPadding = PaddingValues(horizontal = spacing.medium),
-      verticalArrangement = Arrangement.spacedBy(spacing.small)) {
-        items(items = events, key = { it.uid }) { event ->
-          EventCard(
-              event = event,
-              isPinned = pinnedEventIds.contains(event.uid),
-              showPinButton = selectedFilter == EventFilter.Past,
-              onClick = { onEventClick(event) },
-              onPinClick = { onPinClick(event.uid) })
+  // Log pinnedEventIds whenever this composable recomposes
+  android.util.Log.d("EventsList", "Recomposing EventsList with pinnedEventIds: $pinnedEventIds")
+
+  // Force recomposition when pinnedEventIds changes
+  key(pinnedEventIds.joinToString()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().testTag(JoinedEventsScreenTestTags.EVENT_LIST),
+        contentPadding = PaddingValues(horizontal = spacing.medium),
+        verticalArrangement = Arrangement.spacedBy(spacing.small)) {
+          items(items = events, key = { it.uid }) { event ->
+            android.util.Log.d("EventsList", "Composing event ${event.uid}")
+            EventCard(
+                event = event,
+                isPinned = pinnedEventIds.contains(event.uid),
+                showPinButton = selectedFilter == EventFilter.Past,
+                onClick = { onEventClick(event) },
+                onPinClick = { onPinClick(event.uid) })
+          }
         }
-      }
+  }
 }
 
 // Event card with details
@@ -440,6 +453,9 @@ private fun PinButton(isPinned: Boolean, onClick: () -> Unit, modifier: Modifier
 
   // Dynamic icon size based on screen width
   val iconSize = screenWidth * 0.06f
+
+  // Log the isPinned state for debugging
+  android.util.Log.d("PinButton", "Rendering PinButton with isPinned=$isPinned")
 
   IconButton(onClick = onClick, modifier = modifier) {
     Icon(

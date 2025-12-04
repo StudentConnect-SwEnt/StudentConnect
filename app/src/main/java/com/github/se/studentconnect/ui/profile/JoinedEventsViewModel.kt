@@ -174,25 +174,19 @@ class JoinedEventsViewModel(
         val currentPinnedIds = _uiState.value.pinnedEventIds
         val isPinned = currentPinnedIds.contains(eventId)
 
-        android.util.Log.d(
-            "JoinedEventsVM",
-            "Toggle pin for event: $eventId, isPinned: $isPinned, currentPinned: $currentPinnedIds")
-
         if (isPinned) {
-          userRepository.removePinnedEvent(currentUserId, eventId)
           val newPinnedIds = currentPinnedIds - eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
-          android.util.Log.d("JoinedEventsVM", "Unpinned event, new list: $newPinnedIds")
+          userRepository.removePinnedEvent(currentUserId, eventId)
         } else {
           // Check if user already has 3 pinned events
           if (currentPinnedIds.size >= MAX_PINNED_EVENTS) {
             _snackbarMessage.value = maxPinnedMessage
             return@launch
           }
-          userRepository.addPinnedEvent(currentUserId, eventId)
           val newPinnedIds = currentPinnedIds + eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
-          android.util.Log.d("JoinedEventsVM", "Pinned event, new list: $newPinnedIds")
+          userRepository.addPinnedEvent(currentUserId, eventId)
         }
       } catch (e: Exception) {
         android.util.Log.e("JoinedEventsVM", "Failed to toggle pin", e)
