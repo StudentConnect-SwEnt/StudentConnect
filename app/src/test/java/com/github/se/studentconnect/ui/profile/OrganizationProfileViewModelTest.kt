@@ -2,14 +2,14 @@ package com.github.se.studentconnect.ui.profile
 
 import android.content.Context
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.Organization
-import com.github.se.studentconnect.repository.AuthenticationProvider
-import com.github.se.studentconnect.repository.OrganizationRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import com.google.firebase.Timestamp
 import io.mockk.every

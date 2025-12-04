@@ -13,19 +13,20 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.core.app.ActivityOptionsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryFirebaseStorage
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.screen.profile.edit.EditProfilePictureScreen
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.FirebaseEmulator
@@ -178,9 +179,17 @@ class EditProfilePictureScreenFirebaseTest : StudentConnectTest() {
 
   @Test
   fun takePhotoOption_enablesSaveButton() {
-    composeTestRule.waitForIdle()
     val ctx = InstrumentationRegistry.getInstrumentation().targetContext
     val saveButton = composeTestRule.onNodeWithText(ctx.getString(R.string.button_save))
+
+    // Wait for button to appear
+    composeTestRule.waitUntil(timeoutMillis = UI_WAIT_TIMEOUT) {
+      composeTestRule
+          .onAllNodesWithText(ctx.getString(R.string.button_save))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+
     saveButton.assertExists().assertIsNotEnabled()
 
     // Permission result + TakePicture result

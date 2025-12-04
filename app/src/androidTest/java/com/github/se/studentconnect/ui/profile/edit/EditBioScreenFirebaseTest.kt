@@ -3,10 +3,10 @@ package com.github.se.studentconnect.ui.profile.edit
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
-import com.github.se.studentconnect.repository.UserRepositoryFirestore
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBioScreen
 import com.github.se.studentconnect.ui.theme.AppTheme

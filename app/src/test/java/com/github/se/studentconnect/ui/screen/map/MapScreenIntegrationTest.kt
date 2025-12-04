@@ -3,8 +3,8 @@ package com.github.se.studentconnect.ui.screen.map
 import android.content.Context
 import android.location.Location
 import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationResult
+import com.github.se.studentconnect.model.map.LocationRepository
+import com.github.se.studentconnect.model.map.LocationResult
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers

@@ -3,7 +3,7 @@ package com.github.se.studentconnect.ui.screen.signup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 

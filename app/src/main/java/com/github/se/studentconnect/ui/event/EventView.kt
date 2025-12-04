@@ -47,19 +47,19 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.User
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.repository.AuthenticationProvider
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.ui.event.CountDownDisplay
+import com.github.se.studentconnect.ui.event.CountDownViewModel
 import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.InviteFriendsDialog
 import com.github.se.studentconnect.ui.event.TicketValidationResult
+import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
-import com.github.se.studentconnect.ui.screen.activities.CountDownDisplay
-import com.github.se.studentconnect.ui.screen.activities.CountDownViewModel
-import com.github.se.studentconnect.ui.screen.activities.days
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
@@ -104,6 +104,9 @@ object EventViewTestTags {
   const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
   const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
   const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
+  const val LEAVE_CONFIRMATION_DIALOG = "event_view_leave_confirmation_dialog"
+  const val LEAVE_CONFIRMATION_CONFIRM = "event_view_leave_confirmation_confirm"
+  const val LEAVE_CONFIRMATION_CANCEL = "event_view_leave_confirmation_cancel"
 }
 
 /** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
@@ -149,6 +152,32 @@ fun EventView(
         onToggleFriend = { eventViewModel.toggleFriendInvitation(it) },
         onSendInvites = { eventViewModel.updateInvitationsForEvent() },
         onDismiss = { eventViewModel.hideInviteFriendsDialog() })
+  }
+
+  // Leave Event Confirmation Dialog
+  if (uiState.showLeaveConfirmDialog && event != null) {
+    AlertDialog(
+        onDismissRequest = { eventViewModel.hideLeaveConfirmDialog() },
+        modifier = Modifier.testTag(EventViewTestTags.LEAVE_CONFIRMATION_DIALOG),
+        title = { Text(text = stringResource(R.string.leave_event_confirmation_title)) },
+        text = { Text(text = stringResource(R.string.leave_event_confirmation_message)) },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                eventViewModel.hideLeaveConfirmDialog()
+                eventViewModel.leaveEvent(eventUid = event.uid)
+              },
+              modifier = Modifier.testTag(EventViewTestTags.LEAVE_CONFIRMATION_CONFIRM)) {
+                Text(text = stringResource(R.string.leave_event_confirm))
+              }
+        },
+        dismissButton = {
+          TextButton(
+              onClick = { eventViewModel.hideLeaveConfirmDialog() },
+              modifier = Modifier.testTag(EventViewTestTags.LEAVE_CONFIRMATION_CANCEL)) {
+                Text(text = stringResource(R.string.leave_event_cancel))
+              }
+        })
   }
 
   Scaffold(
@@ -678,7 +707,7 @@ private fun NonOwnerActionButtons(
   Button(
       onClick = {
         if (joined) {
-          eventViewModel.leaveEvent(eventUid = currentEvent.uid)
+          eventViewModel.showLeaveConfirmDialog()
         } else if (!isFull && !eventHasStarted) {
           eventViewModel.joinEvent(eventUid = currentEvent.uid)
         }

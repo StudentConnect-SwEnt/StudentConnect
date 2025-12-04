@@ -102,8 +102,6 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
-import com.github.se.studentconnect.viewmodel.NotificationUiState
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
 import kotlinx.coroutines.launch
@@ -412,9 +410,10 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryCapture = { _ ->
-                              // For now, just return to home page
-                              // TODO: Implement story upload functionality
+                            onStoryAccepted = { _, _, _ ->
+                              // Story upload will be implemented in a future PR
+                              // Parameters: mediaUri (captured media), isVideo (true if video),
+                              // selectedEvent (linked event)
                               onQRScannerClosed()
                               cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {

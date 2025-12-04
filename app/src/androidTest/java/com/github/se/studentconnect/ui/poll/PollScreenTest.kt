@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.poll
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.compose.rememberNavController
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
@@ -10,7 +11,6 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
-import com.github.se.studentconnect.repository.AuthenticationProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking

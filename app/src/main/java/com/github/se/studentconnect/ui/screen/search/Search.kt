@@ -51,10 +51,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.github.se.studentconnect.model.User
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri

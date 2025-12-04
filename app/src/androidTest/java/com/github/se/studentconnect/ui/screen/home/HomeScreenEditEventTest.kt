@@ -3,9 +3,8 @@ package com.github.se.studentconnect.ui.screen.home
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.utils.StudentConnectTest
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
 import org.junit.Before
 import org.junit.Rule
 

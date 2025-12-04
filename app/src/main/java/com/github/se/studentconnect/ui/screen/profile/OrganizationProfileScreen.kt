@@ -60,9 +60,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.OrganizationEvent
-import com.github.se.studentconnect.model.OrganizationMember
-import com.github.se.studentconnect.model.OrganizationProfile
+import com.github.se.studentconnect.model.organization.OrganizationEvent
+import com.github.se.studentconnect.model.organization.OrganizationMember
+import com.github.se.studentconnect.model.organization.OrganizationProfile
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.AVATAR_BANNER_HEIGHT

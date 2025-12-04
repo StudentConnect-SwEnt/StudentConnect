@@ -6,7 +6,7 @@ import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.repository.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference

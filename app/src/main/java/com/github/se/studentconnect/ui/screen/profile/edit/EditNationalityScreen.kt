@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.repository.UserRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.Country
 import com.github.se.studentconnect.ui.components.CountryListSurface
 import com.github.se.studentconnect.ui.components.ProfileSaveButton

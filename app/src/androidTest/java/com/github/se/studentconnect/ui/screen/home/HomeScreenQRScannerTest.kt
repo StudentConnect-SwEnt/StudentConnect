@@ -5,14 +5,15 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
-import com.github.se.studentconnect.repository.UserRepository
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.google.firebase.Timestamp
 import org.junit.Rule
 import org.junit.Test
@@ -71,34 +72,26 @@ class HomeScreenQRScannerTest {
       object : UserRepository {
         override suspend fun leaveEvent(eventId: String, userId: String) {}
 
-        override suspend fun getUserById(userId: String): com.github.se.studentconnect.model.User? =
-            null
+        override suspend fun getUserById(userId: String): User? = null
 
-        override suspend fun getUserByEmail(
-            email: String
-        ): com.github.se.studentconnect.model.User? = null
+        override suspend fun getUserByEmail(email: String): User? = null
 
-        override suspend fun getAllUsers(): List<com.github.se.studentconnect.model.User> =
-            emptyList()
+        override suspend fun getAllUsers(): List<User> = emptyList()
 
         override suspend fun getUsersPaginated(
             limit: Int,
             lastUserId: String?
-        ): Pair<List<com.github.se.studentconnect.model.User>, Boolean> = Pair(emptyList(), false)
+        ): Pair<List<User>, Boolean> = Pair(emptyList(), false)
 
-        override suspend fun saveUser(user: com.github.se.studentconnect.model.User) {}
+        override suspend fun saveUser(user: User) {}
 
         override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
 
         override suspend fun deleteUser(userId: String) {}
 
-        override suspend fun getUsersByUniversity(
-            university: String
-        ): List<com.github.se.studentconnect.model.User> = emptyList()
+        override suspend fun getUsersByUniversity(university: String): List<User> = emptyList()
 
-        override suspend fun getUsersByHobby(
-            hobby: String
-        ): List<com.github.se.studentconnect.model.User> = emptyList()
+        override suspend fun getUsersByHobby(hobby: String): List<User> = emptyList()
 
         override suspend fun getNewUid(): String = "test-uid"
 
@@ -112,9 +105,7 @@ class HomeScreenQRScannerTest {
             fromUserId: String
         ) {}
 
-        override suspend fun getInvitations(
-            userId: String
-        ): List<com.github.se.studentconnect.ui.screen.activities.Invitation> = emptyList()
+        override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
 
         override suspend fun acceptInvitation(eventId: String, userId: String) {}
 

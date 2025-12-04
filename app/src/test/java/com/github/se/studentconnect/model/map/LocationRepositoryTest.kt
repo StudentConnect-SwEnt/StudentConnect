@@ -4,14 +4,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.content.ContextCompat
-import com.github.se.studentconnect.repository.LocationConfig
-import com.github.se.studentconnect.repository.LocationPermission
-import com.github.se.studentconnect.repository.LocationPermissionRepository
-import com.github.se.studentconnect.repository.LocationPermissionRepositoryImpl
-import com.github.se.studentconnect.repository.LocationRepository
-import com.github.se.studentconnect.repository.LocationRepositoryImpl
-import com.github.se.studentconnect.repository.LocationResult
-import com.github.se.studentconnect.repository.PermissionStatus
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
