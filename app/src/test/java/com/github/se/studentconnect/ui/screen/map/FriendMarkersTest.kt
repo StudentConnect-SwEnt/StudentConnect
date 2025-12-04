@@ -10,11 +10,17 @@ import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
+import com.mapbox.bindgen.Expected
+import com.mapbox.bindgen.None
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
 import com.mapbox.maps.Style
 import io.mockk.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -33,8 +39,22 @@ class FriendMarkersTest {
   private lateinit var mockUserRepository: UserRepository
   private lateinit var mockMediaRepository: MediaRepository
 
+  // Create a successful Expected result for addImage
+  private val successfulExpected: Expected<String, None> by lazy {
+    mockk<Expected<String, None>>(relaxed = true).also {
+      every { it.isValue } returns true
+      every { it.isError } returns false
+    }
+  }
+
   @Before
   fun setUp() {
+    // Clear caches before each test
+    FriendMarkers.clearCaches()
+
+    // Set up test dispatcher for Main
+    Dispatchers.setMain(StandardTestDispatcher())
+
     mockStyle = mockk(relaxed = true)
     mockContext = ApplicationProvider.getApplicationContext()
     mockDrawable = mockk(relaxed = true)
@@ -50,13 +70,14 @@ class FriendMarkersTest {
 
     // Mock Style methods
     every { mockStyle.hasStyleImage(any()) } returns false
-    every { mockStyle.addImage(any(), any<Bitmap>()) } returns mockk()
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
     every { mockStyle.styleLayerExists(any()) } returns false
     every { mockStyle.styleSourceExists(any()) } returns false
   }
 
   @After
   fun tearDown() {
+    Dispatchers.resetMain()
     unmockkAll()
     FriendMarkers.clearCaches()
   }
@@ -1032,7 +1053,7 @@ class FriendMarkersTest {
     // Reset mock to track new calls
     clearMocks(mockStyle, answers = false)
     every { mockStyle.hasStyleImage(any()) } returns false
-    every { mockStyle.addImage(any(), any<Bitmap>()) } returns mockk()
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
 
     // Load again - should recreate bitmap (not use cache)
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
