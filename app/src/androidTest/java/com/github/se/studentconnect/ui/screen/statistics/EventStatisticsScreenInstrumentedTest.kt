@@ -99,8 +99,8 @@ class EventStatisticsScreenInstrumentedTest {
   fun setUp() {
     eventRepository = EventRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
-    EventRepositoryProvider.repository = eventRepository
-    OrganizationRepositoryProvider.repository = organizationRepository
+    EventRepositoryProvider.overrideForTests(eventRepository)
+    OrganizationRepositoryProvider.overrideForTests(organizationRepository)
     viewModel = EventStatisticsViewModel(eventRepository, organizationRepository)
 
     runBlocking {
