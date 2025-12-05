@@ -4,5 +4,6 @@ import com.github.se.studentconnect.model.BaseRepositoryProvider
 
 /** Provides a single instance of the repository in the app. */
 object MediaRepositoryProvider : BaseRepositoryProvider<MediaRepository>() {
-  override fun createRepository(): MediaRepository = MediaRepositoryFirebaseStorage()
+  override fun createRepository(): MediaRepository =
+      MediaRepositoryCachedInMemory(MediaRepositoryFirebaseStorage())
 }
