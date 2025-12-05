@@ -451,6 +451,10 @@
     <string name="org_profile_follow">Follow</string>
     <string name="org_profile_following">Following</string>
     <string name="org_profile_member">Member</string>
+    <string name="org_profile_unfollow_title">Unfollow Organization?</string>
+    <string name="org_profile_unfollow_message">Are you sure you want to unfollow %1$s? You will no longer see their updates.</string>
+    <string name="org_profile_unfollow_confirm">Unfollow</string>
+    <string name="org_profile_unfollow_cancel">Cancel</string>
     <string name="org_profile_tab_events">Events</string>
     <string name="org_profile_tab_members">Members</string>
     <string name="org_profile_no_events">No events yet</string>

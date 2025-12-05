@@ -32,6 +32,7 @@ data class OrganizationProfileUiState(
     val selectedTab: OrganizationTab = OrganizationTab.EVENTS,
     val isLoading: Boolean = false,
     val isFollowLoading: Boolean = false,
+    val showUnfollowDialog: Boolean = false,
     val error: String? = null
 )
 
@@ -192,20 +193,74 @@ class OrganizationProfileViewModel(
   }
 
   /**
-   * Toggles the follow status for the organization. Members cannot unfollow - they must leave the
-   * organization first.
+   * Handles follow button click. Shows confirmation dialog for unfollowing. Members cannot
+   * unfollow - they must leave the organization first.
    */
-  fun toggleFollow() {
+  fun onFollowButtonClick() {
+    val currentOrg = _uiState.value.organization ?: return
+
+    // If already following, show confirmation dialog before unfollowing
+    if (currentOrg.isFollowing && !currentOrg.isMember) {
+      _uiState.value = _uiState.value.copy(showUnfollowDialog = true)
+    } else {
+      // If not following, follow immediately
+      performFollow()
+    }
+  }
+
+  /** Dismisses the unfollow confirmation dialog. */
+  fun dismissUnfollowDialog() {
+    _uiState.value = _uiState.value.copy(showUnfollowDialog = false)
+  }
+
+  /** Confirms unfollowing the organization. */
+  fun confirmUnfollow() {
+    _uiState.value = _uiState.value.copy(showUnfollowDialog = false)
+    performUnfollow()
+  }
+
+  /** Performs the follow action. */
+  private fun performFollow() {
     val currentOrg = _uiState.value.organization ?: return
     val userId = currentUserId ?: return
 
     // Prevent rapid toggles - guard with loading flag
     if (_uiState.value.isFollowLoading) {
-      Log.d(TAG, "Follow toggle already in progress, ignoring")
+      Log.d(TAG, "Follow action already in progress, ignoring")
       return
     }
 
-    // Check if user is a member or creator - they cannot unfollow
+    viewModelScope.launch {
+      try {
+        // Set loading flag
+        _uiState.value = _uiState.value.copy(isFollowLoading = true)
+
+        // Follow the organization
+        userRepository.followOrganization(userId, currentOrg.organizationId)
+
+        // Update UI after successful backend operation
+        val updatedOrg = currentOrg.copy(isFollowing = true)
+        _uiState.value = _uiState.value.copy(organization = updatedOrg, isFollowLoading = false)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to follow organization", e)
+        // Keep current state on failure
+        _uiState.value = _uiState.value.copy(isFollowLoading = false)
+      }
+    }
+  }
+
+  /** Performs the unfollow action. */
+  private fun performUnfollow() {
+    val currentOrg = _uiState.value.organization ?: return
+    val userId = currentUserId ?: return
+
+    // Prevent rapid toggles - guard with loading flag
+    if (_uiState.value.isFollowLoading) {
+      Log.d(TAG, "Unfollow action already in progress, ignoring")
+      return
+    }
+
+    // Check if user is a member - they cannot unfollow
     viewModelScope.launch {
       try {
         val organization = organizationRepository.getOrganizationById(currentOrg.organizationId)
@@ -214,7 +269,7 @@ class OrganizationProfileViewModel(
               organization.memberUids.contains(userId) || organization.createdBy == userId
 
           // Members cannot unfollow
-          if (isMember && currentOrg.isFollowing) {
+          if (isMember) {
             Log.d(TAG, "Members cannot unfollow organization")
             return@launch
           }
@@ -223,19 +278,14 @@ class OrganizationProfileViewModel(
         // Set loading flag
         _uiState.value = _uiState.value.copy(isFollowLoading = true)
 
-        // Persist to backend first, then update UI based on result
-        val newFollowingState = !currentOrg.isFollowing
-        if (newFollowingState) {
-          userRepository.followOrganization(userId, currentOrg.organizationId)
-        } else {
-          userRepository.unfollowOrganization(userId, currentOrg.organizationId)
-        }
+        // Unfollow the organization
+        userRepository.unfollowOrganization(userId, currentOrg.organizationId)
 
         // Update UI after successful backend operation
-        val updatedOrg = currentOrg.copy(isFollowing = newFollowingState)
+        val updatedOrg = currentOrg.copy(isFollowing = false)
         _uiState.value = _uiState.value.copy(organization = updatedOrg, isFollowLoading = false)
       } catch (e: Exception) {
-        Log.e(TAG, "Failed to toggle follow status", e)
+        Log.e(TAG, "Failed to unfollow organization", e)
         // Keep current state on failure
         _uiState.value = _uiState.value.copy(isFollowLoading = false)
       }
