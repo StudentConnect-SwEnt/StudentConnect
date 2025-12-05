@@ -68,6 +68,14 @@ import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
 
+// New centralized size values to avoid hardcoded dp usages
+private val iconSize = 24.dp
+private val smallSpacing = 8.dp
+
+// URL protocol constants to avoid duplication
+private const val HTTP_PROTOCOL = "http://"
+private const val HTTPS_PROTOCOL = "https://"
+
 /** Test tags for the EventView screen and its components. */
 object EventViewTestTags {
   const val EVENT_VIEW_SCREEN = "event_view_screen"
@@ -805,50 +813,8 @@ fun EventActionButtons(
                   modifier = Modifier.testTag("event_view_invite_friends_button"))
             }
 
-            if (currentEvent.location != null) {
-              ButtonIcon(
-                  id = R.drawable.ic_location_pin,
-                  onClick = {
-                    currentEvent.location?.let { location ->
-                      val route =
-                          Route.mapWithLocation(
-                              location.latitude, location.longitude, eventUid = currentEvent.uid)
-                      navController.navigate(route)
-                    }
-                  },
-                  modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-            }
-
-            val publicEvent = currentEvent as? Event.Public
-            val websiteUrl = publicEvent?.website
-            if (!websiteUrl.isNullOrEmpty()) {
-              ButtonIcon(
-                  id = R.drawable.ic_web,
-                  onClick = {
-                    currentEvent.website?.let { website ->
-                      val fixedUrl =
-                          if (!website.startsWith("http://") && !website.startsWith("https://"))
-                              "https://$website"
-                          else website
-                      try {
-                        val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
-                        context.startActivity(intent)
-                      } catch (_: ActivityNotFoundException) {
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.toast_no_browser),
-                                Toast.LENGTH_LONG)
-                            .show()
-                      }
-                    }
-                  },
-                  modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-            }
-
-            ButtonIcon(
-                id = R.drawable.ic_share,
-                onClick = { DialogNotImplemented(context) },
-                modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+            CommonActionButtons(
+                currentEvent = currentEvent, context = context, navController = navController)
           }
     } else {
       // Non-owner: Join/Leave button
@@ -863,50 +829,8 @@ fun EventActionButtons(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(12.dp),
           verticalAlignment = Alignment.CenterVertically) {
-            if (currentEvent.location != null) {
-              ButtonIcon(
-                  id = R.drawable.ic_location_pin,
-                  onClick = {
-                    currentEvent.location?.let { location ->
-                      val route =
-                          Route.mapWithLocation(
-                              location.latitude, location.longitude, eventUid = currentEvent.uid)
-                      navController.navigate(route)
-                    }
-                  },
-                  modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-            }
-
-            val publicEvent2 = currentEvent as? Event.Public
-            val websiteUrl2 = publicEvent2?.website
-            if (!websiteUrl2.isNullOrEmpty()) {
-              ButtonIcon(
-                  id = R.drawable.ic_web,
-                  onClick = {
-                    currentEvent.website?.let { website ->
-                      val fixedUrl =
-                          if (!website.startsWith("http://") && !website.startsWith("https://"))
-                              "https://$website"
-                          else website
-                      try {
-                        val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
-                        context.startActivity(intent)
-                      } catch (_: ActivityNotFoundException) {
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.toast_no_browser),
-                                Toast.LENGTH_LONG)
-                            .show()
-                      }
-                    }
-                  },
-                  modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-            }
-
-            ButtonIcon(
-                id = R.drawable.ic_share,
-                onClick = { DialogNotImplemented(context) },
-                modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+            CommonActionButtons(
+                currentEvent = currentEvent, context = context, navController = navController)
           }
     }
   }
@@ -994,7 +918,7 @@ private fun NonOwnerActionButtons(
               .testTag(
                   if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
                   else EventViewTestTags.JOIN_BUTTON),
-      enabled = if (joined) true else (!eventHasStarted && !isFull),
+      enabled = joined || (!eventHasStarted && !isFull),
       colors =
           ButtonDefaults.buttonColors(
               containerColor =
@@ -1011,8 +935,8 @@ private fun NonOwnerActionButtons(
                         if (joined) painterResource(id = R.drawable.ic_arrow_right)
                         else painterResource(id = R.drawable.ic_add),
                     contentDescription = stringResource(R.string.content_description_action_icon),
-                    modifier = Modifier.size(24.dp))
-                Spacer(modifier = Modifier.width(8.dp))
+                    modifier = Modifier.size(iconSize))
+                Spacer(modifier = Modifier.width(smallSpacing))
               }
               Text(
                   text =
@@ -1061,9 +985,11 @@ private fun CommonActionButtons(
         onClick = {
           currentEvent.website?.let { website ->
             val fixedUrl =
-                if (!website.startsWith("http://") && !website.startsWith("https://")) {
-                  "https://$website"
-                } else website
+                when {
+                  website.startsWith(HTTP_PROTOCOL) -> website
+                  website.startsWith(HTTPS_PROTOCOL) -> website
+                  else -> HTTPS_PROTOCOL + website
+                }
             try {
               val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
               context.startActivity(intent)
