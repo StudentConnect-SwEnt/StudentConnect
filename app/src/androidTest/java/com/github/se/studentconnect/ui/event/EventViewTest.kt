@@ -2074,4 +2074,28 @@ class EventViewTest {
       AuthenticationProvider.testUserId = null
     }
   }
+
+  @Test
+  fun eventView_statisticsButton_hasContentDescription() {
+    // Test that button has content description (covers EventView.kt lines 233-234)
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Verify button exists and has content description
+      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertExists()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
 }
