@@ -477,7 +477,10 @@ fun HomeScreen(
                               }
 
                               HorizontalPager(
-                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
+                                  state = tabPagerState,
+                                  modifier = Modifier.fillMaxSize(),
+                                  userScrollEnabled = true,
+                                  beyondBoundsPageCount = 0) { _ ->
                                     // Use different scroll state for each tab
                                     val currentListState =
                                         when (page) {
@@ -1056,7 +1059,8 @@ fun StoriesRow(
       horizontalArrangement =
           Arrangement.spacedBy(HomeScreenConstants.STORIES_ROW_HORIZONTAL_SPACING_DP.dp),
       contentPadding =
-          PaddingValues(horizontal = HomeScreenConstants.STORIES_ROW_HORIZONTAL_PADDING_DP.dp)) {
+          PaddingValues(horizontal = HomeScreenConstants.STORIES_ROW_HORIZONTAL_PADDING_DP.dp),
+      userScrollEnabled = true) {
         // Add Story Button (always first)
         item {
           val primaryColor = MaterialTheme.colorScheme.primary
