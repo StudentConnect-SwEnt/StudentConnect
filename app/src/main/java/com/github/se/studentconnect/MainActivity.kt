@@ -48,8 +48,8 @@ import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
-import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
+import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme

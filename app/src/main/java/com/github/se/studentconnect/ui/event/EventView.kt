@@ -230,7 +230,8 @@ fun EventView(
                     modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
                       Icon(
                           imageVector = Icons.Default.BarChart,
-                          contentDescription = stringResource(R.string.content_description_view_statistics))
+                          contentDescription =
+                              stringResource(R.string.content_description_view_statistics))
                     }
               }
             },
