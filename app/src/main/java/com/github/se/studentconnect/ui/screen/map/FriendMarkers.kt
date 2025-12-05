@@ -108,15 +108,17 @@ object FriendMarkers {
    * @param userId User identifier
    * @param user User data (may contain profile picture URL)
    * @param isLive Whether the location is actively being shared
+   * @param mainDispatcher Main dispatcher for UI operations
    */
   private suspend fun loadAndAddUserIcon(
       context: Context,
       style: Style,
       userId: String,
       user: User?,
-      isLive: Boolean
+      isLive: Boolean,
+      mainDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main
   ) =
-      withContext(Dispatchers.Main) {
+      withContext(mainDispatcher) {
         try {
           val iconId = getIconIdForUser(userId, isLive)
 
@@ -125,7 +127,7 @@ object FriendMarkers {
 
           // Check cache first
           val cacheKey = "$userId-$isLive"
-          val cachedBitmap = profileImageCache.get(cacheKey)
+          val cachedBitmap = profileImageCache[cacheKey]
           if (cachedBitmap != null) {
             if (!style.hasStyleImage(iconId)) {
               style.addImage(iconId, cachedBitmap)
@@ -164,7 +166,7 @@ object FriendMarkers {
 
     return try {
       val mediaRepository = MediaRepositoryProvider.repository
-      val uri = withContext(Dispatchers.IO) { mediaRepository.download(profileUrl) }
+      val uri = mediaRepository.download(profileUrl)
       val imageBitmap = loadBitmapFromUri(context, uri, Dispatchers.IO)
       val androidBitmap = imageBitmap?.asAndroidBitmap()
 
@@ -262,7 +264,7 @@ object FriendMarkers {
       friendLocations.forEach { (userId, location) ->
         try {
           val user =
-              userDataCache.get(userId)
+              userDataCache[userId]
                   ?: userRepository.getUserById(userId)?.also { userDataCache.put(userId, it) }
           loadAndAddUserIcon(context, style, userId, user, location.isLive)
         } catch (e: Exception) {
