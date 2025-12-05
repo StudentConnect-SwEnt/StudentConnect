@@ -4,6 +4,7 @@ import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
@@ -380,6 +381,92 @@ class ProfileScreenViewModelTest {
         assertEquals(testUser, viewModel.user.value)
       }
 
+  @Test
+  fun `viewModel counts both joined and created events`() =
+      testScope.runTest {
+        // User has joined 2 events
+        userRepository.joinedEventIds = listOf("event1", "event2")
+
+        // User has created 3 events
+        val createdEvent1 =
+            Event.Private(
+                uid = "event3",
+                ownerId = testUser.userId,
+                title = "Created Event 1",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent2 =
+            Event.Private(
+                uid = "event4",
+                ownerId = testUser.userId,
+                title = "Created Event 2",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent3 =
+            Event.Private(
+                uid = "event5",
+                ownerId = testUser.userId,
+                title = "Created Event 3",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+
+        eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should count 2 joined + 3 created = 5 total
+        assertEquals(5, viewModel.eventsCount.value)
+      }
+
+  @Test
+  fun `viewModel avoids counting duplicate events when user joined their own created event`() =
+      testScope.runTest {
+        // User has joined events including one they created
+        userRepository.joinedEventIds = listOf("event1", "event2", "event3")
+
+        // User has created events (event2 is also in joinedEvents)
+        val createdEvent1 =
+            Event.Private(
+                uid = "event2",
+                ownerId = testUser.userId,
+                title = "Created Event 1",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+        val createdEvent2 =
+            Event.Private(
+                uid = "event4",
+                ownerId = testUser.userId,
+                title = "Created Event 2",
+                description = "Test",
+                start = com.google.firebase.Timestamp.now(),
+                isFlash = false)
+
+        eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should count unique events: event1, event2, event3, event4 = 4 total (no duplicates)
+        assertEquals(4, viewModel.eventsCount.value)
+      }
+
   // Test helper classes
   private class TestUserRepository(
       var user: User?,
@@ -487,6 +574,29 @@ class ProfileScreenViewModelTest {
     }
   }
 
+  private class TestEventRepository(
+      var createdEvents: List<Event> = emptyList(),
+      var shouldThrowError: Boolean = false
+  ) : EventRepository {
+
+    override fun getNewUid(): String = "new_event_uid"
+
+    override suspend fun getAllVisibleEvents(): List<Event> = emptyList()
+
+    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event> =
+        emptyList()
+
+    override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
+      if (shouldThrowError) throw Exception("Events fetch failed")
+      return createdEvents.filter { it.ownerId == organizationId }
+    }
+
+    override suspend fun getEvent(eventUid: String): Event {
+      throw NotImplementedError("Not needed for tests")
+    }
+
+    override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
+        emptyList()
   private class TestEventRepository(var events: Map<String, Event> = emptyMap()) : EventRepository {
 
     override fun getNewUid() = "new_event_uid"
@@ -518,7 +628,7 @@ class ProfileScreenViewModelTest {
         currentUserId: String
     ) = Unit
 
-    override suspend fun getEventInvitations(eventUid: String) = emptyList<String>()
+    override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
 
     override suspend fun removeInvitationFromEvent(
         eventUid: String,
@@ -528,7 +638,8 @@ class ProfileScreenViewModelTest {
 
     override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) = Unit
 
-    override suspend fun getEventStatistics(eventUid: String, followerCount: Int) =
-        throw NotImplementedError("getEventStatistics not implemented for this test repository")
+    override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+      throw NotImplementedError("Not needed for tests")
+    }
   }
 }

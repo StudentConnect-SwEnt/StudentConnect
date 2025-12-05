@@ -25,6 +25,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
@@ -64,11 +65,12 @@ data class ProfileNavigationCallbacks(
 fun ProfileScreen(
     currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
+    eventRepository: EventRepository = EventRepositoryProvider.repository,
     viewModel: ProfileScreenViewModel = viewModel {
       ProfileScreenViewModel(
           userRepository = userRepository,
           friendsRepository = FriendsRepositoryProvider.repository,
-          eventRepository = EventRepositoryProvider.repository,
+          eventRepository = eventRepository,
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
