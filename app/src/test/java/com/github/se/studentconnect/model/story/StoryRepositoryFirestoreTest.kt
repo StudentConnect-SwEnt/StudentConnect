@@ -94,11 +94,7 @@ class StoryRepositoryFirestoreTest {
 
     repository =
         StoryRepositoryFirestore(
-            mockFirestore,
-            mockMediaRepository,
-            mockUserRepository,
-            mockEventRepository,
-            mockContext)
+            mockFirestore, mockMediaRepository, mockUserRepository, mockEventRepository)
 
     // Default mock behavior
     whenever(mockFirestore.collection("stories")).thenReturn(mockCollectionReference)

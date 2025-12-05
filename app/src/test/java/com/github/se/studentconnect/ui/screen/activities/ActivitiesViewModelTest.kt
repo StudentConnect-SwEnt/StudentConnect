@@ -1,28 +1,25 @@
 package com.github.se.studentconnect.ui.screen.activities
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.google.firebase.Timestamp
-import io.mockk.Runs
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
+import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.*
 import org.junit.After
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -30,312 +27,492 @@ import org.junit.Test
 class ActivitiesViewModelTest {
 
   private lateinit var viewModel: ActivitiesViewModel
-  private lateinit var eventRepository: EventRepository
-  private lateinit var userRepository: UserRepository
+  private lateinit var mockEventRepository: EventRepository
+  private lateinit var mockUserRepository: UserRepository
+  private lateinit var mockGetString: (Int) -> String
   private val testDispatcher = StandardTestDispatcher()
 
-  private val mockUser = "user123"
-  private val mockEvent =
-      Event.Public(
-          uid = "event123",
-          ownerId = "owner123",
-          title = "Test Event",
-          subtitle = "Test Subtitle",
-          description = "Test Description",
-          imageUrl = null,
-          location = null,
-          start = Timestamp.Companion.now(),
-          end = null,
-          maxCapacity = 50u,
-          participationFee = null,
-          isFlash = false,
-          tags = emptyList(),
-          website = null)
+  private val testUserId = "user-123"
+  private val testEventId = "event-123"
+  private val testEventId2 = "event-456"
+  private val testOwnerId = "owner-789"
 
-  private val mockInvitation =
+  private val futureTime = Timestamp(System.currentTimeMillis() / 1000 + 86400, 0) // 1 day from now
+  private val pastTime = Timestamp(System.currentTimeMillis() / 1000 - 86400, 0) // 1 day ago
+  private val futureEndTime = Timestamp(System.currentTimeMillis() / 1000 + 90000, 0)
+  private val pastEndTime = Timestamp(System.currentTimeMillis() / 1000 - 82800, 0)
+
+  private val testUpcomingEvent =
+      Event.Public(
+          uid = testEventId,
+          title = "Upcoming Event",
+          description = "Test upcoming event",
+          ownerId = testOwnerId,
+          start = futureTime,
+          end = futureEndTime,
+          location = Location(46.5197, 6.5668, "EPFL"),
+          maxCapacity = 100u,
+          tags = listOf("Test"),
+          website = "https://test.com",
+          imageUrl = null,
+          isFlash = false,
+          subtitle = "Test Event")
+
+  private val testPastEvent =
+      Event.Public(
+          uid = testEventId2,
+          title = "Past Event",
+          description = "Test past event",
+          ownerId = testOwnerId,
+          start = pastTime,
+          end = pastEndTime,
+          location = Location(46.5197, 6.5668, "EPFL"),
+          maxCapacity = 50u,
+          tags = listOf("Past"),
+          website = null,
+          imageUrl = null,
+          isFlash = false,
+          subtitle = "Past Event")
+
+  private val testInvitation =
       Invitation(
-          eventId = "event456",
-          from = "inviter123",
+          eventId = testEventId,
+          from = testOwnerId,
           status = InvitationStatus.Pending,
-          timestamp = Timestamp.Companion.now())
+          timestamp = Timestamp.now())
+
+  private val testUser =
+      User(
+          userId = testUserId,
+          firstName = "John",
+          lastName = "Doe",
+          email = "john@test.com",
+          username = "johndoe",
+          university = "EPFL",
+          bio = "Test user")
 
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
 
-    eventRepository = mockk(relaxed = true)
-    userRepository = mockk(relaxed = true)
+    mockEventRepository = mockk(relaxed = true)
+    mockUserRepository = mockk(relaxed = true)
+    mockGetString = mockk(relaxed = true)
 
-    // Set test user ID for AuthenticationProvider
-    AuthenticationProvider.testUserId = mockUser
+    mockkObject(AuthenticationProvider)
+    every { AuthenticationProvider.currentUser } returns testUserId
 
-    viewModel = ActivitiesViewModel(eventRepository, userRepository)
+    // Mock getString responses
+    every { mockGetString(R.string.anonymous) } returns "Anonymous"
+    every { mockGetString(R.string.error_failed_to_load_events) } returns
+        "Failed to load events: %s"
+    every { mockGetString(R.string.error_unknown) } returns "Unknown error"
+
+    // Default mock responses
+    coEvery { mockUserRepository.getJoinedEvents(any()) } returns emptyList()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockUserRepository.getInvitations(any()) } returns emptyList()
+    coEvery { mockUserRepository.getUserById(any()) } returns testUser
+    coEvery { mockEventRepository.getEvent(any()) } returns testUpcomingEvent
+    coEvery { mockUserRepository.acceptInvitation(any(), any()) } just Runs
+    coEvery { mockUserRepository.declineInvitation(any(), any()) } just Runs
+    coEvery { mockEventRepository.addParticipantToEvent(any(), any()) } just Runs
+
+    viewModel = ActivitiesViewModel(mockEventRepository, mockUserRepository, mockGetString)
   }
 
   @After
-  fun teardown() {
+  fun tearDown() {
     Dispatchers.resetMain()
-    AuthenticationProvider.testUserId = null
+    unmockkAll()
   }
 
   @Test
-  fun initialStateIsCorrect() {
+  fun `initial state is correct`() {
     val state = viewModel.uiState.value
-
-    Assert.assertEquals(EventTab.Upcoming, state.selectedTab)
-    Assert.assertTrue(state.items.isEmpty())
-    Assert.assertTrue(state.isLoading)
+    assertTrue(state.items.isEmpty())
+    assertEquals(EventTab.Upcoming, state.selectedTab)
+    assertTrue(state.isLoading)
+    assertNull(state.errorMessage)
   }
 
   @Test
-  fun onTabSelectedUpdatesSelectedTab() = runTest {
+  fun `onTabSelected changes selected tab`() = runTest {
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
-    Assert.assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
+    assertEquals(EventTab.Invitations, viewModel.uiState.value.selectedTab)
   }
 
   @Test
-  fun onTabSelectedTriggersRefreshEvents() = runTest {
-    coEvery { userRepository.getJoinedEvents(any()) } returns emptyList()
+  fun `onTabSelected triggers refresh with correct tab`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns emptyList()
 
-    viewModel.onTabSelected(EventTab.Past)
+    viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
-    coVerify { userRepository.getJoinedEvents(mockUser) }
+    coVerify { mockUserRepository.getInvitations(testUserId) }
   }
 
   @Test
-  fun refreshEventsWithNullUserClearsItems() = runTest {
+  fun `refreshEvents with null userUid sets empty items and not loading`() = runTest {
     viewModel.refreshEvents(null)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertTrue(state.items.isEmpty())
-    Assert.assertFalse(state.isLoading)
+    assertTrue(state.items.isEmpty())
+    assertFalse(state.isLoading)
   }
 
   @Test
-  fun refreshEventsLoadsUpcomingEventsCorrectly() = runTest {
-    val futureEvent = mockEvent.copy(start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0))
+  fun `refreshEvents for Upcoming tab loads joined and owned events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(testEventId)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(testUpcomingEvent)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(futureEvent.uid)
-    coEvery { eventRepository.getEvent(futureEvent.uid) } returns futureEvent
-
-    viewModel.onTabSelected(EventTab.Upcoming)
+    viewModel.refreshEvents(testUserId)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertFalse(state.isLoading)
-    Assert.assertEquals(1, state.items.size)
-    Assert.assertTrue(state.items[0] is EventCarouselItem)
-    Assert.assertEquals(futureEvent.uid, state.items[0].uid)
+    assertEquals(1, state.items.size)
+    assertTrue(state.items.first() is EventCarouselItem)
+    assertFalse(state.isLoading)
   }
 
   @Test
-  fun refreshEventsFiltersOutPastEventsForUpcomingTab() = runTest {
-    val pastEvent =
-        mockEvent.copy(
-            start = Timestamp(System.currentTimeMillis() / 1000 - 7200, 0),
-            end = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0))
+  fun `refreshEvents for Upcoming tab filters out past events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns emptyList()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns
+        listOf(testUpcomingEvent, testPastEvent)
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(pastEvent.uid)
-    coEvery { eventRepository.getEvent(pastEvent.uid) } returns pastEvent
+    every { AuthenticationProvider.currentUser } returns testOwnerId
 
-    viewModel.onTabSelected(EventTab.Upcoming)
+    viewModel.refreshEvents(testOwnerId)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertTrue(state.items.isEmpty())
+    assertEquals(1, state.items.size)
+    val eventItem = state.items.first() as EventCarouselItem
+    assertEquals("Upcoming Event", eventItem.event.title)
   }
 
   @Test
-  fun refreshEventsUsesDefaultEndTimeWhenNotSpecified() = runTest {
-    val eventWithoutEnd =
-        mockEvent.copy(start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0), end = null)
+  fun `refreshEvents for Upcoming tab includes events without end time`() = runTest {
+    val eventWithoutEndTime = testUpcomingEvent.copy(end = null)
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns emptyList()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(eventWithoutEndTime)
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(eventWithoutEnd.uid)
-    coEvery { eventRepository.getEvent(eventWithoutEnd.uid) } returns eventWithoutEnd
+    every { AuthenticationProvider.currentUser } returns testOwnerId
 
-    viewModel.onTabSelected(EventTab.Upcoming)
+    viewModel.refreshEvents(testOwnerId)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertEquals(1, state.items.size)
+    assertEquals(1, state.items.size)
   }
 
   @Test
-  fun refreshEventsLoadsInvitationsCorrectly() = runTest {
-    coEvery { userRepository.getInvitations(mockUser) } returns listOf(mockInvitation)
-    coEvery { eventRepository.getEvent(mockInvitation.eventId) } returns
-        mockEvent.copy(uid = mockInvitation.eventId)
-    coEvery { userRepository.getUserById(mockInvitation.from) } returns
-        mockk { every { firstName } returns "John" }
+  fun `refreshEvents for Invitations tab loads invitations`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns listOf(testInvitation)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns testUser
 
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertFalse(state.isLoading)
-    Assert.assertEquals(1, state.items.size)
-    Assert.assertTrue(state.items[0] is InvitationCarouselItem)
-
-    val invitationItem = state.items[0] as InvitationCarouselItem
-    Assert.assertEquals(mockInvitation.eventId, invitationItem.uid)
-    Assert.assertEquals("John", invitationItem.invitedBy)
+    assertEquals(1, state.items.size)
+    assertTrue(state.items.first() is InvitationCarouselItem)
   }
 
   @Test
-  fun refreshEventsShowsAnonymousWhenUserNotFound() = runTest {
-    coEvery { userRepository.getInvitations(mockUser) } returns listOf(mockInvitation)
-    coEvery { eventRepository.getEvent(mockInvitation.eventId) } returns
-        mockEvent.copy(uid = mockInvitation.eventId)
-    coEvery { userRepository.getUserById(mockInvitation.from) } returns null
+  fun `refreshEvents for Invitations tab handles missing sender gracefully`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns listOf(testInvitation)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns null
 
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    val invitationItem = state.items[0] as InvitationCarouselItem
-    Assert.assertEquals("Anonymous", invitationItem.invitedBy)
+    assertEquals(1, state.items.size)
+    val invitationItem = state.items.first() as InvitationCarouselItem
+    assertEquals("Anonymous", invitationItem.invitedBy)
   }
 
   @Test
-  fun refreshEventsLoadsPastEventsCorrectly() = runTest {
-    val pastEvent =
-        mockEvent.copy(
-            start = Timestamp(System.currentTimeMillis() / 1000 - 7200, 0), // 2 hours ago
-            end = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0) // 1 hour ago
-            )
+  fun `refreshEvents for Invitations tab handles failed event fetch`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns listOf(testInvitation)
+    coEvery { mockEventRepository.getEvent(testEventId) } throws Exception("Event not found")
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(pastEvent.uid)
-    coEvery { eventRepository.getEvent(pastEvent.uid) } returns pastEvent
-    coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
+    viewModel.onTabSelected(EventTab.Invitations)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertTrue(state.items.isEmpty())
+  }
+
+  @Test
+  fun `refreshEvents for Past tab loads past events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(testEventId2)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockEventRepository.getEvent(testEventId2) } returns testPastEvent
 
     viewModel.onTabSelected(EventTab.Past)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertFalse(state.isLoading)
-    Assert.assertEquals(1, state.items.size)
-    Assert.assertTrue(state.items[0] is EventCarouselItem)
+    assertEquals(1, state.items.size)
+    val eventItem = state.items.first() as EventCarouselItem
+    assertEquals("Past Event", eventItem.event.title)
   }
 
   @Test
-  fun refreshEventsFiltersOutFutureEventsForPastTab() = runTest {
-    val futureEvent = mockEvent.copy(start = Timestamp(System.currentTimeMillis() / 1000 + 3600, 0))
+  fun `refreshEvents for Past tab includes owned events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns emptyList()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(testPastEvent)
+    coEvery { mockEventRepository.getEvent(testPastEvent.uid) } returns testPastEvent
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf(futureEvent.uid)
-    coEvery { eventRepository.getEvent(futureEvent.uid) } returns futureEvent
+    every { AuthenticationProvider.currentUser } returns testOwnerId
 
-    coEvery { eventRepository.getAllVisibleEvents() } returns emptyList()
+    viewModel.refreshEvents(testOwnerId)
     viewModel.onTabSelected(EventTab.Past)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertTrue(state.items.isEmpty())
+    assertEquals(1, state.items.size)
   }
 
   @Test
-  fun refreshEventsHandlesExceptionsGracefully() = runTest {
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns listOf("event1", "event2")
-    coEvery { eventRepository.getEvent("event1") } throws Exception("Network error")
-    coEvery { eventRepository.getEvent("event2") } returns mockEvent.copy(uid = "event2")
+  fun `refreshEvents for Past tab filters out future events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns
+        listOf(testEventId, testEventId2)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockEventRepository.getEvent(testEventId2) } returns testPastEvent
 
-    viewModel.onTabSelected(EventTab.Upcoming)
+    viewModel.onTabSelected(EventTab.Past)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    // Should only contain the successfully loaded event
-    Assert.assertEquals(1, state.items.size)
-    Assert.assertEquals("event2", state.items[0].uid)
+    assertEquals(1, state.items.size)
+    val eventItem = state.items.first() as EventCarouselItem
+    assertEquals("Past Event", eventItem.event.title)
   }
 
   @Test
-  fun acceptInvitationAddsParticipantAndRemovesInvitation() = runTest {
-    val invitationItem =
-        InvitationCarouselItem(
-            invitation = mockInvitation,
-            event = mockEvent.copy(uid = mockInvitation.eventId),
-            invitedBy = "John")
+  fun `refreshEvents handles getAllVisibleEvents exception`() = runTest {
+    coEvery { mockEventRepository.getAllVisibleEvents() } throws Exception("Network error")
 
-    // Set initial state with invitation
-    coEvery { userRepository.getInvitations(mockUser) } returns listOf(mockInvitation)
-    coEvery { eventRepository.getEvent(mockInvitation.eventId) } returns
-        mockEvent.copy(uid = mockInvitation.eventId)
-    coEvery { userRepository.getUserById(mockInvitation.from) } returns
-        mockk { every { firstName } returns "John" }
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertTrue(state.errorMessage?.contains("Failed to load events") == true)
+  }
+
+  @Test
+  fun `refreshEvents handles getEvent exception for joined events`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns
+        listOf(testEventId, testEventId2)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockEventRepository.getEvent(testEventId2) } throws Exception("Not found")
+
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(1, state.items.size)
+  }
+
+  @Test
+  fun `acceptInvitation calls repository methods and removes invitation from list`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns listOf(testInvitation)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns testUser
 
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
-    // Accept invitation
-    coEvery { userRepository.acceptInvitation(any(), any()) } just Runs
-    coEvery { eventRepository.addParticipantToEvent(any(), any()) } just Runs
+    val initialState = viewModel.uiState.value
+    assertEquals(1, initialState.items.size)
 
-    viewModel.acceptInvitation(mockInvitation)
+    viewModel.acceptInvitation(testInvitation)
     advanceUntilIdle()
 
-    coVerify { userRepository.acceptInvitation(mockInvitation.eventId, mockUser) }
+    coVerify { mockUserRepository.acceptInvitation(testEventId, testUserId) }
     coVerify {
-      eventRepository.addParticipantToEvent(mockInvitation.eventId, EventParticipant(mockUser))
+      mockEventRepository.addParticipantToEvent(testEventId, EventParticipant(testUserId))
     }
 
-    // Invitation should be removed from items
-    val state = viewModel.uiState.value
-    Assert.assertTrue(state.items.none { it.uid == mockInvitation.eventId })
+    val finalState = viewModel.uiState.value
+    assertTrue(finalState.items.isEmpty())
   }
 
   @Test
-  fun declineInvitationUpdatesInvitationStatus() = runTest {
-    val invitationItem =
-        InvitationCarouselItem(
-            invitation = mockInvitation,
-            event = mockEvent.copy(uid = mockInvitation.eventId),
-            invitedBy = "John")
-
-    // Set initial state with invitation
-    coEvery { userRepository.getInvitations(mockUser) } returns listOf(mockInvitation)
-    coEvery { eventRepository.getEvent(mockInvitation.eventId) } returns
-        mockEvent.copy(uid = mockInvitation.eventId)
-    coEvery { userRepository.getUserById(mockInvitation.from) } returns
-        mockk { every { firstName } returns "John" }
+  fun `declineInvitation updates invitation status to Declined`() = runTest {
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns listOf(testInvitation)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns testUser
 
     viewModel.onTabSelected(EventTab.Invitations)
     advanceUntilIdle()
 
-    // Decline invitation
-    coEvery { userRepository.declineInvitation(any(), any()) } just Runs
-
-    viewModel.declineInvitation(mockInvitation)
+    viewModel.declineInvitation(testInvitation)
     advanceUntilIdle()
 
-    coVerify { userRepository.declineInvitation(mockInvitation.eventId, mockUser) }
+    coVerify { mockUserRepository.declineInvitation(testEventId, testUserId) }
 
-    // Invitation status should be updated
     val state = viewModel.uiState.value
-    val updatedItem =
-        state.items.find { it.uid == mockInvitation.eventId } as? InvitationCarouselItem
-    Assert.assertNotNull(updatedItem)
-    Assert.assertEquals(InvitationStatus.Declined, updatedItem?.invitation?.status)
+    assertEquals(1, state.items.size)
+    val invitationItem = state.items.first() as InvitationCarouselItem
+    assertEquals(InvitationStatus.Declined, invitationItem.invitation.status)
   }
 
   @Test
-  fun multipleEventsAreLoadedCorrectly() = runTest {
-    val event1 = mockEvent.copy(uid = "event1", title = "Event 1")
-    val event2 = mockEvent.copy(uid = "event2", title = "Event 2")
-    val event3 = mockEvent.copy(uid = "event3", title = "Event 3")
+  fun `clearErrorMessage clears error from state`() = runTest {
+    coEvery { mockEventRepository.getAllVisibleEvents() } throws Exception("Test error")
 
-    coEvery { userRepository.getJoinedEvents(mockUser) } returns
-        listOf(event1.uid, event2.uid, event3.uid)
-    coEvery { eventRepository.getEvent(event1.uid) } returns event1
-    coEvery { eventRepository.getEvent(event2.uid) } returns event2
-    coEvery { eventRepository.getEvent(event3.uid) } returns event3
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
 
-    viewModel.onTabSelected(EventTab.Upcoming)
+    assertTrue(viewModel.uiState.value.errorMessage != null)
+
+    viewModel.clearErrorMessage()
+
+    assertNull(viewModel.uiState.value.errorMessage)
+  }
+
+  @Test
+  fun `refreshEvents cancels previous job when called again`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } coAnswers
+        {
+          kotlinx.coroutines.delay(1000)
+          emptyList()
+        }
+
+    viewModel.refreshEvents(testUserId)
+    viewModel.refreshEvents(testUserId)
+    advanceUntilIdle()
+
+    // Should not throw any exceptions due to cancellation
+    assertFalse(viewModel.uiState.value.isLoading)
+  }
+
+  @Test
+  fun `refreshEvents only updates state if tab hasn't changed`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(testEventId)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(testUpcomingEvent)
+
+    viewModel.refreshEvents(testUserId)
+
+    // Change tab before refresh completes
+    viewModel.onTabSelected(EventTab.Past)
+    advanceUntilIdle()
+
+    // State should reflect Past tab, not Upcoming
+    assertEquals(EventTab.Past, viewModel.uiState.value.selectedTab)
+  }
+
+  @Test
+  fun `refreshEvents loads joined events not in visible events list`() = runTest {
+    val privateEvent =
+        Event.Private(
+            uid = "private-123",
+            title = "Private Event",
+            description = "Private",
+            ownerId = testUserId,
+            start = futureTime,
+            end = futureEndTime,
+            location = null,
+            maxCapacity = null,
+            imageUrl = null,
+            isFlash = false)
+
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns
+        listOf(testEventId, "private-123")
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns listOf(testUpcomingEvent)
+    coEvery { mockEventRepository.getEvent("private-123") } returns privateEvent
+
+    viewModel.refreshEvents(testUserId)
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
-    Assert.assertEquals(3, state.items.size)
+    assertEquals(2, state.items.size)
+  }
+
+  @Test
+  fun `refreshEvents sets isLoading to true during loading`() = runTest {
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } coAnswers
+        {
+          kotlinx.coroutines.delay(100)
+          emptyList()
+        }
+
+    viewModel.refreshEvents(testUserId)
+
+    // Check that loading is true before completion
+    assertTrue(viewModel.uiState.value.isLoading)
+
+    advanceUntilIdle()
+
+    // Check that loading is false after completion
+    assertFalse(viewModel.uiState.value.isLoading)
+  }
+
+  @Test
+  fun `refreshEvents for Past tab handles events without end time`() = runTest {
+    val eventWithoutEnd = testPastEvent.copy(end = null)
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns listOf(testEventId2)
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockEventRepository.getEvent(testEventId2) } returns eventWithoutEnd
+
+    viewModel.onTabSelected(EventTab.Past)
+    advanceUntilIdle()
+
+    // Event should be filtered as past because its start is in the past; vérifier qu'il est bien
+    // dans la liste
+    val state = viewModel.uiState.value
+    assertEquals(1, state.items.size)
+  }
+
+  @Test
+  fun `multiple invitations are loaded correctly`() = runTest {
+    val invitation2 = testInvitation.copy(eventId = testEventId2)
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns
+        listOf(testInvitation, invitation2)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockEventRepository.getEvent(testEventId2) } returns testPastEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns testUser
+
+    viewModel.onTabSelected(EventTab.Invitations)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(2, state.items.size)
+  }
+
+  @Test
+  fun `acceptInvitation only removes the accepted invitation`() = runTest {
+    val invitation2 = testInvitation.copy(eventId = testEventId2)
+    coEvery { mockUserRepository.getInvitations(testUserId) } returns
+        listOf(testInvitation, invitation2)
+    coEvery { mockEventRepository.getEvent(testEventId) } returns testUpcomingEvent
+    coEvery { mockEventRepository.getEvent(testEventId2) } returns testPastEvent
+    coEvery { mockUserRepository.getUserById(testOwnerId) } returns testUser
+
+    viewModel.onTabSelected(EventTab.Invitations)
+    advanceUntilIdle()
+
+    assertEquals(2, viewModel.uiState.value.items.size)
+
+    viewModel.acceptInvitation(testInvitation)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(1, state.items.size)
+    val remainingItem = state.items.first() as InvitationCarouselItem
+    assertEquals(testEventId2, remainingItem.invitation.eventId)
   }
 }

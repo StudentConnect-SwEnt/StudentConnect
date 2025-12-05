@@ -344,6 +344,10 @@ jobs:
           script: |
             set -e
 
+            # Uninstall any existing APK
+            adb uninstall "$PACKAGE" || true
+            adb uninstall "$PACKAGE.test" || true
+
             # Install apks on device
             adb install -t "$APP_DEBUG_APK"
             adb install "$APP_DEBUG_TEST_APK"

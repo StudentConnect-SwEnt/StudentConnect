@@ -22,8 +22,6 @@ import androidx.navigation.navArgument
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.github.se.studentconnect.model.notification.NotificationRepositoryFirestore
-import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -51,12 +49,12 @@ import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
+import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
@@ -75,10 +73,6 @@ class MainActivity : ComponentActivity() {
 
     // Initialize notification channels
     NotificationChannelManager.createNotificationChannels(this)
-
-    // Initialize notification repository
-    NotificationRepositoryProvider.setRepository(
-        NotificationRepositoryFirestore(FirebaseFirestore.getInstance()))
 
     // Schedule periodic event reminder worker (runs every 15 minutes)
     val eventReminderRequest =
@@ -355,7 +349,10 @@ internal fun MainAppContent(
                         onNavigateToFriendsList = { userId ->
                           navController.navigate(ProfileRoutes.friendsList(userId))
                         },
-                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) }))
+                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) },
+                        onNavigateToEventDetails = { eventId ->
+                          navController.navigate(Route.eventView(eventId, true))
+                        }))
           }
 
           // Joined Events Screen
@@ -589,6 +586,16 @@ internal fun MainAppContent(
                 requireNotNull(pollUid) { "Poll UID is required for poll screen." }
                 com.github.se.studentconnect.ui.poll.PollScreen(
                     eventUid = eventUid, pollUid = pollUid, navController = navController)
+              }
+
+          // Event Statistics screen
+          composable(
+              Route.EVENT_STATISTICS,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required for statistics screen." }
+                EventStatisticsScreen(eventUid = eventUid, navController = navController)
               }
         }
       }

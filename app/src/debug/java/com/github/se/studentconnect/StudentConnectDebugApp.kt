@@ -5,6 +5,7 @@ import android.app.Application
 import android.os.Build
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.database.database
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 
@@ -21,6 +22,7 @@ class StudentConnectDebugApp : Application() {
     const val AUTH_PORT = 9099
     const val FIRESTORE_PORT = 8080
     const val STORAGE_PORT = 9199
+    const val DATABASE_PORT = 9000
   }
 
   private fun isInAndroidEmulator(): Boolean {
@@ -54,6 +56,7 @@ class StudentConnectDebugApp : Application() {
       Firebase.auth.useEmulator(host, AUTH_PORT)
       Firebase.firestore.useEmulator(host, FIRESTORE_PORT)
       Firebase.storage.useEmulator(host, STORAGE_PORT)
+      Firebase.database.useEmulator(host, DATABASE_PORT)
     }
   }
 }

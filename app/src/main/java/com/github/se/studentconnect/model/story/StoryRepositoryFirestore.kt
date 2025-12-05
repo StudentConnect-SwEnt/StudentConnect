@@ -23,7 +23,6 @@ class StoryRepositoryFirestore(
     private val mediaRepository: MediaRepository,
     private val userRepository: UserRepository,
     private val eventRepository: EventRepository,
-    private val context: Context
 ) : StoryRepository {
 
   companion object {
@@ -50,7 +49,12 @@ class StoryRepositoryFirestore(
     }
   }
 
-  override suspend fun uploadStory(fileUri: Uri, eventId: String, userId: String): Story? {
+  override suspend fun uploadStory(
+      fileUri: Uri,
+      eventId: String,
+      userId: String,
+      context: Context
+  ): Story? {
     return try {
       android.util.Log.d("StoryRepository", "Step 1: Detecting media type for URI: $fileUri")
       // Detect media type (image or video)

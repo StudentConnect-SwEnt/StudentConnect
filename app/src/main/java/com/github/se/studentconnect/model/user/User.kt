@@ -14,6 +14,7 @@ package com.github.se.studentconnect.model.user
  * @property bio A short biography or description about the user (optional).
  * @property country The user's country (optional).
  * @property birthdate The user's birthday in DD/MM/YYYY format (optional).
+ * @property pinnedEventIds A list of event IDs that the user has pinned (max 3).
  * @property createdAt Timestamp when the user profile was created (in milliseconds).
  * @property updatedAt Timestamp when the user profile was last updated (in milliseconds).
  */
@@ -29,6 +30,7 @@ data class User(
     val bio: String? = null, // optional
     val country: String? = null, // optional
     val birthdate: String? = null, // optional - format: "31/12/1980"
+    val pinnedEventIds: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -51,6 +53,7 @@ data class User(
     require(updatedAt > 0) { "Updated timestamp must be positive" }
     require(updatedAt >= createdAt) { "Updated timestamp cannot be before created timestamp" }
     bio?.let { require(it.length <= 500) { "Bio cannot exceed 500 characters" } }
+    require(pinnedEventIds.size <= 3) { "Cannot have more than 3 pinned events" }
   }
 
   /** Returns the user's full name. */
@@ -91,6 +94,8 @@ data class User(
    *   keep current).
    * @param birthday The new birthday (use UpdateValue.SetValue to change, UpdateValue.NoChange to
    *   keep current).
+   * @param pinnedEventIds The new list of pinned event IDs (use UpdateValue.SetValue to change,
+   *   UpdateValue.NoChange to keep current).
    * @return A new User instance with the updated fields.
    */
   fun update(
@@ -103,7 +108,8 @@ data class User(
       profilePictureUrl: UpdateValue<String?> = UpdateValue.NoChange(),
       country: UpdateValue<String?> = UpdateValue.NoChange(),
       birthday: UpdateValue<String?> = UpdateValue.NoChange(),
-      bio: UpdateValue<String?> = UpdateValue.NoChange()
+      bio: UpdateValue<String?> = UpdateValue.NoChange(),
+      pinnedEventIds: UpdateValue<List<String>> = UpdateValue.NoChange()
   ): User {
     return copy(
         email =
@@ -156,6 +162,11 @@ data class User(
               is UpdateValue.SetValue -> bio.value
               else -> this.bio
             },
+        pinnedEventIds =
+            when (pinnedEventIds) {
+              is UpdateValue.SetValue -> pinnedEventIds.value ?: this.pinnedEventIds
+              else -> this.pinnedEventIds
+            },
         updatedAt = System.currentTimeMillis())
   }
 
@@ -177,6 +188,7 @@ data class User(
         "country" to country,
         "birthday" to birthdate,
         "bio" to bio,
+        "pinnedEventIds" to pinnedEventIds,
         "createdAt" to createdAt,
         "updatedAt" to updatedAt)
   }
@@ -217,6 +229,8 @@ data class User(
             country = map["country"] as? String,
             birthdate = map["birthday"] as? String,
             bio = map["bio"] as? String,
+            pinnedEventIds =
+                (map["pinnedEventIds"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
             createdAt = createdAt,
             updatedAt = updatedAt)
       } catch (e: Exception) {

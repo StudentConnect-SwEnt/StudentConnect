@@ -70,6 +70,7 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
                 val latitude = snapshot.child("latitude").getValue(Double::class.java)
                 val longitude = snapshot.child("longitude").getValue(Double::class.java)
                 val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+                val isLive = snapshot.child("isLive").getValue(Boolean::class.java) ?: false
 
                 if (latitude != null && longitude != null && timestamp != null) {
                   val location =
@@ -77,12 +78,16 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
                           userId = friendId,
                           latitude = latitude,
                           longitude = longitude,
-                          timestamp = timestamp)
+                          timestamp = timestamp,
+                          isLive = isLive)
 
                   if (location.isFresh()) {
                     currentLocations[friendId] = location
                     trySend(currentLocations.toMap())
-                    Log.d(TAG, "Updated location for friend $friendId: ($latitude, $longitude)")
+                    val liveStatus = if (isLive) "live" else "last seen"
+                    Log.d(
+                        TAG,
+                        "Updated $liveStatus location for friend $friendId: ($latitude, $longitude)")
                   } else {
                     Log.d(TAG, "Location for friend $friendId is stale, ignoring")
                   }
@@ -125,7 +130,8 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
           mapOf(
               "latitude" to latitude,
               "longitude" to longitude,
-              "timestamp" to System.currentTimeMillis())
+              "timestamp" to System.currentTimeMillis(),
+              "isLive" to true) // Mark as actively sharing
 
       locationsRef.child(userId).setValue(locationData).await()
       Log.d(TAG, "Updated location for user $userId: ($latitude, $longitude)")
@@ -137,10 +143,13 @@ class FriendsLocationRepositoryFirebase(private val database: FirebaseDatabase) 
 
   override suspend fun removeUserLocation(userId: String) {
     try {
-      locationsRef.child(userId).removeValue().await()
-      Log.d(TAG, "Removed location for user $userId")
+      // Don't remove the location - just mark it as not live
+      // This keeps the last known location visible (like Snapchat)
+      val updates = mapOf<String, Any>("isLive" to false, "timestamp" to System.currentTimeMillis())
+      locationsRef.child(userId).updateChildren(updates).await()
+      Log.d(TAG, "Marked location as not live for user $userId")
     } catch (e: Exception) {
-      Log.e(TAG, "Failed to remove location for user $userId", e)
+      Log.e(TAG, "Failed to update location status for user $userId", e)
       throw e
     }
   }

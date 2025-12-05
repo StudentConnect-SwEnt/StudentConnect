@@ -36,9 +36,6 @@ import org.mockito.kotlin.whenever
 class StoryRepositoryFirestoreInstrumentedTest {
 
   @Mock private lateinit var mockFirestore: FirebaseFirestore
-  @Mock private lateinit var mockMediaRepository: MediaRepository
-  @Mock private lateinit var mockUserRepository: UserRepository
-  @Mock private lateinit var mockEventRepository: EventRepository
   @Mock private lateinit var mockCollectionReference: CollectionReference
   @Mock private lateinit var mockDocumentReference: DocumentReference
   @Mock private lateinit var mockDocumentSnapshot: DocumentSnapshot
@@ -132,6 +129,12 @@ class StoryRepositoryFirestoreInstrumentedTest {
     override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
 
     override suspend fun checkUsernameAvailability(username: String) = true
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
   }
 
   private class TestEventRepository : EventRepository {
@@ -195,8 +198,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val mockUserRepo = TestUserRepository()
     val mockEventRepo = TestEventRepository()
 
-    repository =
-        StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo, context)
+    repository = StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo)
 
     // Default mock behavior
     whenever(mockFirestore.collection("stories")).thenReturn(mockCollectionReference)
@@ -257,7 +259,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
         .thenReturn(Tasks.forResult(mockFinalDoc)) // Second call after update()
 
     // Act
-    val result = repository.uploadStory(fileUri, eventId, userId)
+    val result = repository.uploadStory(fileUri, eventId, userId, context)
 
     // Assert
     assertNotNull("Story should not be null", result)
@@ -300,10 +302,10 @@ class StoryRepositoryFirestoreInstrumentedTest {
         }
     val testMediaRepo =
         StoryRepositoryFirestore(
-            mockFirestore, throwingMediaRepo, TestUserRepository(), TestEventRepository(), context)
+            mockFirestore, throwingMediaRepo, TestUserRepository(), TestEventRepository())
 
     // Act
-    val result = testMediaRepo.uploadStory(fileUri, eventId, userId)
+    val result = testMediaRepo.uploadStory(fileUri, eventId, userId, context)
 
     // Assert
     assertNull("Story should be null on upload failure", result)
@@ -329,7 +331,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
     val mockUserRepo = TestUserRepository()
     val mockEventRepo = TestEventRepository()
     val testRepo =
-        StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo, context)
+        StoryRepositoryFirestore(mockFirestore, mockMediaRepo, mockUserRepo, mockEventRepo)
 
     val mockNewDocRef = mock(DocumentReference::class.java)
     whenever(mockCollectionReference.document()).thenReturn(mockNewDocRef)
@@ -361,7 +363,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
         .thenReturn(Tasks.forResult(mockFinalDoc))
 
     // Act
-    val result = testRepo.uploadStory(fileUri, eventId, userId)
+    val result = testRepo.uploadStory(fileUri, eventId, userId, context)
 
     // Assert
     assertNotNull("Story should not be null", result)
@@ -416,7 +418,7 @@ class StoryRepositoryFirestoreInstrumentedTest {
         .thenReturn(Tasks.forResult(mockFinalDoc))
 
     // Act
-    val result = repository.uploadStory(fileUri, eventId, userId)
+    val result = repository.uploadStory(fileUri, eventId, userId, context)
 
     // Assert
     assertNotNull("Story should not be null", result)

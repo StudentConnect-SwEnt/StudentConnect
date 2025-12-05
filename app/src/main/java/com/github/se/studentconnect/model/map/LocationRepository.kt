@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.github.se.studentconnect.model.Repository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -83,7 +84,7 @@ sealed class LocationResult {
 }
 
 // Permission Repository
-interface LocationPermissionRepository {
+interface LocationPermissionRepository : Repository {
   fun checkPermissionStatus(context: Context): LocationPermission
 
   fun hasLocationPermission(context: Context): Boolean
@@ -116,7 +117,7 @@ class LocationPermissionRepositoryImpl : LocationPermissionRepository {
 }
 
 // Location Repository Interface
-interface LocationRepository {
+interface LocationRepository : Repository {
   suspend fun getCurrentLocation(): LocationResult
 
   fun getLocationUpdates(): Flow<LocationResult>

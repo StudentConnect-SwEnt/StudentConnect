@@ -416,4 +416,90 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
     participantRef.delete().await()
   }
+
+  override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    val participants = getEventParticipants(eventUid)
+    val totalAttendees = participants.size
+
+    // Fetch user data in batches using whereIn (max 30 IDs per query)
+    val participantMap = participants.associateBy { it.uid }
+    val userDataList = mutableListOf<Triple<String?, String?, com.google.firebase.Timestamp?>>()
+
+    participants
+        .map { it.uid }
+        .chunked(30)
+        .forEach { uidBatch ->
+          try {
+            val querySnapshot =
+                db.collection("users")
+                    .whereIn(com.google.firebase.firestore.FieldPath.documentId(), uidBatch)
+                    .get()
+                    .await()
+
+            querySnapshot.documents.forEach { doc ->
+              val joinedAt = participantMap[doc.id]?.joinedAt
+              userDataList.add(
+                  Triple(doc.getString("birthday"), doc.getString("university"), joinedAt))
+            }
+          } catch (e: Exception) {
+            Log.e("EventRepositoryFirestore", "Error fetching user batch", e)
+          }
+        }
+
+    // Calculate age distribution
+    val ageGroups = mutableMapOf<String, Int>()
+    AgeGroups.all.forEach { ageGroups[it] = 0 }
+    ageGroups[AgeGroups.UNKNOWN] = 0
+
+    userDataList.forEach { (birthday, _, _) ->
+      val age = AgeGroups.calculateAge(birthday)
+      val group = AgeGroups.getAgeGroup(age)
+      ageGroups[group] = (ageGroups[group] ?: 0) + 1
+    }
+
+    val ageDistribution =
+        ageGroups
+            .filter { it.value > 0 }
+            .map { (range, count) ->
+              AgeGroupData(
+                  ageRange = range,
+                  count = count,
+                  percentage =
+                      if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f)
+            }
+            .sortedByDescending { it.count }
+
+    // Calculate campus distribution
+    val campusGroups = mutableMapOf<String, Int>()
+    userDataList.forEach { (_, university, _) ->
+      val campus = university ?: AgeGroups.UNKNOWN // UI layer maps to R.string.stats_unknown_campus
+      campusGroups[campus] = (campusGroups[campus] ?: 0) + 1
+    }
+
+    val campusDistribution =
+        campusGroups
+            .map { (name, count) ->
+              CampusData(
+                  campusName = name,
+                  count = count,
+                  percentage =
+                      if (totalAttendees > 0) (count.toFloat() / totalAttendees) * 100f else 0f)
+            }
+            .sortedByDescending { it.count }
+
+    // Calculate join rate over time
+    val joinRateOverTime = calculateJoinRateOverTime(participants)
+
+    // Calculate attendees/followers rate
+    val attendeesFollowersRate = calculateAttendeesFollowersRate(totalAttendees, followerCount)
+
+    return EventStatistics(
+        eventId = eventUid,
+        totalAttendees = totalAttendees,
+        ageDistribution = ageDistribution,
+        campusDistribution = campusDistribution,
+        joinRateOverTime = joinRateOverTime,
+        followerCount = followerCount,
+        attendeesFollowersRate = attendeesFollowersRate)
+  }
 }

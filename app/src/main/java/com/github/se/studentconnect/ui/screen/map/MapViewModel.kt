@@ -91,11 +91,15 @@ class MapViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
     private val friendsLocationRepository: FriendsLocationRepository =
-        FriendsLocationRepositoryProvider.repository
+        FriendsLocationRepositoryProvider.repository,
+    private val userRepository: com.github.se.studentconnect.model.user.UserRepository =
+        com.github.se.studentconnect.model.user.UserRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MapUiState())
   val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+
+  fun getUserRepository() = userRepository
 
   init {
     // Only load events if the current state has no events

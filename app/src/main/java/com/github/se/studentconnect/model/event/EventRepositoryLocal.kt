@@ -132,4 +132,29 @@ class EventRepositoryLocal : EventRepository {
           "Participant with UID $participantUid not found in event $eventUid.")
     }
   }
+
+  override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
+    val participants = getEventParticipants(eventUid)
+    val totalAttendees = participants.size
+
+    // For local testing, return simplified statistics
+    // Age and campus distributions are empty since we don't have user data in local repo
+    val ageDistribution = emptyList<AgeGroupData>()
+    val campusDistribution = emptyList<CampusData>()
+
+    // Calculate join rate over time from participants
+    val joinRateOverTime = calculateJoinRateOverTime(participants)
+
+    // Calculate attendees/followers rate
+    val attendeesFollowersRate = calculateAttendeesFollowersRate(totalAttendees, followerCount)
+
+    return EventStatistics(
+        eventId = eventUid,
+        totalAttendees = totalAttendees,
+        ageDistribution = ageDistribution,
+        campusDistribution = campusDistribution,
+        joinRateOverTime = joinRateOverTime,
+        followerCount = followerCount,
+        attendeesFollowersRate = attendeesFollowersRate)
+  }
 }

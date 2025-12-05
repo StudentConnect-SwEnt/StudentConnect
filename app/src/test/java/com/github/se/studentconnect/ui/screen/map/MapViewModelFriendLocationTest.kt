@@ -25,6 +25,7 @@ class MapViewModelFriendLocationTest {
   private lateinit var eventRepo: EventRepository
   private lateinit var friendsRepo: FriendsRepository
   private lateinit var friendsLocationRepo: FriendsLocationRepository
+  private lateinit var mockUserRepository: com.github.se.studentconnect.model.user.UserRepository
   private lateinit var viewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var mockAuth: FirebaseAuth
@@ -44,12 +45,14 @@ class MapViewModelFriendLocationTest {
     eventRepo = mockk()
     friendsRepo = mockk()
     friendsLocationRepo = mockk()
+    mockUserRepository = mockk(relaxed = true)
     coEvery { eventRepo.getAllVisibleEvents() } returns emptyList()
     coEvery { friendsRepo.getFriends(any()) } returns emptyList()
     every { friendsLocationRepo.observeFriendLocations(any(), any()) } returns flowOf(emptyMap())
     every { friendsLocationRepo.startListening() } just Runs
     every { friendsLocationRepo.stopListening() } just Runs
-    viewModel = MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo)
+    viewModel =
+        MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
   }
 
   @After
@@ -70,7 +73,8 @@ class MapViewModelFriendLocationTest {
     coEvery { friendsRepo.getFriends("user123") } returns friendIds
     every { friendsLocationRepo.observeFriendLocations("user123", friendIds) } returns
         flowOf(locations)
-    viewModel = MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo)
+    viewModel =
+        MapViewModel(locationRepo, eventRepo, friendsRepo, friendsLocationRepo, mockUserRepository)
     testDispatcher.scheduler.advanceUntilIdle()
     assertEquals(1, viewModel.uiState.value.friendLocations.size)
   }

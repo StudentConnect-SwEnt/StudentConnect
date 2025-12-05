@@ -8,6 +8,7 @@ import com.github.se.studentconnect.model.notification.NotificationRepositoryFir
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -76,8 +77,8 @@ class MainActivityComposeTest {
     mockNotificationRepository = mockk(relaxed = true)
 
     // Set up repository - directly assign to the var property
-    UserRepositoryProvider.repository = mockUserRepository
-    NotificationRepositoryProvider.setRepository(mockNotificationRepository)
+    UserRepositoryProvider.overrideForTests(mockUserRepository)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
 
     // Mock repository methods
     coEvery { mockUserRepository.getUserById(any()) } returns null
@@ -889,6 +890,29 @@ class MainActivityComposeTest {
     // Wait for composition to complete, then navigate
     composeTestRule.waitForIdle()
     composeTestRule.runOnIdle { navController.navigate("map/46.5197/6.6323/15.0?eventUid=") }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mainAppContent_eventStatisticsRoute_executesRoute() {
+    // Test navigation to EVENT_STATISTICS route (covers MainActivity.kt lines 596-598)
+    lateinit var navController: androidx.navigation.NavHostController
+
+    composeTestRule.setContent {
+      AppTheme {
+        navController = rememberNavController()
+        MainAppContent(
+            navController = navController,
+            selectedTab = com.github.se.studentconnect.ui.navigation.Tab.Home,
+            onTabSelected = {},
+            shouldOpenQRScanner = false,
+            onQRScannerStateChange = {})
+      }
+    }
+
+    // Wait for composition, then navigate to statistics route
+    composeTestRule.waitForIdle()
+    composeTestRule.runOnIdle { navController.navigate(Route.eventStatistics("test-event-123")) }
     composeTestRule.waitForIdle()
   }
 }

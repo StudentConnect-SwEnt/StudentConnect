@@ -4,7 +4,6 @@ import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.google.firebase.Timestamp
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
@@ -20,7 +19,7 @@ class FriendsRepositoryNotificationTest {
   @Before
   fun setup() {
     MockitoAnnotations.openMocks(this)
-    NotificationRepositoryProvider.setRepository(mockNotificationRepository)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
 
     // Setup default mock behavior
     `when`(mockNotificationRepository.createNotification(any(), any(), any())).thenAnswer {
@@ -29,11 +28,6 @@ class FriendsRepositoryNotificationTest {
       onSuccess()
       null
     }
-  }
-
-  @After
-  fun tearDown() {
-    NotificationRepositoryProvider.clearRepository()
   }
 
   @Test

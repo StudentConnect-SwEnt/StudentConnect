@@ -33,8 +33,6 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
 
   private lateinit var scenario: ActivityScenario<MainActivity>
 
-  override fun createInitializedRepository() = repository // reuse from base
-
   private suspend fun signInAs(email: String, password: String) {
     try {
       FirebaseEmulator.auth.createUserWithEmailAndPassword(email, password).await()

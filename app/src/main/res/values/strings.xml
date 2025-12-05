@@ -32,7 +32,8 @@
     <string name="error_failed_to_save_birthday">Failed to save birthday</string>
     <string name="error_failed_to_load_birthday">Failed to load birthday</string>
     <string name="error_failed_to_remove_birthday">Failed to remove birthday</string>
-    
+    <string name="error_failed_to_load_events">Failed to load events: %s</string>
+
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
     <string name="success_university_updated">University updated successfully</string>
@@ -370,13 +371,13 @@
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
     <string name="event_button_return">Return to Event</string>
-    
+
     <!-- Leave event confirmation dialog -->
     <string name="leave_event_confirmation_title">Leave Event</string>
     <string name="leave_event_confirmation_message">Are you sure you want to leave this event?</string>
     <string name="leave_event_confirm">Leave</string>
     <string name="leave_event_cancel">Cancel</string>
-    
+
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
     <string name="event_placeholder_title">My new event</string>
@@ -439,7 +440,9 @@
     <string name="poll_notification_message">There are active polls for this event</string>
     <string name="poll_notification_vote">Vote Now</string>
     <string name="button_view_polls">View Polls</string>
-    <string name="button_create_poll">Create Poll</string>
+    <string name="button_view_statistics">View Statistics</string>
+    <string name="content_description_view_statistics">View event statistics</string>
+    <string name="button_create_poll">Poll</string>
     <string name="content_description_add_poll">Create new poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
@@ -522,6 +525,34 @@
     <string name="content_description_back_to_profile">Back to Profile</string>
     <string name="placeholder_search_events_joined">Search events…</string>
 
+    <!-- Event Statistics Screen -->
+    <string name="stats_screen_title">Event Statistics</string>
+    <string name="stats_total_attendees">Total Attendees</string>
+    <string name="stats_age_distribution">Age Distribution</string>
+    <string name="stats_campus_distribution">Campus Distribution</string>
+    <string name="stats_join_rate">Registration Timeline</string>
+    <string name="stats_attendees_followers">Attendees / Followers</string>
+    <string name="stats_registrations">registrations</string>
+    <string name="stats_of_followers">of followers</string>
+    <string name="stats_followers">followers</string>
+    <string name="stats_attendees">attendees</string>
+    <string name="stats_no_data">No data available</string>
+    <string name="stats_loading">Loading statistics…</string>
+    <string name="stats_error_loading">Failed to load statistics</string>
+    <string name="stats_error_unknown">An unknown error occurred</string>
+    <string name="stats_retry">Retry</string>
+    <string name="stats_people">people</string>
+    <string name="stats_person">person</string>
+    <string name="stats_unknown_campus">Unknown</string>
+    <string name="stats_unknown_age">Unknown</string>
+    <string name="content_description_stats_chart">Statistics chart</string>
+    <string name="content_description_stats_card">Statistics card</string>
+    <string name="content_description_refresh_stats">Refresh statistics</string>
+    <string name="stats_percentage_format">%.1f</string>
+    <string name="stats_percentage_symbol">%</string>
+    <string name="stats_label_separator">: %1$d</string>
+    <string name="stats_legend_format">%1$s (%2$d)</string>
+
     <!-- Event Selection for Stories -->
     <string name="event_selection_button_label">Link to Event</string>
     <string name="event_selection_title">Select an Event</string>
@@ -534,4 +565,14 @@
     <string name="content_description_close_event_selection">Close event selection</string>
     <string name="content_description_selected_event_checkmark">Event selected</string>
 
+    <!-- Pinned Events -->
+    <string name="pinned_events_title">Pinned Events</string>
+    <string name="pinned_events_empty_state">Pin your favorite past events to display them here :)</string>
+    <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
+    <string name="content_description_pin_event">Pin event</string>
+    <string name="content_description_unpin_event">Unpin event</string>
+    <string name="date_format_pinned_event">dd MMM, yyyy</string>
+    <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
+
+    <string name="anonymous">Anonymous</string>
 </resources>

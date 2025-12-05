@@ -58,7 +58,7 @@ class MainActivityTest {
 
     // Setup NotificationRepositoryProvider
     val mockNotificationRepo = mockk<NotificationRepositoryFirestore>(relaxed = true)
-    NotificationRepositoryProvider.setRepository(mockNotificationRepo)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepo)
 
     // Setup UserRepositoryProvider with mock (it uses a property, not a setter method)
     val mockUserRepo = mockk<UserRepository>(relaxed = true)

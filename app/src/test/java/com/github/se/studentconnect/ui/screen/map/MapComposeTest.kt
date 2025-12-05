@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import com.mapbox.geojson.Point
@@ -38,10 +39,12 @@ class MapComposeTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   private lateinit var context: Context
+  private lateinit var mockUserRepository: UserRepository
 
   @Before
   fun setup() {
     context = ApplicationProvider.getApplicationContext()
+    mockUserRepository = mockk(relaxed = true)
   }
 
   @After
@@ -96,31 +99,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
-      }
-    }
-
-    composeTestRule.waitForIdle()
-  }
-
-  @Test
-  fun mapContainer_rendersWithFriendsView() {
-    val friendLocations = createTestFriendLocations()
-
-    composeTestRule.setContent {
-      AppTheme {
-        val mapViewportState = rememberMapViewportState()
-        MapContainer(
-            mapViewportState = mapViewportState,
-            hasLocationPermission = true,
-            isEventsView = false,
-            events = emptyList(),
-            friendLocations = friendLocations,
-            selectedEvent = null,
-            selectedEventLocation = null,
-            onToggleView = {},
-            onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -146,7 +126,8 @@ class MapComposeTest {
                 selectedEvent.location?.let { Point.fromLngLat(it.longitude, it.latitude) },
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -168,7 +149,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -190,7 +172,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -397,7 +380,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = { isEventsView = !isEventsView },
             onLocateUser = {},
-            onEventSelected = {})
+            onEventSelected = {},
+            userRepository = mockUserRepository)
       }
     }
 
@@ -422,7 +406,8 @@ class MapComposeTest {
             selectedEventLocation = null,
             onToggleView = {},
             onLocateUser = {},
-            onEventSelected = { uid -> selectedEventUid = uid })
+            onEventSelected = { uid -> selectedEventUid = uid },
+            userRepository = mockUserRepository)
       }
     }
 
@@ -504,5 +489,1215 @@ class MapComposeTest {
                 latitude = 46.5198,
                 longitude = 6.6324,
                 timestamp = System.currentTimeMillis()))
+  }
+
+  // ===== Additional Coverage Tests =====
+
+  @Test
+  fun mapContainer_withFriendsView() {
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withBothEventsAndFriends() {
+    val events = createTestEvents()
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withLocationNameNull() {
+    val event = createPublicEvent().let { it.copy(location = it.location?.copy(name = null)) }
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withPastTimestamp() {
+    val pastEvent =
+        createPublicEvent().let {
+          it.copy(start = Timestamp(Date(System.currentTimeMillis() - 86400000)))
+        }
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = pastEvent, onClose = {}) } }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withFutureTimestamp() {
+    val futureEvent =
+        createPublicEvent().let {
+          it.copy(start = Timestamp(Date(System.currentTimeMillis() + 86400000)))
+        }
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = futureEvent, onClose = {}) } }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withNoSelectedEvent() {
+    val events = createTestEvents()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun searchBar_withLongText() {
+    val longText = "This is a very long search query that might exceed normal text field width"
+
+    composeTestRule.setContent {
+      AppTheme { SearchBar(searchText = longText, onSearchTextChange = {}) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun searchBar_withSpecialCharacters() {
+    val specialText = "EPFL@#$%^&*()_+-=[]{}|;':\",./<>?"
+
+    composeTestRule.setContent {
+      AppTheme { SearchBar(searchText = specialText, onSearchTextChange = {}) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun formatTimestamp_withCurrentTime() {
+    val now = Timestamp(Date())
+    val formatted = formatTimestamp(now)
+    assert(formatted.isNotEmpty())
+  }
+
+  @Test
+  fun formatTimestamp_withFarPastDate() {
+    val farPast = Timestamp(Date(0L))
+    val formatted = formatTimestamp(farPast)
+    assert(formatted.isNotEmpty())
+  }
+
+  @Test
+  fun formatTimestamp_withFarFutureDate() {
+    // Use a date 100 years in the future instead of Long.MAX_VALUE
+    val farFuture = Timestamp(Date(System.currentTimeMillis() + (100L * 365 * 24 * 60 * 60 * 1000)))
+    val formatted = formatTimestamp(farFuture)
+    assert(formatted.isNotEmpty())
+  }
+
+  @Test
+  fun mapContainer_inEventsViewWithBothData() {
+    val events = createTestEvents()
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_inFriendsViewWithBothData() {
+    val events = createTestEvents()
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = events,
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_publicEventWithAllProperties() {
+    val event =
+        createPublicEvent(
+            uid = "full-event",
+            title = "Complete Event",
+            subtitle = "With All Properties",
+            maxCapacity = 100u,
+            hasLocation = true)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_publicEventWithMinimalProperties() {
+    val event =
+        Event.Public(
+            uid = "minimal-event",
+            ownerId = "owner",
+            title = "Minimal",
+            subtitle = "",
+            description = "",
+            imageUrl = null,
+            location = null,
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = false,
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== MapScreen Tests =====
+
+  @Test
+  fun mapScreen_rendersWithDefaultParameters() {
+    composeTestRule.setContent { AppTheme { MapScreen() } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithTargetLocationAndZoom() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 15.0) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithTargetEventUid() {
+    composeTestRule.setContent {
+      AppTheme {
+        MapScreen(
+            targetLatitude = 46.5197, targetLongitude = 6.6323, targetEventUid = "test-event-123")
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithOnlyTargetEventUid() {
+    composeTestRule.setContent { AppTheme { MapScreen(targetEventUid = "test-event-123") } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithNullTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme {
+        MapScreen(
+            targetLatitude = null, targetLongitude = null, targetZoom = 10.0, targetEventUid = null)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithPartialTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = null) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithMinimumZoom() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 0.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_rendersWithMaximumZoom() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 22.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== Additional MapContainer Edge Cases =====
+
+  @Test
+  fun mapContainer_withNullSelectedEventButNonNullLocation() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = emptyList(),
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = Point.fromLngLat(6.6323, 46.5197),
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withSelectedEventButNullLocation() {
+    val event = createPublicEvent(hasLocation = false)
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = listOf(event),
+            friendLocations = emptyMap(),
+            selectedEvent = event,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_largeNumberOfEvents() {
+    val events =
+        (1..100).map { i ->
+          createPublicEvent(uid = "event-$i", title = "Event $i", maxCapacity = (i * 10).toUInt())
+        }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_largeNumberOfFriends() {
+    val friendLocations =
+        (1..100).associate { i ->
+          "friend-$i" to
+              FriendLocation(
+                  userId = "friend-$i",
+                  latitude = 46.5197 + (i * 0.001),
+                  longitude = 6.6323 + (i * 0.001),
+                  timestamp = System.currentTimeMillis(),
+                  isLive = i % 2 == 0)
+        }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_toggleViewMultipleTimes() {
+    var isEventsView = true
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = isEventsView,
+            events = createTestEvents(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = { isEventsView = !isEventsView },
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Simulate toggle
+    isEventsView = false
+    composeTestRule.waitForIdle()
+
+    isEventsView = true
+    composeTestRule.waitForIdle()
+
+    isEventsView = false
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== SearchBar Edge Cases =====
+
+  @Test
+  fun searchBar_withVeryLongText() {
+    val veryLongText = "a".repeat(1000)
+
+    composeTestRule.setContent {
+      AppTheme { SearchBar(searchText = veryLongText, onSearchTextChange = {}) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun searchBar_withUnicodeCharacters() {
+    val unicodeText = "EPFL 🏫 École Polytechnique Fédérale de Lausanne 中文 日本語 한국어"
+
+    composeTestRule.setContent {
+      AppTheme { SearchBar(searchText = unicodeText, onSearchTextChange = {}) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun searchBar_withNewlines() {
+    val textWithNewlines = "Line 1\nLine 2\nLine 3"
+
+    composeTestRule.setContent {
+      AppTheme { SearchBar(searchText = textWithNewlines, onSearchTextChange = {}) }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== EventInfoCard Edge Cases =====
+
+  @Test
+  fun eventInfoCard_withVeryLongTitle() {
+    val event = createPublicEvent(title = "Very Long Title ".repeat(20))
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withVeryLongLocationName() {
+    val event =
+        createPublicEvent().let {
+          it.copy(location = it.location?.copy(name = "Very Long Location Name ".repeat(20)))
+        }
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withZeroCapacity() {
+    val event = createPublicEvent(maxCapacity = 0u)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withVeryLargeCapacity() {
+    val event = createPublicEvent(maxCapacity = UInt.MAX_VALUE)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_privateEventWithAllFields() {
+    val event =
+        Event.Private(
+            uid = "private-full",
+            ownerId = "owner-1",
+            title = "Private Event with All Fields",
+            description = "Full Description",
+            imageUrl = "https://example.com/image.jpg",
+            location = Location(latitude = 46.5197, longitude = 6.6323, name = "Test Location"),
+            start = Timestamp(Date()),
+            end = Timestamp(Date(System.currentTimeMillis() + 3600000)),
+            maxCapacity = 50u,
+            participationFee = 10u,
+            isFlash = true)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_privateEventWithoutLocation() {
+    val event =
+        Event.Private(
+            uid = "private-no-loc",
+            ownerId = "owner-1",
+            title = "Private Event No Location",
+            description = "Description",
+            imageUrl = null,
+            location = null,
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = false)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== MapActionButtons Edge Cases =====
+
+  @Test
+  fun mapActionButtons_withoutPermissionInFriendsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        Box {
+          MapActionButtons(
+              hasLocationPermission = false,
+              isEventsView = false,
+              onLocateUser = {},
+              onToggleView = {})
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapActionButtons_withPermissionInEventsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        Box {
+          MapActionButtons(
+              hasLocationPermission = true,
+              isEventsView = true,
+              onLocateUser = {},
+              onToggleView = {})
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== Helper Function Edge Cases =====
+
+  @Test
+  fun formatTimestamp_withEpochZero() {
+    val epoch = Timestamp(Date(0L))
+    val formatted = formatTimestamp(epoch)
+    assert(formatted.isNotEmpty())
+  }
+
+  @Test
+  fun formatTimestamp_withNegativeTime() {
+    val negative = Timestamp(Date(-1000000000L))
+    val formatted = formatTimestamp(negative)
+    assert(formatted.isNotEmpty())
+  }
+
+  @Test
+  fun formatTimestamp_multipleCallsReturnConsistentResults() {
+    val timestamp = Timestamp(Date(1234567890000L))
+    val formatted1 = formatTimestamp(timestamp)
+    val formatted2 = formatTimestamp(timestamp)
+    assert(formatted1 == formatted2)
+  }
+
+  @Test
+  fun isInAndroidTest_multipleCallsConsistent() {
+    val result1 = isInAndroidTest()
+    val result2 = isInAndroidTest()
+    assert(result1 == result2)
+  }
+
+  // ===== MapContainer with Events and Friends Switching =====
+
+  @Test
+  fun mapContainer_withEmptyEventsInEventsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = emptyList(),
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withPopulatedEventsInEventsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = createTestEvents(),
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withEmptyFriendsInFriendsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withPopulatedFriendsInFriendsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  // ===== Additional MapScreen Integration Tests =====
+
+  @Test
+  fun mapScreen_withNorthPoleCoordinates() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 90.0, targetLongitude = 0.0, targetZoom = 5.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withSouthPoleCoordinates() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = -90.0, targetLongitude = 0.0, targetZoom = 5.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withInternationalDateLineCoordinates() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 0.0, targetLongitude = 180.0, targetZoom = 5.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withMinimalZoom() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 0.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withMaximalZoom() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323, targetZoom = 22.0) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withNullTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = null, targetLongitude = null) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withSpecificTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5197, targetLongitude = 6.6323) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapScreen_withAlternateTargetLocation() {
+    composeTestRule.setContent {
+      AppTheme { MapScreen(targetLatitude = 46.5200, targetLongitude = 6.6330) }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withInitialFriendLocations() {
+    val initialFriends = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = initialFriends,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withUpdatedFriendLocations() {
+    val updatedFriends =
+        mapOf(
+            "friend-1" to
+                FriendLocation(
+                    userId = "friend-1",
+                    latitude = 46.5200,
+                    longitude = 6.6330,
+                    timestamp = System.currentTimeMillis(),
+                    isLive = true),
+            "friend-3" to
+                FriendLocation(
+                    userId = "friend-3",
+                    latitude = 46.5210,
+                    longitude = 6.6340,
+                    timestamp = System.currentTimeMillis(),
+                    isLive = false))
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = emptyList(),
+            friendLocations = updatedFriends,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withSingleEvent() {
+    val initialEvents = createTestEvents().take(1)
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = initialEvents,
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withAllEvents() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = createTestEvents(),
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withEmptyStrings() {
+    val event =
+        Event.Public(
+            uid = "",
+            ownerId = "",
+            title = "",
+            subtitle = "",
+            description = "",
+            imageUrl = null,
+            location = Location(latitude = 46.5197, longitude = 6.6323, name = ""),
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = false,
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent { AppTheme { EventInfoCard(event = event, onClose = {}) } }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withBothEventsAndFriendsInEventsView() {
+    val events = createTestEvents()
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withBothEventsAndFriendsInFriendsView() {
+    val events = createTestEvents()
+    val friendLocations = createTestFriendLocations()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = events,
+            friendLocations = friendLocations,
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withSelectedEvent() {
+    val events = createTestEvents()
+    val selectedEvent = events.first()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = selectedEvent,
+            selectedEventLocation =
+                selectedEvent.location?.let { Point.fromLngLat(it.longitude, it.latitude) },
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withDeselectedEvent() {
+    val events = createTestEvents()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withFirstEventSelected() {
+    val events = createTestEvents()
+    val event = events.first()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = event,
+            selectedEventLocation =
+                event.location?.let { Point.fromLngLat(it.longitude, it.latitude) },
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withLastEventSelected() {
+    val events = createTestEvents()
+    val event = events.last()
+
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = events,
+            friendLocations = emptyMap(),
+            selectedEvent = event,
+            selectedEventLocation =
+                event.location?.let { Point.fromLngLat(it.longitude, it.latitude) },
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun searchBar_withMultipleModifiers() {
+    composeTestRule.setContent {
+      AppTheme {
+        SearchBar(
+            searchText = "test", onSearchTextChange = {}, modifier = androidx.compose.ui.Modifier)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun eventInfoCard_withMultipleModifiers() {
+    val event = createPublicEvent()
+
+    composeTestRule.setContent {
+      AppTheme {
+        EventInfoCard(event = event, onClose = {}, modifier = androidx.compose.ui.Modifier)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withPermissionAndEventsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = true,
+            events = createTestEvents(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withPermissionAndFriendsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = true,
+            isEventsView = false,
+            events = createTestEvents(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withoutPermissionAndEventsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = false,
+            isEventsView = true,
+            events = createTestEvents(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun mapContainer_withoutPermissionAndFriendsView() {
+    composeTestRule.setContent {
+      AppTheme {
+        val mapViewportState = rememberMapViewportState()
+        MapContainer(
+            mapViewportState = mapViewportState,
+            hasLocationPermission = false,
+            isEventsView = false,
+            events = createTestEvents(),
+            friendLocations = createTestFriendLocations(),
+            selectedEvent = null,
+            selectedEventLocation = null,
+            onToggleView = {},
+            onLocateUser = {},
+            onEventSelected = {},
+            userRepository = mockUserRepository)
+      }
+    }
+    composeTestRule.waitForIdle()
   }
 }

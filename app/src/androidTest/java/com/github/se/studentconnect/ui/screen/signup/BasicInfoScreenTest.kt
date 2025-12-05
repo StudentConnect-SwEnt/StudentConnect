@@ -10,6 +10,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.github.se.studentconnect.MainActivity
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.signup.regularuser.BasicInfoScreen
@@ -28,8 +29,6 @@ class BasicInfoScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
-  override fun createInitializedRepository() = EventRepositoryLocal()
-
   private lateinit var viewModel: SignUpViewModel
   private val enabledStates = mutableListOf<Boolean>()
 
@@ -42,6 +41,7 @@ class BasicInfoScreenTest : StudentConnectTest() {
 
   @Before
   fun setUpContent() {
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
     viewModel = SignUpViewModel()
     enabledStates.clear()
     dialogState.value = false

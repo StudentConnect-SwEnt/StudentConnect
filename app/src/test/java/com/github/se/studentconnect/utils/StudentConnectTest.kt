@@ -4,8 +4,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.github.se.studentconnect.HttpClientProvider
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseUser
 import java.text.SimpleDateFormat
@@ -23,15 +21,7 @@ const val UI_WAIT_TIMEOUT = 5_000L
 /** Base class for all StudentConnect tests, providing common setup and utility functions. */
 abstract class StudentConnectTest() {
 
-  abstract fun createInitializedRepository(): EventRepository
-
   open fun initializeHTTPClient(): OkHttpClient = FakeHttpClient.getClient()
-
-  val repository: EventRepository
-    get() = EventRepositoryProvider.repository
-
-  val httpClient
-    get() = HttpClientProvider.client
 
   val shouldSignInAnounymously: Boolean = FirebaseEmulator.isRunning
 
@@ -44,7 +34,6 @@ abstract class StudentConnectTest() {
 
   @Before
   open fun setUp() {
-    EventRepositoryProvider.repository = createInitializedRepository()
     HttpClientProvider.client = initializeHTTPClient()
     if (shouldSignInAnounymously) {
       runTest { FirebaseEmulator.auth.signInAnonymously().await() }

@@ -40,14 +40,14 @@ class UserCardTest {
 
   @Before
   fun setUp() {
-    MediaRepositoryProvider.repository =
+    MediaRepositoryProvider.overrideForTests(
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "mock_id"
 
           override suspend fun download(id: String): Uri = Uri.EMPTY
 
           override suspend fun delete(id: String) {}
-        }
+        })
 
     controller = Robolectric.buildActivity(ComponentActivity::class.java).setup()
     testUser =

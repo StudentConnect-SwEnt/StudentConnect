@@ -138,5 +138,28 @@ object C {
     const val event_selection_loading = "event_selection_loading"
     const val event_selection_error = "event_selection_error"
     const val event_selection_card_prefix = "event_selection_card"
+
+    // Statistics chart component test tags
+    const val stats_bar_chart = "stats_bar_chart"
+    const val stats_donut_chart = "stats_donut_chart"
+    const val stats_line_chart = "stats_line_chart"
+    const val stats_chart_legend = "stats_chart_legend"
+    const val stats_animated_counter = "stats_animated_counter"
+    const val stats_circular_indicator = "stats_circular_indicator"
+
+    // Statistics screen test tags
+    const val STATS_SCREEN = "event_statistics_screen"
+    const val STATS_TOP_BAR = "event_statistics_top_app_bar"
+    const val STATS_BACK_BUTTON = "event_statistics_back_button"
+    const val STATS_REFRESH_BUTTON = "event_statistics_refresh_button"
+    const val STATS_LOADING = "event_statistics_loading"
+    const val STATS_ERROR = "event_statistics_error"
+    const val STATS_RETRY_BUTTON = "event_statistics_error_retry"
+    const val STATS_CONTENT = "event_statistics_content"
+    const val STATS_TOTAL_ATTENDEES_CARD = "event_statistics_total_attendees"
+    const val STATS_AGE_CARD = "event_statistics_age_distribution"
+    const val STATS_CAMPUS_CARD = "event_statistics_campus_distribution"
+    const val STATS_TIMELINE_CARD = "event_statistics_join_rate"
+    const val STATS_FOLLOWERS_CARD = "event_statistics_attendees_followers"
   }
 }

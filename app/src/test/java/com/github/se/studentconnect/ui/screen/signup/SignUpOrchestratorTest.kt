@@ -12,7 +12,6 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpStep
 import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -30,19 +29,12 @@ class SignUpOrchestratorTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private lateinit var originalMediaRepository: MediaRepository
   private lateinit var fakeMediaRepository: FakeMediaRepository
 
   @Before
   fun setup() {
-    originalMediaRepository = MediaRepositoryProvider.repository
-    fakeMediaRepository = FakeMediaRepository()
-    MediaRepositoryProvider.repository = fakeMediaRepository
-  }
-
-  @After
-  fun tearDown() {
-    MediaRepositoryProvider.repository = originalMediaRepository
+    fakeMediaRepository = FakeMediaRepository
+    MediaRepositoryProvider.overrideForTests(fakeMediaRepository)
   }
 
   @Test
@@ -90,7 +82,7 @@ class SignUpOrchestratorTest {
     assertEquals("users/$firebaseUserId/profile", fakeMediaRepository.lastUploadPath)
   }
 
-  private class FakeMediaRepository : MediaRepository {
+  private object FakeMediaRepository : MediaRepository {
     val uploads = mutableListOf<Pair<Uri, String?>>()
     var lastUploadPath: String? = null
 
@@ -162,5 +154,11 @@ class SignUpOrchestratorTest {
     override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
   }
 }
