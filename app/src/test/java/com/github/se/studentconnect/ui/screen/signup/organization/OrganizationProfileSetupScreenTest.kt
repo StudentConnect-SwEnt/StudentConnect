@@ -8,8 +8,10 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,20 +24,46 @@ class OrganizationProfileSetupScreenTest {
 
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
+  private lateinit var viewModel: OrganizationSignUpViewModel
+  private lateinit var locationPlaceholder: String
+  private lateinit var locationEpfl: String
+  private lateinit var domainSport: String
+  private lateinit var domainMusic: String
+  private lateinit var eventSizeSmall: String
+  private lateinit var eventSizeMedium: String
+  private lateinit var ageRange1822: String
+  private lateinit var ageRange2325: String
+  private lateinit var continueButton: String
+
+  @Before
+  fun setUp() {
+    viewModel = OrganizationSignUpViewModel()
+    composeRule.activity.apply {
+      locationPlaceholder = getString(R.string.org_setup_main_location_placeholder)
+      locationEpfl = getString(R.string.org_location_epfl)
+      domainSport = getString(R.string.domain_sport)
+      domainMusic = getString(R.string.domain_music)
+      eventSizeSmall = getString(R.string.event_size_small)
+      eventSizeMedium = getString(R.string.event_size_medium)
+      ageRange1822 = getString(R.string.age_range_18_22)
+      ageRange2325 = getString(R.string.age_range_23_25)
+      continueButton = getString(R.string.button_continue)
+    }
+  }
+
   @SuppressLint("ViewModelConstructorInComposable")
   @Test
   fun screenRendersAllElements() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     composeRule.onNodeWithText("Where and what do you organize ?").assertIsDisplayed()
     composeRule.onNodeWithText("Main Location").assertIsDisplayed()
-    composeRule.onNodeWithText("Search locations...").assertIsDisplayed()
+    composeRule.onNodeWithText(locationPlaceholder).assertIsDisplayed()
     composeRule.onNodeWithText("Main domains").assertIsDisplayed()
     composeRule.onNodeWithText("Select up to 3 domains").assertIsDisplayed()
   }
@@ -45,58 +73,55 @@ class OrganizationProfileSetupScreenTest {
   fun continueButtonIsDisabledWhenFormIsIncomplete() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     // Empty form
-    composeRule.onNodeWithText("Continue").assertIsNotEnabled()
+    composeRule.onNodeWithText(continueButton).assertIsNotEnabled()
 
     // Only location
-    composeRule.onNodeWithText("Search locations...").performClick()
-    composeRule.onNodeWithText("EPFL").performClick()
+    composeRule.onNodeWithText(locationPlaceholder).performClick()
+    composeRule.onNodeWithText(locationEpfl).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Continue").assertIsNotEnabled()
+    composeRule.onNodeWithText(continueButton).assertIsNotEnabled()
 
     // Location + domain
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Continue").assertIsNotEnabled()
+    composeRule.onNodeWithText(continueButton).assertIsNotEnabled()
 
     // Location + event size (no domain)
-    composeRule.onNodeWithText("Sport").performClick() // Deselect
-    composeRule.onNodeWithText("< 20").performClick()
+    composeRule.onNodeWithText(domainSport).performClick() // Deselect
+    composeRule.onNodeWithText(eventSizeSmall).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Continue").assertIsNotEnabled()
+    composeRule.onNodeWithText(continueButton).assertIsNotEnabled()
   }
 
   @SuppressLint("ViewModelConstructorInComposable")
   @Test
-  fun continueButtonCallbackIsInvokedWhenFormIsFilled() {
+  fun continueButtonIsEnabledWhenFormIsFilledAndCallbackIsInvoked() {
     var startNowClicks = 0
 
     composeRule.setContent {
       AppTheme {
         OrganizationProfileSetupScreen(
-            onBack = {},
-            onStartNow = { startNowClicks++ },
-            viewModel = OrganizationSignUpViewModel())
+            onBack = {}, onStartNow = { startNowClicks++ }, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Search locations...").performClick()
-    composeRule.onNodeWithText("EPFL").performClick()
+    composeRule.onNodeWithText(locationPlaceholder).performClick()
+    composeRule.onNodeWithText(locationEpfl).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("< 20").performClick()
+    composeRule.onNodeWithText(eventSizeSmall).performClick()
     composeRule.waitForIdle()
 
     // Try to click Continue - if form is valid, callback should be invoked
-    composeRule.onNodeWithText("Continue").assertIsDisplayed()
+    composeRule.onNodeWithText(continueButton).assertIsDisplayed()
   }
 
   @SuppressLint("ViewModelConstructorInComposable")
@@ -104,19 +129,18 @@ class OrganizationProfileSetupScreenTest {
   fun locationDropdownExpandsAndClosesOnSelection() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("EPFL").assertDoesNotExist()
-    composeRule.onNodeWithText("Search locations...").performClick()
-    composeRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeRule.onNodeWithText("EPFL").performClick()
+    composeRule.onNodeWithText(locationEpfl).assertDoesNotExist()
+    composeRule.onNodeWithText(locationPlaceholder).performClick()
+    composeRule.onNodeWithText(locationEpfl).assertIsDisplayed()
+    composeRule.onNodeWithText(locationEpfl).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("EPFL").assertIsDisplayed()
-    composeRule.onNodeWithText("Search locations...").assertDoesNotExist()
+    composeRule.onNodeWithText(locationEpfl).assertIsDisplayed()
+    composeRule.onNodeWithText(locationPlaceholder).assertDoesNotExist()
   }
 
   @SuppressLint("ViewModelConstructorInComposable")
@@ -124,28 +148,27 @@ class OrganizationProfileSetupScreenTest {
   fun domainSelectionAllowsMultipleSelections() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     // Select multiple domains
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Music").performClick()
+    composeRule.onNodeWithText(domainMusic).performClick()
     composeRule.waitForIdle()
 
     // Verify selected domains are still accessible and can be clicked
-    composeRule.onNodeWithText("Sport").assertIsDisplayed()
-    composeRule.onNodeWithText("Music").assertIsDisplayed()
+    composeRule.onNodeWithText(domainSport).assertIsDisplayed()
+    composeRule.onNodeWithText(domainMusic).assertIsDisplayed()
 
     // Deselecting one should work
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     composeRule.waitForIdle()
 
     // Verify we can still interact with other domains
-    composeRule.onNodeWithText("Music").performClick()
+    composeRule.onNodeWithText(domainMusic).performClick()
     composeRule.waitForIdle()
   }
 
@@ -154,19 +177,18 @@ class OrganizationProfileSetupScreenTest {
   fun ageRangeAndEventSizeSelection() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     // Multiple age ranges can be selected
-    composeRule.onNodeWithText("18-22").performClick()
-    composeRule.onNodeWithText("23-25").performClick()
+    composeRule.onNodeWithText(ageRange1822).performClick()
+    composeRule.onNodeWithText(ageRange2325).performClick()
 
     // Event size is single choice
-    composeRule.onNodeWithText("< 20").performClick()
-    composeRule.onNodeWithText("20-50").performClick()
+    composeRule.onNodeWithText(eventSizeSmall).performClick()
+    composeRule.onNodeWithText(eventSizeMedium).performClick()
   }
 
   @SuppressLint("ViewModelConstructorInComposable")
@@ -177,7 +199,7 @@ class OrganizationProfileSetupScreenTest {
     composeRule.setContent {
       AppTheme {
         OrganizationProfileSetupScreen(
-            onBack = { backClicks++ }, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+            onBack = { backClicks++ }, onStartNow = {}, viewModel = viewModel)
       }
     }
 
@@ -192,18 +214,17 @@ class OrganizationProfileSetupScreenTest {
   fun domainChipCanBeToggled() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     // Select and deselect domain
-    composeRule.onNodeWithText("Sport").performClick()
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     // Verify it can be selected again
-    composeRule.onNodeWithText("Sport").performClick()
-    composeRule.onNodeWithText("Sport").assertIsDisplayed()
+    composeRule.onNodeWithText(domainSport).performClick()
+    composeRule.onNodeWithText(domainSport).assertIsDisplayed()
   }
 
   @SuppressLint("ViewModelConstructorInComposable")
@@ -211,20 +232,19 @@ class OrganizationProfileSetupScreenTest {
   fun multipleDomainsCanBeSelected() {
     composeRule.setContent {
       AppTheme {
-        OrganizationProfileSetupScreen(
-            onBack = {}, onStartNow = {}, viewModel = OrganizationSignUpViewModel())
+        OrganizationProfileSetupScreen(onBack = {}, onStartNow = {}, viewModel = viewModel)
       }
     }
 
     composeRule.waitForIdle()
     // Select multiple domains - verify clicks work
-    composeRule.onNodeWithText("Sport").performClick()
+    composeRule.onNodeWithText(domainSport).performClick()
     composeRule.waitForIdle()
-    composeRule.onNodeWithText("Music").performClick()
+    composeRule.onNodeWithText(domainMusic).performClick()
     composeRule.waitForIdle()
 
     // Verify selected domains are still accessible
-    composeRule.onNodeWithText("Sport").assertIsDisplayed()
-    composeRule.onNodeWithText("Music").assertIsDisplayed()
+    composeRule.onNodeWithText(domainSport).assertIsDisplayed()
+    composeRule.onNodeWithText(domainMusic).assertIsDisplayed()
   }
 }
