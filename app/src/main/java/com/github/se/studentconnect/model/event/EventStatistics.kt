@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.model.event
 
 import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 /**
  * Represents comprehensive statistics for an event.
@@ -123,4 +126,62 @@ object AgeGroups {
       else -> AGE_30_PLUS
     }
   }
+}
+
+/**
+ * Calculates the attendees to followers rate as a percentage.
+ *
+ * @param totalAttendees Total number of event attendees.
+ * @param followerCount Number of organization followers.
+ * @return Percentage rate (0.0 to 100.0), or 0.0 if followerCount is 0.
+ */
+fun calculateAttendeesFollowersRate(totalAttendees: Int, followerCount: Int): Float {
+  return if (followerCount > 0) {
+    (totalAttendees.toFloat() / followerCount) * 100f
+  } else {
+    0f
+  }
+}
+
+/**
+ * Calculates the join rate over time, grouping registrations by day.
+ *
+ * @param participants List of event participants with join timestamps.
+ * @return List of join rate data points, one per day with cumulative joins.
+ */
+fun calculateJoinRateOverTime(participants: List<EventParticipant>): List<JoinRateData> {
+  if (participants.isEmpty()) return emptyList()
+
+  // Sort by join time
+  val sorted = participants.filter { it.joinedAt != null }.sortedBy { it.joinedAt!!.seconds }
+
+  if (sorted.isEmpty()) return emptyList()
+
+  // Group by day and calculate cumulative joins
+  val calendar = Calendar.getInstance()
+  val dayFormat = SimpleDateFormat("MMM d", Locale.getDefault())
+  val joinsByDay = mutableListOf<JoinRateData>()
+  var cumulative = 0
+
+  val dayGrouped =
+      sorted.groupBy { participant ->
+        calendar.timeInMillis = participant.joinedAt!!.seconds * 1000
+        calendar[Calendar.HOUR_OF_DAY] = 0
+        calendar[Calendar.MINUTE] = 0
+        calendar[Calendar.SECOND] = 0
+        calendar[Calendar.MILLISECOND] = 0
+        calendar.timeInMillis
+      }
+
+  dayGrouped.toSortedMap().forEach { (dayMillis, dayParticipants) ->
+    cumulative += dayParticipants.size
+    calendar.timeInMillis = dayMillis
+    joinsByDay.add(
+        JoinRateData(
+            timestamp = Timestamp(java.util.Date(dayMillis)),
+            cumulativeJoins = cumulative,
+            label = dayFormat.format(java.util.Date(dayMillis))))
+  }
+
+  return joinsByDay
 }
