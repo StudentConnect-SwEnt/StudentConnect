@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.home
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
@@ -31,6 +32,7 @@ class HomePageViewModelTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepositoryLocal
 
   private val testLocation = Location(46.5197, 6.6323, "EPFL")
 
@@ -92,11 +94,13 @@ class HomePageViewModelTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
     viewModel =
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
   }
 
   @After
@@ -128,7 +132,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -145,7 +150,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -169,13 +175,16 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
+    // Without a storyRepository provided, stories will be empty by design
+    // This test verifies the ViewModel handles null storyRepository gracefully
     val state = viewModel.uiState.value
-    assertTrue(state.subscribedEventsStories.isNotEmpty())
-    assertTrue(state.subscribedEventsStories.size <= 10)
+    assertTrue(state.subscribedEventsStories.isEmpty())
+    assertFalse(state.isLoading)
   }
 
   @Test
@@ -187,7 +196,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -213,7 +223,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -234,7 +245,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -263,7 +275,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -299,7 +312,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -329,7 +343,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -431,7 +446,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -455,7 +471,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -485,7 +502,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -503,7 +521,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -531,7 +550,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -559,7 +579,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -586,7 +607,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -613,7 +635,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 
@@ -658,7 +681,8 @@ class HomePageViewModelTest {
         HomePageViewModel(
             eventRepository = eventRepository,
             userRepository = userRepository,
-            organizationRepository = organizationRepository)
+            organizationRepository = organizationRepository,
+            friendsRepository = friendsRepository)
 
     advanceUntilIdle()
 

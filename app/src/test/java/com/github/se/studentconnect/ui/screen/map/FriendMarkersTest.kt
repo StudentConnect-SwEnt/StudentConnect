@@ -1003,19 +1003,27 @@ class FriendMarkersTest {
 
     coEvery { mockUserRepository.getUserById("user1") } returns mockUser
 
-    // First call
+    // First call - wait longer for async IO operation to complete
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
-    kotlinx.coroutines.delay(300)
+    kotlinx.coroutines.delay(500)
 
-    // Now mock that icon exists
+    // Verify first call completed
+    verify(timeout = 2000, exactly = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+
+    // Now mock that icon exists in style
     every { mockStyle.hasStyleImage(any()) } returns true
 
-    // Second call should skip
-    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
-    kotlinx.coroutines.delay(300)
+    // Clear verification state for second call check
+    clearMocks(mockStyle, answers = false, recordedCalls = true, verificationMarks = true)
+    every { mockStyle.hasStyleImage(any()) } returns true
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
 
-    // Should not add image again
-    verify(atMost = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+    // Second call should skip due to addedIconIds cache + hasStyleImage returning true
+    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+    kotlinx.coroutines.delay(500)
+
+    // Should not add image again (addedIconIds already contains the icon)
+    verify(exactly = 0) { mockStyle.addImage(any(), any<Bitmap>()) }
   }
 
   @Test
