@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -101,7 +102,10 @@ class EventStatisticsScreenInstrumentedTest {
     organizationRepository = OrganizationRepositoryLocal()
     EventRepositoryProvider.overrideForTests(eventRepository)
     OrganizationRepositoryProvider.overrideForTests(organizationRepository)
-    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository)
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository) { id ->
+      context.getString(id)
+    }
 
     runBlocking {
       eventRepository.addEvent(testEvent)
@@ -202,7 +206,11 @@ class EventStatisticsScreenInstrumentedTest {
   fun eventStatisticsScreen_withErrorState_displaysError() {
     // Create a ViewModel that will error
     val errorEventRepository = EventRepositoryLocal()
-    val errorViewModel = EventStatisticsViewModel(errorEventRepository, organizationRepository)
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val errorViewModel =
+        EventStatisticsViewModel(errorEventRepository, organizationRepository) { id ->
+          context.getString(id)
+        }
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -229,7 +237,11 @@ class EventStatisticsScreenInstrumentedTest {
   fun eventStatisticsScreen_errorState_retryButton_callsRefresh() {
     // Create a ViewModel that will error initially
     val errorEventRepository = EventRepositoryLocal()
-    val errorViewModel = EventStatisticsViewModel(errorEventRepository, organizationRepository)
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val errorViewModel =
+        EventStatisticsViewModel(errorEventRepository, organizationRepository) { id ->
+          context.getString(id)
+        }
 
     composeTestRule.setContent {
       MaterialTheme {

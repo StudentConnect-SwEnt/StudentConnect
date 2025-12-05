@@ -57,6 +57,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -79,7 +82,21 @@ import kotlinx.coroutines.delay
 fun EventStatisticsScreen(
     eventUid: String,
     navController: NavHostController,
-    viewModel: EventStatisticsViewModel = viewModel()
+    viewModel: EventStatisticsViewModel = run {
+      val context = LocalContext.current
+      viewModel(
+          factory =
+              object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                  if (modelClass.isAssignableFrom(EventStatisticsViewModel::class.java)) {
+                    return EventStatisticsViewModel(getString = { id -> context.getString(id) })
+                        as T
+                  }
+                  throw IllegalArgumentException("Unknown ViewModel class")
+                }
+              })
+    }
 ) {
   val uiState by viewModel.uiState.collectAsState()
 

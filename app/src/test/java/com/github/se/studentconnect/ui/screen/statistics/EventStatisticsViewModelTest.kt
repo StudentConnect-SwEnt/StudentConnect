@@ -3,9 +3,11 @@ package com.github.se.studentconnect.ui.screen.statistics
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventStatistics
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.resources.TestResourceProvider
 import com.google.firebase.Timestamp
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -35,6 +37,8 @@ class EventStatisticsViewModelTest {
   private lateinit var organizationRepository: OrganizationRepository
   private lateinit var viewModel: EventStatisticsViewModel
   private val testDispatcher = StandardTestDispatcher()
+  // Resource provider reads app/src/main/res/values/strings.xml so tests use the same messages.
+  private val rp = TestResourceProvider()
 
   private val testEventUid = "event123"
   private val testOwnerId = "org456"
@@ -79,7 +83,7 @@ class EventStatisticsViewModelTest {
     Dispatchers.setMain(testDispatcher)
     eventRepository = mockk()
     organizationRepository = mockk()
-    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository)
+    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository, rp::getString)
   }
 
   @After
@@ -149,7 +153,7 @@ class EventStatisticsViewModelTest {
 
     val state = viewModel.uiState.value
     assertFalse(state.isLoading)
-    assertEquals(EventStatisticsViewModel.ERROR_UNKNOWN, state.error)
+    assertEquals(rp.getString(R.string.stats_error_unknown), state.error)
   }
 
   @Test

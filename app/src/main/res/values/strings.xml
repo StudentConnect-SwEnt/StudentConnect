@@ -537,6 +537,7 @@
     <string name="stats_no_data">No data available</string>
     <string name="stats_loading">Loading statistics…</string>
     <string name="stats_error_loading">Failed to load statistics</string>
+    <string name="stats_error_unknown">An unknown error occurred</string>
     <string name="stats_retry">Retry</string>
     <string name="stats_people">people</string>
     <string name="stats_person">person</string>

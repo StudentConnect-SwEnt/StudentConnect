@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.event.EventStatistics
@@ -35,23 +36,19 @@ data class EventStatisticsUiState(
  *
  * @param eventRepository Repository for event data.
  * @param organizationRepository Repository for organization data (to get follower count).
+ * @param getString Function to retrieve string resources by resource ID.
  */
 class EventStatisticsViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val organizationRepository: OrganizationRepository =
-        OrganizationRepositoryProvider.repository
+        OrganizationRepositoryProvider.repository,
+    private val getString: (resId: Int) -> String = { _ -> "" }
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventStatisticsUiState())
   val uiState: StateFlow<EventStatisticsUiState> = _uiState.asStateFlow()
 
   private var currentEventUid: String? = null
-
-  companion object {
-    // Note: This constant should match R.string.stats_error_unknown
-    // ViewModels cannot access string resources directly
-    const val ERROR_UNKNOWN = "An unknown error occurred"
-  }
 
   /**
    * Loads statistics for a given event.
@@ -81,7 +78,9 @@ class EventStatisticsViewModel(
           it.copy(isLoading = false, statistics = statistics, animationProgress = 1f)
         }
       } catch (e: Exception) {
-        _uiState.update { it.copy(isLoading = false, error = e.message ?: ERROR_UNKNOWN) }
+        _uiState.update {
+          it.copy(isLoading = false, error = e.message ?: getString(R.string.stats_error_unknown))
+        }
       }
     }
   }
