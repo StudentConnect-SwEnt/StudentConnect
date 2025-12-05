@@ -48,6 +48,7 @@ import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
+import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
@@ -585,6 +586,16 @@ internal fun MainAppContent(
                 requireNotNull(pollUid) { "Poll UID is required for poll screen." }
                 com.github.se.studentconnect.ui.poll.PollScreen(
                     eventUid = eventUid, pollUid = pollUid, navController = navController)
+              }
+
+          // Event Statistics screen
+          composable(
+              Route.EVENT_STATISTICS,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required for statistics screen." }
+                EventStatisticsScreen(eventUid = eventUid, navController = navController)
               }
         }
       }
