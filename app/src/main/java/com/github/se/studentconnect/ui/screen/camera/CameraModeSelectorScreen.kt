@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,7 @@ fun CameraModeSelectorScreen(
   val lifecycleOwner = LocalLifecycleOwner.current
   // Use rememberCoroutineScope for UI operations (page navigation)
   val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+  val context = LocalContext.current
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
   var isUploading by remember { mutableStateOf(false) }
 
@@ -104,7 +106,8 @@ fun CameraModeSelectorScreen(
                             "Starting story upload - Event: ${selectedEvent.uid}, User: $currentUserId, URI: $mediaUri")
 
                         val story =
-                            storyRepository.uploadStory(mediaUri, selectedEvent.uid, currentUserId)
+                            storyRepository.uploadStory(
+                                mediaUri, selectedEvent.uid, currentUserId, context)
 
                         if (story != null) {
                           Log.d(

@@ -173,7 +173,7 @@ class StoryRepositoryFirestore(
             // Filter out expired stories (client-side)
             story.expiresAt.compareTo(now) > 0
           }
-          .sortedByDescending { it.createdAt }
+          .sortedBy { it.createdAt }
     } catch (e: Exception) {
       emptyList()
     }

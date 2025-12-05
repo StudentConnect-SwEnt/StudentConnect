@@ -260,7 +260,7 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: HomePageViewModel = run {
       val context = LocalContext.current
-      val storyRepository = StoryRepositoryProvider.getRepository(context)
+      val storyRepository = StoryRepositoryProvider.repository
       viewModel {
         HomePageViewModel(
             context = context, locationRepository = null, storyRepository = storyRepository)
@@ -544,7 +544,7 @@ fun HomeScreen(
         selectedStory?.let { event ->
           val stories = uiState.eventStories[event.uid] ?: emptyList()
           val context = LocalContext.current
-          val storyRepository = remember { StoryRepositoryProvider.getRepository(context) }
+          val storyRepository = remember { StoryRepositoryProvider.repository }
 
           if (stories.isNotEmpty()) {
             StoryViewer(
