@@ -479,8 +479,7 @@ fun HomeScreen(
                               HorizontalPager(
                                   state = tabPagerState,
                                   modifier = Modifier.fillMaxSize(),
-                                  userScrollEnabled = true,
-                                  beyondBoundsPageCount = 0) { _ ->
+                                  userScrollEnabled = true) { _ ->
                                     // Use different scroll state for each tab
                                     val currentListState =
                                         when (page) {
