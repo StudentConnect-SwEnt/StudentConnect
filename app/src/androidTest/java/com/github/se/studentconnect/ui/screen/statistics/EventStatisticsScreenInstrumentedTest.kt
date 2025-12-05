@@ -22,10 +22,10 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.model.event.AgeGroupData
 import com.github.se.studentconnect.model.event.CampusData
 import com.github.se.studentconnect.model.event.Event
@@ -103,9 +103,10 @@ class EventStatisticsScreenInstrumentedTest {
     EventRepositoryProvider.overrideForTests(eventRepository)
     OrganizationRepositoryProvider.overrideForTests(organizationRepository)
     val context = InstrumentationRegistry.getInstrumentation().targetContext
-    viewModel = EventStatisticsViewModel(eventRepository, organizationRepository) { id ->
-      context.getString(id)
-    }
+    viewModel =
+        EventStatisticsViewModel(eventRepository, organizationRepository) { id ->
+          context.getString(id)
+        }
 
     runBlocking {
       eventRepository.addEvent(testEvent)

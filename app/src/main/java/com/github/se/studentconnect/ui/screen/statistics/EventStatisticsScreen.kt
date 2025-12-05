@@ -446,11 +446,7 @@ fun AttendeesFollowersCard(
 /** Card displaying age distribution with donut chart. */
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-fun AgeDistributionCard(
-    data: List<AgeGroupData>,
-    animationProgress: Float,
-    colors: List<Color>
-) {
+fun AgeDistributionCard(data: List<AgeGroupData>, animationProgress: Float, colors: List<Color>) {
   StatisticsCard(
       title = stringResource(R.string.stats_age_distribution), testTag = C.Tag.STATS_AGE_CARD) {
         Row(
@@ -479,11 +475,7 @@ fun AgeDistributionCard(
 /** Card displaying campus distribution with horizontal bars. */
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-fun CampusDistributionCard(
-    data: List<CampusData>,
-    animationProgress: Float,
-    colors: List<Color>
-) {
+fun CampusDistributionCard(data: List<CampusData>, animationProgress: Float, colors: List<Color>) {
   StatisticsCard(
       title = stringResource(R.string.stats_campus_distribution),
       testTag = C.Tag.STATS_CAMPUS_CARD) {
