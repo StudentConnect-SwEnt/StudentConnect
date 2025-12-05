@@ -2098,7 +2098,7 @@ class EventViewTest {
       // Initially, event is null, so button should not exist
       // Even after fetchEvent throws, event remains null
       composeTestRule.waitForIdle()
-      
+
       // The condition is: event != null && currentUser == ownerId
       // When event is null, the first part fails, so button won't be shown
       composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertDoesNotExist()
