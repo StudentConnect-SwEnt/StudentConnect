@@ -10,8 +10,8 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationProfile
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
-import com.github.se.studentconnect.model.organization.fetchOrganizationMembers
 import com.github.se.studentconnect.model.organization.toOrganizationEvents
+import com.github.se.studentconnect.model.organization.toOrganizationMember
 import com.github.se.studentconnect.model.organization.toOrganizationProfile
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
@@ -115,28 +115,60 @@ class OrganizationProfileViewModel(
             }
 
         // Fetch members for this organization
+        // Ensure creator is included in members list with appropriate role
         val members =
             try {
-              fetchOrganizationMembers(organization.memberUids, userRepository)
+              val allMemberUids = organization.memberUids.toMutableList()
+
+              // Add creator if not already in memberUids
+              if (!allMemberUids.contains(organization.createdBy)) {
+                allMemberUids.add(0, organization.createdBy) // Add creator at the beginning
+              }
+
+              // Fetch all members and assign roles
+              allMemberUids.mapNotNull { uid ->
+                try {
+                  val user = userRepository.getUserById(uid)
+                  user?.let {
+                    // Creator gets "Owner" role, others get "Member"
+                    val role = if (uid == organization.createdBy) "Owner" else "Member"
+                    it.toOrganizationMember(role)
+                  }
+                } catch (e: Exception) {
+                  Log.e(TAG, "Failed to fetch user with ID $uid for organization member list", e)
+                  null
+                }
+              }
             } catch (e: Exception) {
               Log.e(TAG, "Failed to fetch members for organization $organizationId", e)
               emptyList() // If fetching members fails, use empty list
             }
 
-        // Check if current user is following this organization
-        val isFollowing =
+        // Check if current user is a member or creator of this organization
+        val isMember =
             currentUserId?.let { uid ->
-              try {
-                val followedOrgs = userRepository.getFollowedOrganizations(uid)
-                followedOrgs.contains(organizationId)
-              } catch (e: Exception) {
-                false
-              }
+              organization.memberUids.contains(uid) || organization.createdBy == uid
             } ?: false
+
+        // Check if current user is following this organization
+        // Members automatically follow, so check membership first
+        val isFollowing =
+            if (isMember) {
+              true // Members always "follow" the organization
+            } else {
+              currentUserId?.let { uid ->
+                try {
+                  val followedOrgs = userRepository.getFollowedOrganizations(uid)
+                  followedOrgs.contains(organizationId)
+                } catch (e: Exception) {
+                  false
+                }
+              } ?: false
+            }
 
         val organizationProfile =
             organization.toOrganizationProfile(
-                isFollowing = isFollowing, events = events, members = members)
+                isFollowing = isFollowing, isMember = isMember, events = events, members = members)
 
         _uiState.value =
             _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
@@ -159,7 +191,10 @@ class OrganizationProfileViewModel(
     _uiState.value = _uiState.value.copy(selectedTab = tab)
   }
 
-  /** Toggles the follow status for the organization. */
+  /**
+   * Toggles the follow status for the organization. Members cannot unfollow - they must leave the
+   * organization first.
+   */
   fun toggleFollow() {
     val currentOrg = _uiState.value.organization ?: return
     val userId = currentUserId ?: return
@@ -170,12 +205,25 @@ class OrganizationProfileViewModel(
       return
     }
 
-    // Set loading flag
-    _uiState.value = _uiState.value.copy(isFollowLoading = true)
-
-    // Persist to backend first, then update UI based on result
+    // Check if user is a member or creator - they cannot unfollow
     viewModelScope.launch {
       try {
+        val organization = organizationRepository.getOrganizationById(currentOrg.organizationId)
+        if (organization != null) {
+          val isMember =
+              organization.memberUids.contains(userId) || organization.createdBy == userId
+
+          // Members cannot unfollow
+          if (isMember && currentOrg.isFollowing) {
+            Log.d(TAG, "Members cannot unfollow organization")
+            return@launch
+          }
+        }
+
+        // Set loading flag
+        _uiState.value = _uiState.value.copy(isFollowLoading = true)
+
+        // Persist to backend first, then update UI based on result
         val newFollowingState = !currentOrg.isFollowing
         if (newFollowingState) {
           userRepository.followOrganization(userId, currentOrg.organizationId)

@@ -324,18 +324,24 @@ private fun OrganizationInfoBlock(
         // Follow button
         Button(
             onClick = onFollowClick,
+            enabled = !organization.isMember, // Disable for members
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary),
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer),
             shape = RoundedCornerShape(OrganizationProfileConstants.FOLLOW_BUTTON_CORNER_RADIUS.dp),
             modifier =
                 Modifier.padding(top = OrganizationProfileConstants.BUTTON_TOP_PADDING.dp)
                     .testTag(C.Tag.org_profile_follow_button)) {
               Text(
                   text =
-                      if (organization.isFollowing) stringResource(R.string.org_profile_following)
-                      else stringResource(R.string.org_profile_follow),
+                      when {
+                        organization.isMember -> stringResource(R.string.org_profile_member)
+                        organization.isFollowing -> stringResource(R.string.org_profile_following)
+                        else -> stringResource(R.string.org_profile_follow)
+                      },
                   style = MaterialTheme.typography.labelLarge)
             }
       }
