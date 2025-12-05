@@ -428,7 +428,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.waitForIdle()
     // Mode selector should be visible initially
     composeTestRule.onNodeWithTag("camera_mode_selector").assertIsDisplayed()
-    
+
     // Note: Testing actual upload state requires triggering story upload
     // which is complex in UI tests. The branch is covered by the logic
     // that !isStoryPreviewShowing && !isUploading controls visibility
@@ -556,7 +556,7 @@ class CameraModeSelectorScreenTest {
     composeTestRule.waitForIdle()
     // Verify StoryCaptureScreen receives the callback wrapper
     composeTestRule.onNodeWithTag("story_capture_screen").assertIsDisplayed()
-    
+
     // The callback is wrapped with upload logic before being passed to StoryCaptureScreen
     // Testing the actual callback invocation requires complex mocking
   }
