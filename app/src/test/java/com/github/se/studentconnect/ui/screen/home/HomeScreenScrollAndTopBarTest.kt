@@ -151,6 +151,12 @@ class HomeScreenScrollAndTopBarTest {
 
         override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
 
+        override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+        override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+        override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
         override suspend fun checkUsernameAvailability(username: String): Boolean = true
       }
 
