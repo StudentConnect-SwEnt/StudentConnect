@@ -1998,4 +1998,112 @@ class EventViewTest {
       AuthenticationProvider.testUserId = null
     }
   }
+
+  @Test
+  fun eventView_statisticsButton_visibleWhenOwner() {
+    // Set current user as owner
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsButton_notVisibleWhenNotOwner() {
+    // Set current user as non-owner
+    AuthenticationProvider.testUserId = currentUser.userId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)
+          .assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsButton_notVisibleWhenEventNull() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      // Create a ViewModel with no event loaded
+      val emptyViewModel = EventViewModel(eventRepository, userRepository)
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = "non-existent-event",
+                navController = navController,
+                eventViewModel = emptyViewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Button should not be visible when event is null (loading or error state)
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)
+          .assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsButton_clickNavigatesToStatistics() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+          composable("eventStatistics/{eventUid}") {
+            // Statistics screen placeholder for navigation test
+            androidx.compose.material3.Text("Statistics Screen")
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Verify navigation occurred by checking if statistics screen is displayed
+      composeTestRule.onNodeWithText("Statistics Screen").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
 }
