@@ -60,10 +60,10 @@ class JoinedEventsViewModel(
     viewModelScope.launch {
       try {
         val pinnedIds = userRepository.getPinnedEvents(currentUserId)
-        android.util.Log.d("JoinedEventsVM", "Loaded pinned IDs: $pinnedIds")
+        android.util.Log.d(TAG, "Loaded pinned IDs: $pinnedIds")
         _uiState.update { it.copy(pinnedEventIds = pinnedIds) }
       } catch (e: Exception) {
-        android.util.Log.e("JoinedEventsVM", "Failed to load pinned IDs", e)
+        android.util.Log.e(TAG, "Failed to load pinned IDs", e)
       }
     }
   }
@@ -189,7 +189,7 @@ class JoinedEventsViewModel(
           userRepository.addPinnedEvent(currentUserId, eventId)
         }
       } catch (e: Exception) {
-        android.util.Log.e("JoinedEventsVM", "Failed to toggle pin", e)
+        android.util.Log.e(TAG, "Failed to toggle pin", e)
         // Reload pinned IDs to sync with server
         loadPinnedEventIds()
       }
@@ -197,6 +197,7 @@ class JoinedEventsViewModel(
   }
 
   companion object {
+    private const val TAG = "JoinedEventsVM"
     private const val SEARCH_DEBOUNCE_MILLIS = 300L
     private const val MAX_PINNED_EVENTS = 3
   }

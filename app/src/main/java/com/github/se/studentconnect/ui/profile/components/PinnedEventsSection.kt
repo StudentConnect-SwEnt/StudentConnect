@@ -24,17 +24,29 @@ import com.github.se.studentconnect.model.event.Event
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// Test tags for automated testing
+/** Test tags for automated testing of pinned events section components. */
 object PinnedEventsSectionTestTags {
   const val SECTION = "pinned_events_section"
   const val TITLE = "pinned_events_title"
   const val EMPTY_STATE = "pinned_events_empty_state"
   const val HORIZONTAL_LIST = "pinned_events_horizontal_list"
 
+  /**
+   * Generates a test tag for a pinned event card.
+   *
+   * @param eventUid The unique identifier of the event
+   * @return Test tag string for the event card
+   */
   fun eventCard(eventUid: String) = "pinned_event_card_$eventUid"
 }
 
-// Section showing up to 3 pinned events in a horizontal list
+/**
+ * Section showing up to 3 pinned events in a horizontal list.
+ *
+ * @param pinnedEvents List of pinned events to display
+ * @param onEventClick Callback invoked when an event card is clicked
+ * @param modifier Modifier to be applied to the section
+ */
 @Composable
 fun PinnedEventsSection(
     pinnedEvents: List<Event>,

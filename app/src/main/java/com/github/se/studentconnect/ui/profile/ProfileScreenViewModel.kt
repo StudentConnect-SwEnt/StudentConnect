@@ -32,21 +32,27 @@ class ProfileScreenViewModel(
     private const val TAG = "ProfileScreenViewModel"
   }
 
+  // User data state
   private val _user = MutableStateFlow<User?>(null)
   val user: StateFlow<User?> = _user.asStateFlow()
 
+  // Friends count state
   private val _friendsCount = MutableStateFlow(0)
   val friendsCount: StateFlow<Int> = _friendsCount.asStateFlow()
 
+  // Events count state (joined events)
   private val _eventsCount = MutableStateFlow(0)
   val eventsCount: StateFlow<Int> = _eventsCount.asStateFlow()
 
+  // Pinned events state
   private val _pinnedEvents = MutableStateFlow<List<Event>>(emptyList())
   val pinnedEvents: StateFlow<List<Event>> = _pinnedEvents.asStateFlow()
 
+  // Loading state
   private val _isLoading = MutableStateFlow(true)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+  // Error state
   private val _error = MutableStateFlow<String?>(null)
   val error: StateFlow<String?> = _error.asStateFlow()
 
