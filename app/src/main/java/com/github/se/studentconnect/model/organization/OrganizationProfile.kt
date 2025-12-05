@@ -8,6 +8,7 @@ package com.github.se.studentconnect.model.organization
  * @property description A description of the organization.
  * @property logoUrl URL to the organization's logo (optional).
  * @property isFollowing Whether the current user is following this organization.
+ * @property isMember Whether the current user is a member of this organization.
  * @property events List of events associated with this organization.
  * @property members List of members in this organization.
  */
@@ -17,6 +18,7 @@ data class OrganizationProfile(
     val description: String,
     val logoUrl: String? = null,
     val isFollowing: Boolean = false,
+    val isMember: Boolean = false,
     val events: List<OrganizationEvent> = emptyList(),
     val members: List<OrganizationMember> = emptyList()
 ) {

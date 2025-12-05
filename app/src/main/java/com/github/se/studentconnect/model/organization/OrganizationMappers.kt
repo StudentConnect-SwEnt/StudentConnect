@@ -16,12 +16,14 @@ import java.util.Locale
  * Converts a backend Organization model to the UI OrganizationProfile model.
  *
  * @param isFollowing Whether the current user is following this organization
+ * @param isMember Whether the current user is a member of this organization
  * @param events Optional list of events to include in the profile
  * @param members Optional list of members to include in the profile
  * @return OrganizationProfile for UI display
  */
 fun Organization.toOrganizationProfile(
     isFollowing: Boolean = false,
+    isMember: Boolean = false,
     events: List<OrganizationEvent> = emptyList(),
     members: List<OrganizationMember> = emptyList()
 ): OrganizationProfile {
@@ -31,6 +33,7 @@ fun Organization.toOrganizationProfile(
       description = this.description ?: "",
       logoUrl = this.logoUrl,
       isFollowing = isFollowing,
+      isMember = isMember,
       events = events,
       members = members)
 }

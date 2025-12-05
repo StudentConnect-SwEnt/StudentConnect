@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +23,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,6 +44,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -153,10 +158,18 @@ fun OrganizationProfileScreen(
             organization = uiState.organization!!,
             selectedTab = uiState.selectedTab,
             onTabSelected = { viewModel.selectTab(it) },
-            onFollowClick = { viewModel.toggleFollow() },
+            onFollowClick = { viewModel.onFollowButtonClick() },
             onBackClick = onBackClick,
             modifier = Modifier.padding(paddingValues))
       }
+    }
+
+    // Unfollow confirmation dialog
+    if (uiState.showUnfollowDialog && uiState.organization != null) {
+      UnfollowConfirmationDialog(
+          organizationName = uiState.organization!!.name,
+          onConfirm = { viewModel.confirmUnfollow() },
+          onDismiss = { viewModel.dismissUnfollowDialog() })
     }
   }
 }
@@ -321,21 +334,46 @@ private fun OrganizationInfoBlock(
                         horizontal = OrganizationProfileConstants.HORIZONTAL_PADDING_DESCRIPTION.dp)
                     .testTag(C.Tag.org_profile_description))
 
-        // Follow button
+        // Follow button with icon and dynamic colors
         Button(
             onClick = onFollowClick,
+            enabled = !organization.isMember, // Disable for members
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary),
+                    containerColor =
+                        when {
+                          organization.isMember -> MaterialTheme.colorScheme.secondaryContainer
+                          organization.isFollowing -> MaterialTheme.colorScheme.surfaceVariant
+                          else -> MaterialTheme.colorScheme.primary
+                        },
+                    contentColor =
+                        when {
+                          organization.isMember -> MaterialTheme.colorScheme.onSecondaryContainer
+                          organization.isFollowing -> MaterialTheme.colorScheme.onSurfaceVariant
+                          else -> MaterialTheme.colorScheme.onPrimary
+                        },
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer),
             shape = RoundedCornerShape(OrganizationProfileConstants.FOLLOW_BUTTON_CORNER_RADIUS.dp),
             modifier =
                 Modifier.padding(top = OrganizationProfileConstants.BUTTON_TOP_PADDING.dp)
                     .testTag(C.Tag.org_profile_follow_button)) {
+              // Icon based on state
+              val icon =
+                  when {
+                    organization.isMember -> Icons.Filled.Check
+                    organization.isFollowing -> Icons.Filled.Check
+                    else -> Icons.Filled.Add
+                  }
+              Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
+              Spacer(modifier = Modifier.width(8.dp))
               Text(
                   text =
-                      if (organization.isFollowing) stringResource(R.string.org_profile_following)
-                      else stringResource(R.string.org_profile_follow),
+                      when {
+                        organization.isMember -> stringResource(R.string.org_profile_member)
+                        organization.isFollowing -> stringResource(R.string.org_profile_following)
+                        else -> stringResource(R.string.org_profile_follow)
+                      },
                   style = MaterialTheme.typography.labelLarge)
             }
       }
@@ -642,6 +680,40 @@ private fun MemberAvatarPlaceholder(modifier: Modifier = Modifier) {
             tint = Color.White,
             modifier = Modifier.size(MEMBER_ICON_SIZE.dp))
       }
+}
+
+/**
+ * Confirmation dialog for unfollowing an organization.
+ *
+ * @param organizationName The name of the organization to unfollow
+ * @param onConfirm Callback when user confirms unfollowing
+ * @param onDismiss Callback when user dismisses the dialog
+ */
+@Composable
+private fun UnfollowConfirmationDialog(
+    organizationName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = stringResource(R.string.org_profile_unfollow_title)) },
+      text = {
+        Text(text = stringResource(R.string.org_profile_unfollow_message, organizationName))
+      },
+      confirmButton = {
+        TextButton(
+            onClick = onConfirm,
+            colors =
+                ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+              Text(stringResource(R.string.org_profile_unfollow_confirm))
+            }
+      },
+      dismissButton = {
+        TextButton(onClick = onDismiss) {
+          Text(stringResource(R.string.org_profile_unfollow_cancel))
+        }
+      })
 }
 
 /**
