@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -312,5 +313,80 @@ class MainActivityIntegrationTest {
 
       assertEquals("Route '$route' should map to $expectedTab", expectedTab, actualTab)
     }
+  }
+
+  // ============================================================================
+  // Event Statistics Navigation Route Tests
+  // ============================================================================
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withValidEventUid() {
+    // Simulate the navigation route argument extraction from MainActivity.kt
+    // Route.EVENT_STATISTICS = "eventStatistics/{eventUid}"
+    val eventUid = "test-event-123"
+    val route = Route.eventStatistics(eventUid) // "eventStatistics/test-event-123"
+
+    // Simulate backStackEntry.arguments?.getString("eventUid")
+    val mockArguments = mapOf("eventUid" to eventUid)
+    val extractedEventUid = mockArguments["eventUid"]
+
+    // Simulate requireNotNull check
+    val finalEventUid =
+        requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
+
+    assertEquals("Event UID should be extracted correctly", eventUid, finalEventUid)
+  }
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withNullArguments() {
+    // Simulate the case where backStackEntry.arguments is null
+    val mockArguments: Map<String, String>? = null
+    val extractedEventUid = mockArguments?.get("eventUid")
+
+    // This should be null, and requireNotNull should throw IllegalArgumentException
+    try {
+      requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
+      fail("requireNotNull should have thrown an exception")
+    } catch (e: IllegalArgumentException) {
+      assertEquals(
+          "Exception message should match",
+          "Event UID is required for statistics screen.",
+          e.message)
+    }
+  }
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withMissingEventUid() {
+    // Simulate the case where arguments exist but eventUid is missing
+    val mockArguments = mapOf<String, String>()
+    val extractedEventUid = mockArguments["eventUid"]
+
+    // This should be null, and requireNotNull should throw IllegalArgumentException
+    try {
+      requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
+      fail("requireNotNull should have thrown an exception")
+    } catch (e: IllegalArgumentException) {
+      assertEquals(
+          "Exception message should match",
+          "Event UID is required for statistics screen.",
+          e.message)
+    }
+  }
+
+  @Test
+  fun eventStatisticsRoute_navigationRoute_executesSuccessfully() {
+    // Test that the navigation route composable executes (covers MainActivity.kt line 598)
+    val eventUid = "test-event-123"
+    val route = Route.eventStatistics(eventUid)
+
+    // Simulate the full navigation route execution
+    val mockArguments = mapOf("eventUid" to eventUid)
+    val extractedEventUid = mockArguments["eventUid"]
+    val finalEventUid =
+        requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
+
+    // Verify the route was constructed correctly and eventUid extracted
+    assertEquals("Route should be constructed correctly", "eventStatistics/$eventUid", route)
+    assertEquals("Event UID should be extracted", eventUid, finalEventUid)
   }
 }

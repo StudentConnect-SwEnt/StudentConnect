@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
@@ -110,6 +111,7 @@ object EventViewTestTags {
   const val BASE_SCREEN = "event_view_base_screen"
   const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
   const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
+  const val VIEW_STATISTICS_BUTTON = "event_view_view_statistics_button"
   const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
   const val LEAVE_CONFIRMATION_DIALOG = "event_view_leave_confirmation_dialog"
   const val LEAVE_CONFIRMATION_CONFIRM = "event_view_leave_confirmation_confirm"
@@ -217,6 +219,19 @@ fun EventView(
                       Icon(
                           painter = painterResource(id = R.drawable.ic_poll),
                           contentDescription = stringResource(R.string.button_view_polls))
+                    }
+              }
+              // View Statistics button - only show if user is owner
+              if (event != null && AuthenticationProvider.currentUser == event.ownerId) {
+                IconButton(
+                    onClick = {
+                      event.let { navController.navigate(Route.eventStatistics(it.uid)) }
+                    },
+                    modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
+                      Icon(
+                          imageVector = Icons.Default.BarChart,
+                          contentDescription =
+                              stringResource(R.string.content_description_view_statistics))
                     }
               }
             },
