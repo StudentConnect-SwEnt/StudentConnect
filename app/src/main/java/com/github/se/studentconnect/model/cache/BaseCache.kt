@@ -4,7 +4,7 @@ package com.github.se.studentconnect.model.cache
 abstract class BaseCache<K, V> : Cache<K, V> {
   override fun peek(key: K): V? {
     val value = readCached(key) ?: return null
-    return if (isValid(value)) value
+    return if (isValid(key, value)) value
     else {
       removeCached(key)
       null
@@ -22,9 +22,10 @@ abstract class BaseCache<K, V> : Cache<K, V> {
   /**
    * Returns whether the value is valid or not.
    *
+   * @param key the key
    * @param value the value
    */
-  protected open fun isValid(value: V): Boolean = true
+  protected open fun isValid(key: K, value: V): Boolean = true
 
   /**
    * Get a value in the cache based on its key.

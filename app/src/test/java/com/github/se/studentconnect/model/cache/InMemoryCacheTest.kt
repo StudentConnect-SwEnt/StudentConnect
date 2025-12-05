@@ -28,7 +28,7 @@ class InMemoryCacheTest {
         object : InMemoryCache<String, Int>() {
           var valid = true
 
-          override fun isValid(value: Int): Boolean = valid
+          override fun isValid(key: String, value: Int): Boolean = valid
         }
 
     cache.put("old", 3)
@@ -53,5 +53,23 @@ class InMemoryCacheTest {
 
     cache.invalidateAll()
     assertNull(cache.peek("two"))
+  }
+
+  @Test
+  fun ttlCacheExpiresEntries() {
+    var now = 0L
+    val cache = TtlInMemoryCache<String, Int>(ttlMs = 10) { now }
+
+    cache.put("k", 5)
+    assertEquals(5, cache.peek("k"))
+
+    now = 9
+    assertEquals(5, cache.peek("k")) // still within TTL
+
+    now = 10
+    assertNull(cache.peek("k")) // expired and removed
+
+    now = 11
+    assertNull(cache.peek("k")) // stays absent
   }
 }
