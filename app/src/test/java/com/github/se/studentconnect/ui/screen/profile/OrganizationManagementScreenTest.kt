@@ -74,15 +74,16 @@ class OrganizationManagementScreenTest {
 
   @Test
   fun organizationManagementScreen_displaysTitle() {
+    val viewModel =
+        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = testUserId,
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = testUserId, organizationRepository = repository))
+            viewModel = viewModel)
       }
     }
 
@@ -94,15 +95,16 @@ class OrganizationManagementScreenTest {
 
   @Test
   fun organizationManagementScreen_displaysBackButton() {
+    val viewModel =
+        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = testUserId,
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = testUserId, organizationRepository = repository))
+            viewModel = viewModel)
       }
     }
 
@@ -111,15 +113,16 @@ class OrganizationManagementScreenTest {
 
   @Test
   fun organizationManagementScreen_backButtonWorks() {
+    val viewModel =
+        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = testUserId,
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = testUserId, organizationRepository = repository))
+            viewModel = viewModel)
       }
     }
 
@@ -134,15 +137,17 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_emptyState_displaysCorrectMessage() {
     val emptyRepository = TestOrganizationRepository(emptyList())
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = "no_orgs_user", organizationRepository = emptyRepository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = "no_orgs_user",
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = "no_orgs_user", organizationRepository = emptyRepository))
+            viewModel = viewModel)
       }
     }
 
@@ -159,6 +164,10 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_emptyState_hasCreateAndJoinButtons() {
     val emptyRepository = TestOrganizationRepository(emptyList())
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = "no_orgs_user", organizationRepository = emptyRepository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
@@ -166,9 +175,7 @@ class OrganizationManagementScreenTest {
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
             onJoinOrganization = { joinOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = "no_orgs_user", organizationRepository = emptyRepository))
+            viewModel = viewModel)
       }
     }
 
@@ -182,15 +189,17 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_emptyState_createButtonWorks() {
     val emptyRepository = TestOrganizationRepository(emptyList())
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = "no_orgs_user", organizationRepository = emptyRepository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = "no_orgs_user",
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = "no_orgs_user", organizationRepository = emptyRepository))
+            viewModel = viewModel)
       }
     }
 
@@ -205,15 +214,17 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_errorState_displaysError() {
     val errorRepository = TestOrganizationRepository(emptyList(), shouldThrowError = true)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId, organizationRepository = errorRepository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = testUserId,
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = testUserId, organizationRepository = errorRepository))
+            viewModel = viewModel)
       }
     }
 
@@ -227,15 +238,17 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_errorState_retryButtonWorks() {
     val errorRepository = TestOrganizationRepository(emptyList(), shouldThrowError = true)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId, organizationRepository = errorRepository)
+
     composeTestRule.setContent {
       MaterialTheme {
         OrganizationManagementScreen(
             currentUserId = testUserId,
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            viewModel =
-                OrganizationManagementViewModel(
-                    userId = testUserId, organizationRepository = errorRepository))
+            viewModel = viewModel)
       }
     }
 
