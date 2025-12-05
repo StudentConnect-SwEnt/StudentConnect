@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.ui.screen.camera
 
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,8 +17,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,23 +28,87 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import kotlinx.coroutines.launch
 
 enum class CameraMode {
   STORY,
   QR_SCAN
+}
+
+/**
+ * Handles the story upload logic. Extracted for testability.
+ *
+ * @return true if upload was initiated, false otherwise
+ */
+internal fun handleStoryUpload(
+    mediaUri: Uri,
+    isVideo: Boolean,
+    selectedEvent: Event?,
+    isUploading: Boolean,
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    storyRepository: StoryRepository,
+    onUploadStateChange: (Boolean) -> Unit,
+    onStoryAccepted: (Uri, Boolean, Event?) -> Unit
+): Boolean {
+  if (selectedEvent == null) {
+    Toast.makeText(context, "Please select an event for your story", Toast.LENGTH_SHORT).show()
+    return false
+  }
+
+  if (isUploading) {
+    Toast.makeText(context, "Upload in progress...", Toast.LENGTH_SHORT).show()
+    return false
+  }
+
+  val currentUserId = AuthenticationProvider.currentUser
+  if (currentUserId.isEmpty()) {
+    Toast.makeText(context, "You must be logged in to upload stories", Toast.LENGTH_SHORT).show()
+    return false
+  }
+
+  onUploadStateChange(true)
+  Toast.makeText(context, "Uploading story...", Toast.LENGTH_SHORT).show()
+
+  lifecycleOwner.lifecycleScope.launch {
+    try {
+      val story = storyRepository.uploadStory(mediaUri, selectedEvent.uid, currentUserId, context)
+
+      if (story != null) {
+        Toast.makeText(context, "Story uploaded!", Toast.LENGTH_SHORT).show()
+        onStoryAccepted(mediaUri, isVideo, selectedEvent)
+      } else {
+        Toast.makeText(
+                context,
+                "Failed to upload story. Check connection and permissions.",
+                Toast.LENGTH_LONG)
+            .show()
+      }
+    } catch (e: Exception) {
+      Toast.makeText(context, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
+    } finally {
+      onUploadStateChange(false)
+    }
+  }
+
+  return true
 }
 
 /** Hosts the story camera and QR scanner pages with iOS-style swipe navigation. */
@@ -55,8 +123,13 @@ fun CameraModeSelectorScreen(
 ) {
   val pagerState =
       rememberPagerState(initialPage = initialMode.ordinal, pageCount = { CameraMode.entries.size })
-  val coroutineScope = rememberCoroutineScope()
+  // Use lifecycleScope to prevent cancellation on navigation for story upload
+  val lifecycleOwner = LocalLifecycleOwner.current
+  // Use rememberCoroutineScope for UI operations (page navigation)
+  val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+  val context = LocalContext.current
   var isStoryPreviewShowing by remember { mutableStateOf(false) }
+  var isUploading by remember { mutableStateOf(false) }
 
   // ViewModel for managing event selection state
   val storyRepository = StoryRepositoryProvider.repository
@@ -78,7 +151,18 @@ fun CameraModeSelectorScreen(
         CameraMode.STORY -> {
           StoryCaptureScreen(
               onBackClick = onBackClick,
-              onStoryAccepted = onStoryAccepted,
+              onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                handleStoryUpload(
+                    mediaUri = mediaUri,
+                    isVideo = isVideo,
+                    selectedEvent = selectedEvent,
+                    isUploading = isUploading,
+                    context = context,
+                    lifecycleOwner = lifecycleOwner,
+                    storyRepository = storyRepository,
+                    onUploadStateChange = { uploading -> isUploading = uploading },
+                    onStoryAccepted = onStoryAccepted)
+              },
               eventSelectionState = eventSelectionState,
               onLoadEvents = { viewModel.loadJoinedEvents() },
               isActive = pagerState.currentPage == page,
@@ -109,7 +193,7 @@ fun CameraModeSelectorScreen(
         }
 
     // Bottom mode selector (like iPhone camera) - hide when story preview is showing
-    if (!isStoryPreviewShowing) {
+    if (!isStoryPreviewShowing && !isUploading) {
       Row(
           modifier =
               Modifier.align(Alignment.BottomCenter)
@@ -135,6 +219,26 @@ fun CameraModeSelectorScreen(
                   }
                 },
                 modifier = Modifier.testTag("mode_qr_scan"))
+          }
+    }
+
+    // Upload loading overlay
+    if (isUploading) {
+      Box(
+          modifier =
+              Modifier.fillMaxSize()
+                  .background(Color.Black.copy(alpha = 0.7f))
+                  .testTag("upload_loading_overlay"),
+          contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                  CircularProgressIndicator(color = Color.White)
+                  Text(
+                      text = "Uploading story...",
+                      color = Color.White,
+                      style = MaterialTheme.typography.bodyLarge)
+                }
           }
     }
   }

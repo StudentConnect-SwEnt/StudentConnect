@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.home
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
@@ -30,6 +31,7 @@ class HomePageViewModelTemporalFilterTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepositoryLocal
 
   private val epflLocation = Location(46.5191, 6.5668, "EPFL")
 
@@ -39,6 +41,7 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
   }
 
   @After
@@ -70,7 +73,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(pastEvent)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -114,7 +124,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(futureEvent)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -162,7 +179,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(liveEvent)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -206,7 +230,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(eventNoEndTime)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -250,7 +281,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(eventNoEndTime)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -334,7 +372,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(futureEvent)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filters
@@ -413,7 +458,14 @@ class HomePageViewModelTemporalFilterTest {
     eventRepository.addEvent(pastTechEvent)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply temporal + category filters

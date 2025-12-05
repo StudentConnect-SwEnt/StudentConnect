@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.home
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
@@ -30,6 +31,7 @@ class HomePageViewModelFilterTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepositoryLocal
 
   // EPFL Rolex Learning Center location
   private val epflLocation = Location(46.5191, 6.5668, "EPFL")
@@ -122,6 +124,7 @@ class HomePageViewModelFilterTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
   }
 
   @After
@@ -140,7 +143,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInGeneva)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events within 10km of EPFL
@@ -167,7 +177,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInGeneva)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with no location specified
@@ -193,7 +210,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with large radius (>= 100km)
@@ -219,7 +243,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventAtEPFL)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter with small radius (< 100km)
@@ -245,7 +276,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventWithFee) // 25 CHF event
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events starting at 10 CHF
@@ -272,7 +310,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventWithFee) // 25 CHF event
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Apply filter for events from 0 CHF
@@ -299,7 +344,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventWithFee) // Workshop
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology events
@@ -327,7 +379,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventWithFee) // Workshop
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology OR Culture events
@@ -355,7 +414,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInLausanne)
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Mark one event as favorite
@@ -387,7 +453,14 @@ class HomePageViewModelFilterTest {
     eventRepository.addEvent(eventInGeneva) // Business @ Geneva, Free
 
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
     advanceUntilIdle()
 
     // Act - Filter for Technology events within 10km of EPFL, free

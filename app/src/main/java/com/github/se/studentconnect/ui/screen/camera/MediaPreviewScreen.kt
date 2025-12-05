@@ -191,7 +191,7 @@ private fun PhotoPreview(imageUri: Uri, modifier: Modifier = Modifier) {
         bitmap = it.asImageBitmap(),
         contentDescription = stringResource(R.string.content_description_captured_photo),
         modifier = modifier.testTag("photo_preview"),
-        contentScale = ContentScale.Fit)
+        contentScale = ContentScale.Crop)
   }
 }
 

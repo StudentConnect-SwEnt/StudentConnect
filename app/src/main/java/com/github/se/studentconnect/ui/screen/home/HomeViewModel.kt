@@ -9,6 +9,8 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
@@ -16,6 +18,7 @@ import com.github.se.studentconnect.model.map.LocationResult
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.organization.toOrganizationDataList
+import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -55,9 +58,19 @@ enum class PreferredTimeOfDay {
   ANY
 }
 
+/** Story with user information for display. */
+data class StoryWithUser(
+    val story: com.github.se.studentconnect.model.story.Story,
+    val username: String,
+    val userId: String,
+    val profilePictureUrl: String? = null
+)
+
 /** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
+    val eventStories: Map<String, List<StoryWithUser>> =
+        emptyMap(), // eventId -> list of stories with user info
     val events: List<Event> = emptyList(),
     val organizations: List<OrganizationData> = emptyList(),
     val isLoading: Boolean = true,
@@ -80,7 +93,9 @@ constructor(
     private val context: Context? = null,
     private val locationRepository: LocationRepository? = null,
     private val organizationRepository: OrganizationRepository =
-        OrganizationRepositoryProvider.repository
+        OrganizationRepositoryProvider.repository,
+    private val storyRepository: StoryRepository? = null,
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -131,7 +146,7 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
   }
 
@@ -232,27 +247,137 @@ constructor(
     }
   }
 
-  private fun loadAllSubscribedEventsStories() {
+  private fun loadAllSubscribedEventsStories(showLoading: Boolean = false) {
     viewModelScope.launch {
       try {
-        // Get all visible events to show stories for
-        val allEvents = eventRepository.getAllVisibleEvents()
-
-        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
-        // Create stories with Pair(totalStories, seenStories)
-        // For demo: take first 10 events, mix of seen and unseen stories
-        allEvents.take(10).forEachIndexed { index, event ->
-          val totalStories = if (index < 3) 3 else 5
-          val seenStories = if (index == 0) 1 else 0 // First one is partially seen
-          allEventsStory[event] = Pair(totalStories, seenStories)
+        // Only show loading state if explicitly requested (e.g., initial load)
+        if (showLoading) {
+          _uiState.update { it.copy(isLoading = true) }
         }
 
-        Log.d("HomePageViewModel", "Loaded ${allEventsStory.size} stories")
+        if (storyRepository == null || context == null) {
+          Log.w(
+              "HomePageViewModel", "StoryRepository or context not available, using empty stories")
+          _uiState.update {
+            it.copy(
+                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+          }
+          return@launch
+        }
 
-        _uiState.update { it.copy(subscribedEventsStories = allEventsStory) }
+        // Get user's joined events to show stories for
+        val currentUser = currentUserId
+        if (currentUser == null) {
+          Log.w("HomePageViewModel", "No current user, cannot load stories")
+          _uiState.update {
+            it.copy(
+                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+          }
+          return@launch
+        }
+
+        val joinedEvents = storyRepository.getUserJoinedEvents(currentUser)
+        Log.d("HomePageViewModel", "User has joined ${joinedEvents.size} events")
+
+        // Get user's friends list for story visibility filtering
+        // Note: If getFriends fails, we still show the owner's own stories
+        val userFriends =
+            try {
+              Log.d("HomePageViewModel", "Loading friends for user: $currentUser")
+              val friends = friendsRepository.getFriends(currentUser).toSet()
+              Log.d("HomePageViewModel", "Successfully loaded ${friends.size} friends: $friends")
+              friends
+            } catch (e: Exception) {
+              Log.e(
+                  "HomePageViewModel",
+                  "Error loading friends list (will show only own stories): ${e.message}",
+                  e)
+              emptySet()
+            }
+        Log.d("HomePageViewModel", "User has ${userFriends.size} friends for story filtering")
+
+        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+        val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
+
+        // For each joined event, get its stories
+        for (event in joinedEvents) {
+          Log.d("HomePageViewModel", "Fetching stories for event: ${event.uid} (${event.title})")
+          val stories = storyRepository.getEventStories(event.uid)
+          Log.d("HomePageViewModel", "Found ${stories.size} stories for event ${event.uid}")
+
+          if (stories.isNotEmpty()) {
+            // Log each story's owner for debugging
+            stories.forEach { story ->
+              val isOwner = story.userId == currentUser
+              val isFriend = userFriends.contains(story.userId)
+              Log.d(
+                  "HomePageViewModel",
+                  "  Story ${story.storyId}: owner=${story.userId}, isOwner=$isOwner, isFriend=$isFriend")
+            }
+
+            // Filter stories: only show if story creator is the current user or a friend
+            val visibleStories =
+                stories.filter { story ->
+                  story.userId == currentUser || userFriends.contains(story.userId)
+                }
+            Log.d("HomePageViewModel", "After filtering: ${visibleStories.size} visible stories")
+
+            if (visibleStories.isNotEmpty()) {
+              // Pair(seenStories, totalStories)
+              // For now, all stories are marked as unseen (seenStories = 0)
+              // You can implement tracking of seen stories later
+              allEventsStory[event] = Pair(0, visibleStories.size)
+
+              // Fetch user information for each visible story
+              val storiesWithUsers =
+                  visibleStories.mapNotNull { story ->
+                    try {
+                      val user = userRepository.getUserById(story.userId)
+                      if (user != null) {
+                        Log.d(
+                            "HomePageViewModel",
+                            "Story ${story.storyId} by ${user.username}: profilePictureUrl = ${user.profilePictureUrl ?: "null"}")
+                        StoryWithUser(
+                            story = story,
+                            username = user.username,
+                            userId = user.userId,
+                            profilePictureUrl = user.profilePictureUrl)
+                      } else {
+                        Log.w("HomePageViewModel", "User not found for story ${story.storyId}")
+                        null
+                      }
+                    } catch (e: Exception) {
+                      Log.e(
+                          "HomePageViewModel", "Error fetching user for story ${story.storyId}", e)
+                      null
+                    }
+                  }
+
+              eventStoriesMap[event.uid] = storiesWithUsers
+
+              Log.d(
+                  "HomePageViewModel",
+                  "Event ${event.title} has ${visibleStories.size} visible stories (filtered from ${stories.size} total)")
+            }
+          }
+        }
+
+        Log.d("HomePageViewModel", "Loaded stories for ${allEventsStory.size} events")
+        Log.d("HomePageViewModel", "EventStories map size: ${eventStoriesMap.size}")
+        Log.d("HomePageViewModel", "EventStories keys: ${eventStoriesMap.keys.joinToString()}")
+
+        _uiState.update {
+          it.copy(
+              subscribedEventsStories = allEventsStory,
+              eventStories = eventStoriesMap,
+              isLoading = false)
+        }
       } catch (e: Exception) {
         Log.e("HomePageViewModel", "Error loading stories", e)
-        _uiState.update { it.copy(subscribedEventsStories = emptyMap()) }
+        _uiState.update {
+          it.copy(
+              subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+        }
       }
     }
   }
@@ -293,20 +418,18 @@ constructor(
   /** Persists seen story progress for the provided event. */
   fun updateSeenStories(event: Event, seenIndex: Int) {
     viewModelScope.launch {
-      _uiState.update { it.copy(isLoading = true) }
+      // Don't show loading spinner for seen story updates - this is a background operation
       val stories = _uiState.value.subscribedEventsStories
+      val currentPair = stories[event]
 
-      stories[event]?.first?.let { i ->
-        if (i >= seenIndex) {
-          stories[event]?.second?.let { j ->
-            if (j < seenIndex) {
-              val subscribedEventsStoryUpdate = stories.toMutableMap()
-              subscribedEventsStoryUpdate.replace(event, Pair(i, j))
-              _uiState.update {
-                it.copy(subscribedEventsStories = subscribedEventsStoryUpdate, isLoading = false)
-              }
-            }
-          }
+      if (currentPair != null) {
+        val (currentSeen, totalStories) = currentPair
+        // Update seen count if the new index is higher than what we've seen
+        if (seenIndex > currentSeen) {
+          val newSeenCount = minOf(seenIndex, totalStories)
+          val subscribedEventsStoryUpdate = stories.toMutableMap()
+          subscribedEventsStoryUpdate[event] = Pair(newSeenCount, totalStories)
+          _uiState.update { it.copy(subscribedEventsStories = subscribedEventsStoryUpdate) }
         }
       }
     }
@@ -621,8 +744,13 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
+  }
+
+  /** Reloads only story data without triggering a full refresh or loading spinner. */
+  fun refreshStories() {
+    loadAllSubscribedEventsStories(showLoading = false)
   }
 
   /** Shows the calendar modal. */

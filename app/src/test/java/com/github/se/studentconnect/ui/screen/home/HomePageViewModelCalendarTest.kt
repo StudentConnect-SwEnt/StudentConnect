@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import java.util.*
@@ -21,6 +22,7 @@ class HomePageViewModelCalendarTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepositoryLocal
   private lateinit var viewModel: HomePageViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -30,8 +32,16 @@ class HomePageViewModelCalendarTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
   }
 
   @After
