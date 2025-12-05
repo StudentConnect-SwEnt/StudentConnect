@@ -3,11 +3,6 @@ package com.github.se.studentconnect.model.event
 
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
-import com.google.firebase.Timestamp
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import java.util.UUID
 
 /**
