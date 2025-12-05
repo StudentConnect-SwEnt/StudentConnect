@@ -1,7 +1,7 @@
 package com.github.se.studentconnect.model.cache
 
 /** A cache that caches things in memory. */
-abstract class InMemoryCache<K, V> : BaseCache<K, V>() {
+open class InMemoryCache<K, V> : BaseCache<K, V>() {
   private val map = mutableMapOf<K, V>()
 
   override fun put(key: K, value: V) {
