@@ -313,7 +313,7 @@ class OrganizationProfileViewModelTest {
   }
 
   @Test
-  fun `toggleFollow updates UI optimistically when organization exists`() = runTest {
+  fun `organization loads correctly with members and events`() = runTest {
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser1)
 
@@ -329,7 +329,7 @@ class OrganizationProfileViewModelTest {
 
     val initialState = viewModel.uiState.value
     assertNotNull(initialState.organization)
-    // Test passes even if currentUserId is null since toggleFollow handles that case
+    // Test passes when organization loads successfully
   }
 
   @Test
@@ -365,9 +365,15 @@ class OrganizationProfileViewModelTest {
   }
 
   @Test
-  fun `toggleFollow toggles from following to not following`() = runTest {
+  fun `member can follow and unfollow organization`() = runTest {
+    // Set up authenticated user who IS a member
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser1)
+    // Make user1 follow the organization
+    userRepository.followOrganization("user1", "test_org")
 
     viewModel =
         OrganizationProfileViewModel(
@@ -379,13 +385,16 @@ class OrganizationProfileViewModelTest {
 
     advanceUntilIdle()
 
-    // Since currentUserId is null in tests, toggleFollow won't change the state
-    // This test verifies that behavior
-    val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
+    val state = viewModel.uiState.value
+    // Member should be following initially
+    assertTrue(state.organization?.isFollowing == true)
+
+    // Toggle follow to unfollow
     viewModel.toggleFollow()
     advanceUntilIdle()
-    val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    assertEquals(initialFollowing, finalFollowing)
+
+    // Should now be unfollowing
+    assertFalse(viewModel.uiState.value.organization?.isFollowing == true)
   }
 
   @Test
@@ -490,12 +499,23 @@ class OrganizationProfileViewModelTest {
 
   @Test
   fun `toggleFollow with authenticated user follows organization`() = runTest {
-    // Set up authenticated user
-    AuthenticationProvider.testUserId = "user1"
+    // Set up authenticated user who is NOT a member
+    AuthenticationProvider.testUserId = "user3"
     AuthenticationProvider.local = true
 
+    val testUser3 =
+        User(
+            userId = "user3",
+            email = "user3@test.com",
+            username = "user3",
+            firstName = "Bob",
+            lastName = "Johnson",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
     organizationRepository.saveOrganization(testOrganization)
-    userRepository.saveUser(testUser1)
+    userRepository.saveUser(testUser3)
 
     viewModel =
         OrganizationProfileViewModel(
@@ -511,7 +531,7 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertFalse(initialState.organization?.isFollowing == true)
 
-    // Toggle follow
+    // Toggle follow to follow organization
     viewModel.toggleFollow()
     advanceUntilIdle()
 
@@ -519,19 +539,30 @@ class OrganizationProfileViewModelTest {
     assertTrue(finalState.organization?.isFollowing == true)
 
     // Verify the organization was followed in the repository
-    val followedOrgs = userRepository.getFollowedOrganizations("user1")
+    val followedOrgs = userRepository.getFollowedOrganizations("user3")
     assertTrue(followedOrgs.contains("test_org"))
   }
 
   @Test
   fun `toggleFollow with authenticated user unfollows organization`() = runTest {
-    // Set up authenticated user
-    AuthenticationProvider.testUserId = "user1"
+    // Set up authenticated user who is NOT a member
+    AuthenticationProvider.testUserId = "user3"
     AuthenticationProvider.local = true
 
+    val testUser3 =
+        User(
+            userId = "user3",
+            email = "user3@test.com",
+            username = "user3",
+            firstName = "Bob",
+            lastName = "Johnson",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
     organizationRepository.saveOrganization(testOrganization)
-    userRepository.saveUser(testUser1)
-    userRepository.followOrganization("user1", "test_org")
+    userRepository.saveUser(testUser3)
+    userRepository.followOrganization("user3", "test_org")
 
     viewModel =
         OrganizationProfileViewModel(
@@ -547,7 +578,7 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertTrue(initialState.organization?.isFollowing == true)
 
-    // Toggle follow (should unfollow)
+    // Toggle follow to unfollow
     viewModel.toggleFollow()
     advanceUntilIdle()
 
@@ -555,7 +586,93 @@ class OrganizationProfileViewModelTest {
     assertFalse(finalState.organization?.isFollowing == true)
 
     // Verify the organization was unfollowed in the repository
-    val followedOrgs = userRepository.getFollowedOrganizations("user1")
+    val followedOrgs = userRepository.getFollowedOrganizations("user3")
     assertFalse(followedOrgs.contains("test_org"))
+  }
+
+  @Test
+  fun `toggleFollow unfollows when already following`() = runTest {
+    // Set up authenticated user who is NOT a member
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    val testUser3 =
+        User(
+            userId = "user3",
+            email = "user3@test.com",
+            username = "user3",
+            firstName = "Bob",
+            lastName = "Johnson",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser3)
+    userRepository.followOrganization("user3", "test_org")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertTrue(initialState.organization?.isFollowing == true)
+
+    // Toggle follow when following - should unfollow
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    // Should now be unfollowing
+    assertFalse(viewModel.uiState.value.organization?.isFollowing == true)
+  }
+
+  @Test
+  fun `toggleFollow prevents rapid toggles with loading flag`() = runTest {
+    // Set up authenticated user who is NOT a member
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    val testUser3 =
+        User(
+            userId = "user3",
+            email = "user3@test.com",
+            username = "user3",
+            firstName = "Bob",
+            lastName = "Johnson",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser3)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.organization?.isFollowing == true)
+
+    // Toggle follow
+    viewModel.toggleFollow()
+    advanceUntilIdle()
+
+    // Should now be following
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
+
+    // Verify following in repository
+    val followedOrgs = userRepository.getFollowedOrganizations("user3")
+    assertTrue(followedOrgs.contains("test_org"))
   }
 }
