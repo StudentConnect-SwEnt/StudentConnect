@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -68,6 +67,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
+
+// New centralized size values to avoid hardcoded dp usages
+private val iconSize = 24.dp
+private val smallSpacing = 8.dp
+
+// URL protocol constants to avoid duplication
+private const val HTTP_PROTOCOL = "http://"
+private const val HTTPS_PROTOCOL = "https://"
 
 /** Test tags for the EventView screen and its components. */
 object EventViewTestTags {
@@ -286,70 +293,192 @@ private fun BaseEventView(
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
 
   LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
-  Column(
+
+  Box(
       modifier =
-          Modifier.fillMaxSize()
-              .padding(paddingValues)
-              .verticalScroll(rememberScrollState())
-              .testTag(EventViewTestTags.BASE_SCREEN),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)) {
-        val configuration = LocalConfiguration.current
-        val screenHeight = configuration.screenHeightDp.dp
-        val boxHeight = screenHeight * 0.3f
-        val boxModifier =
-            Modifier.fillMaxWidth()
-                .height(boxHeight)
-                .padding(horizontal = screenPadding)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .testTag(EventViewTestTags.EVENT_IMAGE)
-        Box(modifier = boxModifier, contentAlignment = Alignment.Center) {
-          if (imageBitmap != null) {
-            Image(
-                bitmap = imageBitmap!!,
-                contentDescription = stringResource(R.string.content_description_event_image),
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop)
-          } else {
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = stringResource(R.string.content_description_event_image),
-                modifier = Modifier.size(60.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-          }
-        }
+          Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.BASE_SCREEN)) {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top) {
+              // Hero Image Section with Gradient Overlay
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .height(320.dp)
+                          .testTag(EventViewTestTags.EVENT_IMAGE)) {
+                    if (imageBitmap != null) {
+                      Image(
+                          bitmap = imageBitmap!!,
+                          contentDescription =
+                              stringResource(R.string.content_description_event_image),
+                          modifier = Modifier.fillMaxSize(),
+                          contentScale = ContentScale.Crop)
+                      // Gradient overlay for better text readability
+                      Box(
+                          modifier =
+                              Modifier.fillMaxSize()
+                                  .background(
+                                      androidx.compose.ui.graphics.Brush.verticalGradient(
+                                          colors =
+                                              listOf(
+                                                  androidx.compose.ui.graphics.Color.Transparent,
+                                                  androidx.compose.ui.graphics.Color.Black.copy(
+                                                      alpha = 0.7f)),
+                                          startY = 0f,
+                                          endY = 1000f)))
+                    } else {
+                      Box(
+                          modifier =
+                              Modifier.fillMaxSize()
+                                  .background(MaterialTheme.colorScheme.secondaryContainer),
+                          contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription =
+                                    stringResource(R.string.content_description_event_image),
+                                modifier = Modifier.size(80.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                          }
+                    }
+                  }
 
-        EventActionButtons(
-            joined = isJoined,
-            isFull = isFull,
-            currentEvent = event,
-            eventViewModel = eventViewModel,
-            modifier = Modifier.testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-            navController = navController)
+              // Action Buttons Section - Elevated Card Style
+              Card(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .padding(horizontal = 16.dp)
+                          .offset(y = (-40).dp)
+                          .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+                  elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                  shape = RoundedCornerShape(20.dp),
+                  colors =
+                      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                          EventActionButtons(
+                              joined = isJoined,
+                              isFull = isFull,
+                              currentEvent = event,
+                              eventViewModel = eventViewModel,
+                              modifier = Modifier,
+                              navController = navController)
+                        }
+                  }
 
-        InfoEvent(
-            timeLeft = timeLeft,
-            event = event,
-            isJoined = isJoined,
-            participantCount = participantCount,
-            onClickParticipants = {
-              coroutineScope.launch { pagerState.scrollToPage(0) }
-              coroutineScope.launch { eventViewModel.fetchAttendees() }
-            },
-            modifier = Modifier.testTag(EventViewTestTags.INFO_SECTION))
+              // Main Content with negative margin to overlap with card
+              Column(
+                  modifier =
+                      Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
+                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Countdown Card
+                    CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
 
-        // Poll notification for participants (not organizers)
-        if (isJoined &&
-            uiState.activePolls.isNotEmpty() &&
-            AuthenticationProvider.currentUser != event.ownerId) {
-          PollNotificationCard(
-              onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-              onDismissClick = { /* TODO: Add dismiss functionality if needed */},
-              modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-        }
+                    // Info Section Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface)) {
+                          Column(
+                              modifier = Modifier.fillMaxWidth().padding(20.dp),
+                              verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                // Tags
+                                if (event is Event.Public && event.tags.isNotEmpty()) {
+                                  EventTagsRow(tags = event.tags)
+                                }
 
-        ChatButton()
+                                // Description
+                                Text(
+                                    text = stringResource(R.string.event_label_description),
+                                    style = titleTextStyle())
+                                Text(
+                                    text = event.description,
+                                    modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+
+                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                                // Participants Info
+                                ParticipantsInfo(
+                                    event = event,
+                                    participantCount = participantCount,
+                                    onClick = {
+                                      coroutineScope.launch { pagerState.scrollToPage(0) }
+                                      coroutineScope.launch { eventViewModel.fetchAttendees() }
+                                    })
+                              }
+                        }
+
+                    // Poll notification for participants
+                    if (isJoined &&
+                        uiState.activePolls.isNotEmpty() &&
+                        AuthenticationProvider.currentUser != event.ownerId) {
+                      PollNotificationCard(
+                          onVoteNowClick = {
+                            navController.navigate(Route.pollsListScreen(event.uid))
+                          },
+                          onDismissClick = {},
+                          modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+                    }
+
+                    // Chat Button
+                    ChatButton()
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                  }
+            }
+      }
+}
+
+@Composable
+private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
+  val now = Timestamp.now()
+  val eventHasStarted = now >= event.start
+
+  Card(
+      modifier = Modifier.fillMaxWidth(),
+      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              // Countdown Timer
+              when {
+                eventHasStarted && timeLeft <= 0 -> {
+                  val text =
+                      if (isJoined) stringResource(R.string.event_hurry_up_started)
+                      else stringResource(R.string.event_has_started)
+                  Text(
+                      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_TIMER),
+                      color = MaterialTheme.colorScheme.primary,
+                      text = text,
+                      style = MaterialTheme.typography.displaySmall,
+                      fontWeight = FontWeight.Bold,
+                      textAlign = TextAlign.Center)
+                }
+                timeLeft > DAY_IN_SECONDS -> {
+                  Text(
+                      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_DAYS),
+                      color = MaterialTheme.colorScheme.primary,
+                      text = days(timeLeft) + " days left",
+                      style = MaterialTheme.typography.displaySmall,
+                      textAlign = TextAlign.Center)
+                }
+                else -> {
+                  Box(
+                      modifier =
+                          Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_TIMER)) {
+                        CountDownDisplay(timeLeft)
+                      }
+                }
+              }
+            }
       }
 }
 
@@ -478,7 +607,8 @@ private fun InfoEvent(
             text = event.description,
             modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
         Spacer(modifier = Modifier.height(10.dp))
-        ParticipantsInfo(event = event, participantCount = participantCount, onClickParticipants)
+        ParticipantsInfo(
+            event = event, participantCount = participantCount, onClick = onClickParticipants)
       }
 }
 
@@ -607,32 +737,102 @@ fun EventActionButtons(
   val currentUserId = AuthenticationProvider.currentUser
   val isOwner = currentUserId == currentEvent.ownerId
 
-  FlowRow(
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(start = screenPadding, end = screenPadding, bottom = 20.dp),
-      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
-      verticalArrangement = Arrangement.spacedBy(4.dp),
-  ) {
+  Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
     if (isOwner) {
-      // Owner-specific buttons
-      OwnerActionButtons(
-          currentEvent = currentEvent,
-          eventViewModel = eventViewModel,
-          navController = navController)
+      // First row: Blue textual buttons with icons (Create Poll, Scan, Edit)
+      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(
+            onClick = { eventViewModel.showCreatePollDialog() },
+            modifier =
+                Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.CREATE_POLL_BUTTON),
+            colors =
+                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+              Row(
+                  horizontalArrangement = Arrangement.Center,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_poll),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.button_create_poll), maxLines = 1)
+                  }
+            }
+
+        Button(
+            onClick = { eventViewModel.showQrScanner() },
+            modifier = Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON),
+            colors =
+                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+              Row(
+                  horizontalArrangement = Arrangement.Center,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.QrCodeScanner,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.button_scan), maxLines = 1)
+                  }
+            }
+
+        val editRoute =
+            when (currentEvent) {
+              is Event.Public -> Route.editPublicEvent(currentEvent.uid)
+              is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
+            }
+
+        Button(
+            onClick = { navController.navigate(editRoute) },
+            modifier =
+                Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON),
+            colors =
+                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+              Row(
+                  horizontalArrangement = Arrangement.Center,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.button_edit), maxLines = 1)
+                  }
+            }
+      }
+
+      // Second row: Circular icon buttons (invite, location, website, share)
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.CenterVertically) {
+            if (currentEvent is Event.Private) {
+              ButtonIcon(
+                  id = R.drawable.ic_group,
+                  onClick = { eventViewModel.showInviteFriendsDialog() },
+                  modifier = Modifier.testTag("event_view_invite_friends_button"))
+            }
+
+            CommonActionButtons(
+                currentEvent = currentEvent, context = context, navController = navController)
+          }
     } else {
-      // Non-owner buttons
+      // Non-owner: Join/Leave button
       NonOwnerActionButtons(
           joined = joined,
           isFull = isFull,
           currentEvent = currentEvent,
           eventViewModel = eventViewModel)
-    }
 
-    // Common action buttons for all users
-    CommonActionButtons(
-        currentEvent = currentEvent, context = context, navController = navController)
+      // Second row: Circular icon buttons (location, website, share)
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.CenterVertically) {
+            CommonActionButtons(
+                currentEvent = currentEvent, context = context, navController = navController)
+          }
+    }
   }
 }
 
@@ -713,28 +913,42 @@ private fun NonOwnerActionButtons(
         }
       },
       modifier =
-          Modifier.wrapContentSize()
-              .padding(2.dp)
+          Modifier.fillMaxWidth()
+              .height(56.dp)
               .testTag(
                   if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
                   else EventViewTestTags.JOIN_BUTTON),
-      enabled = if (joined) true else (!eventHasStarted && !isFull)) {
-        val showIcon = joined || (!eventHasStarted && !isFull)
-        if (showIcon) {
-          Icon(
-              painter =
-                  if (joined) painterResource(id = R.drawable.ic_arrow_right)
-                  else painterResource(id = R.drawable.ic_add),
-              contentDescription = stringResource(R.string.content_description_action_icon),
-              modifier = Modifier.size(20.dp))
-          Spacer(modifier = Modifier.width(4.dp))
-        }
-        when {
-          joined -> Text(stringResource(R.string.button_leave))
-          isFull -> Text(stringResource(R.string.button_full))
-          eventHasStarted -> Text(stringResource(R.string.button_started))
-          else -> Text(stringResource(R.string.button_join))
-        }
+      enabled = joined || (!eventHasStarted && !isFull),
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor =
+                  if (joined) MaterialTheme.colorScheme.error
+                  else MaterialTheme.colorScheme.primary,
+              disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
+              val showIcon = joined || (!eventHasStarted && !isFull)
+              if (showIcon) {
+                Icon(
+                    painter =
+                        if (joined) painterResource(id = R.drawable.ic_arrow_right)
+                        else painterResource(id = R.drawable.ic_add),
+                    contentDescription = stringResource(R.string.content_description_action_icon),
+                    modifier = Modifier.size(iconSize))
+                Spacer(modifier = Modifier.width(smallSpacing))
+              }
+              Text(
+                  text =
+                      when {
+                        joined -> stringResource(R.string.button_leave)
+                        isFull -> stringResource(R.string.button_full)
+                        eventHasStarted -> stringResource(R.string.button_started)
+                        else -> stringResource(R.string.button_join)
+                      },
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold)
+            }
       }
 }
 
@@ -771,9 +985,11 @@ private fun CommonActionButtons(
         onClick = {
           currentEvent.website?.let { website ->
             val fixedUrl =
-                if (!website.startsWith("http://") && !website.startsWith("https://")) {
-                  "https://$website"
-                } else website
+                when {
+                  website.startsWith(HTTP_PROTOCOL) -> website
+                  website.startsWith(HTTPS_PROTOCOL) -> website
+                  else -> HTTPS_PROTOCOL + website
+                }
             try {
               val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
               context.startActivity(intent)

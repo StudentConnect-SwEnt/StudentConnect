@@ -435,6 +435,7 @@ class EventViewTest {
     }
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun eventView_infoSection_isDisplayed() {
     composeTestRule.setContent {
@@ -447,10 +448,15 @@ class EventViewTest {
       }
     }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.INFO_SECTION).assertIsDisplayed()
+    // Wait until the info section is composed, then scroll to it and assert
+    composeTestRule.waitUntilAtLeastOneExists(hasTestTag(EventViewTestTags.INFO_SECTION), 10_000)
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.INFO_SECTION)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
+  @OptIn(ExperimentalTestApi::class)
   @Test
   fun eventView_descriptionLabel_isDisplayed() {
     composeTestRule.setContent {
@@ -463,8 +469,13 @@ class EventViewTest {
       }
     }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Description").assertIsDisplayed()
+    // Wait until the description text is composed, then scroll to it and assert
+    composeTestRule.waitUntilAtLeastOneExists(
+        hasTestTag(EventViewTestTags.DESCRIPTION_TEXT), 10_000)
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.DESCRIPTION_TEXT)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 
   @Test
