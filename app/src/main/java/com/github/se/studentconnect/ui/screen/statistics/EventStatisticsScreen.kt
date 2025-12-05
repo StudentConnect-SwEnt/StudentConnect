@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.statistics
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -49,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -57,7 +59,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -157,8 +158,9 @@ fun EventStatisticsScreen(
 }
 
 /** Loading state with elegant progress indicator. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun LoadingState(modifier: Modifier = Modifier) {
+fun LoadingState(modifier: Modifier = Modifier) {
   Box(modifier = modifier.testTag(C.Tag.STATS_LOADING), contentAlignment = Alignment.Center) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,8 +178,9 @@ internal fun LoadingState(modifier: Modifier = Modifier) {
 }
 
 /** Error state with retry option. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
   Box(modifier = modifier.testTag(C.Tag.STATS_ERROR), contentAlignment = Alignment.Center) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -201,8 +204,9 @@ internal fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier
 }
 
 /** Main statistics content with animated cards. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun StatisticsContent(
+fun StatisticsContent(
     statistics: EventStatistics,
     animationProgress: Float,
     paddingValues: PaddingValues
@@ -326,8 +330,9 @@ private fun StaggeredAnimatedCard(
 }
 
 /** Hero card displaying total attendees with animated counter. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun TotalAttendeesCard(
+fun TotalAttendeesCard(
     totalAttendees: Int,
     animationProgress: Float,
     gradientStart: Color,
@@ -400,8 +405,9 @@ internal fun TotalAttendeesCard(
 }
 
 /** Card showing attendees/followers rate with circular indicator. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun AttendeesFollowersCard(
+fun AttendeesFollowersCard(
     attendees: Int,
     followers: Int,
     rate: Float,
@@ -438,8 +444,9 @@ internal fun AttendeesFollowersCard(
 }
 
 /** Card displaying age distribution with donut chart. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun AgeDistributionCard(
+fun AgeDistributionCard(
     data: List<AgeGroupData>,
     animationProgress: Float,
     colors: List<Color>
@@ -470,8 +477,9 @@ internal fun AgeDistributionCard(
 }
 
 /** Card displaying campus distribution with horizontal bars. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun CampusDistributionCard(
+fun CampusDistributionCard(
     data: List<CampusData>,
     animationProgress: Float,
     colors: List<Color>
@@ -490,8 +498,9 @@ internal fun CampusDistributionCard(
 }
 
 /** Card displaying registration timeline with line chart. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun JoinRateCard(
+fun JoinRateCard(
     data: List<JoinRateData>,
     animationProgress: Float,
     lineColor: Color,
@@ -516,8 +525,9 @@ internal fun JoinRateCard(
 }
 
 /** Reusable statistics card container with modern styling. */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
-internal fun StatisticsCard(title: String, testTag: String, content: @Composable () -> Unit) {
+fun StatisticsCard(title: String, testTag: String, content: @Composable () -> Unit) {
   val cardDescription = stringResource(R.string.content_description_stats_card)
 
   Card(
