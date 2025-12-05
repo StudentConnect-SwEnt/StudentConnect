@@ -1,11 +1,13 @@
 package com.github.se.studentconnect.ui.screen.signup.organization
 
+import android.annotation.SuppressLint
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -17,11 +19,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -35,14 +37,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Activities
 import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton
@@ -214,63 +218,59 @@ private fun LocationDropdownField(
   val surface = MaterialTheme.colorScheme.surface
   val horizontalPadding = SignUpScreenConstants.BUTTON_HORIZONTAL_PADDING / 2
 
-  Surface(
-      modifier = modifier.fillMaxWidth().clickable { onExpandedChange(true) },
-      shape = MaterialTheme.shapes.large,
-      border = BorderStroke(OutlineWidth, primary.copy(alpha = 0.6f)),
-      color = surface) {
-        Row(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(
-                        horizontal = horizontalPadding,
-                        vertical = SignUpScreenConstants.BUTTON_VERTICAL_PADDING),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.Map,
-                    contentDescription = stringResource(R.string.content_description_search),
-                    tint = primary)
-                Spacer(modifier = Modifier.Companion.width(SignUpScreenConstants.ICON_SPACING))
-                Text(
-                    text = displayText ?: placeholder,
-                    color =
-                        if (displayText != null) MaterialTheme.colorScheme.onSurface
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyLarge)
-              }
-              Icon(
-                  imageVector = Icons.Outlined.ArrowDropDown,
-                  contentDescription = stringResource(R.string.content_description_open_dropdown),
-                  tint = primary)
-            }
-      }
+  var dropdownWidth by remember { mutableStateOf(0.dp) }
+  val density = LocalDensity.current
 
-  if (expanded) {
-    Dialog(onDismissRequest = {}) {
-      Surface(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .padding(horizontal = horizontalPadding)
-                  .heightIn(max = DropdownMaxHeight),
-          shape = MaterialTheme.shapes.extraLarge,
-          tonalElevation = DropdownSurfaceElevation,
-          color = MaterialTheme.colorScheme.surface) {
-            LazyColumn {
-              items(options) { option ->
+  Box(
+      modifier =
+          modifier.fillMaxWidth().onSizeChanged {
+            with(density) { dropdownWidth = it.width.toDp() }
+          }) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().clickable { onExpandedChange(true) },
+            shape = MaterialTheme.shapes.large,
+            border = BorderStroke(OutlineWidth, primary.copy(alpha = 0.6f)),
+            color = surface) {
+              Row(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .padding(
+                              horizontal = horizontalPadding,
+                              vertical = SignUpScreenConstants.BUTTON_VERTICAL_PADDING),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                      Icon(
+                          imageVector = Icons.Outlined.Map,
+                          contentDescription = stringResource(R.string.content_description_search),
+                          tint = primary)
+                      Spacer(
+                          modifier = Modifier.Companion.width(SignUpScreenConstants.ICON_SPACING))
+                      Text(
+                          text = displayText ?: placeholder,
+                          color =
+                              if (displayText != null) MaterialTheme.colorScheme.onSurface
+                              else MaterialTheme.colorScheme.onSurfaceVariant,
+                          style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowDropDown,
+                        contentDescription =
+                            stringResource(R.string.content_description_open_dropdown),
+                        tint = primary)
+                  }
+            }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+            modifier =
+                Modifier.background(MaterialTheme.colorScheme.surface)
+                    .width(dropdownWidth)
+                    .heightIn(max = DropdownMaxHeight)) {
+              options.forEach { option ->
                 val isSelected = option == selectedValue
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .clickable {
-                              onOptionSelected(option)
-                              onExpandedChange(false)
-                            }
-                            .padding(
-                                horizontal = horizontalPadding,
-                                vertical = SignUpScreenConstants.BUTTON_VERTICAL_PADDING),
-                    verticalAlignment = Alignment.CenterVertically) {
+                DropdownMenuItem(
+                    text = {
                       Text(
                           text = option,
                           style =
@@ -278,12 +278,14 @@ private fun LocationDropdownField(
                                   fontWeight =
                                       if (isSelected) FontWeight.Bold else FontWeight.Normal),
                           color = if (isSelected) primary else MaterialTheme.colorScheme.onSurface)
-                    }
+                    },
+                    onClick = {
+                      onOptionSelected(option)
+                      onExpandedChange(false)
+                    })
               }
             }
-          }
-    }
-  }
+      }
 }
 
 @Composable
@@ -389,3 +391,12 @@ private val DropdownMaxHeight = SignUpScreenConstants.BUTTON_HEIGHT * 6
 private val DropdownSurfaceElevation = SignUpScreenConstants.BUTTON_VERTICAL_PADDING / 2
 private val ChipContentSpacing = SignUpScreenConstants.ICON_SPACING * (2f / 3f)
 private val OutlineWidth = 1.dp
+
+// preview
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(showBackground = true)
+@Composable
+fun OrganizationProfileSetupScreenPreview() {
+  OrganizationProfileSetupScreen(
+      viewModel = OrganizationSignUpViewModel(), onBack = {}, onStartNow = {})
+}
