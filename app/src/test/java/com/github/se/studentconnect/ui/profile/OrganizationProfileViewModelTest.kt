@@ -329,12 +329,12 @@ class OrganizationProfileViewModelTest {
 
     val initialState = viewModel.uiState.value
     assertNotNull(initialState.organization)
-    // Test passes even if currentUserId is null since toggleFollow handles that case
+    // Test passes even if currentUserId is null since onFollowButtonClick handles that case
   }
 
   @Test
-  fun `toggleFollow does nothing when organization is null`() = runTest {
-    viewModel.toggleFollow()
+  fun `onFollowButtonClick does nothing when organization is null`() = runTest {
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
@@ -342,7 +342,7 @@ class OrganizationProfileViewModelTest {
   }
 
   @Test
-  fun `toggleFollow does nothing when current user is null`() = runTest {
+  fun `onFollowButtonClick does nothing when current user is null`() = runTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
@@ -356,18 +356,23 @@ class OrganizationProfileViewModelTest {
     advanceUntilIdle()
 
     val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    viewModel.toggleFollow()
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    // Since currentUserId is null, toggleFollow should not change the state
+    // Since currentUserId is null, onFollowButtonClick should not change the state
     assertEquals(initialFollowing, finalFollowing)
   }
 
   @Test
-  fun `toggleFollow toggles from following to not following`() = runTest {
+  fun `onFollowButtonClick shows dialog when unfollowing`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser1)
+    userRepository.followOrganization("user1", "test_org")
 
     viewModel =
         OrganizationProfileViewModel(
@@ -379,13 +384,18 @@ class OrganizationProfileViewModelTest {
 
     advanceUntilIdle()
 
-    // Since currentUserId is null in tests, toggleFollow won't change the state
-    // This test verifies that behavior
-    val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    viewModel.toggleFollow()
+    // Should be following initially
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
+    assertFalse(viewModel.uiState.value.showUnfollowDialog)
+
+    // Click follow button when following - should show dialog
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
-    val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    assertEquals(initialFollowing, finalFollowing)
+
+    // Dialog should be shown
+    assertTrue(viewModel.uiState.value.showUnfollowDialog)
+    // Still following
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
   }
 
   @Test
@@ -489,7 +499,7 @@ class OrganizationProfileViewModelTest {
   }
 
   @Test
-  fun `toggleFollow with authenticated user follows organization`() = runTest {
+  fun `onFollowButtonClick with authenticated user follows organization`() = runTest {
     // Set up authenticated user
     AuthenticationProvider.testUserId = "user1"
     AuthenticationProvider.local = true
@@ -511,8 +521,8 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertFalse(initialState.organization?.isFollowing == true)
 
-    // Toggle follow
-    viewModel.toggleFollow()
+    // Click follow button when not following
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val finalState = viewModel.uiState.value
@@ -524,7 +534,7 @@ class OrganizationProfileViewModelTest {
   }
 
   @Test
-  fun `toggleFollow with authenticated user unfollows organization`() = runTest {
+  fun `confirmUnfollow with authenticated user unfollows organization`() = runTest {
     // Set up authenticated user
     AuthenticationProvider.testUserId = "user1"
     AuthenticationProvider.local = true
@@ -547,15 +557,60 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertTrue(initialState.organization?.isFollowing == true)
 
-    // Toggle follow (should unfollow)
-    viewModel.toggleFollow()
+    // Show dialog and confirm unfollow
+    viewModel.onFollowButtonClick()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.showUnfollowDialog)
+
+    viewModel.confirmUnfollow()
     advanceUntilIdle()
 
     val finalState = viewModel.uiState.value
     assertFalse(finalState.organization?.isFollowing == true)
+    assertFalse(finalState.showUnfollowDialog)
 
     // Verify the organization was unfollowed in the repository
     val followedOrgs = userRepository.getFollowedOrganizations("user1")
     assertFalse(followedOrgs.contains("test_org"))
+  }
+
+  @Test
+  fun `dismissUnfollowDialog cancels unfollow action`() = runTest {
+    // Set up authenticated user
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    userRepository.followOrganization("user1", "test_org")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository)
+
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
+
+    // Show dialog
+    viewModel.onFollowButtonClick()
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.showUnfollowDialog)
+
+    // Dismiss dialog
+    viewModel.dismissUnfollowDialog()
+    advanceUntilIdle()
+
+    // Should still be following and dialog closed
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
+    assertFalse(viewModel.uiState.value.showUnfollowDialog)
+
+    // Verify still following in repository
+    val followedOrgs = userRepository.getFollowedOrganizations("user1")
+    assertTrue(followedOrgs.contains("test_org"))
   }
 }
