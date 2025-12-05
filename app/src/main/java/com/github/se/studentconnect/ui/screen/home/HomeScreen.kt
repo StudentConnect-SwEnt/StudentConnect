@@ -561,15 +561,13 @@ fun HomeScreen(
                               .currentUser
                       val success = storyRepository.deleteStory(storyId, currentUserId)
 
-                      if (success) {
-                        Toast.makeText(context, "Story deleted", Toast.LENGTH_SHORT).show()
-                        // Refresh stories to update the UI
-                        onRefreshStories()
-                      } else {
-                        Toast.makeText(context, "Failed to delete story", Toast.LENGTH_SHORT).show()
-                      }
+                      Toast.makeText(
+                              context,
+                              if (success) "Story deleted" else "Failed to delete story",
+                              Toast.LENGTH_SHORT)
+                          .show()
+                      if (success) onRefreshStories()
                     } catch (e: Exception) {
-                      Log.e("HomeScreen", "Error deleting story", e)
                       Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                   }

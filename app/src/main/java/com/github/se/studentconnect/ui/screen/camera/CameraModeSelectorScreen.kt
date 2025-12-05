@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.camera
 
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -98,28 +97,16 @@ fun CameraModeSelectorScreen(
                     isUploading = true
                     Toast.makeText(context, "Uploading story...", Toast.LENGTH_SHORT).show()
 
-                    // Use lifecycleOwner.lifecycleScope to prevent cancellation on navigation
                     lifecycleOwner.lifecycleScope.launch {
                       try {
-                        Log.d(
-                            "CameraModeSelectorScreen",
-                            "Starting story upload - Event: ${selectedEvent.uid}, User: $currentUserId, URI: $mediaUri")
-
                         val story =
                             storyRepository.uploadStory(
                                 mediaUri, selectedEvent.uid, currentUserId, context)
 
                         if (story != null) {
-                          Log.d(
-                              "CameraModeSelectorScreen",
-                              "Story uploaded successfully: ${story.storyId}, mediaUrl: ${story.mediaUrl}")
                           Toast.makeText(context, "Story uploaded!", Toast.LENGTH_SHORT).show()
-                          // Call the original callback ONLY AFTER successful upload
                           onStoryAccepted(mediaUri, isVideo, selectedEvent)
                         } else {
-                          Log.e(
-                              "CameraModeSelectorScreen",
-                              "Failed to upload story: uploadStory returned null. Check Firebase permissions and media file.")
                           Toast.makeText(
                                   context,
                                   "Failed to upload story. Check connection and permissions.",
@@ -127,11 +114,6 @@ fun CameraModeSelectorScreen(
                               .show()
                         }
                       } catch (e: Exception) {
-                        Log.e(
-                            "CameraModeSelectorScreen",
-                            "Exception during story upload: ${e.javaClass.simpleName} - ${e.message}",
-                            e)
-                        e.printStackTrace()
                         Toast.makeText(context, "Upload error: ${e.message}", Toast.LENGTH_LONG)
                             .show()
                       } finally {
@@ -139,7 +121,6 @@ fun CameraModeSelectorScreen(
                       }
                     }
                   } else {
-                    Log.e("CameraModeSelectorScreen", "User not authenticated")
                     Toast.makeText(
                             context, "You must be logged in to upload stories", Toast.LENGTH_SHORT)
                         .show()
@@ -147,7 +128,6 @@ fun CameraModeSelectorScreen(
                 } else if (isUploading) {
                   Toast.makeText(context, "Upload in progress...", Toast.LENGTH_SHORT).show()
                 } else {
-                  Log.w("CameraModeSelectorScreen", "No event selected for story")
                   Toast.makeText(
                           context, "Please select an event for your story", Toast.LENGTH_SHORT)
                       .show()
