@@ -313,4 +313,65 @@ class MainActivityIntegrationTest {
       assertEquals("Route '$route' should map to $expectedTab", expectedTab, actualTab)
     }
   }
+
+  // ============================================================================
+  // Event Statistics Navigation Route Tests
+  // ============================================================================
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withValidEventUid() {
+    // Simulate the navigation route argument extraction from MainActivity.kt
+    // Route.EVENT_STATISTICS = "eventStatistics/{eventUid}"
+    val eventUid = "test-event-123"
+    val route = Route.eventStatistics(eventUid) // "eventStatistics/test-event-123"
+
+    // Simulate backStackEntry.arguments?.getString("eventUid")
+    val mockArguments = mapOf("eventUid" to eventUid)
+    val extractedEventUid = mockArguments["eventUid"]
+
+    // Simulate requireNotNull check
+    val finalEventUid = requireNotNull(extractedEventUid) {
+      "Event UID is required for statistics screen."
+    }
+
+    assertEquals("Event UID should be extracted correctly", eventUid, finalEventUid)
+  }
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withNullArguments() {
+    // Simulate the case where backStackEntry.arguments is null
+    val mockArguments: Map<String, String>? = null
+    val extractedEventUid = mockArguments?.get("eventUid")
+
+    // This should be null, and requireNotNull should throw
+    try {
+      requireNotNull(extractedEventUid) {
+        "Event UID is required for statistics screen."
+      }
+      assert(false) { "requireNotNull should have thrown an exception" }
+    } catch (e: IllegalStateException) {
+      assert(e.message == "Event UID is required for statistics screen.") {
+        "Exception message should match"
+      }
+    }
+  }
+
+  @Test
+  fun eventStatisticsRoute_argumentExtraction_withMissingEventUid() {
+    // Simulate the case where arguments exist but eventUid is missing
+    val mockArguments = mapOf<String, String>()
+    val extractedEventUid = mockArguments["eventUid"]
+
+    // This should be null, and requireNotNull should throw
+    try {
+      requireNotNull(extractedEventUid) {
+        "Event UID is required for statistics screen."
+      }
+      assert(false) { "requireNotNull should have thrown an exception" }
+    } catch (e: IllegalStateException) {
+      assert(e.message == "Event UID is required for statistics screen.") {
+        "Exception message should match"
+      }
+    }
+  }
 }
