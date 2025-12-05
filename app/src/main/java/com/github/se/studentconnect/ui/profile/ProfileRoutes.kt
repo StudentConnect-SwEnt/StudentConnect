@@ -5,6 +5,8 @@ object ProfileRoutes {
   const val SETTINGS = "profile_settings"
   const val USER_CARD = "user_card"
   const val FRIENDS_LIST = "friends_list/{userId}"
+  const val ORGANIZATION_MANAGEMENT = "organization_management"
+  const val CREATE_ORGANIZATION = "create_organization"
   const val EDIT_PICTURE = "edit_profile_picture/{userId}"
   const val EDIT_BIO = "edit_bio/{userId}"
   const val EDIT_ACTIVITIES = "edit_activities/{userId}"

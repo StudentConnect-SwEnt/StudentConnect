@@ -43,13 +43,16 @@ import com.google.firebase.firestore.FirebaseFirestore
  * @param onNavigateToUserCard Callback to navigate to user card screen
  * @param onNavigateToFriendsList Callback to navigate to friends list screen with userId parameter
  * @param onNavigateToJoinedEvents Callback to navigate to joined events screen
+ * @param onNavigateToEventDetails Callback to navigate to event details screen
+ * @param onNavigateToOrganizationManagement Callback to navigate to organization management screen
  */
 data class ProfileNavigationCallbacks(
     val onNavigateToSettings: (() -> Unit)? = null,
     val onNavigateToUserCard: (() -> Unit)? = null,
     val onNavigateToFriendsList: ((String) -> Unit)? = null,
     val onNavigateToJoinedEvents: (() -> Unit)? = null,
-    val onNavigateToEventDetails: ((String) -> Unit)? = null
+    val onNavigateToEventDetails: ((String) -> Unit)? = null,
+    val onNavigateToOrganizationManagement: (() -> Unit)? = null
 )
 
 /**
@@ -139,6 +142,9 @@ fun ProfileScreen(
                   onUserCardClick = {
                     navigationCallbacks.onNavigateToUserCard?.invoke()
                         ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
+                  },
+                  onOrganizationClick = {
+                    navigationCallbacks.onNavigateToOrganizationManagement?.invoke()
                   })
 
               // Pinned events section
