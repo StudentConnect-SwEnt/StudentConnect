@@ -44,7 +44,7 @@ class ProfileScreenViewModel(
   private val _eventsCount = MutableStateFlow(0)
   val eventsCount: StateFlow<Int> = _eventsCount.asStateFlow()
 
-  // Pinned events state (for future use)
+  // Pinned events state
   private val _pinnedEvents = MutableStateFlow<List<Event>>(emptyList())
   val pinnedEvents: StateFlow<List<Event>> = _pinnedEvents.asStateFlow()
 
@@ -61,19 +61,15 @@ class ProfileScreenViewModel(
     loadPinnedEvents()
   }
 
-  /** Loads the current user's profile and stats from the repositories. */
+  // Load the user's profile data and stats
   fun loadUserProfile() {
     _isLoading.value = true
     viewModelScope.launch {
       try {
-        // Load user data
         val loadedUser = userRepository.getUserById(currentUserId)
         _user.value = loadedUser
 
-        // Load friends count
         loadFriendsCount()
-
-        // Load events count
         loadEventsCount()
 
         _error.value = null
@@ -86,19 +82,18 @@ class ProfileScreenViewModel(
     }
   }
 
-  /** Loads the count of friends for the current user. */
+  // Load the friends count for the user
   private suspend fun loadFriendsCount() {
     try {
       val friends = friendsRepository.getFriends(currentUserId)
       _friendsCount.value = friends.size
     } catch (exception: Exception) {
       Log.e(TAG, "Failed to load friends count for user: $currentUserId", exception)
-      // If friends loading fails, set count to 0
       _friendsCount.value = 0
     }
   }
 
-  /** Loads the count of events for the current user (both joined and created). */
+  // Load the joined events count for the user
   private suspend fun loadEventsCount() {
     try {
       // Get joined events
@@ -113,15 +108,31 @@ class ProfileScreenViewModel(
       _eventsCount.value = allEventIds.size
     } catch (exception: Exception) {
       Log.e(TAG, "Failed to load events count for user: $currentUserId", exception)
-      // If events loading fails, set count to 0
       _eventsCount.value = 0
     }
   }
 
-  /** Loads the pinned events for the current user. (To be implemented later) */
+  // Load the pinned events for the user
   fun loadPinnedEvents() {
-    // For now, pinned events functionality is not implemented
-    // This will be implemented in the future
-    _pinnedEvents.value = emptyList()
+    viewModelScope.launch {
+      try {
+        val pinnedEventIds = userRepository.getPinnedEvents(currentUserId)
+        Log.d(TAG, "Loading pinned events, IDs: $pinnedEventIds")
+        val events =
+            pinnedEventIds.mapNotNull { eventId ->
+              try {
+                eventRepository.getEvent(eventId)
+              } catch (e: Exception) {
+                Log.e(TAG, "Failed to load pinned event: $eventId", e)
+                null
+              }
+            }
+        _pinnedEvents.value = events
+        Log.d(TAG, "Loaded ${events.size} pinned events: ${events.map { it.title }}")
+      } catch (exception: Exception) {
+        Log.e(TAG, "Failed to load pinned events for user: $currentUserId", exception)
+        _pinnedEvents.value = emptyList()
+      }
+    }
   }
 }

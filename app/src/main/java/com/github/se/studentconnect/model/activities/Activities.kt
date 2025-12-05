@@ -1,4 +1,4 @@
-package com.github.se.studentconnect.model.activities
+package com.github.se.studentconnect.model
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons

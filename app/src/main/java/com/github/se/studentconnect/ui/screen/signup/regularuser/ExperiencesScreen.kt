@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.activities.Activities
+import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.screen.signup.SignUpBackButton

@@ -52,6 +52,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -83,6 +84,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -107,6 +109,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -127,6 +130,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -149,6 +153,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -175,6 +180,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -199,6 +205,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -216,6 +223,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -236,6 +244,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -259,6 +268,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -283,6 +293,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -306,6 +317,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -324,6 +336,7 @@ class ProfileScreenAndroidTest {
     val viewModel =
         ProfileScreenViewModel(
             userRepository = mockUserRepository,
+            eventRepository = mockEventRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
             currentUserId = testUser.userId)
@@ -396,6 +409,12 @@ class ProfileScreenAndroidTest {
     override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
 
     override suspend fun checkUsernameAvailability(username: String) = true
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
   }
 
   private class MockFriendsRepository(var friendsList: List<String>) : FriendsRepository {
@@ -456,12 +475,44 @@ class ProfileScreenAndroidTest {
 
     override suspend fun addParticipantToEvent(eventUid: String, participant: EventParticipant) =
         Unit
+  private class MockEventRepository : com.github.se.studentconnect.model.event.EventRepository {
+    override fun getNewUid(): String = "test-event-uid"
+
+    override suspend fun getAllVisibleEvents():
+        List<com.github.se.studentconnect.model.event.Event> = emptyList()
+
+    override suspend fun getAllVisibleEventsSatisfying(
+        predicate: (com.github.se.studentconnect.model.event.Event) -> Boolean
+    ): List<com.github.se.studentconnect.model.event.Event> = emptyList()
+
+    override suspend fun getEvent(
+        eventUid: String
+    ): com.github.se.studentconnect.model.event.Event = throw NotImplementedError()
+
+    override suspend fun getEventParticipants(
+        eventUid: String
+    ): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
+    override suspend fun addEvent(event: com.github.se.studentconnect.model.event.Event) {}
+
+    override suspend fun editEvent(
+        eventUid: String,
+        newEvent: com.github.se.studentconnect.model.event.Event
+    ) {}
+
+    override suspend fun deleteEvent(eventUid: String) {}
+
+    override suspend fun addParticipantToEvent(
+        eventUid: String,
+        participant: com.github.se.studentconnect.model.event.EventParticipant
+    ) {}
 
     override suspend fun addInvitationToEvent(
         eventUid: String,
         invitedUser: String,
         currentUserId: String
     ) = Unit
+    ) {}
 
     override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
 
@@ -476,5 +527,8 @@ class ProfileScreenAndroidTest {
     override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
       throw NotImplementedError("Not needed for tests")
     }
+    ) {}
+
+    override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) {}
   }
 }

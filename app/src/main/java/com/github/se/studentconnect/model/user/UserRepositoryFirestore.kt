@@ -21,6 +21,7 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     private const val JOINED_EVENT = "joinedEvents"
     private const val INVITATIONS = "invitations"
     private const val FAVORITE_EVENTS = "favoriteEvents"
+    private const val PINNED_EVENTS = "pinnedEvents"
     private const val FOLLOWED_ORGANIZATIONS = "followedOrganizations"
   }
 
@@ -232,6 +233,30 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
   override suspend fun getFavoriteEvents(userId: String): List<String> {
     val document =
         db.collection(COLLECTION_NAME).document(userId).collection(FAVORITE_EVENTS).get().await()
+    return document.documents.map { it.getString("eventId")!! }
+  }
+
+  override suspend fun addPinnedEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(PINNED_EVENTS)
+        .document(eventId)
+        .set(mapOf("eventId" to eventId, "pinnedAt" to FieldValue.serverTimestamp()))
+        .await()
+  }
+
+  override suspend fun removePinnedEvent(userId: String, eventId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .collection(PINNED_EVENTS)
+        .document(eventId)
+        .delete()
+        .await()
+  }
+
+  override suspend fun getPinnedEvents(userId: String): List<String> {
+    val document =
+        db.collection(COLLECTION_NAME).document(userId).collection(PINNED_EVENTS).get().await()
     return document.documents.map { it.getString("eventId")!! }
   }
 

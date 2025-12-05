@@ -32,7 +32,8 @@
     <string name="error_failed_to_save_birthday">Failed to save birthday</string>
     <string name="error_failed_to_load_birthday">Failed to load birthday</string>
     <string name="error_failed_to_remove_birthday">Failed to remove birthday</string>
-    
+    <string name="error_failed_to_load_events">Failed to load events: %s</string>
+
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
     <string name="success_university_updated">University updated successfully</string>
@@ -370,13 +371,13 @@
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
     <string name="event_button_return">Return to Event</string>
-    
+
     <!-- Leave event confirmation dialog -->
     <string name="leave_event_confirmation_title">Leave Event</string>
     <string name="leave_event_confirmation_message">Are you sure you want to leave this event?</string>
     <string name="leave_event_confirm">Leave</string>
     <string name="leave_event_cancel">Cancel</string>
-    
+
     <!-- Event creation -->
     <string name="event_label_title">Title</string>
     <string name="event_placeholder_title">My new event</string>
@@ -557,4 +558,14 @@
     <string name="content_description_close_event_selection">Close event selection</string>
     <string name="content_description_selected_event_checkmark">Event selected</string>
 
+    <!-- Pinned Events -->
+    <string name="pinned_events_title">Pinned Events</string>
+    <string name="pinned_events_empty_state">Pin your favorite past events to display them here :)</string>
+    <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
+    <string name="content_description_pin_event">Pin event</string>
+    <string name="content_description_unpin_event">Unpin event</string>
+    <string name="date_format_pinned_event">dd MMM, yyyy</string>
+    <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
+
+    <string name="anonymous">Anonymous</string>
 </resources>

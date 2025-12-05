@@ -154,5 +154,11 @@ class SignUpOrchestratorTest {
     override suspend fun checkUsernameAvailability(username: String): Boolean {
       TODO("Not yet implemented")
     }
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
+
+    override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
   }
 }

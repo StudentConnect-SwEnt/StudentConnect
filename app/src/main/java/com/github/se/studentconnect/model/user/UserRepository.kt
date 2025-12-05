@@ -176,6 +176,30 @@ interface UserRepository : Repository {
   suspend fun getFavoriteEvents(userId: String): List<String>
 
   /**
+   * Adds an event to the user's list of pinned events.
+   *
+   * @param userId The unique identifier of the user.
+   * @param eventId The unique identifier of the event to pin.
+   */
+  suspend fun addPinnedEvent(userId: String, eventId: String)
+
+  /**
+   * Removes an event from the user's list of pinned events.
+   *
+   * @param userId The unique identifier of the user.
+   * @param eventId The unique identifier of the event to unpin.
+   */
+  suspend fun removePinnedEvent(userId: String, eventId: String)
+
+  /**
+   * Retrieves all pinned events for a given user.
+   *
+   * @param userId The unique identifier of the user.
+   * @return A list of event IDs that are pinned by the user.
+   */
+  suspend fun getPinnedEvents(userId: String): List<String>
+
+  /**
    * Checks if a username is available (not already taken). Performs case-insensitive check.
    *
    * @param username The username to check (will be normalized to lowercase for comparison).
