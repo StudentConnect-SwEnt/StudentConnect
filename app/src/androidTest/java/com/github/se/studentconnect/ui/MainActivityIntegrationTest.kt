@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -342,14 +343,15 @@ class MainActivityIntegrationTest {
     val mockArguments: Map<String, String>? = null
     val extractedEventUid = mockArguments?.get("eventUid")
 
-    // This should be null, and requireNotNull should throw
+    // This should be null, and requireNotNull should throw IllegalArgumentException
     try {
       requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
-      assert(false) { "requireNotNull should have thrown an exception" }
+      fail("requireNotNull should have thrown an exception")
     } catch (e: IllegalArgumentException) {
-      assert(e.message == "Event UID is required for statistics screen.") {
-        "Exception message should match"
-      }
+      assertEquals(
+          "Exception message should match",
+          "Event UID is required for statistics screen.",
+          e.message)
     }
   }
 
@@ -362,11 +364,12 @@ class MainActivityIntegrationTest {
     // This should be null, and requireNotNull should throw IllegalArgumentException
     try {
       requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
-      assert(false) { "requireNotNull should have thrown an exception" }
+      fail("requireNotNull should have thrown an exception")
     } catch (e: IllegalArgumentException) {
-      assert(e.message == "Event UID is required for statistics screen.") {
-        "Exception message should match"
-      }
+      assertEquals(
+          "Exception message should match",
+          "Event UID is required for statistics screen.",
+          e.message)
     }
   }
 }
