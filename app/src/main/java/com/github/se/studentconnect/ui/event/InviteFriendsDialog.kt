@@ -80,6 +80,7 @@ fun InviteFriendsDialog(
                 InviteFriendsSection(
                     friends = state.friends,
                     invitedFriendIds = state.invitedFriendIds,
+                    initialInvitedFriendIds = state.initialInvitedFriendIds,
                     isLoadingFriends = state.isLoadingFriends,
                     friendsErrorRes = state.friendsErrorRes,
                     onToggleFriend = onToggleFriend)
@@ -110,6 +111,7 @@ fun InviteFriendsDialog(
 private fun InviteFriendsSection(
     friends: List<User>,
     invitedFriendIds: Set<String>,
+    initialInvitedFriendIds: Set<String>,
     isLoadingFriends: Boolean,
     @StringRes friendsErrorRes: Int?,
     onToggleFriend: (String) -> Unit,
@@ -156,9 +158,11 @@ private fun InviteFriendsSection(
                       color = MaterialTheme.colorScheme.onSurfaceVariant)
                   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     friends.forEach { friend ->
+                      val isInitiallyInvited = initialInvitedFriendIds.contains(friend.userId)
                       FriendInviteRow(
                           friend = friend,
                           isChecked = invitedFriendIds.contains(friend.userId),
+                          enabled = !isInitiallyInvited,
                           onCheckedChange = { onToggleFriend(friend.userId) })
                     }
                   }
@@ -172,6 +176,7 @@ private fun InviteFriendsSection(
 private fun FriendInviteRow(
     friend: User,
     isChecked: Boolean,
+    enabled: Boolean,
     onCheckedChange: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -182,6 +187,7 @@ private fun FriendInviteRow(
         Checkbox(
             checked = isChecked,
             onCheckedChange = { onCheckedChange() },
+            enabled = enabled,
             modifier =
                 Modifier.testTag("${InviteFriendsDialogTestTags.FRIEND_CHECKBOX}_${friend.userId}"))
         Column(modifier = Modifier.weight(1f)) {

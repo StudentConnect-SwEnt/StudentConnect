@@ -710,7 +710,7 @@ class EventViewModelTest {
   }
 
   @Test
-  fun updateInvitationsForEvent_addsAndRemoves() = runTest {
+  fun updateInvitationsForEvent_addsAndKeepsExisting() = runTest {
     val ownerId = AuthenticationProvider.testUserId!!
     val friend1 =
         User(
@@ -751,19 +751,22 @@ class EventViewModelTest {
     vm.showInviteFriendsDialog()
     advanceUntilIdle()
 
-    // Toggle selection: remove friend1, add friend2
+    // Attempt to toggle existing invite should have no effect
     vm.toggleFriendInvitation(friend1.userId)
+    assertTrue(vm.uiState.value.invitedFriendIds.contains(friend1.userId))
+
+    // Add friend2
     vm.toggleFriendInvitation(friend2.userId)
     vm.updateInvitationsForEvent()
     advanceUntilIdle()
 
     val invites = localEventRepo.getEventInvitations(event.uid)
-    assertFalse(invites.contains(friend1.userId))
+    assertTrue(invites.contains(friend1.userId))
     assertTrue(invites.contains(friend2.userId))
     val state = vm.uiState.value
     assertFalse(state.showInviteFriendsDialog)
-    assertEquals(setOf(friend2.userId), state.invitedFriendIds)
-    assertEquals(setOf(friend2.userId), state.initialInvitedFriendIds)
+    assertEquals(setOf(friend1.userId, friend2.userId), state.invitedFriendIds)
+    assertEquals(setOf(friend1.userId, friend2.userId), state.initialInvitedFriendIds)
   }
 
   @Test

@@ -241,6 +241,9 @@ class EventViewModel(
    */
   fun toggleFriendInvitation(friendId: String) {
     _uiState.update { state ->
+      if (state.initialInvitedFriendIds.contains(friendId)) {
+        return@update state
+      }
       val updated =
           if (state.invitedFriendIds.contains(friendId)) state.invitedFriendIds - friendId
           else state.invitedFriendIds + friendId
@@ -249,8 +252,8 @@ class EventViewModel(
   }
 
   /**
-   * Sends additions/removals of invitations for the current event. Only the owner is allowed. If
-   * nothing changed, the dialog simply closes.
+   * Sends added invitations for the current event. Only the owner is allowed. If nothing changed,
+   * the dialog simply closes.
    */
   fun updateInvitationsForEvent() {
     val event = _uiState.value.event ?: return
@@ -262,8 +265,7 @@ class EventViewModel(
     val currentSelection = _uiState.value.invitedFriendIds
     val initialSelection = _uiState.value.initialInvitedFriendIds
     val toAdd = currentSelection - initialSelection
-    val toRemove = initialSelection - currentSelection
-    if (toAdd.isEmpty() && toRemove.isEmpty()) {
+    if (toAdd.isEmpty()) {
       _uiState.update { it.copy(showInviteFriendsDialog = false) }
       return
     }
@@ -285,29 +287,16 @@ class EventViewModel(
               }
             }
       }
-      toRemove.forEach { friendId ->
-        runCatching {
-              eventRepository.removeInvitationFromEvent(event.uid, friendId, currentUserId)
-              userRepository.removeInvitation(event.uid, friendId)
-            }
-            .onFailure { e ->
-              android.util.Log.w("EventViewModel", "Failed to remove invitation for $friendId", e)
-              hadError = true
-              _uiState.update { state ->
-                state.copy(
-                    friendsErrorRes = state.friendsErrorRes ?: R.string.event_invite_remove_failed)
-              }
-            }
-      }
       _uiState.update {
         if (hadError) {
           it.copy(isInvitingFriends = false)
         } else {
+          val newSelection = initialSelection + toAdd
           it.copy(
               isInvitingFriends = false,
               showInviteFriendsDialog = false,
-              invitedFriendIds = currentSelection,
-              initialInvitedFriendIds = currentSelection)
+              invitedFriendIds = newSelection,
+              initialInvitedFriendIds = newSelection)
         }
       }
     }

@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.theme.AppTheme
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 
@@ -115,6 +116,27 @@ class InviteFriendsDialogTest {
     composeTestRule
         .onNodeWithTag(InviteFriendsDialogTestTags.SEND_BUTTON, useUnmergedTree = true)
         .assertIsEnabled()
+  }
+
+  @Test
+  fun initiallyInvitedFriends_areDisabled() {
+    val friend = buildUser("alreadyInvited")
+    var toggled = false
+    val state =
+        EventUiState(
+            friends = listOf(friend),
+            invitedFriendIds = setOf(friend.userId),
+            initialInvitedFriendIds = setOf(friend.userId),
+            isLoadingFriends = false)
+
+    setContent(state, onToggleFriend = { toggled = true })
+
+    composeTestRule
+        .onNodeWithTag(
+            "${InviteFriendsDialogTestTags.FRIEND_CHECKBOX}_${friend.userId}",
+            useUnmergedTree = true)
+        .assertIsNotEnabled()
+    assertFalse(toggled)
   }
 
   @Test
