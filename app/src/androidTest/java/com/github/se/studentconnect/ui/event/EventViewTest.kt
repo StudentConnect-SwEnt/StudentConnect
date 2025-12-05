@@ -2077,7 +2077,8 @@ class EventViewTest {
 
   @Test
   fun eventView_statisticsButton_notVisibleWhenEventNull() {
-    // Create a ViewModel that hasn't loaded the event yet
+    // Use a non-existent event UID so the event will be null after fetchEvent
+    val nonExistentEventUid = "non-existent-event-uid"
     val emptyViewModel = EventViewModel(eventRepository, userRepository)
     AuthenticationProvider.testUserId = testEvent.ownerId
 
@@ -2087,16 +2088,18 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid,
+                eventUid = nonExistentEventUid,
                 navController = navController,
                 eventViewModel = emptyViewModel)
           }
         }
       }
 
-      // Check immediately - event should be null before fetchEvent completes
+      // Wait for fetchEvent to complete (it will fail to find the event)
+      composeTestRule.waitForIdle()
+
       // The condition is: event != null && currentUser == ownerId
-      // When event is null, the first part fails, so button won't be shown
+      // When event is null (not found), the first part fails, so button won't be shown
       composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertDoesNotExist()
     } finally {
       AuthenticationProvider.testUserId = null

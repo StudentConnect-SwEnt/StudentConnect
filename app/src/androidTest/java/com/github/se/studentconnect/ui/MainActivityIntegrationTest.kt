@@ -346,7 +346,7 @@ class MainActivityIntegrationTest {
     try {
       requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
       assert(false) { "requireNotNull should have thrown an exception" }
-    } catch (e: IllegalStateException) {
+    } catch (e: IllegalArgumentException) {
       assert(e.message == "Event UID is required for statistics screen.") {
         "Exception message should match"
       }
@@ -359,11 +359,11 @@ class MainActivityIntegrationTest {
     val mockArguments = mapOf<String, String>()
     val extractedEventUid = mockArguments["eventUid"]
 
-    // This should be null, and requireNotNull should throw
+    // This should be null, and requireNotNull should throw IllegalArgumentException
     try {
       requireNotNull(extractedEventUid) { "Event UID is required for statistics screen." }
       assert(false) { "requireNotNull should have thrown an exception" }
-    } catch (e: IllegalStateException) {
+    } catch (e: IllegalArgumentException) {
       assert(e.message == "Event UID is required for statistics screen.") {
         "Exception message should match"
       }
