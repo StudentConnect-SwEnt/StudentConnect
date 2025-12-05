@@ -26,7 +26,9 @@ class FriendLocationTest {
   @Test
   fun isFresh_returnsFalseForStaleTimestamps() {
     val currentTime = System.currentTimeMillis()
-    assertFalse(FriendLocation("u", 0.0, 0.0, currentTime - 6 * 60 * 1000L).isFresh(currentTime))
+    // Test with 9 hours (older than 8 hour max age)
+    assertFalse(
+        FriendLocation("u", 0.0, 0.0, currentTime - 9 * 60 * 60 * 1000L).isFresh(currentTime))
     assertFalse(
         FriendLocation("u", 0.0, 0.0, currentTime - FriendLocation.MAX_LOCATION_AGE_MS - 1L)
             .isFresh(currentTime))
