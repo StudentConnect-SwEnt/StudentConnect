@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -58,6 +59,7 @@ data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
  * @param onEventsClick Callback when events count is clicked
  * @param onEditClick Callback when edit button is clicked
  * @param onUserCardClick Callback when user card button is clicked
+ * @param onOrganizationClick Callback when organization button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -68,6 +70,7 @@ fun ProfileHeader(
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onUserCardClick: (() -> Unit)? = null,
+    onOrganizationClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -225,6 +228,27 @@ fun ProfileHeader(
               Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
       }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Organization Button
+    if (onOrganizationClick != null) {
+      Button(
+          onClick = onOrganizationClick,
+          modifier = Modifier.fillMaxWidth().height(48.dp),
+          colors =
+              ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.secondary,
+                  contentColor = MaterialTheme.colorScheme.onSecondary),
+          shape = RoundedCornerShape(24.dp)) {
+            Icon(
+                imageVector = Icons.Outlined.Groups,
+                contentDescription = "Organizations",
+                modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Organizations", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+          }
     }
   }
 }
