@@ -1,12 +1,26 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.net.Uri
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.model.authentication.AuthRepository
+import com.github.se.studentconnect.model.authentication.AuthRepositoryFirebase
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /** ViewModel for creating and editing Private events. Manages [CreateEventUiState.Private]. */
@@ -29,19 +43,51 @@ class CreatePrivateEventViewModel :
         } catch (_: Exception) {
           null
         }
+      return Event.Private(
+          uid = uid,
+          ownerId = ownerId,
+          title = s.title,
+          description = s.description,
+          imageUrl = bannerPath,
+          location = s.location,
+          start = start,
+          end = end,
+          maxCapacity = maxCapacity,
+          participationFee = fee,
+          isFlash = s.isFlash)
+  }
 
-    return Event.Private(
-        uid = uid,
-        ownerId = ownerId,
-        title = s.title,
-        description = s.description,
-        imageUrl = bannerPath,
-        location = s.location,
-        start = start,
-        end = end,
-        maxCapacity = maxCapacity,
-        participationFee = fee,
-        isFlash = s.isFlash)
+  /**
+   * Pre-fills the form with data from an existing event as a template. Unlike prefill(), this does
+   * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
+   */
+  fun prefillFromTemplate(event: Event.Private) {
+    _uiState.value =
+        CreateEventUiState.Private(
+            title = event.title,
+            description = event.description,
+            location = event.location,
+            startDate = null, // Clear dates for template
+            startTime = java.time.LocalTime.of(0, 0),
+            endDate = null,
+            endTime = java.time.LocalTime.of(0, 0),
+            numberOfParticipantsString = event.maxCapacity?.toString() ?: "",
+            hasParticipationFee = event.participationFee != null,
+            participationFeeString = event.participationFee?.toString() ?: "",
+            isFlash = event.isFlash,
+            bannerImagePath = event.imageUrl,
+        )
+  }
+
+  /**
+   * Loads an existing event as a template for creating a new event. This will pre-fill all fields
+   * except start and end dates.
+   */
+  fun loadEventAsTemplate(eventUid: String) {
+    viewModelScope.launch {
+      val event = eventRepository.getEvent(eventUid)
+      if (event is Event.Private) prefillFromTemplate(event)
+    }
   }
 
   override fun loadEvent(eventUid: String) {
