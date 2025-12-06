@@ -18,8 +18,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -30,6 +33,10 @@ class CreatePrivateEventViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(CreateEventUiState.Private())
   val uiState: StateFlow<CreateEventUiState.Private> = _uiState.asStateFlow()
+
+  private val _navigateToEvent = MutableSharedFlow<String>()
+  val navigateToEvent: SharedFlow<String> = _navigateToEvent.asSharedFlow()
+
   private var editingEventUid: String? = null
 
   fun updateTitle(newTitle: String) {
@@ -190,6 +197,8 @@ class CreatePrivateEventViewModel(
                 bannerImageUri = null,
                 bannerImagePath = bannerPath,
                 shouldRemoveBanner = false)
+
+        _navigateToEvent.emit(eventUid)
       } catch (_: Exception) {
         _uiState.value = uiState.value.copy(isSaving = false, finishedSaving = false)
       }
