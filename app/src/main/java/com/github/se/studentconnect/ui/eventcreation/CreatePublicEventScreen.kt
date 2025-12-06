@@ -61,6 +61,7 @@ import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.components.TopicChipGrid
+import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.format.DateTimeFormatter
 
@@ -92,22 +93,7 @@ object CreatePublicEventScreenTestTags {
 // Extracted UI sizing constants
 private val SAVE_BUTTON_CONTAINER = 90.dp
 
-/**
- * Screen for creating or editing a public event with comprehensive form fields.
- *
- * Features include:
- * - Dynamic banner image upload
- * - Date/time selection with validation
- * - Location picker integration
- * - Optional participation fees and participant limits
- * - Animated save button that adapts based on scroll position and keyboard state
- * - Auto-save on focus loss for text fields
- *
- * @param modifier Modifier to be applied to the root composable
- * @param navController Navigation controller for screen navigation
- * @param existingEventId Optional event ID for editing an existing event
- * @param createPublicEventViewModel ViewModel managing the event creation/editing state
- */
+/** Screen for creating or editing a public event with comprehensive form fields. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePublicEventScreen(
@@ -117,7 +103,9 @@ fun CreatePublicEventScreen(
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId) {
-    existingEventId?.let { createPublicEventViewModel.loadEvent(it) }
+    if (existingEventId != null) {
+      createPublicEventViewModel.loadEvent(existingEventId)
+    }
   }
 
   val createPublicEventUiState by createPublicEventViewModel.uiState.collectAsState()
@@ -130,9 +118,14 @@ fun CreatePublicEventScreen(
           createPublicEventUiState.endDate != null &&
           !createPublicEventUiState.isSaving
 
-  LaunchedEffect(createPublicEventUiState.finishedSaving) {
-    if (createPublicEventUiState.finishedSaving) {
-      navController?.popBackStack()
+  LaunchedEffect(Unit) {
+    createPublicEventViewModel.navigateToEvent.collect { eventId ->
+      if (navController != null) {
+        // Navigate to Activities then pop up to HOME to ensure a clean stack
+        navController.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
+        // Show the card of this event (Event View) on top
+        navController.navigate(Route.eventView(eventId, true))
+      }
       createPublicEventViewModel.resetFinishedSaving()
     }
   }

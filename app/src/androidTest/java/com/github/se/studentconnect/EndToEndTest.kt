@@ -409,7 +409,33 @@ class EndToEndTest : FirestoreStudentConnectTest() {
   }
 
   private fun verifyEventOnHomePage() {
-    // Wait until we're back on the home screen
+    // [FIX] The app now navigates to Event View after creation.
+    // We must wait for the Event View first, then navigate back to Home.
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 30_002, message = "Event View to appear after saving event") {
+          composeTestRule
+              .onAllNodesWithTag(EventViewTestTags.EVENT_VIEW_SCREEN)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    // Go back from the Event View
+    composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
+
+    // Ensure the bottom navigation is visible
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 10_000, message = "Bottom navigation to be visible") {
+          composeTestRule
+              .onAllNodesWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    // Explicitly click the Home Tab to ensure we are on the Home Page
+    // (The back stack might have taken us to Activities depending on the implementation)
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).performClick()
+
+    // Wait until we're on the home screen
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 30_002, message = "Home page to be visible") {
           composeTestRule.onAllNodesWithTag("HomePage").fetchSemanticsNodes().isNotEmpty()
