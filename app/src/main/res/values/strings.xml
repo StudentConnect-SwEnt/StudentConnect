@@ -97,6 +97,8 @@
     <string name="account_type_regular_user_feature_events">You can see, join &amp; save events</string>
     <string name="account_type_regular_user_feature_friends">Add friends</string>
     <string name="account_type_regular_user_feature_create_event">Create public and private event</string>
+    <string name="title_create_private_event">Create Private Event</string>
+    <string name="title_edit_private_event">Edit Private Event</string>
     <string name="account_type_organization">WE ARE AN ORGANIZATION</string>
     <string name="account_type_organization_icon">🏛️</string>
     <string name="account_type_organization_feature_promote">Create and Promote Events</string>
