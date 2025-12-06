@@ -54,18 +54,31 @@ object CreatePublicEventScreenTestTags {
 /**
  * Screen for creating or editing a Public Event.
  *
- * @param navController Navigation controller for screen transitions.
- * @param existingEventId Optional ID of an existing event to edit.
- * @param createPublicEventViewModel ViewModel managing the screen state and logic.
+ * Features include:
+ * - Dynamic banner image upload
+ * - Date/time selection with validation
+ * - Location picker integration
+ * - Optional participation fees and participant limits
+ * - Animated save button that adapts based on scroll position and keyboard state
+ * - Auto-save on focus loss for text fields
+ *
+ * @param navController Navigation controller for screen navigation
+ * @param existingEventId Optional event ID for editing an existing event
+ * @param templateEventId Optional template event ID for creating an event from a template
+ * @param createPublicEventViewModel ViewModel managing the event creation/editing state
  */
 @Composable
 fun CreatePublicEventScreen(
     navController: NavHostController?,
     existingEventId: String? = null,
+    templateEventId: String? = null,
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
-  LaunchedEffect(existingEventId) {
-    if (existingEventId != null) createPublicEventViewModel.loadEvent(existingEventId)
+  LaunchedEffect(existingEventId, templateEventId) {
+    when {
+      existingEventId != null -> createPublicEventViewModel.loadEvent(existingEventId)
+      templateEventId != null -> createPublicEventViewModel.loadEventAsTemplate(templateEventId)
+    }
   }
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
