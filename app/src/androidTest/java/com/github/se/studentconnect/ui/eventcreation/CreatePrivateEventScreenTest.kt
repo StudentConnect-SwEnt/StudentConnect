@@ -20,7 +20,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   @Before
   fun setUpContent() {
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
-    composeTestRule.setContent { AppTheme { CreatePrivateEventScreen() } }
+    composeTestRule.setContent { AppTheme { CreatePrivateEventScreen(navController = null) } }
   }
 
   private fun waitForTag(tag: String) {
@@ -32,40 +32,6 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   private fun waitForText(text: String) {
     composeTestRule.waitUntil {
       composeTestRule.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty()
-    }
-  }
-
-  private fun waitUntilEnabled(tag: String, timeoutMillis: Long = 5000) {
-    composeTestRule.waitUntil(timeoutMillis) {
-      try {
-        val node = composeTestRule.onNodeWithTag(tag)
-        try {
-          node.performScrollTo()
-        } catch (_: Exception) {
-          // Ignore scroll failures
-        }
-        node.assertIsEnabled()
-        true
-      } catch (_: AssertionError) {
-        false
-      }
-    }
-  }
-
-  private fun waitUntilDisabled(tag: String, timeoutMillis: Long = 5000) {
-    composeTestRule.waitUntil(timeoutMillis) {
-      try {
-        val node = composeTestRule.onNodeWithTag(tag)
-        try {
-          node.performScrollTo()
-        } catch (_: Exception) {
-          // Ignore scroll failures
-        }
-        node.assertIsNotEnabled()
-        true
-      } catch (_: AssertionError) {
-        false
-      }
     }
   }
 
@@ -146,7 +112,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
   }
 
   // --------------------------------------------------
-  // 2. Scaffold & TopAppBar (New Design)
+  // 2. Scaffold & TopAppBar (Shared Shell)
   // --------------------------------------------------
 
   @Test

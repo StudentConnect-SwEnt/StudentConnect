@@ -2,7 +2,6 @@
 
 package com.github.se.studentconnect.ui.eventcreation
 
-import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -21,7 +20,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
   @Before
   fun setUpContent() {
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
-    composeTestRule.setContent { AppTheme { CreatePublicEventScreen() } }
+    composeTestRule.setContent { AppTheme { CreatePublicEventScreen(navController = null) } }
   }
 
   private fun waitForTag(tag: String) {
@@ -46,23 +45,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
           // Ignore scroll failures - element might not be scrollable
         }
         node.assertIsEnabled()
-        true
-      } catch (_: AssertionError) {
-        false
-      }
-    }
-  }
-
-  private fun waitUntilDisabled(tag: String, timeoutMillis: Long = 5000) {
-    composeTestRule.waitUntil(timeoutMillis) {
-      try {
-        val node = composeTestRule.onNodeWithTag(tag)
-        try {
-          node.performScrollTo()
-        } catch (_: Exception) {
-          // Ignore scroll failures - element might not be scrollable
-        }
-        node.assertIsNotEnabled()
         true
       } catch (_: AssertionError) {
         false
@@ -231,28 +213,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     locationNode.assertTextContains("Zurich, Switzerland")
   }
 
-  // Test disabled - location suggestions may not use "Fake" prefix anymore
-  // @Test
-  // fun locationTextField_typingEpfl_showsFakeEpflSuggestion() {}
-
-  // Tests disabled - location suggestion implementation has changed
-  /*
-  @Test
-  fun locationTextField_typingNowhere_showsNoSuggestions() {}
-
-  @Test
-  fun locationTextField_selectingLausanneSuggestion_updatesTextField() {}
-
-  @Test
-  fun locationTextField_typingEverywhere_showsMultipleSuggestions() {}
-
-  @Test
-  fun locationTextField_clearingInput_hidesSuggestions() {}
-
-  @Test
-  fun locationTextField_dropdownClosesAfterSelection() {}
-  */
-
   // --------------------------------------------------
   // 5. Dates & times
   // --------------------------------------------------
@@ -275,29 +235,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     endDateNode.performTextInput("02/01/2025")
     endDateNode.assertTextContains("02/01/2025")
   }
-
-  // Tests disabled - time picker dialogs cause IllegalStateException in tests
-  /*
-  @Test
-  fun clickingStartTimeButton_opensPicker() {
-    waitForTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
-    val startTimeButton =
-        composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.START_TIME_BUTTON)
-    startTimeButton.performScrollTo()
-    startTimeButton.performClick()
-    // TODO: assert time picker dialog is visible
-  }
-
-  @Test
-  fun clickingEndTimeButton_opensPicker() {
-    waitForTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
-    val endTimeButton =
-        composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.END_TIME_BUTTON)
-    endTimeButton.performScrollTo()
-    endTimeButton.performClick()
-    // TODO: assert time picker dialog is visible
-  }
-  */
 
   // --------------------------------------------------
   // 6. Participants & website
@@ -379,8 +316,7 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     composeTestRule.waitUntil(10000) {
       try {
         input.performScrollTo()
-        // assertTextEquals includes the label, so we need to pass "Participation fees" (label) and
-        // "" (value)
+        // assertTextEquals includes the label and value
         composeTestRule
             .onNodeWithTag(CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT)
             .assertTextEquals("Participation fees", "")
@@ -456,19 +392,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
 
     save.assertIsEnabled()
     save.performClick()
-
-    // In FakeViewModel, track if saveEvent() was called
-  }
-
-  // --------------------------------------------------
-  // 10. Navigation
-  // --------------------------------------------------
-
-  @Test
-  fun afterSuccessfulSave_navigatesAway() {
-    // Use FakeCreatePublicEventViewModel with finishedSaving=true
-    // Fill required fields, click save
-    // Then assert navigation state (e.g. checking fake NavController)
   }
 
   // --------------------------------------------------
@@ -503,7 +426,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
   fun backButton_isClickable() {
     waitForTag(CreatePublicEventScreenTestTags.BACK_BUTTON)
     composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.BACK_BUTTON).performClick()
-    // Navigation callback should be triggered
   }
 
   @Test
@@ -574,22 +496,6 @@ class CreatePublicEventScreenTest : StudentConnectTest() {
     // Should show "Event website" without asterisk
     composeTestRule.onNodeWithText("Event website", substring = true).assertExists()
   }
-
-  // --------------------------------------------------
-  // 13. Location Field - Suggestion Hiding After Selection
-  // --------------------------------------------------
-
-  // Tests disabled - location suggestion implementation has changed
-  /*
-  @Test
-  fun locationTextField_suggestionDisappearsAfterSelection() {}
-
-  @Test
-  fun locationTextField_suggestionsReappearAfterTypingAgain() {}
-
-  @Test
-  fun locationTextField_suggestionsHiddenWhenLocationWasSelected() {}
-  */
 
   // --------------------------------------------------
   // 14. Animated Save Button - Scroll Behavior
