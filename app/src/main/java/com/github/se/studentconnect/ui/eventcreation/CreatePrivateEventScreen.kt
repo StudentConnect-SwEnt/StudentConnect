@@ -69,7 +69,9 @@ fun CreatePrivateEventScreen(
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId) {
-    existingEventId?.let { createPrivateEventViewModel.loadEvent(it) }
+    if (existingEventId != null) {
+      createPrivateEventViewModel.loadEvent(existingEventId)
+    }
   }
 
   val createPrivateEventUiState by createPrivateEventViewModel.uiState.collectAsState()
@@ -84,9 +86,15 @@ fun CreatePrivateEventScreen(
           createPrivateEventUiState.endDate != null &&
           !createPrivateEventUiState.isSaving
 
-  LaunchedEffect(createPrivateEventUiState.finishedSaving) {
-    if (createPrivateEventUiState.finishedSaving) {
-      navController?.popBackStack()
+  LaunchedEffect(Unit) {
+    createPrivateEventViewModel.navigateToEvent.collect { eventId ->
+      if (navController != null) {
+        // Navigate to Activities
+        // Pop up to HOME to ensure a clean stack
+        navController.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
+        // Show the card of this event (Event View) on top
+        navController.navigate(Route.eventView(eventId, true))
+      }
       createPrivateEventViewModel.resetFinishedSaving()
     }
   }
