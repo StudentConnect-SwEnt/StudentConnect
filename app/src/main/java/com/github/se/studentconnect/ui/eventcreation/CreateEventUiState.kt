@@ -67,3 +67,65 @@ sealed class CreateEventUiState {
       override val shouldRemoveBanner: Boolean = false,
   ) : CreateEventUiState()
 }
+
+/**
+ * Helper extension to copy shared properties across the sealed hierarchy. This enables the
+ * BaseViewModel to update common fields without knowing the specific subclass.
+ */
+fun CreateEventUiState.copyCommon(
+    title: String = this.title,
+    description: String = this.description,
+    location: Location? = this.location,
+    startDate: LocalDate? = this.startDate,
+    startTime: LocalTime = this.startTime,
+    endDate: LocalDate? = this.endDate,
+    endTime: LocalTime = this.endTime,
+    numberOfParticipantsString: String = this.numberOfParticipantsString,
+    hasParticipationFee: Boolean = this.hasParticipationFee,
+    participationFeeString: String = this.participationFeeString,
+    isFlash: Boolean = this.isFlash,
+    finishedSaving: Boolean = this.finishedSaving,
+    isSaving: Boolean = this.isSaving,
+    bannerImageUri: Uri? = this.bannerImageUri,
+    bannerImagePath: String? = this.bannerImagePath,
+    shouldRemoveBanner: Boolean = this.shouldRemoveBanner
+): CreateEventUiState {
+  return when (this) {
+    is CreateEventUiState.Public ->
+        copy(
+            title = title,
+            description = description,
+            location = location,
+            startDate = startDate,
+            startTime = startTime,
+            endDate = endDate,
+            endTime = endTime,
+            numberOfParticipantsString = numberOfParticipantsString,
+            hasParticipationFee = hasParticipationFee,
+            participationFeeString = participationFeeString,
+            isFlash = isFlash,
+            finishedSaving = finishedSaving,
+            isSaving = isSaving,
+            bannerImageUri = bannerImageUri,
+            bannerImagePath = bannerImagePath,
+            shouldRemoveBanner = shouldRemoveBanner)
+    is CreateEventUiState.Private ->
+        copy(
+            title = title,
+            description = description,
+            location = location,
+            startDate = startDate,
+            startTime = startTime,
+            endDate = endDate,
+            endTime = endTime,
+            numberOfParticipantsString = numberOfParticipantsString,
+            hasParticipationFee = hasParticipationFee,
+            participationFeeString = participationFeeString,
+            isFlash = isFlash,
+            finishedSaving = finishedSaving,
+            isSaving = isSaving,
+            bannerImageUri = bannerImageUri,
+            bannerImagePath = bannerImagePath,
+            shouldRemoveBanner = shouldRemoveBanner)
+  }
+}
