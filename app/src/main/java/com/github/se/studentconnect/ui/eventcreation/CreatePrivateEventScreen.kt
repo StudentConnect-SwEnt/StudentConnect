@@ -12,6 +12,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.navigation.Route
 import java.time.format.DateTimeFormatter
 
+/** Constant Test Tags for the Private Event Screen */
 object CreatePrivateEventScreenTestTags {
   const val SCAFFOLD = "scaffold"
   const val TOP_APP_BAR = "topAppBar"
@@ -33,6 +34,13 @@ object CreatePrivateEventScreenTestTags {
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
 }
 
+/**
+ * Screen for creating or editing a Private Event.
+ *
+ * @param navController Navigation controller to handle screen transitions.
+ * @param existingEventId The ID of the event to edit, or null if creating a new event.
+ * @param createPrivateEventViewModel The ViewModel managing state for private events.
+ */
 @Composable
 fun CreatePrivateEventScreen(
     navController: NavHostController?,
@@ -60,6 +68,15 @@ fun CreatePrivateEventScreen(
           uiState.endDate != null &&
           !uiState.isSaving
 
+  // Group test tags for the shell
+  val shellTestTags =
+      CreateEventShellTestTags(
+          scaffold = CreatePrivateEventScreenTestTags.SCAFFOLD,
+          topBar = CreatePrivateEventScreenTestTags.TOP_APP_BAR,
+          backButton = CreatePrivateEventScreenTestTags.BACK_BUTTON,
+          scrollColumn = CreatePrivateEventScreenTestTags.SCROLL_COLUMN,
+          saveButton = CreatePrivateEventScreenTestTags.SAVE_BUTTON)
+
   CreateEventShell(
       navController = navController,
       title =
@@ -67,11 +84,9 @@ fun CreatePrivateEventScreen(
           else stringResource(R.string.title_create_private_event),
       canSave = canSave,
       onSave = { createPrivateEventViewModel.saveEvent() },
-      scaffoldTestTag = CreatePrivateEventScreenTestTags.SCAFFOLD,
-      topBarTestTag = CreatePrivateEventScreenTestTags.TOP_APP_BAR,
-      backButtonTestTag = CreatePrivateEventScreenTestTags.BACK_BUTTON,
-      scrollColumnTestTag = CreatePrivateEventScreenTestTags.SCROLL_COLUMN,
-      saveButtonTestTag = CreatePrivateEventScreenTestTags.SAVE_BUTTON) { onFocusChange ->
+      testTags = shellTestTags) { onFocusChange ->
+
+        // Title and Description
         EventTitleAndDescriptionFields(
             title = uiState.title,
             onTitleChange = createPrivateEventViewModel::updateTitle,
@@ -84,6 +99,7 @@ fun CreatePrivateEventScreen(
                 if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
                 else null)
 
+        // Banner Image
         EventBannerField(
             bannerImageUri = uiState.bannerImageUri,
             bannerImagePath = uiState.bannerImagePath,
@@ -92,37 +108,49 @@ fun CreatePrivateEventScreen(
             pickerTag = CreatePrivateEventScreenTestTags.BANNER_PICKER,
             removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON)
 
+        // Location
         EventLocationField(
             location = uiState.location,
             onLocationChange = createPrivateEventViewModel::updateLocation,
             testTag = CreatePrivateEventScreenTestTags.LOCATION_INPUT)
 
+        // Date and Time (Grouped into State and Callbacks)
         EventDateTimeFields(
-            startDate = uiState.startDate?.format(dateFormatter) ?: "",
-            onStartDateChange = createPrivateEventViewModel::updateStartDate,
+            state =
+                DateTimeState(
+                    startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                    startTime = uiState.startTime,
+                    endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                    endTime = uiState.endTime),
+            callbacks =
+                DateTimeCallbacks(
+                    onStartDateChange = createPrivateEventViewModel::updateStartDate,
+                    onStartTimeChange = createPrivateEventViewModel::updateStartTime,
+                    onEndDateChange = createPrivateEventViewModel::updateEndDate,
+                    onEndTimeChange = createPrivateEventViewModel::updateEndTime),
             startDateTag = CreatePrivateEventScreenTestTags.START_DATE_INPUT,
-            startTime = uiState.startTime,
-            onStartTimeChange = createPrivateEventViewModel::updateStartTime,
             startTimeTag = CreatePrivateEventScreenTestTags.START_TIME_BUTTON,
-            endDate = uiState.endDate?.format(dateFormatter) ?: "",
-            onEndDateChange = createPrivateEventViewModel::updateEndDate,
             endDateTag = CreatePrivateEventScreenTestTags.END_DATE_INPUT,
-            endTime = uiState.endTime,
-            onEndTimeChange = createPrivateEventViewModel::updateEndTime,
             endTimeTag = CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
 
+        // Participants and Fees (Grouped into State and Callbacks)
         EventParticipantsAndFeesFields(
-            numberOfParticipantsString = uiState.numberOfParticipantsString,
-            onParticipantsChange = createPrivateEventViewModel::updateNumberOfParticipantsString,
+            state =
+                ParticipantsFeeState(
+                    numberOfParticipants = uiState.numberOfParticipantsString,
+                    hasParticipationFee = uiState.hasParticipationFee,
+                    participationFee = uiState.participationFeeString,
+                    isFlash = uiState.isFlash),
+            callbacks =
+                ParticipantsFeeCallbacks(
+                    onParticipantsChange =
+                        createPrivateEventViewModel::updateNumberOfParticipantsString,
+                    onHasFeeChange = createPrivateEventViewModel::updateHasParticipationFee,
+                    onFeeStringChange = createPrivateEventViewModel::updateParticipationFeeString,
+                    onIsFlashChange = createPrivateEventViewModel::updateIsFlash),
             participantsTag = CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
-            hasParticipationFee = uiState.hasParticipationFee,
-            onHasFeeChange = createPrivateEventViewModel::updateHasParticipationFee,
             feeSwitchTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
-            participationFeeString = uiState.participationFeeString,
-            onFeeStringChange = createPrivateEventViewModel::updateParticipationFeeString,
             feeInputTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-            isFlash = uiState.isFlash,
-            onIsFlashChange = createPrivateEventViewModel::updateIsFlash,
             flashSwitchTag = CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH,
             onFocusChange = onFocusChange)
       }
