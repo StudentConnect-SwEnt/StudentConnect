@@ -2,8 +2,10 @@ package com.github.se.studentconnect.ui.eventcreation
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
@@ -12,6 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,7 +22,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.Mockito
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreatePublicEventViewModelTest {
@@ -32,14 +35,19 @@ class CreatePublicEventViewModelTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    mockEventRepository = mock(EventRepository::class.java)
-    mockMediaRepository = mock(MediaRepository::class.java)
-    viewModel = CreatePublicEventViewModel(mockEventRepository, mockMediaRepository)
+    mockEventRepository = Mockito.mock(EventRepository::class.java)
+    mockMediaRepository = Mockito.mock(MediaRepository::class.java)
+    // override providers so ViewModel uses our mocks
+    EventRepositoryProvider.overrideForTests(mockEventRepository)
+    MediaRepositoryProvider.overrideForTests(mockMediaRepository)
+    viewModel = CreatePublicEventViewModel()
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    EventRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -172,7 +180,7 @@ class CreatePublicEventViewModelTest {
   }
 
   @Test
-  fun `prefill sets all fields from public event`() {
+  fun `prefill sets all fields from public event`() = runTest {
     val event =
         Event.Public(
             uid = "test-uid",
@@ -189,7 +197,13 @@ class CreatePublicEventViewModelTest {
             tags = listOf("tech", "conference"),
             website = "https://test.com")
 
-    viewModel.prefill(event)
+    Mockito.`when`(mockEventRepository.getEvent("test-uid")).thenReturn(event)
+
+    // Trigger loadEvent which will call the internal prefill in the coroutine
+    viewModel.loadEvent("test-uid")
+
+    // advance dispatched coroutines
+    testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertEquals("Public Test Event", state.title)

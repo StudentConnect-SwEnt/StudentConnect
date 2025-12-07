@@ -1,10 +1,9 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.model.media.MediaRepository
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
@@ -13,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,30 +20,33 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.Mockito
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreatePrivateEventViewModelTest {
 
   private lateinit var viewModel: CreatePrivateEventViewModel
-  private lateinit var mockAuthRepository: AuthRepository
   private lateinit var mockEventRepository: EventRepository
-  private lateinit var mockMediaRepository: MediaRepository
+  private lateinit var mockMediaRepository: com.github.se.studentconnect.model.media.MediaRepository
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    mockAuthRepository = mock(AuthRepository::class.java)
-    mockEventRepository = mock(EventRepository::class.java)
-    mockMediaRepository = mock(MediaRepository::class.java)
-    viewModel =
-        CreatePrivateEventViewModel(mockAuthRepository, mockEventRepository, mockMediaRepository)
+    mockEventRepository = Mockito.mock(EventRepository::class.java)
+    mockMediaRepository = Mockito.mock(com.github.se.studentconnect.model.media.MediaRepository::class.java)
+    // override provider so ViewModel uses our mock repository
+    EventRepositoryProvider.overrideForTests(mockEventRepository)
+    com.github.se.studentconnect.model.media.MediaRepositoryProvider.overrideForTests(mockMediaRepository)
+    viewModel = CreatePrivateEventViewModel()
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    // clean override to avoid leaking across tests
+    EventRepositoryProvider.cleanOverrideForTests()
+    com.github.se.studentconnect.model.media.MediaRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -155,7 +158,7 @@ class CreatePrivateEventViewModelTest {
   }
 
   @Test
-  fun `prefill sets all fields from event`() {
+  fun `prefill sets all fields from event via loadEvent`() = runTest {
     val event =
         Event.Private(
             uid = "test-uid",
@@ -169,7 +172,14 @@ class CreatePrivateEventViewModelTest {
             participationFee = 50u,
             location = Location(46.5, 6.6, "EPFL"))
 
-    viewModel.prefill(event)
+    // Stub repository to return the event when requested
+    Mockito.`when`(mockEventRepository.getEvent("test-uid")).thenReturn(event)
+
+    // Trigger loadEvent which will call the internal prefill in the coroutine
+    viewModel.loadEvent("test-uid")
+
+    // advance dispatched coroutines
+    testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
     assertEquals("Test Event", state.title)
