@@ -16,27 +16,25 @@ class EventRepositoryLocalTest {
 
   private fun createTestPublicEvent(uid: String, ownerId: String = "owner1"): Event.Public {
     return Event.Public(
-      uid = uid,
-      ownerId = ownerId,
-      title = "Test Event $uid",
-      subtitle = "Subtitle",
-      description = "Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = false
-    )
+        uid = uid,
+        ownerId = ownerId,
+        title = "Test Event $uid",
+        subtitle = "Subtitle",
+        description = "Description",
+        start = Timestamp.now(),
+        end = Timestamp.now(),
+        isFlash = false)
   }
 
   private fun createTestPrivateEvent(uid: String, ownerId: String = "owner1"): Event.Private {
     return Event.Private(
-      uid = uid,
-      ownerId = ownerId,
-      title = "Private Event $uid",
-      description = "Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = false
-    )
+        uid = uid,
+        ownerId = ownerId,
+        title = "Private Event $uid",
+        description = "Description",
+        start = Timestamp.now(),
+        end = Timestamp.now(),
+        isFlash = false)
   }
 
   @Before
@@ -146,16 +144,16 @@ class EventRepositoryLocalTest {
     val event = createTestPublicEvent("event1")
     repository.addEvent(event)
 
-    val updatedEvent = Event.Public(
-      uid = "event1",
-      ownerId = "owner1",
-      title = "Updated Title",
-      subtitle = "Updated Subtitle",
-      description = "Updated Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = true
-    )
+    val updatedEvent =
+        Event.Public(
+            uid = "event1",
+            ownerId = "owner1",
+            title = "Updated Title",
+            subtitle = "Updated Subtitle",
+            description = "Updated Description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = true)
 
     repository.editEvent("event1", updatedEvent)
 
@@ -259,4 +257,3 @@ class EventRepositoryLocalTest {
     assertEquals("Private Event private1", retrieved.title)
   }
 }
-

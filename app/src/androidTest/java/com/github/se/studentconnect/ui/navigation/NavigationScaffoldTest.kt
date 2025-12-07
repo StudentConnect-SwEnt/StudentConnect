@@ -31,15 +31,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU)
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertIsDisplayed()
   }
 
   @Test
@@ -51,15 +48,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Home))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home))
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home)).assertIsDisplayed()
   }
 
   @Test
@@ -71,15 +65,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Map))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map))
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map)).assertIsDisplayed()
   }
 
   @Test
@@ -91,8 +82,7 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
@@ -111,15 +101,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Profile))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Profile))
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Profile)).assertIsDisplayed()
   }
 
   @Test
@@ -131,15 +118,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag("center_add_button")
-    composeTestRule
-        .onNodeWithTag("center_add_button")
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag("center_add_button").assertIsDisplayed()
   }
 
   // --------------------------------------------------
@@ -155,15 +139,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Home))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home))
-        .assertHasClickAction()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Home)).assertHasClickAction()
   }
 
   @Test
@@ -175,15 +156,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Map))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map))
-        .assertHasClickAction()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map)).assertHasClickAction()
   }
 
   @Test
@@ -195,15 +173,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag("center_add_button")
-    composeTestRule
-        .onNodeWithTag("center_add_button")
-        .assertHasClickAction()
+    composeTestRule.onNodeWithTag("center_add_button").assertHasClickAction()
   }
 
   @Test
@@ -215,23 +190,21 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = {},
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag("center_add_button")
-    composeTestRule
-        .onNodeWithTag("center_add_button")
-        .performClick()
+    composeTestRule.onNodeWithTag("center_add_button").performClick()
 
     composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule.onAllNodes(hasTestTag("event_creation_bottom_sheet")).fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodes(hasTestTag("event_creation_bottom_sheet"))
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
-    
-    composeTestRule
-        .onNodeWithTag("event_creation_bottom_sheet")
-        .assertIsDisplayed()
+
+    composeTestRule.onNodeWithTag("event_creation_bottom_sheet").assertIsDisplayed()
   }
 
   // --------------------------------------------------
@@ -241,7 +214,7 @@ class NavigationScaffoldTest : StudentConnectTest() {
   @Test
   fun tabSelection_callsOnTabSelected() {
     var selectedTab: Tab? = null
-    
+
     composeTestRule.setContent {
       AppTheme {
         BottomNavigationBar(
@@ -249,15 +222,12 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = { selectedTab = it },
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Map))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map))
-        .performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Map)).performClick()
 
     assert(selectedTab == Tab.Map)
   }
@@ -265,7 +235,7 @@ class NavigationScaffoldTest : StudentConnectTest() {
   @Test
   fun profileTab_selection_callsOnTabSelected() {
     var selectedTab: Tab? = null
-    
+
     composeTestRule.setContent {
       AppTheme {
         BottomNavigationBar(
@@ -273,17 +243,13 @@ class NavigationScaffoldTest : StudentConnectTest() {
             onTabSelected = { selectedTab = it },
             onCreatePublicEvent = {},
             onCreatePrivateEvent = {},
-            onCreateFromTemplate = {}
-        )
+            onCreateFromTemplate = {})
       }
     }
 
     waitForTag(NavigationTestTags.getTabTestTag(Tab.Profile))
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Profile))
-        .performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.getTabTestTag(Tab.Profile)).performClick()
 
     assert(selectedTab == Tab.Profile)
   }
 }
-

@@ -145,4 +145,3 @@ class NavigationTest {
     assertEquals("organizationId", Route.ORGANIZATION_ID_ARG)
   }
 }
-

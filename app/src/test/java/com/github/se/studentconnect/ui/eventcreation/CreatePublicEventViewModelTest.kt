@@ -173,21 +173,21 @@ class CreatePublicEventViewModelTest {
 
   @Test
   fun `prefill sets all fields from public event`() {
-    val event = Event.Public(
-      uid = "test-uid",
-      ownerId = "owner-id",
-      title = "Public Test Event",
-      subtitle = "Test Subtitle",
-      description = "Test Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = true,
-      maxCapacity = 500u,
-      participationFee = 75u,
-      location = Location(46.5, 6.6, "EPFL"),
-      tags = listOf("tech", "conference"),
-      website = "https://test.com"
-    )
+    val event =
+        Event.Public(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Public Test Event",
+            subtitle = "Test Subtitle",
+            description = "Test Description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = true,
+            maxCapacity = 500u,
+            participationFee = 75u,
+            location = Location(46.5, 6.6, "EPFL"),
+            tags = listOf("tech", "conference"),
+            website = "https://test.com")
 
     viewModel.prefill(event)
 
@@ -205,18 +205,18 @@ class CreatePublicEventViewModelTest {
 
   @Test
   fun `prefillFromTemplate clears dates but keeps other fields`() {
-    val event = Event.Public(
-      uid = "template-uid",
-      ownerId = "owner-id",
-      title = "Template Public Event",
-      subtitle = "Template Subtitle",
-      description = "Template Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = false,
-      maxCapacity = 300u,
-      tags = listOf("workshop")
-    )
+    val event =
+        Event.Public(
+            uid = "template-uid",
+            ownerId = "owner-id",
+            title = "Template Public Event",
+            subtitle = "Template Subtitle",
+            description = "Template Description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = false,
+            maxCapacity = 300u,
+            tags = listOf("workshop"))
 
     viewModel.prefillFromTemplate(event)
 
@@ -230,4 +230,3 @@ class CreatePublicEventViewModelTest {
     assertEquals(listOf("workshop"), state.tags)
   }
 }
-

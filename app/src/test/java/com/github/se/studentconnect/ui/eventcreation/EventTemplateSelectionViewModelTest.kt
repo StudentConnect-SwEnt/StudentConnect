@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -60,4 +58,3 @@ class EventTemplateSelectionViewModelTest {
     assertEquals(EventTemplateSelectionUiState(), uiState.value)
   }
 }
-

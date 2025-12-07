@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import android.net.Uri
 import com.github.se.studentconnect.model.authentication.AuthRepository
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
@@ -38,7 +37,8 @@ class CreatePrivateEventViewModelTest {
     mockAuthRepository = mock(AuthRepository::class.java)
     mockEventRepository = mock(EventRepository::class.java)
     mockMediaRepository = mock(MediaRepository::class.java)
-    viewModel = CreatePrivateEventViewModel(mockAuthRepository, mockEventRepository, mockMediaRepository)
+    viewModel =
+        CreatePrivateEventViewModel(mockAuthRepository, mockEventRepository, mockMediaRepository)
   }
 
   @After
@@ -156,18 +156,18 @@ class CreatePrivateEventViewModelTest {
 
   @Test
   fun `prefill sets all fields from event`() {
-    val event = Event.Private(
-      uid = "test-uid",
-      ownerId = "owner-id",
-      title = "Test Event",
-      description = "Test Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = true,
-      maxCapacity = 100u,
-      participationFee = 50u,
-      location = Location(46.5, 6.6, "EPFL")
-    )
+    val event =
+        Event.Private(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Test Event",
+            description = "Test Description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = true,
+            maxCapacity = 100u,
+            participationFee = 50u,
+            location = Location(46.5, 6.6, "EPFL"))
 
     viewModel.prefill(event)
 
@@ -182,16 +182,16 @@ class CreatePrivateEventViewModelTest {
 
   @Test
   fun `prefillFromTemplate clears dates but keeps other fields`() {
-    val event = Event.Private(
-      uid = "test-uid",
-      ownerId = "owner-id",
-      title = "Template Event",
-      description = "Template Description",
-      start = Timestamp.now(),
-      end = Timestamp.now(),
-      isFlash = false,
-      maxCapacity = 200u
-    )
+    val event =
+        Event.Private(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Template Event",
+            description = "Template Description",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = false,
+            maxCapacity = 200u)
 
     viewModel.prefillFromTemplate(event)
 
@@ -203,4 +203,3 @@ class CreatePrivateEventViewModelTest {
     assertEquals("200", state.numberOfParticipantsString)
   }
 }
-
