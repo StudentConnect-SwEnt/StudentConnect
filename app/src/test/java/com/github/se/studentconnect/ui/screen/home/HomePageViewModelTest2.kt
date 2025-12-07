@@ -357,40 +357,6 @@ class HomePageViewModelTest2 {
   }
 
   @Test
-  fun updateSeenStories_runsWithoutErrors() = runTest {
-    // Arrange
-    eventRepository.addEvent(testEvent1)
-    eventRepository.addEvent(testEvent2)
-    viewModel =
-        HomePageViewModel(
-            eventRepository,
-            userRepository,
-            null,
-            null,
-            organizationRepository,
-            null,
-            friendsRepository)
-    advanceUntilIdle()
-
-    // Without a storyRepository provided, stories will be empty by design
-    // This test verifies updateSeenStories handles empty stories gracefully
-    val initialState = viewModel.uiState.value
-    assertTrue(
-        "Initial state should have empty stories when no storyRepository is provided",
-        initialState.subscribedEventsStories.isEmpty())
-
-    // Act - Call updateSeenStories - should handle empty stories gracefully
-    viewModel.updateSeenStories(testEvent1, 1)
-    advanceUntilIdle()
-
-    // Assert - The method completes without crashing
-    val finalState = viewModel.uiState.value
-    assertTrue(
-        "State should be accessible after updateSeenStories",
-        finalState.subscribedEventsStories is Map)
-  }
-
-  @Test
   fun getAvailableFilters_returnsFilterOptions() = runTest {
     // Arrange
     viewModel =

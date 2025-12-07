@@ -69,9 +69,6 @@ fun StoryCaptureScreen(
           mediaUri = capturedMediaUri!!,
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
           onAccept = { selectedEvent ->
-            Log.d(
-                "StoryCaptureScreen",
-                "Media accepted: $capturedMediaUri, event: ${selectedEvent?.title}")
             onStoryAccepted(
                 capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
             showPreview = false

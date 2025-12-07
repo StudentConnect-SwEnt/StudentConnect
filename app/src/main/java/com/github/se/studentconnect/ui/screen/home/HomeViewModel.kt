@@ -347,8 +347,6 @@ constructor(
                         null
                       }
                     } catch (e: Exception) {
-                      Log.e(
-                          "HomePageViewModel", "Error fetching user for story ${story.storyId}", e)
                       null
                     }
                   }
@@ -373,7 +371,6 @@ constructor(
               isLoading = false)
         }
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading stories", e)
         _uiState.update {
           it.copy(
               subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
@@ -410,26 +407,6 @@ constructor(
           }
         } catch (e: Exception) {
           Log.e("HomePageViewModel", "Error loading favorite events", e)
-        }
-      }
-    }
-  }
-
-  /** Persists seen story progress for the provided event. */
-  fun updateSeenStories(event: Event, seenIndex: Int) {
-    viewModelScope.launch {
-      // Don't show loading spinner for seen story updates - this is a background operation
-      val stories = _uiState.value.subscribedEventsStories
-      val currentPair = stories[event]
-
-      if (currentPair != null) {
-        val (currentSeen, totalStories) = currentPair
-        // Update seen count if the new index is higher than what we've seen
-        if (seenIndex > currentSeen) {
-          val newSeenCount = minOf(seenIndex, totalStories)
-          val subscribedEventsStoryUpdate = stories.toMutableMap()
-          subscribedEventsStoryUpdate[event] = Pair(newSeenCount, totalStories)
-          _uiState.update { it.copy(subscribedEventsStories = subscribedEventsStoryUpdate) }
         }
       }
     }

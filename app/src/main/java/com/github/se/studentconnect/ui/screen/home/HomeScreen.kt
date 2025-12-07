@@ -281,7 +281,7 @@ fun HomeScreen(
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
       onCameraActiveChange = onCameraActiveChange,
-      onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
+      onClickStory = { e, i -> /* update seen count for story, to be done later */ },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,

@@ -628,27 +628,6 @@ class HomePageViewModelTest {
   }
 
   @Test
-  fun `updateSeenStories updates story state`() = runTest {
-    eventRepository.addEvent(testEvent1)
-
-    viewModel =
-        HomePageViewModel(
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            organizationRepository = organizationRepository,
-            friendsRepository = friendsRepository)
-
-    advanceUntilIdle()
-
-    val initialStories = viewModel.uiState.value.subscribedEventsStories
-    if (initialStories.isNotEmpty()) {
-      val event = initialStories.keys.first()
-      viewModel.updateSeenStories(event, 2)
-      advanceUntilIdle()
-    }
-  }
-
-  @Test
   fun `HomeTabMode enum has all expected values`() {
     val values = HomeTabMode.values()
     assertEquals(3, values.size)

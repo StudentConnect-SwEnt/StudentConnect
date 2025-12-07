@@ -127,17 +127,10 @@ class StoryRepositoryFirestore(
           // Update document with correct expiresAt if it differs from temporary value
           if (actualExpiresAt.compareTo(tempExpiresAt) != 0) {
             savedDoc.reference.update("expiresAt", actualExpiresAt).await()
-            android.util.Log.d("StoryRepository", "Step 13: ExpiresAt updated successfully")
           }
-        } else {
-          android.util.Log.w(
-              "StoryRepository", "Could not fetch saved document, but story was uploaded")
         }
       } catch (e: Exception) {
         // If we can't read back or update, that's okay - the story was still uploaded successfully
-        android.util.Log.w(
-            "StoryRepository",
-            "Could not update expiresAt (story was still uploaded): ${e.message}")
       }
 
       // Return a success Story object since upload completed
