@@ -467,6 +467,31 @@ class ProfileScreenViewModelTest {
         assertEquals(4, viewModel.eventsCount.value)
       }
 
+  @Test
+  fun `viewModel handles created events fetch error gracefully`() =
+      testScope.runTest {
+        // User has joined 2 events
+        userRepository.joinedEventIds = listOf("event1", "event2")
+
+        // EventRepository will throw an error when fetching created events
+        eventRepository.shouldThrowError = true
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should only count joined events since created events fetch failed
+        assertEquals(2, viewModel.eventsCount.value)
+        // User profile should still load successfully
+        assertEquals(testUser, viewModel.user.value)
+        assertNull(viewModel.error.value)
+      }
+
   // Test helper classes
   private class TestUserRepository(
       var user: User?,
