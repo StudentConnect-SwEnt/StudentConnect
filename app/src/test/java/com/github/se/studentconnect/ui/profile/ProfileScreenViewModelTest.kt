@@ -597,21 +597,6 @@ class ProfileScreenViewModelTest {
 
     override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
         emptyList()
-  private class TestEventRepository(var events: Map<String, Event> = emptyMap()) : EventRepository {
-
-    override fun getNewUid() = "new_event_uid"
-
-    override suspend fun getAllVisibleEvents() = events.values.toList()
-
-    override suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean) =
-        events.values.filter(predicate)
-
-    override suspend fun getEventsByOrganization(organizationId: String) = emptyList<Event>()
-
-    override suspend fun getEvent(eventUid: String) =
-        events[eventUid] ?: throw Exception("Event not found")
-
-    override suspend fun getEventParticipants(eventUid: String) = emptyList<EventParticipant>()
 
     override suspend fun addEvent(event: Event) = Unit
 
