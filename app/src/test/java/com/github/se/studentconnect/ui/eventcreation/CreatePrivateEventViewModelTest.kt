@@ -11,8 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -34,10 +34,12 @@ class CreatePrivateEventViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     mockEventRepository = Mockito.mock(EventRepository::class.java)
-    mockMediaRepository = Mockito.mock(com.github.se.studentconnect.model.media.MediaRepository::class.java)
+    mockMediaRepository =
+        Mockito.mock(com.github.se.studentconnect.model.media.MediaRepository::class.java)
     // override provider so ViewModel uses our mock repository
     EventRepositoryProvider.overrideForTests(mockEventRepository)
-    com.github.se.studentconnect.model.media.MediaRepositoryProvider.overrideForTests(mockMediaRepository)
+    com.github.se.studentconnect.model.media.MediaRepositoryProvider.overrideForTests(
+        mockMediaRepository)
     viewModel = CreatePrivateEventViewModel()
   }
 
