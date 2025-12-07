@@ -29,6 +29,9 @@ import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.LocalDate
 import java.time.LocalTime
 
+// --- Constants ---
+private val FIELD_SPACING = 20.dp
+
 // --- Helper Data Classes to reduce parameter count ---
 
 /** Holds state values for Date/Time fields. */
@@ -173,7 +176,7 @@ fun EventDateTimeFields(
 
   Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
+      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     DateTextField(
@@ -192,7 +195,7 @@ fun EventDateTimeFields(
 
   Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
+      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     DateTextField(
@@ -238,7 +241,7 @@ fun EventParticipantsAndFeesFields(
 
   Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
+      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     FormTextField(
@@ -264,7 +267,7 @@ fun EventParticipantsAndFeesFields(
 
   Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
+      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
