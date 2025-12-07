@@ -1,26 +1,12 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import android.net.Uri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.se.studentconnect.model.authentication.AuthRepository
-import com.github.se.studentconnect.model.authentication.AuthRepositoryFirebase
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.event.EventRepository
-import com.github.se.studentconnect.model.event.EventRepositoryProvider
-import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.model.media.MediaRepository
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /** ViewModel for creating and editing Private events. Manages [CreateEventUiState.Private]. */
@@ -43,18 +29,18 @@ class CreatePrivateEventViewModel :
         } catch (_: Exception) {
           null
         }
-      return Event.Private(
-          uid = uid,
-          ownerId = ownerId,
-          title = s.title,
-          description = s.description,
-          imageUrl = bannerPath,
-          location = s.location,
-          start = start,
-          end = end,
-          maxCapacity = maxCapacity,
-          participationFee = fee,
-          isFlash = s.isFlash)
+    return Event.Private(
+        uid = uid,
+        ownerId = ownerId,
+        title = s.title,
+        description = s.description,
+        imageUrl = bannerPath,
+        location = s.location,
+        start = start,
+        end = end,
+        maxCapacity = maxCapacity,
+        participationFee = fee,
+        isFlash = s.isFlash)
   }
 
   /**
