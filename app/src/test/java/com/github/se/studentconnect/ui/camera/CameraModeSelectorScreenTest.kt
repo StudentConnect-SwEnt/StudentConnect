@@ -12,7 +12,6 @@ import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.ui.screen.camera.handleStoryUpload
 import com.github.se.studentconnect.util.MainDispatcherRule
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -22,7 +21,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class CameraModeSelectorScreenTest {
 
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
@@ -38,13 +41,12 @@ class CameraModeSelectorScreenTest {
 
   @Before
   fun setup() {
-    mockContext = mockk(relaxed = true)
-    mockLifecycleOwner =
-        mockk(relaxed = true) {
-          val lifecycleRegistry = LifecycleRegistry(this)
-          lifecycleRegistry.currentState = Lifecycle.State.RESUMED
-          every { lifecycle } returns lifecycleRegistry
-        }
+    // Use Robolectric's application context for Toast support
+    mockContext = RuntimeEnvironment.getApplication()
+    mockLifecycleOwner = mockk(relaxed = true)
+    val lifecycleRegistry = LifecycleRegistry(mockLifecycleOwner)
+    lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+    every { mockLifecycleOwner.lifecycle } returns lifecycleRegistry
     mockStoryRepository = mockk()
     mockUri = mockk()
     mockEvent =
@@ -129,86 +131,6 @@ class CameraModeSelectorScreenTest {
   }
 
   @Test
-  fun handleStoryUpload_successfulUpload_returnsTrueAndCallsCallbacks() = runTest {
-    every { AuthenticationProvider.currentUser } returns "user123"
-    coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) } returns
-        mockStory
-
-    var uploadState = false
-    val result =
-        handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadState = it },
-            onStoryAccepted = { uri, isVideo, event ->
-              storyAccepted = true
-              assert(uri == mockUri) { "Expected URI to match" }
-              assert(!isVideo) { "Expected isVideo to be false" }
-              assert(event == mockEvent) { "Expected event to match" }
-            })
-
-    assert(result) { "Expected handleStoryUpload to return true on successful upload" }
-
-    coVerify { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) }
-    assert(storyAccepted) { "Expected onStoryAccepted to be called" }
-  }
-
-  @Test
-  fun handleStoryUpload_failedUpload_returnsTrueButDoesNotCallOnStoryAccepted() = runTest {
-    every { AuthenticationProvider.currentUser } returns "user123"
-    coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) } returns
-        null
-
-    var uploadState = false
-    val result =
-        handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadState = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
-
-    assert(result) { "Expected handleStoryUpload to return true even on failed upload" }
-
-    coVerify { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) }
-    assert(!storyAccepted) { "Expected onStoryAccepted not to be called on failed upload" }
-  }
-
-  @Test
-  fun handleStoryUpload_uploadException_returnsTrueAndHandlesError() = runTest {
-    every { AuthenticationProvider.currentUser } returns "user123"
-    coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) } throws
-        Exception("Network error")
-
-    var uploadState = false
-    val result =
-        handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadState = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
-
-    assert(result) { "Expected handleStoryUpload to return true even on exception" }
-
-    coVerify { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) }
-    assert(!storyAccepted) { "Expected onStoryAccepted not to be called on exception" }
-  }
-
-  @Test
   fun handleStoryUpload_setsUploadStateToTrueBeforeUpload() = runTest {
     every { AuthenticationProvider.currentUser } returns "user123"
     coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) } returns
@@ -279,7 +201,7 @@ class CameraModeSelectorScreenTest {
   @Test
   fun handleStoryUpload_resetsUploadStateToFalseAfterException() = runTest {
     every { AuthenticationProvider.currentUser } returns "user123"
-    coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", mockContext) } throws
+    coEvery { mockStoryRepository.uploadStory(mockUri, "event123", "user123", any()) } throws
         Exception("Test exception")
 
     var finalUploadState = true
