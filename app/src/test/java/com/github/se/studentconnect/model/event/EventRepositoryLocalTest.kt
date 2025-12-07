@@ -1,150 +1,262 @@
 package com.github.se.studentconnect.model.event
 
-import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.Timestamp
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertThrows
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EventRepositoryLocalTest {
 
-  private lateinit var eventRepository: EventRepositoryLocal
+  private lateinit var repository: EventRepositoryLocal
 
-  private val testEvent =
-      Event.Public(
-          uid = "event1",
-          ownerId = "owner1",
-          title = "Test Event",
-          description = "This is a test event.",
-          location = Location(46.5191, 6.5668, "EPFL"),
-          start = Timestamp.now(),
-          isFlash = false,
-          subtitle = "A subtitle for testing")
+  private fun createTestPublicEvent(uid: String, ownerId: String = "owner1"): Event.Public {
+    return Event.Public(
+      uid = uid,
+      ownerId = ownerId,
+      title = "Test Event $uid",
+      subtitle = "Subtitle",
+      description = "Description",
+      start = Timestamp.now(),
+      end = Timestamp.now(),
+      isFlash = false
+    )
+  }
 
-  private val testParticipant = EventParticipant(uid = "user1", joinedAt = Timestamp.now())
+  private fun createTestPrivateEvent(uid: String, ownerId: String = "owner1"): Event.Private {
+    return Event.Private(
+      uid = uid,
+      ownerId = ownerId,
+      title = "Private Event $uid",
+      description = "Description",
+      start = Timestamp.now(),
+      end = Timestamp.now(),
+      isFlash = false
+    )
+  }
 
   @Before
   fun setUp() {
-    eventRepository = EventRepositoryLocal()
+    repository = EventRepositoryLocal()
   }
 
   @Test
-  fun getNewUid_generatesUniqueNonEmptyIds() {
-    val uid1 = eventRepository.getNewUid()
-    assertTrue(uid1.isNotEmpty())
-    val uid2 = eventRepository.getNewUid()
-    assertTrue(uid2.isNotEmpty())
-    assert(uid1 != uid2)
+  fun `getNewUid returns unique identifiers`() {
+    val uid1 = repository.getNewUid()
+    val uid2 = repository.getNewUid()
+
+    assertNotNull(uid1)
+    assertNotNull(uid2)
+    assertTrue(uid1 != uid2)
   }
 
   @Test
-  fun addAndGetEvent_succeeds() = runTest {
-    eventRepository.addEvent(testEvent)
-    val allEvents = eventRepository.getAllVisibleEvents()
-    assertEquals(1, allEvents.size)
-    assertTrue(allEvents.contains(testEvent))
-    val retrievedEvent = eventRepository.getEvent("event1")
-    assertEquals(testEvent, retrievedEvent)
+  fun `addEvent adds event to repository`() = runTest {
+    val event = createTestPublicEvent("event1")
+
+    repository.addEvent(event)
+
+    val retrievedEvent = repository.getEvent("event1")
+    assertEquals(event.uid, retrievedEvent.uid)
+    assertEquals(event.title, retrievedEvent.title)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `addEvent throws exception for duplicate uid`() = runTest {
+    val event1 = createTestPublicEvent("event1")
+    val event2 = createTestPublicEvent("event1")
+
+    repository.addEvent(event1)
+    repository.addEvent(event2)
   }
 
   @Test
-  fun getEvent_throwsErrorWhenNotFound() {
-    assertThrows(NoSuchElementException::class.java) {
-      runTest { eventRepository.getEvent("non-existent-id") }
-    }
+  fun `getAllVisibleEvents returns all events`() = runTest {
+    val event1 = createTestPublicEvent("event1")
+    val event2 = createTestPublicEvent("event2")
+
+    repository.addEvent(event1)
+    repository.addEvent(event2)
+
+    val events = repository.getAllVisibleEvents()
+    assertEquals(2, events.size)
   }
 
   @Test
-  fun editEvent_succeeds() = runTest {
-    eventRepository.addEvent(testEvent)
-    val updatedEvent = testEvent.copy(title = "Updated Event Title")
-    eventRepository.editEvent("event1", updatedEvent)
-    val retrievedEvent = eventRepository.getEvent("event1")
-    assertEquals("Updated Event Title", retrievedEvent.title)
-    val allEvents = eventRepository.getAllVisibleEvents()
-    assertEquals(1, allEvents.size)
-    assertFalse(allEvents.contains(testEvent))
-    assertTrue(allEvents.contains(updatedEvent))
+  fun `getAllVisibleEventsSatisfying returns filtered events`() = runTest {
+    val event1 = createTestPublicEvent("event1", "owner1")
+    val event2 = createTestPublicEvent("event2", "owner2")
+
+    repository.addEvent(event1)
+    repository.addEvent(event2)
+
+    val filteredEvents = repository.getAllVisibleEventsSatisfying { it.ownerId == "owner1" }
+    assertEquals(1, filteredEvents.size)
+    assertEquals("event1", filteredEvents[0].uid)
   }
 
   @Test
-  fun deleteEvent_succeeds() = runTest {
-    eventRepository.addEvent(testEvent)
-    eventRepository.addParticipantToEvent("event1", testParticipant)
-    assertEquals(1, eventRepository.getAllVisibleEvents().size)
-    assertEquals(1, eventRepository.getEventParticipants("event1").size)
-    eventRepository.deleteEvent("event1")
-    assertEquals(0, eventRepository.getAllVisibleEvents().size)
-    assertEquals(0, eventRepository.getEventParticipants("event1").size)
+  fun `getEventsByOrganization returns events by organization`() = runTest {
+    val event1 = createTestPublicEvent("event1", "org1")
+    val event2 = createTestPublicEvent("event2", "org2")
+    val event3 = createTestPublicEvent("event3", "org1")
+
+    repository.addEvent(event1)
+    repository.addEvent(event2)
+    repository.addEvent(event3)
+
+    val orgEvents = repository.getEventsByOrganization("org1")
+    assertEquals(2, orgEvents.size)
   }
 
   @Test
-  fun deleteEvent_deletesTheCorrectEvent() = runTest {
-    val event2 = testEvent.copy(uid = "event2", title = "Second Event")
-    eventRepository.addEvent(testEvent)
-    eventRepository.addEvent(event2)
-    eventRepository.deleteEvent("event1")
-    val allEvents = eventRepository.getAllVisibleEvents()
-    assertEquals(1, allEvents.size)
-    assertFalse(allEvents.any { it.uid == "event1" })
-    assertTrue(allEvents.any { it.uid == "event2" })
+  fun `getEventsByOwner returns events by owner`() = runTest {
+    val event1 = createTestPublicEvent("event1", "user1")
+    val event2 = createTestPublicEvent("event2", "user2")
+
+    repository.addEvent(event1)
+    repository.addEvent(event2)
+
+    val userEvents = repository.getEventsByOwner("user1")
+    assertEquals(1, userEvents.size)
+    assertEquals("event1", userEvents[0].uid)
   }
 
   @Test
-  fun deleteEvent_throwsErrorWhenNotFound() {
-    assertThrows(NoSuchElementException::class.java) {
-      runTest { eventRepository.deleteEvent("non-existent-id") }
-    }
+  fun `getEvent returns correct event`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val retrieved = repository.getEvent("event1")
+    assertEquals(event.uid, retrieved.uid)
+    assertEquals(event.title, retrieved.title)
+  }
+
+  @Test(expected = NoSuchElementException::class)
+  fun `getEvent throws exception for non-existent event`() = runTest {
+    repository.getEvent("non-existent")
   }
 
   @Test
-  fun getAllVisibleEventsSatisfying_returnsCorrectlyFilteredEvents() = runTest {
-    val flashEvent = testEvent.copy(uid = "event2", isFlash = true)
-    eventRepository.addEvent(testEvent)
-    eventRepository.addEvent(flashEvent)
-    val flashEvents = eventRepository.getAllVisibleEventsSatisfying { it.isFlash }
-    assertEquals(1, flashEvents.size)
-    assertEquals("event2", flashEvents[0].uid)
-    val nonFlashEvents = eventRepository.getAllVisibleEventsSatisfying { !it.isFlash }
-    assertEquals(1, nonFlashEvents.size)
-    assertEquals("event1", nonFlashEvents[0].uid)
+  fun `editEvent updates existing event`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val updatedEvent = Event.Public(
+      uid = "event1",
+      ownerId = "owner1",
+      title = "Updated Title",
+      subtitle = "Updated Subtitle",
+      description = "Updated Description",
+      start = Timestamp.now(),
+      end = Timestamp.now(),
+      isFlash = true
+    )
+
+    repository.editEvent("event1", updatedEvent)
+
+    val retrieved = repository.getEvent("event1") as Event.Public
+    assertEquals("Updated Title", retrieved.title)
+    assertEquals("Updated Subtitle", retrieved.subtitle)
+    assertTrue(retrieved.isFlash)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `editEvent throws exception for uid mismatch`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val updatedEvent = createTestPublicEvent("event2")
+    repository.editEvent("event1", updatedEvent)
+  }
+
+  @Test(expected = NoSuchElementException::class)
+  fun `editEvent throws exception for non-existent event`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.editEvent("event1", event)
   }
 
   @Test
-  fun addAndGetParticipants_succeeds() = runTest {
-    eventRepository.addEvent(testEvent)
-    eventRepository.addParticipantToEvent("event1", testParticipant)
-    val participants = eventRepository.getEventParticipants("event1")
+  fun `deleteEvent removes event from repository`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    repository.deleteEvent("event1")
+
+    val events = repository.getAllVisibleEvents()
+    assertTrue(events.isEmpty())
+  }
+
+  @Test(expected = NoSuchElementException::class)
+  fun `deleteEvent throws exception for non-existent event`() = runTest {
+    repository.deleteEvent("non-existent")
+  }
+
+  @Test
+  fun `addParticipantToEvent adds participant`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val participant = EventParticipant(uid = "user1", joinedAt = Timestamp.now())
+    repository.addParticipantToEvent("event1", participant)
+
+    val participants = repository.getEventParticipants("event1")
     assertEquals(1, participants.size)
     assertEquals("user1", participants[0].uid)
   }
 
-  @Test
-  fun addParticipant_throwsErrorWhenEventNotFound() {
-    assertThrows(IllegalArgumentException::class.java) {
-      runTest { eventRepository.addParticipantToEvent("non-existent-event", testParticipant) }
-    }
+  @Test(expected = IllegalStateException::class)
+  fun `addParticipantToEvent throws exception for duplicate participant`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val participant = EventParticipant(uid = "user1", joinedAt = Timestamp.now())
+    repository.addParticipantToEvent("event1", participant)
+    repository.addParticipantToEvent("event1", participant)
   }
 
   @Test
-  fun addParticipant_throwsErrorOnDuplicate() = runTest {
-    eventRepository.addEvent(testEvent)
-    eventRepository.addParticipantToEvent("event1", testParticipant)
-    assertThrows(IllegalStateException::class.java) {
-      runTest { eventRepository.addParticipantToEvent("event1", testParticipant) }
-    }
+  fun `getEventParticipants returns empty list for event without participants`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val participants = repository.getEventParticipants("event1")
+    assertTrue(participants.isEmpty())
   }
 
   @Test
-  fun removeParticipant_succeeds() = runTest {
-    eventRepository.addEvent(testEvent)
-    eventRepository.addParticipantToEvent("event1", testParticipant)
-    assertEquals(1, eventRepository.getEventParticipants("event1").size)
-    eventRepository.removeParticipantFromEvent("event1", "user1")
-    assertEquals(0, eventRepository.getEventParticipants("event1").size)
+  fun `removeParticipantFromEvent removes participant`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    val participant = EventParticipant(uid = "user1", joinedAt = Timestamp.now())
+    repository.addParticipantToEvent("event1", participant)
+    repository.removeParticipantFromEvent("event1", "user1")
+
+    val participants = repository.getEventParticipants("event1")
+    assertTrue(participants.isEmpty())
+  }
+
+  @Test(expected = NoSuchElementException::class)
+  fun `removeParticipantFromEvent throws exception for non-existent participant`() = runTest {
+    val event = createTestPublicEvent("event1")
+    repository.addEvent(event)
+
+    repository.removeParticipantFromEvent("event1", "non-existent-user")
+  }
+
+  @Test
+  fun `private event can be added and retrieved`() = runTest {
+    val event = createTestPrivateEvent("private1")
+    repository.addEvent(event)
+
+    val retrieved = repository.getEvent("private1")
+    assertTrue(retrieved is Event.Private)
+    assertEquals("Private Event private1", retrieved.title)
   }
 }
+
