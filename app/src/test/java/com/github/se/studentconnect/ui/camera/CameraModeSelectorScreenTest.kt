@@ -219,4 +219,250 @@ class CameraModeSelectorScreenTest {
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
+
+  @Test
+  fun handleStoryUpload_successfulUpload_invokesOnStoryAcceptedCallback() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns mockStory
+
+    var onStoryAcceptedCalled = false
+    var capturedUri: Uri? = null
+    var capturedIsVideo: Boolean? = null
+    var capturedEvent: Event? = null
+
+    val result =
+        handleStoryUpload(
+            mediaUri = mockUri,
+            isVideo = true,
+            selectedEvent = mockEvent,
+            isUploading = false,
+            context = mockContext,
+            lifecycleOwner = mockLifecycleOwner,
+            storyRepository = mockStoryRepository,
+            onUploadStateChange = {},
+            onStoryAccepted = { uri, isVideo, event ->
+              onStoryAcceptedCalled = true
+              capturedUri = uri
+              capturedIsVideo = isVideo
+              capturedEvent = event
+            })
+
+    // Wait for coroutine to complete
+    testScheduler.advanceUntilIdle()
+
+    assert(result) { "Expected handleStoryUpload to return true" }
+    assert(onStoryAcceptedCalled) { "Expected onStoryAccepted callback to be invoked" }
+    assert(capturedUri == mockUri) { "Expected captured URI to match mockUri" }
+    assert(capturedIsVideo == true) { "Expected captured isVideo to be true" }
+    assert(capturedEvent == mockEvent) { "Expected captured event to match mockEvent" }
+  }
+
+  @Test
+  fun handleStoryUpload_failedUpload_doesNotInvokeOnStoryAccepted() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns null
+
+    var onStoryAcceptedCalled = false
+
+    val result =
+        handleStoryUpload(
+            mediaUri = mockUri,
+            isVideo = false,
+            selectedEvent = mockEvent,
+            isUploading = false,
+            context = mockContext,
+            lifecycleOwner = mockLifecycleOwner,
+            storyRepository = mockStoryRepository,
+            onUploadStateChange = {},
+            onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true })
+
+    // Wait for coroutine to complete
+    testScheduler.advanceUntilIdle()
+
+    assert(result) { "Expected handleStoryUpload to return true" }
+    assert(!onStoryAcceptedCalled) {
+      "Expected onStoryAccepted callback NOT to be invoked when upload fails"
+    }
+  }
+
+  @Test
+  fun handleStoryUpload_exceptionDuringUpload_doesNotInvokeOnStoryAccepted() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } throws
+        Exception("Network error")
+
+    var onStoryAcceptedCalled = false
+
+    val result =
+        handleStoryUpload(
+            mediaUri = mockUri,
+            isVideo = false,
+            selectedEvent = mockEvent,
+            isUploading = false,
+            context = mockContext,
+            lifecycleOwner = mockLifecycleOwner,
+            storyRepository = mockStoryRepository,
+            onUploadStateChange = {},
+            onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true })
+
+    // Wait for coroutine to complete
+    testScheduler.advanceUntilIdle()
+
+    assert(result) { "Expected handleStoryUpload to return true even on exception" }
+    assert(!onStoryAcceptedCalled) {
+      "Expected onStoryAccepted callback NOT to be invoked when exception occurs"
+    }
+  }
+
+  @Test
+  fun handleStoryUpload_callsOnUploadStateChangeCorrectly() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns mockStory
+
+    val stateChanges = mutableListOf<Boolean>()
+
+    val result =
+        handleStoryUpload(
+            mediaUri = mockUri,
+            isVideo = false,
+            selectedEvent = mockEvent,
+            isUploading = false,
+            context = mockContext,
+            lifecycleOwner = mockLifecycleOwner,
+            storyRepository = mockStoryRepository,
+            onUploadStateChange = { state -> stateChanges.add(state) },
+            onStoryAccepted = { _, _, _ -> })
+
+    // Wait for coroutine to complete
+    testScheduler.advanceUntilIdle()
+
+    assert(result) { "Expected handleStoryUpload to return true" }
+    assert(stateChanges.size >= 2) {
+      "Expected at least 2 state changes (true then false), got ${stateChanges.size}"
+    }
+    assert(stateChanges.first() == true) { "Expected first state change to be true (uploading)" }
+    assert(stateChanges.last() == false) {
+      "Expected last state change to be false (upload complete)"
+    }
+  }
+
+  @Test
+  fun handleStoryUpload_resetsStateInFinallyBlock_onSuccess() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns mockStory
+
+    var finalState: Boolean? = null
+
+    handleStoryUpload(
+        mediaUri = mockUri,
+        isVideo = false,
+        selectedEvent = mockEvent,
+        isUploading = false,
+        context = mockContext,
+        lifecycleOwner = mockLifecycleOwner,
+        storyRepository = mockStoryRepository,
+        onUploadStateChange = { state -> finalState = state },
+        onStoryAccepted = { _, _, _ -> })
+
+    testScheduler.advanceUntilIdle()
+
+    assert(finalState == false) { "Expected upload state to be reset to false in finally block" }
+  }
+
+  @Test
+  fun handleStoryUpload_resetsStateInFinallyBlock_onFailure() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns null
+
+    var finalState: Boolean? = null
+
+    handleStoryUpload(
+        mediaUri = mockUri,
+        isVideo = false,
+        selectedEvent = mockEvent,
+        isUploading = false,
+        context = mockContext,
+        lifecycleOwner = mockLifecycleOwner,
+        storyRepository = mockStoryRepository,
+        onUploadStateChange = { state -> finalState = state },
+        onStoryAccepted = { _, _, _ -> })
+
+    testScheduler.advanceUntilIdle()
+
+    assert(finalState == false) {
+      "Expected upload state to be reset to false in finally block even on failure"
+    }
+  }
+
+  @Test
+  fun handleStoryUpload_resetsStateInFinallyBlock_onException() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } throws
+        RuntimeException("Test error")
+
+    var finalState: Boolean? = null
+
+    handleStoryUpload(
+        mediaUri = mockUri,
+        isVideo = false,
+        selectedEvent = mockEvent,
+        isUploading = false,
+        context = mockContext,
+        lifecycleOwner = mockLifecycleOwner,
+        storyRepository = mockStoryRepository,
+        onUploadStateChange = { state -> finalState = state },
+        onStoryAccepted = { _, _, _ -> })
+
+    testScheduler.advanceUntilIdle()
+
+    assert(finalState == false) {
+      "Expected upload state to be reset to false in finally block even on exception"
+    }
+  }
+
+  @Test
+  fun handleStoryUpload_withVideoContent_passesCorrectIsVideoFlag() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns mockStory
+
+    var capturedIsVideo: Boolean? = null
+
+    handleStoryUpload(
+        mediaUri = mockUri,
+        isVideo = true,
+        selectedEvent = mockEvent,
+        isUploading = false,
+        context = mockContext,
+        lifecycleOwner = mockLifecycleOwner,
+        storyRepository = mockStoryRepository,
+        onUploadStateChange = {},
+        onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo })
+
+    testScheduler.advanceUntilIdle()
+
+    assert(capturedIsVideo == true) { "Expected isVideo flag to be true for video content" }
+  }
+
+  @Test
+  fun handleStoryUpload_withImageContent_passesCorrectIsVideoFlag() = runTest {
+    every { AuthenticationProvider.currentUser } returns "user123"
+    coEvery { mockStoryRepository.uploadStory(any(), any(), any(), any()) } returns mockStory
+
+    var capturedIsVideo: Boolean? = null
+
+    handleStoryUpload(
+        mediaUri = mockUri,
+        isVideo = false,
+        selectedEvent = mockEvent,
+        isUploading = false,
+        context = mockContext,
+        lifecycleOwner = mockLifecycleOwner,
+        storyRepository = mockStoryRepository,
+        onUploadStateChange = {},
+        onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo })
+
+    testScheduler.advanceUntilIdle()
+
+    assert(capturedIsVideo == false) { "Expected isVideo flag to be false for image content" }
+  }
 }
