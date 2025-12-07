@@ -9,6 +9,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.launch
 
+/** ViewModel for creating and editing Public events. Manages [CreateEventUiState.Public]. */
 class CreatePublicEventViewModel :
     BaseCreateEventViewModel<CreateEventUiState.Public>(CreateEventUiState.Public()) {
 
@@ -25,7 +26,7 @@ class CreatePublicEventViewModel :
     _uiState.value = uiState.value.copy(tags = newTags)
   }
 
-  override suspend fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
+  override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
     val start = timestampFrom(s.startDate!!, s.startTime)
     val end = timestampFrom(s.endDate!!, s.endTime)

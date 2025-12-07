@@ -9,10 +9,11 @@ import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.launch
 
+/** ViewModel for creating and editing Private events. Manages [CreateEventUiState.Private]. */
 class CreatePrivateEventViewModel :
     BaseCreateEventViewModel<CreateEventUiState.Private>(CreateEventUiState.Private()) {
 
-  override suspend fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
+  override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
     val start = timestampFrom(s.startDate!!, s.startTime)
     val end = timestampFrom(s.endDate!!, s.endTime)

@@ -23,9 +23,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 
+/** Data class to group test tags for the shell, reducing parameter count. */
+data class CreateEventShellTestTags(
+    val scaffold: String,
+    val topBar: String,
+    val backButton: String,
+    val scrollColumn: String,
+    val saveButton: String
+)
+
 /**
- * Shared Shell for Event Creation. Allows passing specific testTags to maintain compatibility with
- * existing tests.
+ * Shared Shell for Event Creation. Handles the Scaffold, TopAppBar, Scroll state, and the Save
+ * button animation.
+ *
+ * @param title The screen title.
+ * @param canSave Boolean indicating if the save button is enabled.
+ * @param onSave Callback for the save action.
+ * @param testTags Grouped test tags.
+ * @param content The form content to display.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,11 +50,7 @@ fun CreateEventShell(
     title: String,
     canSave: Boolean,
     onSave: () -> Unit,
-    scaffoldTestTag: String,
-    topBarTestTag: String,
-    backButtonTestTag: String,
-    scrollColumnTestTag: String,
-    saveButtonTestTag: String,
+    testTags: CreateEventShellTestTags,
     content: @Composable ColumnScope.(onFocusChange: (Boolean) -> Unit) -> Unit
 ) {
   val scrollState = rememberScrollState()
@@ -49,33 +60,29 @@ fun CreateEventShell(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
 
+  // Handle back press to clear focus first
   BackHandler(enabled = isAnyFieldFocused) {
     focusManager.clearFocus()
     keyboardController?.hide()
   }
 
+  // Hide keyboard when focus is lost
   LaunchedEffect(isAnyFieldFocused) {
     if (!isAnyFieldFocused) {
       keyboardController?.hide()
     }
   }
 
-  val buttonWidthFraction by
-      animateFloatAsState(
-          targetValue = if (isAtBottom) 0.9f else 0.35f,
-          animationSpec = tween(durationMillis = 300),
-          label = "buttonWidthFraction")
-
   Box(modifier = modifier.fillMaxSize()) {
     Scaffold(
-        modifier = Modifier.testTag(scaffoldTestTag),
+        modifier = Modifier.testTag(testTags.scaffold),
         topBar = {
           TopAppBar(
-              modifier = Modifier.testTag(topBarTestTag),
+              modifier = Modifier.testTag(testTags.topBar),
               title = { Text(text = title) },
               navigationIcon = {
                 IconButton(
-                    modifier = Modifier.testTag(backButtonTestTag),
+                    modifier = Modifier.testTag(testTags.backButton),
                     onClick = { navController?.popBackStack() }) {
                       Icon(
                           imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -89,7 +96,7 @@ fun CreateEventShell(
                       .verticalScroll(scrollState)
                       .padding(paddingValues)
                       .padding(horizontal = 16.dp)
-                      .testTag(scrollColumnTestTag),
+                      .testTag(testTags.scrollColumn),
               verticalArrangement = Arrangement.spacedBy(12.dp),
               horizontalAlignment = Alignment.CenterHorizontally,
           ) {
@@ -98,39 +105,62 @@ fun CreateEventShell(
           }
         }
 
-    Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-      Box(
-          modifier =
-              Modifier.fillMaxWidth().height(90.dp).padding(horizontal = 16.dp, vertical = 16.dp)) {
-            Surface(
-                modifier =
-                    Modifier.testTag(saveButtonTestTag)
-                        .fillMaxWidth(buttonWidthFraction)
-                        .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(28.dp)),
-                color =
-                    if (canSave) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.surfaceVariant,
-                shadowElevation = 6.dp,
-                enabled = canSave,
-                onClick = { if (canSave) onSave() }) {
-                  Row(
-                      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                      horizontalArrangement = Arrangement.Center,
-                      verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.SaveAlt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            stringResource(R.string.button_save),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimary)
-                      }
-                }
-          }
-    }
+    SaveButtonOverlay(
+        modifier = Modifier.align(Alignment.BottomCenter),
+        isAtBottom = isAtBottom,
+        canSave = canSave,
+        onSave = onSave,
+        testTag = testTags.saveButton)
+  }
+}
+
+/** Extracted Composable for the Save Button to reduce complexity of the main Shell. */
+@Composable
+private fun SaveButtonOverlay(
+    modifier: Modifier,
+    isAtBottom: Boolean,
+    canSave: Boolean,
+    onSave: () -> Unit,
+    testTag: String
+) {
+  val buttonWidthFraction by
+      animateFloatAsState(
+          targetValue = if (isAtBottom) 0.9f else 0.35f,
+          animationSpec = tween(durationMillis = 300),
+          label = "buttonWidthFraction")
+
+  Box(modifier = modifier) {
+    Box(
+        modifier =
+            Modifier.fillMaxWidth().height(90.dp).padding(horizontal = 16.dp, vertical = 16.dp)) {
+          Surface(
+              modifier =
+                  Modifier.testTag(testTag)
+                      .fillMaxWidth(buttonWidthFraction)
+                      .align(if (isAtBottom) Alignment.Center else Alignment.CenterEnd)
+                      .height(56.dp)
+                      .clip(RoundedCornerShape(28.dp)),
+              color =
+                  if (canSave) MaterialTheme.colorScheme.primary
+                  else MaterialTheme.colorScheme.surfaceVariant,
+              shadowElevation = 6.dp,
+              enabled = canSave,
+              onClick = { if (canSave) onSave() }) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Icon(
+                          imageVector = Icons.Default.SaveAlt,
+                          contentDescription = null,
+                          tint = MaterialTheme.colorScheme.onPrimary)
+                      Spacer(modifier = Modifier.width(12.dp))
+                      Text(
+                          stringResource(R.string.button_save),
+                          style = MaterialTheme.typography.titleMedium,
+                          color = MaterialTheme.colorScheme.onPrimary)
+                    }
+              }
+        }
   }
 }

@@ -29,6 +29,43 @@ import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.LocalDate
 import java.time.LocalTime
 
+// --- Helper Data Classes to reduce parameter count ---
+
+/** Holds state values for Date/Time fields. */
+data class DateTimeState(
+    val startDate: String,
+    val startTime: LocalTime,
+    val endDate: String,
+    val endTime: LocalTime
+)
+
+/** Holds callbacks for Date/Time fields. */
+data class DateTimeCallbacks(
+    val onStartDateChange: (LocalDate?) -> Unit,
+    val onStartTimeChange: (LocalTime) -> Unit,
+    val onEndDateChange: (LocalDate?) -> Unit,
+    val onEndTimeChange: (LocalTime) -> Unit
+)
+
+/** Holds state values for Participants and Fee fields. */
+data class ParticipantsFeeState(
+    val numberOfParticipants: String,
+    val hasParticipationFee: Boolean,
+    val participationFee: String,
+    val isFlash: Boolean
+)
+
+/** Holds callbacks for Participants and Fee fields. */
+data class ParticipantsFeeCallbacks(
+    val onParticipantsChange: (String) -> Unit,
+    val onHasFeeChange: (Boolean) -> Unit,
+    val onFeeStringChange: (String) -> Unit,
+    val onIsFlashChange: (Boolean) -> Unit
+)
+
+// --- Composables ---
+
+/** Composable for Title and Description input fields. */
 @Composable
 fun EventTitleAndDescriptionFields(
     title: String,
@@ -62,6 +99,7 @@ fun EventTitleAndDescriptionFields(
   )
 }
 
+/** Composable for selecting an event banner image. */
 @Composable
 fun EventBannerField(
     bannerImageUri: Uri?,
@@ -103,6 +141,7 @@ fun EventBannerField(
       }
 }
 
+/** Composable for Location input. */
 @Composable
 fun EventLocationField(
     location: Location?,
@@ -117,19 +156,17 @@ fun EventLocationField(
       onLocationChange = onLocationChange)
 }
 
+/**
+ * Composable for Start and End Date/Time selection. Uses [DateTimeState] and [DateTimeCallbacks] to
+ * group parameters.
+ */
 @Composable
 fun EventDateTimeFields(
-    startDate: String,
-    onStartDateChange: (LocalDate?) -> Unit,
+    state: DateTimeState,
+    callbacks: DateTimeCallbacks,
     startDateTag: String,
-    startTime: LocalTime,
-    onStartTimeChange: (LocalTime) -> Unit,
     startTimeTag: String,
-    endDate: String,
-    onEndDateChange: (LocalDate?) -> Unit,
     endDateTag: String,
-    endTime: LocalTime,
-    onEndTimeChange: (LocalTime) -> Unit,
     endTimeTag: String
 ) {
   val wideFieldWeight = 0.7f
@@ -143,14 +180,14 @@ fun EventDateTimeFields(
         modifier = Modifier.weight(wideFieldWeight).testTag(startDateTag),
         label = stringResource(R.string.event_label_start_date),
         placeholder = stringResource(R.string.event_placeholder_date),
-        initialValue = startDate,
-        onDateChange = onStartDateChange,
+        initialValue = state.startDate,
+        onDateChange = callbacks.onStartDateChange,
         required = true)
 
     TimePicker(
         modifier = Modifier.testTag(startTimeTag),
-        time = startTime,
-        onTimeChange = onStartTimeChange)
+        time = state.startTime,
+        onTimeChange = callbacks.onStartTimeChange)
   }
 
   Row(
@@ -162,28 +199,28 @@ fun EventDateTimeFields(
         modifier = Modifier.weight(wideFieldWeight).testTag(endDateTag),
         label = stringResource(R.string.event_label_end_date),
         placeholder = stringResource(R.string.event_placeholder_date),
-        initialValue = endDate,
-        onDateChange = onEndDateChange,
+        initialValue = state.endDate,
+        onDateChange = callbacks.onEndDateChange,
         required = true)
 
     TimePicker(
-        modifier = Modifier.testTag(endTimeTag), time = endTime, onTimeChange = onEndTimeChange)
+        modifier = Modifier.testTag(endTimeTag),
+        time = state.endTime,
+        onTimeChange = callbacks.onEndTimeChange)
   }
 }
 
+/**
+ * Composable for Participants, Fees, and Flash settings. Uses [ParticipantsFeeState] and
+ * [ParticipantsFeeCallbacks] to group parameters.
+ */
 @Composable
 fun EventParticipantsAndFeesFields(
-    numberOfParticipantsString: String,
-    onParticipantsChange: (String) -> Unit,
+    state: ParticipantsFeeState,
+    callbacks: ParticipantsFeeCallbacks,
     participantsTag: String,
-    hasParticipationFee: Boolean,
-    onHasFeeChange: (Boolean) -> Unit,
     feeSwitchTag: String,
-    participationFeeString: String,
-    onFeeStringChange: (String) -> Unit,
     feeInputTag: String,
-    isFlash: Boolean,
-    onIsFlashChange: (Boolean) -> Unit,
     flashSwitchTag: String,
     onFocusChange: (Boolean) -> Unit
 ) {
@@ -195,8 +232,8 @@ fun EventParticipantsAndFeesFields(
             onFocusChange(it.isFocused)
           },
       label = stringResource(R.string.event_label_participants),
-      value = numberOfParticipantsString,
-      onValueChange = onParticipantsChange,
+      value = state.numberOfParticipants,
+      onValueChange = callbacks.onParticipantsChange,
   )
 
   Row(
@@ -210,17 +247,17 @@ fun EventParticipantsAndFeesFields(
               onFocusChange(it.isFocused)
             },
         label = stringResource(R.string.event_label_fees),
-        value = participationFeeString,
-        onValueChange = onFeeStringChange,
-        enabled = hasParticipationFee,
+        value = state.participationFee,
+        onValueChange = callbacks.onFeeStringChange,
+        enabled = state.hasParticipationFee,
     )
 
     Switch(
         modifier = Modifier.testTag(feeSwitchTag),
-        checked = hasParticipationFee,
+        checked = state.hasParticipationFee,
         onCheckedChange = {
-          onHasFeeChange(it)
-          if (!it) onFeeStringChange("")
+          callbacks.onHasFeeChange(it)
+          if (!it) callbacks.onFeeStringChange("")
         },
     )
   }
@@ -238,8 +275,9 @@ fun EventParticipantsAndFeesFields(
     val context = LocalContext.current
     Switch(
         modifier = Modifier.testTag(flashSwitchTag),
-        checked = isFlash,
+        checked = state.isFlash,
         onCheckedChange = { DialogNotImplemented(context) },
+        // onIsFlashChange parameter was unused in original logic, removed to fix Sonar issue.
     )
   }
 }

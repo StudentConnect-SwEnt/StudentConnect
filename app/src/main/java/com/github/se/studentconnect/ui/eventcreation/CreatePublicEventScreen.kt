@@ -26,6 +26,7 @@ import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.navigation.Route
 import java.time.format.DateTimeFormatter
 
+/** Constant Test Tags for the Public Event Screen */
 object CreatePublicEventScreenTestTags {
   const val TOP_APP_BAR = "topAppBar"
   const val BACK_BUTTON = "backButton"
@@ -50,6 +51,13 @@ object CreatePublicEventScreenTestTags {
   const val TAG_SELECTOR = "tagSelector"
 }
 
+/**
+ * Screen for creating or editing a Public Event.
+ *
+ * @param navController Navigation controller for screen transitions.
+ * @param existingEventId Optional ID of an existing event to edit.
+ * @param createPublicEventViewModel ViewModel managing the screen state and logic.
+ */
 @Composable
 fun CreatePublicEventScreen(
     navController: NavHostController?,
@@ -81,6 +89,14 @@ fun CreatePublicEventScreen(
     mutableStateOf(Activities.filterOptions.firstOrNull() ?: "")
   }
 
+  val shellTestTags =
+      CreateEventShellTestTags(
+          scaffold = CreatePublicEventScreenTestTags.SCAFFOLD,
+          topBar = CreatePublicEventScreenTestTags.TOP_APP_BAR,
+          backButton = CreatePublicEventScreenTestTags.BACK_BUTTON,
+          scrollColumn = CreatePublicEventScreenTestTags.SCROLL_COLUMN,
+          saveButton = CreatePublicEventScreenTestTags.SAVE_BUTTON)
+
   CreateEventShell(
       navController = navController,
       title =
@@ -88,11 +104,7 @@ fun CreatePublicEventScreen(
           else stringResource(R.string.title_create_public_event),
       canSave = canSave,
       onSave = { createPublicEventViewModel.saveEvent() },
-      scaffoldTestTag = CreatePublicEventScreenTestTags.SCAFFOLD,
-      topBarTestTag = CreatePublicEventScreenTestTags.TOP_APP_BAR,
-      backButtonTestTag = CreatePublicEventScreenTestTags.BACK_BUTTON,
-      scrollColumnTestTag = CreatePublicEventScreenTestTags.SCROLL_COLUMN,
-      saveButtonTestTag = CreatePublicEventScreenTestTags.SAVE_BUTTON) { onFocusChange ->
+      testTags = shellTestTags) { onFocusChange ->
 
         // Title
         FormTextField(
@@ -174,32 +186,42 @@ fun CreatePublicEventScreen(
             onLocationChange = createPublicEventViewModel::updateLocation,
             testTag = CreatePublicEventScreenTestTags.LOCATION_INPUT)
 
+        // Date and Time (Grouped)
         EventDateTimeFields(
-            startDate = uiState.startDate?.format(dateFormatter) ?: "",
-            onStartDateChange = createPublicEventViewModel::updateStartDate,
+            state =
+                DateTimeState(
+                    startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                    startTime = uiState.startTime,
+                    endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                    endTime = uiState.endTime),
+            callbacks =
+                DateTimeCallbacks(
+                    onStartDateChange = createPublicEventViewModel::updateStartDate,
+                    onStartTimeChange = createPublicEventViewModel::updateStartTime,
+                    onEndDateChange = createPublicEventViewModel::updateEndDate,
+                    onEndTimeChange = createPublicEventViewModel::updateEndTime),
             startDateTag = CreatePublicEventScreenTestTags.START_DATE_INPUT,
-            startTime = uiState.startTime,
-            onStartTimeChange = createPublicEventViewModel::updateStartTime,
             startTimeTag = CreatePublicEventScreenTestTags.START_TIME_BUTTON,
-            endDate = uiState.endDate?.format(dateFormatter) ?: "",
-            onEndDateChange = createPublicEventViewModel::updateEndDate,
             endDateTag = CreatePublicEventScreenTestTags.END_DATE_INPUT,
-            endTime = uiState.endTime,
-            onEndTimeChange = createPublicEventViewModel::updateEndTime,
             endTimeTag = CreatePublicEventScreenTestTags.END_TIME_BUTTON)
 
         EventParticipantsAndFeesFields(
-            numberOfParticipantsString = uiState.numberOfParticipantsString,
-            onParticipantsChange = createPublicEventViewModel::updateNumberOfParticipantsString,
+            state =
+                ParticipantsFeeState(
+                    numberOfParticipants = uiState.numberOfParticipantsString,
+                    hasParticipationFee = uiState.hasParticipationFee,
+                    participationFee = uiState.participationFeeString,
+                    isFlash = uiState.isFlash),
+            callbacks =
+                ParticipantsFeeCallbacks(
+                    onParticipantsChange =
+                        createPublicEventViewModel::updateNumberOfParticipantsString,
+                    onHasFeeChange = createPublicEventViewModel::updateHasParticipationFee,
+                    onFeeStringChange = createPublicEventViewModel::updateParticipationFeeString,
+                    onIsFlashChange = createPublicEventViewModel::updateIsFlash),
             participantsTag = CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
-            hasParticipationFee = uiState.hasParticipationFee,
-            onHasFeeChange = createPublicEventViewModel::updateHasParticipationFee,
             feeSwitchTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
-            participationFeeString = uiState.participationFeeString,
-            onFeeStringChange = createPublicEventViewModel::updateParticipationFeeString,
             feeInputTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-            isFlash = uiState.isFlash,
-            onIsFlashChange = createPublicEventViewModel::updateIsFlash,
             flashSwitchTag = CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH,
             onFocusChange = onFocusChange)
 
