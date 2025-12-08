@@ -104,68 +104,10 @@ class OrganizationProfileViewModel(
           return@launch
         }
 
-        // Fetch events for this organization
-        val events =
-            try {
-              eventRepository
-                  .getEventsByOrganization(organizationId)
-                  .toOrganizationEvents(appContext)
-            } catch (e: Exception) {
-              Log.e(TAG, "Failed to fetch events for organization $organizationId", e)
-              emptyList() // If fetching events fails, use empty list
-            }
-
-        // Fetch members for this organization
-        // Ensure creator is included in members list with appropriate role
-        val members =
-            try {
-              val allMemberUids = organization.memberUids.toMutableList()
-
-              // Add creator if not already in memberUids
-              if (!allMemberUids.contains(organization.createdBy)) {
-                allMemberUids.add(0, organization.createdBy) // Add creator at the beginning
-              }
-
-              // Fetch all members and assign roles
-              allMemberUids.mapNotNull { uid ->
-                try {
-                  val user = userRepository.getUserById(uid)
-                  user?.let {
-                    // Creator gets "Owner" role, others get "Member"
-                    val role = if (uid == organization.createdBy) "Owner" else "Member"
-                    it.toOrganizationMember(role)
-                  }
-                } catch (e: Exception) {
-                  Log.e(TAG, "Failed to fetch user with ID $uid for organization member list", e)
-                  null
-                }
-              }
-            } catch (e: Exception) {
-              Log.e(TAG, "Failed to fetch members for organization $organizationId", e)
-              emptyList() // If fetching members fails, use empty list
-            }
-
-        // Check if current user is a member or creator of this organization
-        val isMember =
-            currentUserId?.let { uid ->
-              organization.memberUids.contains(uid) || organization.createdBy == uid
-            } ?: false
-
-        // Check if current user is following this organization
-        // Members automatically follow, so check membership first
-        val isFollowing =
-            if (isMember) {
-              true // Members always "follow" the organization
-            } else {
-              currentUserId?.let { uid ->
-                try {
-                  val followedOrgs = userRepository.getFollowedOrganizations(uid)
-                  followedOrgs.contains(organizationId)
-                } catch (e: Exception) {
-                  false
-                }
-              } ?: false
-            }
+        val events = fetchOrganizationEvents(organizationId)
+        val members = fetchOrganizationMembers(organization)
+        val isMember = checkIfUserIsMember(organization)
+        val isFollowing = checkIfUserIsFollowing(isMember, organizationId)
 
         val organizationProfile =
             organization.toOrganizationProfile(
@@ -182,6 +124,76 @@ class OrganizationProfileViewModel(
       }
     }
   }
+
+  /** Fetches events for the organization. Returns empty list on failure. */
+  private suspend fun fetchOrganizationEvents(orgId: String) =
+      try {
+        eventRepository.getEventsByOrganization(orgId).toOrganizationEvents(appContext)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to fetch events for organization $orgId", e)
+        emptyList()
+      }
+
+  /** Fetches members for the organization. Returns empty list on failure. */
+  private suspend fun fetchOrganizationMembers(
+      organization: com.github.se.studentconnect.model.organization.Organization
+  ) =
+      try {
+        val allMemberUids = buildMemberUidsList(organization)
+        allMemberUids.mapNotNull { uid -> fetchMemberWithRole(uid, organization.createdBy) }
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to fetch members for organization ${organization.organizationId}", e)
+        emptyList()
+      }
+
+  /** Builds the list of member UIDs, ensuring creator is included. */
+  private fun buildMemberUidsList(
+      organization: com.github.se.studentconnect.model.organization.Organization
+  ): List<String> {
+    val allMemberUids = organization.memberUids.toMutableList()
+    if (!allMemberUids.contains(organization.createdBy)) {
+      allMemberUids.add(0, organization.createdBy)
+    }
+    return allMemberUids
+  }
+
+  /** Fetches a single member and assigns their role. Returns null on failure. */
+  private suspend fun fetchMemberWithRole(uid: String, creatorId: String) =
+      try {
+        val user = userRepository.getUserById(uid)
+        user?.let {
+          val role = if (uid == creatorId) "Owner" else "Member"
+          it.toOrganizationMember(role)
+        }
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to fetch user with ID $uid for organization member list", e)
+        null
+      }
+
+  /** Checks if the current user is a member or creator of the organization. */
+  private fun checkIfUserIsMember(
+      organization: com.github.se.studentconnect.model.organization.Organization
+  ) =
+      currentUserId?.let { uid ->
+        organization.memberUids.contains(uid) || organization.createdBy == uid
+      } ?: false
+
+  /** Checks if the current user is following the organization. */
+  private suspend fun checkIfUserIsFollowing(isMember: Boolean, orgId: String) =
+      if (isMember) {
+        true
+      } else {
+        currentUserId?.let { uid -> isUserFollowingOrganization(uid, orgId) } ?: false
+      }
+
+  /** Checks if a specific user is following the organization. Returns false on error. */
+  private suspend fun isUserFollowingOrganization(uid: String, orgId: String) =
+      try {
+        val followedOrgs = userRepository.getFollowedOrganizations(uid)
+        followedOrgs.contains(orgId)
+      } catch (e: Exception) {
+        false
+      }
 
   /**
    * Selects a tab in the organization profile.
