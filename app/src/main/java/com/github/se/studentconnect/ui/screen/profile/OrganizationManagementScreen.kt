@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -422,7 +423,9 @@ private fun OrganizationCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
                 Text(
-                    text = stringResource(R.string.text_members_count, memberCount),
+                    text =
+                        pluralStringResource(
+                            R.plurals.text_members_count, memberCount, memberCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }

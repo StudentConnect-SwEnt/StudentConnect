@@ -592,7 +592,10 @@
     <string name="button_create_new_organization">Create New Organization</string>
     <string name="button_join_organization">Join Organization</string>
     <string name="text_your_organizations">Your Organizations</string>
-    <string name="text_members_count">%d members</string>
+    <plurals name="text_members_count">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
     
     <!-- Profile Header -->
     <string name="label_friends">Friends</string>
