@@ -593,12 +593,10 @@
     <string name="button_join_organization">Join Organization</string>
     <string name="text_your_organizations">Your Organizations</string>
     <string name="text_members_count">%d members</string>
-    <string name="content_description_back">Back</string>
     
     <!-- Profile Header -->
     <string name="label_friends">Friends</string>
     <string name="label_events">Events</string>
-    <string name="button_edit">Edit</string>
     <string name="button_card">Card</string>
     <string name="button_organizations">Organizations</string>
     <string name="content_description_edit">Edit</string>
