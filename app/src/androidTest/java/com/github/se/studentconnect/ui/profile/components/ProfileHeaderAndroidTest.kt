@@ -38,8 +38,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 42, eventsCount = 15),
           onFriendsClick = {},
           onEventsClick = {},
-          onEditClick = {},
-          onUserCardClick = {})
+          actions = ProfileActions(onEditClick = {}, onUserCardClick = {}))
     }
 
     // Verify name
@@ -107,7 +106,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onEditClick = { editClicked = true })
+          actions = ProfileActions(onEditClick = { editClicked = true }))
     }
 
     composeTestRule.onNodeWithText("Edit").performClick()
@@ -124,7 +123,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onUserCardClick = { cardClicked = true })
+          actions = ProfileActions(onUserCardClick = { cardClicked = true }))
     }
 
     composeTestRule.onNodeWithText("Card").performClick()
@@ -139,8 +138,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onEditClick = null,
-          onUserCardClick = {})
+          actions = ProfileActions(onEditClick = null, onUserCardClick = {}))
     }
 
     composeTestRule.onNodeWithText("Edit").assertDoesNotExist()
@@ -155,8 +153,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onEditClick = {},
-          onUserCardClick = null)
+          actions = ProfileActions(onEditClick = {}, onUserCardClick = null))
     }
 
     composeTestRule.onNodeWithText("Edit").assertIsDisplayed()
@@ -263,7 +260,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onEditClick = {})
+          actions = ProfileActions(onEditClick = {}))
     }
 
     composeTestRule.onNodeWithContentDescription("Edit").assertIsDisplayed()
@@ -277,7 +274,7 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
           onFriendsClick = {},
           onEventsClick = {},
-          onUserCardClick = {})
+          actions = ProfileActions(onUserCardClick = {}))
     }
 
     composeTestRule.onNodeWithContentDescription("User Card").assertIsDisplayed()

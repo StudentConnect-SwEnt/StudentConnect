@@ -43,10 +43,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.ui.profile.OrganizationManagementViewModel
 
@@ -91,10 +93,16 @@ fun OrganizationManagementScreen(
       modifier = modifier,
       topBar = {
         TopAppBar(
-            title = { Text("My Organizations", style = MaterialTheme.typography.titleLarge) },
+            title = {
+              Text(
+                  stringResource(R.string.title_my_organizations),
+                  style = MaterialTheme.typography.titleLarge)
+            },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.content_description_back))
               }
             },
             colors =
@@ -119,8 +127,12 @@ fun OrganizationManagementScreen(
                         text = "Error: ${uiState.error}",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.loadUserOrganizations() }) { Text("Retry") }
+                    Spacer(
+                        modifier =
+                            Modifier.height(dimensionResource(R.dimen.org_management_padding)))
+                    Button(onClick = { viewModel.loadUserOrganizations() }) {
+                      Text(stringResource(R.string.button_retry))
+                    }
                   }
                 }
           }
@@ -131,65 +143,110 @@ fun OrganizationManagementScreen(
                 contentAlignment = Alignment.Center) {
                   Column(
                       horizontalAlignment = Alignment.CenterHorizontally,
-                      modifier = Modifier.padding(32.dp)) {
+                      modifier =
+                          Modifier.padding(
+                              dimensionResource(R.dimen.org_management_empty_state_padding))) {
                         Icon(
                             imageVector = Icons.Default.Business,
                             contentDescription = null,
-                            modifier = Modifier.size(80.dp),
+                            modifier =
+                                Modifier.size(
+                                    dimensionResource(R.dimen.org_management_icon_size_large)),
                             tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(
+                            modifier =
+                                Modifier.height(
+                                    dimensionResource(R.dimen.org_management_empty_state_spacing)))
                         Text(
-                            text = "No Organizations Yet",
+                            text = stringResource(R.string.text_no_organizations_yet),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface)
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(
+                            modifier =
+                                Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
                         Text(
-                            text =
-                                "You're not a member of any organizations. Create one or join an existing one!",
+                            text = stringResource(R.string.text_no_organizations_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp))
-                        Spacer(modifier = Modifier.height(32.dp))
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = dimensionResource(R.dimen.org_management_padding)))
+                        Spacer(
+                            modifier =
+                                Modifier.height(
+                                    dimensionResource(R.dimen.org_management_empty_state_padding)))
 
                         // Create Organization Button
                         Button(
                             onClick = onCreateOrganization,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .height(
+                                        dimensionResource(R.dimen.org_management_button_height)),
                             colors =
                                 ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(28.dp)) {
+                            shape =
+                                RoundedCornerShape(
+                                    dimensionResource(
+                                        R.dimen.org_management_button_corner_radius))) {
                               Icon(
                                   imageVector = Icons.Default.Add,
                                   contentDescription = null,
-                                  modifier = Modifier.size(24.dp))
-                              Spacer(modifier = Modifier.width(8.dp))
+                                  modifier =
+                                      Modifier.size(
+                                          dimensionResource(
+                                              R.dimen.org_management_icon_size_small)))
+                              Spacer(
+                                  modifier =
+                                      Modifier.width(
+                                          dimensionResource(R.dimen.org_management_spacing)))
                               Text(
-                                  text = "Create Organization",
-                                  fontSize = 18.sp,
+                                  text = stringResource(R.string.button_create_organization),
+                                  fontSize =
+                                      dimensionResource(R.dimen.org_management_button_text_size)
+                                          .value
+                                          .sp,
                                   fontWeight = FontWeight.SemiBold)
                             }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(
+                            modifier =
+                                Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
 
                         // Join Organization Button
                         Button(
                             onClick = onJoinOrganization,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .height(
+                                        dimensionResource(R.dimen.org_management_button_height)),
                             colors =
                                 ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
-                            shape = RoundedCornerShape(28.dp)) {
+                            shape =
+                                RoundedCornerShape(
+                                    dimensionResource(
+                                        R.dimen.org_management_button_corner_radius))) {
                               Icon(
                                   imageVector = Icons.Default.PersonAdd,
                                   contentDescription = null,
-                                  modifier = Modifier.size(24.dp))
-                              Spacer(modifier = Modifier.width(8.dp))
+                                  modifier =
+                                      Modifier.size(
+                                          dimensionResource(
+                                              R.dimen.org_management_icon_size_small)))
+                              Spacer(
+                                  modifier =
+                                      Modifier.width(
+                                          dimensionResource(R.dimen.org_management_spacing)))
                               Text(
-                                  text = "Join Organization",
-                                  fontSize = 18.sp,
+                                  text = stringResource(R.string.button_join_organization),
+                                  fontSize =
+                                      dimensionResource(R.dimen.org_management_button_text_size)
+                                          .value
+                                          .sp,
                                   fontWeight = FontWeight.SemiBold)
                             }
                       }
@@ -198,15 +255,21 @@ fun OrganizationManagementScreen(
           else -> {
             // Show list of organizations
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                modifier =
+                    Modifier.fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(dimensionResource(R.dimen.org_management_padding)),
+                verticalArrangement =
+                    Arrangement.spacedBy(dimensionResource(R.dimen.org_management_spacing))) {
                   item {
                     Text(
-                        text = "Your Organizations",
+                        text = stringResource(R.string.text_your_organizations),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp))
+                        modifier =
+                            Modifier.padding(
+                                bottom = dimensionResource(R.dimen.org_management_spacing)))
                   }
 
                   items(uiState.userOrganizations) { organization ->
@@ -218,47 +281,73 @@ fun OrganizationManagementScreen(
                   }
 
                   item {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(
+                        modifier =
+                            Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
 
                     // Create New Organization Button
                     Button(
                         onClick = onCreateOrganization,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .height(dimensionResource(R.dimen.org_management_button_height)),
                         colors =
                             ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                        shape = RoundedCornerShape(28.dp)) {
+                        shape =
+                            RoundedCornerShape(
+                                dimensionResource(R.dimen.org_management_button_corner_radius))) {
                           Icon(
                               imageVector = Icons.Default.Add,
                               contentDescription = null,
-                              modifier = Modifier.size(24.dp))
-                          Spacer(modifier = Modifier.width(8.dp))
+                              modifier =
+                                  Modifier.size(
+                                      dimensionResource(R.dimen.org_management_icon_size_small)))
+                          Spacer(
+                              modifier =
+                                  Modifier.width(dimensionResource(R.dimen.org_management_spacing)))
                           Text(
-                              text = "Create New Organization",
-                              fontSize = 16.sp,
+                              text = stringResource(R.string.button_create_new_organization),
+                              fontSize =
+                                  dimensionResource(R.dimen.org_management_button_text_size_small)
+                                      .value
+                                      .sp,
                               fontWeight = FontWeight.Medium)
                         }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(
+                        modifier =
+                            Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
 
                     // Join Organization Button
                     Button(
                         onClick = onJoinOrganization,
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .height(dimensionResource(R.dimen.org_management_button_height)),
                         colors =
                             ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
-                        shape = RoundedCornerShape(28.dp)) {
+                        shape =
+                            RoundedCornerShape(
+                                dimensionResource(R.dimen.org_management_button_corner_radius))) {
                           Icon(
                               imageVector = Icons.Default.PersonAdd,
                               contentDescription = null,
-                              modifier = Modifier.size(24.dp))
-                          Spacer(modifier = Modifier.width(8.dp))
+                              modifier =
+                                  Modifier.size(
+                                      dimensionResource(R.dimen.org_management_icon_size_small)))
+                          Spacer(
+                              modifier =
+                                  Modifier.width(dimensionResource(R.dimen.org_management_spacing)))
                           Text(
-                              text = "Join Organization",
-                              fontSize = 16.sp,
+                              text = stringResource(R.string.button_join_organization),
+                              fontSize =
+                                  dimensionResource(R.dimen.org_management_button_text_size_small)
+                                      .value
+                                      .sp,
                               fontWeight = FontWeight.Medium)
                         }
                   }
@@ -288,30 +377,36 @@ private fun OrganizationCard(
   Card(
       modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-      shape = RoundedCornerShape(16.dp)) {
+      elevation =
+          CardDefaults.cardElevation(
+              defaultElevation = dimensionResource(R.dimen.org_management_card_elevation)),
+      shape = RoundedCornerShape(dimensionResource(R.dimen.org_management_card_corner_radius))) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(dimensionResource(R.dimen.org_management_card_padding)),
             verticalAlignment = Alignment.CenterVertically) {
               // Organization Icon/Avatar
               Box(
                   modifier =
-                      Modifier.size(56.dp)
+                      Modifier.size(dimensionResource(R.dimen.org_management_card_icon_size))
                           .clip(CircleShape)
                           .background(MaterialTheme.colorScheme.primaryContainer)
                           .border(
-                              width = 2.dp,
+                              width = dimensionResource(R.dimen.org_management_card_border_width),
                               color = MaterialTheme.colorScheme.primary,
                               shape = CircleShape),
                   contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Business,
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp),
+                        modifier =
+                            Modifier.size(
+                                dimensionResource(R.dimen.org_management_icon_size_medium)),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer)
                   }
 
-              Spacer(modifier = Modifier.width(16.dp))
+              Spacer(modifier = Modifier.width(dimensionResource(R.dimen.org_management_padding)))
 
               // Organization Info
               Column(modifier = Modifier.weight(1f)) {
@@ -320,14 +415,14 @@ private fun OrganizationCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
                 Text(
                     text = organizationType,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
                 Text(
-                    text = "$memberCount members",
+                    text = stringResource(R.string.text_members_count, memberCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }

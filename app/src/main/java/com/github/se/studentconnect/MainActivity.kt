@@ -450,8 +450,11 @@ internal fun MainAppContent(
                   navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
                 },
                 onJoinOrganization = {
-                  // Join organization functionality - placeholder for now
                   // TODO: Implement join organization flow
+                  // This should navigate to a screen where users can:
+                  // 1. Search for existing organizations
+                  // 2. Request to join an organization
+                  // 3. Handle organization join requests/invitations
                 },
                 onOrganizationClick = { organizationId ->
                   navController.navigate(Route.organizationProfile(organizationId))
