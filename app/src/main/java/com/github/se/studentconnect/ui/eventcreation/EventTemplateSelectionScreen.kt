@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -36,6 +38,9 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.profile.EventListItemCard
 import com.github.se.studentconnect.ui.theme.Dimensions
+import com.github.se.studentconnect.ui.utils.formatShortAddress
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 /** Test tags for the EventTemplateSelectionScreen and its components. */
 object EventTemplateSelectionScreenTestTags {
@@ -60,7 +65,12 @@ fun EventTemplateSelectionScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
 
-  LaunchedEffect(Unit) { viewModel.loadUserEvents() }
+  val currentUserId = remember { Firebase.auth.currentUser?.uid }
+  LaunchedEffect(key1 = currentUserId) {
+    if (!uiState.isLoading && uiState.events.isEmpty()) {
+      viewModel.loadUserEvents()
+    }
+  }
 
   Scaffold(
       modifier = Modifier.testTag(EventTemplateSelectionScreenTestTags.SCAFFOLD),
@@ -85,6 +95,20 @@ fun EventTemplateSelectionScreen(
                   modifier =
                       Modifier.align(Alignment.Center)
                           .testTag(EventTemplateSelectionScreenTestTags.LOADING_INDICATOR))
+            }
+            uiState.errorMessage != null -> {
+              Column(
+                  modifier = Modifier.align(Alignment.Center).padding(Dimensions.SpacingXLarge),
+                  horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = uiState.errorMessage ?: stringResource(R.string.error_generic),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(Dimensions.SpacingNormal))
+                    Button(onClick = { viewModel.loadUserEvents() }) {
+                      Text(text = stringResource(R.string.action_retry))
+                    }
+                  }
             }
             uiState.events.isEmpty() -> {
               Column(
@@ -115,6 +139,13 @@ fun EventTemplateSelectionScreen(
                     item { Spacer(modifier = Modifier.height(Dimensions.SpacingSmall)) }
 
                     items(uiState.events) { event ->
+                      val footer =
+                          if (event.location?.name != null) {
+                            formatShortAddress(event.location!!.name)
+                          } else {
+                            event.description.truncateForFooter()
+                          }
+
                       EventListItemCard(
                           event = event,
                           onClick = {
@@ -127,8 +158,7 @@ fun EventTemplateSelectionScreen(
                                       Route.createPrivateEventFromTemplate(event.uid))
                             }
                           },
-                          // Use Location (or desc) instead of Date for templates
-                          footerText = event.location?.name ?: event.description,
+                          footerText = footer,
                           modifier =
                               Modifier.testTag(
                                   "${EventTemplateSelectionScreenTestTags.EVENT_CARD_PREFIX}${event.uid}"),
@@ -143,3 +173,7 @@ fun EventTemplateSelectionScreen(
         }
       }
 }
+
+// Tronque les descriptions trop longues pour le footer
+private fun String.truncateForFooter(maxLength: Int = 60): String =
+    if (length <= maxLength) this else take(maxLength - 1) + "…"

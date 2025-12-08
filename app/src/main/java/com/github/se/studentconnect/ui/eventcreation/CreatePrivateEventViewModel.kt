@@ -47,7 +47,7 @@ class CreatePrivateEventViewModel :
    * Pre-fills the form with data from an existing event as a template. Unlike prefill(), this does
    * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
    */
-  fun prefillFromTemplate(event: Event.Private) {
+  override fun prefillFromTemplate(event: Event) {
     _uiState.value =
         CreateEventUiState.Private(
             title = event.title,
@@ -63,17 +63,6 @@ class CreatePrivateEventViewModel :
             isFlash = event.isFlash,
             bannerImagePath = event.imageUrl,
         )
-  }
-
-  /**
-   * Loads an existing event as a template for creating a new event. This will pre-fill all fields
-   * except start and end dates.
-   */
-  fun loadEventAsTemplate(eventUid: String) {
-    viewModelScope.launch {
-      val event = eventRepository.getEvent(eventUid)
-      if (event is Event.Private) prefillFromTemplate(event)
-    }
   }
 
   override fun loadEvent(eventUid: String) {

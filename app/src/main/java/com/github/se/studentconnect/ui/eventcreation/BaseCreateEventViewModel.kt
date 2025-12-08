@@ -206,7 +206,26 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     editingEventUid = eventUid
   }
 
-  /** Constructs the Event object from the current UI state. */
+  /**
+   * Pre-fills the form with data from an existing event as a template. Unlike prefill(), this does
+   */
+  open fun prefillFromTemplate(event: Event) {
+    // Default implementation does nothing. Subclasses should override.}
+  }
+
+  /** Loads an existing event by UID and pre-fills the form as a template. */
+  fun loadEventAsTemplate(eventUid: String) {
+    viewModelScope.launch {
+      try {
+        val event = eventRepository.getEvent(eventUid)
+        prefillFromTemplate(event)
+      } catch (e: Throwable) {
+        if (e is java.util.concurrent.CancellationException) throw e
+        e.printStackTrace()
+      }
+    }
+  }
+
   protected abstract fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event
 
   /**

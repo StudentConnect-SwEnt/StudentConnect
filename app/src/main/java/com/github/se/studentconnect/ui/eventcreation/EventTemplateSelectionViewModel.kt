@@ -42,7 +42,17 @@ class EventTemplateSelectionViewModel(
 
   /** Loads all events created by the current user. */
   fun loadUserEvents() {
-    val currentUserId = Firebase.auth.currentUser?.uid ?: return
+    val currentUserId = Firebase.auth.currentUser?.uid
+
+    if (currentUserId == null) {
+      _uiState.value =
+          _uiState.value.copy(
+              events = emptyList(),
+              isLoading = false,
+              errorMessage = null,
+          )
+      return
+    }
 
     _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 

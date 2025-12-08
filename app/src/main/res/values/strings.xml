@@ -583,9 +583,14 @@
 
     <string name="anonymous">Anonymous</string>
 
+    <!-- Generic error + retry -->
+    <string name="error_generic">An error occurred</string>
+    <string name="action_retry">Retry</string>
+
     <!-- Event Template Selection -->
     <string name="title_select_template">Select Template</string>
     <string name="template_no_events">You haven\'t created any events yet</string>
+    <string name="template_footer_default">Event details</string>
     <string name="event_type_public">Public Event</string>
     <string name="event_type_private">Private Event</string>
 
