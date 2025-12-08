@@ -142,7 +142,7 @@ class OrganizationProfileViewModel(
         val allMemberUids = buildMemberUidsList(organization)
         allMemberUids.mapNotNull { uid -> fetchMemberWithRole(uid, organization.createdBy) }
       } catch (e: Exception) {
-        Log.e(TAG, "Failed to fetch members for organization ${organization.organizationId}", e)
+        Log.e(TAG, "Failed to fetch members for organization ${organization.id}", e)
         emptyList()
       }
 
