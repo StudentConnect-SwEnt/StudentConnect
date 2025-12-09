@@ -126,10 +126,12 @@ private object HomeScreenConstants {
   const val STORY_SIZE_DP = 64
   const val STORY_BORDER_WIDTH_DP = 3
   const val STORY_PADDING_TOP_DP = 4
+  const val STORY_ITEM_WIDTH_DP = 80
   const val STORIES_ROW_TOP_PADDING_DP = 0
   const val STORIES_ROW_BOTTOM_PADDING_DP = 12
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
+  const val STORY_VIDEO_SPACER_HEIGHT_DP = 8
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
 }
@@ -141,6 +143,8 @@ object HomeScreenTestTags {
   const val TAB_FOR_YOU = "tab_for_you"
   const val TAB_EVENTS = "tab_events"
   const val TAB_DISCOVER = "tab_discover"
+  const val STORY_VIEWER = "story_viewer"
+  const val STORY_CLOSE_BUTTON = "story_close_button"
 }
 
 /** Sliding tab selector that displays three tabs: For You, Events, and Discover. */
@@ -280,7 +284,7 @@ fun HomeScreen(
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
       onCameraActiveChange = onCameraActiveChange,
-      onClickStory = { e, i -> /* update seen count for story, to be done later */ },
+      onClickStory = { e, i -> /* TODO: update seen count for story */ },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,
@@ -432,7 +436,7 @@ fun HomeScreen(
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
                               }
                             },
-                            onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
+                            onStoryAccepted = { _, _, _ ->
                               // Story upload happens in CameraModeSelectorScreen
                               // After upload completes, refresh only the stories (not everything)
                               onQRScannerClosed()
@@ -562,12 +566,17 @@ fun HomeScreen(
 
                       Toast.makeText(
                               context,
-                              if (success) "Story deleted" else "Failed to delete story",
+                              if (success) context.getString(R.string.story_deleted)
+                              else context.getString(R.string.story_delete_failed),
                               Toast.LENGTH_SHORT)
                           .show()
                       if (success) onRefreshStories()
                     } catch (e: Exception) {
-                      Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                      Toast.makeText(
+                              context,
+                              context.getString(R.string.story_error, e.message),
+                              Toast.LENGTH_SHORT)
+                          .show()
                     }
                   }
                 })
@@ -1021,7 +1030,7 @@ fun StoryItem(
               text = name,
               modifier =
                   Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
-                      .width(80.dp)
+                      .width(HomeScreenConstants.STORY_ITEM_WIDTH_DP.dp)
                       .testTag("story_text_$name"),
               style = MaterialTheme.typography.bodySmall,
               maxLines = 2,
@@ -1116,6 +1125,154 @@ fun StoriesRow(
 }
 
 @Composable
+private fun StoryMediaContent(currentStory: StoryWithUser) {
+  when (currentStory.story.mediaType) {
+    com.github.se.studentconnect.model.story.MediaType.IMAGE -> {
+      StoryImageContent(currentStory)
+    }
+    com.github.se.studentconnect.model.story.MediaType.VIDEO -> {
+      StoryVideoPlaceholder()
+    }
+  }
+}
+
+@Composable
+private fun StoryImageContent(currentStory: StoryWithUser) {
+  androidx.compose.foundation.layout.BoxWithConstraints(
+      modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val screenWidth = maxWidth
+        val screenHeight = maxHeight
+
+        AsyncImage(
+            model =
+                ImageRequest.Builder(LocalContext.current)
+                    .data(currentStory.story.mediaUrl)
+                    .crossfade(true)
+                    .build(),
+            contentDescription =
+                stringResource(R.string.story_image_description, currentStory.username),
+            modifier =
+                Modifier.width(screenHeight).height(screenWidth).graphicsLayer { rotationZ = 90f },
+            contentScale = ContentScale.Crop,
+            onError = {
+              // no image loaded
+            })
+      }
+}
+
+@Composable
+private fun StoryVideoPlaceholder() {
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+          Text(
+              text = stringResource(R.string.story_video),
+              color = Color.White,
+              style = MaterialTheme.typography.headlineSmall)
+          Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_VIDEO_SPACER_HEIGHT_DP.dp))
+          Text(
+              text = stringResource(R.string.story_video_coming_soon),
+              color = Color.White.copy(alpha = 0.7f),
+              style = MaterialTheme.typography.bodyMedium)
+        }
+  }
+}
+
+@Composable
+private fun StoryProgressIndicators(stories: List<StoryWithUser>, currentStoryIndex: Int) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 16.dp),
+      horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        stories.forEachIndexed { index, _ ->
+          Box(
+              modifier =
+                  Modifier.weight(1f)
+                      .height(2.dp)
+                      .background(
+                          if (index <= currentStoryIndex) Color.White
+                          else Color.White.copy(alpha = 0.3f),
+                          shape = RoundedCornerShape(1.dp)))
+        }
+      }
+}
+
+@Composable
+private fun StoryUserHeader(
+    currentStory: StoryWithUser,
+    eventTitle: String,
+    avatarBitmap: ImageBitmap?
+) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
+      verticalAlignment = Alignment.CenterVertically) {
+        // User avatar using downloaded bitmap
+        Box(
+            modifier =
+                Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center) {
+              if (avatarBitmap != null) {
+                Image(
+                    bitmap = avatarBitmap,
+                    contentDescription = "Profile picture of ${currentStory.username}",
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                    contentScale = ContentScale.Crop)
+              } else {
+                // Show initial as fallback
+                Text(
+                    text = currentStory.username.take(1).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold)
+              }
+            }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+          Text(
+              text = currentStory.username,
+              color = Color.White,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold)
+          Text(
+              text = eventTitle,
+              color = Color.White.copy(alpha = 0.7f),
+              style = MaterialTheme.typography.bodySmall)
+        }
+      }
+}
+
+@Composable
+private fun StoryDeleteDialog(
+    showDeleteConfirmation: Boolean,
+    onDismiss: () -> Unit,
+    onConfirmDelete: () -> Unit
+) {
+  if (showDeleteConfirmation) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.story_delete_title)) },
+        text = { Text(stringResource(R.string.story_delete_message)) },
+        confirmButton = {
+          Button(
+              onClick = onConfirmDelete,
+              colors =
+                  ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                Text(stringResource(R.string.story_delete_button))
+              }
+        },
+        dismissButton = {
+          Button(
+              onClick = onDismiss,
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                Text(stringResource(R.string.story_cancel_button))
+              }
+        })
+  }
+}
+
+@Composable
 fun StoryViewer(
     event: Event,
     stories: List<StoryWithUser>,
@@ -1165,9 +1322,9 @@ fun StoryViewer(
                   Modifier.fillMaxSize()
                       .background(Color.Black)
                       .clickable { onDismiss() }
-                      .testTag("story_viewer")) {
+                      .testTag(HomeScreenTestTags.STORY_VIEWER)) {
                 Text(
-                    text = "No stories available",
+                    text = stringResource(R.string.story_no_stories),
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center))
               }
@@ -1202,117 +1359,19 @@ fun StoryViewer(
                               }
                             })
                       }
-                      .testTag("story_viewer")) {
+                      .testTag(HomeScreenTestTags.STORY_VIEWER)) {
                 // Story media content - FIRST so it's in the background
-                when (currentStory.story.mediaType) {
-                  com.github.se.studentconnect.model.story.MediaType.IMAGE -> {
-                    // Display image using Coil, rotated -90 degrees and filling entire screen
-                    androidx.compose.foundation.layout.BoxWithConstraints(
-                        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                          val screenWidth = maxWidth
-                          val screenHeight = maxHeight
-
-                          // After rotation, width becomes height and vice versa
-                          // So we need to use the screen's height for the image's width
-                          AsyncImage(
-                              model =
-                                  ImageRequest.Builder(LocalContext.current)
-                                      .data(currentStory.story.mediaUrl)
-                                      .crossfade(true)
-                                      .build(),
-                              contentDescription = "Story image by ${currentStory.username}",
-                              modifier =
-                                  Modifier.width(screenHeight).height(screenWidth).graphicsLayer {
-                                    rotationZ = 90f
-                                  },
-                              contentScale = ContentScale.Crop,
-                              onError = {
-                                // no image loaded
-                              })
-                        }
-                  }
-                  com.github.se.studentconnect.model.story.MediaType.VIDEO -> {
-                    // For now, show a placeholder for videos
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                      Column(
-                          horizontalAlignment = Alignment.CenterHorizontally,
-                          verticalArrangement = Arrangement.Center) {
-                            Text(
-                                text = "Video Story",
-                                color = Color.White,
-                                style = MaterialTheme.typography.headlineSmall)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Video playback will be available soon",
-                                color = Color.White.copy(alpha = 0.7f),
-                                style = MaterialTheme.typography.bodyMedium)
-                          }
-                    }
-                  }
-                }
+                StoryMediaContent(currentStory)
 
                 // Story progress indicators - ON TOP
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 16.dp)
-                            .align(Alignment.TopCenter),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                      stories.forEachIndexed { index, _ ->
-                        Box(
-                            modifier =
-                                Modifier.weight(1f)
-                                    .height(2.dp)
-                                    .background(
-                                        if (index <= currentStoryIndex) Color.White
-                                        else Color.White.copy(alpha = 0.3f),
-                                        shape = RoundedCornerShape(1.dp)))
-                      }
-                    }
+                Box(modifier = Modifier.align(Alignment.TopCenter)) {
+                  StoryProgressIndicators(stories, currentStoryIndex)
+                }
 
                 // User info header
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 48.dp)
-                            .align(Alignment.TopStart),
-                    verticalAlignment = Alignment.CenterVertically) {
-                      // User avatar using downloaded bitmap
-                      Box(
-                          modifier =
-                              Modifier.size(40.dp)
-                                  .clip(CircleShape)
-                                  .background(Color.White.copy(alpha = 0.2f)),
-                          contentAlignment = Alignment.Center) {
-                            if (avatarBitmap != null) {
-                              Image(
-                                  bitmap = avatarBitmap!!,
-                                  contentDescription =
-                                      "Profile picture of ${currentStory.username}",
-                                  modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                  contentScale = ContentScale.Crop)
-                            } else {
-                              // Show initial as fallback
-                              Text(
-                                  text = currentStory.username.take(1).uppercase(),
-                                  style = MaterialTheme.typography.titleMedium,
-                                  color = Color.White,
-                                  fontWeight = FontWeight.Bold)
-                            }
-                          }
-                      Spacer(modifier = Modifier.width(12.dp))
-                      Column {
-                        Text(
-                            text = currentStory.username,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold)
-                        Text(
-                            text = event.title,
-                            color = Color.White.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodySmall)
-                      }
-                    }
+                Box(modifier = Modifier.align(Alignment.TopStart)) {
+                  StoryUserHeader(currentStory, event.title, avatarBitmap)
+                }
 
                 // Close button
                 IconButton(
@@ -1320,7 +1379,7 @@ fun StoryViewer(
                     modifier =
                         Modifier.align(Alignment.TopEnd)
                             .padding(16.dp)
-                            .testTag("story_close_button")) {
+                            .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
                       Icon(
                           imageVector = Icons.Default.Close,
                           contentDescription =
@@ -1329,7 +1388,6 @@ fun StoryViewer(
                     }
 
                 // Delete button (only show if user owns the current story)
-                val currentStory = stories[currentStoryIndex]
                 if (currentStory.userId == currentUserId) {
                   IconButton(
                       onClick = { showDeleteConfirmation = true },
@@ -1346,46 +1404,23 @@ fun StoryViewer(
                 }
 
                 // Delete confirmation dialog
-                if (showDeleteConfirmation) {
-                  androidx.compose.material3.AlertDialog(
-                      onDismissRequest = { showDeleteConfirmation = false },
-                      title = { Text("Delete Story") },
-                      text = {
-                        Text(
-                            "Are you sure you want to delete this story? This action cannot be undone.")
-                      },
-                      confirmButton = {
-                        Button(
-                            onClick = {
-                              showDeleteConfirmation = false
-                              val storyToDelete = stories[currentStoryIndex]
-                              onDeleteStory(storyToDelete.story.storyId)
-                              // If this was the last story or only story, dismiss viewer
-                              if (stories.size == 1) {
-                                onDismiss()
-                              } else if (currentStoryIndex >= stories.size - 1) {
-                                // If we're at the last story, go to previous
-                                currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
-                              }
-                              // If we're not at the last story, the index stays the same
-                              // and shows the next story automatically
-                            },
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error)) {
-                              Text("Delete")
-                            }
-                      },
-                      dismissButton = {
-                        Button(
-                            onClick = { showDeleteConfirmation = false },
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                              Text("Cancel")
-                            }
-                      })
-                }
+                StoryDeleteDialog(
+                    showDeleteConfirmation = showDeleteConfirmation,
+                    onDismiss = { showDeleteConfirmation = false },
+                    onConfirmDelete = {
+                      showDeleteConfirmation = false
+                      val storyToDelete = stories[currentStoryIndex]
+                      onDeleteStory(storyToDelete.story.storyId)
+                      // If this was the last story or only story, dismiss viewer
+                      if (stories.size == 1) {
+                        onDismiss()
+                      } else if (currentStoryIndex >= stories.size - 1) {
+                        // If we're at the last story, go to previous
+                        currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
+                      }
+                      // If we're not at the last story, the index stays the same
+                      // and shows the next story automatically
+                    })
               }
         }
       }

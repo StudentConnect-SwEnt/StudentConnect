@@ -145,7 +145,7 @@ fun CameraView(
             .apply {
               // Match the aspect ratio of image capture if configured
               if (imageCaptureConfig != null) {
-                setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
+                setTargetResolution(android.util.Size(1920, 1080))
               }
             }
             .build()

@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,6 +42,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepository
@@ -50,6 +52,11 @@ import kotlinx.coroutines.launch
 enum class CameraMode {
   STORY,
   QR_SCAN
+}
+
+/** Test tags for CameraModeSelectorScreen components. */
+object CameraModeSelectorTestTags {
+  const val UPLOAD_LOADING_OVERLAY = "upload_loading_overlay"
 }
 
 /**
@@ -69,40 +76,44 @@ internal fun handleStoryUpload(
     onStoryAccepted: (Uri, Boolean, Event?) -> Unit
 ): Boolean {
   if (selectedEvent == null) {
-    Toast.makeText(context, "Please select an event for your story", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(R.string.story_select_event), Toast.LENGTH_SHORT)
+        .show()
     return false
   }
 
   if (isUploading) {
-    Toast.makeText(context, "Upload in progress...", Toast.LENGTH_SHORT).show()
+    Toast.makeText(
+            context, context.getString(R.string.story_upload_in_progress), Toast.LENGTH_SHORT)
+        .show()
     return false
   }
 
   val currentUserId = AuthenticationProvider.currentUser
   if (currentUserId.isEmpty()) {
-    Toast.makeText(context, "You must be logged in to upload stories", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(R.string.story_login_required), Toast.LENGTH_SHORT)
+        .show()
     return false
   }
 
   onUploadStateChange(true)
-  Toast.makeText(context, "Uploading story...", Toast.LENGTH_SHORT).show()
+  Toast.makeText(context, context.getString(R.string.story_uploading), Toast.LENGTH_SHORT).show()
 
   lifecycleOwner.lifecycleScope.launch {
     try {
       val story = storyRepository.uploadStory(mediaUri, selectedEvent.uid, currentUserId, context)
 
       if (story != null) {
-        Toast.makeText(context, "Story uploaded!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.story_uploaded), Toast.LENGTH_SHORT)
+            .show()
         onStoryAccepted(mediaUri, isVideo, selectedEvent)
       } else {
-        Toast.makeText(
-                context,
-                "Failed to upload story. Check connection and permissions.",
-                Toast.LENGTH_LONG)
+        Toast.makeText(context, context.getString(R.string.story_upload_failed), Toast.LENGTH_LONG)
             .show()
       }
     } catch (e: Exception) {
-      Toast.makeText(context, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
+      Toast.makeText(
+              context, context.getString(R.string.story_upload_error, e.message), Toast.LENGTH_LONG)
+          .show()
     } finally {
       onUploadStateChange(false)
     }
@@ -228,14 +239,14 @@ fun CameraModeSelectorScreen(
           modifier =
               Modifier.fillMaxSize()
                   .background(Color.Black.copy(alpha = 0.7f))
-                  .testTag("upload_loading_overlay"),
+                  .testTag(CameraModeSelectorTestTags.UPLOAD_LOADING_OVERLAY),
           contentAlignment = Alignment.Center) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
                   CircularProgressIndicator(color = Color.White)
                   Text(
-                      text = "Uploading story...",
+                      text = stringResource(R.string.story_uploading),
                       color = Color.White,
                       style = MaterialTheme.typography.bodyLarge)
                 }

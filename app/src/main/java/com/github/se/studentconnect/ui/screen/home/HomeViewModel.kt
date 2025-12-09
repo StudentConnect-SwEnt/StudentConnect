@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.Activities
@@ -158,7 +157,6 @@ constructor(
         val organizationDataList = organizations.toOrganizationDataList()
         _uiState.update { it.copy(organizations = organizationDataList) }
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading organizations", e)
         _uiState.update { it.copy(organizations = emptyList()) }
       }
     }
@@ -171,9 +169,7 @@ constructor(
           val user = userRepository.getUserById(uid)
           val hobbies = user?.hobbies ?: emptyList()
           _uiState.update { it.copy(userHobbies = hobbies) }
-          Log.d("HomePageViewModel", "Loaded user hobbies: $hobbies")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading user hobbies", e)
           _uiState.update { it.copy(userHobbies = emptyList()) }
         }
       }
@@ -190,14 +186,11 @@ constructor(
                 try {
                   eventRepository.getEvent(eventId)
                 } catch (e: Exception) {
-                  Log.e("HomePageViewModel", "Error loading attended event $eventId", e)
                   null
                 }
               }
           _uiState.update { it.copy(attendedEvents = attendedEvents) }
-          Log.d("HomePageViewModel", "Loaded ${attendedEvents.size} attended events")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading attended events", e)
           _uiState.update { it.copy(attendedEvents = emptyList()) }
         }
       }
@@ -220,12 +213,7 @@ constructor(
                         longitude = androidLocation.longitude,
                         name = "Current Location")
                   }
-                  else -> {
-                    Log.d(
-                        "HomePageViewModel",
-                        "Could not get location for scoring: ${result.javaClass.simpleName}")
-                    null
-                  }
+                  else -> null
                 }
               } else {
                 null
@@ -237,10 +225,7 @@ constructor(
                   preferredPriceRange = 0f..100f,
                   preferredTimeOfDay = PreferredTimeOfDay.ANY)
           _uiState.update { it.copy(userPreferences = preferences) }
-          Log.d(
-              "HomePageViewModel", "Loaded user preferences with location: ${userLocation != null}")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading user preferences", e)
           _uiState.update { it.copy(userPreferences = UserPreferences()) }
         }
       }
@@ -250,119 +235,21 @@ constructor(
   private fun loadAllSubscribedEventsStories(showLoading: Boolean = false) {
     viewModelScope.launch {
       try {
-        // Only show loading state if explicitly requested (e.g., initial load)
         if (showLoading) {
           _uiState.update { it.copy(isLoading = true) }
         }
 
-        if (storyRepository == null || context == null) {
-          Log.w(
-              "HomePageViewModel", "StoryRepository or context not available, using empty stories")
-          _uiState.update {
-            it.copy(
-                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
-          }
+        if (!isStoryLoadingValid()) {
+          updateEmptyStoriesState()
           return@launch
         }
 
-        // Get user's joined events to show stories for
-        val currentUser = currentUserId
-        if (currentUser == null) {
-          Log.w("HomePageViewModel", "No current user, cannot load stories")
-          _uiState.update {
-            it.copy(
-                subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
-          }
-          return@launch
-        }
+        val currentUser = currentUserId!!
+        val joinedEvents = storyRepository!!.getUserJoinedEvents(currentUser)
+        val userFriends = loadUserFriends(currentUser)
 
-        val joinedEvents = storyRepository.getUserJoinedEvents(currentUser)
-        Log.d("HomePageViewModel", "User has joined ${joinedEvents.size} events")
-
-        // Get user's friends list for story visibility filtering
-        // Note: If getFriends fails, we still show the owner's own stories
-        val userFriends =
-            try {
-              Log.d("HomePageViewModel", "Loading friends for user: $currentUser")
-              val friends = friendsRepository.getFriends(currentUser).toSet()
-              Log.d("HomePageViewModel", "Successfully loaded ${friends.size} friends: $friends")
-              friends
-            } catch (e: Exception) {
-              Log.e(
-                  "HomePageViewModel",
-                  "Error loading friends list (will show only own stories): ${e.message}",
-                  e)
-              emptySet()
-            }
-        Log.d("HomePageViewModel", "User has ${userFriends.size} friends for story filtering")
-
-        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
-        val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
-
-        // For each joined event, get its stories
-        for (event in joinedEvents) {
-          Log.d("HomePageViewModel", "Fetching stories for event: ${event.uid} (${event.title})")
-          val stories = storyRepository.getEventStories(event.uid)
-          Log.d("HomePageViewModel", "Found ${stories.size} stories for event ${event.uid}")
-
-          if (stories.isNotEmpty()) {
-            // Log each story's owner for debugging
-            stories.forEach { story ->
-              val isOwner = story.userId == currentUser
-              val isFriend = userFriends.contains(story.userId)
-              Log.d(
-                  "HomePageViewModel",
-                  "  Story ${story.storyId}: owner=${story.userId}, isOwner=$isOwner, isFriend=$isFriend")
-            }
-
-            // Filter stories: only show if story creator is the current user or a friend
-            val visibleStories =
-                stories.filter { story ->
-                  story.userId == currentUser || userFriends.contains(story.userId)
-                }
-            Log.d("HomePageViewModel", "After filtering: ${visibleStories.size} visible stories")
-
-            if (visibleStories.isNotEmpty()) {
-              // Pair(seenStories, totalStories)
-              // For now, all stories are marked as unseen (seenStories = 0)
-              // You can implement tracking of seen stories later
-              allEventsStory[event] = Pair(0, visibleStories.size)
-
-              // Fetch user information for each visible story
-              val storiesWithUsers =
-                  visibleStories.mapNotNull { story ->
-                    try {
-                      val user = userRepository.getUserById(story.userId)
-                      if (user != null) {
-                        Log.d(
-                            "HomePageViewModel",
-                            "Story ${story.storyId} by ${user.username}: profilePictureUrl = ${user.profilePictureUrl ?: "null"}")
-                        StoryWithUser(
-                            story = story,
-                            username = user.username,
-                            userId = user.userId,
-                            profilePictureUrl = user.profilePictureUrl)
-                      } else {
-                        Log.w("HomePageViewModel", "User not found for story ${story.storyId}")
-                        null
-                      }
-                    } catch (e: Exception) {
-                      null
-                    }
-                  }
-
-              eventStoriesMap[event.uid] = storiesWithUsers
-
-              Log.d(
-                  "HomePageViewModel",
-                  "Event ${event.title} has ${visibleStories.size} visible stories (filtered from ${stories.size} total)")
-            }
-          }
-        }
-
-        Log.d("HomePageViewModel", "Loaded stories for ${allEventsStory.size} events")
-        Log.d("HomePageViewModel", "EventStories map size: ${eventStoriesMap.size}")
-        Log.d("HomePageViewModel", "EventStories keys: ${eventStoriesMap.keys.joinToString()}")
+        val (allEventsStory, eventStoriesMap) =
+            processEventStories(joinedEvents, currentUser, userFriends)
 
         _uiState.update {
           it.copy(
@@ -371,10 +258,82 @@ constructor(
               isLoading = false)
         }
       } catch (e: Exception) {
-        _uiState.update {
-          it.copy(
-              subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+        updateEmptyStoriesState()
+      }
+    }
+  }
+
+  private fun isStoryLoadingValid(): Boolean {
+    if (storyRepository == null || context == null) {
+      return false
+    }
+    if (currentUserId == null) {
+      return false
+    }
+    return true
+  }
+
+  private fun updateEmptyStoriesState() {
+    _uiState.update {
+      it.copy(subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+    }
+  }
+
+  private suspend fun loadUserFriends(currentUser: String): Set<String> {
+    return try {
+      friendsRepository.getFriends(currentUser).toSet()
+    } catch (e: Exception) {
+      emptySet()
+    }
+  }
+
+  private suspend fun processEventStories(
+      joinedEvents: List<Event>,
+      currentUser: String,
+      userFriends: Set<String>
+  ): Pair<Map<Event, Pair<Int, Int>>, Map<String, List<StoryWithUser>>> {
+    val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+    val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
+
+    for (event in joinedEvents) {
+      val stories = storyRepository!!.getEventStories(event.uid)
+      if (stories.isEmpty()) continue
+
+      val visibleStories = filterVisibleStories(stories, currentUser, userFriends)
+      if (visibleStories.isEmpty()) continue
+
+      allEventsStory[event] = Pair(0, visibleStories.size)
+      eventStoriesMap[event.uid] = fetchStoriesWithUserInfo(visibleStories)
+    }
+
+    return Pair(allEventsStory, eventStoriesMap)
+  }
+
+  private fun filterVisibleStories(
+      stories: List<com.github.se.studentconnect.model.story.Story>,
+      currentUser: String,
+      userFriends: Set<String>
+  ): List<com.github.se.studentconnect.model.story.Story> {
+    return stories.filter { story ->
+      story.userId == currentUser || userFriends.contains(story.userId)
+    }
+  }
+
+  private suspend fun fetchStoriesWithUserInfo(
+      stories: List<com.github.se.studentconnect.model.story.Story>
+  ): List<StoryWithUser> {
+    return stories.mapNotNull { story ->
+      try {
+        val user = userRepository.getUserById(story.userId)
+        user?.let {
+          StoryWithUser(
+              story = story,
+              username = it.username,
+              userId = it.userId,
+              profilePictureUrl = it.profilePictureUrl)
         }
+      } catch (e: Exception) {
+        null
       }
     }
   }
@@ -386,7 +345,6 @@ constructor(
         allFetchedEvents = eventRepository.getAllVisibleEvents()
         applyFilters(currentFilters, allFetchedEvents)
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading all events", e)
         allFetchedEvents = emptyList()
         _uiState.update { it.copy(isLoading = false, events = emptyList()) }
       }
@@ -406,7 +364,7 @@ constructor(
             }
           }
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading favorite events", e)
+          // Silently handle error
         }
       }
     }
@@ -438,7 +396,6 @@ constructor(
           _favoriteEventIds.update { current ->
             return@update if (didAdd) current - eventId else current + eventId
           }
-          Log.e("HomePageViewModel", "Error toggling favorite status for event $eventId", e)
         }
       }
     }
@@ -588,25 +545,12 @@ constructor(
     val timeMatch = calculateTimeMatch(publicEvent)
     val recencyBoost = calculateRecencyBoost(publicEvent)
 
-    val totalScore =
-        WEIGHT_TAG_SIMILARITY * tagSimilarity +
-            WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
-            WEIGHT_DISTANCE * distanceScore +
-            WEIGHT_PRICE * pricePreference +
-            WEIGHT_TIME * timeMatch +
-            WEIGHT_RECENCY * recencyBoost
-
-    Log.d(
-        "EventScore",
-        "Event: ${publicEvent.title} | Score: ${"%.3f".format(totalScore)} | " +
-            "Tag: ${"%.2f".format(tagSimilarity)}, " +
-            "Attended: ${"%.2f".format(attendedSimilarity)}, " +
-            "Distance: ${"%.2f".format(distanceScore)}, " +
-            "Price: ${"%.2f".format(pricePreference)}, " +
-            "Time: ${"%.2f".format(timeMatch)}, " +
-            "Recency: ${"%.2f".format(recencyBoost)}")
-
-    return totalScore
+    return WEIGHT_TAG_SIMILARITY * tagSimilarity +
+        WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
+        WEIGHT_DISTANCE * distanceScore +
+        WEIGHT_PRICE * pricePreference +
+        WEIGHT_TIME * timeMatch +
+        WEIGHT_RECENCY * recencyBoost
   }
 
   /** Calculates tag similarity score (0.0 to 1.0) based on matching user hobbies. */

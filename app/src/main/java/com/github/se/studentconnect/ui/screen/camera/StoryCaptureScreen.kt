@@ -54,11 +54,6 @@ fun StoryCaptureScreen(
   var capturedMediaUri by remember { mutableStateOf<Uri?>(null) }
   var showPreview by remember { mutableStateOf(false) }
 
-  // Get screen dimensions to calculate aspect ratio for portrait mode
-  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-  val screenHeight = configuration.screenHeightDp
-  val screenWidth = configuration.screenWidthDp
-
   // Notify parent when preview state changes
   LaunchedEffect(showPreview) { onPreviewStateChanged(showPreview) }
 
@@ -104,7 +99,7 @@ fun StoryCaptureScreen(
           // Use 16:9 aspect ratio which will be captured in portrait orientation
           imageCaptureConfig = {
             // Use 16:9 for full-screen portrait capture (will be rotated to 9:16)
-            setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
+            setTargetResolution(android.util.Size(1920, 1080))
           })
 
       // Only show mode controls when not showing preview
