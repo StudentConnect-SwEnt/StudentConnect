@@ -999,6 +999,13 @@ private fun CommonActionButtons(
       id = R.drawable.ic_share,
       onClick = { DialogNotImplemented(context) },
       modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+
+  Spacer(modifier = Modifier.fillMaxWidth())
+  Text(
+      text =
+          if (currentEvent.participationFee == null) "Free"
+          else currentEvent.participationFee!!.toString() + "CHF",
+      maxLines = 1)
 }
 
 @Composable
