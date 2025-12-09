@@ -33,6 +33,11 @@ object Route {
   const val CREATE_PRIVATE_EVENT = "create_private_event"
   const val EDIT_PUBLIC_EVENT = "edit_public_event/{eventUid}"
   const val EDIT_PRIVATE_EVENT = "edit_private_event/{eventUid}"
+  const val CREATE_PUBLIC_EVENT_FROM_TEMPLATE =
+      "create_public_event_from_template/{templateEventUid}"
+  const val CREATE_PRIVATE_EVENT_FROM_TEMPLATE =
+      "create_private_event_from_template/{templateEventUid}"
+  const val SELECT_EVENT_TEMPLATE = "select_event_template"
 
   // Added route for the event view, with eventUid as an argument
   const val EVENT_VIEW = "eventView/{eventUid}"
@@ -61,6 +66,12 @@ object Route {
   fun editPublicEvent(eventUid: String): String = "edit_public_event/$eventUid"
 
   fun editPrivateEvent(eventUid: String): String = "edit_private_event/$eventUid"
+
+  fun createPublicEventFromTemplate(templateEventUid: String): String =
+      "create_public_event_from_template/$templateEventUid"
+
+  fun createPrivateEventFromTemplate(templateEventUid: String): String =
+      "create_private_event_from_template/$templateEventUid"
 
   fun pollsListScreen(eventUid: String): String = "pollsList/$eventUid"
 

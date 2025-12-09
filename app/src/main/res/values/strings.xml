@@ -582,4 +582,49 @@
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
 
     <string name="anonymous">Anonymous</string>
+
+    <!-- Generic error + retry -->
+    <string name="error_generic">An error occurred</string>
+    <string name="action_retry">Retry</string>
+
+    <!-- Event Template Selection -->
+    <string name="title_select_template">Select Template</string>
+    <string name="template_no_events">You haven\'t created any events yet</string>
+    <string name="template_footer_default">Event details</string>
+    <string name="event_type_public">Public Event</string>
+    <string name="event_type_private">Private Event</string>
+
+    <!-- Bottom Sheet Event Creation -->
+    <string name="bottom_sheet_create_event_title">Create New Event</string>
+    <string name="bottom_sheet_create_public_event">Create Public Event</string>
+    <string name="bottom_sheet_create_public_event_desc">Visible to everyone</string>
+    <string name="bottom_sheet_create_private_event">Create Private Event</string>
+    <string name="bottom_sheet_create_private_event_desc">Invite only</string>
+    <string name="bottom_sheet_create_from_template">Create from Template</string>
+    <string name="bottom_sheet_create_from_template_desc">Use a previous event as template</string>
+    <string name="content_description_add">Add</string>
+    <string name="content_description_create_from_template">Create from Template</string>
+
+    <!-- Organization Management Screen -->
+    <string name="title_my_organizations">My Organizations</string>
+    <string name="button_retry">Retry</string>
+    <string name="text_no_organizations_yet">No Organizations Yet</string>
+    <string name="text_no_organizations_description">You\'re not a member of any organizations. Create one or join an existing one!</string>
+    <string name="button_create_organization">Create Organization</string>
+    <string name="button_create_new_organization">Create New Organization</string>
+    <string name="button_join_organization">Join Organization</string>
+    <string name="text_your_organizations">Your Organizations</string>
+    <plurals name="text_members_count">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+
+    <!-- Profile Header -->
+    <string name="label_friends">Friends</string>
+    <string name="label_events">Events</string>
+    <string name="button_card">Card</string>
+    <string name="button_organizations">Organizations</string>
+    <string name="content_description_edit">Edit</string>
+    <string name="content_description_user_card">User Card</string>
+    <string name="content_description_organizations">Organizations</string>
 </resources>

@@ -29,7 +29,6 @@ class CreatePrivateEventViewModel :
         } catch (_: Exception) {
           null
         }
-
     return Event.Private(
         uid = uid,
         ownerId = ownerId,
@@ -42,6 +41,28 @@ class CreatePrivateEventViewModel :
         maxCapacity = maxCapacity,
         participationFee = fee,
         isFlash = s.isFlash)
+  }
+
+  /**
+   * Pre-fills the form with data from an existing event as a template. Unlike prefill(), this does
+   * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
+   */
+  override fun prefillFromTemplate(event: Event) {
+    _uiState.value =
+        CreateEventUiState.Private(
+            title = event.title,
+            description = event.description,
+            location = event.location,
+            startDate = null, // Clear dates for template
+            startTime = java.time.LocalTime.of(0, 0),
+            endDate = null,
+            endTime = java.time.LocalTime.of(0, 0),
+            numberOfParticipantsString = event.maxCapacity?.toString() ?: "",
+            hasParticipationFee = event.participationFee != null,
+            participationFeeString = event.participationFee?.toString() ?: "",
+            isFlash = event.isFlash,
+            bannerImagePath = event.imageUrl,
+        )
   }
 
   override fun loadEvent(eventUid: String) {

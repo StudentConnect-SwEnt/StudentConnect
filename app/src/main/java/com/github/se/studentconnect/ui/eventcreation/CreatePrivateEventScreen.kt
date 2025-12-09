@@ -45,10 +45,14 @@ object CreatePrivateEventScreenTestTags {
 fun CreatePrivateEventScreen(
     navController: NavHostController?,
     existingEventId: String? = null,
+    templateEventId: String? = null,
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
-  LaunchedEffect(existingEventId) {
-    if (existingEventId != null) createPrivateEventViewModel.loadEvent(existingEventId)
+  LaunchedEffect(existingEventId, templateEventId) {
+    when {
+      existingEventId != null -> createPrivateEventViewModel.loadEvent(existingEventId)
+      templateEventId != null -> createPrivateEventViewModel.loadEventAsTemplate(templateEventId)
+    }
   }
 
   val uiState by createPrivateEventViewModel.uiState.collectAsState()

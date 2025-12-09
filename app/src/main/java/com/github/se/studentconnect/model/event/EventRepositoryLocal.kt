@@ -31,6 +31,10 @@ class EventRepositoryLocal : EventRepository {
     return events.filter { it.ownerId == organizationId }
   }
 
+  override suspend fun getEventsByOwner(userId: String): List<Event> {
+    return events.filter { it.ownerId == userId }
+  }
+
   override suspend fun getEvent(eventUid: String): Event {
     return events.find { it.uid == eventUid }
         ?: throw NoSuchElementException("Event with UID $eventUid not found.")

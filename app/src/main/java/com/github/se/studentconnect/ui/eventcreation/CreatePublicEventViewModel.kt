@@ -26,6 +26,32 @@ class CreatePublicEventViewModel :
     _uiState.value = uiState.value.copy(tags = newTags)
   }
 
+  /**
+   * Pre-fills the form with data from an existing event as a template. Unlike prefill(), this does
+   * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
+   */
+  override fun prefillFromTemplate(event: Event) {
+    val publicEvent = event as? Event.Public ?: return
+    _uiState.value =
+        CreateEventUiState.Public(
+            title = publicEvent.title,
+            description = publicEvent.description,
+            location = publicEvent.location,
+            startDate = null,
+            startTime = LocalTime.of(0, 0),
+            endDate = null,
+            endTime = LocalTime.of(0, 0),
+            numberOfParticipantsString = publicEvent.maxCapacity?.toString() ?: "",
+            hasParticipationFee = publicEvent.participationFee != null,
+            participationFeeString = publicEvent.participationFee?.toString() ?: "",
+            isFlash = publicEvent.isFlash,
+            subtitle = publicEvent.subtitle,
+            website = publicEvent.website.orEmpty(),
+            tags = publicEvent.tags,
+            bannerImagePath = publicEvent.imageUrl,
+        )
+  }
+
   override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
     val start = timestampFrom(s.startDate!!, s.startTime)

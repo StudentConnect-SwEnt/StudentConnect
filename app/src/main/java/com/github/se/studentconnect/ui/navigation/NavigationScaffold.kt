@@ -31,10 +31,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.ui.theme.Dimensions
 
+/**
+ * Bottom navigation bar with a centered add button for event creation.
+ *
+ * This composable displays the main navigation tabs (Home, Map, Activities, Profile) with a
+ * centered floating action button that opens a bottom sheet for creating events. The bottom sheet
+ * provides options to create public events, private events, or create events from existing
+ * templates.
+ *
+ * @param selectedTab The currently selected navigation tab
+ * @param onTabSelected Callback invoked when a tab is selected
+ * @param onCreatePublicEvent Callback invoked when the user chooses to create a public event
+ * @param onCreatePrivateEvent Callback invoked when the user chooses to create a private event
+ * @param onCreateFromTemplate Callback invoked when the user chooses to create from a template
+ * @param modifier Modifier to be applied to the navigation bar container
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomNavigationBar(
@@ -42,6 +58,7 @@ fun BottomNavigationBar(
     onTabSelected: (Tab) -> Unit,
     onCreatePublicEvent: () -> Unit = {},
     onCreatePrivateEvent: () -> Unit = {},
+    onCreateFromTemplate: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
   var showBottomSheet by remember { mutableStateOf(false) }
@@ -51,9 +68,14 @@ fun BottomNavigationBar(
     NavigationBar(
         modifier =
             Modifier.fillMaxWidth()
-                .height(64.dp)
+                .height(Dimensions.BottomNavHeight)
                 .testTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU),
-        windowInsets = WindowInsets(12.dp, 0.dp, 12.dp, 0.dp),
+        windowInsets =
+            WindowInsets(
+                Dimensions.SpacingMedium,
+                Dimensions.SpacingTiny,
+                Dimensions.SpacingMedium,
+                Dimensions.SpacingTiny),
     ) {
       // First two tabs (Home, Map)
       bottomNavigationTabs.take(2).forEach { tab ->
@@ -84,11 +106,11 @@ fun BottomNavigationBar(
     // Center add button
     Icon(
         painter = painterResource(R.drawable.ic_add),
-        contentDescription = "Add",
+        contentDescription = stringResource(R.string.content_description_add),
         tint = MaterialTheme.colorScheme.primary,
         modifier =
             Modifier.align(Alignment.Center)
-                .width(64.dp)
+                .width(Dimensions.BottomNavButtonWidth)
                 .clickable { showBottomSheet = true }
                 .testTag("center_add_button"))
 
@@ -106,51 +128,74 @@ fun BottomNavigationBar(
                 onCreatePrivateEvent = {
                   showBottomSheet = false
                   onCreatePrivateEvent()
+                },
+                onCreateFromTemplate = {
+                  showBottomSheet = false
+                  onCreateFromTemplate()
                 })
           }
     }
   }
 }
 
+/**
+ * Content for the event creation bottom sheet.
+ *
+ * Displays three options for creating events:
+ * - Create Public Event: Visible to everyone
+ * - Create Private Event: Invite only
+ * - Create from Template: Use a previous event as template
+ *
+ * @param onCreatePublicEvent Callback invoked when public event option is selected
+ * @param onCreatePrivateEvent Callback invoked when private event option is selected
+ * @param onCreateFromTemplate Callback invoked when template option is selected
+ * @param modifier Modifier to be applied to the content container
+ */
 @Composable
 fun EventCreationBottomSheetContent(
     onCreatePublicEvent: () -> Unit,
     onCreatePrivateEvent: () -> Unit,
+    onCreateFromTemplate: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
   Column(
-      modifier = modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(horizontal = Dimensions.SpacingLarge, vertical = Dimensions.SpacingNormal),
+      verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall)) {
         Text(
-            text = "Create New Event",
+            text = stringResource(R.string.bottom_sheet_create_event_title),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 16.dp).testTag("bottom_sheet_title"))
+            modifier =
+                Modifier.padding(bottom = Dimensions.SpacingNormal).testTag("bottom_sheet_title"))
 
         // Public Event Option
         Surface(
             onClick = onCreatePublicEvent,
             modifier = Modifier.fillMaxWidth().testTag("create_public_event_option"),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(Dimensions.CardCornerRadius),
             color = MaterialTheme.colorScheme.surfaceVariant) {
               Row(
-                  modifier = Modifier.fillMaxWidth().padding(16.dp),
-                  horizontalArrangement = Arrangement.spacedBy(16.dp),
+                  modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
+                  horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal),
                   verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(R.drawable.ic_web),
-                        contentDescription = "Public Event",
+                        contentDescription =
+                            stringResource(R.string.content_description_public_event),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp))
+                        modifier = Modifier.size(Dimensions.IconSizeMedium))
                     Column {
                       Text(
-                          text = "Create Public Event",
+                          text = stringResource(R.string.bottom_sheet_create_public_event),
                           style =
                               MaterialTheme.typography.titleMedium.copy(
                                   fontWeight = FontWeight.Medium),
                           color = MaterialTheme.colorScheme.onSurface)
                       Text(
-                          text = "Visible to everyone",
+                          text = stringResource(R.string.bottom_sheet_create_public_event_desc),
                           style = MaterialTheme.typography.bodyMedium,
                           color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -161,32 +206,64 @@ fun EventCreationBottomSheetContent(
         Surface(
             onClick = onCreatePrivateEvent,
             modifier = Modifier.fillMaxWidth().testTag("create_private_event_option"),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(Dimensions.CardCornerRadius),
             color = MaterialTheme.colorScheme.surfaceVariant) {
               Row(
-                  modifier = Modifier.fillMaxWidth().padding(16.dp),
-                  horizontalArrangement = Arrangement.spacedBy(16.dp),
+                  modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
+                  horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal),
                   verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         painter = painterResource(R.drawable.ic_lock),
-                        contentDescription = "Private Event",
+                        contentDescription =
+                            stringResource(R.string.content_description_private_event),
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp))
+                        modifier = Modifier.size(Dimensions.IconSizeMedium))
                     Column {
                       Text(
-                          text = "Create Private Event",
+                          text = stringResource(R.string.bottom_sheet_create_private_event),
                           style =
                               MaterialTheme.typography.titleMedium.copy(
                                   fontWeight = FontWeight.Medium),
                           color = MaterialTheme.colorScheme.onSurface)
                       Text(
-                          text = "Invite only",
+                          text = stringResource(R.string.bottom_sheet_create_private_event_desc),
                           style = MaterialTheme.typography.bodyMedium,
                           color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                   }
             }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // Create from Template Option
+        Surface(
+            onClick = onCreateFromTemplate,
+            modifier = Modifier.fillMaxWidth().testTag("create_from_template_option"),
+            shape = RoundedCornerShape(Dimensions.CardCornerRadius),
+            color = MaterialTheme.colorScheme.surfaceVariant) {
+              Row(
+                  modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
+                  horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal),
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_copy),
+                        contentDescription =
+                            stringResource(R.string.content_description_create_from_template),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.IconSizeMedium))
+                    Column {
+                      Text(
+                          text = stringResource(R.string.bottom_sheet_create_from_template),
+                          style =
+                              MaterialTheme.typography.titleMedium.copy(
+                                  fontWeight = FontWeight.Medium),
+                          color = MaterialTheme.colorScheme.onSurface)
+                      Text(
+                          text = stringResource(R.string.bottom_sheet_create_from_template_desc),
+                          style = MaterialTheme.typography.bodyMedium,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                  }
+            }
+
+        Spacer(modifier = Modifier.height(Dimensions.SpacingNormal))
       }
 }
