@@ -144,8 +144,9 @@ fun CameraView(
         Preview.Builder()
             .apply {
               // Match the aspect ratio of image capture if configured
+              // Using default aspect ratio without deprecated setTargetAspectRatio
               if (imageCaptureConfig != null) {
-                setTargetResolution(android.util.Size(1920, 1080))
+                // CameraX will automatically select appropriate resolution
               }
             }
             .build()

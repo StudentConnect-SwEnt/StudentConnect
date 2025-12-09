@@ -284,7 +284,7 @@ fun HomeScreen(
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
       onCameraActiveChange = onCameraActiveChange,
-      onClickStory = { e, i -> /* TODO: update seen count for story */ },
+      onClickStory = { _, _ -> /* TODO: update seen count for story */ },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,
@@ -1273,6 +1273,75 @@ private fun StoryDeleteDialog(
 }
 
 @Composable
+private fun StoryViewerContent(
+    stories: List<StoryWithUser>,
+    currentStoryIndex: Int,
+    onNavigatePrevious: () -> Unit,
+    onNavigateNext: () -> Unit,
+    onDismiss: () -> Unit,
+    event: Event,
+    avatarBitmap: ImageBitmap?,
+    currentUserId: String,
+    onShowDeleteConfirmation: () -> Unit
+) {
+  val currentStory = stories[currentStoryIndex]
+
+  Box(
+      modifier =
+          Modifier.fillMaxSize()
+              .background(Color.Black)
+              .pointerInput(stories.size, currentStoryIndex) {
+                detectTapGestures(
+                    onTap = { offset ->
+                      val screenWidth = size.width
+                      if (offset.x < screenWidth / 2) {
+                        onNavigatePrevious()
+                      } else {
+                        onNavigateNext()
+                      }
+                    })
+              }
+              .testTag(HomeScreenTestTags.STORY_VIEWER)) {
+        StoryMediaContent(currentStory)
+
+        Box(modifier = Modifier.align(Alignment.TopCenter)) {
+          StoryProgressIndicators(stories, currentStoryIndex)
+        }
+
+        Box(modifier = Modifier.align(Alignment.TopStart)) {
+          StoryUserHeader(currentStory, event.title, avatarBitmap)
+        }
+
+        IconButton(
+            onClick = onDismiss,
+            modifier =
+                Modifier.align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
+              Icon(
+                  imageVector = Icons.Default.Close,
+                  contentDescription = stringResource(R.string.content_description_close_story),
+                  tint = Color.White)
+            }
+
+        if (currentStory.userId == currentUserId) {
+          IconButton(
+              onClick = onShowDeleteConfirmation,
+              modifier =
+                  Modifier.align(Alignment.BottomStart)
+                      .padding(16.dp)
+                      .testTag("story_delete_button")) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete story",
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp))
+              }
+        }
+      }
+}
+
+@Composable
 fun StoryViewer(
     event: Event,
     stories: List<StoryWithUser>,
@@ -1316,7 +1385,6 @@ fun StoryViewer(
               scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
       modifier = Modifier.fillMaxSize().zIndex(1000f)) {
         if (stories.isEmpty()) {
-          // Fallback if no stories
           Box(
               modifier =
                   Modifier.fillMaxSize()
@@ -1329,99 +1397,42 @@ fun StoryViewer(
                     modifier = Modifier.align(Alignment.Center))
               }
         } else {
-          val currentStory = stories[currentStoryIndex]
-
-          Box(
-              modifier =
-                  Modifier.fillMaxSize()
-                      .background(Color.Black)
-                      .pointerInput(stories.size, currentStoryIndex) {
-                        detectTapGestures(
-                            onTap = { offset ->
-                              val screenWidth = size.width
-                              // Use half screen for left/right navigation (like Instagram)
-                              if (offset.x < screenWidth / 2) {
-                                // Tap on left side - previous story
-                                if (currentStoryIndex > 0) {
-                                  currentStoryIndex--
-                                } else {
-                                  // First story, dismiss
-                                  onDismiss()
-                                }
-                              } else {
-                                // Tap on right side - next story
-                                if (currentStoryIndex < stories.size - 1) {
-                                  currentStoryIndex++
-                                } else {
-                                  // Last story, dismiss
-                                  onDismiss()
-                                }
-                              }
-                            })
-                      }
-                      .testTag(HomeScreenTestTags.STORY_VIEWER)) {
-                // Story media content - FIRST so it's in the background
-                StoryMediaContent(currentStory)
-
-                // Story progress indicators - ON TOP
-                Box(modifier = Modifier.align(Alignment.TopCenter)) {
-                  StoryProgressIndicators(stories, currentStoryIndex)
+          StoryViewerContent(
+              stories = stories,
+              currentStoryIndex = currentStoryIndex,
+              onNavigatePrevious = {
+                if (currentStoryIndex > 0) {
+                  currentStoryIndex--
+                } else {
+                  onDismiss()
                 }
-
-                // User info header
-                Box(modifier = Modifier.align(Alignment.TopStart)) {
-                  StoryUserHeader(currentStory, event.title, avatarBitmap)
+              },
+              onNavigateNext = {
+                if (currentStoryIndex < stories.size - 1) {
+                  currentStoryIndex++
+                } else {
+                  onDismiss()
                 }
+              },
+              onDismiss = onDismiss,
+              event = event,
+              avatarBitmap = avatarBitmap,
+              currentUserId = currentUserId,
+              onShowDeleteConfirmation = { showDeleteConfirmation = true })
 
-                // Close button
-                IconButton(
-                    onClick = onDismiss,
-                    modifier =
-                        Modifier.align(Alignment.TopEnd)
-                            .padding(16.dp)
-                            .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
-                      Icon(
-                          imageVector = Icons.Default.Close,
-                          contentDescription =
-                              stringResource(R.string.content_description_close_story),
-                          tint = Color.White)
-                    }
-
-                // Delete button (only show if user owns the current story)
-                if (currentStory.userId == currentUserId) {
-                  IconButton(
-                      onClick = { showDeleteConfirmation = true },
-                      modifier =
-                          Modifier.align(Alignment.BottomStart)
-                              .padding(16.dp)
-                              .testTag("story_delete_button")) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete story",
-                            tint = Color.Red,
-                            modifier = Modifier.size(32.dp))
-                      }
+          StoryDeleteDialog(
+              showDeleteConfirmation = showDeleteConfirmation,
+              onDismiss = { showDeleteConfirmation = false },
+              onConfirmDelete = {
+                showDeleteConfirmation = false
+                val storyToDelete = stories[currentStoryIndex]
+                onDeleteStory(storyToDelete.story.storyId)
+                if (stories.size == 1) {
+                  onDismiss()
+                } else if (currentStoryIndex >= stories.size - 1) {
+                  currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
                 }
-
-                // Delete confirmation dialog
-                StoryDeleteDialog(
-                    showDeleteConfirmation = showDeleteConfirmation,
-                    onDismiss = { showDeleteConfirmation = false },
-                    onConfirmDelete = {
-                      showDeleteConfirmation = false
-                      val storyToDelete = stories[currentStoryIndex]
-                      onDeleteStory(storyToDelete.story.storyId)
-                      // If this was the last story or only story, dismiss viewer
-                      if (stories.size == 1) {
-                        onDismiss()
-                      } else if (currentStoryIndex >= stories.size - 1) {
-                        // If we're at the last story, go to previous
-                        currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
-                      }
-                      // If we're not at the last story, the index stays the same
-                      // and shows the next story automatically
-                    })
-              }
+              })
         }
       }
 }

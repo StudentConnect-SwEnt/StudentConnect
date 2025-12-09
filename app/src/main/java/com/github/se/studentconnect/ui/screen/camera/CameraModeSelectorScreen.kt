@@ -59,63 +59,93 @@ object CameraModeSelectorTestTags {
   const val UPLOAD_LOADING_OVERLAY = "upload_loading_overlay"
 }
 
+/** Parameters for story upload handling. */
+internal data class StoryUploadParams(
+    val mediaUri: Uri,
+    val isVideo: Boolean,
+    val selectedEvent: Event?,
+    val isUploading: Boolean,
+    val context: Context,
+    val lifecycleOwner: LifecycleOwner,
+    val storyRepository: StoryRepository
+)
+
+/** Callbacks for story upload handling. */
+internal data class StoryUploadCallbacks(
+    val onUploadStateChange: (Boolean) -> Unit,
+    val onStoryAccepted: (Uri, Boolean, Event?) -> Unit
+)
+
 /**
  * Handles the story upload logic. Extracted for testability.
  *
  * @return true if upload was initiated, false otherwise
  */
 internal fun handleStoryUpload(
-    mediaUri: Uri,
-    isVideo: Boolean,
-    selectedEvent: Event?,
-    isUploading: Boolean,
-    context: Context,
-    lifecycleOwner: LifecycleOwner,
-    storyRepository: StoryRepository,
-    onUploadStateChange: (Boolean) -> Unit,
-    onStoryAccepted: (Uri, Boolean, Event?) -> Unit
+    params: StoryUploadParams,
+    callbacks: StoryUploadCallbacks
 ): Boolean {
-  if (selectedEvent == null) {
-    Toast.makeText(context, context.getString(R.string.story_select_event), Toast.LENGTH_SHORT)
+  if (params.selectedEvent == null) {
+    Toast.makeText(
+            params.context,
+            params.context.getString(R.string.story_select_event),
+            Toast.LENGTH_SHORT)
         .show()
     return false
   }
 
-  if (isUploading) {
+  if (params.isUploading) {
     Toast.makeText(
-            context, context.getString(R.string.story_upload_in_progress), Toast.LENGTH_SHORT)
+            params.context,
+            params.context.getString(R.string.story_upload_in_progress),
+            Toast.LENGTH_SHORT)
         .show()
     return false
   }
 
   val currentUserId = AuthenticationProvider.currentUser
   if (currentUserId.isEmpty()) {
-    Toast.makeText(context, context.getString(R.string.story_login_required), Toast.LENGTH_SHORT)
+    Toast.makeText(
+            params.context,
+            params.context.getString(R.string.story_login_required),
+            Toast.LENGTH_SHORT)
         .show()
     return false
   }
 
-  onUploadStateChange(true)
-  Toast.makeText(context, context.getString(R.string.story_uploading), Toast.LENGTH_SHORT).show()
+  callbacks.onUploadStateChange(true)
+  Toast.makeText(
+          params.context, params.context.getString(R.string.story_uploading), Toast.LENGTH_SHORT)
+      .show()
 
-  lifecycleOwner.lifecycleScope.launch {
+  params.lifecycleOwner.lifecycleScope.launch {
     try {
-      val story = storyRepository.uploadStory(mediaUri, selectedEvent.uid, currentUserId, context)
+      val story =
+          params.storyRepository.uploadStory(
+              params.mediaUri, params.selectedEvent.uid, currentUserId, params.context)
 
       if (story != null) {
-        Toast.makeText(context, context.getString(R.string.story_uploaded), Toast.LENGTH_SHORT)
+        Toast.makeText(
+                params.context,
+                params.context.getString(R.string.story_uploaded),
+                Toast.LENGTH_SHORT)
             .show()
-        onStoryAccepted(mediaUri, isVideo, selectedEvent)
+        callbacks.onStoryAccepted(params.mediaUri, params.isVideo, params.selectedEvent)
       } else {
-        Toast.makeText(context, context.getString(R.string.story_upload_failed), Toast.LENGTH_LONG)
+        Toast.makeText(
+                params.context,
+                params.context.getString(R.string.story_upload_failed),
+                Toast.LENGTH_LONG)
             .show()
       }
     } catch (e: Exception) {
       Toast.makeText(
-              context, context.getString(R.string.story_upload_error, e.message), Toast.LENGTH_LONG)
+              params.context,
+              params.context.getString(R.string.story_upload_error, e.message),
+              Toast.LENGTH_LONG)
           .show()
     } finally {
-      onUploadStateChange(false)
+      callbacks.onUploadStateChange(false)
     }
   }
 
@@ -164,15 +194,19 @@ fun CameraModeSelectorScreen(
               onBackClick = onBackClick,
               onStoryAccepted = { mediaUri, isVideo, selectedEvent ->
                 handleStoryUpload(
-                    mediaUri = mediaUri,
-                    isVideo = isVideo,
-                    selectedEvent = selectedEvent,
-                    isUploading = isUploading,
-                    context = context,
-                    lifecycleOwner = lifecycleOwner,
-                    storyRepository = storyRepository,
-                    onUploadStateChange = { uploading -> isUploading = uploading },
-                    onStoryAccepted = onStoryAccepted)
+                    params =
+                        StoryUploadParams(
+                            mediaUri = mediaUri,
+                            isVideo = isVideo,
+                            selectedEvent = selectedEvent,
+                            isUploading = isUploading,
+                            context = context,
+                            lifecycleOwner = lifecycleOwner,
+                            storyRepository = storyRepository),
+                    callbacks =
+                        StoryUploadCallbacks(
+                            onUploadStateChange = { uploading -> isUploading = uploading },
+                            onStoryAccepted = onStoryAccepted))
               },
               eventSelectionState = eventSelectionState,
               onLoadEvents = { viewModel.loadJoinedEvents() },

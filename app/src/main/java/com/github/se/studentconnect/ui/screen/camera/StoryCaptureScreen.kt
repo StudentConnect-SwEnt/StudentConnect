@@ -96,10 +96,9 @@ fun StoryCaptureScreen(
           onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
           noPermission = { PermissionRequired(onBackClick = onBackClick) },
           // Configure for full-screen story capture
-          // Use 16:9 aspect ratio which will be captured in portrait orientation
+          // CameraX will automatically select appropriate resolution
           imageCaptureConfig = {
-            // Use 16:9 for full-screen portrait capture (will be rotated to 9:16)
-            setTargetResolution(android.util.Size(1920, 1080))
+            // CameraX will handle resolution selection automatically
           })
 
       // Only show mode controls when not showing preview
