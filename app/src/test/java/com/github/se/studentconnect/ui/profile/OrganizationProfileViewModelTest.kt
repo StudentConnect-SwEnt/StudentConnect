@@ -334,7 +334,7 @@ class OrganizationProfileViewModelTest {
 
   @Test
   fun `toggleFollow does nothing when organization is null`() = runTest {
-    viewModel.toggleFollow()
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val state = viewModel.uiState.value
@@ -356,7 +356,7 @@ class OrganizationProfileViewModelTest {
     advanceUntilIdle()
 
     val initialFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
-    viewModel.toggleFollow()
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val finalFollowing = viewModel.uiState.value.organization?.isFollowing ?: false
@@ -389,12 +389,12 @@ class OrganizationProfileViewModelTest {
     // Member should be following initially
     assertTrue(state.organization?.isFollowing == true)
 
-    // Toggle follow to unfollow
-    viewModel.toggleFollow()
+    // Members cannot unfollow, so the button should show unfollow dialog
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
-    // Should now be unfollowing
-    assertFalse(viewModel.uiState.value.organization?.isFollowing == true)
+    // Should still be following (members can't unfollow)
+    assertTrue(viewModel.uiState.value.organization?.isFollowing == true)
   }
 
   @Test
@@ -531,8 +531,8 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertFalse(initialState.organization?.isFollowing == true)
 
-    // Toggle follow to follow organization
-    viewModel.toggleFollow()
+    // Click follow button to follow organization
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     val finalState = viewModel.uiState.value
@@ -578,8 +578,12 @@ class OrganizationProfileViewModelTest {
     assertNotNull(initialState.organization)
     assertTrue(initialState.organization?.isFollowing == true)
 
-    // Toggle follow to unfollow
-    viewModel.toggleFollow()
+    // Click follow button to show unfollow dialog
+    viewModel.onFollowButtonClick()
+    advanceUntilIdle()
+
+    // Confirm unfollow in the dialog
+    viewModel.confirmUnfollow()
     advanceUntilIdle()
 
     val finalState = viewModel.uiState.value
@@ -624,8 +628,12 @@ class OrganizationProfileViewModelTest {
     val initialState = viewModel.uiState.value
     assertTrue(initialState.organization?.isFollowing == true)
 
-    // Toggle follow when following - should unfollow
-    viewModel.toggleFollow()
+    // Click follow button when following - should show dialog then unfollow
+    viewModel.onFollowButtonClick()
+    advanceUntilIdle()
+
+    // Confirm unfollow
+    viewModel.confirmUnfollow()
     advanceUntilIdle()
 
     // Should now be unfollowing
@@ -664,8 +672,8 @@ class OrganizationProfileViewModelTest {
 
     assertFalse(viewModel.uiState.value.organization?.isFollowing == true)
 
-    // Toggle follow
-    viewModel.toggleFollow()
+    // Click follow button
+    viewModel.onFollowButtonClick()
     advanceUntilIdle()
 
     // Should now be following
