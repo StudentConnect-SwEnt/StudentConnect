@@ -890,13 +890,16 @@ private fun NonOwnerActionButtons(
     eventViewModel: EventViewModel
 ) {
   val now = Timestamp.now()
-  val eventHasStarted = now >= currentEvent.start
+  val eventIsOver = now > (currentEvent.end ?: now)
+  val eventHasStarted = now >= currentEvent.start && !eventIsOver
+  val canJoin = !joined && !isFull && !eventIsOver && !eventHasStarted
+  val canLeave = joined && !eventHasStarted && !eventIsOver
 
   Button(
       onClick = {
-        if (joined) {
+        if (canLeave) {
           eventViewModel.showLeaveConfirmDialog()
-        } else if (!isFull && !eventHasStarted) {
+        } else if (canJoin) {
           eventViewModel.joinEvent(eventUid = currentEvent.uid)
         }
       },
@@ -906,7 +909,7 @@ private fun NonOwnerActionButtons(
               .testTag(
                   if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
                   else EventViewTestTags.JOIN_BUTTON),
-      enabled = joined || (!eventHasStarted && !isFull),
+      enabled = canLeave || canJoin,
       colors =
           ButtonDefaults.buttonColors(
               containerColor =
@@ -916,11 +919,11 @@ private fun NonOwnerActionButtons(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
-              val showIcon = joined || (!eventHasStarted && !isFull)
+              val showIcon = canLeave || canJoin
               if (showIcon) {
                 Icon(
                     painter =
-                        if (joined) painterResource(id = R.drawable.ic_arrow_right)
+                        if (canLeave) painterResource(id = R.drawable.ic_arrow_right)
                         else painterResource(id = R.drawable.ic_add),
                     contentDescription = stringResource(R.string.content_description_action_icon),
                     modifier = Modifier.size(iconSize))
@@ -929,9 +932,10 @@ private fun NonOwnerActionButtons(
               Text(
                   text =
                       when {
-                        joined -> stringResource(R.string.button_leave)
-                        isFull -> stringResource(R.string.button_full)
+                        canLeave -> stringResource(R.string.button_leave)
                         eventHasStarted -> stringResource(R.string.button_started)
+                        eventIsOver -> stringResource(R.string.button_over)
+                        isFull -> stringResource(R.string.button_full)
                         else -> stringResource(R.string.button_join)
                       },
                   style = MaterialTheme.typography.titleMedium,

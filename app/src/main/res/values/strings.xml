@@ -225,6 +225,7 @@
     <string name="button_join">Join</string>
     <string name="button_full">Full</string>
     <string name="button_started">Started</string>
+    <string name="button_over">Over</string>
     <string name="button_scan_next">Scan Next</string>
     <string name="button_close_scanner">Close Scanner</string>
     <string name="button_apply">Apply</string>
