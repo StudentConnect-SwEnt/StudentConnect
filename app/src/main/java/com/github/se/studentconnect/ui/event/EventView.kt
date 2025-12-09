@@ -308,7 +308,7 @@ fun EventView(
     } else if (event != null) {
       HorizontalPager(
           state = pagerState,
-          modifier = Modifier.fillMaxSize().padding(paddingValues),
+          modifier = Modifier.fillMaxSize(),
           userScrollEnabled = false,
       ) { page ->
         when (page) {
