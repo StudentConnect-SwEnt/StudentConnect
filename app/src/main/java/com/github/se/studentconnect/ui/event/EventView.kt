@@ -529,7 +529,8 @@ private fun BaseEventView(
 @Composable
 private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
   val now = Timestamp.now()
-  val eventHasStarted = now >= event.start
+  val eventIsOver = now > (event.end ?: now)
+  val eventHasStarted = now >= event.start && !eventIsOver
 
   Card(
       modifier = Modifier.fillMaxWidth(),
@@ -559,6 +560,15 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
                       color = MaterialTheme.colorScheme.primary,
                       text = days(timeLeft) + " days left",
                       style = MaterialTheme.typography.displaySmall,
+                      textAlign = TextAlign.Center)
+                }
+                eventIsOver && timeLeft <= 0 -> {
+                  Text(
+                      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_TIMER),
+                      color = MaterialTheme.colorScheme.primary,
+                      text = stringResource(R.string.event_is_over),
+                      style = MaterialTheme.typography.displaySmall,
+                      fontWeight = FontWeight.Bold,
                       textAlign = TextAlign.Center)
                 }
                 else -> {

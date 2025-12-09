@@ -379,6 +379,7 @@
     <string name="event_chat_subtitle">Get The Latest News About The Event</string>
     <string name="event_has_started">Event has started</string>
     <string name="event_hurry_up_started">Hurry up! Event has started</string>
+    <string name="event_is_over">Event is over</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
 
