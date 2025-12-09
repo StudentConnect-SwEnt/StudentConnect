@@ -260,6 +260,20 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     }
   }
 
+  override suspend fun getEventsByOwner(userId: String): List<Event> {
+    val querySnapshot =
+        db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("ownerId", userId).get().await()
+
+    return querySnapshot.documents.mapNotNull { doc ->
+      try {
+        eventFromDocumentSnapshot(doc)
+      } catch (e: Exception) {
+        Log.e("EventRepositoryFirestore", "Failed to parse event for owner", e)
+        null
+      }
+    }
+  }
+
   override suspend fun getEvent(eventUid: String): Event {
     val eventRef = db.collection(EVENTS_COLLECTION_PATH).document(eventUid)
     val documentSnapshot = getEventDocument(eventUid)
