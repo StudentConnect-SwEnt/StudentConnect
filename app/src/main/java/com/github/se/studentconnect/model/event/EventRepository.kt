@@ -42,6 +42,17 @@ interface EventRepository : Repository {
   }
 
   /**
+   * Retrieves all events owned by a specific user.
+   *
+   * @param userId The unique identifier of the user.
+   * @return A list of [Event] objects owned by the user.
+   * @throws Exception if the retrieval fails.
+   */
+  suspend fun getEventsByOwner(userId: String): List<Event> {
+    return emptyList()
+  }
+
+  /**
    * Retrieves a specific event by its unique identifier.
    *
    * @param eventUid The unique identifier of the event to retrieve.

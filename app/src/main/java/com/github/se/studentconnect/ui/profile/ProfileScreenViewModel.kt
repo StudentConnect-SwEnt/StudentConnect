@@ -66,10 +66,14 @@ class ProfileScreenViewModel(
     _isLoading.value = true
     viewModelScope.launch {
       try {
+        // Load user data
         val loadedUser = userRepository.getUserById(currentUserId)
         _user.value = loadedUser
 
+        // Load friends count
         loadFriendsCount()
+
+        // Load events count
         loadEventsCount()
 
         _error.value = null
@@ -82,26 +86,53 @@ class ProfileScreenViewModel(
     }
   }
 
-  // Load the friends count for the user
+  /** Loads the count of friends for the current user. */
   private suspend fun loadFriendsCount() {
     try {
       val friends = friendsRepository.getFriends(currentUserId)
       _friendsCount.value = friends.size
     } catch (exception: Exception) {
       Log.e(TAG, "Failed to load friends count for user: $currentUserId", exception)
+      // If friends loading fails, set count to 0
       _friendsCount.value = 0
     }
   }
 
-  // Load the joined events count for the user
+  /** Loads the count of events for the current user (both joined and created). */
   private suspend fun loadEventsCount() {
-    try {
-      val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
-      _eventsCount.value = joinedEventIds.size
-    } catch (exception: Exception) {
-      Log.e(TAG, "Failed to load events count for user: $currentUserId", exception)
-      _eventsCount.value = 0
-    }
+    // Get joined events (with error handling)
+    val joinedEventIds =
+        try {
+          userRepository.getJoinedEvents(currentUserId)
+        } catch (exception: Exception) {
+          Log.e(TAG, "Failed to load joined events for user: $currentUserId", exception)
+          emptyList()
+        }
+
+    // Get created events (with error handling)
+    val createdEventIds =
+        try {
+          val createdEvents = eventRepository.getEventsByOrganization(currentUserId)
+          createdEvents.map { it.uid }
+        } catch (exception: Exception) {
+          Log.e(TAG, "Failed to load created events for user: $currentUserId", exception)
+          emptyList()
+        }
+
+    // Combine and remove duplicates
+    val allEventIds = combineEventIds(joinedEventIds, createdEventIds)
+    _eventsCount.value = allEventIds.size
+  }
+
+  /**
+   * Combines joined and created event IDs, removing duplicates.
+   *
+   * @param joinedIds List of event IDs the user has joined
+   * @param createdIds List of event IDs the user has created
+   * @return Set of unique event IDs
+   */
+  private fun combineEventIds(joinedIds: List<String>, createdIds: List<String>): Set<String> {
+    return (joinedIds + createdIds).toSet()
   }
 
   // Load the pinned events for the user

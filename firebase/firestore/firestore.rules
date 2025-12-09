@@ -237,6 +237,12 @@ service cloud.firestore {
         allow get, list: if request.auth != null && request.auth.uid == userId;
         allow create, delete: if request.auth != null && request.auth.uid == userId;
       }
+
+      // Subcollection: followedOrganizations
+      match /followedOrganizations/{organizationId} {
+        allow get, list: if request.auth != null && request.auth.uid == userId;
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     
