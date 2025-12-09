@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -37,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,13 +49,6 @@ import kotlinx.coroutines.Dispatchers
 /** Data class holding profile statistics */
 data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
 
-/** Data class holding profile action callbacks */
-data class ProfileActions(
-    val onEditClick: (() -> Unit)? = null,
-    val onUserCardClick: (() -> Unit)? = null,
-    val onOrganizationClick: (() -> Unit)? = null
-)
-
 /**
  * Profile header component showing user profile picture, stats, and user information.
  *
@@ -65,7 +56,8 @@ data class ProfileActions(
  * @param stats Profile statistics (friends count and events count)
  * @param onFriendsClick Callback when friends count is clicked
  * @param onEventsClick Callback when events count is clicked
- * @param actions Profile action callbacks (edit, user card, organization)
+ * @param onEditClick Callback when edit button is clicked
+ * @param onUserCardClick Callback when user card button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -74,7 +66,8 @@ fun ProfileHeader(
     stats: ProfileStats,
     onFriendsClick: () -> Unit,
     onEventsClick: () -> Unit,
-    actions: ProfileActions = ProfileActions(),
+    onEditClick: (() -> Unit)? = null,
+    onUserCardClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -93,228 +86,145 @@ fun ProfileHeader(
             }
       }
 
-  Column(
-      modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.profile_header_padding)),
-      horizontalAlignment = Alignment.Start) {
-        // Top Row: Profile Picture + Stats
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-              ProfilePicture(imageBitmap = imageBitmap)
-
-              Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_xxlarge)))
-
-              // Stats Row (Friends and Events)
-              Row(
-                  modifier = Modifier.weight(1f),
-                  horizontalArrangement = Arrangement.SpaceEvenly,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    StatItem(
-                        count = stats.friendsCount,
-                        label = stringResource(R.string.label_friends),
-                        onClick = onFriendsClick)
-
-                    StatItem(
-                        count = stats.eventsCount,
-                        label = stringResource(R.string.label_events),
-                        onClick = onEventsClick)
-                  }
-            }
-
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
-
-        UserInformation(user = user)
-
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
-
-        ActionButtons(actions = actions)
-      }
-}
-
-/**
- * Profile picture component.
- *
- * @param imageBitmap The profile image bitmap, or null for placeholder
- * @param modifier Modifier for the composable
- */
-@Composable
-private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modifier) {
-  Box(
-      modifier =
-          modifier
-              .size(dimensionResource(R.dimen.profile_picture_size))
-              .clip(CircleShape)
-              .background(MaterialTheme.colorScheme.secondaryContainer)
-              .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
-      contentAlignment = Alignment.Center) {
-        val profilePictureDescription = stringResource(R.string.content_description_profile_picture)
-        if (imageBitmap != null) {
-          Image(
-              bitmap = imageBitmap,
-              contentDescription = profilePictureDescription,
+  Column(modifier = modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.Start) {
+    // Top Row: Profile Picture + Stats
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
+          // Profile Picture
+          Box(
               modifier =
-                  Modifier.size(dimensionResource(R.dimen.profile_picture_size)).clip(CircleShape),
-              contentScale = ContentScale.Crop)
-        } else {
-          Icon(
-              imageVector = Icons.Default.Person,
-              contentDescription = profilePictureDescription,
-              modifier = Modifier.size(dimensionResource(R.dimen.profile_picture_icon_size)),
-              tint = MaterialTheme.colorScheme.primary)
-        }
-      }
-}
+                  Modifier.size(100.dp)
+                      .clip(CircleShape)
+                      .background(MaterialTheme.colorScheme.secondaryContainer)
+                      .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
+              contentAlignment = Alignment.Center) {
+                val profilePictureDescription =
+                    stringResource(R.string.content_description_profile_picture)
+                if (imageBitmap != null) {
+                  Image(
+                      bitmap = imageBitmap!!,
+                      contentDescription = profilePictureDescription,
+                      modifier = Modifier.size(100.dp).clip(CircleShape),
+                      contentScale = ContentScale.Crop)
+                } else {
+                  Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = profilePictureDescription,
+                      modifier = Modifier.size(60.dp),
+                      tint = MaterialTheme.colorScheme.primary)
+                }
+              }
 
-/**
- * User information section displaying name, bio, university, and location.
- *
- * @param user The user whose information to display
- * @param modifier Modifier for the composable
- */
-@Composable
-private fun UserInformation(user: User, modifier: Modifier = Modifier) {
-  Column(modifier = modifier.fillMaxWidth()) {
+          Spacer(modifier = Modifier.width(32.dp))
+
+          // Stats Row (Friends and Events)
+          Row(
+              modifier = Modifier.weight(1f),
+              horizontalArrangement = Arrangement.SpaceEvenly,
+              verticalAlignment = Alignment.CenterVertically) {
+                // Friends Count
+                StatItem(count = stats.friendsCount, label = "Friends", onClick = onFriendsClick)
+
+                // Events Count
+                StatItem(count = stats.eventsCount, label = "Events", onClick = onEventsClick)
+              }
+        }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
     // User Name
     Text(
         text = user.getFullName(),
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
-        fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
+        fontSize = 20.sp,
         color = MaterialTheme.colorScheme.onSurface)
 
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+    Spacer(modifier = Modifier.height(4.dp))
 
     // Bio (if available)
     if (user.hasBio()) {
       Text(
           text = user.bio ?: "",
           style = MaterialTheme.typography.bodyMedium,
-          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+          fontSize = 14.sp,
           color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier.fillMaxWidth())
 
-      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+      Spacer(modifier = Modifier.height(4.dp))
     }
 
     // University
     Text(
         text = user.university,
         style = MaterialTheme.typography.bodyMedium,
-        fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+        fontSize = 14.sp,
         color = MaterialTheme.colorScheme.onSurface)
 
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+    Spacer(modifier = Modifier.height(4.dp))
 
     // Location (Country)
     if (user.country != null) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.LocationOn,
-            contentDescription = stringResource(R.string.content_description_location),
-            modifier = Modifier.size(dimensionResource(R.dimen.profile_location_icon_size)),
+            contentDescription = "Location",
+            modifier = Modifier.size(16.dp),
             tint = MaterialTheme.colorScheme.onSurface)
 
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_small)))
+        Spacer(modifier = Modifier.width(4.dp))
 
         Text(
             text = user.country,
             style = MaterialTheme.typography.bodyMedium,
-            fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+            fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface)
       }
     }
-  }
-}
 
-/**
- * Action buttons section (Edit, User Card, Organizations).
- *
- * @param actions Profile action callbacks
- * @param modifier Modifier for the composable
- */
-@Composable
-private fun ActionButtons(actions: ProfileActions, modifier: Modifier = Modifier) {
-  Column(modifier = modifier.fillMaxWidth()) {
+    Spacer(modifier = Modifier.height(16.dp))
+
     // Buttons Row: Edit and User Card
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement =
-            Arrangement.spacedBy(dimensionResource(R.dimen.profile_spacing_large))) {
-          // Edit Button
-          if (actions.onEditClick != null) {
-            Button(
-                onClick = actions.onEditClick,
-                modifier =
-                    Modifier.weight(1f).height(dimensionResource(R.dimen.profile_button_height)),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary),
-                shape =
-                    RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius))) {
-                  Icon(
-                      imageVector = Icons.Default.Edit,
-                      contentDescription = stringResource(R.string.content_description_edit),
-                      modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size)))
-                  Spacer(
-                      modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_medium)))
-                  Text(
-                      text = stringResource(R.string.button_edit),
-                      fontSize = dimensionResource(R.dimen.profile_button_text_size).value.sp,
-                      fontWeight = FontWeight.Medium)
-                }
-          }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+      // Edit Button
+      if (onEditClick != null) {
+        Button(
+            onClick = onEditClick,
+            modifier = Modifier.weight(1f).height(48.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
+            shape = RoundedCornerShape(24.dp)) {
+              Icon(
+                  imageVector = Icons.Default.Edit,
+                  contentDescription = "Edit",
+                  modifier = Modifier.size(20.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(text = "Edit", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            }
+      }
 
-          // User Card Button
-          if (actions.onUserCardClick != null) {
-            Button(
-                onClick = actions.onUserCardClick,
-                modifier =
-                    Modifier.weight(1f).height(dimensionResource(R.dimen.profile_button_height)),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary),
-                shape =
-                    RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius))) {
-                  Icon(
-                      imageVector = Icons.Default.CreditCard,
-                      contentDescription = stringResource(R.string.content_description_user_card),
-                      modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size)))
-                  Spacer(
-                      modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_medium)))
-                  Text(
-                      text = stringResource(R.string.button_card),
-                      fontSize = dimensionResource(R.dimen.profile_button_text_size).value.sp,
-                      fontWeight = FontWeight.Medium)
-                }
-          }
-        }
-
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_large)))
-
-    // Organization Button
-    if (actions.onOrganizationClick != null) {
-      Button(
-          onClick = actions.onOrganizationClick,
-          modifier =
-              Modifier.fillMaxWidth().height(dimensionResource(R.dimen.profile_button_height)),
-          colors =
-              ButtonDefaults.buttonColors(
-                  containerColor = MaterialTheme.colorScheme.secondary,
-                  contentColor = MaterialTheme.colorScheme.onSecondary),
-          shape = RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius))) {
-            Icon(
-                imageVector = Icons.Outlined.Groups,
-                contentDescription = stringResource(R.string.content_description_organizations),
-                modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size)))
-            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_medium)))
-            Text(
-                text = stringResource(R.string.button_organizations),
-                fontSize = dimensionResource(R.dimen.profile_button_text_size).value.sp,
-                fontWeight = FontWeight.Medium)
-          }
+      // User Card Button
+      if (onUserCardClick != null) {
+        Button(
+            onClick = onUserCardClick,
+            modifier = Modifier.weight(1f).height(48.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
+            shape = RoundedCornerShape(24.dp)) {
+              Icon(
+                  imageVector = Icons.Default.CreditCard,
+                  contentDescription = "User Card",
+                  modifier = Modifier.size(20.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            }
+      }
     }
   }
 }
@@ -335,22 +245,19 @@ private fun StatItem(
     modifier: Modifier = Modifier
 ) {
   Column(
-      modifier =
-          modifier
-              .clickable(onClick = onClick)
-              .padding(dimensionResource(R.dimen.profile_stat_padding)),
+      modifier = modifier.clickable(onClick = onClick).padding(8.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = count.toString(),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            fontSize = dimensionResource(R.dimen.profile_stat_text_size).value.sp,
+            fontSize = 22.sp,
             color = MaterialTheme.colorScheme.onSurface)
 
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+            fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface)
       }
 }

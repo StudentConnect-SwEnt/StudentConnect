@@ -40,7 +40,6 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
-import com.github.se.studentconnect.ui.screen.profile.OrganizationManagementScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileNavigationCallbacks
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
@@ -49,7 +48,6 @@ import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
@@ -354,9 +352,6 @@ internal fun MainAppContent(
                         onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) },
                         onNavigateToEventDetails = { eventId ->
                           navController.navigate(Route.eventView(eventId, true))
-                        },
-                        onNavigateToOrganizationManagement = {
-                          navController.navigate(ProfileRoutes.ORGANIZATION_MANAGEMENT)
                         }))
           }
 
@@ -438,40 +433,6 @@ internal fun MainAppContent(
                 currentUserId = currentUserId,
                 userRepository = userRepository,
                 onNavigateBack = { navController.popBackStack() })
-          }
-
-          // Organization Management Screen
-          composable(ProfileRoutes.ORGANIZATION_MANAGEMENT) {
-            OrganizationManagementScreen(
-                currentUserId = currentUserId,
-                onBack = { navController.popBackStack() },
-                onCreateOrganization = {
-                  // Navigate to organization creation route
-                  navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
-                },
-                onJoinOrganization = {
-                  // Navigate to search screen to find and join organizations
-                  // Users can search for existing organizations and request to join them
-                  navController.navigate(Route.SEARCH)
-                },
-                onOrganizationClick = { organizationId ->
-                  navController.navigate(Route.organizationProfile(organizationId))
-                })
-          }
-
-          // Create Organization Screen
-          composable(ProfileRoutes.CREATE_ORGANIZATION) {
-            OrganizationSignUpOrchestrator(
-                firebaseUserId = currentUserId,
-                onLogout = {
-                  // User wants to logout during org creation - navigate back to profile
-                  // The actual logout will be handled by the user from settings
-                  navController.popBackStack(Route.PROFILE, inclusive = false)
-                },
-                onBackToSelection = {
-                  // User cancelled organization creation
-                  navController.popBackStack()
-                })
           }
 
           // Profile Settings Screen (Edit Profile View)
