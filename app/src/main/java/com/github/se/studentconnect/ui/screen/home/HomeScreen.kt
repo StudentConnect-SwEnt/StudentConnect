@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.home
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -965,7 +964,8 @@ fun StoryItem(
         value =
             avatarUrl?.let { id ->
               runCatching { repository.download(id) }
-                  .onFailure { Log.e("StoryItem", "Failed to download profile image: $id", it) }
+                  .onFailure { // just do nothing
+                  }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
@@ -1142,7 +1142,8 @@ fun StoryViewer(
         value =
             currentProfilePictureUrl?.let { id ->
               runCatching { repository.download(id) }
-                  .onFailure { Log.e("StoryViewer", "Failed to download profile image: $id", it) }
+                  .onFailure { // just do nothing
+                  }
                   .getOrNull()
                   ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
             }
@@ -1226,9 +1227,7 @@ fun StoryViewer(
                                   },
                               contentScale = ContentScale.Crop,
                               onError = {
-                                Log.e(
-                                    "StoryViewer",
-                                    "Error loading image: ${currentStory.story.mediaUrl}")
+                                // no image loaded
                               })
                         }
                   }
