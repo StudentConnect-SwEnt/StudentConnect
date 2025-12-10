@@ -227,6 +227,153 @@ class ListOfEventsUnitTest {
     composeTestRule.waitForIdle()
 
     // The LIVE badge displays the text "LIVE"
-    composeTestRule.onNodeWithText("LIVE").assertExists()
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertExists()
+  }
+
+  @Test
+  fun eventCard_shows_flash_icon_when_flash_event_is_live() {
+    // Start in the past so now >= start, no end (default 3 hours later) so now < end
+    val start = Timestamp(Date(System.currentTimeMillis() - 60_000))
+
+    val flashEvent =
+        Event.Public(
+            uid = "flash1",
+            ownerId = "o1",
+            title = "Flash Event",
+            description = "desc",
+            imageUrl = null,
+            location = null,
+            start = start,
+            end = null,
+            maxCapacity = null,
+            participationFee = 0u,
+            isFlash = true,
+            subtitle = "sub",
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Flash event should show flash icon, not LIVE text
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithContentDescription(flashIconDesc).fetchSemanticsNodes().size == 1
+    }
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertExists()
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_shows_live_badge_when_regular_event_is_live() {
+    // Start in the past so now >= start, no end (default 3 hours later) so now < end
+    val start = Timestamp(Date(System.currentTimeMillis() - 60_000))
+
+    val regularEvent =
+        Event.Public(
+            uid = "regular1",
+            ownerId = "o1",
+            title = "Regular Event",
+            description = "desc",
+            imageUrl = null,
+            location = null,
+            start = start,
+            end = null,
+            maxCapacity = null,
+            participationFee = 0u,
+            isFlash = false,
+            subtitle = "sub",
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        EventCard(event = regularEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Regular event should show LIVE badge, not flash icon
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertExists()
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_shows_no_badge_when_flash_event_is_not_live() {
+    // Future event - not live
+    val futureStart = Timestamp(Date(System.currentTimeMillis() + 3600_000))
+
+    val flashEvent =
+        Event.Public(
+            uid = "flash2",
+            ownerId = "o1",
+            title = "Future Flash Event",
+            description = "desc",
+            imageUrl = null,
+            location = null,
+            start = futureStart,
+            end = null,
+            maxCapacity = null,
+            participationFee = 0u,
+            isFlash = true,
+            subtitle = "sub",
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Future flash event should not show any badge
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_shows_no_badge_when_regular_event_is_not_live() {
+    // Future event - not live
+    val futureStart = Timestamp(Date(System.currentTimeMillis() + 3600_000))
+
+    val regularEvent =
+        Event.Public(
+            uid = "regular2",
+            ownerId = "o1",
+            title = "Future Regular Event",
+            description = "desc",
+            imageUrl = null,
+            location = null,
+            start = futureStart,
+            end = null,
+            maxCapacity = null,
+            participationFee = 0u,
+            isFlash = false,
+            subtitle = "sub",
+            tags = emptyList(),
+            website = null)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        EventCard(event = regularEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Future regular event should not show any badge
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
   }
 }

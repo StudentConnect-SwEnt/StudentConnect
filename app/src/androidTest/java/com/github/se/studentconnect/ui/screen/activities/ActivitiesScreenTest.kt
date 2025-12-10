@@ -1,20 +1,25 @@
 package com.github.se.studentconnect.ui.screen.activities
 
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp
+import java.util.Calendar
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -502,5 +507,157 @@ class ActivitiesScreenTest : StudentConnectTest() {
 
       publicExists || privateExists
     }
+  }
+
+  @Test
+  fun activitiesScreen_flashEvent_showsFlashIconWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val flashEvent =
+        Event.Public(
+            uid = "flash-live-test",
+            ownerId = ownerId,
+            title = "Live Flash Event",
+            description = "Flash event that is live",
+            imageUrl = null,
+            location = Location(46.52, 6.56, "Flash Location"),
+            start = Timestamp(pastStart.time),
+            end = Timestamp(futureEnd.time),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = true,
+            subtitle = "Flash",
+            tags = listOf("flash"),
+            website = null)
+
+    runBlocking {
+      repository.addEvent(flashEvent)
+      userRepository.joinEvent(ownerId, flashEvent.uid)
+    }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        ActivitiesScreen(navController = navController, activitiesViewModel = activitiesViewModel)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Wait for the carousel to display
+    composeTestRule.waitUntil(5_000) {
+      composeTestRule
+          .onAllNodes(hasText("Live Flash Event"), useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Flash event should show flash icon, not LIVE text
+    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertIsDisplayed()
+    composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live)).assertDoesNotExist()
+  }
+
+  @Test
+  fun activitiesScreen_regularEvent_showsLiveBadgeWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val regularEvent =
+        Event.Public(
+            uid = "regular-live-test",
+            ownerId = ownerId,
+            title = "Live Regular Event",
+            description = "Regular event that is live",
+            imageUrl = null,
+            location = Location(46.52, 6.56, "Regular Location"),
+            start = Timestamp(pastStart.time),
+            end = Timestamp(futureEnd.time),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = false,
+            subtitle = "Regular",
+            tags = listOf("regular"),
+            website = null)
+
+    runBlocking {
+      repository.addEvent(regularEvent)
+      userRepository.joinEvent(ownerId, regularEvent.uid)
+    }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        ActivitiesScreen(navController = navController, activitiesViewModel = activitiesViewModel)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Wait for the carousel to display
+    composeTestRule.waitUntil(5_000) {
+      composeTestRule
+          .onAllNodes(hasText("Live Regular Event"), useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Regular event should show LIVE badge, not flash icon
+    composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live)).assertIsDisplayed()
+    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
+  }
+
+  @Test
+  fun activitiesScreen_flashEvent_doesNotShowBadgeWhenNotLive() {
+    val futureStart = Calendar.getInstance().apply { add(Calendar.HOUR, 1) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.HOUR, 3) }
+
+    val flashEvent =
+        Event.Public(
+            uid = "flash-future-test",
+            ownerId = ownerId,
+            title = "Future Flash Event",
+            description = "Flash event in the future",
+            imageUrl = null,
+            location = Location(46.52, 6.56, "Future Location"),
+            start = Timestamp(futureStart.time),
+            end = Timestamp(futureEnd.time),
+            maxCapacity = null,
+            participationFee = null,
+            isFlash = true,
+            subtitle = "Future Flash",
+            tags = listOf("flash"),
+            website = null)
+
+    runBlocking {
+      repository.addEvent(flashEvent)
+      userRepository.joinEvent(ownerId, flashEvent.uid)
+    }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        ActivitiesScreen(navController = navController, activitiesViewModel = activitiesViewModel)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Wait for the carousel to display
+    composeTestRule.waitUntil(5_000) {
+      composeTestRule
+          .onAllNodes(hasText("Future Flash Event"), useUnmergedTree = true)
+          .fetchSemanticsNodes(false)
+          .isNotEmpty()
+    }
+
+    // Future flash event should not show any badge
+    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
+    composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live)).assertDoesNotExist()
   }
 }

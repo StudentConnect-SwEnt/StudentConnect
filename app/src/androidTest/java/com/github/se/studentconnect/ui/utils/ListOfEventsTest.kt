@@ -362,6 +362,80 @@ class ListOfEventsTest {
   }
 
   @Test
+  fun eventCard_flashEvent_showsFlashIconWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val flashEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(pastStart.time),
+                end = Timestamp(futureEnd.time),
+                isFlash = true)
+
+    composeTestRule.setContent {
+      EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Flash event should show flash icon, not LIVE text
+    composeTestRule
+        .onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_description_flash_event))
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithText("LIVE").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_flashEvent_doesNotShowBadgeWhenNotLive() {
+    val futureStart = Calendar.getInstance().apply { add(Calendar.HOUR, 1) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.HOUR, 3) }
+
+    val flashEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(futureStart.time),
+                end = Timestamp(futureEnd.time),
+                isFlash = true)
+
+    composeTestRule.setContent {
+      EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Future flash event should not show any badge
+    composeTestRule
+        .onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_description_flash_event))
+        .assertDoesNotExist()
+    composeTestRule.onNodeWithText("LIVE").assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_regularEvent_showsLiveBadgeWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val regularEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(pastStart.time),
+                end = Timestamp(futureEnd.time),
+                isFlash = false)
+
+    composeTestRule.setContent {
+      EventCard(event = regularEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Regular event should show LIVE badge, not flash icon
+    composeTestRule.onNodeWithText("LIVE").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithContentDescription(
+            composeTestRule.activity.getString(R.string.content_description_flash_event))
+        .assertDoesNotExist()
+  }
+
+  @Test
   fun eventCard_favoriteToggle_callsCallback() {
     val event = createTestEvent(uid = "event123")
     var toggledEventId: String? = null
