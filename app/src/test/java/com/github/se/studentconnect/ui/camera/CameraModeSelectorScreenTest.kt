@@ -9,6 +9,8 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.Story
 import com.github.se.studentconnect.model.story.StoryRepository
+import com.github.se.studentconnect.ui.screen.camera.StoryUploadCallbacks
+import com.github.se.studentconnect.ui.screen.camera.StoryUploadParams
 import com.github.se.studentconnect.ui.screen.camera.handleStoryUpload
 import com.github.se.studentconnect.util.MainDispatcherRule
 import io.mockk.coEvery
@@ -73,15 +75,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = null,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadStateChanged = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = null,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { uploadStateChanged = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(!result) { "Expected handleStoryUpload to return false when event is null" }
     assert(!uploadStateChanged) { "Upload state should not change when event is null" }
@@ -94,15 +100,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = true,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadStateChanged = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = mockEvent,
+                    isUploading = true,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { uploadStateChanged = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(!result) { "Expected handleStoryUpload to return false when already uploading" }
     assert(!uploadStateChanged) { "Upload state should not change when already uploading" }
@@ -115,15 +125,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { uploadStateChanged = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { uploadStateChanged = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(!result) { "Expected handleStoryUpload to return false when user is not logged in" }
     assert(!uploadStateChanged) { "Upload state should not change when user is not logged in" }
@@ -139,15 +153,19 @@ class CameraModeSelectorScreenTest {
     var stateChanges = mutableListOf<Boolean>()
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = true,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { stateChanges.add(it) },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = true,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { stateChanges.add(it) },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(result) { "Expected handleStoryUpload to return true" }
     assert(stateChanges.isNotEmpty()) { "Expected upload state to change" }
@@ -163,15 +181,19 @@ class CameraModeSelectorScreenTest {
     var finalUploadState = true
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = true,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { finalUploadState = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = true,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { finalUploadState = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -185,15 +207,19 @@ class CameraModeSelectorScreenTest {
     var finalUploadState = true
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = true,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { finalUploadState = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = true,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { finalUploadState = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -207,15 +233,19 @@ class CameraModeSelectorScreenTest {
     var finalUploadState = true
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = true,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { finalUploadState = it },
-            onStoryAccepted = { _, _, _ -> storyAccepted = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = true,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { finalUploadState = it },
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -232,20 +262,24 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = true,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = {},
-            onStoryAccepted = { uri, isVideo, event ->
-              onStoryAcceptedCalled = true
-              capturedUri = uri
-              capturedIsVideo = isVideo
-              capturedEvent = event
-            })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = true,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = {},
+                    onStoryAccepted = { uri, isVideo, event ->
+                      onStoryAcceptedCalled = true
+                      capturedUri = uri
+                      capturedIsVideo = isVideo
+                      capturedEvent = event
+                    }))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -266,15 +300,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = {},
-            onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = {},
+                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true }))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -295,15 +333,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = {},
-            onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = {},
+                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true }))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -323,15 +365,19 @@ class CameraModeSelectorScreenTest {
 
     val result =
         handleStoryUpload(
-            mediaUri = mockUri,
-            isVideo = false,
-            selectedEvent = mockEvent,
-            isUploading = false,
-            context = mockContext,
-            lifecycleOwner = mockLifecycleOwner,
-            storyRepository = mockStoryRepository,
-            onUploadStateChange = { state -> stateChanges.add(state) },
-            onStoryAccepted = { _, _, _ -> })
+            params =
+                StoryUploadParams(
+                    mediaUri = mockUri,
+                    isVideo = false,
+                    selectedEvent = mockEvent,
+                    isUploading = false,
+                    context = mockContext,
+                    lifecycleOwner = mockLifecycleOwner,
+                    storyRepository = mockStoryRepository),
+            callbacks =
+                StoryUploadCallbacks(
+                    onUploadStateChange = { state -> stateChanges.add(state) },
+                    onStoryAccepted = { _, _, _ -> }))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -354,15 +400,19 @@ class CameraModeSelectorScreenTest {
     var finalState: Boolean? = null
 
     handleStoryUpload(
-        mediaUri = mockUri,
-        isVideo = false,
-        selectedEvent = mockEvent,
-        isUploading = false,
-        context = mockContext,
-        lifecycleOwner = mockLifecycleOwner,
-        storyRepository = mockStoryRepository,
-        onUploadStateChange = { state -> finalState = state },
-        onStoryAccepted = { _, _, _ -> })
+        params =
+            StoryUploadParams(
+                mediaUri = mockUri,
+                isVideo = false,
+                selectedEvent = mockEvent,
+                isUploading = false,
+                context = mockContext,
+                lifecycleOwner = mockLifecycleOwner,
+                storyRepository = mockStoryRepository),
+        callbacks =
+            StoryUploadCallbacks(
+                onUploadStateChange = { state -> finalState = state },
+                onStoryAccepted = { _, _, _ -> }))
 
     testScheduler.advanceUntilIdle()
 
@@ -377,15 +427,19 @@ class CameraModeSelectorScreenTest {
     var finalState: Boolean? = null
 
     handleStoryUpload(
-        mediaUri = mockUri,
-        isVideo = false,
-        selectedEvent = mockEvent,
-        isUploading = false,
-        context = mockContext,
-        lifecycleOwner = mockLifecycleOwner,
-        storyRepository = mockStoryRepository,
-        onUploadStateChange = { state -> finalState = state },
-        onStoryAccepted = { _, _, _ -> })
+        params =
+            StoryUploadParams(
+                mediaUri = mockUri,
+                isVideo = false,
+                selectedEvent = mockEvent,
+                isUploading = false,
+                context = mockContext,
+                lifecycleOwner = mockLifecycleOwner,
+                storyRepository = mockStoryRepository),
+        callbacks =
+            StoryUploadCallbacks(
+                onUploadStateChange = { state -> finalState = state },
+                onStoryAccepted = { _, _, _ -> }))
 
     testScheduler.advanceUntilIdle()
 
@@ -403,15 +457,19 @@ class CameraModeSelectorScreenTest {
     var finalState: Boolean? = null
 
     handleStoryUpload(
-        mediaUri = mockUri,
-        isVideo = false,
-        selectedEvent = mockEvent,
-        isUploading = false,
-        context = mockContext,
-        lifecycleOwner = mockLifecycleOwner,
-        storyRepository = mockStoryRepository,
-        onUploadStateChange = { state -> finalState = state },
-        onStoryAccepted = { _, _, _ -> })
+        params =
+            StoryUploadParams(
+                mediaUri = mockUri,
+                isVideo = false,
+                selectedEvent = mockEvent,
+                isUploading = false,
+                context = mockContext,
+                lifecycleOwner = mockLifecycleOwner,
+                storyRepository = mockStoryRepository),
+        callbacks =
+            StoryUploadCallbacks(
+                onUploadStateChange = { state -> finalState = state },
+                onStoryAccepted = { _, _, _ -> }))
 
     testScheduler.advanceUntilIdle()
 
@@ -428,15 +486,19 @@ class CameraModeSelectorScreenTest {
     var capturedIsVideo: Boolean? = null
 
     handleStoryUpload(
-        mediaUri = mockUri,
-        isVideo = true,
-        selectedEvent = mockEvent,
-        isUploading = false,
-        context = mockContext,
-        lifecycleOwner = mockLifecycleOwner,
-        storyRepository = mockStoryRepository,
-        onUploadStateChange = {},
-        onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo })
+        params =
+            StoryUploadParams(
+                mediaUri = mockUri,
+                isVideo = true,
+                selectedEvent = mockEvent,
+                isUploading = false,
+                context = mockContext,
+                lifecycleOwner = mockLifecycleOwner,
+                storyRepository = mockStoryRepository),
+        callbacks =
+            StoryUploadCallbacks(
+                onUploadStateChange = {},
+                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo }))
 
     testScheduler.advanceUntilIdle()
 
@@ -451,15 +513,19 @@ class CameraModeSelectorScreenTest {
     var capturedIsVideo: Boolean? = null
 
     handleStoryUpload(
-        mediaUri = mockUri,
-        isVideo = false,
-        selectedEvent = mockEvent,
-        isUploading = false,
-        context = mockContext,
-        lifecycleOwner = mockLifecycleOwner,
-        storyRepository = mockStoryRepository,
-        onUploadStateChange = {},
-        onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo })
+        params =
+            StoryUploadParams(
+                mediaUri = mockUri,
+                isVideo = false,
+                selectedEvent = mockEvent,
+                isUploading = false,
+                context = mockContext,
+                lifecycleOwner = mockLifecycleOwner,
+                storyRepository = mockStoryRepository),
+        callbacks =
+            StoryUploadCallbacks(
+                onUploadStateChange = {},
+                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo }))
 
     testScheduler.advanceUntilIdle()
 
