@@ -472,7 +472,7 @@ private fun BaseEventView(
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                 }
 
-                ChatButton()
+                ChatButton(event = event, navController = navController)
 
                 // Delete Event Button - only show if user is owner
                 if (AuthenticationProvider.currentUser == event.ownerId) {
@@ -659,9 +659,9 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
 }
 
 @Composable
-private fun ChatButton(context: Context = LocalContext.current) {
+private fun ChatButton(event: Event, navController: NavHostController) {
   Button(
-      onClick = { DialogNotImplemented(context) },
+      onClick = { navController.navigate(Route.eventChat(event.uid)) },
       modifier =
           Modifier.fillMaxWidth()
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
