@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -951,61 +952,67 @@ private fun CommonActionButtons(
     context: Context,
     navController: NavHostController
 ) {
-  // Only show location button if location exists
-  if (currentEvent.location != null) {
-    ButtonIcon(
-        id = R.drawable.ic_location_pin,
-        onClick = {
-          currentEvent.location?.let { location ->
-            // Navigate to map with location and event UID to automatically select and display the
-            // event
-            val route =
-                Route.mapWithLocation(
-                    location.latitude, location.longitude, eventUid = currentEvent.uid)
-            navController.navigate(route)
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-  }
-
-  // Only show website button if event is Public and has a non-empty website
-  val publicEvent = currentEvent as? Event.Public
-  val websiteUrl = publicEvent?.website
-  if (!websiteUrl.isNullOrEmpty()) {
-    ButtonIcon(
-        id = R.drawable.ic_web,
-        onClick = {
-          currentEvent.website?.let { website ->
-            val fixedUrl =
-                when {
-                  website.startsWith(HTTP_PROTOCOL) -> website
-                  website.startsWith(HTTPS_PROTOCOL) -> website
-                  else -> HTTPS_PROTOCOL + website
-                }
-            try {
-              val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
-              context.startActivity(intent)
-            } catch (_: ActivityNotFoundException) {
-              Toast.makeText(
-                      context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
-                  .show()
+  Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+    // Only show location button if location exists
+    if (currentEvent.location != null) {
+      ButtonIcon(
+          id = R.drawable.ic_location_pin,
+          onClick = {
+            currentEvent.location?.let { location ->
+              // Navigate to map with location and event UID to automatically select and display the
+              // event
+              val route =
+                  Route.mapWithLocation(
+                      location.latitude, location.longitude, eventUid = currentEvent.uid)
+              navController.navigate(route)
             }
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+          },
+          modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+    }
+
+    // Only show website button if event is Public and has a non-empty website
+    val publicEvent = currentEvent as? Event.Public
+    val websiteUrl = publicEvent?.website
+    if (!websiteUrl.isNullOrEmpty()) {
+      ButtonIcon(
+          id = R.drawable.ic_web,
+          onClick = {
+            currentEvent.website?.let { website ->
+              val fixedUrl =
+                  when {
+                    website.startsWith(HTTP_PROTOCOL) -> website
+                    website.startsWith(HTTPS_PROTOCOL) -> website
+                    else -> HTTPS_PROTOCOL + website
+                  }
+              try {
+                val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
+                context.startActivity(intent)
+              } catch (_: ActivityNotFoundException) {
+                Toast.makeText(
+                        context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
+                    .show()
+              }
+            }
+          },
+          modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+    }
+
+    ButtonIcon(
+        id = R.drawable.ic_share,
+        onClick = { DialogNotImplemented(context) },
+        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+
+    Spacer(modifier = Modifier.weight(1f))
+
+    Text(
+        text =
+            if (currentEvent.participationFee == null) stringResource(R.string.event_free)
+            else
+                currentEvent.participationFee!!.toString() +
+                    stringResource(R.string.event_currency),
+        maxLines = 1,
+    )
   }
-
-  ButtonIcon(
-      id = R.drawable.ic_share,
-      onClick = { DialogNotImplemented(context) },
-      modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-
-  Spacer(modifier = Modifier.fillMaxWidth())
-  Text(
-      text =
-          if (currentEvent.participationFee == null) "Free"
-          else currentEvent.participationFee!!.toString() + "CHF",
-      maxLines = 1)
 }
 
 @Composable
