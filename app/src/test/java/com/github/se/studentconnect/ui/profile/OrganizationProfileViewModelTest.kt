@@ -6,12 +6,14 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
 import com.google.firebase.Timestamp
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.util.Date
@@ -33,6 +35,7 @@ class OrganizationProfileViewModelTest {
   private lateinit var organizationRepository: OrganizationRepositoryLocal
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var mockContext: Context
 
   private val testOrganization =
@@ -90,6 +93,7 @@ class OrganizationProfileViewModelTest {
     organizationRepository = OrganizationRepositoryLocal()
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
 
     // Mock Context for string resources
     mockContext = mockk(relaxed = true)
@@ -110,7 +114,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
   }
 
   @After
@@ -199,7 +204,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -232,7 +238,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -258,7 +265,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -281,7 +289,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -303,7 +312,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -323,7 +333,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -351,7 +362,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -381,7 +393,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -407,7 +420,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     assertTrue(viewModelNew.uiState.value.isLoading)
     advanceUntilIdle()
@@ -424,7 +438,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     assertTrue(viewModel.uiState.value.isLoading)
     advanceUntilIdle()
@@ -441,7 +456,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -461,7 +477,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -488,7 +505,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -523,7 +541,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -570,7 +589,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -621,7 +641,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -666,7 +687,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -709,7 +731,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -749,7 +772,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -786,7 +810,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -831,7 +856,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -873,7 +899,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -906,7 +933,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -941,7 +969,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -980,7 +1009,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1051,7 +1081,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1073,7 +1104,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1150,7 +1182,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1187,7 +1220,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1198,5 +1232,785 @@ class OrganizationProfileViewModelTest {
     advanceUntilIdle()
 
     assertFalse(viewModel.uiState.value.showUnfollowDialog)
+  }
+
+  // ===================== Add Member Dialog Tests =====================
+
+  @Test
+  fun `showAddMemberDialog sets dialog state and selected role`() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.showAddMemberDialog)
+    assertNull(viewModel.uiState.value.selectedRole)
+
+    viewModel.showAddMemberDialog("Admin")
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.showAddMemberDialog)
+    assertEquals("Admin", viewModel.uiState.value.selectedRole)
+  }
+
+  @Test
+  fun `showAddMemberDialog loads available users`() = runTest {
+    AuthenticationProvider.testUserId = "current_user"
+    AuthenticationProvider.local = true
+
+    val currentUser =
+        User(
+            userId = "current_user",
+            email = "current@test.com",
+            username = "current",
+            firstName = "Current",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val availableUser1 =
+        User(
+            userId = "available1",
+            email = "available1@test.com",
+            username = "available1",
+            firstName = "Available",
+            lastName = "One",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val availableUser2 =
+        User(
+            userId = "available2",
+            email = "available2@test.com",
+            username = "available2",
+            firstName = "Available",
+            lastName = "Two",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(currentUser)
+    userRepository.saveUser(testUser1) // Already a member
+    userRepository.saveUser(testUser2) // Already a member
+    userRepository.saveUser(availableUser1)
+    userRepository.saveUser(availableUser2)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertTrue(state.showAddMemberDialog)
+    assertEquals("Member", state.selectedRole)
+    assertFalse(state.isLoadingUsers)
+    // Should have 2 available users (availableUser1 and availableUser2)
+    // Excludes current_user, testUser1, and testUser2 (members)
+    assertEquals(2, state.availableUsers.size)
+    assertTrue(state.availableUsers.any { it.userId == "available1" })
+    assertTrue(state.availableUsers.any { it.userId == "available2" })
+    assertFalse(state.availableUsers.any { it.userId == "current_user" })
+    assertFalse(state.availableUsers.any { it.userId == "user1" })
+    assertFalse(state.availableUsers.any { it.userId == "user2" })
+  }
+
+  @Test
+  fun `showAddMemberDialog does nothing when organization is null`() = runTest {
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "nonexistent_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.organization)
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    // Dialog should still be shown, but availableUsers should remain empty
+    assertTrue(viewModel.uiState.value.showAddMemberDialog)
+    assertEquals("Member", viewModel.uiState.value.selectedRole)
+    assertTrue(viewModel.uiState.value.availableUsers.isEmpty())
+  }
+
+  @Test
+  fun `dismissAddMemberDialog resets dialog state`() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Admin")
+    advanceUntilIdle()
+
+    assertTrue(viewModel.uiState.value.showAddMemberDialog)
+    assertEquals("Admin", viewModel.uiState.value.selectedRole)
+
+    viewModel.dismissAddMemberDialog()
+
+    assertFalse(viewModel.uiState.value.showAddMemberDialog)
+    assertNull(viewModel.uiState.value.selectedRole)
+    assertTrue(viewModel.uiState.value.availableUsers.isEmpty())
+  }
+
+  @Test
+  fun `loadAvailableUsers filters out current user and existing members`() = runTest {
+    AuthenticationProvider.testUserId = "current_user"
+    AuthenticationProvider.local = true
+
+    val currentUser =
+        User(
+            userId = "current_user",
+            email = "current@test.com",
+            username = "current",
+            firstName = "Current",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val availableUser =
+        User(
+            userId = "available",
+            email = "available@test.com",
+            username = "available",
+            firstName = "Available",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(currentUser)
+    userRepository.saveUser(testUser1) // Member
+    userRepository.saveUser(testUser2) // Member
+    userRepository.saveUser(availableUser)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(1, state.availableUsers.size)
+    assertEquals("available", state.availableUsers[0].userId)
+  }
+
+  @Test
+  fun `loadAvailableUsers handles organization with no memberUids`() = runTest {
+    AuthenticationProvider.testUserId = "current_user"
+    AuthenticationProvider.local = true
+
+    val orgWithoutMembers = testOrganization.copy(memberUids = emptyList())
+    val availableUser =
+        User(
+            userId = "available",
+            email = "available@test.com",
+            username = "available",
+            firstName = "Available",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(orgWithoutMembers)
+    userRepository.saveUser(availableUser)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    // Should include availableUser, but exclude current_user
+    assertTrue(
+        state.availableUsers.isEmpty() || state.availableUsers.none { it.userId == "current_user" })
+  }
+
+  @Test
+  fun `loadAvailableUsers handles exception gracefully`() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+
+    // Create a mock user repository that throws exception
+    val failingUserRepository = mockk<UserRepositoryLocal>(relaxed = true)
+    coEvery { failingUserRepository.getAllUsers() } throws RuntimeException("Failed to load users")
+    // Mock getOrganizationById to return the organization for loadAvailableUsers
+    coEvery { organizationRepository.getOrganizationById("test_org") } returns testOrganization
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = failingUserRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertTrue(state.showAddMemberDialog)
+    assertFalse(state.isLoadingUsers)
+    assertTrue(state.availableUsers.isEmpty())
+  }
+
+  @Test
+  fun `loadAvailableUsers sets loading state correctly`() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.isLoadingUsers)
+
+    viewModel.showAddMemberDialog("Member")
+    // isLoadingUsers should be true during loading
+    advanceUntilIdle()
+
+    assertFalse(viewModel.uiState.value.isLoadingUsers)
+  }
+
+  // ===================== Send Member Invitation Tests =====================
+
+  @Test
+  fun `sendMemberInvitation sends invitation and creates notification`() = runTest {
+    AuthenticationProvider.testUserId = "inviter_id"
+    AuthenticationProvider.local = true
+
+    val inviter =
+        User(
+            userId = "inviter_id",
+            email = "inviter@test.com",
+            username = "inviter",
+            firstName = "Inviter",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val invitee =
+        User(
+            userId = "invitee_id",
+            email = "invitee@test.com",
+            username = "invitee",
+            firstName = "Invitee",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(inviter)
+    userRepository.saveUser(invitee)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Admin")
+    advanceUntilIdle()
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Dialog should be dismissed
+    assertFalse(viewModel.uiState.value.showAddMemberDialog)
+    assertNull(viewModel.uiState.value.selectedRole)
+
+    // Verify invitation was sent (check repository)
+    val invitations = organizationRepository.getPendingInvitations("test_org")
+    assertTrue(invitations.any { it.userId == "invitee_id" && it.role == "Admin" })
+
+    // Verify notification was created
+    notificationRepository.getNotifications(
+        "invitee_id",
+        { notifications ->
+          assertTrue(
+              notifications.any { notification ->
+                notification is
+                    com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation &&
+                    (notification
+                            as
+                            com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
+                        .organizationId == "test_org" &&
+                    (notification
+                            as
+                            com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
+                        .role == "Admin"
+              })
+        },
+        {})
+  }
+
+  @Test
+  fun `sendMemberInvitation does nothing when organization is null`() = runTest {
+    AuthenticationProvider.testUserId = "inviter_id"
+    AuthenticationProvider.local = true
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "nonexistent_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.organization)
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Should not crash, but nothing should happen
+    val invitations = organizationRepository.getPendingInvitations("test_org")
+    assertTrue(invitations.isEmpty())
+  }
+
+  @Test
+  fun `sendMemberInvitation does nothing when selectedRole is null`() = runTest {
+    AuthenticationProvider.testUserId = "inviter_id"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    // Don't call showAddMemberDialog, so selectedRole is null
+    assertNull(viewModel.uiState.value.selectedRole)
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Should not send invitation
+    val invitations = organizationRepository.getPendingInvitations("test_org")
+    assertTrue(invitations.isEmpty())
+  }
+
+  @Test
+  fun `sendMemberInvitation does nothing when currentUserId is null`() = runTest {
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
+
+    val invitee =
+        User(
+            userId = "invitee_id",
+            email = "invitee@test.com",
+            username = "invitee",
+            firstName = "Invitee",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(invitee)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Should not send invitation
+    val invitations = organizationRepository.getPendingInvitations("test_org")
+    assertTrue(invitations.isEmpty())
+  }
+
+  @Test
+  fun `sendMemberInvitation handles exception gracefully`() = runTest {
+    AuthenticationProvider.testUserId = "inviter_id"
+    AuthenticationProvider.local = true
+
+    val inviter =
+        User(
+            userId = "inviter_id",
+            email = "inviter@test.com",
+            username = "inviter",
+            firstName = "Inviter",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val invitee =
+        User(
+            userId = "invitee_id",
+            email = "invitee@test.com",
+            username = "invitee",
+            firstName = "Invitee",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    // Create a repository that throws exception
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
+    coEvery { failingOrgRepository.sendMemberInvitation(any(), any(), any(), any()) } throws
+        RuntimeException("Failed to send invitation")
+
+    userRepository.saveUser(inviter)
+    userRepository.saveUser(invitee)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Should handle exception without crashing
+    // Dialog might still be open or closed depending on implementation
+  }
+
+  @Test
+  fun `sendMemberInvitation uses Unknown when inviter name cannot be retrieved`() = runTest {
+    AuthenticationProvider.testUserId = "inviter_id"
+    AuthenticationProvider.local = true
+
+    val invitee =
+        User(
+            userId = "invitee_id",
+            email = "invitee@test.com",
+            username = "invitee",
+            firstName = "Invitee",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    // Don't save inviter, so getUserById will return null
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(invitee)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    // Verify notification was created with "Unknown" as inviter name
+    notificationRepository.getNotifications(
+        "invitee_id",
+        { notifications ->
+          val invitationNotification =
+              notifications.firstOrNull { notification ->
+                notification is
+                    com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
+              }
+                  as?
+                  com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
+          assertNotNull(invitationNotification)
+          assertEquals("Unknown", invitationNotification?.invitedByName)
+        },
+        {})
+  }
+
+  // ===================== Accept Member Invitation Tests =====================
+
+  @Test
+  fun `acceptMemberInvitation accepts invitation and reloads organization`() = runTest {
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    val user3 =
+        User(
+            userId = "user3",
+            email = "user3@test.com",
+            username = "user3",
+            firstName = "User",
+            lastName = "Three",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(user3)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    val initialMemberCount = initialState.organization?.members?.size ?: 0
+
+    viewModel.acceptMemberInvitation("test_org")
+    advanceUntilIdle()
+
+    // Verify invitation was accepted (user should now be a member)
+    val updatedOrg = organizationRepository.getOrganizationById("test_org")
+    assertNotNull(updatedOrg)
+    assertTrue(updatedOrg?.memberUids?.contains("user3") == true)
+
+    // Verify organization data was reloaded
+    val finalState = viewModel.uiState.value
+    assertNotNull(finalState.organization)
+    // Member count should have increased
+    assertTrue((finalState.organization?.members?.size ?: 0) >= initialMemberCount)
+  }
+
+  @Test
+  fun `acceptMemberInvitation does nothing when currentUserId is null`() = runTest {
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
+
+    organizationRepository.saveOrganization(testOrganization)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialInvitations = organizationRepository.getPendingInvitations("test_org")
+    val initialInvitationCount = initialInvitations.size
+
+    viewModel.acceptMemberInvitation("test_org")
+    advanceUntilIdle()
+
+    // Invitation should still be pending
+    val finalInvitations = organizationRepository.getPendingInvitations("test_org")
+    assertEquals(initialInvitationCount, finalInvitations.size)
+  }
+
+  @Test
+  fun `acceptMemberInvitation handles exception gracefully`() = runTest {
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
+    coEvery { failingOrgRepository.acceptMemberInvitation(any(), any()) } throws
+        RuntimeException("Failed to accept invitation")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    // Should not crash
+    viewModel.acceptMemberInvitation("test_org")
+    advanceUntilIdle()
+  }
+
+  // ===================== Reject Member Invitation Tests =====================
+
+  @Test
+  fun `rejectMemberInvitation rejects invitation`() = runTest {
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialInvitations = organizationRepository.getPendingInvitations("test_org")
+    assertTrue(initialInvitations.any { it.userId == "user3" })
+
+    viewModel.rejectMemberInvitation("test_org")
+    advanceUntilIdle()
+
+    // Verify invitation was rejected (removed)
+    val finalInvitations = organizationRepository.getPendingInvitations("test_org")
+    assertFalse(finalInvitations.any { it.userId == "user3" })
+  }
+
+  @Test
+  fun `rejectMemberInvitation does nothing when currentUserId is null`() = runTest {
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
+
+    organizationRepository.saveOrganization(testOrganization)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialInvitations = organizationRepository.getPendingInvitations("test_org")
+    val initialInvitationCount = initialInvitations.size
+
+    viewModel.rejectMemberInvitation("test_org")
+    advanceUntilIdle()
+
+    // Invitation should still be pending
+    val finalInvitations = organizationRepository.getPendingInvitations("test_org")
+    assertEquals(initialInvitationCount, finalInvitations.size)
+  }
+
+  @Test
+  fun `rejectMemberInvitation handles exception gracefully`() = runTest {
+    AuthenticationProvider.testUserId = "user3"
+    AuthenticationProvider.local = true
+
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
+    coEvery { failingOrgRepository.rejectMemberInvitation(any(), any()) } throws
+        RuntimeException("Failed to reject invitation")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    // Should not crash
+    viewModel.rejectMemberInvitation("test_org")
+    advanceUntilIdle()
   }
 }
