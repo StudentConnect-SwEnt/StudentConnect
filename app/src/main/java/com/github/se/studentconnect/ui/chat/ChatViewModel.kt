@@ -87,7 +87,7 @@ class ChatViewModel(
       try {
         val currentUserId = AuthenticationProvider.currentUser
         if (currentUserId != null) {
-          val user = userRepository.getUser(currentUserId)
+          val user = userRepository.getUserById(currentUserId)
           _uiState.update { it.copy(currentUser = user) }
         }
       } catch (e: Exception) {
