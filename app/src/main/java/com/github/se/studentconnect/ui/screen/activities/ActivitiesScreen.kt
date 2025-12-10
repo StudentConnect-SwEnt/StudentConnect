@@ -413,13 +413,14 @@ fun CarouselCard(
                     Box(
                         modifier =
                             Modifier.background(
-                                Color(C.FlashEvent.BADGE_COLOR.toInt())
-                                    .copy(alpha = C.FlashEvent.BADGE_ALPHA),
-                                shape = CircleShape)
+                                    Color(C.FlashEvent.BADGE_COLOR.toInt())
+                                        .copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                                    shape = CircleShape)
                                 .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
                           Icon(
                               imageVector = Icons.Filled.Bolt,
-                              contentDescription = stringResource(R.string.content_description_flash_event),
+                              contentDescription =
+                                  stringResource(R.string.content_description_flash_event),
                               tint = MaterialTheme.colorScheme.onError,
                               modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
                         }
@@ -428,13 +429,15 @@ fun CarouselCard(
                     Row(
                         modifier =
                             Modifier.background(
-                                MaterialTheme.colorScheme.error.copy(alpha = C.FlashEvent.BADGE_ALPHA),
-                                shape = CircleShape)
+                                    MaterialTheme.colorScheme.error.copy(
+                                        alpha = C.FlashEvent.BADGE_ALPHA),
+                                    shape = CircleShape)
                                 .padding(horizontal = 10.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                           Icon(
                               imageVector = Icons.Filled.Circle,
-                              contentDescription = stringResource(R.string.content_description_live_icon),
+                              contentDescription =
+                                  stringResource(R.string.content_description_live_icon),
                               tint = MaterialTheme.colorScheme.onError,
                               modifier = Modifier.size(8.dp))
                           Spacer(modifier = Modifier.width(6.dp))

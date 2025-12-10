@@ -370,9 +370,7 @@ class ListOfEventsTest {
     val flashEvent =
         createTestEvent()
             .copy(
-                start = Timestamp(pastStart.time),
-                end = Timestamp(futureEnd.time),
-                isFlash = true)
+                start = Timestamp(pastStart.time), end = Timestamp(futureEnd.time), isFlash = true)
 
     composeTestRule.setContent {
       EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
@@ -419,9 +417,7 @@ class ListOfEventsTest {
     val regularEvent =
         createTestEvent()
             .copy(
-                start = Timestamp(pastStart.time),
-                end = Timestamp(futureEnd.time),
-                isFlash = false)
+                start = Timestamp(pastStart.time), end = Timestamp(futureEnd.time), isFlash = false)
 
     composeTestRule.setContent {
       EventCard(event = regularEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})

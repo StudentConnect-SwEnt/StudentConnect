@@ -53,7 +53,7 @@ class CreatePublicEventViewModelTest {
     mockOrganizationRepository = Mockito.mock(OrganizationRepository::class.java)
     mockFriendsRepository = Mockito.mock(FriendsRepository::class.java)
     mockNotificationRepository = Mockito.mock(NotificationRepository::class.java)
-    
+
     // override providers so ViewModel uses our mocks
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     MediaRepositoryProvider.overrideForTests(mockMediaRepository)
@@ -61,7 +61,7 @@ class CreatePublicEventViewModelTest {
     OrganizationRepositoryProvider.overrideForTests(mockOrganizationRepository)
     FriendsRepositoryProvider.overrideForTests(mockFriendsRepository)
     NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
-    
+
     viewModel = CreatePublicEventViewModel()
   }
 

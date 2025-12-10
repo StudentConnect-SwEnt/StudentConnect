@@ -171,7 +171,9 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
    * @param newHours The new duration hours value (0-5).
    */
   fun updateFlashDurationHours(newHours: Int) {
-    updateState { copyCommon(flashDurationHours = newHours.coerceIn(0, C.FlashEvent.MAX_DURATION_HOURS.toInt())) }
+    updateState {
+      copyCommon(flashDurationHours = newHours.coerceIn(0, C.FlashEvent.MAX_DURATION_HOURS.toInt()))
+    }
   }
 
   /**
@@ -215,7 +217,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   /** Validates the current state before saving. */
   protected fun validateState(): Boolean {
     val s = uiState.value
-    
+
     if (!s.title.isNotBlank()) {
       return false
     }
@@ -293,14 +295,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
   protected abstract fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event
 
-  /**
-   * Helper function to create timestamp from date and time. Override in subclasses if needed.
-   */
+  /** Helper function to create timestamp from date and time. Override in subclasses if needed. */
   protected open fun timestampFrom(date: LocalDate, time: LocalTime): Timestamp {
     val instant =
-        java.time.LocalDateTime.of(date, time)
-            .atZone(java.time.ZoneId.systemDefault())
-            .toInstant()
+        java.time.LocalDateTime.of(date, time).atZone(java.time.ZoneId.systemDefault()).toInstant()
     return Timestamp(instant)
   }
 
@@ -325,14 +323,13 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         val s = uiState.value
         if (s.isFlash && editingEventUid == null) {
           val now = Timestamp.now()
-          val nowLocal = now.toDate().toInstant()
-              .atZone(java.time.ZoneId.systemDefault())
-              .toLocalDateTime()
-          
+          val nowLocal =
+              now.toDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+
           // Calculate end time from duration
           val durationMinutes = s.flashDurationHours * 60 + s.flashDurationMinutes
           val endLocal = nowLocal.plusMinutes(durationMinutes.toLong())
-          
+
           updateState {
             copyCommon(
                 startDate = nowLocal.toLocalDate(),
@@ -399,9 +396,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
           notificationRepository.createNotification(
               notification,
               onSuccess = {
-                Log.d(
-                    "BaseCreateEventViewModel",
-                    "Sent flash event notification to user $userId")
+                Log.d("BaseCreateEventViewModel", "Sent flash event notification to user $userId")
               },
               onFailure = { e ->
                 Log.w(
@@ -418,8 +413,8 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   }
 
   /**
-   * Gets the list of user IDs who should receive notifications for a flash event.
-   * If owner is an organization, returns followers. If owner is a user, returns friends.
+   * Gets the list of user IDs who should receive notifications for a flash event. If owner is an
+   * organization, returns followers. If owner is a user, returns friends.
    *
    * @param ownerId The ID of the event owner.
    * @return List of user IDs to notify.

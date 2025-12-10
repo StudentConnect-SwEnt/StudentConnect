@@ -263,10 +263,13 @@ class ListOfEventsUnitTest {
     // Flash event should show flash icon, not LIVE text
     val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.waitUntil(timeoutMillis = 5000) {
-      composeTestRule.onAllNodesWithContentDescription(flashIconDesc).fetchSemanticsNodes().size == 1
+      composeTestRule.onAllNodesWithContentDescription(flashIconDesc).fetchSemanticsNodes().size ==
+          1
     }
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertExists()
-    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
   }
 
   @Test
@@ -338,7 +341,9 @@ class ListOfEventsUnitTest {
     // Future flash event should not show any badge
     val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
-    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
   }
 
   @Test
@@ -372,7 +377,9 @@ class ListOfEventsUnitTest {
     composeTestRule.waitForIdle()
 
     // Future regular event should not show any badge
-    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
     val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
   }

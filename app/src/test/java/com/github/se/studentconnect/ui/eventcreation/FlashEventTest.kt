@@ -9,7 +9,6 @@ import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
@@ -23,7 +22,6 @@ import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.google.firebase.Timestamp
 import java.time.LocalDate
-import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -38,8 +36,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlashEventTest {
@@ -131,20 +127,22 @@ class FlashEventTest {
   @Test
   fun `getOrganizationFollowers returns correct followers`() = runTest {
     val orgId = "test-org"
-    val follower1 = com.github.se.studentconnect.model.user.User(
-        userId = "follower1",
-        email = "f1@test.com",
-        username = "follower1",
-        firstName = "Follower",
-        lastName = "One",
-        university = "EPFL")
-    val follower2 = com.github.se.studentconnect.model.user.User(
-        userId = "follower2",
-        email = "f2@test.com",
-        username = "follower2",
-        firstName = "Follower",
-        lastName = "Two",
-        university = "EPFL")
+    val follower1 =
+        com.github.se.studentconnect.model.user.User(
+            userId = "follower1",
+            email = "f1@test.com",
+            username = "follower1",
+            firstName = "Follower",
+            lastName = "One",
+            university = "EPFL")
+    val follower2 =
+        com.github.se.studentconnect.model.user.User(
+            userId = "follower2",
+            email = "f2@test.com",
+            username = "follower2",
+            firstName = "Follower",
+            lastName = "Two",
+            university = "EPFL")
 
     userRepository.saveUser(follower1)
     userRepository.saveUser(follower2)
@@ -168,13 +166,14 @@ class FlashEventTest {
             createdBy = "creator")
     organizationRepository.saveOrganization(org)
 
-    val follower = com.github.se.studentconnect.model.user.User(
-        userId = "follower",
-        email = "f@test.com",
-        username = "follower",
-        firstName = "Follower",
-        lastName = "User",
-        university = "EPFL")
+    val follower =
+        com.github.se.studentconnect.model.user.User(
+            userId = "follower",
+            email = "f@test.com",
+            username = "follower",
+            firstName = "Follower",
+            lastName = "User",
+            university = "EPFL")
     userRepository.saveUser(follower)
     userRepository.followOrganization("follower", orgId)
 
@@ -182,7 +181,7 @@ class FlashEventTest {
     val followers = userRepository.getOrganizationFollowers(orgId)
     assertEquals(1, followers.size)
     assertTrue(followers.contains("follower"))
-    
+
     // Verify organization exists
     val retrievedOrg = organizationRepository.getOrganizationById(orgId)
     assertNotNull("Organization should exist", retrievedOrg)
@@ -192,13 +191,14 @@ class FlashEventTest {
   @Test
   fun `flash event notification recipients for user uses friends`() = runTest {
     val userId = "test-user"
-    val friend = com.github.se.studentconnect.model.user.User(
-        userId = "friend",
-        email = "fr@test.com",
-        username = "friend",
-        firstName = "Friend",
-        lastName = "User",
-        university = "EPFL")
+    val friend =
+        com.github.se.studentconnect.model.user.User(
+            userId = "friend",
+            email = "fr@test.com",
+            username = "friend",
+            firstName = "Friend",
+            lastName = "User",
+            university = "EPFL")
     userRepository.saveUser(friend)
     friendsRepository.sendFriendRequest(userId, "friend")
     friendsRepository.acceptFriendRequest("friend", userId)
@@ -218,7 +218,8 @@ class FlashEventTest {
   @Test
   fun `updateFlashDurationHours coerces values exceeding max to max`() = runTest {
     viewModel.updateFlashDurationHours(10)
-    assertEquals(C.FlashEvent.MAX_DURATION_HOURS.toInt(), viewModel.uiState.value.flashDurationHours)
+    assertEquals(
+        C.FlashEvent.MAX_DURATION_HOURS.toInt(), viewModel.uiState.value.flashDurationHours)
   }
 
   @Test
@@ -306,7 +307,7 @@ class FlashEventTest {
     viewModel.updateIsFlash(true)
     viewModel.updateFlashDurationHours(2)
     viewModel.updateFlashDurationMinutes(30)
-    
+
     val state = viewModel.uiState.value
     assertEquals("Duration hours should be 2", 2, state.flashDurationHours)
     assertEquals("Duration minutes should be 30", 30, state.flashDurationMinutes)
@@ -344,8 +345,7 @@ class FlashEventTest {
     notificationRepository.getNotifications(
         "test-user",
         onSuccess = { notifications -> notificationCount = notifications.size },
-        onFailure = { }
-    )
+        onFailure = {})
     testDispatcher.scheduler.advanceUntilIdle()
     assertEquals("No notifications should be sent when editing", 0, notificationCount)
   }

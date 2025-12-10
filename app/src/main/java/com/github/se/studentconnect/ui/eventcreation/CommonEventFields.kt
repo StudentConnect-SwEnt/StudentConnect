@@ -222,15 +222,9 @@ fun EventDateTimeFields(
   }
 }
 
-/**
- * Composable for Flash Event toggle. Shown before date/time fields.
- */
+/** Composable for Flash Event toggle. Shown before date/time fields. */
 @Composable
-fun FlashEventToggle(
-    isFlash: Boolean,
-    onIsFlashChange: (Boolean) -> Unit,
-    flashSwitchTag: String
-) {
+fun FlashEventToggle(isFlash: Boolean, onIsFlashChange: (Boolean) -> Unit, flashSwitchTag: String) {
   val wideFieldWeight = 0.7f
 
   Row(
@@ -251,9 +245,7 @@ fun FlashEventToggle(
   }
 }
 
-/**
- * Composable for Flash Event duration picker (hours and minutes).
- */
+/** Composable for Flash Event duration picker (hours and minutes). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlashEventDurationFields(
@@ -269,10 +261,11 @@ fun FlashEventDurationFields(
   // When 5 hours is selected, only allow 0 minutes (max duration is exactly 5 hours)
   val minuteOptions =
       if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt()) {
-        listOf(0)
-      } else {
-        allMinuteOptions
-      }.map { it.toString() }
+            listOf(0)
+          } else {
+            allMinuteOptions
+          }
+          .map { it.toString() }
 
   var hoursExpanded by remember { mutableStateOf(false) }
   var minutesExpanded by remember { mutableStateOf(false) }
@@ -280,84 +273,88 @@ fun FlashEventDurationFields(
   Column(
       modifier = Modifier.fillMaxWidth(),
       verticalArrangement = Arrangement.spacedBy(FIELD_SPACING)) {
-    Text(
-        text = stringResource(R.string.event_label_flash_duration),
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            text = stringResource(R.string.event_label_flash_duration),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface)
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      // Hours dropdown
-      ExposedDropdownMenuBox(
-          expanded = hoursExpanded,
-          onExpandedChange = { hoursExpanded = it },
-          modifier = Modifier.weight(0.5f).testTag(hoursTag)) {
-        OutlinedTextField(
-            value = hours.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.event_label_flash_duration_hours)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = hoursExpanded) },
-            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
-        ExposedDropdownMenu(
-            expanded = hoursExpanded,
-            onDismissRequest = { hoursExpanded = false }) {
-          hourOptions.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(option) },
-                onClick = {
-                  val selectedHours = option.toInt()
-                  onHoursChange(selectedHours)
-                  // If selecting max hours, reset minutes to 0
-                  if (selectedHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && minutes > 0) {
-                    onMinutesChange(0)
-                  }
-                  hoursExpanded = false
-                })
-          }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          // Hours dropdown
+          ExposedDropdownMenuBox(
+              expanded = hoursExpanded,
+              onExpandedChange = { hoursExpanded = it },
+              modifier = Modifier.weight(0.5f).testTag(hoursTag)) {
+                OutlinedTextField(
+                    value = hours.toString(),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.event_label_flash_duration_hours)) },
+                    trailingIcon = {
+                      ExposedDropdownMenuDefaults.TrailingIcon(expanded = hoursExpanded)
+                    },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
+                ExposedDropdownMenu(
+                    expanded = hoursExpanded, onDismissRequest = { hoursExpanded = false }) {
+                      hourOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                              val selectedHours = option.toInt()
+                              onHoursChange(selectedHours)
+                              // If selecting max hours, reset minutes to 0
+                              if (selectedHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() &&
+                                  minutes > 0) {
+                                onMinutesChange(0)
+                              }
+                              hoursExpanded = false
+                            })
+                      }
+                    }
+              }
+
+          // Minutes dropdown
+          ExposedDropdownMenuBox(
+              expanded = minutesExpanded,
+              onExpandedChange = { minutesExpanded = it },
+              modifier = Modifier.weight(0.5f).testTag(minutesTag)) {
+                OutlinedTextField(
+                    value = minutes.toString(),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.event_label_flash_duration_minutes)) },
+                    trailingIcon = {
+                      ExposedDropdownMenuDefaults.TrailingIcon(expanded = minutesExpanded)
+                    },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
+                ExposedDropdownMenu(
+                    expanded = minutesExpanded, onDismissRequest = { minutesExpanded = false }) {
+                      minuteOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                              val selectedMinutes = option.toInt()
+                              // If selecting non-zero minutes when at max hours, reset hours first
+                              if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() &&
+                                  selectedMinutes > 0) {
+                                onHoursChange(C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
+                              }
+                              onMinutesChange(selectedMinutes)
+                              minutesExpanded = false
+                            })
+                      }
+                    }
+              }
         }
-      }
 
-      // Minutes dropdown
-      ExposedDropdownMenuBox(
-          expanded = minutesExpanded,
-          onExpandedChange = { minutesExpanded = it },
-          modifier = Modifier.weight(0.5f).testTag(minutesTag)) {
-        OutlinedTextField(
-            value = minutes.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.event_label_flash_duration_minutes)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = minutesExpanded) },
-            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
-        ExposedDropdownMenu(
-            expanded = minutesExpanded,
-            onDismissRequest = { minutesExpanded = false }) {
-          minuteOptions.forEach { option ->
-            DropdownMenuItem(
-                text = { Text(option) },
-                onClick = {
-                  val selectedMinutes = option.toInt()
-                  // If selecting non-zero minutes when at max hours, reset hours first
-                  if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && selectedMinutes > 0) {
-                    onHoursChange(C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
-                  }
-                  onMinutesChange(selectedMinutes)
-                  minutesExpanded = false
-                })
-          }
-        }
+        Text(
+            text = stringResource(R.string.event_label_flash_starts_immediately),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
       }
-    }
-
-    Text(
-        text = stringResource(R.string.event_label_flash_starts_immediately),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
-  }
 }
 
 /**

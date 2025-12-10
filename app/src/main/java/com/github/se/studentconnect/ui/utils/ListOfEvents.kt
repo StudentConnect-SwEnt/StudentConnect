@@ -260,7 +260,8 @@ fun EventCard(
                             .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
                       Icon(
                           imageVector = Icons.Filled.Bolt,
-                          contentDescription = stringResource(R.string.content_description_flash_event),
+                          contentDescription =
+                              stringResource(R.string.content_description_flash_event),
                           tint = MaterialTheme.colorScheme.onError,
                           modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
                     }
@@ -271,13 +272,15 @@ fun EventCard(
                         Modifier.align(Alignment.TopStart)
                             .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp)
                             .background(
-                                MaterialTheme.colorScheme.error.copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                                MaterialTheme.colorScheme.error.copy(
+                                    alpha = C.FlashEvent.BADGE_ALPHA),
                                 shape = CircleShape)
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                       Icon(
                           imageVector = Icons.Filled.Circle,
-                          contentDescription = stringResource(R.string.content_description_live_icon),
+                          contentDescription =
+                              stringResource(R.string.content_description_live_icon),
                           tint = MaterialTheme.colorScheme.onError,
                           modifier = Modifier.size(8.dp))
                       Spacer(modifier = Modifier.width(6.dp))

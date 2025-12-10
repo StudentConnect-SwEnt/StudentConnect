@@ -3,8 +3,6 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.google.firebase.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.launch

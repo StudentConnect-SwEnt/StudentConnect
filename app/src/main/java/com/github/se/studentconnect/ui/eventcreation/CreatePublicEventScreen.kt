@@ -96,7 +96,8 @@ fun CreatePublicEventScreen(
 
   val canSave =
       uiState.title.isNotBlank() &&
-          ((uiState.isFlash && uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0) ||
+          ((uiState.isFlash &&
+              uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0) ||
               (!uiState.isFlash && uiState.startDate != null && uiState.endDate != null)) &&
           !uiState.isSaving
 
