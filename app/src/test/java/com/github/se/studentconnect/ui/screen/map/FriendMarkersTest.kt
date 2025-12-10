@@ -53,7 +53,8 @@ class FriendMarkersTest {
     FriendMarkers.clearCaches()
 
     // Set up test dispatcher for Main - use Unconfined to execute immediately
-    Dispatchers.setMain(UnconfinedTestDispatcher())
+    val testDispatcher = UnconfinedTestDispatcher()
+    Dispatchers.setMain(testDispatcher)
 
     mockStyle = mockk(relaxed = true)
     mockContext = ApplicationProvider.getApplicationContext()
@@ -1003,26 +1004,28 @@ class FriendMarkersTest {
 
     coEvery { mockUserRepository.getUserById("user1") } returns mockUser
 
-    // First call - wait longer for async IO operation to complete
+    // First call - wait for it to complete
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
-    kotlinx.coroutines.delay(500)
 
-    // Verify first call completed
+    // Wait for async operation to complete
     verify(timeout = 2000, exactly = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
 
-    // Now mock that icon exists in style
-    every { mockStyle.hasStyleImage(any()) } returns true
-
-    // Clear verification state for second call check
-    clearMocks(mockStyle, answers = false, recordedCalls = true, verificationMarks = true)
+    // Now mock that icon exists in the style
     every { mockStyle.hasStyleImage(any()) } returns true
     every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
 
-    // Second call should skip due to addedIconIds cache + hasStyleImage returning true
+    // Clear the verification state for the next check
+    clearMocks(mockStyle, answers = false)
+    every { mockStyle.hasStyleImage(any()) } returns true
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
+
+    // Second call should skip because icon already exists
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
+
+    // Give it time to potentially call addImage (it shouldn't)
     kotlinx.coroutines.delay(500)
 
-    // Should not add image again (addedIconIds already contains the icon)
+    // Verify addImage was NOT called again
     verify(exactly = 0) { mockStyle.addImage(any(), any<Bitmap>()) }
   }
 

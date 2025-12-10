@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Profile Header dimensions -->
+    <dimen name="profile_header_padding">16dp</dimen>
+    <dimen name="profile_picture_size">100dp</dimen>
+    <dimen name="profile_picture_icon_size">60dp</dimen>
+    <dimen name="profile_spacing_small">4dp</dimen>
+    <dimen name="profile_spacing_medium">8dp</dimen>
+    <dimen name="profile_spacing_large">12dp</dimen>
+    <dimen name="profile_spacing_xlarge">16dp</dimen>
+    <dimen name="profile_spacing_xxlarge">32dp</dimen>
+    <dimen name="profile_button_height">48dp</dimen>
+    <dimen name="profile_button_corner_radius">24dp</dimen>
+    <dimen name="profile_button_icon_size">20dp</dimen>
+    <dimen name="profile_button_text_size">16sp</dimen>
+    <dimen name="profile_location_icon_size">16dp</dimen>
+    <dimen name="profile_name_text_size">20sp</dimen>
+    <dimen name="profile_body_text_size">14sp</dimen>
+    <dimen name="profile_stat_text_size">22sp</dimen>
+    <dimen name="profile_stat_padding">8dp</dimen>
+    
+    <!-- Organization Management Screen dimensions -->
+    <dimen name="org_management_padding">16dp</dimen>
+    <dimen name="org_management_spacing">12dp</dimen>
+    <dimen name="org_management_icon_size_large">80dp</dimen>
+    <dimen name="org_management_icon_size_medium">32dp</dimen>
+    <dimen name="org_management_icon_size_small">24dp</dimen>
+    <dimen name="org_management_button_height">56dp</dimen>
+    <dimen name="org_management_button_corner_radius">28dp</dimen>
+    <dimen name="org_management_button_text_size">18sp</dimen>
+    <dimen name="org_management_button_text_size_small">16sp</dimen>
+    <dimen name="org_management_card_padding">16dp</dimen>
+    <dimen name="org_management_card_corner_radius">16dp</dimen>
+    <dimen name="org_management_card_elevation">2dp</dimen>
+    <dimen name="org_management_card_icon_size">56dp</dimen>
+    <dimen name="org_management_card_border_width">2dp</dimen>
+    <dimen name="org_management_empty_state_padding">32dp</dimen>
+    <dimen name="org_management_empty_state_spacing">24dp</dimen>
+</resources>
