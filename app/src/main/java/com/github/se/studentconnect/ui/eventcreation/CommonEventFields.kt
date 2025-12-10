@@ -8,24 +8,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -214,6 +223,144 @@ fun EventDateTimeFields(
 }
 
 /**
+ * Composable for Flash Event toggle. Shown before date/time fields.
+ */
+@Composable
+fun FlashEventToggle(
+    isFlash: Boolean,
+    onIsFlashChange: (Boolean) -> Unit,
+    flashSwitchTag: String
+) {
+  val wideFieldWeight = 0.7f
+
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+        modifier = Modifier.weight(wideFieldWeight),
+        text = stringResource(R.string.event_label_flash_event),
+    )
+
+    Switch(
+        modifier = Modifier.testTag(flashSwitchTag),
+        checked = isFlash,
+        onCheckedChange = onIsFlashChange,
+    )
+  }
+}
+
+/**
+ * Composable for Flash Event duration picker (hours and minutes).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FlashEventDurationFields(
+    hours: Int,
+    minutes: Int,
+    onHoursChange: (Int) -> Unit,
+    onMinutesChange: (Int) -> Unit,
+    hoursTag: String,
+    minutesTag: String
+) {
+  val hourOptions = (0..C.FlashEvent.MAX_DURATION_HOURS.toInt()).map { it.toString() }
+  val allMinuteOptions = listOf(0, 15, 30, 45)
+  // When 5 hours is selected, only allow 0 minutes (max duration is exactly 5 hours)
+  val minuteOptions =
+      if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt()) {
+        listOf(0)
+      } else {
+        allMinuteOptions
+      }.map { it.toString() }
+
+  var hoursExpanded by remember { mutableStateOf(false) }
+  var minutesExpanded by remember { mutableStateOf(false) }
+
+  Column(
+      modifier = Modifier.fillMaxWidth(),
+      verticalArrangement = Arrangement.spacedBy(FIELD_SPACING)) {
+    Text(
+        text = stringResource(R.string.event_label_flash_duration),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface)
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      // Hours dropdown
+      ExposedDropdownMenuBox(
+          expanded = hoursExpanded,
+          onExpandedChange = { hoursExpanded = it },
+          modifier = Modifier.weight(0.5f).testTag(hoursTag)) {
+        OutlinedTextField(
+            value = hours.toString(),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.event_label_flash_duration_hours)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = hoursExpanded) },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
+        ExposedDropdownMenu(
+            expanded = hoursExpanded,
+            onDismissRequest = { hoursExpanded = false }) {
+          hourOptions.forEach { option ->
+            DropdownMenuItem(
+                text = { Text(option) },
+                onClick = {
+                  val selectedHours = option.toInt()
+                  onHoursChange(selectedHours)
+                  // If selecting max hours, reset minutes to 0
+                  if (selectedHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && minutes > 0) {
+                    onMinutesChange(0)
+                  }
+                  hoursExpanded = false
+                })
+          }
+        }
+      }
+
+      // Minutes dropdown
+      ExposedDropdownMenuBox(
+          expanded = minutesExpanded,
+          onExpandedChange = { minutesExpanded = it },
+          modifier = Modifier.weight(0.5f).testTag(minutesTag)) {
+        OutlinedTextField(
+            value = minutes.toString(),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.event_label_flash_duration_minutes)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = minutesExpanded) },
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable))
+        ExposedDropdownMenu(
+            expanded = minutesExpanded,
+            onDismissRequest = { minutesExpanded = false }) {
+          minuteOptions.forEach { option ->
+            DropdownMenuItem(
+                text = { Text(option) },
+                onClick = {
+                  val selectedMinutes = option.toInt()
+                  // If selecting non-zero minutes when at max hours, reset hours first
+                  if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && selectedMinutes > 0) {
+                    onHoursChange(C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
+                  }
+                  onMinutesChange(selectedMinutes)
+                  minutesExpanded = false
+                })
+          }
+        }
+      }
+    }
+
+    Text(
+        text = stringResource(R.string.event_label_flash_starts_immediately),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+  }
+}
+
+/**
  * Composable for Participants, Fees, and Flash settings. Uses [ParticipantsFeeState] and
  * [ParticipantsFeeCallbacks] to group parameters.
  */
@@ -224,7 +371,6 @@ fun EventParticipantsAndFeesFields(
     participantsTag: String,
     feeSwitchTag: String,
     feeInputTag: String,
-    flashSwitchTag: String,
     onFocusChange: (Boolean) -> Unit
 ) {
   val wideFieldWeight = 0.7f
@@ -262,25 +408,6 @@ fun EventParticipantsAndFeesFields(
           callbacks.onHasFeeChange(it)
           if (!it) callbacks.onFeeStringChange("")
         },
-    )
-  }
-
-  Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(FIELD_SPACING),
-      verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-        modifier = Modifier.weight(wideFieldWeight),
-        text = stringResource(R.string.event_label_flash_event),
-    )
-
-    val context = LocalContext.current
-    Switch(
-        modifier = Modifier.testTag(flashSwitchTag),
-        checked = state.isFlash,
-        onCheckedChange = { DialogNotImplemented(context) },
-        // onIsFlashChange parameter was unused in original logic, removed to fix Sonar issue.
     )
   }
 }
