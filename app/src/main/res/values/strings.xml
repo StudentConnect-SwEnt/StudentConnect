@@ -684,4 +684,11 @@
     <string name="content_description_user_card">User Card</string>
     <string name="content_description_organizations">Organizations</string>
     <string name="content_description_logout">Logout</string>
+
+    <!-- Event Chat -->
+    <string name="chat_message_placeholder">Type a message…</string>
+    <string name="chat_send_message">Send message</string>
+    <string name="chat_empty_title">No messages yet</string>
+    <string name="chat_empty_message">Be the first to start the conversation!</string>
+    <string name="button_dismiss">Dismiss</string>
 </resources>
