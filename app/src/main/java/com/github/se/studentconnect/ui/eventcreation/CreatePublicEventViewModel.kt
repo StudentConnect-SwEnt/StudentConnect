@@ -30,6 +30,7 @@ class CreatePublicEventViewModel :
    */
   override fun prefillFromTemplate(event: Event) {
     val publicEvent = event as? Event.Public ?: return
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
     _uiState.value =
         CreateEventUiState.Public(
             title = publicEvent.title,
@@ -43,8 +44,8 @@ class CreatePublicEventViewModel :
             hasParticipationFee = publicEvent.participationFee != null,
             participationFeeString = publicEvent.participationFee?.toString() ?: "",
             isFlash = publicEvent.isFlash,
-            flashDurationHours = 1,
-            flashDurationMinutes = 0,
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             subtitle = publicEvent.subtitle,
             website = publicEvent.website.orEmpty(),
             tags = publicEvent.tags,
@@ -109,6 +110,8 @@ class CreatePublicEventViewModel :
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime()
 
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
+
     _uiState.value =
         CreateEventUiState.Public(
             title = event.title,
@@ -122,27 +125,8 @@ class CreatePublicEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
-            flashDurationHours =
-                if (event.isFlash) {
-                  // Calculate duration from event start/end
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes / 60
-                } else {
-                  1
-                },
-            flashDurationMinutes =
-                if (event.isFlash) {
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes % 60
-                } else {
-                  0
-                },
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl,
             subtitle = event.subtitle,
             website = event.website.orEmpty(),

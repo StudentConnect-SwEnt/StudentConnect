@@ -52,6 +52,7 @@ class CreatePrivateEventViewModel :
    * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
    */
   override fun prefillFromTemplate(event: Event) {
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
     _uiState.value =
         CreateEventUiState.Private(
             title = event.title,
@@ -65,27 +66,8 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
-            flashDurationHours =
-                if (event.isFlash) {
-                  // Calculate duration from event start/end
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes / 60
-                } else {
-                  1
-                },
-            flashDurationMinutes =
-                if (event.isFlash) {
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes % 60
-                } else {
-                  0
-                },
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl,
         )
   }
@@ -107,6 +89,8 @@ class CreatePrivateEventViewModel :
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime()
 
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
+
     _uiState.value =
         CreateEventUiState.Private(
             title = event.title,
@@ -120,27 +104,8 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
-            flashDurationHours =
-                if (event.isFlash) {
-                  // Calculate duration from event start/end
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes / 60
-                } else {
-                  1
-                },
-            flashDurationMinutes =
-                if (event.isFlash) {
-                  val durationMs =
-                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
-                          event.start.toDate().time
-                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
-                  totalMinutes % 60
-                } else {
-                  0
-                },
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl)
   }
 }

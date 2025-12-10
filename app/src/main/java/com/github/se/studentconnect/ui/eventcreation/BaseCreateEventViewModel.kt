@@ -435,4 +435,22 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       emptyList()
     }
   }
+
+  /**
+   * Calculates flash duration hours and minutes from event start and end timestamps. This helper
+   * function eliminates code duplication between Private and Public ViewModels.
+   *
+   * @param event The event to calculate duration from.
+   * @return Pair of (hours, minutes) for the flash event duration, or (1, 0) if not a flash event.
+   */
+  protected fun calculateFlashDuration(event: Event): Pair<Int, Int> {
+    return if (event.isFlash) {
+      val durationMs =
+          (event.end?.toDate()?.time ?: event.start.toDate().time) - event.start.toDate().time
+      val totalMinutes = (durationMs / (1000 * 60)).toInt()
+      Pair(totalMinutes / 60, totalMinutes % 60)
+    } else {
+      Pair(1, 0)
+    }
+  }
 }
