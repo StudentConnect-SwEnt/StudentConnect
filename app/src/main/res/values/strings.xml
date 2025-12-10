@@ -26,7 +26,7 @@
     <string name="error_failed_to_load_stories">Failed to load stories</string>
     <string name="error_story_not_found">Story not found</string>
     <string name="error_unauthorized_delete_story">You can only delete your own stories</string>
-    <string name="error_username_length">Username must be 3-20 characters long</string>
+    <string name="error_username_length">Username must be 3–20 characters long</string>
     <string name="error_username_format">Only alphanumeric characters, underscores, hyphens, and periods are allowed</string>
     <string name="error_username_taken">This username is already taken</string>
     <string name="error_failed_to_save_birthday">Failed to save birthday</string>
@@ -268,13 +268,13 @@
     <string name="org_location_winterthur">Winterthur</string>
     <string name="org_location_other">Other</string>
     <string name="age_range_under_18">&lt;18</string>
-    <string name="age_range_18_22">18-22</string>
-    <string name="age_range_23_25">23-25</string>
-    <string name="age_range_26_30">26-30</string>
+    <string name="age_range_18_22">18–22</string>
+    <string name="age_range_23_25">23–25</string>
+    <string name="age_range_26_30">26–30</string>
     <string name="age_range_30_plus">30+</string>
     <string name="event_size_small">&lt; 20</string>
-    <string name="event_size_medium">20-50</string>
-    <string name="event_size_large">50-150</string>
+    <string name="event_size_medium">20–50</string>
+    <string name="event_size_large">50–150</string>
     <string name="event_size_extra_large">150+</string>
 
     <!-- Tabs -->
