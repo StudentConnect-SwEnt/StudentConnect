@@ -898,7 +898,7 @@ private fun NonOwnerActionButtons(
   val eventHasStarted = now >= currentEvent.start && !eventIsOver
   val eventIsFuture = now < currentEvent.start
   val canJoin = !isFull && eventIsFuture
-  val canLeave = joined && eventIsFuture
+  val canLeave = joined && !eventIsOver
 
   Button(
       onClick = {
