@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.profile
 
 import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -10,8 +12,10 @@ import com.github.se.studentconnect.model.notification.NotificationRepositoryLoc
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import io.mockk.coEvery
 import io.mockk.every
@@ -25,8 +29,13 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class OrganizationProfileViewModelTest {
 
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
@@ -86,6 +95,12 @@ class OrganizationProfileViewModelTest {
 
   @Before
   fun setUp() {
+    // Initialize Firebase if not already initialized
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    if (FirebaseApp.getApps(context).isEmpty()) {
+      FirebaseApp.initializeApp(context)
+    }
+
     // Ensure no authenticated user for tests that expect null currentUserId
     AuthenticationProvider.testUserId = null
     AuthenticationProvider.local = false
@@ -1047,7 +1062,8 @@ class OrganizationProfileViewModelTest {
             context = mockContext,
             organizationRepository = failingRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     advanceUntilIdle()
 
@@ -1143,7 +1159,8 @@ class OrganizationProfileViewModelTest {
                 context = mockContext,
                 organizationRepository = organizationRepository,
                 eventRepository = eventRepository,
-                userRepository = userRepository)
+                userRepository = userRepository,
+                notificationRepository = notificationRepository)
 
         advanceUntilIdle()
 
@@ -1482,11 +1499,76 @@ class OrganizationProfileViewModelTest {
   fun `loadAvailableUsers handles exception gracefully`() = runTest {
     organizationRepository.saveOrganization(testOrganization)
 
-    // Create a mock user repository that throws exception
-    val failingUserRepository = mockk<UserRepositoryLocal>(relaxed = true)
-    coEvery { failingUserRepository.getAllUsers() } throws RuntimeException("Failed to load users")
-    // Mock getOrganizationById to return the organization for loadAvailableUsers
-    coEvery { organizationRepository.getOrganizationById("test_org") } returns testOrganization
+    // Create a test user repository that throws exception
+    val failingUserRepository =
+        object : UserRepository {
+          override suspend fun getAllUsers(): List<User> {
+            throw RuntimeException("Failed to load users")
+          }
+
+          override suspend fun getUserById(userId: String): User? = null
+
+          override suspend fun getUserByEmail(email: String): User? = null
+
+          override suspend fun getUsersPaginated(
+              limit: Int,
+              lastUserId: String?
+          ): Pair<List<User>, Boolean> = emptyList<User>() to false
+
+          override suspend fun saveUser(user: User) {}
+
+          override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+
+          override suspend fun deleteUser(userId: String) {}
+
+          override suspend fun getUsersByUniversity(university: String): List<User> = emptyList()
+
+          override suspend fun getUsersByHobby(hobby: String): List<User> = emptyList()
+
+          override suspend fun getNewUid(): String = "new_uid"
+
+          override suspend fun getJoinedEvents(userId: String): List<String> = emptyList()
+
+          override suspend fun addEventToUser(eventId: String, userId: String) {}
+
+          override suspend fun addInvitationToUser(
+              eventId: String,
+              userId: String,
+              fromUserId: String
+          ) {}
+
+          override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
+
+          override suspend fun acceptInvitation(eventId: String, userId: String) {}
+
+          override suspend fun declineInvitation(eventId: String, userId: String) {}
+
+          override suspend fun removeInvitation(eventId: String, userId: String) {}
+
+          override suspend fun joinEvent(eventId: String, userId: String) {}
+
+          override suspend fun sendInvitation(
+              eventId: String,
+              fromUserId: String,
+              toUserId: String
+          ) {}
+
+          override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+
+          override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+
+          override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
+
+          override suspend fun addPinnedEvent(userId: String, eventId: String) {}
+
+          override suspend fun removePinnedEvent(userId: String, eventId: String) {}
+
+          override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
+
+          override suspend fun checkUsernameAvailability(username: String): Boolean = true
+
+          override suspend fun leaveEvent(eventId: String, userId: String) {}
+        }
 
     viewModel =
         OrganizationProfileViewModel(
