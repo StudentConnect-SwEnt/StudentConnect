@@ -605,9 +605,7 @@ class ActivitiesScreenTest : StudentConnectTest() {
 
     // Regular event should show LIVE badge, not flash icon
     val context = InstrumentationRegistry.getInstrumentation().targetContext
-    composeTestRule
-        .onNodeWithText(context.getString(R.string.event_label_live))
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertIsDisplayed()
     val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
   }

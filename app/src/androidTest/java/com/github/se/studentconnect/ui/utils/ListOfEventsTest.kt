@@ -377,10 +377,11 @@ class ListOfEventsTest {
     // Flash event should show flash icon, not LIVE text
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     composeTestRule
-        .onNodeWithContentDescription(
-            context.getString(R.string.content_description_flash_event))
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
         .assertIsDisplayed()
-    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
   }
 
   @Test
@@ -402,10 +403,11 @@ class ListOfEventsTest {
     // Future flash event should not show any badge
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     composeTestRule
-        .onNodeWithContentDescription(
-            context.getString(R.string.content_description_flash_event))
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
         .assertDoesNotExist()
-    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
   }
 
   @Test
@@ -427,8 +429,7 @@ class ListOfEventsTest {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertIsDisplayed()
     composeTestRule
-        .onNodeWithContentDescription(
-            context.getString(R.string.content_description_flash_event))
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
         .assertDoesNotExist()
   }
 
