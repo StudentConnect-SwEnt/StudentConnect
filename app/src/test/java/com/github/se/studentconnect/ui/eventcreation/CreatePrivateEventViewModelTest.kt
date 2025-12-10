@@ -3,7 +3,15 @@ package com.github.se.studentconnect.ui.eventcreation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
@@ -28,6 +36,10 @@ class CreatePrivateEventViewModelTest {
   private lateinit var viewModel: CreatePrivateEventViewModel
   private lateinit var mockEventRepository: EventRepository
   private lateinit var mockMediaRepository: com.github.se.studentconnect.model.media.MediaRepository
+  private lateinit var mockUserRepository: UserRepository
+  private lateinit var mockOrganizationRepository: OrganizationRepository
+  private lateinit var mockFriendsRepository: FriendsRepository
+  private lateinit var mockNotificationRepository: NotificationRepository
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
@@ -36,10 +48,20 @@ class CreatePrivateEventViewModelTest {
     mockEventRepository = Mockito.mock(EventRepository::class.java)
     mockMediaRepository =
         Mockito.mock(com.github.se.studentconnect.model.media.MediaRepository::class.java)
-    // override provider so ViewModel uses our mock repository
+    mockUserRepository = Mockito.mock(UserRepository::class.java)
+    mockOrganizationRepository = Mockito.mock(OrganizationRepository::class.java)
+    mockFriendsRepository = Mockito.mock(FriendsRepository::class.java)
+    mockNotificationRepository = Mockito.mock(NotificationRepository::class.java)
+    
+    // override providers so ViewModel uses our mock repositories
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     com.github.se.studentconnect.model.media.MediaRepositoryProvider.overrideForTests(
         mockMediaRepository)
+    UserRepositoryProvider.overrideForTests(mockUserRepository)
+    OrganizationRepositoryProvider.overrideForTests(mockOrganizationRepository)
+    FriendsRepositoryProvider.overrideForTests(mockFriendsRepository)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
+    
     viewModel = CreatePrivateEventViewModel()
   }
 
@@ -49,6 +71,10 @@ class CreatePrivateEventViewModelTest {
     // clean override to avoid leaking across tests
     EventRepositoryProvider.cleanOverrideForTests()
     com.github.se.studentconnect.model.media.MediaRepositoryProvider.cleanOverrideForTests()
+    UserRepositoryProvider.cleanOverrideForTests()
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    FriendsRepositoryProvider.cleanOverrideForTests()
+    NotificationRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
