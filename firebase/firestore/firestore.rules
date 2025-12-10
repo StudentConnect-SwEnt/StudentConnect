@@ -177,6 +177,43 @@ service cloud.firestore {
           allow update, delete: if false;
         }
       }
+
+      // Subcollection: messages (chat messages)
+      match /messages/{messageId} {
+        // Allow read if user is event owner or participant
+        allow get, list: if request.auth != null &&
+                           (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                            isParticipant(eventId));
+
+        // Allow create only if:
+        // 1. User is authenticated
+        // 2. User is event owner or participant
+        // 3. Message senderId matches authenticated user
+        allow create: if request.auth != null &&
+                         (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                          isParticipant(eventId)) &&
+                         request.resource.data.senderId == request.auth.uid;
+
+        // Prevent updates and deletes (messages are immutable)
+        allow update, delete: if false;
+      }
+
+      // Subcollection: typing (typing status)
+      match /typing/{userId} {
+        // Allow read if user is event owner or participant
+        allow get, list: if request.auth != null &&
+                           (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                            isParticipant(eventId));
+
+        // Allow create/update only for own typing status
+        allow create, update: if request.auth != null &&
+                                 request.auth.uid == userId &&
+                                 (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
+                                  isParticipant(eventId));
+
+        // Allow delete of own typing status
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // --- USERS COLLECTION ---
