@@ -442,7 +442,7 @@ private fun BaseEventView(
                     }
 
                     // Chat Button
-                    ChatButton()
+                    ChatButton(event = event, navController = navController)
 
                     Spacer(modifier = Modifier.height(20.dp))
                   }
@@ -704,9 +704,9 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
 }
 
 @Composable
-private fun ChatButton(context: Context = LocalContext.current) {
+private fun ChatButton(event: Event, navController: NavHostController) {
   Button(
-      onClick = { DialogNotImplemented(context) },
+      onClick = { navController.navigate(Route.eventChat(event.uid)) },
       modifier =
           Modifier.fillMaxWidth()
               .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
