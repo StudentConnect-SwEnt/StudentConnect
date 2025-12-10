@@ -103,6 +103,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
@@ -409,6 +410,34 @@ fun HomeScreen(
                                   // Handle error silently or show a message
                                 }
                               }
+                            },
+                            onOrganizationInvitationAccept = { notificationId, organizationId ->
+                              coroutineScope.launch {
+                                try {
+                                  val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                  if (userId != null) {
+                                    OrganizationRepositoryProvider.repository
+                                        .acceptMemberInvitation(organizationId, userId)
+                                    notificationViewModel?.deleteNotification(notificationId)
+                                  }
+                                } catch (e: Exception) {
+                                  // Handle error silently or show a message
+                                }
+                              }
+                            },
+                            onOrganizationInvitationReject = { notificationId, organizationId ->
+                              coroutineScope.launch {
+                                try {
+                                  val userId = FirebaseAuth.getInstance().currentUser?.uid
+                                  if (userId != null) {
+                                    OrganizationRepositoryProvider.repository
+                                        .rejectMemberInvitation(organizationId, userId)
+                                    notificationViewModel?.deleteNotification(notificationId)
+                                  }
+                                } catch (e: Exception) {
+                                  // Handle error silently or show a message
+                                }
+                              }
                             }),
                     navController = navController)
               }
@@ -637,7 +666,9 @@ data class NotificationCallbacks(
     val onNotificationRead: (String) -> Unit = {},
     val onNotificationDelete: (String) -> Unit = {},
     val onFriendRequestAccept: (String, String) -> Unit = { _, _ -> },
-    val onFriendRequestReject: (String, String) -> Unit = { _, _ -> }
+    val onFriendRequestReject: (String, String) -> Unit = { _, _ -> },
+    val onOrganizationInvitationAccept: (String, String) -> Unit = { _, _ -> },
+    val onOrganizationInvitationReject: (String, String) -> Unit = { _, _ -> }
 )
 
 /** Search bar plus notification icon row shown at the top of the Home page. */
@@ -695,10 +726,14 @@ private fun NotificationDropdown(
                     onDelete = { notificationCallbacks.onNotificationDelete(notification.id) },
                     onAccept =
                         getAcceptCallback(
-                            notification, notificationCallbacks.onFriendRequestAccept),
+                            notification,
+                            notificationCallbacks.onFriendRequestAccept,
+                            notificationCallbacks.onOrganizationInvitationAccept),
                     onReject =
                         getRejectCallback(
-                            notification, notificationCallbacks.onFriendRequestReject),
+                            notification,
+                            notificationCallbacks.onFriendRequestReject,
+                            notificationCallbacks.onOrganizationInvitationReject),
                     onClick = {
                       handleNotificationClick(
                           notification,
@@ -727,20 +762,34 @@ private fun NotificationBadge(unreadCount: Int) {
 
 private fun getAcceptCallback(
     notification: Notification,
-    onFriendRequestAccept: (String, String) -> Unit
+    onFriendRequestAccept: (String, String) -> Unit,
+    onOrganizationInvitationAccept: (String, String) -> Unit
 ): (() -> Unit)? {
-  return if (notification is Notification.FriendRequest) {
-    { onFriendRequestAccept(notification.id, notification.fromUserId) }
-  } else null
+  return when (notification) {
+    is Notification.FriendRequest -> {
+      { onFriendRequestAccept(notification.id, notification.fromUserId) }
+    }
+    is Notification.OrganizationMemberInvitation -> {
+      { onOrganizationInvitationAccept(notification.id, notification.organizationId) }
+    }
+    else -> null
+  }
 }
 
 private fun getRejectCallback(
     notification: Notification,
-    onFriendRequestReject: (String, String) -> Unit
+    onFriendRequestReject: (String, String) -> Unit,
+    onOrganizationInvitationReject: (String, String) -> Unit
 ): (() -> Unit)? {
-  return if (notification is Notification.FriendRequest) {
-    { onFriendRequestReject(notification.id, notification.fromUserId) }
-  } else null
+  return when (notification) {
+    is Notification.FriendRequest -> {
+      { onFriendRequestReject(notification.id, notification.fromUserId) }
+    }
+    is Notification.OrganizationMemberInvitation -> {
+      { onOrganizationInvitationReject(notification.id, notification.organizationId) }
+    }
+    else -> null
+  }
 }
 
 private fun handleNotificationClick(
@@ -923,7 +972,10 @@ private fun shouldShowActionButtons(
     onAccept: (() -> Unit)?,
     onReject: (() -> Unit)?
 ): Boolean {
-  return notification is Notification.FriendRequest && onAccept != null && onReject != null
+  return (notification is Notification.FriendRequest ||
+      notification is Notification.OrganizationMemberInvitation) &&
+      onAccept != null &&
+      onReject != null
 }
 
 @Composable

@@ -42,6 +42,7 @@ data class OrganizationProfileUiState(
     val selectedRole: String? = null,
     val availableUsers: List<User> = emptyList(),
     val isLoadingUsers: Boolean = false,
+    val pendingInvitations: Map<String, String> = emptyMap(), // role -> userId
     val error: String? = null
 )
 
@@ -83,6 +84,10 @@ class OrganizationProfileViewModel(
     const val MEMBER_ICON_SIZE = 36
     const val GRID_COLUMNS = 2
     const val MEMBERS_GRID_HEIGHT = 400
+
+    // Standard organization roles
+    val STANDARD_ROLES =
+        listOf("Owner", "President", "Vice President", "Treasurer", "Secretary", "Member")
   }
 
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
@@ -129,8 +134,20 @@ class OrganizationProfileViewModel(
                 events = events,
                 members = members)
 
+        // Fetch pending invitations if user is owner
+        val pendingInvitations =
+            if (isOwner) {
+              fetchPendingInvitations(organizationId)
+            } else {
+              emptyMap()
+            }
+
         _uiState.value =
-            _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
+            _uiState.value.copy(
+                organization = organizationProfile,
+                pendingInvitations = pendingInvitations,
+                isLoading = false,
+                error = null)
       } catch (e: Exception) {
         _uiState.value =
             _uiState.value.copy(
@@ -153,10 +170,12 @@ class OrganizationProfileViewModel(
   /** Fetches members for the organization. Returns empty list on failure. */
   private suspend fun fetchOrganizationMembers(
       organization: com.github.se.studentconnect.model.organization.Organization
-  ) =
+  ): List<com.github.se.studentconnect.model.organization.OrganizationMember> =
       try {
         val allMemberUids = buildMemberUidsList(organization)
-        allMemberUids.mapNotNull { uid -> fetchMemberWithRole(uid, organization.createdBy) }
+        allMemberUids.mapNotNull { uid ->
+          fetchMemberWithRole(uid, organization.createdBy, organization)
+        }
       } catch (e: Exception) {
         Log.e(TAG, "Failed to fetch members for organization ${organization.id}", e)
         emptyList()
@@ -174,16 +193,36 @@ class OrganizationProfileViewModel(
   }
 
   /** Fetches a single member and assigns their role. Returns null on failure. */
-  private suspend fun fetchMemberWithRole(uid: String, creatorId: String) =
+  private suspend fun fetchMemberWithRole(
+      uid: String,
+      creatorId: String,
+      organization: com.github.se.studentconnect.model.organization.Organization
+  ): com.github.se.studentconnect.model.organization.OrganizationMember? =
       try {
         val user = userRepository.getUserById(uid)
+
         user?.let {
-          val role = if (uid == creatorId) "Owner" else "Member"
+          // Get role from memberRoles map, fallback to Owner/Member logic
+          val role = organization.memberRoles[uid] ?: if (uid == creatorId) "Owner" else "Member"
+          Log.d(
+              TAG,
+              "Fetched member $uid with role: $role (from memberRoles: ${organization.memberRoles[uid]})")
           it.toOrganizationMember(role)
         }
       } catch (e: Exception) {
         Log.e(TAG, "Failed to fetch user with ID $uid for organization member list", e)
         null
+      }
+
+  /** Fetches pending invitations for the organization. Returns map of role -> userId. */
+  private suspend fun fetchPendingInvitations(orgId: String): Map<String, String> =
+      try {
+        val invitations = organizationRepository.getPendingInvitations(orgId)
+        // Create map of role -> userId for quick lookup
+        invitations.associate { it.role to it.userId }
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to fetch pending invitations", e)
+        emptyMap()
       }
 
   /** Checks if the current user is a member or creator of the organization. */
@@ -420,9 +459,13 @@ class OrganizationProfileViewModel(
               Log.e(TAG, "Failed to send notification to user $userId: $error")
             })
 
-        // Close dialog and reload organization data
+        // Update pending invitations in UI
+        val updatedInvitations = _uiState.value.pendingInvitations.toMutableMap()
+        updatedInvitations[role] = userId
+        _uiState.value = _uiState.value.copy(pendingInvitations = updatedInvitations)
+
+        // Close dialog
         dismissAddMemberDialog()
-        loadOrganizationData()
       } catch (e: Exception) {
         Log.e(TAG, "Failed to send member invitation", e)
       }
@@ -462,5 +505,54 @@ class OrganizationProfileViewModel(
         Log.e(TAG, "Failed to reject member invitation", e)
       }
     }
+  }
+
+  /**
+   * Removes a member from the organization.
+   *
+   * @param member The member to remove
+   */
+  fun removeMember(member: com.github.se.studentconnect.model.organization.OrganizationMember) {
+    val currentOrg = _uiState.value.organization ?: return
+    val ownerId = currentUserId ?: return
+
+    // Can't remove the owner
+    if (member.role == "Owner") {
+      Log.d(TAG, "Cannot remove the owner")
+      return
+    }
+
+    viewModelScope.launch {
+      try {
+        val organization = organizationRepository.getOrganizationById(currentOrg.organizationId)
+        if (organization != null) {
+          // Remove from memberUids
+          val updatedMemberUids = organization.memberUids.toMutableList()
+          updatedMemberUids.remove(member.memberId)
+
+          // Remove from memberRoles
+          val updatedMemberRoles = organization.memberRoles.toMutableMap()
+          updatedMemberRoles.remove(member.memberId)
+
+          // Update organization
+          val updatedOrg =
+              organization.copy(memberUids = updatedMemberUids, memberRoles = updatedMemberRoles)
+          organizationRepository.saveOrganization(updatedOrg)
+
+          // Reload organization data
+          loadOrganizationData()
+        }
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to remove member", e)
+      }
+    }
+  }
+
+  /**
+   * Refreshes the organization data (called when invitation is accepted/rejected). This is a public
+   * method that can be called from outside the ViewModel.
+   */
+  fun refreshOrganization() {
+    loadOrganizationData()
   }
 }

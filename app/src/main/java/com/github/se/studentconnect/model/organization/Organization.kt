@@ -58,6 +58,7 @@ data class SocialLinks(
  * @property roles List of distinct roles within the organization team.
  * @property socialLinks Container for external profile links.
  * @property memberUids List of user IDs who are members of this organization.
+ * @property memberRoles Map of user IDs to their assigned roles.
  * @property createdAt Timestamp of creation.
  * @property createdBy User ID of the creator (admin).
  */
@@ -74,6 +75,7 @@ data class Organization(
     val roles: List<OrganizationRole> = emptyList(),
     val socialLinks: SocialLinks = SocialLinks(),
     val memberUids: List<String> = emptyList(),
+    val memberRoles: Map<String, String> = emptyMap(),
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String
 ) {
@@ -93,6 +95,7 @@ data class Organization(
         "roles" to roles.map { mapOf("name" to it.name, "description" to it.description) },
         "socialLinks" to socialLinks.toMap(),
         "memberUids" to memberUids,
+        "memberRoles" to memberRoles,
         "createdAt" to createdAt,
         "createdBy" to createdBy)
   }
@@ -147,6 +150,13 @@ data class Organization(
         // Safe parsing of memberUids
         val memberUids = (map["memberUids"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
+        // Safe parsing of memberRoles
+        val memberRoles =
+            (map["memberRoles"] as? Map<*, *>)
+                ?.entries
+                ?.associate { (k, v) -> (k as? String ?: "") to (v as? String ?: "") }
+                ?.filterKeys { it.isNotEmpty() } ?: emptyMap()
+
         Organization(
             id = id,
             name = name,
@@ -160,6 +170,7 @@ data class Organization(
             roles = roles,
             socialLinks = socialLinks,
             memberUids = memberUids,
+            memberRoles = memberRoles,
             createdAt = createdAt,
             createdBy = createdBy)
       } catch (_: Exception) {
