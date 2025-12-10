@@ -45,6 +45,8 @@ class CreatePublicEventViewModel :
             hasParticipationFee = publicEvent.participationFee != null,
             participationFeeString = publicEvent.participationFee?.toString() ?: "",
             isFlash = publicEvent.isFlash,
+            flashDurationHours = 1,
+            flashDurationMinutes = 0,
             subtitle = publicEvent.subtitle,
             website = publicEvent.website.orEmpty(),
             tags = publicEvent.tags,
@@ -54,7 +56,13 @@ class CreatePublicEventViewModel :
 
   override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
-    val start = timestampFrom(s.startDate!!, s.startTime)
+    val start =
+        if (s.isFlash && editingEventUid == null) {
+          // Flash events start immediately
+          Timestamp.now()
+        } else {
+          timestampFrom(s.startDate!!, s.startTime)
+        }
     val end = timestampFrom(s.endDate!!, s.endTime)
     val maxCapacity =
         try {
@@ -116,14 +124,30 @@ class CreatePublicEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours =
+                if (event.isFlash) {
+                  // Calculate duration from event start/end
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes / 60
+                } else {
+                  1
+                },
+            flashDurationMinutes =
+                if (event.isFlash) {
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes % 60
+                } else {
+                  0
+                },
             bannerImagePath = event.imageUrl,
             subtitle = event.subtitle,
             website = event.website.orEmpty(),
             tags = event.tags)
-  }
-
-  private fun timestampFrom(date: LocalDate, time: LocalTime): Timestamp {
-    val instant = LocalDateTime.of(date, time).atZone(ZoneId.systemDefault()).toInstant()
-    return Timestamp(instant)
   }
 }

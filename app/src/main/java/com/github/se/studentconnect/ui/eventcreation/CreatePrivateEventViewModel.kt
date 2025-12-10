@@ -15,7 +15,13 @@ class CreatePrivateEventViewModel :
 
   override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
-    val start = timestampFrom(s.startDate!!, s.startTime)
+    val start =
+        if (s.isFlash && editingEventUid == null) {
+          // Flash events start immediately
+          Timestamp.now()
+        } else {
+          timestampFrom(s.startDate!!, s.startTime)
+        }
     val end = timestampFrom(s.endDate!!, s.endTime)
     val maxCapacity =
         try {
@@ -61,6 +67,27 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours =
+                if (event.isFlash) {
+                  // Calculate duration from event start/end
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes / 60
+                } else {
+                  1
+                },
+            flashDurationMinutes =
+                if (event.isFlash) {
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes % 60
+                } else {
+                  0
+                },
             bannerImagePath = event.imageUrl,
         )
   }
@@ -95,11 +122,27 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours =
+                if (event.isFlash) {
+                  // Calculate duration from event start/end
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes / 60
+                } else {
+                  1
+                },
+            flashDurationMinutes =
+                if (event.isFlash) {
+                  val durationMs =
+                      (event.end?.toDate()?.time ?: event.start.toDate().time) -
+                          event.start.toDate().time
+                  val totalMinutes = (durationMs / (1000 * 60)).toInt()
+                  totalMinutes % 60
+                } else {
+                  0
+                },
             bannerImagePath = event.imageUrl)
-  }
-
-  private fun timestampFrom(date: LocalDate, time: LocalTime): Timestamp {
-    val instant = LocalDateTime.of(date, time).atZone(ZoneId.systemDefault()).toInstant()
-    return Timestamp(instant)
   }
 }
