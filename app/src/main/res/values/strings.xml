@@ -163,6 +163,8 @@
     <string name="content_description_student_connect_logo">Student Connect Logo</string>
     <string name="content_description_favorite">Favorite</string>
     <string name="content_description_live_icon">Live Icon</string>
+    <string name="content_description_flash_event">Flash Event</string>
+    <string name="event_label_live">LIVE</string>
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
@@ -405,6 +407,10 @@
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
+    <string name="event_label_flash_duration">Duration</string>
+    <string name="event_label_flash_duration_hours">Hours</string>
+    <string name="event_label_flash_duration_minutes">Minutes</string>
+    <string name="event_label_flash_starts_immediately">Starts immediately</string>
     <string name="event_label_username">Username</string>
     <string name="event_label_invite_friends">Invite friends</string>
     <string name="event_invite_friends_help">Select friends to invite to this event.</string>
