@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Image
@@ -34,6 +35,7 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.ui.screen.home.OrganizationSuggestions
@@ -245,25 +247,47 @@ fun EventCard(
                 }
 
             if (isLive) {
-              Row(
-                  modifier =
-                      Modifier.align(Alignment.TopStart)
-                          .padding(8.dp)
-                          .background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
-                          .padding(horizontal = 10.dp, vertical = 5.dp),
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.Circle,
-                        contentDescription = "Live Icon",
-                        tint = Color.White,
-                        modifier = Modifier.size(8.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "LIVE",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold)
-                  }
+              if (event.isFlash) {
+                // Flash event: show flash/storm icon
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp)
+                            .background(
+                                Color(C.FlashEvent.BADGE_COLOR.toInt())
+                                    .copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                                shape = CircleShape)
+                            .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
+                      Icon(
+                          imageVector = Icons.Filled.Bolt,
+                          contentDescription = stringResource(R.string.content_description_flash_event),
+                          tint = MaterialTheme.colorScheme.onError,
+                          modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
+                    }
+              } else {
+                // Regular live event: show LIVE badge
+                Row(
+                    modifier =
+                        Modifier.align(Alignment.TopStart)
+                            .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp)
+                            .background(
+                                MaterialTheme.colorScheme.error.copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                                shape = CircleShape)
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Icon(
+                          imageVector = Icons.Filled.Circle,
+                          contentDescription = stringResource(R.string.content_description_live_icon),
+                          tint = MaterialTheme.colorScheme.onError,
+                          modifier = Modifier.size(8.dp))
+                      Spacer(modifier = Modifier.width(6.dp))
+                      Text(
+                          text = stringResource(R.string.event_label_live),
+                          color = MaterialTheme.colorScheme.onError,
+                          style = MaterialTheme.typography.labelMedium,
+                          fontWeight = FontWeight.Bold)
+                    }
+              }
             }
           }
           Column(modifier = Modifier.padding(16.dp)) {
