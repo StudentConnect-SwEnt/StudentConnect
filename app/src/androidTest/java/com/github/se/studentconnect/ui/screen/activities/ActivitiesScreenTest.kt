@@ -1,14 +1,9 @@
 package com.github.se.studentconnect.ui.screen.activities
 
-import androidx.compose.ui.test.assertDoesNotExist
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
+import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
@@ -555,10 +550,11 @@ class ActivitiesScreenTest : StudentConnectTest() {
     }
 
     // Flash event should show flash icon, not LIVE text
-    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertIsDisplayed()
     composeTestRule
-        .onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live))
+        .onNodeWithText(context.getString(R.string.event_label_live))
         .assertDoesNotExist()
   }
 
@@ -608,10 +604,11 @@ class ActivitiesScreenTest : StudentConnectTest() {
     }
 
     // Regular event should show LIVE badge, not flash icon
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
     composeTestRule
-        .onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live))
+        .onNodeWithText(context.getString(R.string.event_label_live))
         .assertIsDisplayed()
-    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
   }
 
@@ -660,10 +657,11 @@ class ActivitiesScreenTest : StudentConnectTest() {
     }
 
     // Future flash event should not show any badge
-    val flashIconDesc = composeTestRule.activity.getString(R.string.content_description_flash_event)
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val flashIconDesc = context.getString(R.string.content_description_flash_event)
     composeTestRule.onNodeWithContentDescription(flashIconDesc).assertDoesNotExist()
     composeTestRule
-        .onNodeWithText(composeTestRule.activity.getString(R.string.event_label_live))
+        .onNodeWithText(context.getString(R.string.event_label_live))
         .assertDoesNotExist()
   }
 }
