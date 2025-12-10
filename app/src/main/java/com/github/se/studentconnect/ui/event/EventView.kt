@@ -469,7 +469,6 @@ private fun BaseEventView(
                     AuthenticationProvider.currentUser != event.ownerId) {
                   PollNotificationCard(
                       onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                      onDismissClick = {},
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                 }
 
@@ -842,6 +841,10 @@ fun EventActionButtons(
   }
 }
 
+<<<<<<< HEAD
+=======
+/** Non-owner action buttons (Join/Leave) */
+>>>>>>> 16061b1b (fix: remove warnings)
 @Composable
 private fun NonOwnerActionButtons(
     joined: Boolean,
@@ -1212,11 +1215,7 @@ private fun getValidationTestTag(result: TicketValidationResult) =
     }
 
 @Composable
-private fun PollNotificationCard(
-    onVoteNowClick: () -> Unit,
-    onDismissClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun PollNotificationCard(onVoteNowClick: () -> Unit, modifier: Modifier = Modifier) {
   Card(
       modifier =
           modifier
