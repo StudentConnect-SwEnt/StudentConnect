@@ -441,8 +441,10 @@ private fun BaseEventView(
                           modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                     }
 
-                    // Chat Button
-                    ChatButton(event = event, navController = navController)
+                    // Chat Button - only show if user is joined or is owner
+                    if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
+                      ChatButton(event = event, navController = navController)
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
                   }
