@@ -32,8 +32,6 @@ import org.junit.Test
 private class FakeFriendsRepository(val friends: List<String> = emptyList()) : FriendsRepository {
   override suspend fun getFriends(userId: String): List<String> = friends
 
-  override suspend fun getFriendsPublic(userId: String): List<String> = friends
-
   override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
 
   override suspend fun getSentRequests(userId: String): List<String> = emptyList()

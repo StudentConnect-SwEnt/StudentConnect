@@ -20,16 +20,6 @@ interface FriendsRepository : Repository {
   suspend fun getFriends(userId: String): List<String>
 
   /**
-   * Retrieves the list of friend IDs for any user (public read). This method does not enforce that
-   * the caller is the same as the user being queried. Used for displaying friend counts on visitor
-   * profiles.
-   *
-   * @param userId The unique identifier of the user.
-   * @return A list of user IDs representing the user's friends.
-   */
-  suspend fun getFriendsPublic(userId: String): List<String>
-
-  /**
    * Retrieves the list of pending friend request IDs sent to a given user.
    *
    * @param userId The unique identifier of the user.

@@ -118,7 +118,7 @@ class VisitorProfileViewModel(
   /** Loads the count of friends for the visitor user. */
   private suspend fun loadFriendsCount(userId: String) {
     try {
-      val friends = friendsRepository.getFriendsPublic(userId)
+      val friends = friendsRepository.getFriends(userId)
       _friendsCount.value = friends.size
       Log.d(TAG, "Loaded friends count for user $userId: ${friends.size} friends")
     } catch (exception: Exception) {

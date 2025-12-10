@@ -49,7 +49,7 @@ class FriendsListViewModel(
 
     viewModelScope.launch {
       try {
-        val friendIds = friendsRepository.getFriendsPublic(userId)
+        val friendIds = friendsRepository.getFriends(userId)
 
         val friendUsers =
             friendIds

@@ -58,19 +58,8 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
   }
 
   override suspend fun getFriends(userId: String): List<String> {
-    ensureCurrentUser(userId)
-    val snapshot =
-        db.collection(USERS_COLLECTION)
-            .document(userId)
-            .collection(FRIENDS_SUBCOLLECTION)
-            .get()
-            .await()
-
-    return snapshot.documents.mapNotNull { it.id }
-  }
-
-  override suspend fun getFriendsPublic(userId: String): List<String> {
-    // No ensureCurrentUser check - allows reading any user's friends list
+    // No ensureCurrentUser check: Firebase rules control access, allowing any authenticated user to
+    // read
     val snapshot =
         db.collection(USERS_COLLECTION)
             .document(userId)
