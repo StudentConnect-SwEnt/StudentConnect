@@ -259,4 +259,156 @@ class OrganizationRepositoryLocalTest {
     assertEquals(OrganizationType.NGO, repository.getOrganizationById("org_ngo")?.type)
     assertEquals(OrganizationType.StudentClub, repository.getOrganizationById("org_club")?.type)
   }
+
+  @Test
+  fun `sendMemberInvitation creates invitation`() = runTest {
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
+
+    val invitations = repository.getPendingInvitations("org-1")
+    assertEquals(1, invitations.size)
+    assertEquals("org-1", invitations[0].organizationId)
+    assertEquals("user-1", invitations[0].userId)
+    assertEquals("Member", invitations[0].role)
+    assertEquals("user-2", invitations[0].invitedBy)
+  }
+
+  @Test
+  fun `acceptMemberInvitation adds user to organization and deletes invitation`() = runTest {
+    repository.saveOrganization(testOrganization1)
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user-new", role = "Member", invitedBy = "user1")
+
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user-new")
+
+    val org = repository.getOrganizationById("org1")
+    assertTrue(org?.memberUids?.contains("user-new") == true)
+
+    val invitations = repository.getPendingInvitations("org1")
+    assertEquals(0, invitations.size)
+  }
+
+  @Test
+  fun `acceptMemberInvitation does not add duplicate user`() = runTest {
+    repository.saveOrganization(testOrganization1)
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user1", role = "Member", invitedBy = "user2")
+
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user1")
+
+    val org = repository.getOrganizationById("org1")
+    // user1 was already in the original organization
+    assertEquals(2, org?.memberUids?.size) // Should still be 2, not 3
+  }
+
+  @Test
+  fun `rejectMemberInvitation deletes invitation`() = runTest {
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
+
+    repository.rejectMemberInvitation(organizationId = "org-1", userId = "user-1")
+
+    val invitations = repository.getPendingInvitations("org-1")
+    assertEquals(0, invitations.size)
+  }
+
+  @Test
+  fun `getPendingInvitations returns only invitations for specific organization`() = runTest {
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
+    repository.sendMemberInvitation(
+        organizationId = "org-2", userId = "user-3", role = "Admin", invitedBy = "user-4")
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-5", role = "Member", invitedBy = "user-2")
+
+    val invitations = repository.getPendingInvitations("org-1")
+    assertEquals(2, invitations.size)
+    assertTrue(invitations.all { it.organizationId == "org-1" })
+  }
+
+  @Test
+  fun `getUserPendingInvitations returns only invitations for specific user`() = runTest {
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
+    repository.sendMemberInvitation(
+        organizationId = "org-2", userId = "user-1", role = "Admin", invitedBy = "user-3")
+    repository.sendMemberInvitation(
+        organizationId = "org-3", userId = "user-4", role = "Member", invitedBy = "user-2")
+
+    val invitations = repository.getUserPendingInvitations("user-1")
+    assertEquals(2, invitations.size)
+    assertTrue(invitations.all { it.userId == "user-1" })
+  }
+
+  @Test
+  fun `addMemberToOrganization adds user to memberUids`() = runTest {
+    repository.saveOrganization(testOrganization1)
+
+    repository.addMemberToOrganization(organizationId = "org1", userId = "user-new")
+
+    val org = repository.getOrganizationById("org1")
+    assertTrue(org?.memberUids?.contains("user-new") == true)
+    assertEquals(3, org?.memberUids?.size)
+  }
+
+  @Test
+  fun `addMemberToOrganization does not add duplicate user`() = runTest {
+    repository.saveOrganization(testOrganization1)
+
+    repository.addMemberToOrganization(organizationId = "org1", userId = "user1")
+
+    val org = repository.getOrganizationById("org1")
+    assertEquals(2, org?.memberUids?.size) // Should remain 2
+  }
+
+  @Test
+  fun `clear removes all invitations`() = runTest {
+    repository.sendMemberInvitation(
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
+    repository.sendMemberInvitation(
+        organizationId = "org-2", userId = "user-3", role = "Admin", invitedBy = "user-4")
+
+    repository.clear()
+
+    val invitations1 = repository.getPendingInvitations("org-1")
+    val invitations2 = repository.getPendingInvitations("org-2")
+    assertEquals(0, invitations1.size)
+    assertEquals(0, invitations2.size)
+  }
+
+  @Test
+  fun `multiple invitation operations work correctly together`() = runTest {
+    repository.saveOrganization(testOrganization1)
+
+    // Send invitations
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user-new1", role = "Member", invitedBy = "user1")
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user-new2", role = "Admin", invitedBy = "user1")
+
+    // Check pending invitations
+    var invitations = repository.getPendingInvitations("org1")
+    assertEquals(2, invitations.size)
+
+    // Accept one
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user-new1")
+
+    // Check user was added
+    var org = repository.getOrganizationById("org1")
+    assertTrue(org?.memberUids?.contains("user-new1") == true)
+
+    // Check invitation was removed
+    invitations = repository.getPendingInvitations("org1")
+    assertEquals(1, invitations.size)
+
+    // Reject the other
+    repository.rejectMemberInvitation(organizationId = "org1", userId = "user-new2")
+
+    // Check invitation was removed but user was not added
+    invitations = repository.getPendingInvitations("org1")
+    assertEquals(0, invitations.size)
+
+    org = repository.getOrganizationById("org1")
+    assertNull(org?.memberUids?.find { it == "user-new2" })
+  }
 }

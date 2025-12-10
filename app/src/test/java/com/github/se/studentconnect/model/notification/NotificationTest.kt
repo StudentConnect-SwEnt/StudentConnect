@@ -244,4 +244,156 @@ class NotificationTest {
     assertEquals("John Doe", copy.fromUserName)
     assertTrue(copy.isRead)
   }
+
+  @Test
+  fun organizationMemberInvitationNotification_hasCorrectType() {
+    val notification =
+        Notification.OrganizationMemberInvitation(
+            id = "test-id",
+            userId = "user-1",
+            organizationId = "org-1",
+            organizationName = "Test Org",
+            role = "Member",
+            invitedBy = "user-2",
+            invitedByName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    assertEquals(NotificationType.ORGANIZATION_MEMBER_INVITATION, notification.type)
+  }
+
+  @Test
+  fun organizationMemberInvitationNotification_getMessageReturnsCorrectFormat() {
+    val notification =
+        Notification.OrganizationMemberInvitation(
+            id = "test-id",
+            userId = "user-1",
+            organizationId = "org-1",
+            organizationName = "Test Org",
+            role = "Member",
+            invitedBy = "user-2",
+            invitedByName = "John Doe",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    assertEquals("John Doe invited you to join \"Test Org\" as Member", notification.getMessage())
+  }
+
+  @Test
+  fun organizationMemberInvitationNotification_toMapCreatesCorrectMap() {
+    val timestamp = Timestamp.now()
+    val notification =
+        Notification.OrganizationMemberInvitation(
+            id = "test-id",
+            userId = "user-1",
+            organizationId = "org-1",
+            organizationName = "Test Org",
+            role = "Member",
+            invitedBy = "user-2",
+            invitedByName = "John Doe",
+            timestamp = timestamp,
+            isRead = false)
+
+    val map = notification.toMap()
+
+    assertEquals("test-id", map["id"])
+    assertEquals("user-1", map["userId"])
+    assertEquals("ORGANIZATION_MEMBER_INVITATION", map["type"])
+    assertEquals("org-1", map["organizationId"])
+    assertEquals("Test Org", map["organizationName"])
+    assertEquals("Member", map["role"])
+    assertEquals("user-2", map["invitedBy"])
+    assertEquals("John Doe", map["invitedByName"])
+    assertEquals(timestamp, map["timestamp"])
+    assertEquals(false, map["isRead"])
+  }
+
+  @Test
+  fun fromMap_createsOrganizationMemberInvitationCorrectly() {
+    val timestamp = Timestamp.now()
+    val map =
+        mapOf(
+            "id" to "test-id",
+            "userId" to "user-1",
+            "type" to "ORGANIZATION_MEMBER_INVITATION",
+            "organizationId" to "org-1",
+            "organizationName" to "Test Org",
+            "role" to "Admin",
+            "invitedBy" to "user-2",
+            "invitedByName" to "Jane Doe",
+            "timestamp" to timestamp,
+            "isRead" to true)
+
+    val notification = Notification.fromMap(map) as? Notification.OrganizationMemberInvitation
+
+    assertNotNull(notification)
+    assertEquals("test-id", notification!!.id)
+    assertEquals("user-1", notification.userId)
+    assertEquals("org-1", notification.organizationId)
+    assertEquals("Test Org", notification.organizationName)
+    assertEquals("Admin", notification.role)
+    assertEquals("user-2", notification.invitedBy)
+    assertEquals("Jane Doe", notification.invitedByName)
+    assertEquals(timestamp, notification.timestamp)
+    assertTrue(notification.isRead)
+  }
+
+  @Test
+  fun organizationMemberInvitationNotification_handlesDefaultValues() {
+    val notification = Notification.OrganizationMemberInvitation()
+
+    assertEquals("", notification.id)
+    assertEquals("", notification.userId)
+    assertEquals("", notification.organizationId)
+    assertEquals("", notification.organizationName)
+    assertEquals("", notification.role)
+    assertEquals("", notification.invitedBy)
+    assertEquals("", notification.invitedByName)
+    assertNull(notification.timestamp)
+    assertFalse(notification.isRead)
+  }
+
+  @Test
+  fun organizationMemberInvitationNotification_copyWorksCorrectly() {
+    val original =
+        Notification.OrganizationMemberInvitation(
+            id = "test-id",
+            userId = "user-1",
+            organizationId = "org-1",
+            organizationName = "Test Org",
+            role = "Member",
+            invitedBy = "user-2",
+            invitedByName = "John Doe",
+            timestamp = null,
+            isRead = false)
+
+    val copy = original.copy(isRead = true)
+
+    assertEquals("test-id", copy.id)
+    assertEquals("user-1", copy.userId)
+    assertEquals("org-1", copy.organizationId)
+    assertEquals("Test Org", copy.organizationName)
+    assertEquals("Member", copy.role)
+    assertEquals("user-2", copy.invitedBy)
+    assertEquals("John Doe", copy.invitedByName)
+    assertTrue(copy.isRead)
+  }
+
+  @Test
+  fun fromMap_organizationMemberInvitation_handlesDefaultValues() {
+    val map = mapOf("type" to "ORGANIZATION_MEMBER_INVITATION")
+
+    val notification = Notification.fromMap(map) as? Notification.OrganizationMemberInvitation
+
+    assertNotNull(notification)
+    assertEquals("", notification!!.id)
+    assertEquals("", notification.userId)
+    assertEquals("", notification.organizationId)
+    assertEquals("", notification.organizationName)
+    assertEquals("", notification.role)
+    assertEquals("", notification.invitedBy)
+    assertEquals("", notification.invitedByName)
+    assertNull(notification.timestamp)
+    assertFalse(notification.isRead)
+  }
 }
