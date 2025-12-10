@@ -914,7 +914,7 @@ private fun CommonActionButtons(
     context: Context,
     navController: NavHostController
 ) {
-  Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
     // Only show location button if location exists
     if (currentEvent.location != null) {
       ButtonIcon(
@@ -930,6 +930,7 @@ private fun CommonActionButtons(
             }
           },
           modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+      Spacer(Modifier.size(smallSpacing))
     }
 
     // Only show website button if event is Public and has a non-empty website
@@ -957,6 +958,7 @@ private fun CommonActionButtons(
             }
           },
           modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+      Spacer(Modifier.size(smallSpacing))
     }
 
     ButtonIcon(
