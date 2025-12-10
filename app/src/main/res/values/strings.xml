@@ -215,7 +215,7 @@
     <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>
     <string name="text_empty_past_description">Events you have attended will appear here.</string>
     <string name="text_logout_popup">Are you sure you want to logout?</string>
-    
+
     <!-- Common buttons -->
     <string name="button_ok">OK</string>
     <string name="button_cancel">Cancel</string>
@@ -383,6 +383,7 @@
     <string name="event_is_over">Event is over</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
+    <string name="event_button_return">Return to Event</string>
     <string name="event_free">Free</string>
     <string name="event_currency"> CHF</string>
 
