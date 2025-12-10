@@ -29,6 +29,8 @@ object CreatePrivateEventScreenTestTags {
   const val PARTICIPATION_FEE_INPUT = "participationFeeInput"
   const val PARTICIPATION_FEE_SWITCH = "participationFeeSwitch"
   const val FLASH_EVENT_SWITCH = "flashEventSwitch"
+  const val FLASH_DURATION_HOURS = "flashDurationHours"
+  const val FLASH_DURATION_MINUTES = "flashDurationMinutes"
   const val SAVE_BUTTON = "saveButton"
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
@@ -68,8 +70,8 @@ fun CreatePrivateEventScreen(
 
   val canSave =
       uiState.title.isNotBlank() &&
-          uiState.startDate != null &&
-          uiState.endDate != null &&
+          ((uiState.isFlash && uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0) ||
+              (!uiState.isFlash && uiState.startDate != null && uiState.endDate != null)) &&
           !uiState.isSaving
 
   // Group test tags for the shell
@@ -118,24 +120,40 @@ fun CreatePrivateEventScreen(
             onLocationChange = createPrivateEventViewModel::updateLocation,
             testTag = CreatePrivateEventScreenTestTags.LOCATION_INPUT)
 
-        // Date and Time (Grouped into State and Callbacks)
-        EventDateTimeFields(
-            state =
-                DateTimeState(
-                    startDate = uiState.startDate?.format(dateFormatter) ?: "",
-                    startTime = uiState.startTime,
-                    endDate = uiState.endDate?.format(dateFormatter) ?: "",
-                    endTime = uiState.endTime),
-            callbacks =
-                DateTimeCallbacks(
-                    onStartDateChange = createPrivateEventViewModel::updateStartDate,
-                    onStartTimeChange = createPrivateEventViewModel::updateStartTime,
-                    onEndDateChange = createPrivateEventViewModel::updateEndDate,
-                    onEndTimeChange = createPrivateEventViewModel::updateEndTime),
-            startDateTag = CreatePrivateEventScreenTestTags.START_DATE_INPUT,
-            startTimeTag = CreatePrivateEventScreenTestTags.START_TIME_BUTTON,
-            endDateTag = CreatePrivateEventScreenTestTags.END_DATE_INPUT,
-            endTimeTag = CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
+        // Flash Event Toggle (before date/time fields)
+        FlashEventToggle(
+            isFlash = uiState.isFlash,
+            onIsFlashChange = createPrivateEventViewModel::updateIsFlash,
+            flashSwitchTag = CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+
+        // Conditional: Show duration picker for flash events, date/time for normal events
+        if (uiState.isFlash) {
+          FlashEventDurationFields(
+              hours = uiState.flashDurationHours,
+              minutes = uiState.flashDurationMinutes,
+              onHoursChange = createPrivateEventViewModel::updateFlashDurationHours,
+              onMinutesChange = createPrivateEventViewModel::updateFlashDurationMinutes,
+              hoursTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS,
+              minutesTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
+        } else {
+          EventDateTimeFields(
+              state =
+                  DateTimeState(
+                      startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                      startTime = uiState.startTime,
+                      endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                      endTime = uiState.endTime),
+              callbacks =
+                  DateTimeCallbacks(
+                      onStartDateChange = createPrivateEventViewModel::updateStartDate,
+                      onStartTimeChange = createPrivateEventViewModel::updateStartTime,
+                      onEndDateChange = createPrivateEventViewModel::updateEndDate,
+                      onEndTimeChange = createPrivateEventViewModel::updateEndTime),
+              startDateTag = CreatePrivateEventScreenTestTags.START_DATE_INPUT,
+              startTimeTag = CreatePrivateEventScreenTestTags.START_TIME_BUTTON,
+              endDateTag = CreatePrivateEventScreenTestTags.END_DATE_INPUT,
+              endTimeTag = CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
+        }
 
         // Participants and Fees (Grouped into State and Callbacks)
         EventParticipantsAndFeesFields(
@@ -155,7 +173,6 @@ fun CreatePrivateEventScreen(
             participantsTag = CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
             feeSwitchTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
             feeInputTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-            flashSwitchTag = CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH,
             onFocusChange = onFocusChange)
       }
 }
