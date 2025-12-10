@@ -48,50 +48,56 @@ class OrganizationProfileViewModelTest {
   private lateinit var mockContext: Context
 
   private val testOrganization =
-      Organization(
-          id = "test_org",
-          name = "Test Organization",
-          type = com.github.se.studentconnect.model.organization.OrganizationType.Association,
-          description = "A test organization",
-          logoUrl = "https://example.com/logo.png",
-          memberUids = listOf("user1", "user2"),
-          createdBy = "creator1")
+          Organization(
+                  id = "test_org",
+                  name = "Test Organization",
+                  type =
+                          com.github.se.studentconnect.model.organization.OrganizationType
+                                  .Association,
+                  description = "A test organization",
+                  logoUrl = "https://example.com/logo.png",
+                  memberUids = listOf("user1", "user2"),
+                  createdBy = "creator1"
+          )
 
   private val testUser1 =
-      User(
-          userId = "user1",
-          email = "user1@test.com",
-          username = "user1",
-          firstName = "John",
-          lastName = "Doe",
-          university = "EPFL",
-          createdAt = 1000L,
-          updatedAt = 1000L)
+          User(
+                  userId = "user1",
+                  email = "user1@test.com",
+                  username = "user1",
+                  firstName = "John",
+                  lastName = "Doe",
+                  university = "EPFL",
+                  createdAt = 1000L,
+                  updatedAt = 1000L
+          )
 
   private val testUser2 =
-      User(
-          userId = "user2",
-          email = "user2@test.com",
-          username = "user2",
-          firstName = "Jane",
-          lastName = "Smith",
-          university = "EPFL",
-          createdAt = 1000L,
-          updatedAt = 1000L)
+          User(
+                  userId = "user2",
+                  email = "user2@test.com",
+                  username = "user2",
+                  firstName = "Jane",
+                  lastName = "Smith",
+                  university = "EPFL",
+                  createdAt = 1000L,
+                  updatedAt = 1000L
+          )
 
   private val testEvent =
-      Event.Public(
-          uid = "event1",
-          title = "Test Event",
-          description = "Test Description",
-          ownerId = "test_org",
-          start = Timestamp(Date()),
-          end = Timestamp(Date(System.currentTimeMillis() + 3600000)),
-          location = Location(46.5197, 6.6323, "EPFL"),
-          participationFee = 0u,
-          isFlash = false,
-          subtitle = "Test Subtitle",
-          tags = listOf("Sports"))
+          Event.Public(
+                  uid = "event1",
+                  title = "Test Event",
+                  description = "Test Description",
+                  ownerId = "test_org",
+                  start = Timestamp(Date()),
+                  end = Timestamp(Date(System.currentTimeMillis() + 3600000)),
+                  location = Location(46.5197, 6.6323, "EPFL"),
+                  participationFee = 0u,
+                  isFlash = false,
+                  subtitle = "Test Subtitle",
+                  tags = listOf("Sports")
+          )
 
   @Before
   fun setUp() {
@@ -118,19 +124,20 @@ class OrganizationProfileViewModelTest {
     every {
       mockContext.resources.getQuantityString(R.plurals.org_event_time_in_days, any(), any())
     } answers
-        {
-          val days = arg<Int>(1)
-          "In $days days"
-        }
+            {
+              val days = arg<Int>(1)
+              "In $days days"
+            }
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
   }
 
   @After
@@ -214,13 +221,14 @@ class OrganizationProfileViewModelTest {
   @Test
   fun `loadOrganizationData sets error when organization ID is null`() = runTest {
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = null,
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = null,
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -248,13 +256,14 @@ class OrganizationProfileViewModelTest {
     eventRepository.addEvent(testEvent)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -275,13 +284,14 @@ class OrganizationProfileViewModelTest {
     userRepository.saveUser(testUser2)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -299,13 +309,14 @@ class OrganizationProfileViewModelTest {
     eventRepository.addEvent(testEvent)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -322,13 +333,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -343,13 +355,14 @@ class OrganizationProfileViewModelTest {
     userRepository.saveUser(testUser1)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -372,13 +385,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -403,13 +417,14 @@ class OrganizationProfileViewModelTest {
     userRepository.followOrganization("user1", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -430,13 +445,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     val viewModelNew =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     assertTrue(viewModelNew.uiState.value.isLoading)
     advanceUntilIdle()
@@ -448,13 +464,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     assertTrue(viewModel.uiState.value.isLoading)
     advanceUntilIdle()
@@ -466,13 +483,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -487,13 +505,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(orgWithoutLogo)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -505,23 +524,25 @@ class OrganizationProfileViewModelTest {
   @Test
   fun `multiple events are loaded correctly`() = runTest {
     val event2 =
-        testEvent.copy(
-            uid = "event2",
-            title = "Second Event",
-            start = Timestamp(Date(System.currentTimeMillis() + 86400000)))
+            testEvent.copy(
+                    uid = "event2",
+                    title = "Second Event",
+                    start = Timestamp(Date(System.currentTimeMillis() + 86400000))
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     eventRepository.addEvent(testEvent)
     eventRepository.addEvent(event2)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -537,27 +558,29 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -584,28 +607,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -636,28 +661,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -683,27 +710,29 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -727,27 +756,29 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -767,28 +798,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -809,24 +842,27 @@ class OrganizationProfileViewModelTest {
     userRepository.saveUser(testUser1)
     userRepository.saveUser(testUser2)
     userRepository.saveUser(
-        User(
-            userId = "creator1",
-            email = "creator@test.com",
-            username = "creator",
-            firstName = "Alice",
-            lastName = "Creator",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L))
+            User(
+                    userId = "creator1",
+                    email = "creator@test.com",
+                    username = "creator",
+                    firstName = "Alice",
+                    lastName = "Creator",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
+    )
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -850,29 +886,32 @@ class OrganizationProfileViewModelTest {
   @Test
   fun `organization loads correctly when creator is also in memberUids`() = runTest {
     val orgWithCreatorAsMember =
-        testOrganization.copy(memberUids = listOf("user1", "user2", "creator1"))
+            testOrganization.copy(memberUids = listOf("user1", "user2", "creator1"))
     organizationRepository.saveOrganization(orgWithCreatorAsMember)
     userRepository.saveUser(testUser1)
     userRepository.saveUser(testUser2)
     userRepository.saveUser(
-        User(
-            userId = "creator1",
-            email = "creator@test.com",
-            username = "creator",
-            firstName = "Alice",
-            lastName = "Creator",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L))
+            User(
+                    userId = "creator1",
+                    email = "creator@test.com",
+                    username = "creator",
+                    firstName = "Alice",
+                    lastName = "Creator",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
+    )
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -894,28 +933,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -932,24 +973,27 @@ class OrganizationProfileViewModelTest {
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(
-        User(
-            userId = "creator1",
-            email = "creator@test.com",
-            username = "creator",
-            firstName = "Alice",
-            lastName = "Creator",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L))
+            User(
+                    userId = "creator1",
+                    email = "creator@test.com",
+                    username = "creator",
+                    firstName = "Alice",
+                    lastName = "Creator",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
+    )
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -965,27 +1009,29 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1004,28 +1050,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1057,13 +1105,14 @@ class OrganizationProfileViewModelTest {
     val failingRepository = OrganizationRepositoryLocal()
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = failingRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = failingRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1076,15 +1125,17 @@ class OrganizationProfileViewModelTest {
   @Test
   fun `organization with multiple events sorted correctly`() = runTest {
     val event2 =
-        testEvent.copy(
-            uid = "event2",
-            title = "Second Event",
-            start = Timestamp(Date(System.currentTimeMillis() + 86400000)))
+            testEvent.copy(
+                    uid = "event2",
+                    title = "Second Event",
+                    start = Timestamp(Date(System.currentTimeMillis() + 86400000))
+            )
     val event3 =
-        testEvent.copy(
-            uid = "event3",
-            title = "Third Event",
-            start = Timestamp(Date(System.currentTimeMillis() + 172800000)))
+            testEvent.copy(
+                    uid = "event3",
+                    title = "Third Event",
+                    start = Timestamp(Date(System.currentTimeMillis() + 172800000))
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     eventRepository.addEvent(testEvent)
@@ -1092,13 +1143,14 @@ class OrganizationProfileViewModelTest {
     eventRepository.addEvent(event3)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1115,13 +1167,14 @@ class OrganizationProfileViewModelTest {
     // testUser2 is not saved, so it should be filtered out
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1134,44 +1187,46 @@ class OrganizationProfileViewModelTest {
 
   @Test
   fun `showUnfollowDialog is set correctly when clicking follow button while following`() =
-      runTest {
-        AuthenticationProvider.testUserId = "user3"
-        AuthenticationProvider.local = true
+          runTest {
+            AuthenticationProvider.testUserId = "user3"
+            AuthenticationProvider.local = true
 
-        val testUser3 =
-            User(
-                userId = "user3",
-                email = "user3@test.com",
-                username = "user3",
-                firstName = "Bob",
-                lastName = "Johnson",
-                university = "EPFL",
-                createdAt = 1000L,
-                updatedAt = 1000L)
+            val testUser3 =
+                    User(
+                            userId = "user3",
+                            email = "user3@test.com",
+                            username = "user3",
+                            firstName = "Bob",
+                            lastName = "Johnson",
+                            university = "EPFL",
+                            createdAt = 1000L,
+                            updatedAt = 1000L
+                    )
 
-        organizationRepository.saveOrganization(testOrganization)
-        userRepository.saveUser(testUser3)
-        userRepository.followOrganization("user3", "test_org")
+            organizationRepository.saveOrganization(testOrganization)
+            userRepository.saveUser(testUser3)
+            userRepository.followOrganization("user3", "test_org")
 
-        viewModel =
-            OrganizationProfileViewModel(
-                organizationId = "test_org",
-                context = mockContext,
-                organizationRepository = organizationRepository,
-                eventRepository = eventRepository,
-                userRepository = userRepository,
-                notificationRepository = notificationRepository)
+            viewModel =
+                    OrganizationProfileViewModel(
+                            organizationId = "test_org",
+                            context = mockContext,
+                            organizationRepository = organizationRepository,
+                            eventRepository = eventRepository,
+                            userRepository = userRepository,
+                            notificationRepository = notificationRepository
+                    )
 
-        advanceUntilIdle()
+            advanceUntilIdle()
 
-        assertFalse(viewModel.uiState.value.showUnfollowDialog)
+            assertFalse(viewModel.uiState.value.showUnfollowDialog)
 
-        // Click follow button when already following
-        viewModel.onFollowButtonClick()
-        advanceUntilIdle()
+            // Click follow button when already following
+            viewModel.onFollowButtonClick()
+            advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.showUnfollowDialog)
-      }
+            assertTrue(viewModel.uiState.value.showUnfollowDialog)
+          }
 
   @Test
   fun `dismissUnfollowDialog resets showUnfollowDialog flag`() = runTest {
@@ -1179,28 +1234,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1217,28 +1274,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val testUser3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "Bob",
-            lastName = "Johnson",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "Bob",
+                    lastName = "Johnson",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser3)
     userRepository.followOrganization("user3", "test_org")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1258,13 +1317,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1284,37 +1344,40 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val currentUser =
-        User(
-            userId = "current_user",
-            email = "current@test.com",
-            username = "current",
-            firstName = "Current",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "current_user",
+                    email = "current@test.com",
+                    username = "current",
+                    firstName = "Current",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     val availableUser1 =
-        User(
-            userId = "available1",
-            email = "available1@test.com",
-            username = "available1",
-            firstName = "Available",
-            lastName = "One",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "available1",
+                    email = "available1@test.com",
+                    username = "available1",
+                    firstName = "Available",
+                    lastName = "One",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     val availableUser2 =
-        User(
-            userId = "available2",
-            email = "available2@test.com",
-            username = "available2",
-            firstName = "Available",
-            lastName = "Two",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "available2",
+                    email = "available2@test.com",
+                    username = "available2",
+                    firstName = "Available",
+                    lastName = "Two",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(currentUser)
@@ -1324,13 +1387,14 @@ class OrganizationProfileViewModelTest {
     userRepository.saveUser(availableUser2)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1354,13 +1418,14 @@ class OrganizationProfileViewModelTest {
   @Test
   fun `showAddMemberDialog does nothing when organization is null`() = runTest {
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "nonexistent_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "nonexistent_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1380,13 +1445,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1409,26 +1475,28 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val currentUser =
-        User(
-            userId = "current_user",
-            email = "current@test.com",
-            username = "current",
-            firstName = "Current",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "current_user",
+                    email = "current@test.com",
+                    username = "current",
+                    firstName = "Current",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     val availableUser =
-        User(
-            userId = "available",
-            email = "available@test.com",
-            username = "available",
-            firstName = "Available",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "available",
+                    email = "available@test.com",
+                    username = "available",
+                    firstName = "Available",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(currentUser)
@@ -1437,13 +1505,14 @@ class OrganizationProfileViewModelTest {
     userRepository.saveUser(availableUser)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1462,27 +1531,29 @@ class OrganizationProfileViewModelTest {
 
     val orgWithoutMembers = testOrganization.copy(memberUids = emptyList())
     val availableUser =
-        User(
-            userId = "available",
-            email = "available@test.com",
-            username = "available",
-            firstName = "Available",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "available",
+                    email = "available@test.com",
+                    username = "available",
+                    firstName = "Available",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(orgWithoutMembers)
     userRepository.saveUser(availableUser)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1492,7 +1563,9 @@ class OrganizationProfileViewModelTest {
     val state = viewModel.uiState.value
     // Should include availableUser, but exclude current_user
     assertTrue(
-        state.availableUsers.isEmpty() || state.availableUsers.none { it.userId == "current_user" })
+            state.availableUsers.isEmpty() ||
+                    state.availableUsers.none { it.userId == "current_user" }
+    )
   }
 
   @Test
@@ -1501,83 +1574,85 @@ class OrganizationProfileViewModelTest {
 
     // Create a test user repository that throws exception
     val failingUserRepository =
-        object : UserRepository {
-          override suspend fun getAllUsers(): List<User> {
-            throw RuntimeException("Failed to load users")
-          }
+            object : UserRepository {
+              override suspend fun getAllUsers(): List<User> {
+                throw RuntimeException("Failed to load users")
+              }
 
-          override suspend fun getUserById(userId: String): User? = null
+              override suspend fun getUserById(userId: String): User? = null
 
-          override suspend fun getUserByEmail(email: String): User? = null
+              override suspend fun getUserByEmail(email: String): User? = null
 
-          override suspend fun getUsersPaginated(
-              limit: Int,
-              lastUserId: String?
-          ): Pair<List<User>, Boolean> = emptyList<User>() to false
+              override suspend fun getUsersPaginated(
+                      limit: Int,
+                      lastUserId: String?
+              ): Pair<List<User>, Boolean> = emptyList<User>() to false
 
-          override suspend fun saveUser(user: User) {}
+              override suspend fun saveUser(user: User) {}
 
-          override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+              override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
 
-          override suspend fun deleteUser(userId: String) {}
+              override suspend fun deleteUser(userId: String) {}
 
-          override suspend fun getUsersByUniversity(university: String): List<User> = emptyList()
+              override suspend fun getUsersByUniversity(university: String): List<User> =
+                      emptyList()
 
-          override suspend fun getUsersByHobby(hobby: String): List<User> = emptyList()
+              override suspend fun getUsersByHobby(hobby: String): List<User> = emptyList()
 
-          override suspend fun getNewUid(): String = "new_uid"
+              override suspend fun getNewUid(): String = "new_uid"
 
-          override suspend fun getJoinedEvents(userId: String): List<String> = emptyList()
+              override suspend fun getJoinedEvents(userId: String): List<String> = emptyList()
 
-          override suspend fun addEventToUser(eventId: String, userId: String) {}
+              override suspend fun addEventToUser(eventId: String, userId: String) {}
 
-          override suspend fun addInvitationToUser(
-              eventId: String,
-              userId: String,
-              fromUserId: String
-          ) {}
+              override suspend fun addInvitationToUser(
+                      eventId: String,
+                      userId: String,
+                      fromUserId: String
+              ) {}
 
-          override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
+              override suspend fun getInvitations(userId: String): List<Invitation> = emptyList()
 
-          override suspend fun acceptInvitation(eventId: String, userId: String) {}
+              override suspend fun acceptInvitation(eventId: String, userId: String) {}
 
-          override suspend fun declineInvitation(eventId: String, userId: String) {}
+              override suspend fun declineInvitation(eventId: String, userId: String) {}
 
-          override suspend fun removeInvitation(eventId: String, userId: String) {}
+              override suspend fun removeInvitation(eventId: String, userId: String) {}
 
-          override suspend fun joinEvent(eventId: String, userId: String) {}
+              override suspend fun joinEvent(eventId: String, userId: String) {}
 
-          override suspend fun sendInvitation(
-              eventId: String,
-              fromUserId: String,
-              toUserId: String
-          ) {}
+              override suspend fun sendInvitation(
+                      eventId: String,
+                      fromUserId: String,
+                      toUserId: String
+              ) {}
 
-          override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+              override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
 
-          override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+              override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
 
-          override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
+              override suspend fun getFavoriteEvents(userId: String): List<String> = emptyList()
 
-          override suspend fun addPinnedEvent(userId: String, eventId: String) {}
+              override suspend fun addPinnedEvent(userId: String, eventId: String) {}
 
-          override suspend fun removePinnedEvent(userId: String, eventId: String) {}
+              override suspend fun removePinnedEvent(userId: String, eventId: String) {}
 
-          override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
+              override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
 
-          override suspend fun checkUsernameAvailability(username: String): Boolean = true
+              override suspend fun checkUsernameAvailability(username: String): Boolean = true
 
-          override suspend fun leaveEvent(eventId: String, userId: String) {}
-        }
+              override suspend fun leaveEvent(eventId: String, userId: String) {}
+            }
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = failingUserRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = failingUserRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1595,13 +1670,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1622,39 +1698,42 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val inviter =
-        User(
-            userId = "inviter_id",
-            email = "inviter@test.com",
-            username = "inviter",
-            firstName = "Inviter",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "inviter_id",
+                    email = "inviter@test.com",
+                    username = "inviter",
+                    firstName = "Inviter",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     val invitee =
-        User(
-            userId = "invitee_id",
-            email = "invitee@test.com",
-            username = "invitee",
-            firstName = "Invitee",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "invitee_id",
+                    email = "invitee@test.com",
+                    username = "invitee",
+                    firstName = "Invitee",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(inviter)
     userRepository.saveUser(invitee)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1674,23 +1753,23 @@ class OrganizationProfileViewModelTest {
 
     // Verify notification was created
     notificationRepository.getNotifications(
-        "invitee_id",
-        { notifications ->
-          assertTrue(
-              notifications.any { notification ->
-                notification is
-                    com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation &&
-                    (notification
-                            as
-                            com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
-                        .organizationId == "test_org" &&
-                    (notification
-                            as
-                            com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
-                        .role == "Admin"
-              })
-        },
-        {})
+            "invitee_id",
+            { notifications ->
+              assertTrue(
+                      notifications.any { notification ->
+                        notification is
+                                com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation &&
+                                (notification as
+                                                com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
+                                        .organizationId == "test_org" &&
+                                (notification as
+                                                com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation)
+                                        .role == "Admin"
+                      }
+              )
+            },
+            {}
+    )
   }
 
   @Test
@@ -1699,13 +1778,14 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "nonexistent_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "nonexistent_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1727,13 +1807,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.saveOrganization(testOrganization)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1754,27 +1835,29 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = false
 
     val invitee =
-        User(
-            userId = "invitee_id",
-            email = "invitee@test.com",
-            username = "invitee",
-            firstName = "Invitee",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "invitee_id",
+                    email = "invitee@test.com",
+                    username = "invitee",
+                    firstName = "Invitee",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(invitee)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1795,44 +1878,47 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val inviter =
-        User(
-            userId = "inviter_id",
-            email = "inviter@test.com",
-            username = "inviter",
-            firstName = "Inviter",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "inviter_id",
+                    email = "inviter@test.com",
+                    username = "inviter",
+                    firstName = "Inviter",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     val invitee =
-        User(
-            userId = "invitee_id",
-            email = "invitee@test.com",
-            username = "invitee",
-            firstName = "Invitee",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "invitee_id",
+                    email = "invitee@test.com",
+                    username = "invitee",
+                    firstName = "Invitee",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     // Create a repository that throws exception
     val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
     coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
     coEvery { failingOrgRepository.sendMemberInvitation(any(), any(), any(), any()) } throws
-        RuntimeException("Failed to send invitation")
+            RuntimeException("Failed to send invitation")
 
     userRepository.saveUser(inviter)
     userRepository.saveUser(invitee)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = failingOrgRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = failingOrgRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1852,28 +1938,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val invitee =
-        User(
-            userId = "invitee_id",
-            email = "invitee@test.com",
-            username = "invitee",
-            firstName = "Invitee",
-            lastName = "User",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "invitee_id",
+                    email = "invitee@test.com",
+                    username = "invitee",
+                    firstName = "Invitee",
+                    lastName = "User",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     // Don't save inviter, so getUserById will return null
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(invitee)
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1885,19 +1973,19 @@ class OrganizationProfileViewModelTest {
 
     // Verify notification was created with "Unknown" as inviter name
     notificationRepository.getNotifications(
-        "invitee_id",
-        { notifications ->
-          val invitationNotification =
-              notifications.firstOrNull { notification ->
-                notification is
-                    com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
-              }
-                  as?
-                  com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
-          assertNotNull(invitationNotification)
-          assertEquals("Unknown", invitationNotification?.invitedByName)
-        },
-        {})
+            "invitee_id",
+            { notifications ->
+              val invitationNotification =
+                      notifications.firstOrNull { notification ->
+                        notification is
+                                com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
+                      } as?
+                              com.github.se.studentconnect.model.notification.Notification.OrganizationMemberInvitation
+              assertNotNull(invitationNotification)
+              assertEquals("Unknown", invitationNotification?.invitedByName)
+            },
+            {}
+    )
   }
 
   // ===================== Accept Member Invitation Tests =====================
@@ -1908,28 +1996,30 @@ class OrganizationProfileViewModelTest {
     AuthenticationProvider.local = true
 
     val user3 =
-        User(
-            userId = "user3",
-            email = "user3@test.com",
-            username = "user3",
-            firstName = "User",
-            lastName = "Three",
-            university = "EPFL",
-            createdAt = 1000L,
-            updatedAt = 1000L)
+            User(
+                    userId = "user3",
+                    email = "user3@test.com",
+                    username = "user3",
+                    firstName = "User",
+                    lastName = "Three",
+                    university = "EPFL",
+                    createdAt = 1000L,
+                    updatedAt = 1000L
+            )
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(user3)
     organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1961,13 +2051,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -1990,16 +2081,17 @@ class OrganizationProfileViewModelTest {
     val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
     coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
     coEvery { failingOrgRepository.acceptMemberInvitation(any(), any()) } throws
-        RuntimeException("Failed to accept invitation")
+            RuntimeException("Failed to accept invitation")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = failingOrgRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = failingOrgRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -2019,13 +2111,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -2049,13 +2142,14 @@ class OrganizationProfileViewModelTest {
     organizationRepository.sendMemberInvitation("test_org", "user3", "Member", "creator1")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = organizationRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 
@@ -2078,16 +2172,17 @@ class OrganizationProfileViewModelTest {
     val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
     coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
     coEvery { failingOrgRepository.rejectMemberInvitation(any(), any()) } throws
-        RuntimeException("Failed to reject invitation")
+            RuntimeException("Failed to reject invitation")
 
     viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = failingOrgRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
+            OrganizationProfileViewModel(
+                    organizationId = "test_org",
+                    context = mockContext,
+                    organizationRepository = failingOrgRepository,
+                    eventRepository = eventRepository,
+                    userRepository = userRepository,
+                    notificationRepository = notificationRepository
+            )
 
     advanceUntilIdle()
 

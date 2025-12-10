@@ -283,9 +283,35 @@ class OrganizationRepositoryLocalTest {
 
     val org = repository.getOrganizationById("org1")
     assertTrue(org?.memberUids?.contains("user-new") == true)
+    assertEquals("Member", org?.memberRoles?.get("user-new"))
 
     val invitations = repository.getPendingInvitations("org1")
     assertEquals(0, invitations.size)
+  }
+
+  @Test
+  fun `acceptMemberInvitation adds user with role from invitation`() = runTest {
+    repository.saveOrganization(testOrganization1)
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user-new", role = "Admin", invitedBy = "user1")
+
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user-new")
+
+    val org = repository.getOrganizationById("org1")
+    assertTrue(org?.memberUids?.contains("user-new") == true)
+    assertEquals("Admin", org?.memberRoles?.get("user-new"))
+  }
+
+  @Test
+  fun `acceptMemberInvitation uses default role when invitation missing`() = runTest {
+    repository.saveOrganization(testOrganization1)
+    // Don't send invitation, just accept
+
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user-new")
+
+    val org = repository.getOrganizationById("org1")
+    assertTrue(org?.memberUids?.contains("user-new") == true)
+    assertEquals("Member", org?.memberRoles?.get("user-new")) // Default role
   }
 
   @Test
@@ -299,6 +325,24 @@ class OrganizationRepositoryLocalTest {
     val org = repository.getOrganizationById("org1")
     // user1 was already in the original organization
     assertEquals(2, org?.memberUids?.size) // Should still be 2, not 3
+    // Role should not be updated if user already exists
+    assertNull(org?.memberRoles?.get("user1")) // Original org didn't have memberRoles
+  }
+
+  @Test
+  fun `acceptMemberInvitation preserves existing memberRoles`() = runTest {
+    val orgWithRoles =
+        testOrganization1.copy(memberRoles = mapOf("user1" to "Owner", "user2" to "Member"))
+    repository.saveOrganization(orgWithRoles)
+    repository.sendMemberInvitation(
+        organizationId = "org1", userId = "user-new", role = "Admin", invitedBy = "user1")
+
+    repository.acceptMemberInvitation(organizationId = "org1", userId = "user-new")
+
+    val org = repository.getOrganizationById("org1")
+    assertEquals("Owner", org?.memberRoles?.get("user1"))
+    assertEquals("Member", org?.memberRoles?.get("user2"))
+    assertEquals("Admin", org?.memberRoles?.get("user-new"))
   }
 
   @Test
