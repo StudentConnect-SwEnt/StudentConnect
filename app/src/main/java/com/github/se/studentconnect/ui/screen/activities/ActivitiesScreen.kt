@@ -12,9 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
@@ -47,7 +45,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -60,8 +57,8 @@ import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.LiveEventBadge
 import com.google.firebase.Timestamp
 import java.util.*
 
@@ -407,48 +404,7 @@ fun CarouselCard(
           Row(
               modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
               horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (isLive) {
-                  if (item.isFlash) {
-                    // Flash event: show flash/storm icon
-                    Box(
-                        modifier =
-                            Modifier.background(
-                                    Color(C.FlashEvent.BADGE_COLOR.toInt())
-                                        .copy(alpha = C.FlashEvent.BADGE_ALPHA),
-                                    shape = CircleShape)
-                                .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
-                          Icon(
-                              imageVector = Icons.Filled.Bolt,
-                              contentDescription =
-                                  stringResource(R.string.content_description_flash_event),
-                              tint = MaterialTheme.colorScheme.onError,
-                              modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
-                        }
-                  } else {
-                    // Regular live event: show LIVE badge
-                    Row(
-                        modifier =
-                            Modifier.background(
-                                    MaterialTheme.colorScheme.error.copy(
-                                        alpha = C.FlashEvent.BADGE_ALPHA),
-                                    shape = CircleShape)
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                          Icon(
-                              imageVector = Icons.Filled.Circle,
-                              contentDescription =
-                                  stringResource(R.string.content_description_live_icon),
-                              tint = MaterialTheme.colorScheme.onError,
-                              modifier = Modifier.size(8.dp))
-                          Spacer(modifier = Modifier.width(6.dp))
-                          Text(
-                              text = stringResource(R.string.event_label_live),
-                              color = MaterialTheme.colorScheme.onError,
-                              style = MaterialTheme.typography.labelMedium,
-                              fontWeight = FontWeight.Bold)
-                        }
-                  }
-                }
+                LiveEventBadge(isLive = isLive, isFlash = item.isFlash, modifier = Modifier)
 
                 // Public/Private icon
                 Icon(

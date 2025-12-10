@@ -48,6 +48,58 @@ import java.util.Locale
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 
+/**
+ * Shared composable for displaying live event badge (flash icon or LIVE text). This eliminates code
+ * duplication between EventCard and CarouselCard.
+ *
+ * @param isLive Whether the event is currently live.
+ * @param isFlash Whether the event is a flash event.
+ * @param modifier Modifier for the badge container.
+ */
+@Composable
+fun LiveEventBadge(isLive: Boolean, isFlash: Boolean, modifier: Modifier = Modifier) {
+  if (!isLive) return
+
+  if (isFlash) {
+    // Flash event: show flash/storm icon
+    Box(
+        modifier =
+            modifier
+                .background(
+                    Color(C.FlashEvent.BADGE_COLOR.toInt()).copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                    shape = CircleShape)
+                .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
+          Icon(
+              imageVector = Icons.Filled.Bolt,
+              contentDescription = stringResource(R.string.content_description_flash_event),
+              tint = MaterialTheme.colorScheme.onError,
+              modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
+        }
+  } else {
+    // Regular live event: show LIVE badge
+    Row(
+        modifier =
+            modifier
+                .background(
+                    MaterialTheme.colorScheme.error.copy(alpha = C.FlashEvent.BADGE_ALPHA),
+                    shape = CircleShape)
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+          Icon(
+              imageVector = Icons.Filled.Circle,
+              contentDescription = stringResource(R.string.content_description_live_icon),
+              tint = MaterialTheme.colorScheme.onError,
+              modifier = Modifier.size(8.dp))
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+              text = stringResource(R.string.event_label_live),
+              color = MaterialTheme.colorScheme.onError,
+              style = MaterialTheme.typography.labelMedium,
+              fontWeight = FontWeight.Bold)
+        }
+  }
+}
+
 private const val MAX_LINES_FOR_ADDRESS_TEXT = 1
 
 /**
@@ -246,52 +298,12 @@ fun EventCard(
                       }
                 }
 
-            if (isLive) {
-              if (event.isFlash) {
-                // Flash event: show flash/storm icon
-                Box(
-                    modifier =
-                        Modifier.align(Alignment.TopStart)
-                            .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp)
-                            .background(
-                                Color(C.FlashEvent.BADGE_COLOR.toInt())
-                                    .copy(alpha = C.FlashEvent.BADGE_ALPHA),
-                                shape = CircleShape)
-                            .padding(C.FlashEvent.BADGE_PADDING_DP.dp)) {
-                      Icon(
-                          imageVector = Icons.Filled.Bolt,
-                          contentDescription =
-                              stringResource(R.string.content_description_flash_event),
-                          tint = MaterialTheme.colorScheme.onError,
-                          modifier = Modifier.size(C.FlashEvent.ICON_SIZE_DP.dp))
-                    }
-              } else {
-                // Regular live event: show LIVE badge
-                Row(
-                    modifier =
-                        Modifier.align(Alignment.TopStart)
-                            .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp)
-                            .background(
-                                MaterialTheme.colorScheme.error.copy(
-                                    alpha = C.FlashEvent.BADGE_ALPHA),
-                                shape = CircleShape)
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                      Icon(
-                          imageVector = Icons.Filled.Circle,
-                          contentDescription =
-                              stringResource(R.string.content_description_live_icon),
-                          tint = MaterialTheme.colorScheme.onError,
-                          modifier = Modifier.size(8.dp))
-                      Spacer(modifier = Modifier.width(6.dp))
-                      Text(
-                          text = stringResource(R.string.event_label_live),
-                          color = MaterialTheme.colorScheme.onError,
-                          style = MaterialTheme.typography.labelMedium,
-                          fontWeight = FontWeight.Bold)
-                    }
-              }
-            }
+            LiveEventBadge(
+                isLive = isLive,
+                isFlash = event.isFlash,
+                modifier =
+                    Modifier.align(Alignment.TopStart)
+                        .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp))
           }
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
