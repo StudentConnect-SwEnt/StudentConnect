@@ -49,6 +49,9 @@ object Route {
   // Statistics route
   const val EVENT_STATISTICS = "eventStatistics/{eventUid}"
 
+  // Chat route
+  const val EVENT_CHAT = "eventChat/{eventUid}"
+
   fun mapWithLocation(
       latitude: Double,
       longitude: Double,
@@ -78,6 +81,8 @@ object Route {
   fun pollScreen(eventUid: String, pollUid: String): String = "poll/$eventUid/$pollUid"
 
   fun eventStatistics(eventUid: String): String = "eventStatistics/$eventUid"
+
+  fun eventChat(eventUid: String): String = "eventChat/$eventUid"
 }
 
 sealed class Screen(
@@ -114,6 +119,8 @@ sealed class Screen(
   object Search : Screen(route = Route.SEARCH, name = "Search")
 
   object EventStatistics : Screen(route = Route.EVENT_STATISTICS, name = "Event Statistics")
+
+  object EventChat : Screen(route = Route.EVENT_CHAT, name = "Event Chat")
 }
 
 sealed class Tab(val name: String, val icon: Int, val destination: Screen) {

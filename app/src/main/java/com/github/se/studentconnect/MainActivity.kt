@@ -668,6 +668,17 @@ internal fun MainAppContent(
                 requireNotNull(eventUid) { "Event UID is required for statistics screen." }
                 EventStatisticsScreen(eventUid = eventUid, navController = navController)
               }
+
+          // Event Chat screen
+          composable(
+              Route.EVENT_CHAT,
+              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val eventUid = backStackEntry.arguments?.getString("eventUid")
+                requireNotNull(eventUid) { "Event UID is required for chat screen." }
+                com.github.se.studentconnect.ui.chat.EventChatScreen(
+                    eventId = eventUid, navController = navController)
+              }
         }
       }
 }
