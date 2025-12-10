@@ -7,14 +7,19 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationProfile
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.organization.toOrganizationEvents
 import com.github.se.studentconnect.model.organization.toOrganizationMember
 import com.github.se.studentconnect.model.organization.toOrganizationProfile
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +38,10 @@ data class OrganizationProfileUiState(
     val isLoading: Boolean = false,
     val isFollowLoading: Boolean = false,
     val showUnfollowDialog: Boolean = false,
+    val showAddMemberDialog: Boolean = false,
+    val selectedRole: String? = null,
+    val availableUsers: List<User> = emptyList(),
+    val isLoadingUsers: Boolean = false,
     val error: String? = null
 )
 
@@ -53,7 +62,9 @@ class OrganizationProfileViewModel(
     private val organizationRepository: OrganizationRepository =
         OrganizationRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val notificationRepository: NotificationRepository =
+        NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
   // Use application context to avoid memory leaks
@@ -107,11 +118,16 @@ class OrganizationProfileViewModel(
         val events = fetchOrganizationEvents(organizationId)
         val members = fetchOrganizationMembers(organization)
         val isMember = checkIfUserIsMember(organization)
+        val isOwner = currentUserId == organization.createdBy
         val isFollowing = checkIfUserIsFollowing(isMember, organizationId)
 
         val organizationProfile =
             organization.toOrganizationProfile(
-                isFollowing = isFollowing, isMember = isMember, events = events, members = members)
+                isFollowing = isFollowing,
+                isMember = isMember,
+                isOwner = isOwner,
+                events = events,
+                members = members)
 
         _uiState.value =
             _uiState.value.copy(organization = organizationProfile, isLoading = false, error = null)
@@ -300,6 +316,137 @@ class OrganizationProfileViewModel(
         Log.e(TAG, "Failed to unfollow organization", e)
         // Keep current state on failure
         _uiState.value = _uiState.value.copy(isFollowLoading = false)
+      }
+    }
+  }
+
+  /**
+   * Shows the add member dialog for a specific role.
+   *
+   * @param role The role to assign to the new member
+   */
+  fun showAddMemberDialog(role: String) {
+    _uiState.value = _uiState.value.copy(showAddMemberDialog = true, selectedRole = role)
+    loadAvailableUsers()
+  }
+
+  /** Dismisses the add member dialog. */
+  fun dismissAddMemberDialog() {
+    _uiState.value =
+        _uiState.value.copy(
+            showAddMemberDialog = false, selectedRole = null, availableUsers = emptyList())
+  }
+
+  /** Loads users that can be invited (not already members). */
+  private fun loadAvailableUsers() {
+    val currentOrg = _uiState.value.organization ?: return
+
+    viewModelScope.launch {
+      try {
+        _uiState.value = _uiState.value.copy(isLoadingUsers = true)
+
+        // Get all users
+        val allUsers = userRepository.getAllUsers()
+
+        // Get current member UIDs
+        val organization = organizationRepository.getOrganizationById(currentOrg.organizationId)
+        val memberUids =
+            organization?.memberUids?.toMutableSet()
+                ?: mutableSetOf<String>().apply { organization?.createdBy?.let { add(it) } }
+
+        // Filter out existing members and current user
+        val availableUsers =
+            allUsers.filter { user ->
+              !memberUids.contains(user.userId) && user.userId != currentUserId
+            }
+
+        _uiState.value =
+            _uiState.value.copy(availableUsers = availableUsers, isLoadingUsers = false)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to load available users", e)
+        _uiState.value = _uiState.value.copy(isLoadingUsers = false)
+      }
+    }
+  }
+
+  /**
+   * Sends a member invitation to a user.
+   *
+   * @param userId The ID of the user to invite
+   */
+  fun sendMemberInvitation(userId: String) {
+    val currentOrg = _uiState.value.organization ?: return
+    val role = _uiState.value.selectedRole ?: return
+    val inviterId = currentUserId ?: return
+
+    viewModelScope.launch {
+      try {
+        // Get inviter name
+        val inviter = userRepository.getUserById(inviterId)
+        val inviterName = inviter?.getFullName() ?: "Unknown"
+
+        // Send invitation
+        organizationRepository.sendMemberInvitation(
+            organizationId = currentOrg.organizationId,
+            userId = userId,
+            role = role,
+            invitedBy = inviterId)
+
+        // Create notification
+        val notification =
+            Notification.OrganizationMemberInvitation(
+                id = "",
+                userId = userId,
+                timestamp = Timestamp.now(),
+                isRead = false,
+                organizationId = currentOrg.organizationId,
+                organizationName = currentOrg.name,
+                role = role,
+                invitedBy = inviterId,
+                invitedByName = inviterName)
+
+        notificationRepository.createNotification(notification, onSuccess = {}, onFailure = {})
+
+        // Close dialog and reload organization data
+        dismissAddMemberDialog()
+        loadOrganizationData()
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to send member invitation", e)
+      }
+    }
+  }
+
+  /**
+   * Accepts a member invitation (called from notification action).
+   *
+   * @param organizationId The ID of the organization
+   */
+  fun acceptMemberInvitation(organizationId: String) {
+    val userId = currentUserId ?: return
+
+    viewModelScope.launch {
+      try {
+        organizationRepository.acceptMemberInvitation(organizationId, userId)
+        loadOrganizationData()
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to accept member invitation", e)
+      }
+    }
+  }
+
+  /**
+   * Rejects a member invitation (called from notification action).
+   *
+   * @param organizationId The ID of the organization
+   */
+  fun rejectMemberInvitation(organizationId: String) {
+    val userId = currentUserId ?: return
+
+    viewModelScope.launch {
+      try {
+        organizationRepository.rejectMemberInvitation(organizationId, userId)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to reject member invitation", e)
       }
     }
   }

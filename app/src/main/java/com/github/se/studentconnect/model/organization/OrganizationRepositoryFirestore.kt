@@ -13,6 +13,7 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
 
   companion object {
     private const val COLLECTION_NAME = "organizations"
+    private const val INVITATIONS_COLLECTION = "organization_member_invitations"
   }
 
   override suspend fun saveOrganization(organization: Organization) {
@@ -44,5 +45,85 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
   override suspend fun getNewOrganizationId(): String {
     val docRef = db.collection(COLLECTION_NAME).document()
     return docRef.id
+  }
+
+  override suspend fun sendMemberInvitation(
+      organizationId: String,
+      userId: String,
+      role: String,
+      invitedBy: String
+  ) {
+    val invitation =
+        OrganizationMemberInvitation(
+            organizationId = organizationId, userId = userId, role = role, invitedBy = invitedBy)
+    val invitationId = "${organizationId}_${userId}"
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).set(invitation.toMap()).await()
+  }
+
+  override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {
+    // Add user to organization's memberUids
+    val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
+    val org = getOrganizationById(organizationId)
+    if (org != null) {
+      val updatedMemberUids = org.memberUids.toMutableList()
+      if (!updatedMemberUids.contains(userId)) {
+        updatedMemberUids.add(userId)
+        orgRef.update("memberUids", updatedMemberUids).await()
+      }
+    }
+
+    // Delete the invitation
+    val invitationId = "${organizationId}_${userId}"
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).delete().await()
+  }
+
+  override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {
+    val invitationId = "${organizationId}_${userId}"
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).delete().await()
+  }
+
+  override suspend fun getPendingInvitations(
+      organizationId: String
+  ): List<OrganizationMemberInvitation> {
+    return try {
+      val snapshot =
+          db.collection(INVITATIONS_COLLECTION)
+              .whereEqualTo("organizationId", organizationId)
+              .get()
+              .await()
+      snapshot.documents.mapNotNull { document ->
+        OrganizationMemberInvitation.fromMap(document.data ?: emptyMap())
+      }
+    } catch (e: Exception) {
+      Log.e("OrganizationRepo", "Failed to get pending invitations", e)
+      emptyList()
+    }
+  }
+
+  override suspend fun getUserPendingInvitations(
+      userId: String
+  ): List<OrganizationMemberInvitation> {
+    return try {
+      val snapshot =
+          db.collection(INVITATIONS_COLLECTION).whereEqualTo("userId", userId).get().await()
+      snapshot.documents.mapNotNull { document ->
+        OrganizationMemberInvitation.fromMap(document.data ?: emptyMap())
+      }
+    } catch (e: Exception) {
+      Log.e("OrganizationRepo", "Failed to get user pending invitations", e)
+      emptyList()
+    }
+  }
+
+  override suspend fun addMemberToOrganization(organizationId: String, userId: String) {
+    val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
+    val org = getOrganizationById(organizationId)
+    if (org != null) {
+      val updatedMemberUids = org.memberUids.toMutableList()
+      if (!updatedMemberUids.contains(userId)) {
+        updatedMemberUids.add(userId)
+        orgRef.update("memberUids", updatedMemberUids).await()
+      }
+    }
   }
 }

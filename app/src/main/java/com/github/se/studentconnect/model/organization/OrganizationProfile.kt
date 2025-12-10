@@ -19,6 +19,7 @@ data class OrganizationProfile(
     val logoUrl: String? = null,
     val isFollowing: Boolean = false,
     val isMember: Boolean = false,
+    val isOwner: Boolean = false,
     val events: List<OrganizationEvent> = emptyList(),
     val members: List<OrganizationMember> = emptyList()
 ) {
