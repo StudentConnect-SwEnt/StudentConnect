@@ -498,6 +498,11 @@ class FriendsListViewModelTest {
       return friendsList
     }
 
+    override suspend fun getFriendsPublic(userId: String): List<String> {
+      if (shouldThrowError) throw Exception("Friends fetch failed")
+      return friendsList
+    }
+
     override suspend fun getPendingRequests(userId: String): List<String> = emptyList()
 
     override suspend fun getSentRequests(userId: String): List<String> = emptyList()

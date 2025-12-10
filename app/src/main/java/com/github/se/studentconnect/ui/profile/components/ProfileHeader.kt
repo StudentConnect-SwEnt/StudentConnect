@@ -58,6 +58,10 @@ data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
  * @param onEventsClick Callback when events count is clicked
  * @param onEditClick Callback when edit button is clicked
  * @param onUserCardClick Callback when user card button is clicked
+ * @param isVisitorMode Whether this is a visitor profile (shows friend buttons instead of
+ *   edit/card)
+ * @param friendButtonsContent Optional composable for friend action buttons in visitor mode
+ * @param showUsername Whether to show the username below the name
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -68,6 +72,9 @@ fun ProfileHeader(
     onEventsClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onUserCardClick: (() -> Unit)? = null,
+    isVisitorMode: Boolean = false,
+    friendButtonsContent: (@Composable () -> Unit)? = null,
+    showUsername: Boolean = false,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -142,6 +149,16 @@ fun ProfileHeader(
         fontSize = 20.sp,
         color = MaterialTheme.colorScheme.onSurface)
 
+    // Username (if showUsername is true)
+    if (showUsername) {
+      Spacer(modifier = Modifier.height(4.dp))
+      Text(
+          text = "@${user.username}",
+          style = MaterialTheme.typography.bodyMedium,
+          fontSize = 14.sp,
+          color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+
     Spacer(modifier = Modifier.height(4.dp))
 
     // Bio (if available)
@@ -186,44 +203,50 @@ fun ProfileHeader(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Buttons Row: Edit and User Card
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-      // Edit Button
-      if (onEditClick != null) {
-        Button(
-            onClick = onEditClick,
-            modifier = Modifier.weight(1f).height(48.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary),
-            shape = RoundedCornerShape(24.dp)) {
-              Icon(
-                  imageVector = Icons.Default.Edit,
-                  contentDescription = "Edit",
-                  modifier = Modifier.size(20.dp))
-              Spacer(modifier = Modifier.width(8.dp))
-              Text(text = "Edit", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
-      }
+    // Buttons Row: Either Edit/Card buttons or Friend buttons
+    if (isVisitorMode && friendButtonsContent != null) {
+      // Visitor mode: Show friend action buttons
+      friendButtonsContent()
+    } else {
+      // User profile mode: Show Edit and User Card buttons
+      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Edit Button
+        if (onEditClick != null) {
+          Button(
+              onClick = onEditClick,
+              modifier = Modifier.weight(1f).height(48.dp),
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = MaterialTheme.colorScheme.primary,
+                      contentColor = MaterialTheme.colorScheme.onPrimary),
+              shape = RoundedCornerShape(24.dp)) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Edit", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+              }
+        }
 
-      // User Card Button
-      if (onUserCardClick != null) {
-        Button(
-            onClick = onUserCardClick,
-            modifier = Modifier.weight(1f).height(48.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary),
-            shape = RoundedCornerShape(24.dp)) {
-              Icon(
-                  imageVector = Icons.Default.CreditCard,
-                  contentDescription = "User Card",
-                  modifier = Modifier.size(20.dp))
-              Spacer(modifier = Modifier.width(8.dp))
-              Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
+        // User Card Button
+        if (onUserCardClick != null) {
+          Button(
+              onClick = onUserCardClick,
+              modifier = Modifier.weight(1f).height(48.dp),
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = MaterialTheme.colorScheme.primary,
+                      contentColor = MaterialTheme.colorScheme.onPrimary),
+              shape = RoundedCornerShape(24.dp)) {
+                Icon(
+                    imageVector = Icons.Default.CreditCard,
+                    contentDescription = "User Card",
+                    modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+              }
+        }
       }
     }
   }

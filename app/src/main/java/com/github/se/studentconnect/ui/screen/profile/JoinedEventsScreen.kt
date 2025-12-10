@@ -62,7 +62,9 @@ enum class EventFilter {
 fun JoinedEventsScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: JoinedEventsViewModel = viewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    userId: String? = null,
+    isOwnProfile: Boolean = userId == null
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val searchQuery by viewModel.searchQuery.collectAsState()
@@ -136,6 +138,7 @@ fun JoinedEventsScreen(
                         events = filteredEvents,
                         pinnedEventIds = pinnedEventIds,
                         selectedFilter = selectedFilter,
+                        isOwnProfile = isOwnProfile,
                         onEventClick = { event ->
                           navController.navigate(Route.eventView(event.uid, true))
                         },
@@ -199,6 +202,7 @@ private fun EventsList(
     events: List<Event>,
     pinnedEventIds: List<String>,
     selectedFilter: EventFilter,
+    isOwnProfile: Boolean,
     onEventClick: (Event) -> Unit,
     onPinClick: (String) -> Unit
 ) {
@@ -216,7 +220,7 @@ private fun EventsList(
             EventCard(
                 event = event,
                 isPinned = pinnedEventIds.contains(event.uid),
-                showPinButton = selectedFilter == EventFilter.Past,
+                showPinButton = isOwnProfile && selectedFilter == EventFilter.Past,
                 onClick = { onEventClick(event) },
                 onPinClick = { onPinClick(event.uid) })
           }

@@ -19,13 +19,16 @@ object Route {
   const val SEARCH = "search"
 
   const val VISITOR_PROFILE = "visitorProfile/{userId}"
-  const val JOINED_EVENTS = "joinedEvents"
+  const val JOINED_EVENTS = "joinedEvents?userId={userId}"
   const val ORGANIZATION_PROFILE = "organizationProfile/{organizationId}"
 
   const val USER_ID_ARG = "userId"
   const val ORGANIZATION_ID_ARG = "organizationId"
 
   fun visitorProfile(userId: String): String = "visitorProfile/$userId"
+
+  fun joinedEvents(userId: String? = null): String =
+      if (userId != null) "joinedEvents?userId=$userId" else "joinedEvents"
 
   fun organizationProfile(organizationId: String): String = "organizationProfile/$organizationId"
 

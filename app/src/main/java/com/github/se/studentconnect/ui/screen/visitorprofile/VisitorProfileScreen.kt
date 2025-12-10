@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
+import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -40,26 +43,43 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
+import com.github.se.studentconnect.ui.profile.components.ProfileHeader
+import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import java.util.Locale
 
 @Composable
 fun VisitorProfileScreen(
     user: User,
+    friendsCount: Int,
+    eventsCount: Int,
+    pinnedEvents: List<Event>,
     onBackClick: () -> Unit,
     onAddFriendClick: () -> Unit,
     onCancelFriendClick: () -> Unit = {},
     onRemoveFriendClick: () -> Unit = {},
+    onFriendsClick: () -> Unit = {},
+    onEventsClick: () -> Unit = {},
+    onEventClick: (Event) -> Unit = {},
     modifier: Modifier = Modifier,
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
   VisitorProfileContent(
       user = user,
+      friendsCount = friendsCount,
+      eventsCount = eventsCount,
+      pinnedEvents = pinnedEvents,
       onBackClick = onBackClick,
       onAddFriendClick = onAddFriendClick,
       onCancelFriendClick = onCancelFriendClick,
       onRemoveFriendClick = onRemoveFriendClick,
+      onFriendsClick = onFriendsClick,
+      onEventsClick = onEventsClick,
+      onEventClick = onEventClick,
       friendRequestStatus = friendRequestStatus,
       modifier = modifier)
 }
@@ -68,34 +88,70 @@ fun VisitorProfileScreen(
 @Composable
 internal fun VisitorProfileContent(
     user: User,
+    friendsCount: Int,
+    eventsCount: Int,
+    pinnedEvents: List<Event>,
     onBackClick: () -> Unit,
     onAddFriendClick: () -> Unit,
     onCancelFriendClick: () -> Unit = {},
     onRemoveFriendClick: () -> Unit = {},
+    onFriendsClick: () -> Unit = {},
+    onEventsClick: () -> Unit = {},
+    onEventClick: (Event) -> Unit = {},
     modifier: Modifier = Modifier,
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
   val scrollState = rememberScrollState()
+  val context = LocalContext.current
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
         modifier =
-            Modifier.fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp, vertical = 32.dp)
-                .semantics { testTag = C.Tag.visitor_profile_screen },
-        verticalArrangement = Arrangement.spacedBy(24.dp)) {
+            Modifier.fillMaxSize().verticalScroll(scrollState).semantics {
+              testTag = C.Tag.visitor_profile_screen
+            }) {
+          // Top Bar with back button and username
           VisitorProfileTopBar(user.username, onBackClick = onBackClick)
 
-          VisitorProfileInfoCard(
+          // Profile Header with stats and info
+          ProfileHeader(
               user = user,
-              onAddFriendClick = onAddFriendClick,
-              onCancelFriendClick = onCancelFriendClick,
-              onRemoveFriendClick = onRemoveFriendClick,
-              friendRequestStatus = friendRequestStatus)
+              stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
+              onFriendsClick = {
+                if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
+                  onFriendsClick()
+                } else {
+                  Toast.makeText(
+                          context,
+                          context.getString(R.string.toast_add_friend_to_view_friends),
+                          Toast.LENGTH_SHORT)
+                      .show()
+                }
+              },
+              onEventsClick = {
+                if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
+                  onEventsClick()
+                } else {
+                  Toast.makeText(
+                          context,
+                          context.getString(R.string.toast_add_friend_to_view_events),
+                          Toast.LENGTH_SHORT)
+                      .show()
+                }
+              },
+              isVisitorMode = true,
+              showUsername = false,
+              friendButtonsContent = {
+                FriendActionButtons(
+                    friendRequestStatus = friendRequestStatus,
+                    onAddFriendClick = onAddFriendClick,
+                    onCancelFriendClick = onCancelFriendClick,
+                    onRemoveFriendClick = onRemoveFriendClick)
+              },
+          )
 
-          VisitorProfileEventSection(
-              title = stringResource(id = com.github.se.studentconnect.R.string.text_pinned_events))
+          // Pinned Events Section
+          PinnedEventsSection(pinnedEvents = pinnedEvents, onEventClick = onEventClick)
         }
   }
 }
@@ -103,26 +159,161 @@ internal fun VisitorProfileContent(
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 @Composable
 internal fun VisitorProfileTopBar(username: String, onBackClick: () -> Unit) {
-  Box(modifier = Modifier.fillMaxWidth().semantics { testTag = C.Tag.visitor_profile_top_bar }) {
-    IconButton(
-        onClick = onBackClick,
-        modifier =
-            Modifier.align(Alignment.TopStart).semantics { testTag = C.Tag.visitor_profile_back }) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription =
-                  stringResource(
-                      id = com.github.se.studentconnect.R.string.content_description_back),
-              tint = MaterialTheme.colorScheme.onSurface)
-        }
+  Box(
+      modifier =
+          Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).semantics {
+            testTag = C.Tag.visitor_profile_top_bar
+          }) {
+        IconButton(
+            onClick = onBackClick,
+            modifier =
+                Modifier.align(Alignment.TopStart).semantics {
+                  testTag = C.Tag.visitor_profile_back
+                }) {
+              Icon(
+                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                  contentDescription = stringResource(R.string.content_description_back),
+                  tint = MaterialTheme.colorScheme.onSurface)
+            }
 
-    Text(
-        text = "@${username}",
-        style =
-            MaterialTheme.typography.titleLarge.copy(
-                fontSize = 18.sp, fontWeight = FontWeight.Light, fontStyle = FontStyle.Italic),
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.align(Alignment.Center))
+        Text(
+            text = "@${username}",
+            style =
+                MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 18.sp, fontWeight = FontWeight.Light, fontStyle = FontStyle.Italic),
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.align(Alignment.Center))
+      }
+}
+
+/**
+ * Composable that displays friend action buttons based on friend request status.
+ *
+ * @param friendRequestStatus The current friend request status
+ * @param onAddFriendClick Callback when add friend button is clicked
+ * @param onCancelFriendClick Callback when cancel request button is clicked
+ * @param onRemoveFriendClick Callback when remove friend button is clicked
+ */
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+@Composable
+internal fun FriendActionButtons(
+    friendRequestStatus: FriendRequestStatus,
+    onAddFriendClick: () -> Unit,
+    onCancelFriendClick: () -> Unit,
+    onRemoveFriendClick: () -> Unit
+) {
+  var showRemoveFriendDialog by remember { mutableStateOf(false) }
+
+  when (friendRequestStatus) {
+    FriendRequestStatus.SENT,
+    FriendRequestStatus.ALREADY_SENT -> {
+      // Show Cancel and Request Sent buttons
+      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Button(
+            onClick = onCancelFriendClick,
+            modifier =
+                Modifier.weight(1f).height(48.dp).semantics {
+                  testTag = C.Tag.visitor_profile_cancel_friend
+                },
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface),
+            shape = RoundedCornerShape(24.dp)) {
+              Text(
+                  text = stringResource(R.string.button_cancel),
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Medium)
+            }
+
+        Button(
+            onClick = {},
+            enabled = false,
+            modifier = Modifier.weight(1f).height(48.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
+            shape = RoundedCornerShape(24.dp)) {
+              Text(
+                  text = stringResource(R.string.text_request_sent),
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Medium)
+            }
+      }
+    }
+    FriendRequestStatus.ALREADY_FRIENDS -> {
+      // Show Remove Friend button
+      Button(
+          onClick = { showRemoveFriendDialog = true },
+          modifier =
+              Modifier.fillMaxWidth().height(48.dp).semantics {
+                testTag = C.Tag.visitor_profile_remove_friend
+              },
+          colors =
+              ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                  contentColor = MaterialTheme.colorScheme.onSurface),
+          shape = RoundedCornerShape(24.dp)) {
+            Text(
+                text = stringResource(R.string.text_remove_friend),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium)
+          }
+    }
+    else -> {
+      // Show Add Friend, Sending, or Try Again button
+      val buttonText =
+          when (friendRequestStatus) {
+            FriendRequestStatus.SENDING -> stringResource(R.string.text_sending)
+            FriendRequestStatus.ERROR -> stringResource(R.string.text_try_again)
+            else -> stringResource(R.string.button_add_friend)
+          }
+
+      val buttonEnabled =
+          friendRequestStatus == FriendRequestStatus.IDLE ||
+              friendRequestStatus == FriendRequestStatus.ERROR
+
+      Button(
+          onClick = onAddFriendClick,
+          enabled = buttonEnabled,
+          modifier =
+              Modifier.fillMaxWidth().height(48.dp).semantics {
+                testTag = C.Tag.visitor_profile_add_friend
+              },
+          colors =
+              ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.primary,
+                  contentColor = MaterialTheme.colorScheme.onPrimary),
+          shape = RoundedCornerShape(24.dp)) {
+            Text(text = buttonText, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+          }
+    }
+  }
+
+  // Remove friend confirmation dialog
+  if (showRemoveFriendDialog) {
+    AlertDialog(
+        onDismissRequest = { showRemoveFriendDialog = false },
+        title = { Text(text = stringResource(R.string.dialog_remove_friend_title)) },
+        text = { Text(text = stringResource(R.string.dialog_remove_friend_message)) },
+        confirmButton = {
+          TextButton(
+              onClick = {
+                showRemoveFriendDialog = false
+                onRemoveFriendClick()
+              },
+              modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_confirm }) {
+                Text(text = stringResource(R.string.button_yes))
+              }
+        },
+        dismissButton = {
+          TextButton(
+              onClick = { showRemoveFriendDialog = false },
+              modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_dismiss }) {
+                Text(text = stringResource(R.string.button_no))
+              }
+        })
   }
 }
 

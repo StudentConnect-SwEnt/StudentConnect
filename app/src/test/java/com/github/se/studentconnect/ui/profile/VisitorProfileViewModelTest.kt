@@ -182,6 +182,8 @@ class VisitorProfileViewModelTest {
     return object : FriendsRepository {
       override suspend fun getFriends(userId: String): List<String> = friends
 
+      override suspend fun getFriendsPublic(userId: String): List<String> = friends
+
       override suspend fun getPendingRequests(userId: String): List<String> = pendingRequests
 
       override suspend fun getSentRequests(userId: String): List<String> = sentRequests

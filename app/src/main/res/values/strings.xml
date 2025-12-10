@@ -575,4 +575,8 @@
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
 
     <string name="anonymous">Anonymous</string>
+
+    <!-- Visitor profile stats -->
+    <string name="toast_add_friend_to_view_friends">Add them as a friend to view their friends</string>
+    <string name="toast_add_friend_to_view_events">Add them as a friend to view their events</string>
 </resources>

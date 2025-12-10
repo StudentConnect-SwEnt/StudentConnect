@@ -30,7 +30,8 @@ data class JoinedEventsUiState(
 @OptIn(FlowPreview::class)
 class JoinedEventsViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val targetUserId: String? = null
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(JoinedEventsUiState())
@@ -42,9 +43,19 @@ class JoinedEventsViewModel(
   private val _snackbarMessage = MutableStateFlow<String?>(null)
   val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
+  // The user ID we're viewing events for (either targetUserId or current user)
+  private val viewingUserId: String
+    get() = targetUserId ?: AuthenticationProvider.currentUser
+
+  // Whether we're viewing our own events (affects pinning functionality)
+  private val isOwnProfile: Boolean
+    get() = targetUserId == null || targetUserId == AuthenticationProvider.currentUser
+
   init {
     setupDebouncedSearch()
-    loadPinnedEventIds()
+    if (isOwnProfile) {
+      loadPinnedEventIds()
+    }
   }
 
   // Clear the snackbar message after showing it to the user
@@ -54,12 +65,11 @@ class JoinedEventsViewModel(
 
   // Load the list of pinned event IDs for the current user
   private fun loadPinnedEventIds() {
-    val currentUserId = AuthenticationProvider.currentUser
-    if (currentUserId.isEmpty()) return
+    if (viewingUserId.isEmpty()) return
 
     viewModelScope.launch {
       try {
-        val pinnedIds = userRepository.getPinnedEvents(currentUserId)
+        val pinnedIds = userRepository.getPinnedEvents(viewingUserId)
         android.util.Log.d(TAG, "Loaded pinned IDs: $pinnedIds")
         _uiState.update { it.copy(pinnedEventIds = pinnedIds) }
       } catch (e: Exception) {
@@ -70,19 +80,20 @@ class JoinedEventsViewModel(
 
   // Load all events the user has joined or created
   fun loadJoinedEvents() {
-    val currentUserId = AuthenticationProvider.currentUser
-    if (currentUserId.isEmpty()) return
+    if (viewingUserId.isEmpty()) return
 
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true) }
 
       try {
-        val joinedEventIds = userRepository.getJoinedEvents(currentUserId)
+        val joinedEventIds = userRepository.getJoinedEvents(viewingUserId)
 
-        loadPinnedEventIds()
+        if (isOwnProfile) {
+          loadPinnedEventIds()
+        }
 
         val allVisibleEvents = eventRepository.getAllVisibleEvents()
-        val ownedEvents = allVisibleEvents.filter { it.ownerId == currentUserId }
+        val ownedEvents = allVisibleEvents.filter { it.ownerId == viewingUserId }
 
         // Combine joined and owned events, remove duplicates
         val allEventIds = (joinedEventIds + ownedEvents.map { it.uid }).distinct()
@@ -164,10 +175,11 @@ class JoinedEventsViewModel(
     _uiState.update { it.copy(filteredEvents = filtered) }
   }
 
-  // Pin or unpin an event
+  // Pin or unpin an event (only available for own profile)
   fun togglePinEvent(eventId: String, maxPinnedMessage: String) {
-    val currentUserId = AuthenticationProvider.currentUser
-    if (currentUserId.isEmpty()) return
+    // Only allow pinning on own profile
+    if (!isOwnProfile) return
+    if (viewingUserId.isEmpty()) return
 
     viewModelScope.launch {
       try {
@@ -177,7 +189,7 @@ class JoinedEventsViewModel(
         if (isPinned) {
           val newPinnedIds = currentPinnedIds - eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
-          userRepository.removePinnedEvent(currentUserId, eventId)
+          userRepository.removePinnedEvent(viewingUserId, eventId)
         } else {
           // Check if user already has 3 pinned events
           if (currentPinnedIds.size >= MAX_PINNED_EVENTS) {
@@ -186,7 +198,7 @@ class JoinedEventsViewModel(
           }
           val newPinnedIds = currentPinnedIds + eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
-          userRepository.addPinnedEvent(currentUserId, eventId)
+          userRepository.addPinnedEvent(viewingUserId, eventId)
         }
       } catch (e: Exception) {
         android.util.Log.e(TAG, "Failed to toggle pin", e)

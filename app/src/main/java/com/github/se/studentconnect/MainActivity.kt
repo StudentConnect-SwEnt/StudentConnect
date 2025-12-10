@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,6 +35,7 @@ import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
+import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
@@ -356,10 +359,31 @@ internal fun MainAppContent(
           }
 
           // Joined Events Screen
-          composable(Route.JOINED_EVENTS) {
-            JoinedEventsScreen(
-                navController = navController, onNavigateBack = { navController.popBackStack() })
-          }
+          composable(
+              route = Route.JOINED_EVENTS,
+              arguments =
+                  listOf(
+                      navArgument("userId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                      })) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                val viewModel: JoinedEventsViewModel =
+                    viewModel(
+                        factory =
+                            object : ViewModelProvider.Factory {
+                              override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                @Suppress("UNCHECKED_CAST")
+                                return JoinedEventsViewModel(targetUserId = userId) as T
+                              }
+                            })
+                JoinedEventsScreen(
+                    navController = navController,
+                    viewModel = viewModel,
+                    userId = userId,
+                    onNavigateBack = { navController.popBackStack() })
+              }
 
           // Visitor Profile Screen (shown when clicking on other users)
           composable(
@@ -372,6 +396,9 @@ internal fun MainAppContent(
                 LaunchedEffect(userId) { if (userId.isNotEmpty()) vm.loadProfile(userId) }
 
                 val uiState by vm.uiState.collectAsState()
+                val friendsCount by vm.friendsCount.collectAsState()
+                val eventsCount by vm.eventsCount.collectAsState()
+                val pinnedEvents by vm.pinnedEvents.collectAsState()
 
                 when {
                   uiState.isLoading -> {
@@ -383,10 +410,21 @@ internal fun MainAppContent(
                   uiState.user != null -> {
                     VisitorProfileScreen(
                         user = uiState.user!!,
+                        friendsCount = friendsCount,
+                        eventsCount = eventsCount,
+                        pinnedEvents = pinnedEvents,
                         onBackClick = { navController.popBackStack() },
                         onAddFriendClick = { vm.sendFriendRequest() },
                         onCancelFriendClick = { vm.cancelFriendRequest() },
                         onRemoveFriendClick = { vm.removeFriend() },
+                        onFriendsClick = {
+                          navController.navigate(
+                              ProfileRoutes.FRIENDS_LIST.replace("{userId}", userId))
+                        },
+                        onEventsClick = { navController.navigate(Route.joinedEvents(userId)) },
+                        onEventClick = { event ->
+                          navController.navigate(Route.eventView(event.uid, true))
+                        },
                         friendRequestStatus = uiState.friendRequestStatus)
                   }
                   else -> {

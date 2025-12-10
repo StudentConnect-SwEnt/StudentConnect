@@ -69,6 +69,18 @@ class FriendsRepositoryFirestore(private val db: FirebaseFirestore) : FriendsRep
     return snapshot.documents.mapNotNull { it.id }
   }
 
+  override suspend fun getFriendsPublic(userId: String): List<String> {
+    // No ensureCurrentUser check - allows reading any user's friends list
+    val snapshot =
+        db.collection(USERS_COLLECTION)
+            .document(userId)
+            .collection(FRIENDS_SUBCOLLECTION)
+            .get()
+            .await()
+
+    return snapshot.documents.mapNotNull { it.id }
+  }
+
   override suspend fun getPendingRequests(userId: String): List<String> {
     ensureCurrentUser(userId)
     val snapshot =
