@@ -56,6 +56,7 @@ import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
 import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
+import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileCallbacks
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewModel
 import com.github.se.studentconnect.ui.theme.AppTheme
@@ -422,18 +423,22 @@ internal fun MainAppContent(
                         friendsCount = friendsCount,
                         eventsCount = eventsCount,
                         pinnedEvents = pinnedEvents,
-                        onBackClick = { navController.popBackStack() },
-                        onAddFriendClick = { vm.sendFriendRequest() },
-                        onCancelFriendClick = { vm.cancelFriendRequest() },
-                        onRemoveFriendClick = { vm.removeFriend() },
-                        onFriendsClick = {
-                          navController.navigate(
-                              ProfileRoutes.FRIENDS_LIST.replace("{userId}", userId))
-                        },
-                        onEventsClick = { navController.navigate(Route.joinedEvents(userId)) },
-                        onEventClick = { event ->
-                          navController.navigate(Route.eventView(event.uid, true))
-                        },
+                        callbacks =
+                            VisitorProfileCallbacks(
+                                onBackClick = { navController.popBackStack() },
+                                onAddFriendClick = { vm.sendFriendRequest() },
+                                onCancelFriendClick = { vm.cancelFriendRequest() },
+                                onRemoveFriendClick = { vm.removeFriend() },
+                                onFriendsClick = {
+                                  navController.navigate(
+                                      ProfileRoutes.FRIENDS_LIST.replace("{userId}", userId))
+                                },
+                                onEventsClick = {
+                                  navController.navigate(Route.joinedEvents(userId))
+                                },
+                                onEventClick = { event ->
+                                  navController.navigate(Route.eventView(event.uid, true))
+                                }),
                         friendRequestStatus = uiState.friendRequestStatus)
                   }
                   else -> {

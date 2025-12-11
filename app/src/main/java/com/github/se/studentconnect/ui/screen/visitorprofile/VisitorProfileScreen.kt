@@ -53,19 +53,24 @@ import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import java.util.Locale
 
+/** Data class holding all visitor profile screen callbacks */
+data class VisitorProfileCallbacks(
+    val onBackClick: () -> Unit,
+    val onAddFriendClick: () -> Unit,
+    val onCancelFriendClick: () -> Unit = {},
+    val onRemoveFriendClick: () -> Unit = {},
+    val onFriendsClick: () -> Unit = {},
+    val onEventsClick: () -> Unit = {},
+    val onEventClick: (Event) -> Unit = {}
+)
+
 @Composable
 fun VisitorProfileScreen(
     user: User,
     friendsCount: Int,
     eventsCount: Int,
     pinnedEvents: List<Event>,
-    onBackClick: () -> Unit,
-    onAddFriendClick: () -> Unit,
-    onCancelFriendClick: () -> Unit = {},
-    onRemoveFriendClick: () -> Unit = {},
-    onFriendsClick: () -> Unit = {},
-    onEventsClick: () -> Unit = {},
-    onEventClick: (Event) -> Unit = {},
+    callbacks: VisitorProfileCallbacks,
     modifier: Modifier = Modifier,
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
@@ -74,13 +79,7 @@ fun VisitorProfileScreen(
       friendsCount = friendsCount,
       eventsCount = eventsCount,
       pinnedEvents = pinnedEvents,
-      onBackClick = onBackClick,
-      onAddFriendClick = onAddFriendClick,
-      onCancelFriendClick = onCancelFriendClick,
-      onRemoveFriendClick = onRemoveFriendClick,
-      onFriendsClick = onFriendsClick,
-      onEventsClick = onEventsClick,
-      onEventClick = onEventClick,
+      callbacks = callbacks,
       friendRequestStatus = friendRequestStatus,
       modifier = modifier)
 }
@@ -92,13 +91,7 @@ internal fun VisitorProfileContent(
     friendsCount: Int,
     eventsCount: Int,
     pinnedEvents: List<Event>,
-    onBackClick: () -> Unit,
-    onAddFriendClick: () -> Unit,
-    onCancelFriendClick: () -> Unit = {},
-    onRemoveFriendClick: () -> Unit = {},
-    onFriendsClick: () -> Unit = {},
-    onEventsClick: () -> Unit = {},
-    onEventClick: (Event) -> Unit = {},
+    callbacks: VisitorProfileCallbacks,
     modifier: Modifier = Modifier,
     friendRequestStatus: FriendRequestStatus = FriendRequestStatus.IDLE
 ) {
@@ -112,7 +105,7 @@ internal fun VisitorProfileContent(
               testTag = C.Tag.visitor_profile_screen
             }) {
           // Top Bar with back button and username
-          VisitorProfileTopBar(user.username, onBackClick = onBackClick)
+          VisitorProfileTopBar(user.username, onBackClick = callbacks.onBackClick)
 
           // Profile Header with stats and info
           ProfileHeader(
@@ -122,7 +115,7 @@ internal fun VisitorProfileContent(
                   ProfileHeaderCallbacks(
                       onFriendsClick = {
                         if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
-                          onFriendsClick()
+                          callbacks.onFriendsClick()
                         } else {
                           Toast.makeText(
                                   context,
@@ -133,7 +126,7 @@ internal fun VisitorProfileContent(
                       },
                       onEventsClick = {
                         if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
-                          onEventsClick()
+                          callbacks.onEventsClick()
                         } else {
                           Toast.makeText(
                                   context,
@@ -147,14 +140,14 @@ internal fun VisitorProfileContent(
               friendButtonsContent = {
                 FriendActionButtons(
                     friendRequestStatus = friendRequestStatus,
-                    onAddFriendClick = onAddFriendClick,
-                    onCancelFriendClick = onCancelFriendClick,
-                    onRemoveFriendClick = onRemoveFriendClick)
+                    onAddFriendClick = callbacks.onAddFriendClick,
+                    onCancelFriendClick = callbacks.onCancelFriendClick,
+                    onRemoveFriendClick = callbacks.onRemoveFriendClick)
               },
           )
 
           // Pinned Events Section
-          PinnedEventsSection(pinnedEvents = pinnedEvents, onEventClick = onEventClick)
+          PinnedEventsSection(pinnedEvents = pinnedEvents, onEventClick = callbacks.onEventClick)
         }
   }
 }

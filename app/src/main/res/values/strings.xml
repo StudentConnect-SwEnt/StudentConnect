@@ -26,7 +26,7 @@
     <string name="error_failed_to_load_stories">Failed to load stories</string>
     <string name="error_story_not_found">Story not found</string>
     <string name="error_unauthorized_delete_story">You can only delete your own stories</string>
-    <string name="error_username_length">Username must be 3-20 characters long</string>
+    <string name="error_username_length">Username must be 3–20 characters long</string>
     <string name="error_username_format">Only alphanumeric characters, underscores, hyphens, and periods are allowed</string>
     <string name="error_username_taken">This username is already taken</string>
     <string name="error_failed_to_save_birthday">Failed to save birthday</string>
@@ -74,7 +74,7 @@
     <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
     <string name="org_setup_title">Where and what do you organize ?</string>
     <string name="org_setup_main_location_label">Main Location</string>
-    <string name="org_setup_main_location_placeholder">Search locations...</string>
+    <string name="org_setup_main_location_placeholder">Search locations…</string>
     <string name="org_setup_age_range_label">Age range</string>
     <string name="org_setup_event_size_label">Typical event size</string>
     <string name="org_setup_main_domains_label">Main domains</string>
@@ -157,7 +157,6 @@
     <string name="content_description_add_story">Add Story</string>
     <string name="content_description_event_story">Event Story</string>
     <string name="content_description_close_story">Close story</string>
-    <string name="content_description_story_content">Story content</string>
     <string name="content_description_story_for">Story for %s</string>
     <string name="content_description_search_icon">Search Icon</string>
     <string name="content_description_student_connect_logo">Student Connect Logo</string>
@@ -201,7 +200,6 @@
     <string name="text_no_upcoming_events">No upcoming events</string>
     <string name="text_no_new_invitations">No new invitations</string>
     <string name="text_no_past_events">No past events</string>
-    <string name="text_pinned_events">Pinned Events</string>
     <string name="text_participants_count">%d participants</string>
     <string name="text_empty_upcoming_description">You haven\'t joined any events yet. Explore to find some!</string>
     <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>

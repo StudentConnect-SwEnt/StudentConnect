@@ -61,10 +61,12 @@ class VisitorProfileScreenTest {
             friendsCount = 0,
             eventsCount = 0,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = { cancelled = true },
-            onRemoveFriendClick = {},
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = { cancelled = true },
+                    onRemoveFriendClick = {}),
             friendRequestStatus = FriendRequestStatus.SENT)
       }
     }
@@ -88,10 +90,12 @@ class VisitorProfileScreenTest {
             friendsCount = 0,
             eventsCount = 0,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = { removed = true },
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = { removed = true }),
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
@@ -120,10 +124,12 @@ class VisitorProfileScreenTest {
             friendsCount = 0,
             eventsCount = 0,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = { removed = true },
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = { removed = true }),
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
@@ -152,10 +158,12 @@ class VisitorProfileScreenTest {
             friendsCount = 0,
             eventsCount = 0,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = {},
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {}),
             friendRequestStatus = status.value)
       }
     }
@@ -185,11 +193,13 @@ class VisitorProfileScreenTest {
             friendsCount = 5,
             eventsCount = 3,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = {},
-            onFriendsClick = {},
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {},
+                    onFriendsClick = {}),
             friendRequestStatus = FriendRequestStatus.IDLE)
       }
     }
@@ -211,11 +221,13 @@ class VisitorProfileScreenTest {
             friendsCount = 5,
             eventsCount = 3,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = {},
-            onFriendsClick = { friendsClicked = true },
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {},
+                    onFriendsClick = { friendsClicked = true }),
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
@@ -234,11 +246,13 @@ class VisitorProfileScreenTest {
             friendsCount = 5,
             eventsCount = 3,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = {},
-            onEventsClick = {},
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {},
+                    onEventsClick = {}),
             friendRequestStatus = FriendRequestStatus.IDLE)
       }
     }
@@ -260,11 +274,13 @@ class VisitorProfileScreenTest {
             friendsCount = 5,
             eventsCount = 3,
             pinnedEvents = emptyList(),
-            onBackClick = {},
-            onAddFriendClick = {},
-            onCancelFriendClick = {},
-            onRemoveFriendClick = {},
-            onEventsClick = { eventsClicked = true },
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {},
+                    onEventsClick = { eventsClicked = true }),
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
