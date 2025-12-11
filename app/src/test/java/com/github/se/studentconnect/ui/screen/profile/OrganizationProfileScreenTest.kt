@@ -15,6 +15,10 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryCachedInMemory
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.organization.OrganizationType
@@ -52,6 +56,7 @@ class OrganizationProfileScreenTest {
   private lateinit var organizationRepository: OrganizationRepositoryLocal
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
+  private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var mockContext: android.content.Context
 
   private val testOrganization =
@@ -62,6 +67,7 @@ class OrganizationProfileScreenTest {
           description = "A test organization for testing purposes",
           logoUrl = "https://example.com/logo.png",
           memberUids = listOf("user1", "user2"),
+          memberRoles = mapOf("user1" to "President", "user2" to "Member"),
           createdBy = "creator1")
 
   private val testUser1 =
@@ -120,6 +126,11 @@ class OrganizationProfileScreenTest {
     organizationRepository = OrganizationRepositoryLocal()
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
+    notificationRepository = NotificationRepositoryLocal()
+
+    // Set up mock MediaRepository to avoid Firebase initialization
+    val mockMediaRepository = mockk<MediaRepository>(relaxed = true)
+    MediaRepositoryProvider.overrideForTests(MediaRepositoryCachedInMemory(mockMediaRepository))
 
     // Mock Context for string resources
     mockContext = mockk(relaxed = true)
@@ -153,6 +164,9 @@ class OrganizationProfileScreenTest {
     // Clean up authentication state
     AuthenticationProvider.testUserId = null
     AuthenticationProvider.local = false
+
+    // Clean up MediaRepository override
+    MediaRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -163,7 +177,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -181,7 +196,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme {
@@ -204,7 +220,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = null, viewModel = viewModel) }
@@ -230,7 +247,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -267,7 +285,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme {
@@ -297,7 +316,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -322,7 +342,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -353,7 +374,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -377,7 +399,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -411,7 +434,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -449,7 +473,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -474,7 +499,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -498,7 +524,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -527,7 +554,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -570,7 +598,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -615,7 +644,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -662,7 +692,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -703,7 +734,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -730,7 +762,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -758,7 +791,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -786,7 +820,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
@@ -824,7 +859,8 @@ class OrganizationProfileScreenTest {
             context = mockContext,
             organizationRepository = organizationRepository,
             eventRepository = eventRepository,
-            userRepository = userRepository)
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
 
     composeRule.setContent {
       AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }

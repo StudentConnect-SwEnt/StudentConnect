@@ -640,7 +640,11 @@ private fun MembersTab(
     onRemoveMemberClick: (OrganizationMember) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-  if (organizationRoles.isEmpty()) {
+  // Collect all roles: organizationRoles + any roles that members have but aren't in the list
+  // This ensures Owner and any other assigned roles always show up
+  val allRoles = (organizationRoles + members.map { it.role }).distinct()
+
+  if (allRoles.isEmpty() && members.isEmpty()) {
     Box(
         modifier =
             modifier
@@ -656,10 +660,6 @@ private fun MembersTab(
   } else {
     // Create a map of role -> member (first member with that role)
     val membersByRole = members.groupBy { it.role }.mapValues { it.value.firstOrNull() }
-
-    // Collect all roles: organizationRoles + any roles that members have but aren't in the list
-    // This ensures Owner and any other assigned roles always show up
-    val allRoles = (organizationRoles + members.map { it.role }).distinct()
 
     // Sort roles to show Owner first, then others
     val sortedRoles =
