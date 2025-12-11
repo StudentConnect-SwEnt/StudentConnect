@@ -32,7 +32,6 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
-import com.github.se.studentconnect.ui.profile.components.ProfileActions
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import com.google.firebase.firestore.FirebaseFirestore
@@ -136,20 +135,14 @@ fun ProfileScreen(
                         ?: Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
                   },
                   onEventsClick = { navigationCallbacks.onNavigateToJoinedEvents?.invoke() },
-                  actions =
-                      ProfileActions(
-                          onEditClick = {
-                            navigationCallbacks.onNavigateToSettings?.invoke()
-                                ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT)
-                                    .show()
-                          },
-                          onUserCardClick = {
-                            navigationCallbacks.onNavigateToUserCard?.invoke()
-                                ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                          },
-                          onOrganizationClick = {
-                            navigationCallbacks.onNavigateToOrganizationManagement?.invoke()
-                          }))
+                  onEditClick = {
+                    navigationCallbacks.onNavigateToSettings?.invoke()
+                        ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
+                  },
+                  onUserCardClick = {
+                    navigationCallbacks.onNavigateToUserCard?.invoke()
+                        ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
+                  })
 
               // Pinned events section
               PinnedEventsSection(

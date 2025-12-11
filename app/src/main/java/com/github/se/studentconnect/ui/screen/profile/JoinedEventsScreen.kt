@@ -222,24 +222,23 @@ private fun EventsList(
             // Reuse the Shared Component
             EventListItemCard(
                 event = event,
-                isPinned = pinnedEventIds.contains(event.uid),
-                showPinButton = isOwnProfile && selectedFilter == EventFilter.Past,
                 onClick = { onEventClick(event) },
                 footerText = formattedDate,
                 modifier = Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
-                actionContent = {
-                  // Pin button (only shown for past events)
-                  if (selectedFilter == EventFilter.Past) {
-                    val configuration = LocalConfiguration.current
-                    val screenWidth = configuration.screenWidthDp.dp
-                    val pinButtonPadding = screenWidth * 0.02f
+                actionContent =
+                    if (isOwnProfile && selectedFilter == EventFilter.Past) {
+                      {
+                        val configuration = LocalConfiguration.current
+                        val screenWidth = configuration.screenWidthDp.dp
+                        val pinButtonPadding = screenWidth * 0.02f
 
-                    PinButton(
-                        isPinned = isPinned,
-                        onClick = { onPinClick(event.uid) },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
-                  }
-                })
+                        PinButton(
+                            isPinned = isPinned,
+                            onClick = { onPinClick(event.uid) },
+                            modifier =
+                                Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
+                      }
+                    } else null)
           }
         }
   }

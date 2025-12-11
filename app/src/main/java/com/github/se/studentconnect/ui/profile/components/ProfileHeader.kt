@@ -85,9 +85,10 @@ fun ProfileHeader(
     isVisitorMode: Boolean = false,
     friendButtonsContent: (@Composable () -> Unit)? = null,
     showUsername: Boolean = false,
-    actions: ProfileActions = ProfileActions(),
     modifier: Modifier = Modifier
 ) {
+  // Create actions from the individual callbacks for backward compatibility
+  val actions = ProfileActions(onEditClick = onEditClick, onUserCardClick = onUserCardClick)
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
@@ -135,11 +136,16 @@ fun ProfileHeader(
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        UserInformation(user = user)
+        UserInformation(user = user, showUsername = showUsername)
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        ActionButtons(actions = actions)
+        // Show either visitor mode buttons or action buttons
+        if (isVisitorMode && friendButtonsContent != null) {
+          friendButtonsContent()
+        } else {
+          ActionButtons(actions = actions)
+        }
       }
 }
 
@@ -181,10 +187,15 @@ private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modif
  * User information section displaying name, bio, university, and location.
  *
  * @param user The user whose information to display
+ * @param showUsername Whether to show the username below the name
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun UserInformation(user: User, modifier: Modifier = Modifier) {
+private fun UserInformation(
+    user: User,
+    showUsername: Boolean = false,
+    modifier: Modifier = Modifier
+) {
   Column(modifier = modifier.fillMaxWidth()) {
     // User Name
     Text(
@@ -249,53 +260,6 @@ private fun UserInformation(user: User, modifier: Modifier = Modifier) {
   }
 }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
-    // Buttons Row: Either Edit/Card buttons or Friend buttons
-    if (isVisitorMode && friendButtonsContent != null) {
-      // Visitor mode: Show friend action buttons
-      friendButtonsContent()
-    } else {
-      // User profile mode: Show Edit and User Card buttons
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Edit Button
-        if (onEditClick != null) {
-          Button(
-              onClick = onEditClick,
-              modifier = Modifier.weight(1f).height(48.dp),
-              colors =
-                  ButtonDefaults.buttonColors(
-                      containerColor = MaterialTheme.colorScheme.primary,
-                      contentColor = MaterialTheme.colorScheme.onPrimary),
-              shape = RoundedCornerShape(24.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Edit", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-              }
-        }
-
-        // User Card Button
-        if (onUserCardClick != null) {
-          Button(
-              onClick = onUserCardClick,
-              modifier = Modifier.weight(1f).height(48.dp),
-              colors =
-                  ButtonDefaults.buttonColors(
-                      containerColor = MaterialTheme.colorScheme.primary,
-                      contentColor = MaterialTheme.colorScheme.onPrimary),
-              shape = RoundedCornerShape(24.dp)) {
-                Icon(
-                    imageVector = Icons.Default.CreditCard,
-                    contentDescription = "User Card",
-                    modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Card", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-              }
-        }
-      }
 /**
  * Action buttons section (Edit, User Card, Organizations).
  *
