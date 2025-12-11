@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * ViewModel for the Profile Settings screen with inline editing functionality.
@@ -235,8 +236,26 @@ class ProfileViewModel(
    */
   private fun updateUserInFirebase(updatedUser: User, field: EditingField) {
     viewModelScope.launch {
+      var saveResult: Result<Unit>? = null
+
+      // Fire and wait briefly so UI doesn't hang offline; let Firestore sync in the background.
+      val saveJob =
+          viewModelScope.launch {
+            saveResult = runCatching { userRepository.saveUser(updatedUser) }
+          }
+
+      withTimeoutOrNull(5_000) { saveJob.join() }
+
+      val result = saveResult
+      if (result != null && result.isFailure) {
+        _fieldErrors.value =
+            _fieldErrors.value +
+                (field to (R.string.error_unexpected)) // Generic error if save failed
+        setFieldLoading(field, false)
+        return@launch
+      }
+
       try {
-        userRepository.saveUser(updatedUser)
         _user.value = updatedUser
         _editingField.value = EditingField.None
         _successMessage.value = getSuccessMessage(field)

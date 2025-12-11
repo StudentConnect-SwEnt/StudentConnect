@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** ViewModel for EditNationalityScreen. Manages nationality editing state and operations. */
 class EditNationalityViewModel(
@@ -60,7 +61,16 @@ class EditNationalityViewModel(
         val currentUser = _user.value ?: return@launch
         val updatedUser = currentUser.copy(country = countryName)
 
-        userRepository.saveUser(updatedUser)
+        var saveResult: Result<Unit>? = null
+        val saveJob =
+            viewModelScope.launch {
+              saveResult = runCatching { userRepository.saveUser(updatedUser) }
+            }
+        withTimeoutOrNull(5_000) { saveJob.join() }
+        if (saveResult != null && saveResult!!.isFailure) {
+          throw saveResult!!.exceptionOrNull()!!
+        }
+
         _user.value = updatedUser
         _successMessage.value = R.string.success_nationality_updated
       } catch (exception: Exception) {

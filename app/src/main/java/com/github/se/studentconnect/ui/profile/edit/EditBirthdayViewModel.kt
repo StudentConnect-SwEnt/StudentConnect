@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** ViewModel for EditBirthdayScreen. Handles birthday date selection and validation. */
 class EditBirthdayViewModel(
@@ -80,7 +81,15 @@ class EditBirthdayViewModel(
         if (user != null) {
           val updatedUser =
               user.copy(birthdate = birthdayToSave, updatedAt = System.currentTimeMillis())
-          userRepository.saveUser(updatedUser)
+          var saveResult: Result<Unit>? = null
+          val saveJob =
+              viewModelScope.launch {
+                saveResult = runCatching { userRepository.saveUser(updatedUser) }
+              }
+          withTimeoutOrNull(5_000) { saveJob.join() }
+          if (saveResult != null && saveResult!!.isFailure) {
+            throw saveResult!!.exceptionOrNull()!!
+          }
           _uiState.value = UiState.Success(R.string.success_birthday_updated.toString())
         } else {
           _uiState.value = UiState.Error(R.string.error_user_not_found.toString())
@@ -101,7 +110,15 @@ class EditBirthdayViewModel(
         val user = userRepository.getUserById(userId)
         if (user != null) {
           val updatedUser = user.copy(birthdate = null, updatedAt = System.currentTimeMillis())
-          userRepository.saveUser(updatedUser)
+          var saveResult: Result<Unit>? = null
+          val saveJob =
+              viewModelScope.launch {
+                saveResult = runCatching { userRepository.saveUser(updatedUser) }
+              }
+          withTimeoutOrNull(5_000) { saveJob.join() }
+          if (saveResult != null && saveResult!!.isFailure) {
+            throw saveResult!!.exceptionOrNull()!!
+          }
           _selectedDateMillis.value = null
           _birthdayString.value = null
           _uiState.value = UiState.Success(R.string.success_birthday_removed.toString())
