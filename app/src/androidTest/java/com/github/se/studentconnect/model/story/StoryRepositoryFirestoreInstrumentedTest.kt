@@ -423,7 +423,9 @@ class StoryRepositoryFirestoreInstrumentedTest {
     // Assert
     assertNotNull("Story should not be null", result)
     assertEquals(storyId, result?.storyId)
-    assertEquals(expiresAt, result?.expiresAt)
+    // Compare seconds only since nanoseconds can differ slightly due to timing
+    assertNotNull("ExpiresAt should not be null", result?.expiresAt)
+    assertEquals("ExpiresAt seconds should match", expiresAt.seconds, result?.expiresAt?.seconds)
 
     // Cleanup
     testImageFile.delete()

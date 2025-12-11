@@ -62,7 +62,9 @@ enum class EventFilter {
 fun JoinedEventsScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: JoinedEventsViewModel = viewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    userId: String? = null,
+    isOwnProfile: Boolean = userId == null
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val searchQuery by viewModel.searchQuery.collectAsState()
@@ -136,6 +138,7 @@ fun JoinedEventsScreen(
                         events = filteredEvents,
                         pinnedEventIds = pinnedEventIds,
                         selectedFilter = selectedFilter,
+                        isOwnProfile = isOwnProfile,
                         onEventClick = { event ->
                           navController.navigate(Route.eventView(event.uid, true))
                         },
@@ -199,6 +202,7 @@ private fun EventsList(
     events: List<Event>,
     pinnedEventIds: List<String>,
     selectedFilter: EventFilter,
+    isOwnProfile: Boolean,
     onEventClick: (Event) -> Unit,
     onPinClick: (String) -> Unit
 ) {
@@ -221,19 +225,20 @@ private fun EventsList(
                 onClick = { onEventClick(event) },
                 footerText = formattedDate,
                 modifier = Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
-                actionContent = {
-                  // Pin button (only shown for past events)
-                  if (selectedFilter == EventFilter.Past) {
-                    val configuration = LocalConfiguration.current
-                    val screenWidth = configuration.screenWidthDp.dp
-                    val pinButtonPadding = screenWidth * 0.02f
+                actionContent =
+                    if (isOwnProfile && selectedFilter == EventFilter.Past) {
+                      {
+                        val configuration = LocalConfiguration.current
+                        val screenWidth = configuration.screenWidthDp.dp
+                        val pinButtonPadding = screenWidth * 0.02f
 
-                    PinButton(
-                        isPinned = isPinned,
-                        onClick = { onPinClick(event.uid) },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
-                  }
-                })
+                        PinButton(
+                            isPinned = isPinned,
+                            onClick = { onPinClick(event.uid) },
+                            modifier =
+                                Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
+                      }
+                    } else null)
           }
         }
   }

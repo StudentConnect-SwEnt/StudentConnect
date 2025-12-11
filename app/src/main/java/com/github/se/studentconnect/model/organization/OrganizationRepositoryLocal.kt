@@ -8,6 +8,7 @@ package com.github.se.studentconnect.model.organization
  */
 class OrganizationRepositoryLocal : OrganizationRepository {
   private val organizations = mutableMapOf<String, Organization>()
+  private val invitations = mutableMapOf<String, OrganizationMemberInvitation>()
   private var idCounter = 0
 
   override suspend fun saveOrganization(organization: Organization) {
@@ -26,9 +27,66 @@ class OrganizationRepositoryLocal : OrganizationRepository {
     return "org_local_${idCounter++}"
   }
 
+  override suspend fun sendMemberInvitation(
+      organizationId: String,
+      userId: String,
+      role: String,
+      invitedBy: String
+  ) {
+    val invitation =
+        OrganizationMemberInvitation(
+            organizationId = organizationId, userId = userId, role = role, invitedBy = invitedBy)
+    val invitationId = "${organizationId}_${userId}"
+    invitations[invitationId] = invitation
+  }
+
+  override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {
+    val org = organizations[organizationId]
+    if (org != null) {
+      val updatedMemberUids = org.memberUids.toMutableList()
+      if (!updatedMemberUids.contains(userId)) {
+        updatedMemberUids.add(userId)
+        organizations[organizationId] = org.copy(memberUids = updatedMemberUids)
+      }
+    }
+
+    // Delete the invitation
+    val invitationId = "${organizationId}_${userId}"
+    invitations.remove(invitationId)
+  }
+
+  override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {
+    val invitationId = "${organizationId}_${userId}"
+    invitations.remove(invitationId)
+  }
+
+  override suspend fun getPendingInvitations(
+      organizationId: String
+  ): List<OrganizationMemberInvitation> {
+    return invitations.values.filter { it.organizationId == organizationId }
+  }
+
+  override suspend fun getUserPendingInvitations(
+      userId: String
+  ): List<OrganizationMemberInvitation> {
+    return invitations.values.filter { it.userId == userId }
+  }
+
+  override suspend fun addMemberToOrganization(organizationId: String, userId: String) {
+    val org = organizations[organizationId]
+    if (org != null) {
+      val updatedMemberUids = org.memberUids.toMutableList()
+      if (!updatedMemberUids.contains(userId)) {
+        updatedMemberUids.add(userId)
+        organizations[organizationId] = org.copy(memberUids = updatedMemberUids)
+      }
+    }
+  }
+
   /** Clears all organizations from the local repository. Useful for test setup/teardown. */
   fun clear() {
     organizations.clear()
+    invitations.clear()
     idCounter = 0
   }
 }

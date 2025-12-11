@@ -100,10 +100,12 @@ class MediaRepositoryFirebaseStorageTest : StudentConnectTest() {
     // When uploading
     uploadedId = repo.upload(uri, customPath)
 
-    // Then the returned path should contain the custom path
+    // Then the returned path should contain the custom path (URL-encoded in download URL)
     assertNotNull("Upload ID should not be null", uploadedId)
+    // The download URL contains URL-encoded path: "test/custom/" becomes "test%2Fcustom%2F"
     assertTrue(
-        "Returned path should contain custom path segment", uploadedId!!.contains("test/custom/"))
+        "Returned path should contain custom path segment (URL-encoded)",
+        uploadedId!!.contains("test%2Fcustom%2F") || uploadedId!!.contains("test/custom/"))
 
     // Clean up
     repo.delete(uploadedId!!)

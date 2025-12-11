@@ -253,4 +253,97 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
     // The button should now be enabled
     save.assertIsEnabled()
   }
+
+  @Test
+  fun flashEventToggle_whenEnabled_showsDurationFields() {
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    val flashSwitch =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    flashSwitch.performScrollTo()
+    flashSwitch.performClick()
+
+    // Wait for duration fields to appear
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS)
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
+        .performScrollTo()
+        .assertIsDisplayed()
+
+    // Date/time fields should not be visible
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
+        .assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun flashEventToggle_whenDisabled_showsDateTimeFields() {
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    val flashSwitch =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    flashSwitch.performScrollTo()
+
+    // Ensure flash is disabled (default state)
+    // Duration fields should not be visible
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS)
+        .assertDoesNotExist()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
+        .assertDoesNotExist()
+
+    // Date/time fields should be visible
+    waitForTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.START_DATE_INPUT)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.END_DATE_INPUT)
+        .performScrollTo()
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun saveButton_enabled_whenFlashEventWithValidDuration() {
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    val flashSwitch =
+        composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    flashSwitch.performScrollTo()
+    flashSwitch.performClick()
+
+    waitForTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
+    val title = composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.TITLE_INPUT)
+    title.performScrollTo()
+    title.performTextInput("Flash Event")
+
+    // Flash event with default duration (1h 0m) should enable save button
+    waitForTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON)
+    composeTestRule.onNodeWithTag(CreatePrivateEventScreenTestTags.SAVE_BUTTON).assertIsEnabled()
+  }
+
+  @Test
+  fun flashDurationFields_areDisplayedWhenFlashEnabled() {
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+        .performScrollTo()
+        .performClick()
+
+    waitForTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS)
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
+        .performScrollTo()
+        .assertIsDisplayed()
+  }
 }

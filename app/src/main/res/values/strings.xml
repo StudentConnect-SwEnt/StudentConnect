@@ -77,7 +77,7 @@
     <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
     <string name="org_setup_title">Where and what do you organize ?</string>
     <string name="org_setup_main_location_label">Main Location</string>
-    <string name="org_setup_main_location_placeholder">Search locations...</string>
+    <string name="org_setup_main_location_placeholder">Search locations…</string>
     <string name="org_setup_age_range_label">Age range</string>
     <string name="org_setup_event_size_label">Typical event size</string>
     <string name="org_setup_main_domains_label">Main domains</string>
@@ -160,17 +160,16 @@
     <string name="content_description_add_story">Add Story</string>
     <string name="content_description_event_story">Event Story</string>
     <string name="content_description_close_story">Close story</string>
-    <string name="content_description_story_content">Story content</string>
     <string name="content_description_story_for">Story for %s</string>
     <string name="content_description_search_icon">Search Icon</string>
     <string name="content_description_student_connect_logo">Student Connect Logo</string>
     <string name="content_description_favorite">Favorite</string>
     <string name="content_description_live_icon">Live Icon</string>
+    <string name="content_description_flash_event">Flash Event</string>
+    <string name="event_label_live">LIVE</string>
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
-    <string name="content_description_scan_icon">Scan icon</string>
-    <string name="content_description_edit_icon">Edit icon</string>
     <string name="content_description_action_icon">action icon</string>
     <string name="content_description_action_button">Action button</string>
     <string name="content_description_close_filters">Close Filters</string>
@@ -204,7 +203,6 @@
     <string name="text_no_upcoming_events">No upcoming events</string>
     <string name="text_no_new_invitations">No new invitations</string>
     <string name="text_no_past_events">No past events</string>
-    <string name="text_pinned_events">Pinned Events</string>
     <string name="text_participants_count">%d participants</string>
     <string name="text_empty_upcoming_description">You haven\'t joined any events yet. Explore to find some!</string>
     <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>
@@ -375,7 +373,6 @@
     <string name="event_hurry_up_started">Hurry up! Event has started</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
-    <string name="event_button_return">Return to Event</string>
 
     <!-- Leave event confirmation dialog -->
     <string name="leave_event_confirmation_title">Leave Event</string>
@@ -404,10 +401,15 @@
     <string name="event_error_date_empty">Date cannot be empty</string>
     <string name="event_error_date_invalid">Date is invalid</string>
     <string name="event_label_participants">Number of participants</string>
+    <string name="title_participants">Participants</string>
     <string name="event_label_tags">Tags</string>
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
+    <string name="event_label_flash_duration">Duration</string>
+    <string name="event_label_flash_duration_hours">Hours</string>
+    <string name="event_label_flash_duration_minutes">Minutes</string>
+    <string name="event_label_flash_starts_immediately">Starts immediately</string>
     <string name="event_label_username">Username</string>
     <string name="event_label_invite_friends">Invite friends</string>
     <string name="event_invite_friends_help">Select friends to invite to this event.</string>
@@ -448,7 +450,6 @@
     <string name="button_view_statistics">View Statistics</string>
     <string name="content_description_view_statistics">View event statistics</string>
     <string name="button_create_poll">Poll</string>
-    <string name="content_description_add_poll">Create new poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
     <string name="poll_options_count">%1$d options</string>
@@ -492,7 +493,7 @@
     <string name="no_bio_available">No biography available yet.</string>
     <string name="text_request_sent">Request Sent</string>
     <string name="text_remove_friend">Remove Friend</string>
-    <string name="text_sending">Sending...</string>
+    <string name="text_sending">Sending…</string>
     <string name="text_already_friends">Already Friends</string>
     <string name="text_try_again">Try Again</string>
     <string name="button_add_friend">Add Friend</string>
@@ -583,9 +584,39 @@
     <string name="content_description_unpin_event">Unpin event</string>
     <string name="date_format_pinned_event">dd MMM, yyyy</string>
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
+    <string name="text_pinned_events">Pinned Events</string>
 
     <string name="anonymous">Anonymous</string>
+    
+    <!-- Story upload messages -->
+    <string name="story_select_event">Please select an event for your story</string>
+    <string name="story_upload_in_progress">Upload in progress...</string>
+    <string name="story_login_required">You must be logged in to upload stories</string>
+    <string name="story_uploading">Uploading story...</string>
+    <string name="story_uploaded">Story uploaded!</string>
+    <string name="story_upload_failed">Failed to upload story. Check connection and permissions.</string>
+    <string name="story_upload_error">Upload error: %s</string>
+    
+    <!-- Story viewer messages -->
+    <string name="story_no_stories">No stories available</string>
+    <string name="story_image_description">Story image by %s</string>
+    <string name="story_video">Video Story</string>
+    <string name="story_video_coming_soon">Video playback will be available soon</string>
+    <string name="story_delete_title">Delete Story</string>
+    <string name="story_delete_message">Are you sure you want to delete this story? This action cannot be undone.</string>
+    <string name="story_delete_button">Delete</string>
+    <string name="story_cancel_button">Cancel</string>
+    <string name="story_deleted">Story deleted</string>
+    <string name="story_delete_failed">Failed to delete story</string>
+    <string name="story_error">Error: %s</string>
+    
+    <!-- HomeScreen constants -->
+    <string name="home_story_item_width">80dp</string>
+    <string name="home_story_spacer_height">8dp</string>
 
+    <!-- Visitor profile stats -->
+    <string name="toast_add_friend_to_view_friends">Add them as a friend to view their friends</string>
+    <string name="toast_add_friend_to_view_events">Add them as a friend to view their events</string>
     <!-- Generic error + retry -->
     <string name="error_generic">An error occurred</string>
     <string name="action_retry">Retry</string>

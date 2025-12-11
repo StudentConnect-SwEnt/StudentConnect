@@ -18,16 +18,24 @@ object Route {
   const val PROFILE = "profile"
   const val SEARCH = "search"
 
-  const val VISITOR_PROFILE = "visitorProfile/{userId}"
-  const val JOINED_EVENTS = "joinedEvents"
-  const val ORGANIZATION_PROFILE = "organizationProfile/{organizationId}"
+  private const val VISITOR_PROFILE_BASE = "visitorProfile"
+  private const val JOINED_EVENTS_BASE = "joinedEvents"
+  private const val ORGANIZATION_PROFILE_BASE = "organizationProfile"
+
+  const val VISITOR_PROFILE = "$VISITOR_PROFILE_BASE/{userId}"
+  const val JOINED_EVENTS = "$JOINED_EVENTS_BASE?userId={userId}"
+  const val ORGANIZATION_PROFILE = "$ORGANIZATION_PROFILE_BASE/{organizationId}"
 
   const val USER_ID_ARG = "userId"
   const val ORGANIZATION_ID_ARG = "organizationId"
 
-  fun visitorProfile(userId: String): String = "visitorProfile/$userId"
+  fun visitorProfile(userId: String): String = "$VISITOR_PROFILE_BASE/$userId"
 
-  fun organizationProfile(organizationId: String): String = "organizationProfile/$organizationId"
+  fun joinedEvents(userId: String? = null): String =
+      if (userId != null) "$JOINED_EVENTS_BASE?userId=$userId" else JOINED_EVENTS_BASE
+
+  fun organizationProfile(organizationId: String): String =
+      "$ORGANIZATION_PROFILE_BASE/$organizationId"
 
   const val CREATE_PUBLIC_EVENT = "create_public_event"
   const val CREATE_PRIVATE_EVENT = "create_private_event"

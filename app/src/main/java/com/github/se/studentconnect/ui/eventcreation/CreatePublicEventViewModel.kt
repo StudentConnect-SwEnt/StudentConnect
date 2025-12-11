@@ -3,8 +3,6 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.google.firebase.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.launch
@@ -32,6 +30,7 @@ class CreatePublicEventViewModel :
    */
   override fun prefillFromTemplate(event: Event) {
     val publicEvent = event as? Event.Public ?: return
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
     _uiState.value =
         CreateEventUiState.Public(
             title = publicEvent.title,
@@ -45,6 +44,8 @@ class CreatePublicEventViewModel :
             hasParticipationFee = publicEvent.participationFee != null,
             participationFeeString = publicEvent.participationFee?.toString() ?: "",
             isFlash = publicEvent.isFlash,
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             subtitle = publicEvent.subtitle,
             website = publicEvent.website.orEmpty(),
             tags = publicEvent.tags,
@@ -54,7 +55,13 @@ class CreatePublicEventViewModel :
 
   override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
-    val start = timestampFrom(s.startDate!!, s.startTime)
+    val start =
+        if (s.isFlash && editingEventUid == null) {
+          // Flash events start immediately
+          Timestamp.now()
+        } else {
+          timestampFrom(s.startDate!!, s.startTime)
+        }
     val end = timestampFrom(s.endDate!!, s.endTime)
     val maxCapacity =
         try {
@@ -103,6 +110,8 @@ class CreatePublicEventViewModel :
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime()
 
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
+
     _uiState.value =
         CreateEventUiState.Public(
             title = event.title,
@@ -116,14 +125,11 @@ class CreatePublicEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl,
             subtitle = event.subtitle,
             website = event.website.orEmpty(),
             tags = event.tags)
-  }
-
-  private fun timestampFrom(date: LocalDate, time: LocalTime): Timestamp {
-    val instant = LocalDateTime.of(date, time).atZone(ZoneId.systemDefault()).toInstant()
-    return Timestamp(instant)
   }
 }

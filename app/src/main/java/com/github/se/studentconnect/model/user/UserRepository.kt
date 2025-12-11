@@ -244,4 +244,18 @@ interface UserRepository : Repository {
     Log.w("UserRepository", "getFollowedOrganizations called but not implemented for user=$userId")
     return emptyList()
   }
+
+  /**
+   * Retrieves all user IDs who follow a specific organization.
+   *
+   * @param organizationId The unique identifier of the organization.
+   * @return A list of user IDs who follow the organization.
+   */
+  suspend fun getOrganizationFollowers(organizationId: String): List<String> {
+    // Default implementation: log warning and return empty list
+    Log.w(
+        "UserRepository",
+        "getOrganizationFollowers called but not implemented for organization=$organizationId")
+    return emptyList()
+  }
 }

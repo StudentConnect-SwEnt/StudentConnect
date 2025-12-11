@@ -89,8 +89,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = { eventsClicked = true }))
+          onFriendsClick = {},
+          onEventsClick = { eventsClicked = true })
     }
 
     composeTestRule.onNodeWithText("Events").performClick()
@@ -105,9 +105,9 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(
-                  onFriendsClick = {}, onEventsClick = {}, onEditClick = { editClicked = true }))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = { editClicked = true })
     }
 
     composeTestRule.onNodeWithText("Edit").performClick()
@@ -122,11 +122,9 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(
-                  onFriendsClick = {},
-                  onEventsClick = {},
-                  onUserCardClick = { cardClicked = true }))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onUserCardClick = { cardClicked = true })
     }
 
     composeTestRule.onNodeWithText("Card").performClick()
@@ -139,12 +137,10 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(
-                  onFriendsClick = {},
-                  onEventsClick = {},
-                  onEditClick = null,
-                  onUserCardClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = null,
+          onUserCardClick = {})
     }
 
     composeTestRule.onNodeWithText("Edit").assertDoesNotExist()
@@ -157,12 +153,10 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(
-                  onFriendsClick = {},
-                  onEventsClick = {},
-                  onEditClick = {},
-                  onUserCardClick = null))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = {},
+          onUserCardClick = null)
     }
 
     composeTestRule.onNodeWithText("Edit").assertIsDisplayed()
@@ -177,7 +171,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithoutBio,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should display other info
@@ -193,7 +188,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithoutCountry,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should display other info
@@ -210,7 +206,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 0, eventsCount = 0),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onAllNodesWithText("0").assertCountEquals(2)
@@ -224,7 +221,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 999, eventsCount = 500),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onNodeWithText("999").assertIsDisplayed()
@@ -237,7 +235,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
@@ -249,7 +248,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onNodeWithContentDescription("Location").assertIsDisplayed()
@@ -261,8 +261,9 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}, onEditClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = {})
     }
 
     composeTestRule.onNodeWithContentDescription("Edit").assertIsDisplayed()
@@ -274,8 +275,9 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}, onUserCardClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onUserCardClick = {})
     }
 
     composeTestRule.onNodeWithContentDescription("User Card").assertIsDisplayed()
@@ -289,7 +291,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = specialUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onNodeWithText("José-María O'Connor").assertIsDisplayed()
@@ -304,7 +307,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithLongUni,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     composeTestRule.onNodeWithText(longUniversity).assertIsDisplayed()
@@ -319,7 +323,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithPicture,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should still display profile picture area (placeholder while loading)
@@ -335,7 +340,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          onFriendsClick = {},
+          onEventsClick = {},
           isVisitorMode = true,
           friendButtonsContent = {
             androidx.compose.material3.Button(onClick = { friendButtonClicked = true }) {
@@ -360,7 +366,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          onFriendsClick = {},
+          onEventsClick = {},
           isVisitorMode = true,
           friendButtonsContent = null)
     }
@@ -376,7 +383,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          onFriendsClick = {},
+          onEventsClick = {},
           showUsername = true)
     }
 
@@ -391,7 +399,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          onFriendsClick = {},
+          onEventsClick = {},
           showUsername = false)
     }
 
@@ -408,7 +417,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithEmptyBio,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should not display bio section when bio is empty string
@@ -422,12 +432,10 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks =
-              ProfileHeaderCallbacks(
-                  onFriendsClick = {},
-                  onEventsClick = {},
-                  onEditClick = null,
-                  onUserCardClick = null))
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = null,
+          onUserCardClick = null)
     }
 
     // Both buttons should be hidden
@@ -443,7 +451,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithWhitespaceBio,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should not display bio section when bio is only whitespace
@@ -457,7 +466,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = testUser,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          onFriendsClick = {},
+          onEventsClick = {},
           isVisitorMode = true,
           showUsername = true,
           friendButtonsContent = {
@@ -485,7 +495,8 @@ class ProfileHeaderAndroidTest {
       ProfileHeader(
           user = userWithLongBio,
           stats = ProfileStats(friendsCount = 10, eventsCount = 5),
-          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}))
+          onFriendsClick = {},
+          onEventsClick = {})
     }
 
     // Should display the long bio

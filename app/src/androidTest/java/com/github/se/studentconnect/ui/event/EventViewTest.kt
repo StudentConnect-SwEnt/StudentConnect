@@ -980,6 +980,37 @@ class EventViewTest {
   }
 
   @Test
+  fun eventView_attendeesList_topBarBackButton_returnsToEvent() {
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    // Scroll to attendees list
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+        .performScrollTo()
+        .performClick()
+
+    composeTestRule.waitForIdle()
+    // Verify we are on attendees list
+    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST).assertIsDisplayed()
+
+    // Click Top Bar Back Button
+    composeTestRule.onNodeWithTag(EventViewTestTags.BACK_BUTTON).performClick()
+
+    // Verify we are back on main event view
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertIsDisplayed()
+  }
+
+  @Test
   fun eventView_fullEvent_displaysFullButton() {
     val fullEvent = testEvent.copy(uid = "full-event", maxCapacity = 2u)
     runBlocking {
@@ -1754,89 +1785,6 @@ class EventViewTest {
     } finally {
       AuthenticationProvider.testUserId = null
     }
-  }
-
-  @Test
-  fun eventView_attendeesListReturnIsDisplayed() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
-  fun eventView_attendeesListReturnIsClickable() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).assertHasClickAction()
-  }
-
-  @Test
-  fun eventView_attendeesListReturnDoesNotCrash() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).performClick()
-  }
-
-  @Test
-  fun eventView_attendeesListReturnToEvent() {
-
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
-        .performScrollTo()
-        .performClick()
-    composeTestRule.onNodeWithTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON).performClick()
-
-    composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(EventViewTestTags.ATTENDEE_LIST).assertIsNotDisplayed()
   }
 
   @Test

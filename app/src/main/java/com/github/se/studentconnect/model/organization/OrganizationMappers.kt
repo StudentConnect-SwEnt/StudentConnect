@@ -17,6 +17,7 @@ import java.util.Locale
  *
  * @param isFollowing Whether the current user is following this organization
  * @param isMember Whether the current user is a member of this organization
+ * @param isOwner Whether the current user is the owner of this organization
  * @param events Optional list of events to include in the profile
  * @param members Optional list of members to include in the profile
  * @return OrganizationProfile for UI display
@@ -24,6 +25,7 @@ import java.util.Locale
 fun Organization.toOrganizationProfile(
     isFollowing: Boolean = false,
     isMember: Boolean = false,
+    isOwner: Boolean = false,
     events: List<OrganizationEvent> = emptyList(),
     members: List<OrganizationMember> = emptyList()
 ): OrganizationProfile {
@@ -34,6 +36,8 @@ fun Organization.toOrganizationProfile(
       logoUrl = this.logoUrl,
       isFollowing = isFollowing,
       isMember = isMember,
+      isOwner = isOwner,
+      roles = this.roles.map { it.name },
       events = events,
       members = members)
 }

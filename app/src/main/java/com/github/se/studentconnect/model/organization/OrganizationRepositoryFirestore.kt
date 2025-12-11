@@ -13,6 +13,7 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
 
   companion object {
     private const val COLLECTION_NAME = "organizations"
+    private const val INVITATIONS_COLLECTION = "organization_member_invitations"
   }
 
   override suspend fun saveOrganization(organization: Organization) {
@@ -44,5 +45,95 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
   override suspend fun getNewOrganizationId(): String {
     val docRef = db.collection(COLLECTION_NAME).document()
     return docRef.id
+  }
+
+  override suspend fun sendMemberInvitation(
+      organizationId: String,
+      userId: String,
+      role: String,
+      invitedBy: String
+  ) {
+    val invitationId = "${organizationId}_${userId}"
+
+    // Check if invitation already exists
+    val existingInvitation =
+        db.collection(INVITATIONS_COLLECTION).document(invitationId).get().await()
+    if (existingInvitation.exists()) {
+      Log.w(
+          "OrganizationRepo",
+          "Invitation already exists for user $userId in organization $organizationId")
+      return
+    }
+
+    val invitation =
+        OrganizationMemberInvitation(
+            organizationId = organizationId, userId = userId, role = role, invitedBy = invitedBy)
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).set(invitation.toMap()).await()
+  }
+
+  override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {
+    // Get the invitation to retrieve the role
+    val invitationId = "${organizationId}_${userId}"
+    val invitationDoc = db.collection(INVITATIONS_COLLECTION).document(invitationId).get().await()
+    val invitation = invitationDoc.data?.let { OrganizationMemberInvitation.fromMap(it) }
+
+    val role = invitation?.role ?: "Member"
+
+    // Use atomic operations to prevent race conditions
+    val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
+
+    // Add user to memberUids and memberRoles atomically
+    val updates =
+        hashMapOf<String, Any>(
+            "memberUids" to com.google.firebase.firestore.FieldValue.arrayUnion(userId),
+            "memberRoles.$userId" to role)
+    orgRef.update(updates).await()
+
+    // Delete the invitation
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).delete().await()
+  }
+
+  override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {
+    val invitationId = "${organizationId}_${userId}"
+    db.collection(INVITATIONS_COLLECTION).document(invitationId).delete().await()
+  }
+
+  override suspend fun getPendingInvitations(
+      organizationId: String
+  ): List<OrganizationMemberInvitation> {
+    return try {
+      val snapshot =
+          db.collection(INVITATIONS_COLLECTION)
+              .whereEqualTo("organizationId", organizationId)
+              .get()
+              .await()
+      snapshot.documents.mapNotNull { document ->
+        OrganizationMemberInvitation.fromMap(document.data ?: emptyMap())
+      }
+    } catch (e: Exception) {
+      Log.e("OrganizationRepo", "Failed to get pending invitations", e)
+      emptyList()
+    }
+  }
+
+  override suspend fun getUserPendingInvitations(
+      userId: String
+  ): List<OrganizationMemberInvitation> {
+    return try {
+      val snapshot =
+          db.collection(INVITATIONS_COLLECTION).whereEqualTo("userId", userId).get().await()
+      snapshot.documents.mapNotNull { document ->
+        OrganizationMemberInvitation.fromMap(document.data ?: emptyMap())
+      }
+    } catch (e: Exception) {
+      Log.e("OrganizationRepo", "Failed to get user pending invitations", e)
+      emptyList()
+    }
+  }
+
+  override suspend fun addMemberToOrganization(organizationId: String, userId: String) {
+    // Use atomic operation to prevent race conditions
+    val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
+    orgRef.update("memberUids", com.google.firebase.firestore.FieldValue.arrayUnion(userId)).await()
   }
 }

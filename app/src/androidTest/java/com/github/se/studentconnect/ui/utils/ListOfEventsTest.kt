@@ -1,14 +1,12 @@
 package com.github.se.studentconnect.ui.utils
 
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.Timestamp
@@ -359,6 +357,80 @@ class ListOfEventsTest {
 
     // Should show LIVE as default end is start + 3 hours
     composeTestRule.onNodeWithText("LIVE").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventCard_flashEvent_showsFlashIconWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val flashEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(pastStart.time), end = Timestamp(futureEnd.time), isFlash = true)
+
+    composeTestRule.setContent {
+      EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Flash event should show flash icon, not LIVE text
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_flashEvent_doesNotShowBadgeWhenNotLive() {
+    val futureStart = Calendar.getInstance().apply { add(Calendar.HOUR, 1) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.HOUR, 3) }
+
+    val flashEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(futureStart.time),
+                end = Timestamp(futureEnd.time),
+                isFlash = true)
+
+    composeTestRule.setContent {
+      EventCard(event = flashEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Future flash event should not show any badge
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
+        .assertDoesNotExist()
+    composeTestRule
+        .onNodeWithText(context.getString(R.string.event_label_live))
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun eventCard_regularEvent_showsLiveBadgeWhenLive() {
+    val now = Calendar.getInstance()
+    val pastStart = Calendar.getInstance().apply { add(Calendar.MINUTE, -30) }
+    val futureEnd = Calendar.getInstance().apply { add(Calendar.MINUTE, 30) }
+
+    val regularEvent =
+        createTestEvent()
+            .copy(
+                start = Timestamp(pastStart.time), end = Timestamp(futureEnd.time), isFlash = false)
+
+    composeTestRule.setContent {
+      EventCard(event = regularEvent, isFavorite = false, onFavoriteToggle = {}, onClick = {})
+    }
+
+    // Regular event should show LIVE badge, not flash icon
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
+    composeTestRule.onNodeWithText(context.getString(R.string.event_label_live)).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithContentDescription(context.getString(R.string.content_description_flash_event))
+        .assertDoesNotExist()
   }
 
   @Test

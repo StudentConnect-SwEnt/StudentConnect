@@ -47,6 +47,7 @@ fun CameraView(
     enableVideoCapture: Boolean = false,
     imageAnalyzer: ImageAnalysis.Analyzer? = null,
     imageAnalysisConfig: (ImageAnalysis.Builder.() -> Unit)? = null,
+    imageCaptureConfig: (ImageCapture.Builder.() -> Unit)? = null,
     onImageCaptured: ((Uri) -> Unit)? = null,
     onVideoCaptured: ((Uri) -> Unit)? = null,
     onCameraPermissionDenied: () -> Unit = {},
@@ -83,11 +84,16 @@ fun CameraView(
     return
   }
 
-  val previewView = remember { PreviewView(context) }
+  val previewView = remember {
+    PreviewView(context).apply {
+      // Use FILL_CENTER to ensure the preview fills the screen
+      scaleType = PreviewView.ScaleType.FILL_CENTER
+    }
+  }
   val imageCapture =
-      remember(enableImageCapture) {
+      remember(enableImageCapture, imageCaptureConfig) {
         if (enableImageCapture) {
-          ImageCapture.Builder().build()
+          ImageCapture.Builder().apply { imageCaptureConfig?.invoke(this) }.build()
         } else {
           null
         }
@@ -131,10 +137,19 @@ fun CameraView(
   DisposableEffect(imageAnalyzer) { onDispose { analysisExecutor?.shutdown() } }
 
   // Bind camera when Composable appears
-  LaunchedEffect(cameraSelector, imageAnalysis, imageCapture, videoCapture) {
+  LaunchedEffect(cameraSelector, imageAnalysis, imageCapture, videoCapture, imageCaptureConfig) {
     val cameraProvider = context.getCameraProvider()
     cameraProviderState.value = cameraProvider
-    val preview = Preview.Builder().build()
+    val preview =
+        Preview.Builder()
+            .apply {
+              // Match the aspect ratio of image capture if configured
+              // Using default aspect ratio without deprecated setTargetAspectRatio
+              if (imageCaptureConfig != null) {
+                // CameraX will automatically select appropriate resolution
+              }
+            }
+            .build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
 
     try {

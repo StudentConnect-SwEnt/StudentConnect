@@ -302,4 +302,32 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
             .await()
     return document.documents.mapNotNull { it.getString("organizationId") }
   }
+
+  override suspend fun getOrganizationFollowers(organizationId: String): List<String> {
+    // Query all users and check if they follow this organization
+    // Note: This uses collection group query which requires an index in Firestore
+    // For now, we'll query all users and filter
+    return try {
+      val allUsers = db.collection(COLLECTION_NAME).get().await()
+      val followers = mutableListOf<String>()
+
+      for (userDoc in allUsers.documents) {
+        val userId = userDoc.id
+        val followDoc =
+            db.collection(COLLECTION_NAME)
+                .document(userId)
+                .collection(FOLLOWED_ORGANIZATIONS)
+                .document(organizationId)
+                .get()
+                .await()
+        if (followDoc.exists()) {
+          followers.add(userId)
+        }
+      }
+      followers
+    } catch (e: Exception) {
+      Log.e("UserRepositoryFirestore", "Failed to get organization followers", e)
+      emptyList()
+    }
+  }
 }

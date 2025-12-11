@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.profile
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.friends.FriendsRepository
@@ -54,22 +53,13 @@ class FriendsListViewModel(
 
         val friendUsers =
             friendIds
-                .map { friendId ->
-                  async {
-                    runCatching { userRepository.getUserById(friendId) }
-                        .onFailure { e ->
-                          Log.w(TAG, "Failed to load friend with ID: $friendId", e)
-                        }
-                        .getOrNull()
-                  }
-                }
+                .map { friendId -> async { userRepository.getUserById(friendId) } }
                 .awaitAll()
                 .filterNotNull()
 
         _friends.value = friendUsers
         _filteredFriends.value = friendUsers
       } catch (e: Exception) {
-        Log.e(TAG, "Failed to load friends for user: $userId", e)
         _error.value = e.message ?: ProfileConstants.ERROR_LOAD_FRIENDS
       } finally {
         _isLoading.value = false
