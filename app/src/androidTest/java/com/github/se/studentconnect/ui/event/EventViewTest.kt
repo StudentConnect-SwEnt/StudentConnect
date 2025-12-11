@@ -2114,10 +2114,13 @@ class EventViewTest {
 
       // Assert - confirmation dialog should be displayed
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG)
+          .assertIsDisplayed()
       composeTestRule.onNodeWithText("Delete Event").assertIsDisplayed()
       composeTestRule
-          .onNodeWithText("Are you sure you want to delete this event? This action cannot be undone.")
+          .onNodeWithText(
+              "Are you sure you want to delete this event? This action cannot be undone.")
           .assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
@@ -2172,7 +2175,9 @@ class EventViewTest {
         NavHost(navController = navController, startDestination = "event") {
           composable("event") {
             EventView(
-                eventUid = testEvent.uid, navController = navController, eventViewModel = freshViewModel)
+                eventUid = testEvent.uid,
+                navController = navController,
+                eventViewModel = freshViewModel)
           }
         }
       }

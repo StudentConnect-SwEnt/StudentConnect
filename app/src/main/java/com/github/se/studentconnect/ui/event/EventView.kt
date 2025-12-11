@@ -217,15 +217,10 @@ fun EventView(
         text = { Text(text = stringResource(R.string.delete_event_confirmation_message)) },
         confirmButton = {
           TextButton(
-              onClick = {
-                eventViewModel.deleteEvent(event.uid) {
-                  navController.popBackStack()
-                }
-              },
+              onClick = { eventViewModel.deleteEvent(event.uid) { navController.popBackStack() } },
               modifier = Modifier.testTag(EventViewTestTags.DELETE_CONFIRMATION_CONFIRM),
               colors =
-                  ButtonDefaults.textButtonColors(
-                      contentColor = MaterialTheme.colorScheme.error)) {
+                  ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                 Text(text = stringResource(R.string.delete_event_confirm))
               }
         },
@@ -490,10 +485,9 @@ private fun BaseEventView(
                   }
             }
 
-      // Snackbar Host
-      SnackbarHost(
-          hostState = snackbarHostState,
-          modifier = Modifier.align(Alignment.BottomCenter))
+        // Snackbar Host
+        SnackbarHost(
+            hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
       }
 }
 

@@ -989,7 +989,8 @@ class EventViewModelTest {
     val uiState = viewModel.uiState.value
     assertFalse(uiState.isDeletingEvent)
     assertFalse(uiState.showDeleteConfirmDialog)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_success, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_success, uiState.deleteEventMessageRes)
     assertNull(uiState.event)
     assertTrue(onSuccessCalled)
   }
@@ -1012,7 +1013,8 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertFalse(uiState.showDeleteConfirmDialog)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1027,7 +1029,8 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertFalse(uiState.showDeleteConfirmDialog)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1060,7 +1063,8 @@ class EventViewModelTest {
     // Assert
     val uiState = mockViewModel.uiState.value
     assertFalse(uiState.isDeletingEvent)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1093,7 +1097,9 @@ class EventViewModelTest {
     // Assert
     val uiState = mockViewModel.uiState.value
     assertFalse(uiState.isDeletingEvent)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error_network, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error_network,
+        uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1126,7 +1132,9 @@ class EventViewModelTest {
     // Assert
     val uiState = mockViewModel.uiState.value
     assertFalse(uiState.isDeletingEvent)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error_network, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error_network,
+        uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1159,7 +1167,8 @@ class EventViewModelTest {
     // Assert
     val uiState = mockViewModel.uiState.value
     assertFalse(uiState.isDeletingEvent)
-    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertEquals(
+        com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
     assertFalse(onSuccessCalled)
   }
 
@@ -1171,7 +1180,8 @@ class EventViewModelTest {
     @Suppress("UNCHECKED_CAST")
     val stateFlow = privateField.get(viewModel) as MutableStateFlow<EventUiState>
     stateFlow.value =
-        stateFlow.value.copy(deleteEventMessageRes = com.github.se.studentconnect.R.string.delete_event_success)
+        stateFlow.value.copy(
+            deleteEventMessageRes = com.github.se.studentconnect.R.string.delete_event_success)
 
     // Act
     viewModel.clearDeleteEventMessage()

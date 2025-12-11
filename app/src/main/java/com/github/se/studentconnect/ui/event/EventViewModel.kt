@@ -235,8 +235,7 @@ class EventViewModel(
     if (event == null || event.ownerId != currentUserId) {
       _uiState.update {
         it.copy(
-            showDeleteConfirmDialog = false,
-            deleteEventMessageRes = R.string.delete_event_error)
+            showDeleteConfirmDialog = false, deleteEventMessageRes = R.string.delete_event_error)
       }
       return
     }
@@ -261,9 +260,7 @@ class EventViewModel(
       } catch (e: IllegalAccessException) {
         // User is not the owner
         _uiState.update {
-          it.copy(
-              isDeletingEvent = false,
-              deleteEventMessageRes = R.string.delete_event_error)
+          it.copy(isDeletingEvent = false, deleteEventMessageRes = R.string.delete_event_error)
         }
       } catch (e: Exception) {
         // Network or other errors
@@ -275,9 +272,7 @@ class EventViewModel(
             } else {
               R.string.delete_event_error
             }
-        _uiState.update {
-          it.copy(isDeletingEvent = false, deleteEventMessageRes = errorRes)
-        }
+        _uiState.update { it.copy(isDeletingEvent = false, deleteEventMessageRes = errorRes) }
       }
     }
   }
