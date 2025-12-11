@@ -474,21 +474,20 @@ private fun BaseEventView(
 
                 ChatButton()
 
-                    // Delete Event Button - only show if user is owner
-                    if (AuthenticationProvider.currentUser == event.ownerId) {
-                      DeleteEventButton(
-                          onClick = { eventViewModel.showDeleteConfirmDialog() },
-                          modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
-                    }
+                // Delete Event Button - only show if user is owner
+                if (AuthenticationProvider.currentUser == event.ownerId) {
+                  DeleteEventButton(
+                      onClick = { eventViewModel.showDeleteConfirmDialog() },
+                      modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
+                }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-                  }
-            }
+                Spacer(modifier = Modifier.height(20.dp))
+              }
+        }
 
-        // Snackbar Host
-        SnackbarHost(
-            hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
-      }
+    // Snackbar Host
+    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+  }
 }
 
 @Composable
