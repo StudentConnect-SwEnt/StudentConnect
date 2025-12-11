@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.chat
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.chat.ChatMessage
 import com.github.se.studentconnect.model.chat.ChatRepository
@@ -48,6 +49,16 @@ class ChatViewModelTest {
   private val testUserId = "user-123"
   private val testEventId = "event-456"
 
+  // Mock getString function that returns proper error messages for tests
+  private val mockGetString: (Int) -> String = { resId ->
+    when (resId) {
+      R.string.error_failed_to_load_event -> "Failed to load event: %s"
+      R.string.error_failed_to_load_user -> "Failed to load user: %s"
+      R.string.error_failed_to_send_message -> "Failed to send message: %s"
+      else -> ""
+    }
+  }
+
   private val testUser =
       User(
           userId = testUserId,
@@ -94,7 +105,8 @@ class ChatViewModelTest {
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     UserRepositoryProvider.overrideForTests(mockUserRepository)
 
-    viewModel = ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository)
+    viewModel =
+        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
   }
 
   @After
@@ -410,7 +422,8 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutCurrentUser_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel = ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository)
+    val tempViewModel =
+        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
     AuthenticationProvider.testUserId = null
 
     tempViewModel.updateMessageText("Hello")
@@ -421,7 +434,8 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutEvent_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel = ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository)
+    val tempViewModel =
+        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
     `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
 
     tempViewModel.updateMessageText("Hello")

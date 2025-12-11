@@ -268,29 +268,35 @@ class TypingStatusTest {
     assertEquals(5, map.size)
   }
 
-  @Test
-  fun typingStatus_creation_withEmptyStringUserId_succeeds() {
-    // TypingStatus does not validate field contents, unlike ChatMessage
-    val status =
-        TypingStatus(userId = "", userName = "Jane Doe", eventId = "event-456", isTyping = true)
-
-    assertEquals("", status.userId)
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withEmptyStringUserId_fails() {
+    // TypingStatus now validates field contents for consistency with ChatMessage
+    TypingStatus(userId = "", userName = "Jane Doe", eventId = "event-456", isTyping = true)
   }
 
-  @Test
-  fun typingStatus_creation_withEmptyStringUserName_succeeds() {
-    val status =
-        TypingStatus(userId = "user-123", userName = "", eventId = "event-456", isTyping = true)
-
-    assertEquals("", status.userName)
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withEmptyStringUserName_fails() {
+    TypingStatus(userId = "user-123", userName = "", eventId = "event-456", isTyping = true)
   }
 
-  @Test
-  fun typingStatus_creation_withEmptyStringEventId_succeeds() {
-    val status =
-        TypingStatus(userId = "user-123", userName = "Jane Doe", eventId = "", isTyping = true)
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withEmptyStringEventId_fails() {
+    TypingStatus(userId = "user-123", userName = "Jane Doe", eventId = "", isTyping = true)
+  }
 
-    assertEquals("", status.eventId)
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withBlankUserId_fails() {
+    TypingStatus(userId = "   ", userName = "Jane Doe", eventId = "event-456", isTyping = true)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withBlankUserName_fails() {
+    TypingStatus(userId = "user-123", userName = "   ", eventId = "event-456", isTyping = true)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun typingStatus_creation_withBlankEventId_fails() {
+    TypingStatus(userId = "user-123", userName = "Jane Doe", eventId = "   ", isTyping = true)
   }
 
   @Test
