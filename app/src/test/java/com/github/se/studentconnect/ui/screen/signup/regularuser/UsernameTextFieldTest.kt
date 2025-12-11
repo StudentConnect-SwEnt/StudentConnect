@@ -56,49 +56,49 @@ class UsernameTextFieldTest {
     composeTestRule.onNodeWithText("Username").assertExists()
   }
 
-  //  @Test
-  //  fun usernameTextField_showsError_whenTooShort() {
-  //    composeTestRule.setContent {
-  //      MaterialTheme {
-  //        UsernameTextField(
-  //            username = "ab",
-  //            onUsernameChange = {},
-  //            userRepository = repository,
-  //            onValidationStateChange = { _, _ -> })
-  //      }
-  //    }
-  //
-  //    composeTestRule.waitForIdle()
-  //    composeTestRule.waitUntil(timeoutMillis = 2000) {
-  //      composeTestRule
-  //          .onAllNodesWithText("Username must be 3-20 characters long")
-  //          .fetchSemanticsNodes()
-  //          .isNotEmpty()
-  //    }
-  //    composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
-  //  }
-  //
-  //  @Test
-  //  fun usernameTextField_showsError_whenTooLong() {
-  //    composeTestRule.setContent {
-  //      MaterialTheme {
-  //        UsernameTextField(
-  //            username = "a".repeat(21),
-  //            onUsernameChange = {},
-  //            userRepository = repository,
-  //            onValidationStateChange = { _, _ -> })
-  //      }
-  //    }
-  //
-  //    composeTestRule.waitForIdle()
-  //    composeTestRule.waitUntil(timeoutMillis = 2000) {
-  //      composeTestRule
-  //          .onAllNodesWithText("Username must be 3-20 characters long")
-  //          .fetchSemanticsNodes()
-  //          .isNotEmpty()
-  //    }
-  //    composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
-  //  }
+  @Test
+  fun usernameTextField_showsError_whenTooShort() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "ab",
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { _, _ -> })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule
+          .onAllNodesWithText("Username must be 3–20 characters long")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithText("Username must be 3–20 characters long").assertExists()
+  }
+
+  @Test
+  fun usernameTextField_showsError_whenTooLong() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        UsernameTextField(
+            username = "a".repeat(21),
+            onUsernameChange = {},
+            userRepository = repository,
+            onValidationStateChange = { _, _ -> })
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 2000) {
+      composeTestRule
+          .onAllNodesWithText("Username must be 3–20 characters long")
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
+    composeTestRule.onNodeWithText("Username must be 3–20 characters long").assertExists()
+  }
 
   @Test
   fun usernameTextField_showsError_whenInvalidCharacters() {
