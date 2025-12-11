@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -136,7 +137,7 @@ fun ProfileHeader(
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        UserInformation(user = user, showUsername = showUsername)
+        UserInformation(user = user, showUsername = showUsername, isVisitorMode = isVisitorMode)
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
@@ -188,12 +189,14 @@ private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modif
  *
  * @param user The user whose information to display
  * @param showUsername Whether to show the username below the name
+ * @param isVisitorMode Whether this is a visitor profile
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun UserInformation(
     user: User,
     showUsername: Boolean = false,
+    isVisitorMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
@@ -203,7 +206,12 @@ private fun UserInformation(
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurface)
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier =
+            if (isVisitorMode)
+                Modifier.testTag(
+                    com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
+            else Modifier)
 
     // Username (if showUsername is true)
     if (showUsername) {
