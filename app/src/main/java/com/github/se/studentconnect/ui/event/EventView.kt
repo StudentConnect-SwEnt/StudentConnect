@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.material3.LinearProgressIndicator
@@ -68,16 +69,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
-
-// New centralized size values to avoid hardcoded dp usages
 private val iconSize = 24.dp
 private val smallSpacing = 8.dp
 
-// URL protocol constants to avoid duplication
 private const val HTTP_PROTOCOL = "http://"
 private const val HTTPS_PROTOCOL = "https://"
+private const val DAY_IN_SECONDS = 86400
 
-/** Test tags for the EventView screen and its components. */
 object EventViewTestTags {
   const val EVENT_VIEW_SCREEN = "event_view_screen"
   const val TOP_APP_BAR = "event_view_top_app_bar"
@@ -101,7 +99,6 @@ object EventViewTestTags {
   const val VALIDATION_RESULT_VALID = "event_view_validation_result_valid"
   const val VALIDATION_RESULT_INVALID = "event_view_validation_result_invalid"
   const val VALIDATION_RESULT_ERROR = "event_view_validation_result_error"
-  const val RETURN_TO_EVENT_BUTTON = "event_view_return_to_event_button"
   const val ATTENDEE_LIST_ITEM = "event_view_attendee_list_item"
   const val ATTENDEE_LIST_OWNER = "event_view_attendee_list_owner"
   const val ATTENDEE_LIST_CURRENT_USER = "event_view_attendee_list_current_user"
@@ -126,7 +123,6 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
-  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -135,10 +131,10 @@ fun EventView(
   val validationResult = uiState.ticketValidationResult
 
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
+  val coroutineScope = rememberCoroutineScope()
 
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
-  // QR Scanner Dialog
   if (showQrScanner && event != null) {
     QrScannerDialog(
         eventUid = event.uid,
@@ -147,7 +143,6 @@ fun EventView(
         validationResult = validationResult)
   }
 
-  // Create Poll Dialog
   if (uiState.showCreatePollDialog && event != null) {
     CreatePollDialog(
         eventUid = event.uid,
@@ -163,7 +158,6 @@ fun EventView(
         onDismiss = { eventViewModel.hideInviteFriendsDialog() })
   }
 
-  // Leave Event Confirmation Dialog
   if (uiState.showLeaveConfirmDialog && event != null) {
     AlertDialog(
         onDismissRequest = { eventViewModel.hideLeaveConfirmDialog() },
@@ -194,52 +188,60 @@ fun EventView(
       topBar = {
         TopAppBar(
             title = {
-              event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+              if (pagerState.currentPage == 0) {
+                Text(text = stringResource(R.string.title_participants))
+              } else {
+                event?.let { Text(it.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+              }
             },
             navigationIcon = {
-              if (pagerState.currentPage == 1) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
-                      Icon(
-                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = stringResource(R.string.content_description_back))
+              IconButton(
+                  onClick = {
+                    if (pagerState.currentPage == 0) {
+                      coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                    } else {
+                      navController.popBackStack()
                     }
-              }
+                  },
+                  modifier = Modifier.testTag(EventViewTestTags.BACK_BUTTON)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.content_description_back))
+                  }
             },
             actions = {
-              // View Polls button - only show if user is joined or is owner
-              if (isJoined ||
-                  (event != null && AuthenticationProvider.currentUser == event.ownerId)) {
-                IconButton(
-                    onClick = {
-                      event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
-                    },
-                    modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
-                      Icon(
-                          painter = painterResource(id = R.drawable.ic_poll),
-                          contentDescription = stringResource(R.string.button_view_polls))
-                    }
-              }
-              // View Statistics button - only show if user is owner
-              if (event != null && AuthenticationProvider.currentUser == event.ownerId) {
-                IconButton(
-                    onClick = {
-                      event.let { navController.navigate(Route.eventStatistics(it.uid)) }
-                    },
-                    modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
-                      Icon(
-                          imageVector = Icons.Default.BarChart,
-                          contentDescription =
-                              stringResource(R.string.content_description_view_statistics))
-                    }
+              if (pagerState.currentPage == 1) {
+                if (isJoined ||
+                    (event != null && AuthenticationProvider.currentUser == event.ownerId)) {
+                  IconButton(
+                      onClick = {
+                        event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
+                      },
+                      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_poll),
+                            contentDescription = stringResource(R.string.button_view_polls))
+                      }
+                }
+                if (event != null && AuthenticationProvider.currentUser == event.ownerId) {
+                  IconButton(
+                      onClick = {
+                        event.let { navController.navigate(Route.eventStatistics(it.uid)) }
+                      },
+                      modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription =
+                                stringResource(R.string.content_description_view_statistics))
+                      }
+                }
               }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
         )
       },
   ) { paddingValues ->
-    if (isLoading) {
+    if (isLoading && event == null) {
       Box(
           modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
           contentAlignment = Alignment.Center,
@@ -253,15 +255,9 @@ fun EventView(
           userScrollEnabled = false,
       ) { page ->
         when (page) {
-          0 ->
-              AttendeesList(
-                  paddingValues = paddingValues,
-                  pagerState = pagerState,
-                  uiState = uiState,
-                  navController = navController)
+          0 -> AttendeesList(uiState = uiState, navController = navController)
           1 ->
               BaseEventView(
-                  paddingValues = paddingValues,
                   eventViewModel = eventViewModel,
                   event = event,
                   navController = navController,
@@ -272,11 +268,8 @@ fun EventView(
   }
 }
 
-private const val DAY_IN_SECONDS = 86400
-
 @Composable
 private fun BaseEventView(
-    paddingValues: PaddingValues,
     eventViewModel: EventViewModel,
     event: Event,
     navController: NavHostController,
@@ -309,145 +302,129 @@ private fun BaseEventView(
 
   LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
 
-  Box(
-      modifier =
-          Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.BASE_SCREEN)) {
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top) {
-              // Hero Image Section with Gradient Overlay
-              Box(
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .height(320.dp)
-                          .testTag(EventViewTestTags.EVENT_IMAGE)) {
-                    if (imageBitmap != null) {
-                      Image(
-                          bitmap = imageBitmap!!,
-                          contentDescription =
-                              stringResource(R.string.content_description_event_image),
-                          modifier = Modifier.fillMaxSize(),
-                          contentScale = ContentScale.Crop)
-                      // Gradient overlay for better text readability
-                      Box(
-                          modifier =
-                              Modifier.fillMaxSize()
-                                  .background(
-                                      androidx.compose.ui.graphics.Brush.verticalGradient(
-                                          colors =
-                                              listOf(
-                                                  androidx.compose.ui.graphics.Color.Transparent,
-                                                  androidx.compose.ui.graphics.Color.Black.copy(
-                                                      alpha = 0.7f)),
-                                          startY = 0f,
-                                          endY = 1000f)))
-                    } else {
-                      Box(
-                          modifier =
-                              Modifier.fillMaxSize()
-                                  .background(MaterialTheme.colorScheme.secondaryContainer),
-                          contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Image,
-                                contentDescription =
-                                    stringResource(R.string.content_description_event_image),
-                                modifier = Modifier.size(80.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+  Box(modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.BASE_SCREEN)) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top) {
+          Box(
+              modifier =
+                  Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
+                if (imageBitmap != null) {
+                  Image(
+                      bitmap = imageBitmap!!,
+                      contentDescription = stringResource(R.string.content_description_event_image),
+                      modifier = Modifier.fillMaxSize(),
+                      contentScale = ContentScale.Crop)
+                  // Gradient overlay for better text readability
+                  Box(
+                      modifier =
+                          Modifier.fillMaxSize()
+                              .background(
+                                  androidx.compose.ui.graphics.Brush.verticalGradient(
+                                      colors =
+                                          listOf(
+                                              androidx.compose.ui.graphics.Color.Transparent,
+                                              androidx.compose.ui.graphics.Color.Black.copy(
+                                                  alpha = 0.7f)),
+                                      startY = 0f,
+                                      endY = 1000f)))
+                } else {
+                  Box(
+                      modifier =
+                          Modifier.fillMaxSize()
+                              .background(MaterialTheme.colorScheme.secondaryContainer),
+                      contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription =
+                                stringResource(R.string.content_description_event_image),
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
+                }
+              }
+
+          // Action Buttons Section - Elevated Card Style
+          Card(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(horizontal = 16.dp)
+                      .offset(y = (-40).dp)
+                      .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+              elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+              shape = RoundedCornerShape(20.dp),
+              colors =
+                  CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                      EventActionButtons(
+                          joined = isJoined,
+                          isFull = isFull,
+                          currentEvent = event,
+                          eventViewModel = eventViewModel,
+                          modifier = Modifier,
+                          navController = navController)
+                    }
+              }
+
+          // Main Content with negative margin to overlap with card
+          Column(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
+              verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface)) {
+                      Column(
+                          modifier = Modifier.fillMaxWidth().padding(20.dp),
+                          verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            if (event is Event.Public && event.tags.isNotEmpty()) {
+                              EventTagsRow(tags = event.tags)
+                            }
+
+                            Text(
+                                text = stringResource(R.string.event_label_description),
+                                style = titleTextStyle())
+                            Text(
+                                text = event.description,
+                                modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+
+                            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                            ParticipantsInfo(
+                                event = event,
+                                participantCount = participantCount,
+                                onClick = {
+                                  coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                  coroutineScope.launch { eventViewModel.fetchAttendees() }
+                                })
                           }
                     }
-                  }
 
-              // Action Buttons Section - Elevated Card Style
-              Card(
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .padding(horizontal = 16.dp)
-                          .offset(y = (-40).dp)
-                          .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-                  elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                  shape = RoundedCornerShape(20.dp),
-                  colors =
-                      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                          EventActionButtons(
-                              joined = isJoined,
-                              isFull = isFull,
-                              currentEvent = event,
-                              eventViewModel = eventViewModel,
-                              modifier = Modifier,
-                              navController = navController)
-                        }
-                  }
+                if (isJoined &&
+                    uiState.activePolls.isNotEmpty() &&
+                    AuthenticationProvider.currentUser != event.ownerId) {
+                  PollNotificationCard(
+                      onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+                      onDismissClick = {},
+                      modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+                }
 
-              // Main Content with negative margin to overlap with card
-              Column(
-                  modifier =
-                      Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
-                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // Countdown Card
-                    CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
+                ChatButton()
 
-                    // Info Section Card
-                    Card(
-                        modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface)) {
-                          Column(
-                              modifier = Modifier.fillMaxWidth().padding(20.dp),
-                              verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                // Tags
-                                if (event is Event.Public && event.tags.isNotEmpty()) {
-                                  EventTagsRow(tags = event.tags)
-                                }
-
-                                // Description
-                                Text(
-                                    text = stringResource(R.string.event_label_description),
-                                    style = titleTextStyle())
-                                Text(
-                                    text = event.description,
-                                    modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-
-                                Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                                // Participants Info
-                                ParticipantsInfo(
-                                    event = event,
-                                    participantCount = participantCount,
-                                    onClick = {
-                                      coroutineScope.launch { pagerState.scrollToPage(0) }
-                                      coroutineScope.launch { eventViewModel.fetchAttendees() }
-                                    })
-                              }
-                        }
-
-                    // Poll notification for participants
-                    if (isJoined &&
-                        uiState.activePolls.isNotEmpty() &&
-                        AuthenticationProvider.currentUser != event.ownerId) {
-                      PollNotificationCard(
-                          onVoteNowClick = {
-                            navController.navigate(Route.pollsListScreen(event.uid))
-                          },
-                          onDismissClick = {},
-                          modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-                    }
-
-                    // Chat Button
-                    ChatButton()
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                  }
-            }
-      }
+                Spacer(modifier = Modifier.height(20.dp))
+              }
+        }
+  }
 }
 
 @Composable
@@ -499,132 +476,47 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
 
 @Composable
 private fun AttendeesList(
-    paddingValues: PaddingValues,
-    pagerState: PagerState,
     uiState: EventUiState,
     navController: NavHostController,
 ) {
-  val coroutineScope = rememberCoroutineScope()
   val isJoined = uiState.isJoined
   val attendees = uiState.attendees
   val user = uiState.currentUser
   val owner = uiState.owner
 
-  Scaffold(
-      modifier =
-          Modifier.fillMaxSize().padding(paddingValues).testTag(EventViewTestTags.ATTENDEE_LIST),
-      bottomBar = {
-        Button(
-            onClick = { coroutineScope.launch { pagerState.scrollToPage(1) } },
-            content = { Text(stringResource(R.string.event_button_return)) },
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(screenPadding)
-                    .testTag(EventViewTestTags.RETURN_TO_EVENT_BUTTON),
-        )
-      },
-  ) { paddingValues ->
-    LazyColumn(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-    ) {
-      if (isJoined && user != null && user != owner) {
-        item {
-          AttendeeItem(
-              user,
-              false,
-              { navController.navigate(Route.visitorProfile(user.userId)) },
-              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
-        }
-      }
-      if (owner != null) {
-        item {
-          AttendeeItem(
-              owner,
-              true,
-              { navController.navigate(Route.visitorProfile(owner.userId)) },
-              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
-        }
-      }
-
-      items(attendees) { a ->
-        if (a != user && a != owner)
-            AttendeeItem(
-                a,
-                false,
-                { navController.navigate(Route.visitorProfile(a.userId)) },
-                modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
+  LazyColumn(
+      modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.ATTENDEE_LIST),
+      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    if (isJoined && user != null && user != owner) {
+      item {
+        AttendeeItem(
+            user,
+            false,
+            { navController.navigate(Route.visitorProfile(user.userId)) },
+            modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_CURRENT_USER))
       }
     }
-  }
-}
-
-/** Shows countdown, description, and attendance information for the given event. */
-@Composable
-private fun InfoEvent(
-    timeLeft: Long,
-    event: Event,
-    isJoined: Boolean,
-    participantCount: Int,
-    onClickParticipants: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-  val now = Timestamp.now()
-  val eventHasStarted = now >= event.start
-
-  Column(
-      verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-      modifier =
-          modifier
-              .fillMaxWidth()
-              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)) {
-        when {
-          eventHasStarted && timeLeft <= 0 -> {
-            val text =
-                if (isJoined) stringResource(R.string.event_hurry_up_started)
-                else stringResource(R.string.event_has_started)
-            Text(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .fillMaxHeight()
-                        .testTag(EventViewTestTags.COUNTDOWN_TIMER),
-                color = MaterialTheme.colorScheme.primary,
-                text = text,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center)
-          }
-          timeLeft > DAY_IN_SECONDS -> {
-            Text(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .fillMaxHeight()
-                        .testTag(EventViewTestTags.COUNTDOWN_DAYS),
-                color = MaterialTheme.colorScheme.primary,
-                text = days(timeLeft) + " days left",
-                style = MaterialTheme.typography.displaySmall)
-          }
-          else -> {
-            Box(
-                modifier =
-                    Modifier.testTag(EventViewTestTags.COUNTDOWN_TIMER)
-                        .align(Alignment.CenterHorizontally)) {
-                  CountDownDisplay(timeLeft)
-                }
-          }
-        }
-        if (event is Event.Public && event.tags.isNotEmpty()) {
-          EventTagsRow(tags = event.tags)
-        }
-        Text(text = stringResource(R.string.event_label_description), style = titleTextStyle())
-        Text(
-            text = event.description,
-            modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT))
-        Spacer(modifier = Modifier.height(10.dp))
-        ParticipantsInfo(
-            event = event, participantCount = participantCount, onClick = onClickParticipants)
+    if (owner != null) {
+      item {
+        AttendeeItem(
+            owner,
+            true,
+            { navController.navigate(Route.visitorProfile(owner.userId)) },
+            modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_OWNER))
       }
+    }
+
+    items(attendees) { a ->
+      if (a != user && a != owner)
+          AttendeeItem(
+              a,
+              false,
+              { navController.navigate(Route.visitorProfile(a.userId)) },
+              modifier = Modifier.testTag(EventViewTestTags.ATTENDEE_LIST_ITEM))
+    }
+  }
 }
 
 /**
@@ -851,64 +743,6 @@ fun EventActionButtons(
   }
 }
 
-/** Owner-specific action buttons */
-@Composable
-private fun OwnerActionButtons(
-    currentEvent: Event,
-    eventViewModel: EventViewModel,
-    navController: NavHostController
-) {
-  val context = LocalContext.current
-  val editRoute =
-      when (currentEvent) {
-        is Event.Public -> Route.editPublicEvent(currentEvent.uid)
-        is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
-      }
-
-  if (currentEvent is Event.Private) {
-    ButtonIcon(
-        id = R.drawable.ic_group,
-        onClick = { eventViewModel.showInviteFriendsDialog() },
-        modifier = Modifier.testTag("event_view_invite_friends_button"))
-  }
-
-  Button(
-      onClick = { eventViewModel.showCreatePollDialog() },
-      modifier =
-          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.CREATE_POLL_BUTTON)) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_poll),
-            contentDescription = stringResource(R.string.content_description_add_poll),
-            modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(stringResource(R.string.button_create_poll))
-      }
-
-  Button(
-      onClick = { eventViewModel.showQrScanner() },
-      modifier =
-          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON)) {
-        Icon(
-            imageVector = Icons.Default.QrCodeScanner,
-            contentDescription = stringResource(R.string.content_description_scan_icon),
-            modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(stringResource(R.string.button_scan))
-      }
-  Button(
-      onClick = { navController.navigate(editRoute) },
-      modifier =
-          Modifier.wrapContentSize().padding(2.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON)) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_add),
-            contentDescription = stringResource(R.string.content_description_edit_icon),
-            modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(stringResource(R.string.button_edit))
-      }
-}
-
-/** Non-owner action buttons (Join/Leave) */
 @Composable
 private fun NonOwnerActionButtons(
     joined: Boolean,
@@ -1182,32 +1016,76 @@ private fun getValidationContentColor(result: TicketValidationResult) =
 
 @Composable
 private fun AttendeeItem(
-    attendee: User,
-    owner: Boolean,
+    user: User,
+    isOwner: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val profileId = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
+        value =
+            profileId?.let { id ->
+              runCatching { repository.download(id) }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Row(
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(start = screenPadding, end = screenPadding)
-              .clickable(onClick = onClick),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Image(
-        painter = painterResource(R.drawable.ic_user),
-        contentDescription = "attendee image",
-        Modifier.size(48.dp),
-    )
-    Column {
-      Text(
-          attendee.firstName + " " + attendee.lastName,
-          fontSize = MaterialTheme.typography.headlineMedium.fontSize)
-      if (owner) Text(stringResource(R.string.event_label_owner))
-    }
-  }
+              .clickable(onClick = onClick)
+              .padding(vertical = 8.dp, horizontal = 16.dp),
+      verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier =
+                Modifier.size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center) {
+              if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap!!,
+                    contentDescription =
+                        stringResource(R.string.content_description_friend_profile_picture),
+                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop)
+              } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription =
+                        stringResource(R.string.content_description_friend_profile_picture),
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary)
+              }
+            }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+              text = user.getFullName(),
+              style = MaterialTheme.typography.bodyLarge,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface)
+
+          Text(
+              text = user.username,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+          if (isOwner) {
+            Text(
+                text = stringResource(R.string.event_label_owner),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary)
+          }
+        }
+      }
 }
 
 private fun getValidationTestTag(result: TicketValidationResult) =
