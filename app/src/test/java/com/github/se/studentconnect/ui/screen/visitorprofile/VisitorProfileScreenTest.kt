@@ -2,7 +2,6 @@ package com.github.se.studentconnect.ui.screen.visitorprofile
 
 import android.net.Uri
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.media.MediaRepository
