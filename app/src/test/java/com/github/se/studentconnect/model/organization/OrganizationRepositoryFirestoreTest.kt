@@ -30,12 +30,8 @@ class OrganizationRepositoryFirestoreTest {
     val repo = OrganizationRepositoryFirestore(db)
 
     val model =
-            Organization(
-                    id = "org1",
-                    name = "Name",
-                    type = OrganizationType.Company,
-                    createdBy = "creator"
-            )
+        Organization(
+            id = "org1", name = "Name", type = OrganizationType.Company, createdBy = "creator")
 
     repo.saveOrganization(model)
 
@@ -50,21 +46,20 @@ class OrganizationRepositoryFirestoreTest {
     val snapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     val inputMap =
-            mapOf<String, Any?>(
-                    "id" to "orgX",
-                    "name" to "OrgX",
-                    "type" to "NGO",
-                    "description" to "desc",
-                    "logoUrl" to "u",
-                    "location" to "here",
-                    "mainDomains" to listOf("A"),
-                    "ageRanges" to listOf("18-25"),
-                    "typicalEventSize" to "S",
-                    "roles" to listOf(mapOf("name" to "R", "description" to "D")),
-                    "socialLinks" to mapOf("website" to "w"),
-                    "createdAt" to Timestamp.now(),
-                    "createdBy" to "creator"
-            )
+        mapOf<String, Any?>(
+            "id" to "orgX",
+            "name" to "OrgX",
+            "type" to "NGO",
+            "description" to "desc",
+            "logoUrl" to "u",
+            "location" to "here",
+            "mainDomains" to listOf("A"),
+            "ageRanges" to listOf("18-25"),
+            "typicalEventSize" to "S",
+            "roles" to listOf(mapOf("name" to "R", "description" to "D")),
+            "socialLinks" to mapOf("website" to "w"),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator")
 
     every { db.collection("organizations") } returns collection
     every { collection.document("orgX") } returns docRef
@@ -125,38 +120,36 @@ class OrganizationRepositoryFirestoreTest {
     val doc2 = mockk<DocumentSnapshot>(relaxed = true)
 
     val org1Map =
-            mapOf<String, Any?>(
-                    "id" to "org1",
-                    "name" to "Org1",
-                    "type" to "Company",
-                    "description" to "desc1",
-                    "logoUrl" to "url1",
-                    "location" to "loc1",
-                    "mainDomains" to listOf("Tech"),
-                    "ageRanges" to listOf("18-25"),
-                    "typicalEventSize" to "M",
-                    "roles" to emptyList<Map<String, Any>>(),
-                    "socialLinks" to emptyMap<String, String>(),
-                    "createdAt" to Timestamp.now(),
-                    "createdBy" to "creator1"
-            )
+        mapOf<String, Any?>(
+            "id" to "org1",
+            "name" to "Org1",
+            "type" to "Company",
+            "description" to "desc1",
+            "logoUrl" to "url1",
+            "location" to "loc1",
+            "mainDomains" to listOf("Tech"),
+            "ageRanges" to listOf("18-25"),
+            "typicalEventSize" to "M",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator1")
 
     val org2Map =
-            mapOf<String, Any?>(
-                    "id" to "org2",
-                    "name" to "Org2",
-                    "type" to "NGO",
-                    "description" to "desc2",
-                    "logoUrl" to "url2",
-                    "location" to "loc2",
-                    "mainDomains" to listOf("Education"),
-                    "ageRanges" to listOf("26-35"),
-                    "typicalEventSize" to "S",
-                    "roles" to emptyList<Map<String, Any>>(),
-                    "socialLinks" to emptyMap<String, String>(),
-                    "createdAt" to Timestamp.now(),
-                    "createdBy" to "creator2"
-            )
+        mapOf<String, Any?>(
+            "id" to "org2",
+            "name" to "Org2",
+            "type" to "NGO",
+            "description" to "desc2",
+            "logoUrl" to "url2",
+            "location" to "loc2",
+            "mainDomains" to listOf("Education"),
+            "ageRanges" to listOf("26-35"),
+            "typicalEventSize" to "S",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator2")
 
     every { db.collection("organizations") } returns collection
     every { collection.get() } returns Tasks.forResult(querySnapshot)
@@ -199,21 +192,20 @@ class OrganizationRepositoryFirestoreTest {
     val invalidDoc = mockk<DocumentSnapshot>(relaxed = true)
 
     val validMap =
-            mapOf<String, Any?>(
-                    "id" to "org1",
-                    "name" to "Org1",
-                    "type" to "Company",
-                    "description" to "desc",
-                    "logoUrl" to "url",
-                    "location" to "loc",
-                    "mainDomains" to listOf("Tech"),
-                    "ageRanges" to listOf("18-25"),
-                    "typicalEventSize" to "M",
-                    "roles" to emptyList<Map<String, Any>>(),
-                    "socialLinks" to emptyMap<String, String>(),
-                    "createdAt" to Timestamp.now(),
-                    "createdBy" to "creator"
-            )
+        mapOf<String, Any?>(
+            "id" to "org1",
+            "name" to "Org1",
+            "type" to "Company",
+            "description" to "desc",
+            "logoUrl" to "url",
+            "location" to "loc",
+            "mainDomains" to listOf("Tech"),
+            "ageRanges" to listOf("18-25"),
+            "typicalEventSize" to "M",
+            "roles" to emptyList<Map<String, Any>>(),
+            "socialLinks" to emptyMap<String, String>(),
+            "createdAt" to Timestamp.now(),
+            "createdBy" to "creator")
 
     every { db.collection("organizations") } returns collection
     every { collection.get() } returns Tasks.forResult(querySnapshot)
@@ -245,11 +237,7 @@ class OrganizationRepositoryFirestoreTest {
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.sendMemberInvitation(
-            organizationId = "org-1",
-            userId = "user-1",
-            role = "Member",
-            invitedBy = "user-2"
-    )
+        organizationId = "org-1", userId = "user-1", role = "Member", invitedBy = "user-2")
 
     verify { docRef.set(any()) }
   }
@@ -265,23 +253,21 @@ class OrganizationRepositoryFirestoreTest {
     val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     val orgMap =
-            mapOf<String, Any?>(
-                    "id" to "org-1",
-                    "name" to "Test Org",
-                    "type" to "Company",
-                    "createdBy" to "creator",
-                    "createdAt" to Timestamp.now(),
-                    "memberUids" to listOf<String>(),
-                    "memberRoles" to mapOf<String, String>()
-            )
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
 
     val invMap =
-            mapOf<String, Any?>(
-                    "organizationId" to "org-1",
-                    "userId" to "user-1",
-                    "role" to "Member",
-                    "invitedBy" to "user-2"
-            )
+        mapOf<String, Any?>(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Member",
+            "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
@@ -315,23 +301,21 @@ class OrganizationRepositoryFirestoreTest {
     val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     val orgMap =
-            mapOf<String, Any?>(
-                    "id" to "org-1",
-                    "name" to "Test Org",
-                    "type" to "Company",
-                    "createdBy" to "creator",
-                    "createdAt" to Timestamp.now(),
-                    "memberUids" to listOf<String>(),
-                    "memberRoles" to mapOf<String, String>()
-            )
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
 
     val invMap =
-            mapOf<String, Any?>(
-                    "organizationId" to "org-1",
-                    "userId" to "user-1",
-                    "role" to "Admin",
-                    "invitedBy" to "user-2"
-            )
+        mapOf<String, Any?>(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Admin",
+            "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
@@ -372,15 +356,14 @@ class OrganizationRepositoryFirestoreTest {
     val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     val orgMap =
-            mapOf<String, Any?>(
-                    "id" to "org-1",
-                    "name" to "Test Org",
-                    "type" to "Company",
-                    "createdBy" to "creator",
-                    "createdAt" to Timestamp.now(),
-                    "memberUids" to listOf<String>(),
-                    "memberRoles" to mapOf<String, String>()
-            )
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
@@ -421,23 +404,21 @@ class OrganizationRepositoryFirestoreTest {
     val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     val orgMap =
-            mapOf<String, Any?>(
-                    "id" to "org-1",
-                    "name" to "Test Org",
-                    "type" to "Company",
-                    "createdBy" to "creator",
-                    "createdAt" to Timestamp.now(),
-                    "memberUids" to listOf("user-1"), // User already exists
-                    "memberRoles" to mapOf("user-1" to "Member")
-            )
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf("user-1"), // User already exists
+            "memberRoles" to mapOf("user-1" to "Member"))
 
     val invMap =
-            mapOf<String, Any?>(
-                    "organizationId" to "org-1",
-                    "userId" to "user-1",
-                    "role" to "Admin",
-                    "invitedBy" to "user-2"
-            )
+        mapOf<String, Any?>(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Admin",
+            "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
@@ -486,12 +467,11 @@ class OrganizationRepositoryFirestoreTest {
     val doc = mockk<DocumentSnapshot>(relaxed = true)
 
     val invitationMap =
-            mapOf(
-                    "organizationId" to "org-1",
-                    "userId" to "user-1",
-                    "role" to "Member",
-                    "invitedBy" to "user-2"
-            )
+        mapOf(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Member",
+            "invitedBy" to "user-2")
 
     every { db.collection("organization_member_invitations") } returns collection
     every { collection.whereEqualTo("organizationId", "org-1") } returns query
@@ -517,12 +497,11 @@ class OrganizationRepositoryFirestoreTest {
     val doc = mockk<DocumentSnapshot>(relaxed = true)
 
     val invitationMap =
-            mapOf(
-                    "organizationId" to "org-1",
-                    "userId" to "user-1",
-                    "role" to "Admin",
-                    "invitedBy" to "user-2"
-            )
+        mapOf(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Admin",
+            "invitedBy" to "user-2")
 
     every { db.collection("organization_member_invitations") } returns collection
     every { collection.whereEqualTo("userId", "user-1") } returns query
