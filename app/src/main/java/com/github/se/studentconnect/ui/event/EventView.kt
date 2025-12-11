@@ -241,6 +241,7 @@ fun EventView(
         )
       },
   ) { paddingValues ->
+    // Only show loading indicator on initial load, not when refreshing an existing event
     if (isLoading && event == null) {
       Box(
           modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
@@ -404,8 +405,10 @@ private fun BaseEventView(
                                 event = event,
                                 participantCount = participantCount,
                                 onClick = {
-                                  coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                  coroutineScope.launch { eventViewModel.fetchAttendees() }
+                                  coroutineScope.launch {
+                                    pagerState.animateScrollToPage(0)
+                                    eventViewModel.fetchAttendees()
+                                  }
                                 })
                           }
                     }

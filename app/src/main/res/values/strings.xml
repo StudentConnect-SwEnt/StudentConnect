@@ -157,7 +157,6 @@
     <string name="content_description_add_story">Add Story</string>
     <string name="content_description_event_story">Event Story</string>
     <string name="content_description_close_story">Close story</string>
-    <string name="content_description_story_content">Story content</string>
     <string name="content_description_story_for">Story for %s</string>
     <string name="content_description_search_icon">Search Icon</string>
     <string name="content_description_student_connect_logo">Student Connect Logo</string>
@@ -166,8 +165,6 @@
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
-    <string name="content_description_scan_icon">Scan icon</string>
-    <string name="content_description_edit_icon">Edit icon</string>
     <string name="content_description_action_icon">action icon</string>
     <string name="content_description_action_button">Action button</string>
     <string name="content_description_close_filters">Close Filters</string>
@@ -372,7 +369,6 @@
     <string name="event_hurry_up_started">Hurry up! Event has started</string>
     <string name="toast_no_browser">No application can handle this request. Please install a web browser.</string>
     <string name="event_label_owner">Owner</string>
-    <string name="event_button_return">Return to Event</string>
 
     <!-- Leave event confirmation dialog -->
     <string name="leave_event_confirmation_title">Leave Event</string>
@@ -446,7 +442,6 @@
     <string name="button_view_statistics">View Statistics</string>
     <string name="content_description_view_statistics">View event statistics</string>
     <string name="button_create_poll">Poll</string>
-    <string name="content_description_add_poll">Create new poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
     <string name="poll_options_count">%1$d options</string>
