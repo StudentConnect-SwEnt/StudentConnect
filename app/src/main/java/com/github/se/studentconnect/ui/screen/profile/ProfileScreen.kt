@@ -12,11 +12,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -69,6 +66,7 @@ data class ProfileNavigationCallbacks(
  * @param viewModel ViewModel for profile screen
  * @param navigationCallbacks Navigation callbacks grouped in a data class
  * @param modifier Modifier for the composable
+ * @param logout Callback for logout action
  */
 @Composable
 fun ProfileScreen(
@@ -86,7 +84,6 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     logout: () -> Unit = {},
 ) {
-  val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val user by viewModel.user.collectAsState()
   val friendsCount by viewModel.friendsCount.collectAsState()
   val eventsCount by viewModel.eventsCount.collectAsState()

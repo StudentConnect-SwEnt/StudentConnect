@@ -257,6 +257,7 @@ private fun AppNavigationOrchestrator(
  * @param onTabSelected Callback invoked when a tab is selected
  * @param shouldOpenQRScanner Whether the QR scanner should be opened automatically
  * @param onQRScannerStateChange Callback to notify when QR scanner state changes
+ * @param logOut Callback to log out the user
  */
 @Composable
 internal fun MainAppContent(
@@ -368,7 +369,7 @@ internal fun MainAppContent(
                         onNavigateToOrganizationManagement = {
                           navController.navigate(ProfileRoutes.ORGANIZATION_MANAGEMENT)
                         }),
-                logOut = logOut)
+                logout = logOut)
           }
 
           // Joined Events Screen
