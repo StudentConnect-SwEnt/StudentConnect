@@ -20,7 +20,16 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,6 +57,8 @@ class FlashEventTest {
   private lateinit var organizationRepository: OrganizationRepository
   private lateinit var friendsRepository: FriendsRepository
   private lateinit var notificationRepository: NotificationRepository
+  private lateinit var mockFirebaseAuth: FirebaseAuth
+  private lateinit var mockFirebaseUser: FirebaseUser
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
@@ -68,11 +79,22 @@ class FlashEventTest {
     FriendsRepositoryProvider.overrideForTests(friendsRepository)
     NotificationRepositoryProvider.overrideForTests(notificationRepository)
 
+    // Mock Firebase auth to provide a logged-in user
+    mockkStatic(FirebaseAuth::class)
+    // Needed for the top-level Firebase.auth accessor
+    mockkStatic("com.google.firebase.FirebaseKt")
+    mockFirebaseAuth = mockk(relaxed = true)
+    mockFirebaseUser = mockk(relaxed = true)
+    every { Firebase.auth } returns mockFirebaseAuth
+    every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
+    every { mockFirebaseUser.uid } returns "test-user"
+
     viewModel = CreatePublicEventViewModel()
   }
 
   @After
   fun tearDown() {
+    unmockkAll()
     Dispatchers.resetMain()
     // Clean up provider overrides
     EventRepositoryProvider.cleanOverrideForTests()
@@ -208,6 +230,121 @@ class FlashEventTest {
     val friends = friendsRepository.getFriends(userId)
     assertEquals(1, friends.size)
     assertTrue(friends.contains("friend"))
+  }
+
+  @Test
+  fun `saveEvent sets flash start end and notifies friends`() = runTest {
+    val ownerId = "flash-owner"
+    every { mockFirebaseUser.uid } returns ownerId
+
+    // Friend setup
+    val friendId = "friend-123"
+    val friendUser =
+        com.github.se.studentconnect.model.user.User(
+            userId = friendId,
+            email = "friend@test.com",
+            username = "friend",
+            firstName = "Friend",
+            lastName = "User",
+            university = "EPFL")
+    userRepository.saveUser(friendUser)
+    friendsRepository.sendFriendRequest(ownerId, friendId)
+    friendsRepository.acceptFriendRequest(friendId, ownerId)
+
+    viewModel.updateTitle("Flash Event")
+    viewModel.updateIsFlash(true)
+    viewModel.updateFlashDurationHours(0)
+    viewModel.updateFlashDurationMinutes(30)
+
+    viewModel.saveEvent()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val events = eventRepository.getEventsByOwner(ownerId)
+    assertEquals(1, events.size)
+    val event = events.first() as Event.Public
+    assertTrue(event.isFlash)
+    assertNotNull("Flash start should be set", event.start)
+    assertNotNull("Flash end should be set", event.end)
+
+    var friendNotificationCount = 0
+    notificationRepository.getNotifications(
+        friendId, onSuccess = { friendNotificationCount = it.size }, onFailure = {})
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals("Friend should receive flash notification", 1, friendNotificationCount)
+
+    val state = viewModel.uiState.value
+    assertTrue("State should mark finished saving", state.finishedSaving)
+    assertNotNull("Start date should be populated", state.startDate)
+    assertNotNull("End date should be populated", state.endDate)
+  }
+
+  @Test
+  fun `saveEvent sends notifications to organization followers`() = runTest {
+    val orgId = "org-owner"
+    every { mockFirebaseUser.uid } returns orgId
+
+    val organization =
+        Organization(
+            id = orgId,
+            name = "Org",
+            type = com.github.se.studentconnect.model.organization.OrganizationType.StudentClub,
+            createdBy = "creator")
+    organizationRepository.saveOrganization(organization)
+
+    val followerId = "org-follower"
+    val followerUser =
+        com.github.se.studentconnect.model.user.User(
+            userId = followerId,
+            email = "follower@test.com",
+            username = "follower",
+            firstName = "Follower",
+            lastName = "User",
+            university = "EPFL")
+    userRepository.saveUser(followerUser)
+    userRepository.followOrganization(followerId, orgId)
+
+    viewModel.updateTitle("Org Flash Event")
+    viewModel.updateIsFlash(true)
+    viewModel.updateFlashDurationHours(1)
+    viewModel.updateFlashDurationMinutes(0)
+
+    viewModel.saveEvent()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    var followerNotificationCount = 0
+    notificationRepository.getNotifications(
+        followerId, onSuccess = { followerNotificationCount = it.size }, onFailure = {})
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals("Follower should receive flash notification", 1, followerNotificationCount)
+  }
+
+  @Test
+  fun `saveEvent handles recipient lookup errors gracefully`() = runTest {
+    val failingOrgRepo = mockk<OrganizationRepository>()
+    coEvery { failingOrgRepo.getOrganizationById(any()) } throws RuntimeException("boom")
+    OrganizationRepositoryProvider.overrideForTests(failingOrgRepo)
+    viewModel = CreatePublicEventViewModel()
+
+    val ownerId = "error-owner"
+    every { mockFirebaseUser.uid } returns ownerId
+
+    viewModel.updateTitle("Flash Event")
+    viewModel.updateIsFlash(true)
+    viewModel.updateFlashDurationHours(1)
+    viewModel.updateFlashDurationMinutes(0)
+
+    viewModel.saveEvent()
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val events = eventRepository.getEventsByOwner(ownerId)
+    assertEquals(1, events.size)
+
+    var notificationCount = 0
+    notificationRepository.getNotifications(
+        ownerId, onSuccess = { notificationCount = it.size }, onFailure = {})
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(
+        "No notifications should be created when recipient lookup fails", 0, notificationCount)
   }
 
   @Test
