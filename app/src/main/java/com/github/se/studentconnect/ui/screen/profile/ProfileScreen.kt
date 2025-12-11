@@ -33,6 +33,7 @@ import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
+import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -130,19 +131,26 @@ fun ProfileScreen(
               ProfileHeader(
                   user = currentUser,
                   stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
-                  onFriendsClick = {
-                    navigationCallbacks.onNavigateToFriendsList?.invoke(currentUserId)
-                        ?: Toast.makeText(context, friendsListComingSoon, Toast.LENGTH_SHORT).show()
-                  },
-                  onEventsClick = { navigationCallbacks.onNavigateToJoinedEvents?.invoke() },
-                  onEditClick = {
-                    navigationCallbacks.onNavigateToSettings?.invoke()
-                        ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT).show()
-                  },
-                  onUserCardClick = {
-                    navigationCallbacks.onNavigateToUserCard?.invoke()
-                        ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
-                  })
+                  callbacks =
+                      ProfileHeaderCallbacks(
+                          onFriendsClick = {
+                            navigationCallbacks.onNavigateToFriendsList?.invoke(currentUserId)
+                                ?: Toast.makeText(
+                                        context, friendsListComingSoon, Toast.LENGTH_SHORT)
+                                    .show()
+                          },
+                          onEventsClick = {
+                            navigationCallbacks.onNavigateToJoinedEvents?.invoke()
+                          },
+                          onEditClick = {
+                            navigationCallbacks.onNavigateToSettings?.invoke()
+                                ?: Toast.makeText(context, editProfileText, Toast.LENGTH_SHORT)
+                                    .show()
+                          },
+                          onUserCardClick = {
+                            navigationCallbacks.onNavigateToUserCard?.invoke()
+                                ?: Toast.makeText(context, userCardText, Toast.LENGTH_SHORT).show()
+                          }))
 
               // Pinned events section
               PinnedEventsSection(

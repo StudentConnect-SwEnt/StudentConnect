@@ -49,6 +49,7 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
+import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
 import com.github.se.studentconnect.ui.profile.components.ProfileStats
 import java.util.Locale
 
@@ -117,28 +118,30 @@ internal fun VisitorProfileContent(
           ProfileHeader(
               user = user,
               stats = ProfileStats(friendsCount = friendsCount, eventsCount = eventsCount),
-              onFriendsClick = {
-                if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
-                  onFriendsClick()
-                } else {
-                  Toast.makeText(
-                          context,
-                          context.getString(R.string.toast_add_friend_to_view_friends),
-                          Toast.LENGTH_SHORT)
-                      .show()
-                }
-              },
-              onEventsClick = {
-                if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
-                  onEventsClick()
-                } else {
-                  Toast.makeText(
-                          context,
-                          context.getString(R.string.toast_add_friend_to_view_events),
-                          Toast.LENGTH_SHORT)
-                      .show()
-                }
-              },
+              callbacks =
+                  ProfileHeaderCallbacks(
+                      onFriendsClick = {
+                        if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
+                          onFriendsClick()
+                        } else {
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.toast_add_friend_to_view_friends),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        }
+                      },
+                      onEventsClick = {
+                        if (friendRequestStatus == FriendRequestStatus.ALREADY_FRIENDS) {
+                          onEventsClick()
+                        } else {
+                          Toast.makeText(
+                                  context,
+                                  context.getString(R.string.toast_add_friend_to_view_events),
+                                  Toast.LENGTH_SHORT)
+                              .show()
+                        }
+                      }),
               isVisitorMode = true,
               showUsername = false,
               friendButtonsContent = {

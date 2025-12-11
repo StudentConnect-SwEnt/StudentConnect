@@ -59,37 +59,40 @@ data class ProfileActions(
     val onOrganizationClick: (() -> Unit)? = null
 )
 
+/** Data class holding all profile header callbacks */
+data class ProfileHeaderCallbacks(
+    val onFriendsClick: () -> Unit,
+    val onEventsClick: () -> Unit,
+    val onEditClick: (() -> Unit)? = null,
+    val onUserCardClick: (() -> Unit)? = null
+)
+
 /**
  * Profile header component showing user profile picture, stats, and user information.
  *
  * @param user The user whose profile is being displayed
  * @param stats Profile statistics (friends count and events count)
- * @param onFriendsClick Callback when friends count is clicked
- * @param onEventsClick Callback when events count is clicked
- * @param onEditClick Callback when edit button is clicked
- * @param onUserCardClick Callback when user card button is clicked
+ * @param callbacks All callback functions grouped together
  * @param isVisitorMode Whether this is a visitor profile (shows friend buttons instead of
  *   edit/card)
  * @param friendButtonsContent Optional composable for friend action buttons in visitor mode
  * @param showUsername Whether to show the username below the name
- * @param actions Profile action callbacks (edit, user card, organization)
  * @param modifier Modifier for the composable
  */
 @Composable
 fun ProfileHeader(
     user: User,
     stats: ProfileStats,
-    onFriendsClick: () -> Unit,
-    onEventsClick: () -> Unit,
-    onEditClick: (() -> Unit)? = null,
-    onUserCardClick: (() -> Unit)? = null,
+    callbacks: ProfileHeaderCallbacks,
     isVisitorMode: Boolean = false,
     friendButtonsContent: (@Composable () -> Unit)? = null,
     showUsername: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-  // Create actions from the individual callbacks for backward compatibility
-  val actions = ProfileActions(onEditClick = onEditClick, onUserCardClick = onUserCardClick)
+  // Create actions from the callbacks for backward compatibility
+  val actions =
+      ProfileActions(
+          onEditClick = callbacks.onEditClick, onUserCardClick = callbacks.onUserCardClick)
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
@@ -126,12 +129,12 @@ fun ProfileHeader(
                     StatItem(
                         count = stats.friendsCount,
                         label = stringResource(R.string.label_friends),
-                        onClick = onFriendsClick)
+                        onClick = callbacks.onFriendsClick)
 
                     StatItem(
                         count = stats.eventsCount,
                         label = stringResource(R.string.label_events),
-                        onClick = onEventsClick)
+                        onClick = callbacks.onEventsClick)
                   }
             }
 
@@ -215,15 +218,15 @@ private fun UserInformation(
 
     // Username (if showUsername is true)
     if (showUsername) {
-      Spacer(modifier = Modifier.height(4.dp))
+      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
       Text(
           text = "@${user.username}",
           style = MaterialTheme.typography.bodyMedium,
-          fontSize = 14.sp,
+          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
           color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 
-    Spacer(modifier = Modifier.height(4.dp))
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
 
     // Bio (if available)
