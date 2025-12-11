@@ -26,7 +26,12 @@ class MediaRepositoryFirebaseStorage(
   }
 
   override suspend fun download(id: String): Uri {
-    val ref = storage.reference.child(id)
+    val ref =
+        if (id.startsWith("http")) {
+          storage.getReferenceFromUrl(id)
+        } else {
+          storage.reference.child(id)
+        }
     val localFile = File.createTempFile("media_", null)
 
     // download to local cache file
