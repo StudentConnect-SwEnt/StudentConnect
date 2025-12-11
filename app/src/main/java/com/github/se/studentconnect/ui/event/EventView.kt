@@ -882,10 +882,7 @@ fun EventActionButtons(
   }
 }
 
-<<<<<<< HEAD
-=======
 /** Non-owner action buttons (Join/Leave) */
->>>>>>> 16061b1b (fix: remove warnings)
 @Composable
 private fun NonOwnerActionButtons(
     joined: Boolean,
