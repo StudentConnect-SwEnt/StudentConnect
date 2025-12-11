@@ -146,6 +146,7 @@ internal fun VisitorProfileContent(
               },
           )
 
+          VisitorProfileEventSection(title = stringResource(id = R.string.text_pinned_events))
           // Pinned Events Section
           PinnedEventsSection(pinnedEvents = pinnedEvents, onEventClick = callbacks.onEventClick)
         }
