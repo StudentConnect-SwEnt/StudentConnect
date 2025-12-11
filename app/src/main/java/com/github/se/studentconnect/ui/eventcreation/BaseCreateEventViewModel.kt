@@ -300,7 +300,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
           BannerResolution(s.bannerImagePath, null)
         } else {
           BannerResolution(
-              bannerPathForEvent = s.bannerImagePath,
+              bannerPathForEvent = "file://$stagedPath",
               pendingUpload =
                   BannerUploadJob(
                       filePath = stagedPath,

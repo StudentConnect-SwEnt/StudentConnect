@@ -26,6 +26,9 @@ class MediaRepositoryFirebaseStorage(
   }
 
   override suspend fun download(id: String): Uri {
+    if (id.startsWith("file://")) return Uri.parse(id)
+    if (id.startsWith("/")) return Uri.fromFile(File(id))
+
     val ref =
         if (id.startsWith("http")) {
           storage.getReferenceFromUrl(id)
