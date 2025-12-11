@@ -118,6 +118,7 @@ class EventTemplateSelectionEndToEndTest : FirestoreStudentConnectTest() {
               .fetchSemanticsNodes()
               .isNotEmpty()
         }
+    composeTestRule.waitForIdle()
 
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
