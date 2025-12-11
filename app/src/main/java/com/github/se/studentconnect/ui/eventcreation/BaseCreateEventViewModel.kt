@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 private const val TAG = "BaseCreateEventViewModel"
 
@@ -392,24 +393,30 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         // Build event (computation only)
         val event = buildEvent(eventUid, currentUserId, bannerResolution.bannerPathForEvent)
 
-        // Persist the event; Firestore will cache the write offline and sync later.
-        viewModelScope.launch {
-          try {
-            if (editingEventUid != null) {
-              eventRepository.editEvent(eventUid, event)
-            } else {
-              eventRepository.addEvent(event)
+        // persist the event
+        // Firestore will cache the write offline and sync later
+        val saveJob =
+            viewModelScope.launch {
+              try {
+                if (editingEventUid != null) {
+                  eventRepository.editEvent(eventUid, event)
+                } else {
+                  eventRepository.addEvent(event)
 
-              // Send notifications for flash events
-              if (s.isFlash) {
-                sendFlashEventNotifications(event, currentUserId)
+                  // Send notifications for flash events
+                  if (s.isFlash) {
+                    sendFlashEventNotifications(event, currentUserId)
+                  }
+                }
+              } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Log.w(TAG, "Deferred event save failed", e)
               }
             }
-          } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Log.w(TAG, "Deferred event save failed", e)
-          }
-        }
+
+        // wait up to a few seconds for the save to complete, but don't block indefinitely when
+        // offline
+        withTimeoutOrNull(5_000) { saveJob.join() }
 
         updateState {
           copyCommon(
