@@ -1,11 +1,16 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
+import android.net.Uri
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +32,24 @@ class VisitorProfileScreenTest {
           email = "jane@example.com",
           university = "Uni")
 
+  @Before
+  fun setup() {
+    // Initialize MediaRepository with a fake implementation to avoid Firebase initialization
+    MediaRepositoryProvider.overrideForTests(
+        object : MediaRepository {
+          override suspend fun upload(uri: Uri, path: String?): String = "fake-id"
+
+          override suspend fun download(id: String): Uri = Uri.EMPTY
+
+          override suspend fun delete(id: String) = Unit
+        })
+  }
+
+  @After
+  fun tearDown() {
+    MediaRepositoryProvider.cleanOverrideForTests()
+  }
+
   @Test
   fun showsCancelAndRequestSent_whenStatusIsSent_andCancelInvokes() {
     var cancelled = false
@@ -35,6 +58,9 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
             onBackClick = {},
             onAddFriendClick = {},
             onCancelFriendClick = { cancelled = true },
@@ -59,6 +85,9 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
             onBackClick = {},
             onAddFriendClick = {},
             onCancelFriendClick = {},
@@ -88,6 +117,9 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
             onBackClick = {},
             onAddFriendClick = {},
             onCancelFriendClick = {},
@@ -117,6 +149,9 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
             onBackClick = {},
             onAddFriendClick = {},
             onCancelFriendClick = {},

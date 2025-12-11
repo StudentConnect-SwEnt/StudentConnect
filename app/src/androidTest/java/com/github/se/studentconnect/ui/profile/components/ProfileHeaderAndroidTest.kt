@@ -331,4 +331,175 @@ class ProfileHeaderAndroidTest {
     composeTestRule.onNodeWithContentDescription("Profile Picture").assertIsDisplayed()
     composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
   }
+
+  @Test
+  fun profileHeader_visitorMode_displaysFriendButtonsContent() {
+    var friendButtonClicked = false
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          isVisitorMode = true,
+          friendButtonsContent = {
+            androidx.compose.material3.Button(onClick = { friendButtonClicked = true }) {
+              androidx.compose.material3.Text("Add Friend")
+            }
+          })
+    }
+
+    // Verify visitor mode shows friend buttons instead of Edit/Card
+    composeTestRule.onNodeWithText("Add Friend").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Edit").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Card").assertDoesNotExist()
+
+    // Test button click
+    composeTestRule.onNodeWithText("Add Friend").performClick()
+    assert(friendButtonClicked)
+  }
+
+  @Test
+  fun profileHeader_visitorMode_withoutFriendButtonsContent_showsNothing() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          isVisitorMode = true,
+          friendButtonsContent = null)
+    }
+
+    // Should not show any buttons in visitor mode without friend buttons content
+    composeTestRule.onNodeWithText("Edit").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Card").assertDoesNotExist()
+  }
+
+  @Test
+  fun profileHeader_showsUsername_whenShowUsernameIsTrue() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          showUsername = true)
+    }
+
+    // Verify username is displayed
+    composeTestRule.onNodeWithText("@testuser").assertIsDisplayed()
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+  }
+
+  @Test
+  fun profileHeader_hidesUsername_whenShowUsernameIsFalse() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          showUsername = false)
+    }
+
+    // Verify username is not displayed
+    composeTestRule.onNodeWithText("@testuser").assertDoesNotExist()
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+  }
+
+  @Test
+  fun profileHeader_handlesEmptyBio() {
+    val userWithEmptyBio = testUser.copy(bio = "")
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = userWithEmptyBio,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
+    }
+
+    // Should not display bio section when bio is empty string
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
+  }
+
+  @Test
+  fun profileHeader_hidesBothButtons_whenBothCallbacksNull() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          onEditClick = null,
+          onUserCardClick = null)
+    }
+
+    // Both buttons should be hidden
+    composeTestRule.onNodeWithText("Edit").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Card").assertDoesNotExist()
+  }
+
+  @Test
+  fun profileHeader_handlesWhitespaceBio() {
+    val userWithWhitespaceBio = testUser.copy(bio = "   ")
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = userWithWhitespaceBio,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
+    }
+
+    // Should not display bio section when bio is only whitespace
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+    composeTestRule.onNodeWithText("EPFL").assertIsDisplayed()
+  }
+
+  @Test
+  fun profileHeader_visitorModeWithShowUsername_displaysBoth() {
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {},
+          isVisitorMode = true,
+          showUsername = true,
+          friendButtonsContent = {
+            androidx.compose.material3.Button(onClick = {}) {
+              androidx.compose.material3.Text("Add Friend")
+            }
+          })
+    }
+
+    // Both username and visitor mode buttons should be displayed
+    composeTestRule.onNodeWithText("@testuser").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Add Friend").assertIsDisplayed()
+    composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+  }
+
+  @Test
+  fun profileHeader_handlesLongBio() {
+    val longBio =
+        "This is a very long bio that contains a lot of information about the user. " +
+            "It goes on and on with various details about their background, interests, " +
+            "and experiences. This tests how the UI handles lengthy text content."
+    val userWithLongBio = testUser.copy(bio = longBio)
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = userWithLongBio,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          onFriendsClick = {},
+          onEventsClick = {})
+    }
+
+    // Should display the long bio
+    composeTestRule.onNodeWithText(longBio).assertIsDisplayed()
+  }
 }
