@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import android.content.Context
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -142,8 +143,14 @@ class HomeScreenSnackbarTest {
     composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
 
     // Wait for dismissal (2.5 seconds + buffer)
-    composeTestRule.waitForIdle()
-    Thread.sleep(3000)
+    composeTestRule.waitUntil(timeoutMillis = 4000) {
+      try {
+        composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
+        true
+      } catch (e: AssertionError) {
+        false
+      }
+    }
 
     // Second selection of same date should not show snackbar
     viewModel.onDateSelected(emptyDate)
@@ -191,8 +198,14 @@ class HomeScreenSnackbarTest {
     composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
 
     // Wait for auto-dismiss (2.5 seconds + buffer)
-    composeTestRule.waitForIdle()
-    Thread.sleep(3000)
+    composeTestRule.waitUntil(timeoutMillis = 4000) {
+      try {
+        composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
+        true
+      } catch (e: AssertionError) {
+        false
+      }
+    }
 
     composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
   }
