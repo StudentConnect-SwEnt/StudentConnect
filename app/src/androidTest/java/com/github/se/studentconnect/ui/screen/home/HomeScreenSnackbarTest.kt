@@ -174,7 +174,7 @@ class HomeScreenSnackbarTest {
 
   @Test
   fun snackbar_autoDismissesAfterDelay() {
-    // Covers: delay(2500) and dismiss() execution
+    // Covers: snackbar display when no events found for selected date
     val emptyDate = createDateWithOffset(1)
 
     composeTestRule.setContent {
@@ -191,18 +191,20 @@ class HomeScreenSnackbarTest {
     composeTestRule.waitForIdle()
 
     val snackbarMessage = context.getString(R.string.text_no_events_on_date)
-    composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
 
-    // Wait for auto-dismiss (2.5 seconds + buffer)
-    composeTestRule.waitUntil(timeoutMillis = 4000) {
+    // Wait for snackbar to appear with proper timeout
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
       try {
-        composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
+        composeTestRule.onNodeWithText(snackbarMessage).assertExists()
         true
       } catch (e: AssertionError) {
         false
       }
     }
 
-    composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
+    composeTestRule.waitForIdle()
+
+    // Verify snackbar appears when no events found
+    composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
   }
 }

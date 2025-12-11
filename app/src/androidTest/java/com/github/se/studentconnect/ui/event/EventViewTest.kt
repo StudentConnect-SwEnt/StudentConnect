@@ -2065,6 +2065,23 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
+
+      // Wait for event to load and button to be available
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
+      composeTestRule.waitForIdle()
+
+      // Button is at the bottom of scrollable content, so scroll to it first
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.waitForIdle()
+
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
@@ -2109,7 +2126,20 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
+
+      // Wait for button to be available
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
 
       // Assert - confirmation dialog should be displayed
@@ -2143,8 +2173,33 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
+
+      // Wait for button to be available
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Wait for dialog to appear
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_CANCEL).assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
       composeTestRule.waitForIdle()
 
       // Click cancel button
@@ -2183,18 +2238,52 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
+
+      // Wait for button to be available
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.waitForIdle()
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
+
+      // Wait for dialog to appear
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule
+              .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_CONFIRM)
+              .assertExists()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
       composeTestRule.waitForIdle()
 
       // Click confirm button
       composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_CONFIRM).performClick()
 
-      // Assert - dialog should be dismissed
+      // Wait for dialog to disappear after deletion
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule
+              .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG)
+              .assertDoesNotExist()
+          true
+        } catch (e: AssertionError) {
+          false
+        }
+      }
+
       composeTestRule.waitForIdle()
-      composeTestRule
-          .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG)
-          .assertDoesNotExist()
     } finally {
       AuthenticationProvider.testUserId = null
     }
