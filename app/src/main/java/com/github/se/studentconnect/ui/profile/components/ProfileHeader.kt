@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,25 +59,40 @@ data class ProfileActions(
     val onOrganizationClick: (() -> Unit)? = null
 )
 
+/** Data class holding all profile header callbacks */
+data class ProfileHeaderCallbacks(
+    val onFriendsClick: () -> Unit,
+    val onEventsClick: () -> Unit,
+    val onEditClick: (() -> Unit)? = null,
+    val onUserCardClick: (() -> Unit)? = null
+)
+
 /**
  * Profile header component showing user profile picture, stats, and user information.
  *
  * @param user The user whose profile is being displayed
  * @param stats Profile statistics (friends count and events count)
- * @param onFriendsClick Callback when friends count is clicked
- * @param onEventsClick Callback when events count is clicked
- * @param actions Profile action callbacks (edit, user card, organization)
+ * @param callbacks All callback functions grouped together
+ * @param isVisitorMode Whether this is a visitor profile (shows friend buttons instead of
+ *   edit/card)
+ * @param friendButtonsContent Optional composable for friend action buttons in visitor mode
+ * @param showUsername Whether to show the username below the name
  * @param modifier Modifier for the composable
  */
 @Composable
 fun ProfileHeader(
     user: User,
     stats: ProfileStats,
-    onFriendsClick: () -> Unit,
-    onEventsClick: () -> Unit,
-    actions: ProfileActions = ProfileActions(),
+    callbacks: ProfileHeaderCallbacks,
+    isVisitorMode: Boolean = false,
+    friendButtonsContent: (@Composable () -> Unit)? = null,
+    showUsername: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+  // Create actions from the callbacks for backward compatibility
+  val actions =
+      ProfileActions(
+          onEditClick = callbacks.onEditClick, onUserCardClick = callbacks.onUserCardClick)
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
@@ -113,22 +129,27 @@ fun ProfileHeader(
                     StatItem(
                         count = stats.friendsCount,
                         label = stringResource(R.string.label_friends),
-                        onClick = onFriendsClick)
+                        onClick = callbacks.onFriendsClick)
 
                     StatItem(
                         count = stats.eventsCount,
                         label = stringResource(R.string.label_events),
-                        onClick = onEventsClick)
+                        onClick = callbacks.onEventsClick)
                   }
             }
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        UserInformation(user = user)
+        UserInformation(user = user, showUsername = showUsername, isVisitorMode = isVisitorMode)
 
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_xlarge)))
 
-        ActionButtons(actions = actions)
+        // Show either visitor mode buttons or action buttons
+        if (isVisitorMode && friendButtonsContent != null) {
+          friendButtonsContent()
+        } else {
+          ActionButtons(actions = actions)
+        }
       }
 }
 
@@ -170,10 +191,17 @@ private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modif
  * User information section displaying name, bio, university, and location.
  *
  * @param user The user whose information to display
+ * @param showUsername Whether to show the username below the name
+ * @param isVisitorMode Whether this is a visitor profile
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun UserInformation(user: User, modifier: Modifier = Modifier) {
+private fun UserInformation(
+    user: User,
+    showUsername: Boolean = false,
+    isVisitorMode: Boolean = false,
+    modifier: Modifier = Modifier
+) {
   Column(modifier = modifier.fillMaxWidth()) {
     // User Name
     Text(
@@ -181,8 +209,24 @@ private fun UserInformation(user: User, modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurface)
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier =
+            if (isVisitorMode)
+                Modifier.testTag(
+                    com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
+            else Modifier)
 
+    // Username (if showUsername is true)
+    if (showUsername) {
+      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+      Text(
+          text = "@${user.username}",
+          style = MaterialTheme.typography.bodyMedium,
+          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+          color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
 
     // Bio (if available)

@@ -1,9 +1,13 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.user.User
@@ -36,11 +40,28 @@ data class VisitorProfileUiState(
 class VisitorProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
+    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val getString: (resId: Int) -> String = { id -> "" }
 ) : ViewModel() {
 
+  companion object {
+    private const val TAG = "VisitorProfileViewModel"
+  }
+
   private val _uiState = MutableStateFlow(VisitorProfileUiState())
   val uiState: StateFlow<VisitorProfileUiState> = _uiState.asStateFlow()
+
+  // Friends count state
+  private val _friendsCount = MutableStateFlow(0)
+  val friendsCount: StateFlow<Int> = _friendsCount.asStateFlow()
+
+  // Events count state
+  private val _eventsCount = MutableStateFlow(0)
+  val eventsCount: StateFlow<Int> = _eventsCount.asStateFlow()
+
+  // Pinned events state
+  private val _pinnedEvents = MutableStateFlow<List<Event>>(emptyList())
+  val pinnedEvents: StateFlow<List<Event>> = _pinnedEvents.asStateFlow()
 
   // Holds the active friendship observer so we can cancel it when switching profiles
   private var friendshipObserverJob: Job? = null
@@ -70,6 +91,11 @@ class VisitorProfileViewModel(
 
           // Start observing friendship changes so UI updates if the other accepts
           subscribeToFriendshipUpdates(userId)
+
+          // Load additional data
+          loadFriendsCount(userId)
+          loadEventsCount(userId)
+          loadPinnedEvents(userId)
         } else {
           _uiState.update {
             it.copy(
@@ -86,6 +112,73 @@ class VisitorProfileViewModel(
               errorMessage = throwable.message ?: getString(R.string.error_failed_to_load_profile))
         }
       }
+    }
+  }
+
+  /** Loads the count of friends for the visitor user. */
+  private suspend fun loadFriendsCount(userId: String) {
+    try {
+      val friends = friendsRepository.getFriends(userId)
+      _friendsCount.value = friends.size
+      Log.d(TAG, "Loaded friends count for user $userId: ${friends.size} friends")
+    } catch (exception: Exception) {
+      Log.e(TAG, "Failed to load friends count for user: $userId", exception)
+      _friendsCount.value = 0
+    }
+  }
+
+  /** Loads the count of events for the visitor user (both joined and created). */
+  private suspend fun loadEventsCount(userId: String) {
+    try {
+      // Get joined event IDs
+      val joinedEventIds = userRepository.getJoinedEvents(userId)
+
+      // Get created events by filtering all visible events
+      val allVisibleEvents = eventRepository.getAllVisibleEvents()
+      val ownedEvents = allVisibleEvents.filter { it.ownerId == userId }
+
+      // Combine joined and owned events, remove duplicates
+      val allEventIds = (joinedEventIds + ownedEvents.map { it.uid }).distinct()
+
+      // Fetch event details, skip any that fail to load (same as JoinedEventsViewModel)
+      val loadedEvents =
+          allEventIds.mapNotNull { eventId ->
+            try {
+              eventRepository.getEvent(eventId)
+            } catch (_: Exception) {
+              null
+            }
+          }
+
+      _eventsCount.value = loadedEvents.size
+      Log.d(
+          TAG,
+          "Loaded events count for user $userId: ${loadedEvents.size} events (from ${allEventIds.size} total IDs)")
+    } catch (exception: Exception) {
+      Log.e(TAG, "Failed to load events count for user: $userId", exception)
+      _eventsCount.value = 0
+    }
+  }
+
+  /** Loads the pinned events for the visitor user. */
+  private suspend fun loadPinnedEvents(userId: String) {
+    try {
+      val pinnedEventIds = userRepository.getPinnedEvents(userId)
+      Log.d(TAG, "Loading pinned events for user $userId, IDs: $pinnedEventIds")
+      val events =
+          pinnedEventIds.mapNotNull { eventId ->
+            try {
+              eventRepository.getEvent(eventId)
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to load pinned event: $eventId", e)
+              null
+            }
+          }
+      _pinnedEvents.value = events
+      Log.d(TAG, "Loaded ${events.size} pinned events for user $userId")
+    } catch (exception: Exception) {
+      Log.e(TAG, "Failed to load pinned events for user: $userId", exception)
+      _pinnedEvents.value = emptyList()
     }
   }
 

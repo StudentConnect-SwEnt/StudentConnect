@@ -29,6 +29,7 @@ class VisitorProfileViewModelTest {
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
   // Resource provider reads app/src/main/res/values/strings.xml so tests use the same messages.
   private val rp = TestResourceProvider()
+  private val getString: (Int) -> String = { resId -> rp.getString(resId) }
 
   @Before
   fun setup() {
@@ -56,7 +57,8 @@ class VisitorProfileViewModelTest {
             createdAt = 1)
 
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -70,7 +72,8 @@ class VisitorProfileViewModelTest {
   @Test
   fun loadProfile_notFound_setsError() = runTest {
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { null }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { null }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("missing-user")
     advanceUntilIdle()
@@ -87,7 +90,8 @@ class VisitorProfileViewModelTest {
         VisitorProfileViewModel(
             fakeRepository { throw IllegalStateException("boom") },
             fakeFriendsRepository(),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-2")
     advanceUntilIdle()
@@ -217,6 +221,58 @@ class VisitorProfileViewModelTest {
     }
   }
 
+  private fun fakeEventRepository(): com.github.se.studentconnect.model.event.EventRepository {
+    return object : com.github.se.studentconnect.model.event.EventRepository {
+      override fun getNewUid(): String = "test-uid"
+
+      override suspend fun getAllVisibleEvents():
+          List<com.github.se.studentconnect.model.event.Event> = emptyList()
+
+      override suspend fun getAllVisibleEventsSatisfying(
+          predicate: (com.github.se.studentconnect.model.event.Event) -> Boolean
+      ): List<com.github.se.studentconnect.model.event.Event> = emptyList()
+
+      override suspend fun getEvent(
+          eventUid: String
+      ): com.github.se.studentconnect.model.event.Event = throw NotImplementedError()
+
+      override suspend fun getEventParticipants(
+          eventUid: String
+      ): List<com.github.se.studentconnect.model.event.EventParticipant> = emptyList()
+
+      override suspend fun addEvent(event: com.github.se.studentconnect.model.event.Event) = Unit
+
+      override suspend fun editEvent(
+          eventUid: String,
+          newEvent: com.github.se.studentconnect.model.event.Event
+      ) = Unit
+
+      override suspend fun deleteEvent(eventUid: String) = Unit
+
+      override suspend fun addParticipantToEvent(
+          eventUid: String,
+          participant: com.github.se.studentconnect.model.event.EventParticipant
+      ) = Unit
+
+      override suspend fun addInvitationToEvent(
+          eventUid: String,
+          invitedUser: String,
+          currentUserId: String
+      ) = Unit
+
+      override suspend fun getEventInvitations(eventUid: String): List<String> = emptyList()
+
+      override suspend fun removeInvitationFromEvent(
+          eventUid: String,
+          invitedUser: String,
+          currentUserId: String
+      ) = Unit
+
+      override suspend fun removeParticipantFromEvent(eventUid: String, participantUid: String) =
+          Unit
+    }
+  }
+
   @Test
   fun loadProfile_caches_whenSameUserAndNoForce() = runTest {
     val user =
@@ -238,7 +294,8 @@ class VisitorProfileViewModelTest {
               user
             },
             fakeFriendsRepository(),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-cache")
     advanceUntilIdle()
@@ -271,7 +328,8 @@ class VisitorProfileViewModelTest {
               user
             },
             fakeFriendsRepository(),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-refresh")
     advanceUntilIdle()
@@ -305,7 +363,8 @@ class VisitorProfileViewModelTest {
               resultSequence.removeAt(0)
             },
             fakeFriendsRepository(),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     // First call -> not found (error)
     viewModel.loadProfile("user-retry")
@@ -339,7 +398,8 @@ class VisitorProfileViewModelTest {
                   createdAt = 1)
             },
             fakeFriendsRepository(),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-a")
     advanceUntilIdle()
@@ -368,7 +428,8 @@ class VisitorProfileViewModelTest {
         VisitorProfileViewModel(
             fakeRepository { user },
             fakeFriendsRepository(onSendRequest = { _, _ -> requestSent = true }),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -399,7 +460,8 @@ class VisitorProfileViewModelTest {
         VisitorProfileViewModel(
             fakeRepository { user },
             fakeFriendsRepository(friends = listOf("user-1")),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -425,7 +487,8 @@ class VisitorProfileViewModelTest {
         VisitorProfileViewModel(
             fakeRepository { user },
             fakeFriendsRepository(sentRequests = listOf("user-1")),
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -448,7 +511,8 @@ class VisitorProfileViewModelTest {
             createdAt = 1)
 
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("user-1")
     advanceUntilIdle()
@@ -478,7 +542,8 @@ class VisitorProfileViewModelTest {
               createdAt = 1)
 
       val viewModel =
-          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+          VisitorProfileViewModel(
+              fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
       viewModel.loadProfile("user-2")
       advanceUntilIdle()
@@ -525,7 +590,8 @@ class VisitorProfileViewModelTest {
                     }
                   }
                 },
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-3")
     advanceUntilIdle()
@@ -552,7 +618,8 @@ class VisitorProfileViewModelTest {
             createdAt = 1)
 
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("user-rem")
     advanceUntilIdle()
@@ -582,7 +649,8 @@ class VisitorProfileViewModelTest {
               createdAt = 1)
 
       val viewModel =
-          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+          VisitorProfileViewModel(
+              fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
       viewModel.loadProfile("user-rem2")
       advanceUntilIdle()
@@ -622,7 +690,8 @@ class VisitorProfileViewModelTest {
                 }
               }
             },
-            rp::getString)
+            fakeEventRepository(),
+            getString)
 
     viewModel.loadProfile("user-rem3")
     advanceUntilIdle()
@@ -649,7 +718,8 @@ class VisitorProfileViewModelTest {
             createdAt = 1)
 
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("user-clear")
     advanceUntilIdle()
@@ -682,7 +752,8 @@ class VisitorProfileViewModelTest {
               createdAt = 1)
 
       val viewModel =
-          VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+          VisitorProfileViewModel(
+              fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
       viewModel.loadProfile("user-5")
       advanceUntilIdle()
@@ -715,7 +786,8 @@ class VisitorProfileViewModelTest {
             createdAt = 1)
 
     val viewModel =
-        VisitorProfileViewModel(fakeRepository { user }, fakeFriendsRepository(), rp::getString)
+        VisitorProfileViewModel(
+            fakeRepository { user }, fakeFriendsRepository(), fakeEventRepository(), getString)
 
     viewModel.loadProfile("self-user")
     advanceUntilIdle()
@@ -744,7 +816,9 @@ class VisitorProfileViewModelTest {
     // use local fakeFriendsRepository that keeps the observer active
     val friendsRepo = fakeFriendsRepository(observeForever = true)
 
-    val viewModel = VisitorProfileViewModel(fakeRepository { user }, friendsRepo, rp::getString)
+    val viewModel =
+        VisitorProfileViewModel(
+            fakeRepository { user }, friendsRepo, fakeEventRepository(), getString)
 
     viewModel.loadProfile("user-ob")
     advanceUntilIdle()
