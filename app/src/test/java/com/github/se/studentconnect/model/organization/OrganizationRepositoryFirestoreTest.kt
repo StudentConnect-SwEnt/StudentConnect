@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
@@ -291,7 +292,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun acceptMemberInvitation_addsUserWithRoleFromInvitation() = runBlocking {
+  fun acceptMemberInvitation_addsUserWithRoleFromInvitation() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val orgCollection = mockk<CollectionReference>(relaxed = true)
     val invCollection = mockk<CollectionReference>(relaxed = true)
@@ -339,14 +340,16 @@ class OrganizationRepositoryFirestoreTest {
 
     verify { orgDocRef.update(any<Map<String, Any>>()) }
     val capturedMap = updateSlot.captured
-    assertEquals(listOf("user-1"), capturedMap["memberUids"])
-    val memberRoles = capturedMap["memberRoles"] as? Map<*, *>
-    assertEquals("Admin", memberRoles?.get("user-1"))
+    // Check that FieldValue.arrayUnion is used for memberUids
+    val memberUidsValue = capturedMap["memberUids"]
+    assertTrue(memberUidsValue is FieldValue)
+    // Check that memberRoles.user-1 is set (using dot notation)
+    assertEquals("Admin", capturedMap["memberRoles.user-1"])
     verify { invDocRef.delete() }
   }
 
   @Test
-  fun acceptMemberInvitation_usesDefaultRoleWhenInvitationMissing() = runBlocking {
+  fun acceptMemberInvitation_usesDefaultRoleWhenInvitationMissing() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val orgCollection = mockk<CollectionReference>(relaxed = true)
     val invCollection = mockk<CollectionReference>(relaxed = true)
@@ -387,9 +390,11 @@ class OrganizationRepositoryFirestoreTest {
 
     verify { orgDocRef.update(any<Map<String, Any>>()) }
     val capturedMap = updateSlot.captured
-    assertEquals(listOf("user-1"), capturedMap["memberUids"])
-    val memberRoles = capturedMap["memberRoles"] as? Map<*, *>
-    assertEquals("Member", memberRoles?.get("user-1"))
+    // Check that FieldValue.arrayUnion is used for memberUids
+    val memberUidsValue = capturedMap["memberUids"]
+    assertTrue(memberUidsValue is FieldValue)
+    // Check that memberRoles.user-1 is set (using dot notation)
+    assertEquals("Member", capturedMap["memberRoles.user-1"])
     verify { invDocRef.delete() }
   }
 
@@ -430,14 +435,16 @@ class OrganizationRepositoryFirestoreTest {
     every { orgSnapshot.data } returns orgMap
     every { invSnapshot.exists() } returns true
     every { invSnapshot.data } returns invMap
+    every { orgDocRef.update(any<Map<String, Any>>()) } returns Tasks.forResult(null)
     every { invDocRef.delete() } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
 
-    // Should not call update since user already exists
-    verify(exactly = 0) { orgDocRef.update(any<Map<String, Any>>()) }
+    // FieldValue.arrayUnion handles duplicates automatically, so update is still called
+    // This is correct behavior - Firestore will ensure no duplicates
+    verify { orgDocRef.update(any<Map<String, Any>>()) }
     verify { invDocRef.delete() }
   }
 
