@@ -360,4 +360,94 @@ class OrganizationMappersTest {
     assertEquals(testEvent.title, orgEvent.title)
     assertEquals(testEvent.location?.name, orgEvent.location)
   }
+
+  @Test
+  fun `toOrganizationProfile with isOwner true sets correctly`() {
+    val profile =
+        testOrganization.toOrganizationProfile(isFollowing = true, isMember = true, isOwner = true)
+
+    assertTrue(profile.isOwner)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isFollowing)
+  }
+
+  @Test
+  fun `toOrganizationProfile with isOwner false sets correctly`() {
+    val profile =
+        testOrganization.toOrganizationProfile(isFollowing = true, isMember = true, isOwner = false)
+
+    assertFalse(profile.isOwner)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isFollowing)
+  }
+
+  @Test
+  fun `toOrganizationProfile isOwner defaults to false`() {
+    val profile = testOrganization.toOrganizationProfile()
+
+    assertFalse(profile.isOwner)
+    assertFalse(profile.isMember)
+    assertFalse(profile.isFollowing)
+  }
+
+  @Test
+  fun `toOrganizationProfile can have isOwner true while isMember false`() {
+    val profile = testOrganization.toOrganizationProfile(isOwner = true, isMember = false)
+
+    assertTrue(profile.isOwner)
+    assertFalse(profile.isMember)
+  }
+
+  @Test
+  fun `toOrganizationProfile with all parameters sets correctly`() {
+    val events = listOf(testEvent.toOrganizationEvent(mockContext))
+    val members = listOf(testUser.toOrganizationMember("Admin"))
+
+    val profile =
+        testOrganization.toOrganizationProfile(
+            isFollowing = true, isMember = true, isOwner = true, events = events, members = members)
+
+    assertTrue(profile.isFollowing)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isOwner)
+    assertEquals(1, profile.events.size)
+    assertEquals(1, profile.members.size)
+  }
+
+  @Test
+  fun `toOrganizationProfile owner scenario creates correct profile`() {
+    val profile =
+        testOrganization.toOrganizationProfile(
+            isFollowing = true, // Owners typically follow their organization
+            isMember = true, // Owners are members
+            isOwner = true // User is the owner
+            )
+
+    assertTrue(profile.isOwner)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isFollowing)
+    assertEquals(testOrganization.id, profile.organizationId)
+    assertEquals(testOrganization.name, profile.name)
+  }
+
+  @Test
+  fun `toOrganizationProfile member but not owner scenario`() {
+    val profile =
+        testOrganization.toOrganizationProfile(isFollowing = true, isMember = true, isOwner = false)
+
+    assertFalse(profile.isOwner)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isFollowing)
+  }
+
+  @Test
+  fun `toOrganizationProfile follower but not member scenario`() {
+    val profile =
+        testOrganization.toOrganizationProfile(
+            isFollowing = true, isMember = false, isOwner = false)
+
+    assertFalse(profile.isOwner)
+    assertFalse(profile.isMember)
+    assertTrue(profile.isFollowing)
+  }
 }

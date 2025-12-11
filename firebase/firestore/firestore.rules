@@ -21,6 +21,24 @@ service cloud.firestore {
              get(/databases/$(database)/documents/organizations/$(orgId)).data.createdBy == request.auth.uid;
     }
 
+    // Check if user is adding themselves to memberUids (for invitation acceptance)
+    function isAddingSelfAsMember() {
+      let oldMembers = resource.data.memberUids;
+      let newMembers = request.resource.data.memberUids;
+      // Check if user's UID was added to memberUids
+      return !oldMembers.hasAny([request.auth.uid]) &&
+             newMembers.hasAny([request.auth.uid]);
+    }
+
+    // Check if user is only changing memberUids and memberRoles (not other fields)
+    function isChangingOtherFields() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      // Only allow changes to memberUids and memberRoles
+      return affectedKeys.hasAny(['name', 'type', 'description', 'logoUrl', 'location',
+                                   'mainDomains', 'ageRanges', 'typicalEventSize',
+                                   'roles', 'socialLinks', 'createdAt', 'createdBy']);
+    }
+
     // Check if user is in the 'participants' subcollection of an event
     function isParticipant(eventId) {
       return exists(/databases/$(database)/documents/events/$(eventId)/participants/$(request.auth.uid));
@@ -42,7 +60,7 @@ service cloud.firestore {
     }
 
     // --- ORGANIZATIONS COLLECTION ---
-    
+
     match /organizations/{orgId} {
       // Allow anyone authenticated to see the list of organizations
       allow get, list: if request.auth != null;
@@ -50,26 +68,54 @@ service cloud.firestore {
       // Allow creating an organization if:
       // 1. User is authenticated
       // 2. The 'createdBy' field matches the user's UID (Security check)
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
                     request.resource.data.createdBy == request.auth.uid;
 
-      // Allow updates and deletes only by the creator
-      allow update, delete: if request.auth != null && 
+			// Allow updates by:
+      // 1. The creator (can update everything)
+      // 2. Users accepting invitations (can only add themselves to memberUids and memberRoles)
+      allow update: if request.auth != null &&
+                      (resource.data.createdBy == request.auth.uid ||
+                       (isAddingSelfAsMember() && !isChangingOtherFields()));
+
+      // Allow deletes only by the creator
+      allow delete: if request.auth != null &&
                             resource.data.createdBy == request.auth.uid;
 
       // Subcollection: members (For the scalable architecture we discussed)
       match /members/{memberId} {
          allow read: if request.auth != null;
-         
+
          // Allow users to join (add themselves) or the org creator to manage members
          allow write: if request.auth != null &&
-                      (request.auth.uid == memberId || 
+                      (request.auth.uid == memberId ||
                        get(/databases/$(database)/documents/organizations/$(orgId)).data.createdBy == request.auth.uid);
       }
     }
 
+    // --- ORGANIZATION MEMBER INVITATIONS COLLECTION ---
+
+    match /organization_member_invitations/{invitationId} {
+      // Allow read if you're the invited user or the organization creator
+      allow get, list: if request.auth != null &&
+                         (request.auth.uid == resource.data.userId ||
+                          isOrganizationCreator(resource.data.organizationId));
+
+      // Allow create if you're the organization creator
+      allow create: if request.auth != null &&
+                      isOrganizationCreator(request.resource.data.organizationId);
+
+      // Allow delete if you're the invited user (rejecting) or organization creator (canceling)
+      allow delete: if request.auth != null &&
+                      (request.auth.uid == resource.data.userId ||
+                       isOrganizationCreator(resource.data.organizationId));
+
+      // Prevent updates (invitations are accept/reject only)
+      allow update: if false;
+    }
+
     // --- EVENTS COLLECTION ---
-    
+
     match /events/{eventId} {
       // Allow read access to:
       // - Public events (anyone authenticated)
@@ -112,7 +158,7 @@ service cloud.firestore {
                           isParticipant(eventId) ||
                           isInvited(eventId));
 
-        allow create: if request.auth != null &&
+        allow create, update: if request.auth != null &&
                          request.auth.uid == userId &&
                          request.resource.data.uid == userId;
 
@@ -154,7 +200,7 @@ service cloud.firestore {
         allow update: if request.auth != null &&
                          (get(/databases/$(database)/documents/events/$(eventId)).data.ownerId == request.auth.uid ||
                           isParticipant(eventId));
-        
+
         // Subcollection: votes
         match /votes/{userId} {
           // Allow read own vote or if user is event owner
@@ -180,7 +226,7 @@ service cloud.firestore {
     }
 
     // --- USERS COLLECTION ---
-    
+
     match /users/{userId} {
       // Allow users to read their own profile and other users' profiles
       allow get, list: if request.auth != null;
@@ -212,9 +258,10 @@ service cloud.firestore {
       }
 
       // Subcollection: joinedEvents
+      // Allow anyone authenticated to read joined events (for visitor profile stats)
       match /joinedEvents/{eventId} {
-        allow get, list: if request.auth != null && request.auth.uid == userId;
-        allow create, delete: if request.auth != null && request.auth.uid == userId;
+        allow get, list: if request.auth != null;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
 
       // Subcollection: invitations (event invitations received by user)
@@ -233,8 +280,9 @@ service cloud.firestore {
       }
 
       // Subcollection: pinnedEvents
+      // Allow anyone authenticated to read pinned events (for visitor profile display)
       match /pinnedEvents/{eventId} {
-        allow get, list: if request.auth != null && request.auth.uid == userId;
+        allow get, list: if request.auth != null;
         allow create, delete: if request.auth != null && request.auth.uid == userId;
       }
 
@@ -245,9 +293,9 @@ service cloud.firestore {
       }
     }
 
-    
+
     // --- NOTIFICATIONS COLLECTION ---
-    
+
     match /notifications/{notificationId} {
       // Allow read access only if the logged-in user owns the notification
       allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -260,7 +308,7 @@ service cloud.firestore {
     }
 
     // --- STORIES COLLECTION ---
-    
+
     match /stories/{storyId} {
       // Allow read if user is authenticated and has joined the event or owns the story
       allow get: if request.auth != null &&

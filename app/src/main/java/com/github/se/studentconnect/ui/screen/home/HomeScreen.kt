@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.rememberModalBottomSheetState
@@ -755,6 +756,9 @@ private fun handleNotificationClick(
     is Notification.EventStarting -> {
       navController.navigate("eventView/${notification.eventId}/true")
     }
+    is Notification.OrganizationMemberInvitation -> {
+      navController.navigate("organizationProfile/${notification.organizationId}")
+    }
   }
   onNotificationRead(notification.id)
   onDismiss()
@@ -824,6 +828,7 @@ private fun NotificationIcon(notification: Notification) {
       when (notification) {
         is Notification.FriendRequest -> Icons.Default.Person
         is Notification.EventStarting -> Icons.Default.Event
+        is Notification.OrganizationMemberInvitation -> Icons.Default.Group
       }
   Icon(
       imageVector = icon,
@@ -838,6 +843,7 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
       when (notification) {
         is Notification.FriendRequest -> notification.getMessage()
         is Notification.EventStarting -> notification.getMessage()
+        is Notification.OrganizationMemberInvitation -> notification.getMessage()
       }
   val fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal
 
@@ -880,6 +886,7 @@ private fun getUsernameAndTime(notification: Notification): Pair<String, String>
       when (notification) {
         is Notification.FriendRequest -> notification.fromUserId
         is Notification.EventStarting -> notification.userId
+        is Notification.OrganizationMemberInvitation -> notification.invitedByName
       }
 
   val timeAgo =
