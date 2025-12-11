@@ -1,10 +1,11 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.waitUntil
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
@@ -32,6 +33,7 @@ class HomeScreenSnackbarTest {
   private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var viewModel: HomePageViewModel
   private lateinit var notificationViewModel: NotificationViewModel
+  private val context: Context = ApplicationProvider.getApplicationContext()
 
   private fun createEventOnDate(date: Date): Event.Public {
     return Event.Public(
@@ -87,7 +89,7 @@ class HomeScreenSnackbarTest {
     viewModel.onDateSelected(emptyDate)
     composeTestRule.waitForIdle()
 
-    val snackbarMessage = composeTestRule.activity.getString(R.string.text_no_events_on_date)
+    val snackbarMessage = context.getString(R.string.text_no_events_on_date)
     composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
   }
 
@@ -112,7 +114,7 @@ class HomeScreenSnackbarTest {
     viewModel.onDateSelected(eventDate)
     composeTestRule.waitForIdle()
 
-    val snackbarMessage = composeTestRule.activity.getString(R.string.text_no_events_on_date)
+    val snackbarMessage = context.getString(R.string.text_no_events_on_date)
     composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
   }
 
@@ -136,17 +138,12 @@ class HomeScreenSnackbarTest {
     viewModel.onDateSelected(emptyDate)
     composeTestRule.waitForIdle()
 
-    val snackbarMessage = composeTestRule.activity.getString(R.string.text_no_events_on_date)
+    val snackbarMessage = context.getString(R.string.text_no_events_on_date)
     composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
 
-    // Wait for dismissal
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      try {
-        !composeTestRule.onNodeWithText(snackbarMessage).fetchSemanticsNodes().isNotEmpty()
-      } catch (e: Exception) {
-        true
-      }
-    }
+    // Wait for dismissal (2.5 seconds + buffer)
+    composeTestRule.waitForIdle()
+    Thread.sleep(3000)
 
     // Second selection of same date should not show snackbar
     viewModel.onDateSelected(emptyDate)
@@ -168,7 +165,7 @@ class HomeScreenSnackbarTest {
 
     composeTestRule.waitForIdle()
 
-    val snackbarMessage = composeTestRule.activity.getString(R.string.text_no_events_on_date)
+    val snackbarMessage = context.getString(R.string.text_no_events_on_date)
     composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
   }
 
@@ -190,17 +187,12 @@ class HomeScreenSnackbarTest {
     viewModel.onDateSelected(emptyDate)
     composeTestRule.waitForIdle()
 
-    val snackbarMessage = composeTestRule.activity.getString(R.string.text_no_events_on_date)
+    val snackbarMessage = context.getString(R.string.text_no_events_on_date)
     composeTestRule.onNodeWithText(snackbarMessage).assertIsDisplayed()
 
-    // Wait for auto-dismiss (2.5 seconds)
-    composeTestRule.waitUntil(timeoutMillis = 3000) {
-      try {
-        !composeTestRule.onNodeWithText(snackbarMessage).fetchSemanticsNodes().isNotEmpty()
-      } catch (e: Exception) {
-        true
-      }
-    }
+    // Wait for auto-dismiss (2.5 seconds + buffer)
+    composeTestRule.waitForIdle()
+    Thread.sleep(3000)
 
     composeTestRule.onNodeWithText(snackbarMessage).assertDoesNotExist()
   }
