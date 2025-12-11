@@ -127,7 +127,7 @@ class VisitorProfileScreenTest {
 
     // SENDING -> shows "Sending..." and button should be disabled
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).assertExists()
-    composeTestRule.onNodeWithText("Sending...").assertExists()
+    composeTestRule.onNodeWithText("Sending…").assertExists()
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).assertIsNotEnabled()
 
     // Switch to ERROR -> shows "Try Again" and should be enabled
