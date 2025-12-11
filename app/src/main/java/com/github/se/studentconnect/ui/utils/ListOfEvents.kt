@@ -396,7 +396,7 @@ fun formatDateHeader(timestamp: Timestamp): String {
     eventCalendar.get(Calendar.YEAR) == tomorrow.get(Calendar.YEAR) &&
         eventCalendar.get(Calendar.DAY_OF_YEAR) == tomorrow.get(Calendar.DAY_OF_YEAR) -> "TOMORROW"
     else ->
-        createGregorianFormatter("EEEE d MMMM", Locale.FRENCH)
+        createGregorianFormatter("EEEE d MMMM", Locale.ENGLISH)
             .format(timestamp.toDate())
             .uppercase()
   }
