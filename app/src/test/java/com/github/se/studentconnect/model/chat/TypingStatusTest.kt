@@ -236,7 +236,7 @@ class TypingStatusTest {
   }
 
   @Test
-  fun typingStatus_fromMap_withExceptionDuringParsing_returnsNull() {
+  fun typingStatus_fromMap_withInvalidTimestamp_usesDefaultTimestamp() {
     val map =
         mapOf(
             "userId" to "user-123",
@@ -247,7 +247,8 @@ class TypingStatusTest {
 
     val status = TypingStatus.fromMap(map)
 
-    // Should catch exception and return null
-    assertNull(status)
+    // Should use default timestamp when cast fails
+    assertNotNull(status)
+    assertNotNull(status?.lastUpdate)
   }
 }

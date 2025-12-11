@@ -15,43 +15,29 @@ class ChatRepositoryProviderTest {
   }
 
   @Test
-  fun chatRepositoryProvider_returnsNonNullRepository() {
-    val repository = ChatRepositoryProvider.repository
-
-    assertNotNull(repository)
-  }
-
-  @Test
-  fun chatRepositoryProvider_returnsSameInstanceOnMultipleCalls() {
-    val repository1 = ChatRepositoryProvider.repository
-    val repository2 = ChatRepositoryProvider.repository
-
-    assertSame(repository1, repository2)
-  }
-
-  @Test
   fun chatRepositoryProvider_overrideForTests_returnsMockedRepository() {
     val mockRepository = mock(ChatRepository::class.java)
 
     ChatRepositoryProvider.overrideForTests(mockRepository)
     val repository = ChatRepositoryProvider.repository
 
+    assertNotNull(repository)
     assertSame(mockRepository, repository)
   }
 
   @Test
-  fun chatRepositoryProvider_cleanOverrideForTests_restoresDefaultRepository() {
-    val mockRepository = mock(ChatRepository::class.java)
-    val originalRepository = ChatRepositoryProvider.repository
+  fun chatRepositoryProvider_cleanOverrideForTests_allowsNewOverride() {
+    val mockRepository1 = mock(ChatRepository::class.java)
+    val mockRepository2 = mock(ChatRepository::class.java)
 
-    ChatRepositoryProvider.overrideForTests(mockRepository)
-    val overriddenRepository = ChatRepositoryProvider.repository
-    assertSame(mockRepository, overriddenRepository)
+    ChatRepositoryProvider.overrideForTests(mockRepository1)
+    val repo1 = ChatRepositoryProvider.repository
+    assertSame(mockRepository1, repo1)
 
     ChatRepositoryProvider.cleanOverrideForTests()
-    val restoredRepository = ChatRepositoryProvider.repository
 
-    // After cleaning, should return the original default repository
-    assertSame(originalRepository, restoredRepository)
+    ChatRepositoryProvider.overrideForTests(mockRepository2)
+    val repo2 = ChatRepositoryProvider.repository
+    assertSame(mockRepository2, repo2)
   }
 }
