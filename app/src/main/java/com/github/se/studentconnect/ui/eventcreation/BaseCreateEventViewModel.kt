@@ -1,6 +1,8 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
@@ -281,12 +283,24 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     val s = uiState.value
     return when {
       s.bannerImageUri != null -> {
+        val hasNetwork = isNetworkAvailable(context)
+
+        if (hasNetwork) {
+          try {
+            val uploadedUrl = mediaRepository.upload(s.bannerImageUri!!, "events/$eventUid/banner")
+            return BannerResolution(bannerPathForEvent = uploadedUrl, pendingUpload = null)
+          } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.w(TAG, "Immediate banner upload failed, staging for background upload", e)
+          }
+        }
+
         val stagedPath = copyUriToFile(context, s.bannerImageUri!!, eventUid)
         if (stagedPath == null) {
           BannerResolution(s.bannerImagePath, null)
         } else {
           BannerResolution(
-              bannerPathForEvent = null,
+              bannerPathForEvent = s.bannerImagePath,
               pendingUpload =
                   BannerUploadJob(
                       filePath = stagedPath,
@@ -378,8 +392,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         // Build event (computation only)
         val event = buildEvent(eventUid, currentUserId, bannerResolution.bannerPathForEvent)
 
-        // Fire-and-forget the write so offline saves don't block navigation; Firestore will queue
-        // the write and sync when back online.
+        // Persist the event; Firestore will cache the write offline and sync later.
         viewModelScope.launch {
           try {
             if (editingEventUid != null) {
@@ -410,7 +423,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         bannerResolution.pendingUpload?.let { enqueueBannerUpload(appContext, it) }
       } catch (e: Exception) {
         if (e is CancellationException) throw e
-        e.printStackTrace()
+        Log.w(TAG, "Save failed", e)
         updateState { copyCommon(isSaving = false, finishedSaving = false) }
       }
     }
@@ -538,5 +551,12 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     WorkManager.getInstance(context)
         .enqueueUniqueWork(
             "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
+  }
+
+  private fun isNetworkAvailable(context: Context): Boolean {
+    val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    val network = cm.activeNetwork ?: return false
+    val capabilities = cm.getNetworkCapabilities(network) ?: return false
+    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
   }
 }
