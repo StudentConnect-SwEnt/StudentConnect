@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.chat
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.chat.ChatMessage
 import com.github.se.studentconnect.model.chat.ChatRepository
@@ -50,11 +52,17 @@ data class ChatUiState(
  *
  * This ViewModel handles: - Real-time message streaming - Sending messages - Typing indicators -
  * User profile lookups
+ *
+ * @param chatRepository Repository for chat operations.
+ * @param eventRepository Repository for event data.
+ * @param userRepository Repository for user data.
+ * @param getString Function to retrieve string resources by resource ID.
  */
 class ChatViewModel(
     private val chatRepository: ChatRepository = ChatRepositoryProvider.repository,
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository
+    private val userRepository: UserRepository = UserRepositoryProvider.repository,
+    private val getString: (resId: Int) -> String = { _ -> "" }
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(ChatUiState())
@@ -63,6 +71,13 @@ class ChatViewModel(
   private var messagesJob: Job? = null
   private var typingJob: Job? = null
   private var typingDebounceJob: Job? = null
+
+  companion object {
+    private const val TAG = "ChatViewModel"
+
+    /** Typing indicator debounce delay in milliseconds. */
+    private const val TYPING_DEBOUNCE_DELAY_MS = 2000L
+  }
 
   /**
    * Initializes the chat for a specific event.
@@ -78,7 +93,9 @@ class ChatViewModel(
         val event = eventRepository.getEvent(eventId)
         _uiState.update { it.copy(event = event) }
       } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load event: ${e.message}") }
+        _uiState.update {
+          it.copy(error = getString(R.string.error_failed_to_load_event).format(e.message))
+        }
       }
     }
 
@@ -86,12 +103,14 @@ class ChatViewModel(
     viewModelScope.launch {
       try {
         val currentUserId = AuthenticationProvider.currentUser
-        if (currentUserId != null) {
+        if (currentUserId.isNotEmpty()) {
           val user = userRepository.getUserById(currentUserId)
           _uiState.update { it.copy(currentUser = user) }
         }
       } catch (e: Exception) {
-        _uiState.update { it.copy(error = "Failed to load user: ${e.message}") }
+        _uiState.update {
+          it.copy(error = getString(R.string.error_failed_to_load_user).format(e.message))
+        }
       }
     }
 
@@ -130,11 +149,11 @@ class ChatViewModel(
     if (text.isNotBlank() && currentState.event != null && currentState.currentUser != null) {
       updateTypingStatus(isTyping = true)
 
-      // Debounce: Stop typing status after user stops typing for 2 seconds
+      // Debounce: Stop typing status after user stops typing
       typingDebounceJob?.cancel()
       typingDebounceJob =
           viewModelScope.launch {
-            delay(2000)
+            delay(TYPING_DEBOUNCE_DELAY_MS)
             updateTypingStatus(isTyping = false)
           }
     } else if (text.isBlank()) {
@@ -179,7 +198,9 @@ class ChatViewModel(
         },
         onFailure = { exception ->
           _uiState.update {
-            it.copy(error = "Failed to send message: ${exception.message}", isSending = false)
+            it.copy(
+                error = getString(R.string.error_failed_to_send_message).format(exception.message),
+                isSending = false)
           }
         })
   }
@@ -203,7 +224,9 @@ class ChatViewModel(
             lastUpdate = Timestamp.now())
 
     chatRepository.updateTypingStatus(
-        typingStatus = typingStatus, onSuccess = {}, onFailure = { /* Silently fail */})
+        typingStatus = typingStatus,
+        onSuccess = {},
+        onFailure = { exception -> Log.e(TAG, "Failed to update typing status", exception) })
   }
 
   /** Clears any error messages. */

@@ -26,7 +26,9 @@ data class ChatMessage(
     require(senderId.isNotBlank()) { "Sender ID cannot be blank" }
     require(senderName.isNotBlank()) { "Sender name cannot be blank" }
     require(content.isNotBlank()) { "Message content cannot be blank" }
-    require(content.length <= 1000) { "Message content cannot exceed 1000 characters" }
+    require(content.length <= MAX_CONTENT_LENGTH) {
+      "Message content cannot exceed $MAX_CONTENT_LENGTH characters"
+    }
   }
 
   /**
@@ -45,6 +47,9 @@ data class ChatMessage(
   }
 
   companion object {
+    /** Maximum allowed length for message content. */
+    const val MAX_CONTENT_LENGTH = 1000
+
     /**
      * Creates a ChatMessage instance from a Map (typically from Firestore).
      *

@@ -33,6 +33,9 @@
     <string name="error_failed_to_load_birthday">Failed to load birthday</string>
     <string name="error_failed_to_remove_birthday">Failed to remove birthday</string>
     <string name="error_failed_to_load_events">Failed to load events: %s</string>
+    <string name="error_failed_to_load_event">Failed to load event: %s</string>
+    <string name="error_failed_to_load_user">Failed to load user: %s</string>
+    <string name="error_failed_to_send_message">Failed to send message: %s</string>
 
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>

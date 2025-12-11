@@ -18,6 +18,12 @@ data class TypingStatus(
     val isTyping: Boolean,
     val lastUpdate: Timestamp = Timestamp.now()
 ) {
+  init {
+    require(userId.isNotBlank()) { "User ID cannot be blank" }
+    require(userName.isNotBlank()) { "User name cannot be blank" }
+    require(eventId.isNotBlank()) { "Event ID cannot be blank" }
+  }
+
   /**
    * Converts the TypingStatus to a Map for Firestore storage.
    *
