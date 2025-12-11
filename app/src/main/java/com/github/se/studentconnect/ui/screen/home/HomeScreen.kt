@@ -1575,6 +1575,7 @@ private suspend fun scrollToDate(
     }
   } catch (e: Exception) {
     // Handle any unexpected errors gracefully by scrolling to top
+
     try {
       listState.animateScrollToItem(0)
     } catch (scrollError: Exception) {
