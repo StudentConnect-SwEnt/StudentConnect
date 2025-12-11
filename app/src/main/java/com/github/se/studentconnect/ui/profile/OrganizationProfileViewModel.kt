@@ -350,9 +350,17 @@ class OrganizationProfileViewModel(
 
         // Get current member UIDs
         val organization = organizationRepository.getOrganizationById(currentOrg.organizationId)
+        if (organization == null) {
+          Log.e(TAG, "Organization not found while loading available users")
+          _uiState.value = _uiState.value.copy(isLoadingUsers = false)
+          return@launch
+        }
+
         val memberUids =
-            organization?.memberUids?.toMutableSet()
-                ?: mutableSetOf<String>().apply { organization?.createdBy?.let { add(it) } }
+            organization.memberUids.toMutableSet().apply {
+              // Always include the creator
+              add(organization.createdBy)
+            }
 
         // Filter out existing members and current user
         val availableUsers =
@@ -405,7 +413,12 @@ class OrganizationProfileViewModel(
                 invitedBy = inviterId,
                 invitedByName = inviterName)
 
-        notificationRepository.createNotification(notification, onSuccess = {}, onFailure = {})
+        notificationRepository.createNotification(
+            notification,
+            onSuccess = { Log.d(TAG, "Notification sent successfully to user $userId") },
+            onFailure = { error ->
+              Log.e(TAG, "Failed to send notification to user $userId: $error")
+            })
 
         // Close dialog and reload organization data
         dismissAddMemberDialog()

@@ -53,27 +53,43 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
       role: String,
       invitedBy: String
   ) {
+    val invitationId = "${organizationId}_${userId}"
+
+    // Check if invitation already exists
+    val existingInvitation =
+        db.collection(INVITATIONS_COLLECTION).document(invitationId).get().await()
+    if (existingInvitation.exists()) {
+      Log.w(
+          "OrganizationRepo",
+          "Invitation already exists for user $userId in organization $organizationId")
+      return
+    }
+
     val invitation =
         OrganizationMemberInvitation(
             organizationId = organizationId, userId = userId, role = role, invitedBy = invitedBy)
-    val invitationId = "${organizationId}_${userId}"
     db.collection(INVITATIONS_COLLECTION).document(invitationId).set(invitation.toMap()).await()
   }
 
   override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {
-    // Add user to organization's memberUids
+    // Get the invitation to retrieve the role
+    val invitationId = "${organizationId}_${userId}"
+    val invitationDoc = db.collection(INVITATIONS_COLLECTION).document(invitationId).get().await()
+    val invitation = invitationDoc.data?.let { OrganizationMemberInvitation.fromMap(it) }
+
+    val role = invitation?.role ?: "Member"
+
+    // Use atomic operations to prevent race conditions
     val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
-    val org = getOrganizationById(organizationId)
-    if (org != null) {
-      val updatedMemberUids = org.memberUids.toMutableList()
-      if (!updatedMemberUids.contains(userId)) {
-        updatedMemberUids.add(userId)
-        orgRef.update("memberUids", updatedMemberUids).await()
-      }
-    }
+
+    // Add user to memberUids and memberRoles atomically
+    val updates =
+        hashMapOf<String, Any>(
+            "memberUids" to com.google.firebase.firestore.FieldValue.arrayUnion(userId),
+            "memberRoles.$userId" to role)
+    orgRef.update(updates).await()
 
     // Delete the invitation
-    val invitationId = "${organizationId}_${userId}"
     db.collection(INVITATIONS_COLLECTION).document(invitationId).delete().await()
   }
 
@@ -116,14 +132,8 @@ class OrganizationRepositoryFirestore(private val db: FirebaseFirestore) : Organ
   }
 
   override suspend fun addMemberToOrganization(organizationId: String, userId: String) {
+    // Use atomic operation to prevent race conditions
     val orgRef = db.collection(COLLECTION_NAME).document(organizationId)
-    val org = getOrganizationById(organizationId)
-    if (org != null) {
-      val updatedMemberUids = org.memberUids.toMutableList()
-      if (!updatedMemberUids.contains(userId)) {
-        updatedMemberUids.add(userId)
-        orgRef.update("memberUids", updatedMemberUids).await()
-      }
-    }
+    orgRef.update("memberUids", com.google.firebase.firestore.FieldValue.arrayUnion(userId)).await()
   }
 }

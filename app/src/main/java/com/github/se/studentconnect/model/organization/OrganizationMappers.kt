@@ -37,6 +37,7 @@ fun Organization.toOrganizationProfile(
       isFollowing = isFollowing,
       isMember = isMember,
       isOwner = isOwner,
+      roles = this.roles.map { it.name },
       events = events,
       members = members)
 }
