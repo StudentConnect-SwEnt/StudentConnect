@@ -1012,6 +1012,7 @@ class FriendMarkersTest {
 
     // Now mock that icon exists in the style
     every { mockStyle.hasStyleImage(any()) } returns true
+    every { mockStyle.addImage(any(), any<Bitmap>()) } returns successfulExpected
 
     // Clear the verification state for the next check
     clearMocks(mockStyle, answers = false)

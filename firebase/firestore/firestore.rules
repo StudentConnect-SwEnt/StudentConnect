@@ -262,10 +262,13 @@ service cloud.firestore {
     // --- STORIES COLLECTION ---
     
     match /stories/{storyId} {
-      // Allow read if user has joined the event OR is friend with the story creator
-      allow get, list: if request.auth != null &&
-                        (hasJoinedEvent(resource.data.eventId) ||
-                         isFriendOfStoryCreator(resource.data.userId));
+      // Allow read if user is authenticated and has joined the event or owns the story
+      allow get: if request.auth != null &&
+                   (request.auth.uid == resource.data.userId ||
+                    hasJoinedEvent(resource.data.eventId));
+      
+      // For list queries, allow if user is authenticated
+      allow list: if request.auth != null;
 
       // Allow create if user has joined the event and userId matches authenticated user
       allow create: if request.auth != null &&

@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.home
 
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
@@ -27,6 +28,7 @@ class HomePageViewModelGetEventsForDateTest {
   private lateinit var eventRepository: EventRepositoryLocal
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var organizationRepository: OrganizationRepositoryLocal
+  private lateinit var friendsRepository: FriendsRepositoryLocal
 
   @Before
   fun setup() {
@@ -34,8 +36,16 @@ class HomePageViewModelGetEventsForDateTest {
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     organizationRepository = OrganizationRepositoryLocal()
+    friendsRepository = FriendsRepositoryLocal()
     viewModel =
-        HomePageViewModel(eventRepository, userRepository, null, null, organizationRepository)
+        HomePageViewModel(
+            eventRepository,
+            userRepository,
+            null,
+            null,
+            organizationRepository,
+            null,
+            friendsRepository)
   }
 
   @After

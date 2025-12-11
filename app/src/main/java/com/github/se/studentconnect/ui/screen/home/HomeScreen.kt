@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,6 +12,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +41,7 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -63,6 +66,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -72,24 +76,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.story.StoryRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -102,8 +115,10 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 // UI Constants
@@ -111,10 +126,12 @@ private object HomeScreenConstants {
   const val STORY_SIZE_DP = 64
   const val STORY_BORDER_WIDTH_DP = 3
   const val STORY_PADDING_TOP_DP = 4
+  const val STORY_ITEM_WIDTH_DP = 80
   const val STORIES_ROW_TOP_PADDING_DP = 0
   const val STORIES_ROW_BOTTOM_PADDING_DP = 12
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
+  const val STORY_VIDEO_SPACER_HEIGHT_DP = 8
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
 }
@@ -126,6 +143,8 @@ object HomeScreenTestTags {
   const val TAB_FOR_YOU = "tab_for_you"
   const val TAB_EVENTS = "tab_events"
   const val TAB_DISCOVER = "tab_discover"
+  const val STORY_VIEWER = "story_viewer"
+  const val STORY_CLOSE_BUTTON = "story_close_button"
 }
 
 /** Sliding tab selector that displays three tabs: For You, Events, and Discover. */
@@ -244,7 +263,11 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     viewModel: HomePageViewModel = run {
       val context = LocalContext.current
-      viewModel { HomePageViewModel(context = context, locationRepository = null) }
+      val storyRepository = StoryRepositoryProvider.repository
+      viewModel {
+        HomePageViewModel(
+            context = context, locationRepository = null, storyRepository = storyRepository)
+      }
     },
     notificationViewModel: NotificationViewModel = viewModel(),
     shouldOpenQRScanner: Boolean = false,
@@ -261,7 +284,7 @@ fun HomeScreen(
       shouldOpenQRScanner = shouldOpenQRScanner,
       onQRScannerClosed = onQRScannerClosed,
       onCameraActiveChange = onCameraActiveChange,
-      onClickStory = { e, i -> viewModel.updateSeenStories(e, i) },
+      onClickStory = { _, _ -> /* TODO: update seen count for story */ },
       uiState = uiState,
       notificationViewModel = notificationViewModel,
       favoriteEventIds = favoriteEventIds,
@@ -272,7 +295,8 @@ fun HomeScreen(
       onFavoriteToggle = viewModel::toggleFavorite,
       onToggleFavoritesFilter = { viewModel.toggleFavoritesFilter() },
       onClearScrollTarget = { viewModel.clearScrollTarget() },
-      onTabSelected = { tab -> viewModel.selectTab(tab) })
+      onTabSelected = { tab -> viewModel.selectTab(tab) },
+      onRefreshStories = { viewModel.refreshStories() })
 }
 
 /** Core Home screen implementation containing pager, filters, notifications, and stories. */
@@ -297,11 +321,13 @@ fun HomeScreen(
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {},
-    onTabSelected: (HomeTabMode) -> Unit = {}
+    onTabSelected: (HomeTabMode) -> Unit = {},
+    onRefreshStories: () -> Unit = {}
 ) {
   var showNotifications by remember { mutableStateOf(false) }
   var cameraMode by remember { mutableStateOf(CameraMode.QR_SCAN) }
   var selectedStory by remember { mutableStateOf<Event?>(null) }
+  var selectedStoryIndex by remember { mutableStateOf(0) }
   var showStoryViewer by remember { mutableStateOf(false) }
   val notificationUiState =
       notificationViewModel?.uiState?.collectAsState()?.value ?: NotificationUiState()
@@ -411,13 +437,14 @@ fun HomeScreen(
                               }
                             },
                             onStoryAccepted = { _, _, _ ->
-                              // Story upload will be implemented in a future PR
-                              // Parameters: mediaUri (captured media), isVideo (true if video),
-                              // selectedEvent (linked event)
+                              // Story upload happens in CameraModeSelectorScreen
+                              // After upload completes, refresh only the stories (not everything)
                               onQRScannerClosed()
                               cameraMode = CameraMode.QR_SCAN
                               coroutineScope.launch {
                                 pagerState.scrollToPage(HomeScreenConstants.PAGER_HOME_PAGE)
+                                // Refresh only stories to avoid showing loading spinner
+                                onRefreshStories()
                               }
                             },
                             initialMode = cameraMode)
@@ -453,7 +480,9 @@ fun HomeScreen(
                               }
 
                               HorizontalPager(
-                                  state = tabPagerState, modifier = Modifier.fillMaxSize()) { _ ->
+                                  state = tabPagerState,
+                                  modifier = Modifier.fillMaxSize(),
+                                  userScrollEnabled = true) { _ ->
                                     // Use different scroll state for each tab
                                     val currentListState =
                                         when (page) {
@@ -497,10 +526,12 @@ fun HomeScreen(
                                                 },
                                                 onClick = { event, seenStories ->
                                                   selectedStory = event
+                                                  selectedStoryIndex = seenStories
                                                   showStoryViewer = true
                                                   onClickStory(event, seenStories)
                                                 },
-                                                stories = uiState.subscribedEventsStories)
+                                                stories = uiState.subscribedEventsStories,
+                                                eventStories = uiState.eventStories)
                                           })
                                     }
                                   }
@@ -513,9 +544,43 @@ fun HomeScreen(
             }
 
         // Story Viewer Overlay
-        selectedStory?.let { story ->
-          StoryViewer(
-              event = story, isVisible = showStoryViewer, onDismiss = { showStoryViewer = false })
+        selectedStory?.let { event ->
+          val stories = uiState.eventStories[event.uid] ?: emptyList()
+          val context = LocalContext.current
+          val storyRepository = remember { StoryRepositoryProvider.repository }
+
+          if (stories.isNotEmpty()) {
+            StoryViewer(
+                event = event,
+                stories = stories,
+                initialStoryIndex = selectedStoryIndex,
+                isVisible = showStoryViewer,
+                onDismiss = { showStoryViewer = false },
+                onDeleteStory = { storyId ->
+                  coroutineScope.launch {
+                    try {
+                      val currentUserId =
+                          com.github.se.studentconnect.model.authentication.AuthenticationProvider
+                              .currentUser
+                      val success = storyRepository.deleteStory(storyId, currentUserId)
+
+                      Toast.makeText(
+                              context,
+                              if (success) context.getString(R.string.story_deleted)
+                              else context.getString(R.string.story_delete_failed),
+                              Toast.LENGTH_SHORT)
+                          .show()
+                      if (success) onRefreshStories()
+                    } catch (e: Exception) {
+                      Toast.makeText(
+                              context,
+                              context.getString(R.string.story_error, e.message),
+                              Toast.LENGTH_SHORT)
+                          .show()
+                    }
+                  }
+                })
+          }
         }
 
         // Handle scroll to date functionality
@@ -888,7 +953,8 @@ private fun FriendRequestActions(
 @Composable
 fun StoryItem(
     name: String,
-    avatarRes: Int,
+    avatarRes: Int? = null,
+    avatarUrl: String? = null,
     viewed: Boolean,
     onClick: () -> Unit,
     contentDescription: String? = null,
@@ -898,13 +964,27 @@ fun StoryItem(
   val finalContentDescription = contentDescription ?: defaultContentDescription
   val borderColor =
       if (viewed) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
+
+  // Download profile picture using MediaRepository (same as profile screen)
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
+        value =
+            avatarUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { // just do nothing
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.testTag(if (viewed) "story_viewed" else "story_unseen")) {
-          Image(
-              painter = painterResource(avatarRes),
-              contentDescription = finalContentDescription,
+          Box(
               modifier =
                   Modifier.size(HomeScreenConstants.STORY_SIZE_DP.dp)
                       .clip(CircleShape)
@@ -912,14 +992,50 @@ fun StoryItem(
                           width = HomeScreenConstants.STORY_BORDER_WIDTH_DP.dp,
                           color = borderColor,
                           shape = CircleShape)
-                      .clickable(onClick = onClick))
+                      .clickable(onClick = onClick),
+              contentAlignment = Alignment.Center) {
+                when {
+                  imageBitmap != null -> {
+                    // Show downloaded profile picture
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription = finalContentDescription,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop)
+                  }
+                  avatarRes != null -> {
+                    // Show local drawable
+                    Image(
+                        painter = painterResource(avatarRes),
+                        contentDescription = finalContentDescription,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop)
+                  }
+                  else -> {
+                    // Show default avatar with initial
+                    Box(
+                        modifier =
+                            Modifier.fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center) {
+                          Text(
+                              text = name.take(1).uppercase(),
+                              style = MaterialTheme.typography.titleLarge,
+                              color = MaterialTheme.colorScheme.primary)
+                        }
+                  }
+                }
+              }
           Text(
               text = name,
               modifier =
                   Modifier.padding(top = HomeScreenConstants.STORY_PADDING_TOP_DP.dp)
+                      .width(HomeScreenConstants.STORY_ITEM_WIDTH_DP.dp)
                       .testTag("story_text_$name"),
               style = MaterialTheme.typography.bodySmall,
-              maxLines = 1)
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+              textAlign = TextAlign.Center)
         }
   }
 }
@@ -929,7 +1045,8 @@ fun StoryItem(
 fun StoriesRow(
     onAddStoryClick: () -> Unit,
     onClick: (Event, Int) -> Unit,
-    stories: Map<Event, Pair<Int, Int>>
+    stories: Map<Event, Pair<Int, Int>>,
+    eventStories: Map<String, List<StoryWithUser>> = emptyMap()
 ) {
   // Filter stories to only show events with actual stories (totalStories > 0)
   val eventsWithStories =
@@ -948,7 +1065,8 @@ fun StoriesRow(
       horizontalArrangement =
           Arrangement.spacedBy(HomeScreenConstants.STORIES_ROW_HORIZONTAL_SPACING_DP.dp),
       contentPadding =
-          PaddingValues(horizontal = HomeScreenConstants.STORIES_ROW_HORIZONTAL_PADDING_DP.dp)) {
+          PaddingValues(horizontal = HomeScreenConstants.STORIES_ROW_HORIZONTAL_PADDING_DP.dp),
+      userScrollEnabled = true) {
         // Add Story Button (always first)
         item {
           val primaryColor = MaterialTheme.colorScheme.primary
@@ -986,13 +1104,18 @@ fun StoriesRow(
               }
         }
 
-        // Existing stories
+        // Existing stories - display username of first story uploader
         items(eventsWithStories.toList()) { (event, storyCounts) ->
           val (seenStories, totalStories) = storyCounts
           val allStoriesViewed = seenStories >= totalStories
+
+          // Get the first story's user info for display
+          val firstStory = eventStories[event.uid]?.firstOrNull()
+          val profilePictureUrl = firstStory?.profilePictureUrl
+
           StoryItem(
               name = event.title,
-              avatarRes = R.drawable.avatar_12, // Default avatar for now
+              avatarUrl = profilePictureUrl,
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
               contentDescription = stringResource(R.string.content_description_event_story),
@@ -1002,7 +1125,256 @@ fun StoriesRow(
 }
 
 @Composable
-fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
+private fun StoryMediaContent(currentStory: StoryWithUser) {
+  when (currentStory.story.mediaType) {
+    com.github.se.studentconnect.model.story.MediaType.IMAGE -> {
+      StoryImageContent(currentStory)
+    }
+    com.github.se.studentconnect.model.story.MediaType.VIDEO -> {
+      StoryVideoPlaceholder()
+    }
+  }
+}
+
+@Composable
+private fun StoryImageContent(currentStory: StoryWithUser) {
+  androidx.compose.foundation.layout.BoxWithConstraints(
+      modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val screenWidth = maxWidth
+        val screenHeight = maxHeight
+
+        AsyncImage(
+            model =
+                ImageRequest.Builder(LocalContext.current)
+                    .data(currentStory.story.mediaUrl)
+                    .crossfade(true)
+                    .build(),
+            contentDescription =
+                stringResource(R.string.story_image_description, currentStory.username),
+            modifier =
+                Modifier.width(screenHeight).height(screenWidth).graphicsLayer { rotationZ = 90f },
+            contentScale = ContentScale.Crop,
+            onError = {
+              // no image loaded
+            })
+      }
+}
+
+@Composable
+private fun StoryVideoPlaceholder() {
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+          Text(
+              text = stringResource(R.string.story_video),
+              color = Color.White,
+              style = MaterialTheme.typography.headlineSmall)
+          Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_VIDEO_SPACER_HEIGHT_DP.dp))
+          Text(
+              text = stringResource(R.string.story_video_coming_soon),
+              color = Color.White.copy(alpha = 0.7f),
+              style = MaterialTheme.typography.bodyMedium)
+        }
+  }
+}
+
+@Composable
+private fun StoryProgressIndicators(stories: List<StoryWithUser>, currentStoryIndex: Int) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 16.dp),
+      horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        stories.forEachIndexed { index, _ ->
+          Box(
+              modifier =
+                  Modifier.weight(1f)
+                      .height(2.dp)
+                      .background(
+                          if (index <= currentStoryIndex) Color.White
+                          else Color.White.copy(alpha = 0.3f),
+                          shape = RoundedCornerShape(1.dp)))
+        }
+      }
+}
+
+@Composable
+private fun StoryUserHeader(
+    currentStory: StoryWithUser,
+    eventTitle: String,
+    avatarBitmap: ImageBitmap?
+) {
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
+      verticalAlignment = Alignment.CenterVertically) {
+        // User avatar using downloaded bitmap
+        Box(
+            modifier =
+                Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center) {
+              if (avatarBitmap != null) {
+                Image(
+                    bitmap = avatarBitmap,
+                    contentDescription = "Profile picture of ${currentStory.username}",
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                    contentScale = ContentScale.Crop)
+              } else {
+                // Show initial as fallback
+                Text(
+                    text = currentStory.username.take(1).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold)
+              }
+            }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+          Text(
+              text = currentStory.username,
+              color = Color.White,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold)
+          Text(
+              text = eventTitle,
+              color = Color.White.copy(alpha = 0.7f),
+              style = MaterialTheme.typography.bodySmall)
+        }
+      }
+}
+
+@Composable
+private fun StoryDeleteDialog(
+    showDeleteConfirmation: Boolean,
+    onDismiss: () -> Unit,
+    onConfirmDelete: () -> Unit
+) {
+  if (showDeleteConfirmation) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.story_delete_title)) },
+        text = { Text(stringResource(R.string.story_delete_message)) },
+        confirmButton = {
+          Button(
+              onClick = onConfirmDelete,
+              colors =
+                  ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                Text(stringResource(R.string.story_delete_button))
+              }
+        },
+        dismissButton = {
+          Button(
+              onClick = onDismiss,
+              colors =
+                  ButtonDefaults.buttonColors(
+                      containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                Text(stringResource(R.string.story_cancel_button))
+              }
+        })
+  }
+}
+
+@Composable
+private fun StoryViewerContent(
+    stories: List<StoryWithUser>,
+    currentStoryIndex: Int,
+    onNavigatePrevious: () -> Unit,
+    onNavigateNext: () -> Unit,
+    onDismiss: () -> Unit,
+    event: Event,
+    avatarBitmap: ImageBitmap?,
+    currentUserId: String,
+    onShowDeleteConfirmation: () -> Unit
+) {
+  val currentStory = stories[currentStoryIndex]
+
+  Box(
+      modifier =
+          Modifier.fillMaxSize()
+              .background(Color.Black)
+              .pointerInput(stories.size, currentStoryIndex) {
+                detectTapGestures(
+                    onTap = { offset ->
+                      val screenWidth = size.width
+                      if (offset.x < screenWidth / 2) {
+                        onNavigatePrevious()
+                      } else {
+                        onNavigateNext()
+                      }
+                    })
+              }
+              .testTag(HomeScreenTestTags.STORY_VIEWER)) {
+        StoryMediaContent(currentStory)
+
+        Box(modifier = Modifier.align(Alignment.TopCenter)) {
+          StoryProgressIndicators(stories, currentStoryIndex)
+        }
+
+        Box(modifier = Modifier.align(Alignment.TopStart)) {
+          StoryUserHeader(currentStory, event.title, avatarBitmap)
+        }
+
+        IconButton(
+            onClick = onDismiss,
+            modifier =
+                Modifier.align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
+              Icon(
+                  imageVector = Icons.Default.Close,
+                  contentDescription = stringResource(R.string.content_description_close_story),
+                  tint = Color.White)
+            }
+
+        if (currentStory.userId == currentUserId) {
+          IconButton(
+              onClick = onShowDeleteConfirmation,
+              modifier =
+                  Modifier.align(Alignment.BottomStart)
+                      .padding(16.dp)
+                      .testTag("story_delete_button")) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete story",
+                    tint = Color.Red,
+                    modifier = Modifier.size(32.dp))
+              }
+        }
+      }
+}
+
+@Composable
+fun StoryViewer(
+    event: Event,
+    stories: List<StoryWithUser>,
+    initialStoryIndex: Int = 0,
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    onDeleteStory: (String) -> Unit = {}
+) {
+  var currentStoryIndex by
+      remember(event.uid) { mutableStateOf(initialStoryIndex.coerceIn(0, stories.size - 1)) }
+  val context = LocalContext.current
+  val currentUserId =
+      com.github.se.studentconnect.model.authentication.AuthenticationProvider.currentUser
+  var showDeleteConfirmation by remember { mutableStateOf(false) }
+
+  // Get current story's profile picture URL
+  val currentProfilePictureUrl =
+      if (stories.isNotEmpty()) stories[currentStoryIndex].profilePictureUrl else null
+
+  // Download profile picture using MediaRepository (same as profile screen)
+  val repository = MediaRepositoryProvider.repository
+  val avatarBitmap by
+      produceState<ImageBitmap?>(initialValue = null, currentProfilePictureUrl, repository) {
+        value =
+            currentProfilePictureUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { // just do nothing
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   AnimatedVisibility(
       visible = isVisible,
       enter =
@@ -1012,47 +1384,56 @@ fun StoryViewer(event: Event, isVisible: Boolean, onDismiss: () -> Unit) {
           fadeOut(animationSpec = tween(200)) +
               scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
       modifier = Modifier.fillMaxSize().zIndex(1000f)) {
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .background(Color.Black)
-                    .clickable { onDismiss() }
-                    .testTag("story_viewer")) {
-              // Close button
-              IconButton(
-                  onClick = onDismiss,
-                  modifier =
-                      Modifier.align(Alignment.TopEnd)
-                          .padding(16.dp)
-                          .testTag("story_close_button")) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription =
-                            stringResource(R.string.content_description_close_story),
-                        tint = Color.White)
-                  }
+        if (stories.isEmpty()) {
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(Color.Black)
+                      .clickable { onDismiss() }
+                      .testTag(HomeScreenTestTags.STORY_VIEWER)) {
+                Text(
+                    text = stringResource(R.string.story_no_stories),
+                    color = Color.White,
+                    modifier = Modifier.align(Alignment.Center))
+              }
+        } else {
+          StoryViewerContent(
+              stories = stories,
+              currentStoryIndex = currentStoryIndex,
+              onNavigatePrevious = {
+                if (currentStoryIndex > 0) {
+                  currentStoryIndex--
+                } else {
+                  onDismiss()
+                }
+              },
+              onNavigateNext = {
+                if (currentStoryIndex < stories.size - 1) {
+                  currentStoryIndex++
+                } else {
+                  onDismiss()
+                }
+              },
+              onDismiss = onDismiss,
+              event = event,
+              avatarBitmap = avatarBitmap,
+              currentUserId = currentUserId,
+              onShowDeleteConfirmation = { showDeleteConfirmation = true })
 
-              // Story content - placeholder image for now
-              Box(
-                  modifier = Modifier.fillMaxSize().padding(vertical = 80.dp),
-                  contentAlignment = Alignment.Center) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center) {
-                          Image(
-                              painter = painterResource(id = R.drawable.avatar_12),
-                              contentDescription =
-                                  stringResource(R.string.content_description_story_content),
-                              modifier =
-                                  Modifier.fillMaxWidth(0.9f).clip(RoundedCornerShape(12.dp)))
-                          Spacer(modifier = Modifier.height(16.dp))
-                          Text(
-                              text = event.title,
-                              color = Color.White,
-                              style = MaterialTheme.typography.headlineSmall)
-                        }
-                  }
-            }
+          StoryDeleteDialog(
+              showDeleteConfirmation = showDeleteConfirmation,
+              onDismiss = { showDeleteConfirmation = false },
+              onConfirmDelete = {
+                showDeleteConfirmation = false
+                val storyToDelete = stories[currentStoryIndex]
+                onDeleteStory(storyToDelete.story.storyId)
+                if (stories.size == 1) {
+                  onDismiss()
+                } else if (currentStoryIndex >= stories.size - 1) {
+                  currentStoryIndex = (currentStoryIndex - 1).coerceAtLeast(0)
+                }
+              })
+        }
       }
 }
 

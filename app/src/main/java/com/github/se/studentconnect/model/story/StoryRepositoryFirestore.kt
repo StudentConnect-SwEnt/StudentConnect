@@ -97,27 +97,41 @@ class StoryRepositoryFirestore(
 
       db.collection(STORIES_COLLECTION).document(storyId).set(storyData).await()
 
-      // Fetch the document back to get the actual serverTimestamp for createdAt
-      val savedDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
-      val savedData = savedDoc.data ?: emptyMap()
+      // Try to fetch the document back and update expiresAt, but don't fail if this doesn't work
+      try {
+        // Fetch the document back to get the actual serverTimestamp for createdAt
+        val savedDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
+        val savedData = savedDoc.data
 
-      // Calculate expiresAt based on actual server timestamp (24 hours later)
-      val actualCreatedAt = savedData["createdAt"] as? Timestamp ?: Timestamp.now()
-      val actualExpiresAt =
-          Timestamp(actualCreatedAt.seconds + STORY_EXPIRATION_SECONDS, actualCreatedAt.nanoseconds)
+        if (savedData != null) {
+          // Calculate expiresAt based on actual server timestamp (24 hours later)
+          val actualCreatedAt = savedData["createdAt"] as? Timestamp ?: Timestamp.now()
+          val actualExpiresAt =
+              Timestamp(
+                  actualCreatedAt.seconds + STORY_EXPIRATION_SECONDS, actualCreatedAt.nanoseconds)
 
-      // Update document with correct expiresAt if it differs from temporary value
-      // (usually it will, since server timestamp may differ from client timestamp)
-      if (actualExpiresAt.compareTo(tempExpiresAt) != 0) {
-        savedDoc.reference.update("expiresAt", actualExpiresAt).await()
+          // Update document with correct expiresAt if it differs from temporary value
+          if (actualExpiresAt.compareTo(tempExpiresAt) != 0) {
+            savedDoc.reference.update("expiresAt", actualExpiresAt).await()
+          }
+        }
+      } catch (e: Exception) {
+        // If we can't read back or update, that's okay - the story was still uploaded successfully
       }
 
-      // Fetch again to ensure we have the complete document with correct expiresAt
-      val finalDoc = db.collection(STORIES_COLLECTION).document(storyId).get().await()
-      val finalData = finalDoc.data ?: emptyMap()
-
-      Story.fromMap(finalData)
+      // Return a success Story object since upload completed
+      // Use the data we originally set
+      Story(
+          storyId = storyId,
+          userId = userId,
+          eventId = eventId,
+          mediaUrl = mediaUrl,
+          createdAt = tempCreatedAt,
+          expiresAt = tempExpiresAt,
+          mediaType = mediaType)
     } catch (e: Exception) {
+      android.util.Log.e(
+          "StoryRepository", "Error uploading story: ${e.javaClass.simpleName} - ${e.message}", e)
       null
     }
   }
@@ -134,7 +148,7 @@ class StoryRepositoryFirestore(
             // Filter out expired stories (client-side)
             story.expiresAt.compareTo(now) > 0
           }
-          .sortedByDescending { it.createdAt }
+          .sortedBy { it.createdAt }
     } catch (e: Exception) {
       emptyList()
     }
