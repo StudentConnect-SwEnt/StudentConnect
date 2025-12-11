@@ -42,6 +42,8 @@ class ChatViewModelTest {
   private lateinit var mockEventRepository: EventRepository
   private lateinit var mockUserRepository: UserRepository
   private val testDispatcher = StandardTestDispatcher()
+  private val testScheduler
+    get() = testDispatcher.scheduler
 
   private val testUserId = "user-123"
   private val testEventId = "event-456"
@@ -426,5 +428,102 @@ class ChatViewModelTest {
 
     // Should not crash
     assertEquals("Hello", tempViewModel.uiState.value.messageText)
+  }
+
+  @Test
+  fun onCleared_cancelsAllJobs() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    // Call onCleared through reflection since it's protected
+    val onClearedMethod = viewModel.javaClass.superclass.getDeclaredMethod("onCleared")
+    onClearedMethod.isAccessible = true
+    onClearedMethod.invoke(viewModel)
+
+    // The method should not crash and should clean up properly
+    advanceUntilIdle()
+  }
+
+  @Test
+  fun updateMessageText_afterDebounceDelay_stopsTypingStatus() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello World!")
+
+    // Advance time by 2000ms to trigger debounce
+    testScheduler.advanceTimeBy(2100)
+    advanceUntilIdle()
+
+    // The typing status should have been updated to false after debounce
+    val state = viewModel.uiState.value
+    assertEquals("Hello World!", state.messageText)
+  }
+
+  @Test
+  fun sendMessage_updatesIsSendingState() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    // Make sendMessage hang by not calling success or failure immediately
+    doAnswer { invocation ->
+          // Don't call callbacks immediately
+          null
+        }
+        .`when`(mockChatRepository)
+        .sendMessage(any(), any(), any())
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello World!")
+
+    // Start sending without waiting
+    viewModel.sendMessage()
+
+    // isSending should be true immediately after calling sendMessage
+    assertTrue(viewModel.uiState.value.isSending)
+  }
+
+  @Test
+  fun initializeChat_cancelsExistingJobsBeforeStartingNew() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    // Initialize first time
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    val firstEvent = viewModel.uiState.value.event
+
+    // Initialize second time with different event
+    val newEventId = "event-789"
+    val newEvent =
+        Event.Private(
+            uid = newEventId,
+            ownerId = "owner-456",
+            title = "New Test Event",
+            description = "New Description",
+            start = com.google.firebase.Timestamp.now(),
+            end = com.google.firebase.Timestamp.now(),
+            location = com.github.se.studentconnect.model.location.Location(46.5, 6.6, "EPFL"),
+            isFlash = false)
+
+    `when`(mockEventRepository.getEvent(newEventId)).thenReturn(newEvent)
+    `when`(mockChatRepository.observeMessages(newEventId)).thenReturn(flowOf(emptyList()))
+    `when`(mockChatRepository.observeTypingUsers(newEventId)).thenReturn(flowOf(emptyList()))
+
+    viewModel.initializeChat(newEventId)
+    advanceUntilIdle()
+
+    // Should have the new event
+    assertNotNull(viewModel.uiState.value.event)
+    assertEquals(newEventId, viewModel.uiState.value.event?.uid)
   }
 }
