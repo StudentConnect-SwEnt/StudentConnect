@@ -175,4 +175,102 @@ class VisitorProfileScreenTest {
     composeTestRule.onNodeWithText("Add Friend").assertExists()
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).assertIsEnabled()
   }
+
+  @Test
+  fun clickingFriendsCount_whenNotFriends_showsToast() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            friendsCount = 5,
+            eventsCount = 3,
+            pinnedEvents = emptyList(),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = {},
+            onFriendsClick = {},
+            friendRequestStatus = FriendRequestStatus.IDLE)
+      }
+    }
+
+    // Click on friends count (should show toast, not navigate)
+    composeTestRule.onNodeWithText("5", useUnmergedTree = true).performClick()
+    // Toast verification is limited in unit tests, but we verify no crash occurs
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun clickingFriendsCount_whenAlreadyFriends_invokesCallback() {
+    var friendsClicked = false
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            friendsCount = 5,
+            eventsCount = 3,
+            pinnedEvents = emptyList(),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = {},
+            onFriendsClick = { friendsClicked = true },
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    // Click on friends count (should invoke callback)
+    composeTestRule.onNodeWithText("5", useUnmergedTree = true).performClick()
+    composeTestRule.runOnIdle { assert(friendsClicked) }
+  }
+
+  @Test
+  fun clickingEventsCount_whenNotFriends_showsToast() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            friendsCount = 5,
+            eventsCount = 3,
+            pinnedEvents = emptyList(),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = {},
+            onEventsClick = {},
+            friendRequestStatus = FriendRequestStatus.IDLE)
+      }
+    }
+
+    // Click on events count (should show toast, not navigate)
+    composeTestRule.onNodeWithText("3", useUnmergedTree = true).performClick()
+    // Toast verification is limited in unit tests, but we verify no crash occurs
+    composeTestRule.waitForIdle()
+  }
+
+  @Test
+  fun clickingEventsCount_whenAlreadyFriends_invokesCallback() {
+    var eventsClicked = false
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            friendsCount = 5,
+            eventsCount = 3,
+            pinnedEvents = emptyList(),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = {},
+            onEventsClick = { eventsClicked = true },
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    // Click on events count (should invoke callback)
+    composeTestRule.onNodeWithText("3", useUnmergedTree = true).performClick()
+    composeTestRule.runOnIdle { assert(eventsClicked) }
+  }
 }
