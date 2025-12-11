@@ -77,10 +77,7 @@ fun CreatePublicEventScreen(
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId, templateEventId) {
-    when {
-      existingEventId != null -> createPublicEventViewModel.loadEvent(existingEventId)
-      templateEventId != null -> createPublicEventViewModel.loadEventAsTemplate(templateEventId)
-    }
+    handlePrefill(existingEventId, templateEventId, createPublicEventViewModel)
   }
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
@@ -267,4 +264,15 @@ fun CreatePublicEventScreen(
             onValueChange = createPublicEventViewModel::updateWebsite,
         )
       }
+}
+
+private fun handlePrefill(
+    existingEventId: String?,
+    templateEventId: String?,
+    viewModel: CreatePublicEventViewModel
+) {
+  when {
+    existingEventId != null -> viewModel.loadEvent(existingEventId)
+    templateEventId != null -> viewModel.loadEventAsTemplate(templateEventId)
+  }
 }
