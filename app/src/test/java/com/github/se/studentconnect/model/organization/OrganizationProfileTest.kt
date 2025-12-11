@@ -265,4 +265,88 @@ class OrganizationMemberTest {
     assertEquals("Member", original.role)
     assertEquals("Owner", copied.role)
   }
+
+  @Test
+  fun `OrganizationProfile with isOwner true creates correctly`() {
+    val profile =
+        OrganizationProfile(
+            organizationId = "org1", name = "Test Org", description = "Test", isOwner = true)
+
+    assertTrue(profile.isOwner)
+  }
+
+  @Test
+  fun `OrganizationProfile with isOwner false creates correctly`() {
+    val profile =
+        OrganizationProfile(
+            organizationId = "org1", name = "Test Org", description = "Test", isOwner = false)
+
+    assertFalse(profile.isOwner)
+  }
+
+  @Test
+  fun `OrganizationProfile isOwner defaults to false`() {
+    val profile =
+        OrganizationProfile(organizationId = "org1", name = "Test Org", description = "Test")
+
+    assertFalse(profile.isOwner)
+  }
+
+  @Test
+  fun `OrganizationProfile copy with isOwner works correctly`() {
+    val original =
+        OrganizationProfile(
+            organizationId = "org1", name = "Test Org", description = "Test", isOwner = false)
+
+    val copied = original.copy(isOwner = true)
+
+    assertFalse(original.isOwner)
+    assertTrue(copied.isOwner)
+  }
+
+  @Test
+  fun `OrganizationProfile with all boolean flags set correctly`() {
+    val profile =
+        OrganizationProfile(
+            organizationId = "org1",
+            name = "Test Org",
+            description = "Test",
+            isFollowing = true,
+            isMember = true,
+            isOwner = true)
+
+    assertTrue(profile.isFollowing)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isOwner)
+  }
+
+  @Test
+  fun `OrganizationProfile owner can be member and following`() {
+    val profile =
+        OrganizationProfile(
+            organizationId = "org1",
+            name = "Test Org",
+            description = "Test",
+            isFollowing = true,
+            isMember = true,
+            isOwner = true)
+
+    assertTrue(profile.isOwner)
+    assertTrue(profile.isMember)
+    assertTrue(profile.isFollowing)
+  }
+
+  @Test
+  fun `OrganizationProfile non-owner can still be member`() {
+    val profile =
+        OrganizationProfile(
+            organizationId = "org1",
+            name = "Test Org",
+            description = "Test",
+            isMember = true,
+            isOwner = false)
+
+    assertTrue(profile.isMember)
+    assertFalse(profile.isOwner)
+  }
 }

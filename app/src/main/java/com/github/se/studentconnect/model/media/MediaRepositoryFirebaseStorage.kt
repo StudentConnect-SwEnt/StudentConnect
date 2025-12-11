@@ -17,8 +17,12 @@ class MediaRepositoryFirebaseStorage(
     // upload the file
     ref.putFile(uri).await()
 
-    // the id is the path
-    return ref.path
+    // Get the download URL instead of just the path
+    // This is needed for displaying media in the app
+    val downloadUrl = ref.downloadUrl.await()
+
+    // Return the download URL as a string
+    return downloadUrl.toString()
   }
 
   override suspend fun download(id: String): Uri {
@@ -32,7 +36,24 @@ class MediaRepositoryFirebaseStorage(
   }
 
   override suspend fun delete(id: String) {
-    val ref = storage.reference.child(id)
+    // Handle both cases: storage path or download URL
+    val ref =
+        if (id.startsWith("http")) {
+          // It's a download URL, extract the path from it
+          // URL format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?[params]
+          val pathMatch = Regex("/o/([^?]+)").find(id)
+          if (pathMatch != null) {
+            val encodedPath = pathMatch.groupValues[1]
+            val decodedPath = java.net.URLDecoder.decode(encodedPath, "UTF-8")
+            storage.reference.child(decodedPath)
+          } else {
+            // Fallback to using id as-is
+            storage.reference.child(id)
+          }
+        } else {
+          // It's a direct storage path
+          storage.reference.child(id)
+        }
     ref.delete().await()
   }
 }

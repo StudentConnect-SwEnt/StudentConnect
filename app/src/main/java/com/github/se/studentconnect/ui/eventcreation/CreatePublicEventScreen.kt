@@ -45,6 +45,8 @@ object CreatePublicEventScreenTestTags {
   const val PARTICIPATION_FEE_INPUT = "participationFeeInput"
   const val PARTICIPATION_FEE_SWITCH = "participationFeeSwitch"
   const val FLASH_EVENT_SWITCH = "flashEventSwitch"
+  const val FLASH_DURATION_HOURS = "flashDurationHours"
+  const val FLASH_DURATION_MINUTES = "flashDurationMinutes"
   const val SAVE_BUTTON = "saveButton"
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
@@ -75,10 +77,7 @@ fun CreatePublicEventScreen(
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId, templateEventId) {
-    when {
-      existingEventId != null -> createPublicEventViewModel.loadEvent(existingEventId)
-      templateEventId != null -> createPublicEventViewModel.loadEventAsTemplate(templateEventId)
-    }
+    handlePrefill(existingEventId, templateEventId, createPublicEventViewModel)
   }
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
@@ -94,8 +93,9 @@ fun CreatePublicEventScreen(
 
   val canSave =
       uiState.title.isNotBlank() &&
-          uiState.startDate != null &&
-          uiState.endDate != null &&
+          ((uiState.isFlash &&
+              uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0) ||
+              (!uiState.isFlash && uiState.startDate != null && uiState.endDate != null)) &&
           !uiState.isSaving
 
   var selectedTagCategory by rememberSaveable {
@@ -199,24 +199,40 @@ fun CreatePublicEventScreen(
             onLocationChange = createPublicEventViewModel::updateLocation,
             testTag = CreatePublicEventScreenTestTags.LOCATION_INPUT)
 
-        // Date and Time (Grouped)
-        EventDateTimeFields(
-            state =
-                DateTimeState(
-                    startDate = uiState.startDate?.format(dateFormatter) ?: "",
-                    startTime = uiState.startTime,
-                    endDate = uiState.endDate?.format(dateFormatter) ?: "",
-                    endTime = uiState.endTime),
-            callbacks =
-                DateTimeCallbacks(
-                    onStartDateChange = createPublicEventViewModel::updateStartDate,
-                    onStartTimeChange = createPublicEventViewModel::updateStartTime,
-                    onEndDateChange = createPublicEventViewModel::updateEndDate,
-                    onEndTimeChange = createPublicEventViewModel::updateEndTime),
-            startDateTag = CreatePublicEventScreenTestTags.START_DATE_INPUT,
-            startTimeTag = CreatePublicEventScreenTestTags.START_TIME_BUTTON,
-            endDateTag = CreatePublicEventScreenTestTags.END_DATE_INPUT,
-            endTimeTag = CreatePublicEventScreenTestTags.END_TIME_BUTTON)
+        // Flash Event Toggle (before date/time fields)
+        FlashEventToggle(
+            isFlash = uiState.isFlash,
+            onIsFlashChange = createPublicEventViewModel::updateIsFlash,
+            flashSwitchTag = CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
+
+        // Conditional: Show duration picker for flash events, date/time for normal events
+        if (uiState.isFlash) {
+          FlashEventDurationFields(
+              hours = uiState.flashDurationHours,
+              minutes = uiState.flashDurationMinutes,
+              onHoursChange = createPublicEventViewModel::updateFlashDurationHours,
+              onMinutesChange = createPublicEventViewModel::updateFlashDurationMinutes,
+              hoursTag = CreatePublicEventScreenTestTags.FLASH_DURATION_HOURS,
+              minutesTag = CreatePublicEventScreenTestTags.FLASH_DURATION_MINUTES)
+        } else {
+          EventDateTimeFields(
+              state =
+                  DateTimeState(
+                      startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                      startTime = uiState.startTime,
+                      endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                      endTime = uiState.endTime),
+              callbacks =
+                  DateTimeCallbacks(
+                      onStartDateChange = createPublicEventViewModel::updateStartDate,
+                      onStartTimeChange = createPublicEventViewModel::updateStartTime,
+                      onEndDateChange = createPublicEventViewModel::updateEndDate,
+                      onEndTimeChange = createPublicEventViewModel::updateEndTime),
+              startDateTag = CreatePublicEventScreenTestTags.START_DATE_INPUT,
+              startTimeTag = CreatePublicEventScreenTestTags.START_TIME_BUTTON,
+              endDateTag = CreatePublicEventScreenTestTags.END_DATE_INPUT,
+              endTimeTag = CreatePublicEventScreenTestTags.END_TIME_BUTTON)
+        }
 
         EventParticipantsAndFeesFields(
             state =
@@ -235,7 +251,6 @@ fun CreatePublicEventScreen(
             participantsTag = CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
             feeSwitchTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
             feeInputTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-            flashSwitchTag = CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH,
             onFocusChange = onFocusChange)
 
         // Website (Specific to Public)
@@ -249,4 +264,15 @@ fun CreatePublicEventScreen(
             onValueChange = createPublicEventViewModel::updateWebsite,
         )
       }
+}
+
+private fun handlePrefill(
+    existingEventId: String?,
+    templateEventId: String?,
+    viewModel: CreatePublicEventViewModel
+) {
+  when {
+    existingEventId != null -> viewModel.loadEvent(existingEventId)
+    templateEventId != null -> viewModel.loadEventAsTemplate(templateEventId)
+  }
 }

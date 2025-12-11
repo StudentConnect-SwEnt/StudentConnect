@@ -24,6 +24,8 @@ sealed class CreateEventUiState {
   abstract val hasParticipationFee: Boolean
   abstract val participationFeeString: String
   abstract val isFlash: Boolean
+  abstract val flashDurationHours: Int
+  abstract val flashDurationMinutes: Int
   abstract val finishedSaving: Boolean
   abstract val isSaving: Boolean
   abstract val bannerImageUri: Uri?
@@ -43,6 +45,8 @@ sealed class CreateEventUiState {
       override val hasParticipationFee: Boolean = false,
       override val participationFeeString: String = "",
       override val isFlash: Boolean = false,
+      override val flashDurationHours: Int = 1,
+      override val flashDurationMinutes: Int = 0,
       override val finishedSaving: Boolean = false,
       override val isSaving: Boolean = false,
       override val bannerImageUri: Uri? = null,
@@ -66,6 +70,8 @@ sealed class CreateEventUiState {
       override val hasParticipationFee: Boolean = false,
       override val participationFeeString: String = "",
       override val isFlash: Boolean = false,
+      override val flashDurationHours: Int = 1,
+      override val flashDurationMinutes: Int = 0,
       override val finishedSaving: Boolean = false,
       override val isSaving: Boolean = false,
       override val bannerImageUri: Uri? = null,
@@ -94,6 +100,8 @@ fun CreateEventUiState.copyCommon(
     hasParticipationFee: Boolean = this.hasParticipationFee,
     participationFeeString: String = this.participationFeeString,
     isFlash: Boolean = this.isFlash,
+    flashDurationHours: Int = this.flashDurationHours,
+    flashDurationMinutes: Int = this.flashDurationMinutes,
     finishedSaving: Boolean = this.finishedSaving,
     isSaving: Boolean = this.isSaving,
     bannerImageUri: Uri? = this.bannerImageUri,
@@ -114,6 +122,8 @@ fun CreateEventUiState.copyCommon(
             hasParticipationFee = hasParticipationFee,
             participationFeeString = participationFeeString,
             isFlash = isFlash,
+            flashDurationHours = flashDurationHours,
+            flashDurationMinutes = flashDurationMinutes,
             finishedSaving = finishedSaving,
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,
@@ -132,6 +142,8 @@ fun CreateEventUiState.copyCommon(
             hasParticipationFee = hasParticipationFee,
             participationFeeString = participationFeeString,
             isFlash = isFlash,
+            flashDurationHours = flashDurationHours,
+            flashDurationMinutes = flashDurationMinutes,
             finishedSaving = finishedSaving,
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,

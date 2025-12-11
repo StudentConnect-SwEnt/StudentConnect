@@ -164,6 +164,12 @@ class NotificationListenerService : Service() {
             "${notification.eventTitle} is starting soon!",
             NotificationChannelManager.EVENT_STARTING_CHANNEL_ID)
       }
+      is Notification.OrganizationMemberInvitation -> {
+        Triple(
+            "Organization Invitation",
+            notification.getMessage(),
+            NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID)
+      }
     }
   }
 
@@ -178,6 +184,7 @@ class NotificationListenerService : Service() {
         when (notification) {
           is Notification.FriendRequest -> notification.fromUserId
           is Notification.EventStarting -> notification.userId
+          is Notification.OrganizationMemberInvitation -> notification.invitedByName
         }
 
     val timeAgo =

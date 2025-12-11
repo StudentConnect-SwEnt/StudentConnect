@@ -202,4 +202,10 @@ class UserRepositoryLocal : UserRepository {
   override suspend fun getFollowedOrganizations(userId: String): List<String> {
     return followedOrganizations[userId] ?: emptyList()
   }
+
+  override suspend fun getOrganizationFollowers(organizationId: String): List<String> {
+    return followedOrganizations
+        .filter { (_, orgs) -> orgs.contains(organizationId) }
+        .map { it.key }
+  }
 }

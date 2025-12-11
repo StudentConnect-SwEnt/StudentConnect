@@ -162,4 +162,27 @@ object C {
     const val STATS_TIMELINE_CARD = "event_statistics_join_rate"
     const val STATS_FOLLOWERS_CARD = "event_statistics_attendees_followers"
   }
+
+  object FlashEvent {
+    /** Maximum duration for flash events in hours */
+    const val MAX_DURATION_HOURS = 5L
+
+    /** Maximum duration for flash events in milliseconds */
+    const val MAX_DURATION_MS = MAX_DURATION_HOURS * 60 * 60 * 1000
+
+    /** Flash event badge background color (yellow-amber) */
+    const val BADGE_COLOR = 0xFFFFC107L // Amber/Yellow
+
+    /** Flash event badge background alpha */
+    const val BADGE_ALPHA = 0.9f
+
+    /** Flash event icon size in dp */
+    const val ICON_SIZE_DP = 20
+
+    /** Flash event badge padding in dp */
+    const val BADGE_PADDING_DP = 8
+
+    /** Flash event badge outer padding in dp */
+    const val BADGE_OUTER_PADDING_DP = 8
+  }
 }

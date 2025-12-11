@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.google.firebase.Timestamp
@@ -258,5 +259,26 @@ class OrganizationManagementViewModelTest {
     override suspend fun getNewOrganizationId(): String {
       return "new_org_id"
     }
+
+    override suspend fun sendMemberInvitation(
+        organizationId: String,
+        userId: String,
+        role: String,
+        invitedBy: String
+    ) {}
+
+    override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun getPendingInvitations(
+        organizationId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun getUserPendingInvitations(
+        userId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
   }
 }

@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.Activities
@@ -9,6 +8,8 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.map.LocationRepository
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
@@ -16,6 +17,7 @@ import com.github.se.studentconnect.model.map.LocationResult
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.organization.toOrganizationDataList
+import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.utils.FilterData
@@ -55,9 +57,19 @@ enum class PreferredTimeOfDay {
   ANY
 }
 
+/** Story with user information for display. */
+data class StoryWithUser(
+    val story: com.github.se.studentconnect.model.story.Story,
+    val username: String,
+    val userId: String,
+    val profilePictureUrl: String? = null
+)
+
 /** Snapshot of everything the Home screen needs to render. */
 data class HomePageUiState(
     val subscribedEventsStories: Map<Event, Pair<Int, Int>> = emptyMap(),
+    val eventStories: Map<String, List<StoryWithUser>> =
+        emptyMap(), // eventId -> list of stories with user info
     val events: List<Event> = emptyList(),
     val organizations: List<OrganizationData> = emptyList(),
     val isLoading: Boolean = true,
@@ -80,7 +92,9 @@ constructor(
     private val context: Context? = null,
     private val locationRepository: LocationRepository? = null,
     private val organizationRepository: OrganizationRepository =
-        OrganizationRepositoryProvider.repository
+        OrganizationRepositoryProvider.repository,
+    private val storyRepository: StoryRepository? = null,
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(HomePageUiState())
@@ -131,7 +145,7 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
   }
 
@@ -143,7 +157,6 @@ constructor(
         val organizationDataList = organizations.toOrganizationDataList()
         _uiState.update { it.copy(organizations = organizationDataList) }
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading organizations", e)
         _uiState.update { it.copy(organizations = emptyList()) }
       }
     }
@@ -156,9 +169,7 @@ constructor(
           val user = userRepository.getUserById(uid)
           val hobbies = user?.hobbies ?: emptyList()
           _uiState.update { it.copy(userHobbies = hobbies) }
-          Log.d("HomePageViewModel", "Loaded user hobbies: $hobbies")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading user hobbies", e)
           _uiState.update { it.copy(userHobbies = emptyList()) }
         }
       }
@@ -175,14 +186,11 @@ constructor(
                 try {
                   eventRepository.getEvent(eventId)
                 } catch (e: Exception) {
-                  Log.e("HomePageViewModel", "Error loading attended event $eventId", e)
                   null
                 }
               }
           _uiState.update { it.copy(attendedEvents = attendedEvents) }
-          Log.d("HomePageViewModel", "Loaded ${attendedEvents.size} attended events")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading attended events", e)
           _uiState.update { it.copy(attendedEvents = emptyList()) }
         }
       }
@@ -205,12 +213,7 @@ constructor(
                         longitude = androidLocation.longitude,
                         name = "Current Location")
                   }
-                  else -> {
-                    Log.d(
-                        "HomePageViewModel",
-                        "Could not get location for scoring: ${result.javaClass.simpleName}")
-                    null
-                  }
+                  else -> null
                 }
               } else {
                 null
@@ -222,37 +225,115 @@ constructor(
                   preferredPriceRange = 0f..100f,
                   preferredTimeOfDay = PreferredTimeOfDay.ANY)
           _uiState.update { it.copy(userPreferences = preferences) }
-          Log.d(
-              "HomePageViewModel", "Loaded user preferences with location: ${userLocation != null}")
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading user preferences", e)
           _uiState.update { it.copy(userPreferences = UserPreferences()) }
         }
       }
     }
   }
 
-  private fun loadAllSubscribedEventsStories() {
+  private fun loadAllSubscribedEventsStories(showLoading: Boolean = false) {
     viewModelScope.launch {
       try {
-        // Get all visible events to show stories for
-        val allEvents = eventRepository.getAllVisibleEvents()
-
-        val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
-        // Create stories with Pair(totalStories, seenStories)
-        // For demo: take first 10 events, mix of seen and unseen stories
-        allEvents.take(10).forEachIndexed { index, event ->
-          val totalStories = if (index < 3) 3 else 5
-          val seenStories = if (index == 0) 1 else 0 // First one is partially seen
-          allEventsStory[event] = Pair(totalStories, seenStories)
+        if (showLoading) {
+          _uiState.update { it.copy(isLoading = true) }
         }
 
-        Log.d("HomePageViewModel", "Loaded ${allEventsStory.size} stories")
+        if (!isStoryLoadingValid()) {
+          updateEmptyStoriesState()
+          return@launch
+        }
 
-        _uiState.update { it.copy(subscribedEventsStories = allEventsStory) }
+        val currentUser = currentUserId!!
+        val joinedEvents = storyRepository!!.getUserJoinedEvents(currentUser)
+        val userFriends = loadUserFriends(currentUser)
+
+        val (allEventsStory, eventStoriesMap) =
+            processEventStories(joinedEvents, currentUser, userFriends)
+
+        _uiState.update {
+          it.copy(
+              subscribedEventsStories = allEventsStory,
+              eventStories = eventStoriesMap,
+              isLoading = false)
+        }
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading stories", e)
-        _uiState.update { it.copy(subscribedEventsStories = emptyMap()) }
+        updateEmptyStoriesState()
+      }
+    }
+  }
+
+  private fun isStoryLoadingValid(): Boolean {
+    if (storyRepository == null || context == null) {
+      return false
+    }
+    if (currentUserId == null) {
+      return false
+    }
+    return true
+  }
+
+  private fun updateEmptyStoriesState() {
+    _uiState.update {
+      it.copy(subscribedEventsStories = emptyMap(), eventStories = emptyMap(), isLoading = false)
+    }
+  }
+
+  private suspend fun loadUserFriends(currentUser: String): Set<String> {
+    return try {
+      friendsRepository.getFriends(currentUser).toSet()
+    } catch (e: Exception) {
+      emptySet()
+    }
+  }
+
+  private suspend fun processEventStories(
+      joinedEvents: List<Event>,
+      currentUser: String,
+      userFriends: Set<String>
+  ): Pair<Map<Event, Pair<Int, Int>>, Map<String, List<StoryWithUser>>> {
+    val allEventsStory = mutableMapOf<Event, Pair<Int, Int>>()
+    val eventStoriesMap = mutableMapOf<String, List<StoryWithUser>>()
+
+    for (event in joinedEvents) {
+      val stories = storyRepository!!.getEventStories(event.uid)
+      if (stories.isEmpty()) continue
+
+      val visibleStories = filterVisibleStories(stories, currentUser, userFriends)
+      if (visibleStories.isEmpty()) continue
+
+      allEventsStory[event] = Pair(0, visibleStories.size)
+      eventStoriesMap[event.uid] = fetchStoriesWithUserInfo(visibleStories)
+    }
+
+    return Pair(allEventsStory, eventStoriesMap)
+  }
+
+  private fun filterVisibleStories(
+      stories: List<com.github.se.studentconnect.model.story.Story>,
+      currentUser: String,
+      userFriends: Set<String>
+  ): List<com.github.se.studentconnect.model.story.Story> {
+    return stories.filter { story ->
+      story.userId == currentUser || userFriends.contains(story.userId)
+    }
+  }
+
+  private suspend fun fetchStoriesWithUserInfo(
+      stories: List<com.github.se.studentconnect.model.story.Story>
+  ): List<StoryWithUser> {
+    return stories.mapNotNull { story ->
+      try {
+        val user = userRepository.getUserById(story.userId)
+        user?.let {
+          StoryWithUser(
+              story = story,
+              username = it.username,
+              userId = it.userId,
+              profilePictureUrl = it.profilePictureUrl)
+        }
+      } catch (e: Exception) {
+        null
       }
     }
   }
@@ -264,7 +345,6 @@ constructor(
         allFetchedEvents = eventRepository.getAllVisibleEvents()
         applyFilters(currentFilters, allFetchedEvents)
       } catch (e: Exception) {
-        Log.e("HomePageViewModel", "Error loading all events", e)
         allFetchedEvents = emptyList()
         _uiState.update { it.copy(isLoading = false, events = emptyList()) }
       }
@@ -284,29 +364,7 @@ constructor(
             }
           }
         } catch (e: Exception) {
-          Log.e("HomePageViewModel", "Error loading favorite events", e)
-        }
-      }
-    }
-  }
-
-  /** Persists seen story progress for the provided event. */
-  fun updateSeenStories(event: Event, seenIndex: Int) {
-    viewModelScope.launch {
-      _uiState.update { it.copy(isLoading = true) }
-      val stories = _uiState.value.subscribedEventsStories
-
-      stories[event]?.first?.let { i ->
-        if (i >= seenIndex) {
-          stories[event]?.second?.let { j ->
-            if (j < seenIndex) {
-              val subscribedEventsStoryUpdate = stories.toMutableMap()
-              subscribedEventsStoryUpdate.replace(event, Pair(i, j))
-              _uiState.update {
-                it.copy(subscribedEventsStories = subscribedEventsStoryUpdate, isLoading = false)
-              }
-            }
-          }
+          // Silently handle error
         }
       }
     }
@@ -338,7 +396,6 @@ constructor(
           _favoriteEventIds.update { current ->
             return@update if (didAdd) current - eventId else current + eventId
           }
-          Log.e("HomePageViewModel", "Error toggling favorite status for event $eventId", e)
         }
       }
     }
@@ -488,25 +545,12 @@ constructor(
     val timeMatch = calculateTimeMatch(publicEvent)
     val recencyBoost = calculateRecencyBoost(publicEvent)
 
-    val totalScore =
-        WEIGHT_TAG_SIMILARITY * tagSimilarity +
-            WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
-            WEIGHT_DISTANCE * distanceScore +
-            WEIGHT_PRICE * pricePreference +
-            WEIGHT_TIME * timeMatch +
-            WEIGHT_RECENCY * recencyBoost
-
-    Log.d(
-        "EventScore",
-        "Event: ${publicEvent.title} | Score: ${"%.3f".format(totalScore)} | " +
-            "Tag: ${"%.2f".format(tagSimilarity)}, " +
-            "Attended: ${"%.2f".format(attendedSimilarity)}, " +
-            "Distance: ${"%.2f".format(distanceScore)}, " +
-            "Price: ${"%.2f".format(pricePreference)}, " +
-            "Time: ${"%.2f".format(timeMatch)}, " +
-            "Recency: ${"%.2f".format(recencyBoost)}")
-
-    return totalScore
+    return WEIGHT_TAG_SIMILARITY * tagSimilarity +
+        WEIGHT_ATTENDED_SIMILARITY * attendedSimilarity +
+        WEIGHT_DISTANCE * distanceScore +
+        WEIGHT_PRICE * pricePreference +
+        WEIGHT_TIME * timeMatch +
+        WEIGHT_RECENCY * recencyBoost
   }
 
   /** Calculates tag similarity score (0.0 to 1.0) based on matching user hobbies. */
@@ -621,8 +665,13 @@ constructor(
     loadUserPreferences()
     loadAllEvents()
     loadFavoriteEvents()
-    loadAllSubscribedEventsStories()
+    loadAllSubscribedEventsStories(showLoading = true)
     loadOrganizations()
+  }
+
+  /** Reloads only story data without triggering a full refresh or loading spinner. */
+  fun refreshStories() {
+    loadAllSubscribedEventsStories(showLoading = false)
   }
 
   /** Shows the calendar modal. */

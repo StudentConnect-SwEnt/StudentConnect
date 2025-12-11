@@ -64,9 +64,6 @@ fun StoryCaptureScreen(
           mediaUri = capturedMediaUri!!,
           isVideo = storyCaptureMode == StoryCaptureMode.VIDEO,
           onAccept = { selectedEvent ->
-            Log.d(
-                "StoryCaptureScreen",
-                "Media accepted: $capturedMediaUri, event: ${selectedEvent?.title}")
             onStoryAccepted(
                 capturedMediaUri!!, storyCaptureMode == StoryCaptureMode.VIDEO, selectedEvent)
             showPreview = false
@@ -80,7 +77,7 @@ fun StoryCaptureScreen(
           eventSelectionConfig =
               EventSelectionConfig(state = eventSelectionState, onLoadEvents = onLoadEvents))
     } else if (isActive) {
-      // Show camera view
+      // Show camera view with full-screen configuration
       CameraView(
           modifier = Modifier.fillMaxSize(),
           enableImageCapture = storyCaptureMode == StoryCaptureMode.PHOTO,
@@ -97,7 +94,12 @@ fun StoryCaptureScreen(
             showPreview = true
           },
           onError = { error -> Log.e("StoryCaptureScreen", "Camera error occurred", error) },
-          noPermission = { PermissionRequired(onBackClick = onBackClick) })
+          noPermission = { PermissionRequired(onBackClick = onBackClick) },
+          // Configure for full-screen story capture
+          // CameraX will automatically select appropriate resolution
+          imageCaptureConfig = {
+            // CameraX will handle resolution selection automatically
+          })
 
       // Only show mode controls when not showing preview
       Column(

@@ -6,7 +6,8 @@ import com.google.firebase.firestore.ServerTimestamp
 /** Represents the type of notification */
 enum class NotificationType {
   FRIEND_REQUEST,
-  EVENT_STARTING
+  EVENT_STARTING,
+  ORGANIZATION_MEMBER_INVITATION
 }
 
 /** Sealed class representing different types of notifications */
@@ -67,6 +68,37 @@ sealed class Notification {
     fun getMessage(): String = "Event \"$eventTitle\" is starting soon"
   }
 
+  /**
+   * Organization member invitation notification - sent when someone invites a user to join an
+   * organization
+   *
+   * @param id Unique identifier for the notification
+   * @param userId The user who should receive this notification
+   * @param organizationId The ID of the organization
+   * @param organizationName The name of the organization
+   * @param role The role being offered in the organization
+   * @param invitedBy The ID of the user who sent the invitation
+   * @param invitedByName The name of the user who sent the invitation
+   * @param timestamp When the notification was created
+   * @param isRead Whether the notification has been read
+   */
+  data class OrganizationMemberInvitation(
+      override val id: String = "",
+      override val userId: String = "",
+      val organizationId: String = "",
+      val organizationName: String = "",
+      val role: String = "",
+      val invitedBy: String = "",
+      val invitedByName: String = "",
+      @ServerTimestamp override val timestamp: Timestamp? = null,
+      override val isRead: Boolean = false
+  ) : Notification() {
+    override val type = NotificationType.ORGANIZATION_MEMBER_INVITATION
+
+    /** Returns a human-readable message for the notification */
+    fun getMessage(): String = "$invitedByName invited you to join \"$organizationName\" as $role"
+  }
+
   /** Converts the notification to a map for Firestore storage */
   fun toMap(): Map<String, Any?> {
     return when (this) {
@@ -87,6 +119,18 @@ sealed class Notification {
               "eventId" to eventId,
               "eventTitle" to eventTitle,
               "eventStart" to eventStart,
+              "timestamp" to timestamp,
+              "isRead" to isRead)
+      is OrganizationMemberInvitation ->
+          mapOf(
+              "id" to id,
+              "userId" to userId,
+              "type" to type.name,
+              "organizationId" to organizationId,
+              "organizationName" to organizationName,
+              "role" to role,
+              "invitedBy" to invitedBy,
+              "invitedByName" to invitedByName,
               "timestamp" to timestamp,
               "isRead" to isRead)
     }
@@ -124,6 +168,17 @@ sealed class Notification {
                 eventId = map["eventId"] as? String ?: "",
                 eventTitle = map["eventTitle"] as? String ?: "",
                 eventStart = map["eventStart"] as? Timestamp,
+                timestamp = map["timestamp"] as? Timestamp,
+                isRead = map["isRead"] as? Boolean ?: false)
+        NotificationType.ORGANIZATION_MEMBER_INVITATION ->
+            OrganizationMemberInvitation(
+                id = map["id"] as? String ?: "",
+                userId = map["userId"] as? String ?: "",
+                organizationId = map["organizationId"] as? String ?: "",
+                organizationName = map["organizationName"] as? String ?: "",
+                role = map["role"] as? String ?: "",
+                invitedBy = map["invitedBy"] as? String ?: "",
+                invitedByName = map["invitedByName"] as? String ?: "",
                 timestamp = map["timestamp"] as? Timestamp,
                 isRead = map["isRead"] as? Boolean ?: false)
       }
