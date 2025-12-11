@@ -1,33 +1,33 @@
-//package com.github.se.studentconnect
+// package com.github.se.studentconnect
 //
-//import android.content.Intent
-//import androidx.compose.ui.test.*
-//import androidx.compose.ui.test.junit4.createComposeRule
-//import androidx.test.core.app.ActivityScenario
-//import androidx.test.core.app.ApplicationProvider
-//import androidx.test.ext.junit.runners.AndroidJUnit4
-//import androidx.test.rule.GrantPermissionRule
-//import com.github.se.studentconnect.model.event.Event
-//import com.github.se.studentconnect.model.event.EventRepositoryProvider
-//import com.github.se.studentconnect.model.location.Location
-//import com.github.se.studentconnect.model.user.User
-//import com.github.se.studentconnect.model.user.UserRepositoryProvider
-//import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
-//import com.github.se.studentconnect.ui.eventcreation.EventTemplateSelectionScreenTestTags
-//import com.github.se.studentconnect.ui.navigation.NavigationTestTags
-//import com.github.se.studentconnect.utils.FirebaseEmulator
-//import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
-//import com.github.se.studentconnect.utils.NoAnonymousSignIn
-//import com.google.firebase.Timestamp
-//import java.util.Date
-//import kotlinx.coroutines.tasks.await
-//import kotlinx.coroutines.test.runTest
-//import org.junit.Rule
-//import org.junit.Test
-//import org.junit.runner.RunWith
+// import android.content.Intent
+// import androidx.compose.ui.test.*
+// import androidx.compose.ui.test.junit4.createComposeRule
+// import androidx.test.core.app.ActivityScenario
+// import androidx.test.core.app.ApplicationProvider
+// import androidx.test.ext.junit.runners.AndroidJUnit4
+// import androidx.test.rule.GrantPermissionRule
+// import com.github.se.studentconnect.model.event.Event
+// import com.github.se.studentconnect.model.event.EventRepositoryProvider
+// import com.github.se.studentconnect.model.location.Location
+// import com.github.se.studentconnect.model.user.User
+// import com.github.se.studentconnect.model.user.UserRepositoryProvider
+// import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
+// import com.github.se.studentconnect.ui.eventcreation.EventTemplateSelectionScreenTestTags
+// import com.github.se.studentconnect.ui.navigation.NavigationTestTags
+// import com.github.se.studentconnect.utils.FirebaseEmulator
+// import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
+// import com.github.se.studentconnect.utils.NoAnonymousSignIn
+// import com.google.firebase.Timestamp
+// import java.util.Date
+// import kotlinx.coroutines.tasks.await
+// import kotlinx.coroutines.test.runTest
+// import org.junit.Rule
+// import org.junit.Test
+// import org.junit.runner.RunWith
 //
-//@RunWith(AndroidJUnit4::class)
-//class EventTemplateSelectionEndToEndTest : FirestoreStudentConnectTest() {
+// @RunWith(AndroidJUnit4::class)
+// class EventTemplateSelectionEndToEndTest : FirestoreStudentConnectTest() {
 //
 //  @get:Rule val composeTestRule = createComposeRule()
 //
@@ -73,7 +73,8 @@
 //    // 3. Open the "Add" menu (Bottom Sheet)
 //    composeTestRule.waitUntilWithMessage(
 //        timeoutMillis = 10_000, message = "center add button to be visible") {
-//          composeTestRule.onAllNodesWithTag("center_add_button").fetchSemanticsNodes().isNotEmpty()
+//
+// composeTestRule.onAllNodesWithTag("center_add_button").fetchSemanticsNodes().isNotEmpty()
 //        }
 //
 //    composeTestRule.onNodeWithTag("center_add_button").performClick()
@@ -185,4 +186,4 @@
 //            subtitle = "Template Subtitle",
 //            tags = listOf("template", "e2e")))
 //  }
-//}
+// }
