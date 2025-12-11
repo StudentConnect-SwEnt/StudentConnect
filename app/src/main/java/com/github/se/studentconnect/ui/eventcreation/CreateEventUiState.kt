@@ -5,6 +5,10 @@ import com.github.se.studentconnect.model.location.Location
 import java.time.LocalDate
 import java.time.LocalTime
 
+/**
+ * Represents the UI state for the Event Creation screens. This is a sealed class to handle
+ * different event types (Public vs Private) while sharing common properties.
+ */
 sealed class CreateEventUiState {
   abstract val title: String
   abstract val description: String
@@ -26,6 +30,7 @@ sealed class CreateEventUiState {
   abstract val bannerImagePath: String?
   abstract val shouldRemoveBanner: Boolean
 
+  /** UI State for creating a Public Event. */
   data class Public(
       override val title: String = "",
       override val description: String = "",
@@ -48,6 +53,7 @@ sealed class CreateEventUiState {
       val tags: List<String> = emptyList(),
   ) : CreateEventUiState()
 
+  /** UI State for creating a Private Event. */
   data class Private(
       override val title: String = "",
       override val description: String = "",
@@ -66,4 +72,70 @@ sealed class CreateEventUiState {
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
   ) : CreateEventUiState()
+}
+
+/**
+ * Helper extension to copy shared properties across the sealed hierarchy. This enables the
+ * BaseViewModel to update common fields without casting to a specific subclass.
+ *
+ * Suppressed LongParameterList: This function acts as a unified copy constructor for the sealed
+ * hierarchy. It requires all common fields to be present.
+ */
+@Suppress("LongParameterList")
+fun CreateEventUiState.copyCommon(
+    title: String = this.title,
+    description: String = this.description,
+    location: Location? = this.location,
+    startDate: LocalDate? = this.startDate,
+    startTime: LocalTime = this.startTime,
+    endDate: LocalDate? = this.endDate,
+    endTime: LocalTime = this.endTime,
+    numberOfParticipantsString: String = this.numberOfParticipantsString,
+    hasParticipationFee: Boolean = this.hasParticipationFee,
+    participationFeeString: String = this.participationFeeString,
+    isFlash: Boolean = this.isFlash,
+    finishedSaving: Boolean = this.finishedSaving,
+    isSaving: Boolean = this.isSaving,
+    bannerImageUri: Uri? = this.bannerImageUri,
+    bannerImagePath: String? = this.bannerImagePath,
+    shouldRemoveBanner: Boolean = this.shouldRemoveBanner
+): CreateEventUiState {
+  return when (this) {
+    is CreateEventUiState.Public ->
+        copy(
+            title = title,
+            description = description,
+            location = location,
+            startDate = startDate,
+            startTime = startTime,
+            endDate = endDate,
+            endTime = endTime,
+            numberOfParticipantsString = numberOfParticipantsString,
+            hasParticipationFee = hasParticipationFee,
+            participationFeeString = participationFeeString,
+            isFlash = isFlash,
+            finishedSaving = finishedSaving,
+            isSaving = isSaving,
+            bannerImageUri = bannerImageUri,
+            bannerImagePath = bannerImagePath,
+            shouldRemoveBanner = shouldRemoveBanner)
+    is CreateEventUiState.Private ->
+        copy(
+            title = title,
+            description = description,
+            location = location,
+            startDate = startDate,
+            startTime = startTime,
+            endDate = endDate,
+            endTime = endTime,
+            numberOfParticipantsString = numberOfParticipantsString,
+            hasParticipationFee = hasParticipationFee,
+            participationFeeString = participationFeeString,
+            isFlash = isFlash,
+            finishedSaving = finishedSaving,
+            isSaving = isSaving,
+            bannerImageUri = bannerImageUri,
+            bannerImagePath = bannerImagePath,
+            shouldRemoveBanner = shouldRemoveBanner)
+  }
 }

@@ -32,6 +32,7 @@ import com.github.se.studentconnect.service.NotificationChannelManager
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
 import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreen
+import com.github.se.studentconnect.ui.eventcreation.EventTemplateSelectionScreen
 import com.github.se.studentconnect.ui.navigation.BottomNavigationBar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.navigation.Tab
@@ -43,6 +44,7 @@ import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
+import com.github.se.studentconnect.ui.screen.profile.OrganizationManagementScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileNavigationCallbacks
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
@@ -51,6 +53,7 @@ import com.github.se.studentconnect.ui.screen.profile.UserCardScreen
 import com.github.se.studentconnect.ui.screen.profile.edit.*
 import com.github.se.studentconnect.ui.screen.search.SearchScreen
 import com.github.se.studentconnect.ui.screen.signup.OnboardingNavigation
+import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
 import com.github.se.studentconnect.ui.screen.signup.regularuser.GetStartedScreen
 import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsScreen
 import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileScreen
@@ -110,12 +113,12 @@ class MainActivity : ComponentActivity() {
  *
  * ```
  * LOADING (Initial)
- *   ├─> AUTHENTICATION (if no Firebase user)
- *   │     └─> ONBOARDING (after sign-in, if no profile exists)
- *   │           └─> MAIN_APP (after profile creation)
- *   ├─> ONBOARDING (if Firebase user exists but no profile)
- *   │     └─> MAIN_APP (after profile creation)
- *   └─> MAIN_APP (if Firebase user and profile both exist)
+ * ├─> AUTHENTICATION (if no Firebase user)
+ * │     └─> ONBOARDING (after sign-in, if no profile exists)
+ * │           └─> MAIN_APP (after profile creation)
+ * ├─> ONBOARDING (if Firebase user exists but no profile)
+ * │     └─> MAIN_APP (after profile creation)
+ * └─> MAIN_APP (if Firebase user and profile both exist)
  * ```
  *
  * **First-Time User Flow:**
@@ -293,6 +296,9 @@ internal fun MainAppContent(
               },
               onCreatePrivateEvent = {
                 navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+              },
+              onCreateFromTemplate = {
+                navController.navigate(Route.SELECT_EVENT_TEMPLATE) { launchSingleTop = true }
               })
         }
       }) { paddingValues ->
@@ -355,6 +361,9 @@ internal fun MainAppContent(
                         onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) },
                         onNavigateToEventDetails = { eventId ->
                           navController.navigate(Route.eventView(eventId, true))
+                        },
+                        onNavigateToOrganizationManagement = {
+                          navController.navigate(ProfileRoutes.ORGANIZATION_MANAGEMENT)
                         }))
           }
 
@@ -473,6 +482,40 @@ internal fun MainAppContent(
                 onNavigateBack = { navController.popBackStack() })
           }
 
+          // Organization Management Screen
+          composable(ProfileRoutes.ORGANIZATION_MANAGEMENT) {
+            OrganizationManagementScreen(
+                currentUserId = currentUserId,
+                onBack = { navController.popBackStack() },
+                onCreateOrganization = {
+                  // Navigate to organization creation route
+                  navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
+                },
+                onJoinOrganization = {
+                  // Navigate to search screen to find and join organizations
+                  // Users can search for existing organizations and request to join them
+                  navController.navigate(Route.SEARCH)
+                },
+                onOrganizationClick = { organizationId ->
+                  navController.navigate(Route.organizationProfile(organizationId))
+                })
+          }
+
+          // Create Organization Screen
+          composable(ProfileRoutes.CREATE_ORGANIZATION) {
+            OrganizationSignUpOrchestrator(
+                firebaseUserId = currentUserId,
+                onLogout = {
+                  // User wants to logout during org creation - navigate back to profile
+                  // The actual logout will be handled by the user from settings
+                  navController.popBackStack(Route.PROFILE, inclusive = false)
+                },
+                onBackToSelection = {
+                  // User cancelled organization creation
+                  navController.popBackStack()
+                })
+          }
+
           // Profile Settings Screen (Edit Profile View)
           composable(ProfileRoutes.SETTINGS) {
             ProfileSettingsScreen(
@@ -578,12 +621,40 @@ internal fun MainAppContent(
                 requireNotNull(eventUid) { "Event UID is required." }
                 EventView(eventUid = eventUid, navController = navController)
               }
+
           composable(Route.CREATE_PRIVATE_EVENT) {
             CreatePrivateEventScreen(navController = navController)
           }
+
           composable(Route.CREATE_PUBLIC_EVENT) {
             CreatePublicEventScreen(navController = navController)
           }
+
+          // Create from template routes
+          composable(Route.SELECT_EVENT_TEMPLATE) {
+            EventTemplateSelectionScreen(navController = navController)
+          }
+
+          composable(
+              Route.CREATE_PUBLIC_EVENT_FROM_TEMPLATE,
+              arguments = listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
+                requireNotNull(templateEventUid) { "Template Event UID is required." }
+                CreatePublicEventScreen(
+                    navController = navController, templateEventId = templateEventUid)
+              }
+
+          composable(
+              Route.CREATE_PRIVATE_EVENT_FROM_TEMPLATE,
+              arguments = listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
+                  backStackEntry ->
+                val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
+                requireNotNull(templateEventUid) { "Template Event UID is required." }
+                CreatePrivateEventScreen(
+                    navController = navController, templateEventId = templateEventUid)
+              }
+
           composable(
               Route.EDIT_PRIVATE_EVENT,
               arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {

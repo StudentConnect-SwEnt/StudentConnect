@@ -206,8 +206,8 @@ private fun EventsList(
     onEventClick: (Event) -> Unit,
     onPinClick: (String) -> Unit
 ) {
-  // Log pinnedEventIds whenever this composable recomposes
-  android.util.Log.d("EventsList", "Recomposing EventsList with pinnedEventIds: $pinnedEventIds")
+  val dateFormatPattern = stringResource(R.string.date_format_joined_event)
+  val dateFormat = SimpleDateFormat(dateFormatPattern, Locale.getDefault())
 
   // Force recomposition when pinnedEventIds changes
   key(pinnedEventIds.joinToString()) {
@@ -216,31 +216,55 @@ private fun EventsList(
         contentPadding = PaddingValues(horizontal = spacing.medium),
         verticalArrangement = Arrangement.spacedBy(spacing.small)) {
           items(items = events, key = { it.uid }) { event ->
-            android.util.Log.d("EventsList", "Composing event ${event.uid}")
-            EventCard(
+            val isPinned = pinnedEventIds.contains(event.uid)
+            val formattedDate = dateFormat.format(event.start.toDate())
+
+            // Reuse the Shared Component
+            EventListItemCard(
                 event = event,
                 isPinned = pinnedEventIds.contains(event.uid),
                 showPinButton = isOwnProfile && selectedFilter == EventFilter.Past,
                 onClick = { onEventClick(event) },
-                onPinClick = { onPinClick(event.uid) })
+                footerText = formattedDate,
+                modifier = Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
+                actionContent = {
+                  // Pin button (only shown for past events)
+                  if (selectedFilter == EventFilter.Past) {
+                    val configuration = LocalConfiguration.current
+                    val screenWidth = configuration.screenWidthDp.dp
+                    val pinButtonPadding = screenWidth * 0.02f
+
+                    PinButton(
+                        isPinned = isPinned,
+                        onClick = { onPinClick(event.uid) },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
+                  }
+                })
           }
         }
   }
 }
 
-// Event card with details
+// --- REUSABLE COMPONENTS ---
+
+/**
+ * A generic, reusable Event Card used across the application (Profile, Template Selection, etc.).
+ * * @param event The event to display.
+ *
+ * @param onClick The action to perform when the card is clicked.
+ * @param footerText The text to display in the bottom right (e.g., Date or Location).
+ * @param modifier Modifier for the card.
+ * @param actionContent Optional composable to display in the bottom-right (e.g., Pin button).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EventCard(
+fun EventListItemCard(
     event: Event,
-    isPinned: Boolean,
-    showPinButton: Boolean,
     onClick: () -> Unit,
-    onPinClick: () -> Unit
+    footerText: String,
+    modifier: Modifier = Modifier,
+    actionContent: @Composable (BoxScope.() -> Unit)? = null
 ) {
-  val dateFormatPattern = stringResource(R.string.date_format_joined_event)
-  val dateFormat = SimpleDateFormat(dateFormatPattern, Locale.getDefault())
-  val formattedDate = dateFormat.format(event.start.toDate())
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
 
@@ -251,10 +275,7 @@ private fun EventCard(
 
   Card(
       onClick = onClick,
-      modifier =
-          Modifier.fillMaxWidth()
-              .height(cardHeight)
-              .testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
+      modifier = modifier.fillMaxWidth().height(cardHeight),
       shape = RoundedCornerShape(cornerRadius),
       elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)) {
         Box(
@@ -268,22 +289,16 @@ private fun EventCard(
                                         MaterialTheme.colorScheme.primaryContainer,
                                         MaterialTheme.colorScheme.primary)))) {
               EventCardContent(
-                  event = event,
-                  formattedDate = formattedDate,
-                  isPinned = isPinned,
-                  showPinButton = showPinButton,
-                  onPinClick = onPinClick)
+                  event = event, footerText = footerText, actionContent = actionContent)
             }
       }
 }
 
 @Composable
-private fun EventCardContent(
+private fun BoxScope.EventCardContent(
     event: Event,
-    formattedDate: String,
-    isPinned: Boolean,
-    showPinButton: Boolean,
-    onPinClick: () -> Unit
+    footerText: String,
+    actionContent: @Composable (BoxScope.() -> Unit)?
 ) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
   val configuration = LocalConfiguration.current
@@ -295,41 +310,33 @@ private fun EventCardContent(
   val imageSize = screenWidth * 0.25f
   val imageCornerRadius = screenWidth * 0.03f
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    Row(
-        modifier = Modifier.fillMaxSize().padding(contentPadding),
-        horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
-          Icon(
-              imageVector = Icons.Default.Image,
-              contentDescription = eventImageDescription,
-              modifier =
-                  Modifier.size(imageSize)
-                      .clip(RoundedCornerShape(imageCornerRadius))
-                      .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-              tint = MaterialTheme.colorScheme.onPrimary)
+  Row(
+      modifier = Modifier.fillMaxSize().padding(contentPadding),
+      horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
+        Icon(
+            imageVector = Icons.Default.Image,
+            contentDescription = eventImageDescription,
+            modifier =
+                Modifier.size(imageSize)
+                    .clip(RoundedCornerShape(imageCornerRadius))
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+            tint = MaterialTheme.colorScheme.onPrimary)
 
-          EventCardDetails(event = event, formattedDate = formattedDate)
-        }
+        EventCardDetails(event = event, footerText = footerText)
+      }
 
-    // Pin button (only shown for past events)
-    if (showPinButton) {
-      val pinButtonPadding = screenWidth * 0.02f
-      PinButton(
-          isPinned = isPinned,
-          onClick = onPinClick,
-          modifier = Modifier.align(Alignment.BottomEnd).padding(pinButtonPadding))
-    }
-  }
+  // Optional action button (e.g. Pin)
+  actionContent?.let { it() }
 }
 
 @Composable
-private fun RowScope.EventCardDetails(event: Event, formattedDate: String) {
+private fun RowScope.EventCardDetails(event: Event, footerText: String) {
   Column(
       modifier = Modifier.weight(1f).fillMaxHeight(),
       verticalArrangement = Arrangement.SpaceBetween) {
         EventCardHeader(event = event)
         Text(
-            text = formattedDate,
+            text = footerText,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
             fontWeight = FontWeight.Medium)
@@ -456,9 +463,6 @@ private fun PinButton(isPinned: Boolean, onClick: () -> Unit, modifier: Modifier
 
   // Dynamic icon size based on screen width
   val iconSize = screenWidth * 0.06f
-
-  // Log the isPinned state for debugging
-  android.util.Log.d("PinButton", "Rendering PinButton with isPinned=$isPinned")
 
   IconButton(onClick = onClick, modifier = modifier) {
     Icon(
