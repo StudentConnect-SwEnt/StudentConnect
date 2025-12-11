@@ -27,9 +27,9 @@ class EventBannerUploadWorker(appContext: Context, params: WorkerParameters) :
     if (!file.exists()) return Result.failure()
 
     return try {
-      val storage = FirebaseStorage.getInstance().reference.child(storagePath)
-      storage.putFile(file.toUri()).await()
-      val downloadUrl = storage.downloadUrl.await().toString()
+      val storageRef = FirebaseStorage.getInstance().reference.child(storagePath)
+      storageRef.putFile(file.toUri()).await()
+      val downloadUrl = storageRef.downloadUrl.await().toString()
 
       FirebaseFirestore.getInstance()
           .collection(EventRepositoryFirestore.EVENTS_COLLECTION_PATH)
@@ -46,7 +46,11 @@ class EventBannerUploadWorker(appContext: Context, params: WorkerParameters) :
               } else {
                 FirebaseStorage.getInstance().reference.child(existingImageUrl)
               }
-          ref.delete().await()
+          // Skip deletion if we just uploaded to the same reference; otherwise we'd delete the new
+          // image we uploaded above.
+          if (ref.path != storageRef.path || ref.bucket != storageRef.bucket) {
+            ref.delete().await()
+          }
         }
       }
 
