@@ -162,4 +162,60 @@ class CommonEventFieldsTest {
     // Note: Dropdown option visibility is tested in instrumentation tests
     // This test verifies the composable renders correctly.
   }
+
+  @Test
+  fun flashEventDurationFields_selectingMaxHours_resetsMinutes() {
+    var hours = 1
+    var minutes = 30
+    composeTestRule.setContent {
+      AppTheme {
+        FlashEventDurationFields(
+            hours = hours,
+            minutes = minutes,
+            onHoursChange = { hours = it },
+            onMinutesChange = { minutes = it },
+            hoursTag = "hours_dropdown",
+            minutesTag = "minutes_dropdown")
+      }
+    }
+
+    // Open hours dropdown and select max value
+    composeTestRule.onNodeWithTag("hours_dropdown").performClick()
+    composeTestRule
+        .onNodeWithText(C.FlashEvent.MAX_DURATION_HOURS.toInt().toString())
+        .performClick()
+    composeTestRule.waitForIdle()
+
+    // Hours set to max and minutes reset to 0
+    assert(hours == C.FlashEvent.MAX_DURATION_HOURS.toInt())
+    assert(minutes == 0)
+  }
+
+  @Test
+  fun handleHourSelection_resetsMinutesWhenSelectingMax() {
+    var hours = 1
+    var minutes = 30
+    handleHourSelection(
+        selectedHours = C.FlashEvent.MAX_DURATION_HOURS.toInt(),
+        currentMinutes = minutes,
+        onHoursChange = { hours = it },
+        onMinutesChange = { minutes = it })
+
+    assert(hours == C.FlashEvent.MAX_DURATION_HOURS.toInt())
+    assert(minutes == 0)
+  }
+
+  @Test
+  fun handleMinuteSelection_reducesHoursWhenAtMaxAndMinutesNonZero() {
+    var hours = C.FlashEvent.MAX_DURATION_HOURS.toInt()
+    var minutes = 0
+    handleMinuteSelection(
+        selectedMinutes = 15,
+        currentHours = hours,
+        onHoursChange = { hours = it },
+        onMinutesChange = { minutes = it })
+
+    assert(hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
+    assert(minutes == 15)
+  }
 }

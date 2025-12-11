@@ -304,12 +304,11 @@ fun FlashEventDurationFields(
                             text = { Text(option) },
                             onClick = {
                               val selectedHours = option.toInt()
-                              onHoursChange(selectedHours)
-                              // If selecting max hours, reset minutes to 0
-                              if (selectedHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() &&
-                                  minutes > 0) {
-                                onMinutesChange(0)
-                              }
+                              handleHourSelection(
+                                  selectedHours,
+                                  currentMinutes = minutes,
+                                  onHoursChange = onHoursChange,
+                                  onMinutesChange = onMinutesChange)
                               hoursExpanded = false
                             })
                       }
@@ -337,12 +336,11 @@ fun FlashEventDurationFields(
                             text = { Text(option) },
                             onClick = {
                               val selectedMinutes = option.toInt()
-                              // If selecting non-zero minutes when at max hours, reset hours first
-                              if (hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() &&
-                                  selectedMinutes > 0) {
-                                onHoursChange(C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
-                              }
-                              onMinutesChange(selectedMinutes)
+                              handleMinuteSelection(
+                                  selectedMinutes,
+                                  currentHours = hours,
+                                  onHoursChange = onHoursChange,
+                                  onMinutesChange = onMinutesChange)
                               minutesExpanded = false
                             })
                       }
@@ -407,4 +405,29 @@ fun EventParticipantsAndFeesFields(
         },
     )
   }
+}
+
+// Logic extracted for testability.
+internal fun handleHourSelection(
+    selectedHours: Int,
+    currentMinutes: Int,
+    onHoursChange: (Int) -> Unit,
+    onMinutesChange: (Int) -> Unit
+) {
+  onHoursChange(selectedHours)
+  if (selectedHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && currentMinutes > 0) {
+    onMinutesChange(0)
+  }
+}
+
+internal fun handleMinuteSelection(
+    selectedMinutes: Int,
+    currentHours: Int,
+    onHoursChange: (Int) -> Unit,
+    onMinutesChange: (Int) -> Unit
+) {
+  if (currentHours == C.FlashEvent.MAX_DURATION_HOURS.toInt() && selectedMinutes > 0) {
+    onHoursChange(C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
+  }
+  onMinutesChange(selectedMinutes)
 }
