@@ -924,4 +924,260 @@ class EventViewModelTest {
     val uiState = viewModel.uiState.value
     assertFalse(uiState.showLeaveConfirmDialog)
   }
+
+  // --- Delete Event Tests ---
+
+  @Test
+  fun initialState_deleteConfirmDialogNotShown() {
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showDeleteConfirmDialog)
+    assertNull(uiState.deleteEventMessageRes)
+    assertFalse(uiState.isDeletingEvent)
+  }
+
+  @Test
+  fun showDeleteConfirmDialog_updatesUiState() {
+    // Act
+    viewModel.showDeleteConfirmDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertTrue(uiState.showDeleteConfirmDialog)
+    assertNull(uiState.deleteEventMessageRes)
+  }
+
+  @Test
+  fun hideDeleteConfirmDialog_updatesUiState() {
+    // Arrange
+    viewModel.showDeleteConfirmDialog()
+    assertTrue(viewModel.uiState.value.showDeleteConfirmDialog)
+
+    // Act
+    viewModel.hideDeleteConfirmDialog()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showDeleteConfirmDialog)
+    assertNull(uiState.deleteEventMessageRes)
+  }
+
+  @Test
+  fun hideDeleteConfirmDialog_whenNotShown_doesNotCrash() {
+    // Act & Assert - should not crash
+    viewModel.hideDeleteConfirmDialog()
+
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showDeleteConfirmDialog)
+  }
+
+  @Test
+  fun deleteEvent_asOwner_success() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    viewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.isDeletingEvent)
+    assertFalse(uiState.showDeleteConfirmDialog)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_success, uiState.deleteEventMessageRes)
+    assertNull(uiState.event)
+    assertTrue(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_whenNotOwner_setsError() = runTest {
+    // Arrange
+    val ownerId = "different-owner"
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    viewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showDeleteConfirmDialog)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_whenEventIsNull_setsError() = runTest {
+    var onSuccessCalled = false
+
+    // Act
+    viewModel.deleteEvent("non-existent") { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertFalse(uiState.showDeleteConfirmDialog)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_withIllegalAccessException_setsError() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    val errorThrowingRepo =
+        object : EventRepository by eventRepository {
+          override suspend fun deleteEvent(eventUid: String) {
+            throw IllegalAccessException("Only the owner can delete")
+          }
+        }
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+    mockViewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    mockViewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = mockViewModel.uiState.value
+    assertFalse(uiState.isDeletingEvent)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_withNetworkException_setsNetworkError() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    val errorThrowingRepo =
+        object : EventRepository by eventRepository {
+          override suspend fun deleteEvent(eventUid: String) {
+            throw RuntimeException("Network connection failed")
+          }
+        }
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+    mockViewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    mockViewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = mockViewModel.uiState.value
+    assertFalse(uiState.isDeletingEvent)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error_network, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_withConnectionException_setsNetworkError() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    val errorThrowingRepo =
+        object : EventRepository by eventRepository {
+          override suspend fun deleteEvent(eventUid: String) {
+            throw RuntimeException("Connection timeout")
+          }
+        }
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+    mockViewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    mockViewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = mockViewModel.uiState.value
+    assertFalse(uiState.isDeletingEvent)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error_network, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun deleteEvent_withGenericException_setsError() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val event = testEvent.copy(ownerId = ownerId)
+    eventRepository.addEvent(event)
+    viewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    val errorThrowingRepo =
+        object : EventRepository by eventRepository {
+          override suspend fun deleteEvent(eventUid: String) {
+            throw RuntimeException("Unknown error occurred")
+          }
+        }
+    val mockViewModel =
+        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+    mockViewModel.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    var onSuccessCalled = false
+
+    // Act
+    mockViewModel.deleteEvent(event.uid) { onSuccessCalled = true }
+    advanceUntilIdle()
+
+    // Assert
+    val uiState = mockViewModel.uiState.value
+    assertFalse(uiState.isDeletingEvent)
+    assertEquals(com.github.se.studentconnect.R.string.delete_event_error, uiState.deleteEventMessageRes)
+    assertFalse(onSuccessCalled)
+  }
+
+  @Test
+  fun clearDeleteEventMessage_clearsMessage() {
+    // Arrange - inject a message into state
+    val privateField = EventViewModel::class.java.getDeclaredField("_uiState")
+    privateField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    val stateFlow = privateField.get(viewModel) as MutableStateFlow<EventUiState>
+    stateFlow.value =
+        stateFlow.value.copy(deleteEventMessageRes = com.github.se.studentconnect.R.string.delete_event_success)
+
+    // Act
+    viewModel.clearDeleteEventMessage()
+
+    // Assert
+    val uiState = viewModel.uiState.value
+    assertNull(uiState.deleteEventMessageRes)
+  }
 }

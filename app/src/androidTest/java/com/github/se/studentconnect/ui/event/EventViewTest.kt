@@ -2046,4 +2046,152 @@ class EventViewTest {
       AuthenticationProvider.testUserId = null
     }
   }
+
+  // --- Delete Event Tests ---
+
+  @Test
+  fun eventView_deleteButton_visibleWhenOwner() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_deleteButton_notVisibleWhenNotOwner() {
+    AuthenticationProvider.testUserId = currentUser.userId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_deleteButton_click_showsConfirmDialog() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
+
+      // Assert - confirmation dialog should be displayed
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG).assertIsDisplayed()
+      composeTestRule.onNodeWithText("Delete Event").assertIsDisplayed()
+      composeTestRule
+          .onNodeWithText("Are you sure you want to delete this event? This action cannot be undone.")
+          .assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_deleteConfirmDialog_cancelButton_dismissesDialog() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Click cancel button
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_CANCEL).performClick()
+
+      // Assert - dialog should be dismissed
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG)
+          .assertDoesNotExist()
+      // Delete button should still be visible
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_deleteConfirmDialog_confirmButton_deletesEvent() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      val freshViewModel = EventViewModel(eventRepository, userRepository)
+      runBlocking { freshViewModel.fetchEvent(testEvent.uid) }
+
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = freshViewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performScrollTo()
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_EVENT_BUTTON).performClick()
+      composeTestRule.waitForIdle()
+
+      // Click confirm button
+      composeTestRule.onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_CONFIRM).performClick()
+
+      // Assert - dialog should be dismissed
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG)
+          .assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
 }
