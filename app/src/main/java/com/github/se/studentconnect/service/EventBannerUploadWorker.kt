@@ -38,7 +38,7 @@ class EventBannerUploadWorker(appContext: Context, params: WorkerParameters) :
           .await()
 
       // Best-effort cleanup of previous image
-      if (!existingImageUrl.isNullOrBlank()) {
+      if (!existingImageUrl.isNullOrBlank() && !existingImageUrl.startsWith("file://")) {
         runCatching {
           val ref =
               if (existingImageUrl.startsWith("http")) {
