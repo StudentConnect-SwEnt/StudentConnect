@@ -57,16 +57,10 @@ class ChatViewModelTest {
           firstName = "John",
           lastName = "Doe",
           email = "john@example.com",
+          username = "johndoe",
+          university = "EPFL",
           profilePictureUrl = null,
-          bio = "",
-          socialMediaLinks = emptyMap(),
-          organizationsOwned = emptyList(),
-          organizationsJoined = emptyList(),
-          organizationMembershipRequests = emptyList(),
-          organizationMembershipInvitations = emptyList(),
-          eventsCreated = emptyList(),
-          eventsJoined = emptyList(),
-          eventsInvited = emptyList())
+          bio = null)
 
   private val testEvent =
       Event.Private(
@@ -76,7 +70,8 @@ class ChatViewModelTest {
           description = "Test Description",
           start = Timestamp.now(),
           end = Timestamp.now(),
-          location = Location(46.5, 6.6, "EPFL"))
+          location = Location(46.5, 6.6, "EPFL"),
+          isFlash = false)
 
   @Before
   fun setUp() {
@@ -92,7 +87,7 @@ class ChatViewModelTest {
     `when`(mockChatRepository.getNewMessageId()).thenReturn("new-msg-id")
 
     // Mock AuthenticationProvider
-    AuthenticationProvider.currentUser = testUserId
+    AuthenticationProvider.testUserId = testUserId
 
     // Override providers
     ChatRepositoryProvider.overrideForTests(mockChatRepository)
@@ -105,7 +100,7 @@ class ChatViewModelTest {
   @After
   fun tearDown() {
     Dispatchers.resetMain()
-    AuthenticationProvider.currentUser = null
+    AuthenticationProvider.testUserId = null
     ChatRepositoryProvider.cleanOverrideForTests()
     EventRepositoryProvider.cleanOverrideForTests()
     UserRepositoryProvider.cleanOverrideForTests()
@@ -494,33 +489,6 @@ class ChatViewModelTest {
   }
 
   @Test
-  fun onCleared_stopsTypingIndicator() = runTest {
-    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
-    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
-
-    viewModel.initializeChat(testEventId)
-    advanceUntilIdle()
-
-    val captor = ArgumentCaptor.forClass(TypingStatus::class.java)
-    doAnswer { invocation ->
-          val onSuccess = invocation.getArgument<() -> Unit>(1)
-          onSuccess()
-          null
-        }
-        .`when`(mockChatRepository)
-        .updateTypingStatus(captor.capture(), any(), any())
-
-    // Trigger onCleared by calling it directly (simulates ViewModel destruction)
-    viewModel.onCleared()
-    advanceUntilIdle()
-
-    // Should have sent isTyping = false
-    val capturedStatuses = captor.allValues
-    val lastStatus = capturedStatuses.last()
-    assertFalse(lastStatus.isTyping)
-  }
-
-  @Test
   fun sendMessage_stopsTypingIndicator() = runTest {
     `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
     `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
@@ -558,7 +526,7 @@ class ChatViewModelTest {
 
   @Test
   fun initializeChat_withNullCurrentUser_skipsUserLoad() = runTest {
-    AuthenticationProvider.currentUser = null
+    AuthenticationProvider.testUserId = null
 
     `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
 

@@ -15,7 +15,9 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -81,17 +83,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockDocumentSnapshot.data).thenReturn(messageData)
     `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockQuery.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeMessages(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate snapshot event
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(mockQuerySnapshot, null)
 
     // Get first emission
@@ -111,17 +116,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockMessagesCollection.orderBy("timestamp", Query.Direction.ASCENDING))
         .thenReturn(mockQuery)
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockQuery.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeMessages(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate error
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     val mockException = mock(FirebaseFirestoreException::class.java)
     listener.onEvent(null, mockException)
 
@@ -140,17 +148,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockMessagesCollection.orderBy("timestamp", Query.Direction.ASCENDING))
         .thenReturn(mockQuery)
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockQuery.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeMessages(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate null snapshot
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(null, null)
 
     // Get first emission
@@ -186,17 +197,20 @@ class ChatRepositoryFirestoreTest {
         .thenReturn(mockQuery)
     `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockValidSnapshot, mockInvalidSnapshot))
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockQuery.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeMessages(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate snapshot event
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(mockQuerySnapshot, null)
 
     // Get first emission
@@ -301,17 +315,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockDocumentSnapshot.data).thenReturn(typingData)
     `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockTypingCollection.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeTypingUsers(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate snapshot event
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(mockQuerySnapshot, null)
 
     // Get first emission
@@ -340,17 +357,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockDocumentSnapshot.data).thenReturn(typingData)
     `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockTypingCollection.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeTypingUsers(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate snapshot event
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(mockQuerySnapshot, null)
 
     // Get first emission
@@ -378,17 +398,20 @@ class ChatRepositoryFirestoreTest {
     `when`(mockDocumentSnapshot.data).thenReturn(typingData)
     `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockTypingCollection.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeTypingUsers(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate snapshot event
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     listener.onEvent(mockQuerySnapshot, null)
 
     // Get first emission
@@ -404,17 +427,20 @@ class ChatRepositoryFirestoreTest {
   fun observeTypingUsers_emitsEmptyListOnError() = runTest {
     val eventId = "event-123"
 
-    val listenerCaptor = ArgumentCaptor.forClass(EventListener::class.java)
+    @Suppress("UNCHECKED_CAST")
+    val listenerCaptor =
+        ArgumentCaptor.forClass(EventListener::class.java)
+            as ArgumentCaptor<EventListener<QuerySnapshot>>
     `when`(mockTypingCollection.addSnapshotListener(listenerCaptor.capture()))
         .thenReturn(mockListenerRegistration)
 
     val flow = repository.observeTypingUsers(eventId)
 
     // Collect flow in background
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
 
     // Simulate error
-    @Suppress("UNCHECKED_CAST") val listener = listenerCaptor.value as EventListener<QuerySnapshot>
+    val listener = listenerCaptor.value
     val mockException = mock(FirebaseFirestoreException::class.java)
     listener.onEvent(null, mockException)
 
@@ -515,11 +541,11 @@ class ChatRepositoryFirestoreTest {
     val flow = repository.observeMessages(eventId)
 
     // Collect and immediately cancel
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
     job.cancel()
 
     // Give time for cleanup
-    kotlinx.coroutines.delay(100)
+    delay(100)
 
     // Verify listener was removed
     verify(mockListenerRegistration).remove()
@@ -534,11 +560,11 @@ class ChatRepositoryFirestoreTest {
     val flow = repository.observeTypingUsers(eventId)
 
     // Collect and immediately cancel
-    val job = kotlinx.coroutines.launch { flow.collect {} }
+    val job = launch { flow.collect {} }
     job.cancel()
 
     // Give time for cleanup
-    kotlinx.coroutines.delay(100)
+    delay(100)
 
     // Verify listener was removed
     verify(mockListenerRegistration).remove()
