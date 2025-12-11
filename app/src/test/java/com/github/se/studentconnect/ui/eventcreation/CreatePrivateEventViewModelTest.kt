@@ -3,7 +3,16 @@ package com.github.se.studentconnect.ui.eventcreation
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.resources.C
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
@@ -28,6 +37,10 @@ class CreatePrivateEventViewModelTest {
   private lateinit var viewModel: CreatePrivateEventViewModel
   private lateinit var mockEventRepository: EventRepository
   private lateinit var mockMediaRepository: com.github.se.studentconnect.model.media.MediaRepository
+  private lateinit var mockUserRepository: UserRepository
+  private lateinit var mockOrganizationRepository: OrganizationRepository
+  private lateinit var mockFriendsRepository: FriendsRepository
+  private lateinit var mockNotificationRepository: NotificationRepository
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
@@ -36,10 +49,20 @@ class CreatePrivateEventViewModelTest {
     mockEventRepository = Mockito.mock(EventRepository::class.java)
     mockMediaRepository =
         Mockito.mock(com.github.se.studentconnect.model.media.MediaRepository::class.java)
-    // override provider so ViewModel uses our mock repository
+    mockUserRepository = Mockito.mock(UserRepository::class.java)
+    mockOrganizationRepository = Mockito.mock(OrganizationRepository::class.java)
+    mockFriendsRepository = Mockito.mock(FriendsRepository::class.java)
+    mockNotificationRepository = Mockito.mock(NotificationRepository::class.java)
+
+    // override providers so ViewModel uses our mock repositories
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     com.github.se.studentconnect.model.media.MediaRepositoryProvider.overrideForTests(
         mockMediaRepository)
+    UserRepositoryProvider.overrideForTests(mockUserRepository)
+    OrganizationRepositoryProvider.overrideForTests(mockOrganizationRepository)
+    FriendsRepositoryProvider.overrideForTests(mockFriendsRepository)
+    NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
+
     viewModel = CreatePrivateEventViewModel()
   }
 
@@ -49,6 +72,10 @@ class CreatePrivateEventViewModelTest {
     // clean override to avoid leaking across tests
     EventRepositoryProvider.cleanOverrideForTests()
     com.github.se.studentconnect.model.media.MediaRepositoryProvider.cleanOverrideForTests()
+    UserRepositoryProvider.cleanOverrideForTests()
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    FriendsRepositoryProvider.cleanOverrideForTests()
+    NotificationRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -213,5 +240,109 @@ class CreatePrivateEventViewModelTest {
     assertNull(state.startDate)
     assertNull(state.endDate)
     assertEquals("200", state.numberOfParticipantsString)
+  }
+
+  @Test
+  fun `updateFlashDurationHours updates value in state`() {
+    viewModel.updateFlashDurationHours(3)
+    assertEquals(3, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours coerces negative values to zero`() {
+    viewModel.updateFlashDurationHours(-5)
+    assertEquals(0, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours coerces values exceeding max to max`() {
+    viewModel.updateFlashDurationHours(10)
+    assertEquals(
+        C.FlashEvent.MAX_DURATION_HOURS.toInt(), viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes updates value in state`() {
+    viewModel.updateFlashDurationMinutes(30)
+    assertEquals(30, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes coerces negative values to zero`() {
+    viewModel.updateFlashDurationMinutes(-10)
+    assertEquals(0, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes coerces values exceeding 59 to 59`() {
+    viewModel.updateFlashDurationMinutes(100)
+    assertEquals(59, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `prefillFromTemplate calculates flash duration correctly for flash event`() {
+    val start = Timestamp.now()
+    val end = Timestamp(start.seconds + 2 * 3600 + 30 * 60, start.nanoseconds) // 2h 30m
+    val event =
+        Event.Private(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Flash Event",
+            description = "Test",
+            start = start,
+            end = end,
+            isFlash = true)
+
+    viewModel.prefillFromTemplate(event)
+
+    val state = viewModel.uiState.value
+    assertTrue(state.isFlash)
+    assertEquals(2, state.flashDurationHours)
+    assertEquals(30, state.flashDurationMinutes)
+  }
+
+  @Test
+  fun `prefillFromTemplate sets default duration for non-flash event`() {
+    val event =
+        Event.Private(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Regular Event",
+            description = "Test",
+            start = Timestamp.now(),
+            end = Timestamp.now(),
+            isFlash = false)
+
+    viewModel.prefillFromTemplate(event)
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isFlash)
+    assertEquals(1, state.flashDurationHours)
+    assertEquals(0, state.flashDurationMinutes)
+  }
+
+  @Test
+  fun `prefill calculates flash duration correctly for flash event`() = runTest {
+    val start = Timestamp.now()
+    val end = Timestamp(start.seconds + 1 * 3600 + 45 * 60, start.nanoseconds) // 1h 45m
+    val event =
+        Event.Private(
+            uid = "test-uid",
+            ownerId = "owner-id",
+            title = "Flash Event",
+            description = "Test",
+            start = start,
+            end = end,
+            isFlash = true)
+
+    Mockito.`when`(mockEventRepository.getEvent("test-uid")).thenReturn(event)
+
+    viewModel.loadEvent("test-uid")
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertTrue(state.isFlash)
+    assertEquals(1, state.flashDurationHours)
+    assertEquals(45, state.flashDurationMinutes)
   }
 }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
@@ -46,7 +45,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -60,6 +58,7 @@ import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.LiveEventBadge
 import com.google.firebase.Timestamp
 import java.util.*
 
@@ -405,25 +404,7 @@ fun CarouselCard(
           Row(
               modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
               horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (isLive) {
-                  Row(
-                      modifier =
-                          Modifier.background(Color.Red.copy(alpha = 0.9f), shape = CircleShape)
-                              .padding(horizontal = 10.dp, vertical = 5.dp),
-                      verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Circle,
-                            contentDescription = "Live Icon",
-                            tint = Color.White,
-                            modifier = Modifier.size(8.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "LIVE",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold)
-                      }
-                }
+                LiveEventBadge(isLive = isLive, isFlash = item.isFlash, modifier = Modifier)
 
                 // Public/Private icon
                 Icon(

@@ -3,9 +3,6 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.google.firebase.Timestamp
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
 import kotlinx.coroutines.launch
 
@@ -15,7 +12,13 @@ class CreatePrivateEventViewModel :
 
   override fun buildEvent(uid: String, ownerId: String, bannerPath: String?): Event {
     val s = uiState.value
-    val start = timestampFrom(s.startDate!!, s.startTime)
+    val start =
+        if (s.isFlash && editingEventUid == null) {
+          // Flash events start immediately
+          Timestamp.now()
+        } else {
+          timestampFrom(s.startDate!!, s.startTime)
+        }
     val end = timestampFrom(s.endDate!!, s.endTime)
     val maxCapacity =
         try {
@@ -48,6 +51,7 @@ class CreatePrivateEventViewModel :
    * NOT set start/end dates and does NOT set editingEventUid, so saving will create a NEW event.
    */
   override fun prefillFromTemplate(event: Event) {
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
     _uiState.value =
         CreateEventUiState.Private(
             title = event.title,
@@ -61,6 +65,8 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl,
         )
   }
@@ -82,6 +88,8 @@ class CreatePrivateEventViewModel :
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime()
 
+    val (durationHours, durationMinutes) = calculateFlashDuration(event)
+
     _uiState.value =
         CreateEventUiState.Private(
             title = event.title,
@@ -95,11 +103,8 @@ class CreatePrivateEventViewModel :
             hasParticipationFee = event.participationFee != null,
             participationFeeString = event.participationFee?.toString() ?: "",
             isFlash = event.isFlash,
+            flashDurationHours = durationHours,
+            flashDurationMinutes = durationMinutes,
             bannerImagePath = event.imageUrl)
-  }
-
-  private fun timestampFrom(date: LocalDate, time: LocalTime): Timestamp {
-    val instant = LocalDateTime.of(date, time).atZone(ZoneId.systemDefault()).toInstant()
-    return Timestamp(instant)
   }
 }

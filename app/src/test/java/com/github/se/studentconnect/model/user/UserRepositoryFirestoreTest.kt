@@ -1468,4 +1468,121 @@ class UserRepositoryFirestoreTest {
       assert(e == exception)
     }
   }
+
+  @Test
+  fun testGetOrganizationFollowersSuccess() = runTest {
+    // Arrange
+    val orgId = "org123"
+    val user1Doc: DocumentSnapshot = mock()
+    val user2Doc: DocumentSnapshot = mock()
+    val user3Doc: DocumentSnapshot = mock()
+    val mockFollowDoc1: DocumentSnapshot = mock()
+    val mockFollowDoc2: DocumentSnapshot = mock()
+    val mockFollowDoc3: DocumentSnapshot = mock()
+    val mockFollowedOrgsCollection1: CollectionReference = mock()
+    val mockFollowedOrgsCollection2: CollectionReference = mock()
+    val mockFollowedOrgsCollection3: CollectionReference = mock()
+    val mockOrgDoc1: DocumentReference = mock()
+    val mockOrgDoc2: DocumentReference = mock()
+    val mockOrgDoc3: DocumentReference = mock()
+
+    // Mock all users query
+    whenever(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(user1Doc, user2Doc, user3Doc))
+    whenever(user1Doc.id).thenReturn("user1")
+    whenever(user2Doc.id).thenReturn("user2")
+    whenever(user3Doc.id).thenReturn("user3")
+
+    // Mock user1 follows org
+    whenever(mockCollectionReference.document("user1")).thenReturn(mockDocumentReference)
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection1)
+    whenever(mockFollowedOrgsCollection1.document(orgId)).thenReturn(mockOrgDoc1)
+    whenever(mockOrgDoc1.get()).thenReturn(Tasks.forResult(mockFollowDoc1))
+    whenever(mockFollowDoc1.exists()).thenReturn(true)
+
+    // Mock user2 doesn't follow org
+    val mockDocRef2: DocumentReference = mock()
+    whenever(mockCollectionReference.document("user2")).thenReturn(mockDocRef2)
+    whenever(mockDocRef2.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection2)
+    whenever(mockFollowedOrgsCollection2.document(orgId)).thenReturn(mockOrgDoc2)
+    whenever(mockOrgDoc2.get()).thenReturn(Tasks.forResult(mockFollowDoc2))
+    whenever(mockFollowDoc2.exists()).thenReturn(false)
+
+    // Mock user3 follows org
+    val mockDocRef3: DocumentReference = mock()
+    whenever(mockCollectionReference.document("user3")).thenReturn(mockDocRef3)
+    whenever(mockDocRef3.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection3)
+    whenever(mockFollowedOrgsCollection3.document(orgId)).thenReturn(mockOrgDoc3)
+    whenever(mockOrgDoc3.get()).thenReturn(Tasks.forResult(mockFollowDoc3))
+    whenever(mockFollowDoc3.exists()).thenReturn(true)
+
+    // Act
+    val result = repository.getOrganizationFollowers(orgId)
+
+    // Assert
+    assertEquals(2, result.size)
+    assertTrue(result.contains("user1"))
+    assertTrue(result.contains("user3"))
+    assertFalse(result.contains("user2"))
+  }
+
+  @Test
+  fun testGetOrganizationFollowersEmpty() = runTest {
+    // Arrange
+    val orgId = "org123"
+    val user1Doc: DocumentSnapshot = mock()
+    val mockFollowDoc1: DocumentSnapshot = mock()
+    val mockFollowedOrgsCollection1: CollectionReference = mock()
+    val mockOrgDoc1: DocumentReference = mock()
+
+    // Mock all users query
+    whenever(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    whenever(mockQuerySnapshot.documents).thenReturn(listOf(user1Doc))
+    whenever(user1Doc.id).thenReturn("user1")
+
+    // Mock user1 doesn't follow org
+    whenever(mockCollectionReference.document("user1")).thenReturn(mockDocumentReference)
+    whenever(mockDocumentReference.collection("followedOrganizations"))
+        .thenReturn(mockFollowedOrgsCollection1)
+    whenever(mockFollowedOrgsCollection1.document(orgId)).thenReturn(mockOrgDoc1)
+    whenever(mockOrgDoc1.get()).thenReturn(Tasks.forResult(mockFollowDoc1))
+    whenever(mockFollowDoc1.exists()).thenReturn(false)
+
+    // Act
+    val result = repository.getOrganizationFollowers(orgId)
+
+    // Assert
+    assertTrue(result.isEmpty())
+  }
+
+  @Test
+  fun testGetOrganizationFollowersFailure() = runTest {
+    // Arrange
+    val orgId = "org123"
+    val exception = Exception("Firestore error")
+    whenever(mockCollectionReference.get()).thenReturn(Tasks.forException(exception))
+
+    // Act
+    val result = repository.getOrganizationFollowers(orgId)
+
+    // Assert - Should return empty list on failure (graceful degradation)
+    assertTrue(result.isEmpty())
+  }
+
+  @Test
+  fun testGetOrganizationFollowersWithNoUsers() = runTest {
+    // Arrange
+    val orgId = "org123"
+    whenever(mockCollectionReference.get()).thenReturn(Tasks.forResult(mockQuerySnapshot))
+    whenever(mockQuerySnapshot.documents).thenReturn(emptyList())
+
+    // Act
+    val result = repository.getOrganizationFollowers(orgId)
+
+    // Assert
+    assertTrue(result.isEmpty())
+  }
 }

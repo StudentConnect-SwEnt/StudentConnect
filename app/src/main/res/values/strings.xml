@@ -74,7 +74,7 @@
     <string name="placeholder_upload_profile_photo">Upload/Take your profile photo</string>
     <string name="org_setup_title">Where and what do you organize ?</string>
     <string name="org_setup_main_location_label">Main Location</string>
-    <string name="org_setup_main_location_placeholder">Search locations...</string>
+    <string name="org_setup_main_location_placeholder">Search locations…</string>
     <string name="org_setup_age_range_label">Age range</string>
     <string name="org_setup_event_size_label">Typical event size</string>
     <string name="org_setup_main_domains_label">Main domains</string>
@@ -163,6 +163,8 @@
     <string name="content_description_student_connect_logo">Student Connect Logo</string>
     <string name="content_description_favorite">Favorite</string>
     <string name="content_description_live_icon">Live Icon</string>
+    <string name="content_description_flash_event">Flash Event</string>
+    <string name="event_label_live">LIVE</string>
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
@@ -405,6 +407,10 @@
     <string name="event_label_website">Event website</string>
     <string name="event_label_fees">Participation fees</string>
     <string name="event_label_flash_event">Flash Event</string>
+    <string name="event_label_flash_duration">Duration</string>
+    <string name="event_label_flash_duration_hours">Hours</string>
+    <string name="event_label_flash_duration_minutes">Minutes</string>
+    <string name="event_label_flash_starts_immediately">Starts immediately</string>
     <string name="event_label_username">Username</string>
     <string name="event_label_invite_friends">Invite friends</string>
     <string name="event_invite_friends_help">Select friends to invite to this event.</string>
@@ -489,7 +495,7 @@
     <string name="no_bio_available">No biography available yet.</string>
     <string name="text_request_sent">Request Sent</string>
     <string name="text_remove_friend">Remove Friend</string>
-    <string name="text_sending">Sending...</string>
+    <string name="text_sending">Sending…</string>
     <string name="text_already_friends">Already Friends</string>
     <string name="text_try_again">Try Again</string>
     <string name="button_add_friend">Add Friend</string>
