@@ -25,6 +25,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -342,14 +343,23 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         // Build event (computation only)
         val event = buildEvent(eventUid, currentUserId, bannerPath)
 
-        if (editingEventUid != null) {
-          eventRepository.editEvent(eventUid, event)
-        } else {
-          eventRepository.addEvent(event)
+        // Fire-and-forget the write so offline saves don't block navigation; Firestore will queue
+        // the write and sync when back online.
+        viewModelScope.launch {
+          try {
+            if (editingEventUid != null) {
+              eventRepository.editEvent(eventUid, event)
+            } else {
+              eventRepository.addEvent(event)
 
-          // Send notifications for flash events
-          if (s.isFlash) {
-            sendFlashEventNotifications(event, currentUserId)
+              // Send notifications for flash events
+              if (s.isFlash) {
+                sendFlashEventNotifications(event, currentUserId)
+              }
+            }
+          } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.w("BaseCreateEventViewModel", "Deferred event save failed", e)
           }
         }
 
@@ -363,6 +373,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         }
         _navigateToEvent.emit(eventUid)
       } catch (e: Exception) {
+        if (e is CancellationException) throw e
         e.printStackTrace()
         updateState { copyCommon(isSaving = false, finishedSaving = false) }
       }
