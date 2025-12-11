@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.user.User
@@ -34,15 +35,10 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = { cancelled = true },
-                    onRemoveFriendClick = {}),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = { cancelled = true },
+            onRemoveFriendClick = {},
             friendRequestStatus = FriendRequestStatus.SENT)
       }
     }
@@ -63,15 +59,10 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = {},
-                    onRemoveFriendClick = { removed = true }),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = { removed = true },
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
@@ -97,15 +88,10 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = {},
-                    onRemoveFriendClick = { removed = true }),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = { removed = true },
             friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
       }
     }
@@ -131,15 +117,10 @@ class VisitorProfileScreenTest {
       MaterialTheme {
         VisitorProfileContent(
             user = sampleUser,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = {},
-                    onRemoveFriendClick = {}),
+            onBackClick = {},
+            onAddFriendClick = {},
+            onCancelFriendClick = {},
+            onRemoveFriendClick = {},
             friendRequestStatus = status.value)
       }
     }
