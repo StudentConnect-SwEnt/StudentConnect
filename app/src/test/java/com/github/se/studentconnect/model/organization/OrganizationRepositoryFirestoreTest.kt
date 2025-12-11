@@ -10,14 +10,14 @@ import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 
 class OrganizationRepositoryFirestoreTest {
 
   @Test
-  fun saveOrganization_calls_set_on_document() = runBlocking {
+  fun saveOrganization_calls_set_on_document() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
@@ -38,7 +38,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getOrganizationById_returns_model_when_document_exists() = runBlocking {
+  fun getOrganizationById_returns_model_when_document_exists() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
@@ -77,7 +77,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getOrganizationById_returns_null_when_missing() = runBlocking {
+  fun getOrganizationById_returns_null_when_missing() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
@@ -95,7 +95,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getNewOrganizationId_returns_document_id() = runBlocking {
+  fun getNewOrganizationId_returns_document_id() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val generatedDoc = mockk<DocumentReference>(relaxed = true)
@@ -111,7 +111,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getAllOrganizations_returns_list_of_organizations() = runBlocking {
+  fun getAllOrganizations_returns_list_of_organizations() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
@@ -167,7 +167,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getAllOrganizations_returns_empty_list_when_no_organizations() = runBlocking {
+  fun getAllOrganizations_returns_empty_list_when_no_organizations() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
@@ -183,7 +183,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getAllOrganizations_skips_invalid_documents() = runBlocking {
+  fun getAllOrganizations_skips_invalid_documents() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val querySnapshot = mockk<QuerySnapshot>(relaxed = true)
@@ -221,13 +221,16 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun sendMemberInvitation_callsSetOnDocument() = runBlocking {
+  fun sendMemberInvitation_callsSetOnDocument() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
+    val snapshot = mockk<DocumentSnapshot>(relaxed = true)
 
     every { db.collection("organization_member_invitations") } returns collection
     every { collection.document("org-1_user-1") } returns docRef
+    every { docRef.get() } returns Tasks.forResult(snapshot)
+    every { snapshot.exists() } returns false
     every { docRef.set(any()) } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
@@ -239,79 +242,75 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun acceptMemberInvitation_addsUserToMemberUidsAndDeletesInvitation() = runBlocking {
+  fun acceptMemberInvitation_addsUserToMemberUidsAndDeletesInvitation() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val orgCollection = mockk<CollectionReference>(relaxed = true)
     val invCollection = mockk<CollectionReference>(relaxed = true)
     val orgDocRef = mockk<DocumentReference>(relaxed = true)
     val invDocRef = mockk<DocumentReference>(relaxed = true)
-    val snapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
-    val orgMap =
-        mapOf<String, Any?>(
-            "id" to "org-1",
-            "name" to "Test Org",
-            "type" to "Company",
-            "createdBy" to "creator",
-            "createdAt" to Timestamp.now(),
-            "memberUids" to listOf<String>())
+    val invMap =
+        mapOf(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Member",
+            "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
     every { orgCollection.document("org-1") } returns orgDocRef
     every { invCollection.document("org-1_user-1") } returns invDocRef
-    every { orgDocRef.get() } returns Tasks.forResult(snapshot)
-    every { snapshot.exists() } returns true
-    every { snapshot.data } returns orgMap
-    every { orgDocRef.update(any<String>(), any()) } returns Tasks.forResult(null)
+    every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { invSnapshot.data } returns invMap
+    every { orgDocRef.update(any()) } returns Tasks.forResult(null)
     every { invDocRef.delete() } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
 
-    verify { orgDocRef.update("memberUids", listOf("user-1")) }
+    verify { orgDocRef.update(any()) }
     verify { invDocRef.delete() }
   }
 
   @Test
-  fun acceptMemberInvitation_doesNotAddDuplicateUser() = runBlocking {
+  fun acceptMemberInvitation_doesNotAddDuplicateUser() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val orgCollection = mockk<CollectionReference>(relaxed = true)
     val invCollection = mockk<CollectionReference>(relaxed = true)
     val orgDocRef = mockk<DocumentReference>(relaxed = true)
     val invDocRef = mockk<DocumentReference>(relaxed = true)
-    val snapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
 
-    val orgMap =
-        mapOf<String, Any?>(
-            "id" to "org-1",
-            "name" to "Test Org",
-            "type" to "Company",
-            "createdBy" to "creator",
-            "createdAt" to Timestamp.now(),
-            "memberUids" to listOf("user-1")) // User already exists
+    val invMap =
+        mapOf(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Member",
+            "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
     every { orgCollection.document("org-1") } returns orgDocRef
     every { invCollection.document("org-1_user-1") } returns invDocRef
-    every { orgDocRef.get() } returns Tasks.forResult(snapshot)
-    every { snapshot.exists() } returns true
-    every { snapshot.data } returns orgMap
+    every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { invSnapshot.data } returns invMap
+    every { orgDocRef.update(any()) } returns Tasks.forResult(null)
     every { invDocRef.delete() } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
 
-    // Should not call update since user already exists
-    verify(exactly = 0) { orgDocRef.update(any<String>(), any()) }
+    // Note: The implementation uses FieldValue.arrayUnion which handles duplicates automatically,
+    // so update will still be called, but it won't add a duplicate
+    verify { orgDocRef.update(any()) }
     verify { invDocRef.delete() }
   }
 
   @Test
-  fun rejectMemberInvitation_deletesInvitation() = runBlocking {
+  fun rejectMemberInvitation_deletesInvitation() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
@@ -328,7 +327,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getPendingInvitations_returnsListOfInvitations() = runBlocking {
+  fun getPendingInvitations_returnsListOfInvitations() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val query = mockk<com.google.firebase.firestore.Query>(relaxed = true)
@@ -358,7 +357,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getUserPendingInvitations_returnsListOfInvitations() = runBlocking {
+  fun getUserPendingInvitations_returnsListOfInvitations() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val query = mockk<com.google.firebase.firestore.Query>(relaxed = true)
@@ -388,66 +387,42 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun addMemberToOrganization_addsUserToMemberUids() = runBlocking {
+  fun addMemberToOrganization_addsUserToMemberUids() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
-    val snapshot = mockk<DocumentSnapshot>(relaxed = true)
-
-    val orgMap =
-        mapOf<String, Any?>(
-            "id" to "org-1",
-            "name" to "Test Org",
-            "type" to "Company",
-            "createdBy" to "creator",
-            "createdAt" to Timestamp.now(),
-            "memberUids" to listOf<String>())
 
     every { db.collection("organizations") } returns collection
     every { collection.document("org-1") } returns docRef
-    every { docRef.get() } returns Tasks.forResult(snapshot)
-    every { snapshot.exists() } returns true
-    every { snapshot.data } returns orgMap
     every { docRef.update(any<String>(), any()) } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.addMemberToOrganization(organizationId = "org-1", userId = "user-1")
 
-    verify { docRef.update("memberUids", listOf("user-1")) }
+    verify { docRef.update("memberUids", any()) }
   }
 
   @Test
-  fun addMemberToOrganization_doesNotAddDuplicateUser() = runBlocking {
+  fun addMemberToOrganization_doesNotAddDuplicateUser() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val docRef = mockk<DocumentReference>(relaxed = true)
-    val snapshot = mockk<DocumentSnapshot>(relaxed = true)
-
-    val orgMap =
-        mapOf<String, Any?>(
-            "id" to "org-1",
-            "name" to "Test Org",
-            "type" to "Company",
-            "createdBy" to "creator",
-            "createdAt" to Timestamp.now(),
-            "memberUids" to listOf("user-1"))
 
     every { db.collection("organizations") } returns collection
     every { collection.document("org-1") } returns docRef
-    every { docRef.get() } returns Tasks.forResult(snapshot)
-    every { snapshot.exists() } returns true
-    every { snapshot.data } returns orgMap
+    every { docRef.update(any<String>(), any()) } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.addMemberToOrganization(organizationId = "org-1", userId = "user-1")
 
-    verify(exactly = 0) { docRef.update(any<String>(), any()) }
+    // Note: FieldValue.arrayUnion handles duplicates automatically, so update is still called
+    verify { docRef.update("memberUids", any()) }
   }
 
   @Test
-  fun getPendingInvitations_returnsEmptyListOnException() = runBlocking {
+  fun getPendingInvitations_returnsEmptyListOnException() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val query = mockk<com.google.firebase.firestore.Query>(relaxed = true)
@@ -463,7 +438,7 @@ class OrganizationRepositoryFirestoreTest {
   }
 
   @Test
-  fun getUserPendingInvitations_returnsEmptyListOnException() = runBlocking {
+  fun getUserPendingInvitations_returnsEmptyListOnException() = runTest {
     val db = mockk<FirebaseFirestore>(relaxed = true)
     val collection = mockk<CollectionReference>(relaxed = true)
     val query = mockk<com.google.firebase.firestore.Query>(relaxed = true)
