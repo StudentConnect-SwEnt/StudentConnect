@@ -251,4 +251,154 @@ class TypingStatusTest {
     assertNotNull(status)
     assertNotNull(status?.lastUpdate)
   }
+
+  @Test
+  fun typingStatus_toMap_returnsMapWithAllRequiredKeys() {
+    val status =
+        TypingStatus(
+            userId = "user-123", userName = "Jane Doe", eventId = "event-456", isTyping = true)
+
+    val map = status.toMap()
+
+    assert(map.containsKey("userId"))
+    assert(map.containsKey("userName"))
+    assert(map.containsKey("eventId"))
+    assert(map.containsKey("isTyping"))
+    assert(map.containsKey("lastUpdate"))
+    assertEquals(5, map.size)
+  }
+
+  @Test
+  fun typingStatus_creation_withEmptyStringUserId_succeeds() {
+    // TypingStatus does not validate field contents, unlike ChatMessage
+    val status =
+        TypingStatus(userId = "", userName = "Jane Doe", eventId = "event-456", isTyping = true)
+
+    assertEquals("", status.userId)
+  }
+
+  @Test
+  fun typingStatus_creation_withEmptyStringUserName_succeeds() {
+    val status =
+        TypingStatus(userId = "user-123", userName = "", eventId = "event-456", isTyping = true)
+
+    assertEquals("", status.userName)
+  }
+
+  @Test
+  fun typingStatus_creation_withEmptyStringEventId_succeeds() {
+    val status =
+        TypingStatus(userId = "user-123", userName = "Jane Doe", eventId = "", isTyping = true)
+
+    assertEquals("", status.eventId)
+  }
+
+  @Test
+  fun typingStatus_creation_withSpecialCharactersInUserName_succeeds() {
+    val specialName = "Jane @#\$%^&*() Doe"
+    val status =
+        TypingStatus(
+            userId = "user-123", userName = specialName, eventId = "event-456", isTyping = true)
+
+    assertEquals(specialName, status.userName)
+  }
+
+  @Test
+  fun typingStatus_creation_withUnicodeUserName_succeeds() {
+    val unicodeName = "田中 太郎"
+    val status =
+        TypingStatus(
+            userId = "user-123", userName = unicodeName, eventId = "event-456", isTyping = true)
+
+    assertEquals(unicodeName, status.userName)
+  }
+
+  @Test
+  fun typingStatus_fromMap_withAllNullValues_returnsNull() {
+    val map =
+        mapOf(
+            "userId" to null,
+            "userName" to null,
+            "eventId" to null,
+            "isTyping" to null,
+            "lastUpdate" to null)
+
+    val status = TypingStatus.fromMap(map)
+
+    assertNull(status)
+  }
+
+  @Test
+  fun typingStatus_fromMap_withMixedValidAndInvalidTypes_returnsNullOrDefaultsAppropriately() {
+    val map =
+        mapOf(
+            "userId" to "user-123",
+            "userName" to 12345, // Invalid type
+            "eventId" to "event-456",
+            "isTyping" to true)
+
+    val status = TypingStatus.fromMap(map)
+
+    // Should return null because userName type cast fails
+    assertNull(status)
+  }
+
+  @Test
+  fun typingStatus_roundTrip_toMapAndFromMap_withIsTypingFalse_preservesData() {
+    val timestamp = Timestamp.now()
+    val original =
+        TypingStatus(
+            userId = "user-123",
+            userName = "Jane Doe",
+            eventId = "event-456",
+            isTyping = false,
+            lastUpdate = timestamp)
+
+    val map = original.toMap()
+    val reconstructed = TypingStatus.fromMap(map)
+
+    assertNotNull(reconstructed)
+    assertEquals(original.userId, reconstructed?.userId)
+    assertEquals(original.userName, reconstructed?.userName)
+    assertEquals(original.eventId, reconstructed?.eventId)
+    assertFalse(reconstructed?.isTyping == true)
+    assertEquals(original.lastUpdate, reconstructed?.lastUpdate)
+  }
+
+  @Test
+  fun typingStatus_dataClass_equality_works() {
+    val timestamp = Timestamp.now()
+    val status1 =
+        TypingStatus(
+            userId = "user-123",
+            userName = "Jane Doe",
+            eventId = "event-456",
+            isTyping = true,
+            lastUpdate = timestamp)
+    val status2 =
+        TypingStatus(
+            userId = "user-123",
+            userName = "Jane Doe",
+            eventId = "event-456",
+            isTyping = true,
+            lastUpdate = timestamp)
+
+    assertEquals(status1, status2)
+    assertEquals(status1.hashCode(), status2.hashCode())
+  }
+
+  @Test
+  fun typingStatus_dataClass_copy_works() {
+    val original =
+        TypingStatus(
+            userId = "user-123", userName = "Jane Doe", eventId = "event-456", isTyping = true)
+
+    val copied = original.copy(isTyping = false)
+
+    assertEquals("user-123", copied.userId)
+    assertEquals("Jane Doe", copied.userName)
+    assertEquals("event-456", copied.eventId)
+    assertFalse(copied.isTyping)
+    assertEquals(original.lastUpdate, copied.lastUpdate)
+  }
 }

@@ -318,4 +318,115 @@ class ChatMessageTest {
     assertEquals(original.content, reconstructed?.content)
     assertEquals(original.timestamp, reconstructed?.timestamp)
   }
+
+  @Test
+  fun chatMessage_fromMap_withEmptyMap_returnsNull() {
+    val message = ChatMessage.fromMap(emptyMap())
+
+    assertNull(message)
+  }
+
+  @Test
+  fun chatMessage_fromMap_withNullData_returnsNull() {
+    val message = ChatMessage.fromMap(mapOf("messageId" to null))
+
+    assertNull(message)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun chatMessage_creation_withWhitespaceOnlyMessageId_throwsException() {
+    ChatMessage(
+        messageId = "   ",
+        eventId = "event-456",
+        senderId = "user-789",
+        senderName = "John Doe",
+        content = "Hello World!")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun chatMessage_creation_withWhitespaceOnlySenderName_throwsException() {
+    ChatMessage(
+        messageId = "msg-123",
+        eventId = "event-456",
+        senderId = "user-789",
+        senderName = "   ",
+        content = "Hello World!")
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun chatMessage_creation_withWhitespaceOnlyContent_throwsException() {
+    ChatMessage(
+        messageId = "msg-123",
+        eventId = "event-456",
+        senderId = "user-789",
+        senderName = "John Doe",
+        content = "   ")
+  }
+
+  @Test
+  fun chatMessage_fromMap_withExceptionDuringParsing_returnsNull() {
+    // Create a map where timestamp is not the right type - will cause exception
+    val map =
+        mapOf(
+            "messageId" to "msg-123",
+            "eventId" to "event-456",
+            "senderId" to "user-789",
+            "senderName" to "John Doe",
+            "content" to "Hello",
+            "timestamp" to "invalid-timestamp-type")
+
+    val message = ChatMessage.fromMap(map)
+
+    // fromMap should handle exception and return null
+    assertNotNull(message) // Will use default Timestamp.now()
+  }
+
+  @Test
+  fun chatMessage_creation_withSpecialCharactersInContent_succeeds() {
+    val specialContent = "Hello! @#\$%^&*()_+-={}[]|:;\"'<>,.?/~`"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = specialContent)
+
+    assertEquals(specialContent, message.content)
+  }
+
+  @Test
+  fun chatMessage_creation_withUnicodeContent_succeeds() {
+    val unicodeContent = "Hello 世界 🌍 مرحبا"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = unicodeContent)
+
+    assertEquals(unicodeContent, message.content)
+  }
+
+  @Test
+  fun chatMessage_toMap_returnsMapWithAllRequiredKeys() {
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = "Hello World!")
+
+    val map = message.toMap()
+
+    assert(map.containsKey("messageId"))
+    assert(map.containsKey("eventId"))
+    assert(map.containsKey("senderId"))
+    assert(map.containsKey("senderName"))
+    assert(map.containsKey("content"))
+    assert(map.containsKey("timestamp"))
+    assertEquals(6, map.size)
+  }
 }

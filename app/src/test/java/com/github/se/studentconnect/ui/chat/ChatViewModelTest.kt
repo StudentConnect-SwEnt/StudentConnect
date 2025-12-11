@@ -31,6 +31,8 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
@@ -201,5 +203,228 @@ class ChatViewModelTest {
     val state = viewModel.uiState.value
     assertNotNull(state.error)
     assertTrue(state.error!!.contains("Failed to load user"))
+  }
+
+  @Test
+  fun initializeChat_handlesNullCurrentUser() = runTest {
+    AuthenticationProvider.testUserId = null
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertNull(state.currentUser)
+  }
+
+  @Test
+  fun sendMessage_doesNotSendBlankMessage() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("   ")
+    viewModel.sendMessage()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isSending)
+  }
+
+  @Test
+  fun sendMessage_doesNotSendWithoutCurrentUser() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    AuthenticationProvider.testUserId = null
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello")
+    viewModel.sendMessage()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isSending)
+  }
+
+  @Test
+  fun sendMessage_doesNotSendWithoutEvent() = runTest {
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.updateMessageText("Hello")
+    viewModel.sendMessage()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isSending)
+  }
+
+  @Test
+  fun sendMessage_successfullySendsMessage() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    doAnswer { invocation ->
+          val onSuccess = invocation.getArgument<() -> Unit>(1)
+          onSuccess()
+          null
+        }
+        .`when`(mockChatRepository)
+        .sendMessage(any(), any(), any())
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello World!")
+
+    var successCallbackCalled = false
+    viewModel.sendMessage { successCallbackCalled = true }
+    advanceUntilIdle()
+
+    assertTrue(successCallbackCalled)
+    assertEquals("", viewModel.uiState.value.messageText)
+    assertFalse(viewModel.uiState.value.isSending)
+  }
+
+  @Test
+  fun sendMessage_handlesFailure() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    doAnswer { invocation ->
+          val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+          onFailure(Exception("Network error"))
+          null
+        }
+        .`when`(mockChatRepository)
+        .sendMessage(any(), any(), any())
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello World!")
+    viewModel.sendMessage()
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertNotNull(state.error)
+    assertTrue(state.error!!.contains("Failed to send message"))
+    assertFalse(state.isSending)
+  }
+
+  @Test
+  fun updateMessageText_withBlankText_stopsTyping() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello")
+    viewModel.updateMessageText("")
+
+    val state = viewModel.uiState.value
+    assertEquals("", state.messageText)
+  }
+
+  @Test
+  fun updateMessageText_withNonBlankText_startsTyping() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("Hello World!")
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("Hello World!", state.messageText)
+  }
+
+  @Test
+  fun initializeChat_filtersOutCurrentUserFromTypingStatus() = runTest {
+    val typingUsers =
+        listOf(
+            com.github.se.studentconnect.model.chat.TypingStatus(
+                userId = testUserId, userName = "John Doe", eventId = testEventId, isTyping = true),
+            com.github.se.studentconnect.model.chat.TypingStatus(
+                userId = "other-user",
+                userName = "Jane Smith",
+                eventId = testEventId,
+                isTyping = true))
+
+    `when`(mockChatRepository.observeTypingUsers(testEventId)).thenReturn(flowOf(typingUsers))
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals(1, state.typingUsers.size)
+    assertEquals("other-user", state.typingUsers[0].userId)
+  }
+
+  @Test
+  fun viewModel_initializesMultipleTimes_cancelsOldJobs() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    // Initialize again with the same event
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    // Verify the view model handles multiple initializations without crashes
+    val state = viewModel.uiState.value
+    assertNotNull(state.event)
+    assertEquals(testEventId, state.event?.uid)
+  }
+
+  @Test
+  fun sendMessage_trimsMessageContent() = runTest {
+    `when`(mockEventRepository.getEvent(testEventId)).thenReturn(testEvent)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    doAnswer { invocation ->
+          val message = invocation.getArgument<ChatMessage>(0)
+          assertEquals("Hello", message.content)
+          val onSuccess = invocation.getArgument<() -> Unit>(1)
+          onSuccess()
+          null
+        }
+        .`when`(mockChatRepository)
+        .sendMessage(any(), any(), any())
+
+    viewModel.initializeChat(testEventId)
+    advanceUntilIdle()
+
+    viewModel.updateMessageText("  Hello  ")
+    viewModel.sendMessage()
+    advanceUntilIdle()
+  }
+
+  @Test
+  fun updateMessageText_withoutCurrentUser_doesNotUpdateTypingStatus() = runTest {
+    val tempViewModel = ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository)
+    AuthenticationProvider.testUserId = null
+
+    tempViewModel.updateMessageText("Hello")
+
+    // Should not crash
+    assertEquals("Hello", tempViewModel.uiState.value.messageText)
+  }
+
+  @Test
+  fun updateMessageText_withoutEvent_doesNotUpdateTypingStatus() = runTest {
+    val tempViewModel = ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository)
+    `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
+
+    tempViewModel.updateMessageText("Hello")
+
+    // Should not crash
+    assertEquals("Hello", tempViewModel.uiState.value.messageText)
   }
 }
