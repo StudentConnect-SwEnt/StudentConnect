@@ -30,6 +30,7 @@ data class EventUiState(
     val event: Event? = null,
     val isLoading: Boolean = true,
     val isJoined: Boolean = false,
+    val errorMessage: String? = null,
     val showQrScanner: Boolean = false,
     val ticketValidationResult: TicketValidationResult? = null,
     val attendees: List<User> = emptyList(),
@@ -73,41 +74,48 @@ class EventViewModel(
   val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
   fun fetchEvent(eventUid: String) {
-    _uiState.update { it.copy(isLoading = true) }
+    _uiState.update { it.copy(isLoading = true, errorMessage = null) }
     viewModelScope.launch {
-      val fetchedEvent = eventRepository.getEvent(eventUid)
-      val currentUserUid = AuthenticationProvider.currentUser
+      try {
+        val fetchedEvent = eventRepository.getEvent(eventUid)
+        val currentUserUid = AuthenticationProvider.currentUser
 
-      val participants = eventRepository.getEventParticipants(eventUid)
-      val ownerId = fetchedEvent.ownerId
-      val filteredParticipants = participants.filter { it.uid != ownerId }
-      val participantCount = filteredParticipants.size
+        val participants = eventRepository.getEventParticipants(eventUid)
+        val ownerId = fetchedEvent.ownerId
+        val filteredParticipants = participants.filter { it.uid != ownerId }
+        val participantCount = filteredParticipants.size
 
-      val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
+        val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
 
-      val isFull = fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
+        val isFull =
+            fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
 
-      val finalIsJoined = actualIsJoined
+        val finalIsJoined = actualIsJoined
 
-      _uiState.update {
-        it.copy(
-            event = fetchedEvent,
-            isLoading = false,
-            isJoined = finalIsJoined,
-            participantCount = participantCount,
-            isFull = isFull,
-            showInviteFriendsDialog = false,
-            invitedFriendIds = emptySet(),
-            initialInvitedFriendIds = emptySet(),
-            friendsErrorRes = null,
-            isInvitingFriends = false,
-            friends = emptyList(),
-            isLoadingFriends = false)
-      }
+        _uiState.update {
+          it.copy(
+              event = fetchedEvent,
+              isLoading = false,
+              isJoined = finalIsJoined,
+              participantCount = participantCount,
+              isFull = isFull,
+              showInviteFriendsDialog = false,
+              invitedFriendIds = emptySet(),
+              initialInvitedFriendIds = emptySet(),
+              friendsErrorRes = null,
+              isInvitingFriends = false,
+              friends = emptyList(),
+              isLoadingFriends = false)
+        }
 
-      // Fetch active polls if user is already a participant
-      if (finalIsJoined) {
-        fetchActivePolls(eventUid)
+        // Fetch active polls if user is already a participant
+        if (finalIsJoined) {
+          fetchActivePolls(eventUid)
+        }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load event")
+        }
       }
     }
   }
