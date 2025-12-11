@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -67,7 +66,7 @@ class FlashEventTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    context = ApplicationProvider.getApplicationContext()
+    context = mockk(relaxed = true)
     eventRepository = EventRepositoryLocal()
     mediaRepository = Mockito.mock(MediaRepository::class.java)
     userRepository = UserRepositoryLocal()
