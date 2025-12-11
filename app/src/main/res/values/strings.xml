@@ -197,6 +197,7 @@
     <string name="text_scan_qr_code_to_connect">Scan QR code to connect!</string>
     <string name="text_scan_qr_to_connect">Scan QR to connect!</string>
     <string name="text_no_events_found">No events found matching your criteria.</string>
+    <string name="text_no_events_on_date">No events on this date</string>
     <string name="text_my_activities">MyActivities</string>
     <string name="text_no_upcoming_events">No upcoming events</string>
     <string name="text_no_new_invitations">No new invitations</string>
