@@ -251,54 +251,75 @@ class EventViewTest {
 
   @Test
   fun eventView_chatButton_isDisplayed() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+    // Set user as owner to make chat button visible
+    AuthenticationProvider.testUserId = "owner123"
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule
-        .onNodeWithTag(EventViewTestTags.CHAT_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule
+          .onNodeWithTag(EventViewTestTags.CHAT_BUTTON)
+          .performScrollTo()
+          .assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_chatButton_hasCorrectText() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+    // Set user as owner to make chat button visible
+    AuthenticationProvider.testUserId = "owner123"
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).performScrollTo()
-    composeTestRule.onNodeWithText("Event chat").assertIsDisplayed()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).performScrollTo()
+      composeTestRule.onNodeWithText("Event chat").assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
   fun eventView_chatButton_hasClickAction() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+    // Set user as owner to make chat button visible
+    AuthenticationProvider.testUserId = "owner123"
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
         }
       }
-    }
 
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).assertHasClickAction()
+      composeTestRule.waitForIdle()
+      composeTestRule.onNodeWithTag(EventViewTestTags.CHAT_BUTTON).assertHasClickAction()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
   }
 
   @Test
