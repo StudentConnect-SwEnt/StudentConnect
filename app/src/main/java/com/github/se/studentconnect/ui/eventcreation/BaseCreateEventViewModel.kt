@@ -537,7 +537,8 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         } catch (e: Exception) {
           if (e is CancellationException) throw e
           Log.w(TAG, "Failed to stage banner image for upload", e)
-          target.delete()
+          val deleted = target.delete()
+          if (!deleted) Log.d(TAG, "Failed to delete staged banner at ${target.absolutePath}")
           null
         }
       }
