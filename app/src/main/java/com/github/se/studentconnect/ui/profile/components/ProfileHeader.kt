@@ -223,7 +223,12 @@ private fun UserInformation(
           text = "@${user.username}",
           style = MaterialTheme.typography.bodyMedium,
           fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-          color = MaterialTheme.colorScheme.onSurfaceVariant)
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier =
+              if (isVisitorMode)
+                  Modifier.testTag(
+                      com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_id)
+              else Modifier)
     }
 
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
@@ -236,7 +241,13 @@ private fun UserInformation(
           style = MaterialTheme.typography.bodyMedium,
           fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
           color = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.fillMaxWidth())
+          modifier =
+              Modifier.fillMaxWidth()
+                  .then(
+                      if (isVisitorMode)
+                          Modifier.testTag(
+                              com.github.se.studentconnect.resources.C.Tag.visitor_profile_bio)
+                      else Modifier))
 
       Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
     }
