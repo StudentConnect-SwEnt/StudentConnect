@@ -38,7 +38,11 @@ class ProfileHeaderAndroidTest {
           stats = ProfileStats(friendsCount = 42, eventsCount = 15),
           callbacks =
               ProfileHeaderCallbacks(
-                  onFriendsClick = {}, onEventsClick = {}, onEditClick = {}, onUserCardClick = {}))
+                  onFriendsClick = {},
+                  onEventsClick = {},
+                  onEditClick = {},
+                  onUserCardClick = {},
+                  onLogoutClick = {}))
     }
 
     // Verify name
