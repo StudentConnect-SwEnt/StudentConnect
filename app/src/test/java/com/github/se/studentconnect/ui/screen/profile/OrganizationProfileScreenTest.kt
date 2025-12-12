@@ -21,6 +21,7 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRole
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
@@ -37,6 +38,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -876,5 +879,394 @@ class OrganizationProfileScreenTest {
 
     // Button should now show "Following"
     composeRule.onNodeWithTag(C.Tag.org_profile_follow_button).assertIsDisplayed()
+  }
+
+  // ===================== Add Member Dialog Tests =====================
+
+  @Test
+  fun addMemberDialogIsDisplayedWhenOwnerClicksAddButton() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val availableUser =
+        User(
+            userId = "available1",
+            email = "available1@test.com",
+            username = "available1",
+            firstName = "Available",
+            lastName = "One",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+    userRepository.saveUser(availableUser)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Click add button for a role (should trigger showAddMemberDialog)
+    viewModel.showAddMemberDialog("Treasurer")
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Dialog should be displayed
+    composeRule.onNodeWithText("Invite Treasurer").assertIsDisplayed()
+  }
+
+  @Test
+  fun addMemberDialogShowsAvailableUsers() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val availableUser1 =
+        User(
+            userId = "available1",
+            email = "available1@test.com",
+            username = "available1",
+            firstName = "Available",
+            lastName = "One",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val availableUser2 =
+        User(
+            userId = "available2",
+            email = "available2@test.com",
+            username = "available2",
+            firstName = "Available",
+            lastName = "Two",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+    userRepository.saveUser(availableUser1)
+    userRepository.saveUser(availableUser2)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // User picker list should be displayed
+    composeRule.onNodeWithTag("UserPickerList").assertExists()
+  }
+
+  @Test
+  fun addMemberDialogCanBeDismissed() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    viewModel.showAddMemberDialog("Member")
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click cancel button
+    composeRule.onNodeWithTag("CancelButton").performClick()
+    composeRule.waitForIdle()
+
+    // Dialog should be dismissed
+    composeRule.onNodeWithText("Invite Member").assertDoesNotExist()
+  }
+
+  @Test
+  fun membersTabShowsAddButtonForOwner() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    // Create organization with Treasurer role
+    val orgWithTreasurerRole =
+        testOrganization.copy(
+            roles =
+                listOf(
+                    OrganizationRole("Owner"),
+                    OrganizationRole("Treasurer"),
+                    OrganizationRole("Secretary")))
+
+    organizationRepository.saveOrganization(orgWithTreasurerRole)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Wait for organization to load
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Verify organization loaded
+    assertNotNull(viewModel.uiState.value.organization)
+    assertTrue(viewModel.uiState.value.organization?.isOwner == true)
+    assertTrue(viewModel.uiState.value.organization?.roles?.contains("Treasurer") == true)
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Wait for members tab to render
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Add button should be visible for non-owner roles (Treasurer role exists but has no member)
+    composeRule.onNodeWithTag("AddMemberButton_Treasurer").assertExists()
+  }
+
+  @Test
+  fun membersTabShowsPendingInvitationIndicator() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    // Create organization with Treasurer role
+    val orgWithTreasurerRole =
+        testOrganization.copy(
+            roles =
+                listOf(
+                    OrganizationRole("Owner"),
+                    OrganizationRole("Treasurer"),
+                    OrganizationRole("Secretary")))
+
+    organizationRepository.saveOrganization(orgWithTreasurerRole)
+    userRepository.saveUser(testCreator)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Treasurer", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Wait for organization and pending invitations to load
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Verify organization loaded and pending invitations are present
+    assertNotNull(viewModel.uiState.value.organization)
+    assertTrue(viewModel.uiState.value.organization?.isOwner == true)
+    assertTrue(viewModel.uiState.value.organization?.roles?.contains("Treasurer") == true)
+    assertTrue(viewModel.uiState.value.pendingInvitations.containsKey("Treasurer"))
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Wait for members tab to render with pending invitations
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Pending invitation indicator should be shown for Treasurer role
+    composeRule.onNodeWithTag("PendingInvitation_Treasurer").assertExists()
+  }
+
+  @Test
+  fun membersTabShowsEmptyRoleCard() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val orgWithRoles =
+        testOrganization.copy(
+            roles =
+                listOf(
+                    OrganizationRole("Owner"),
+                    OrganizationRole("Treasurer"),
+                    OrganizationRole("Secretary")))
+    organizationRepository.saveOrganization(orgWithRoles)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Empty role card should be displayed for roles without members
+    composeRule.onNodeWithTag("EmptyRoleCard_Treasurer").assertExists()
+  }
+
+  @Test
+  fun membersTabShowsRemoveButtonForOwner() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Remove button should be visible for non-owner members
+    composeRule.onNodeWithTag("RemoveMemberButton_user1").assertExists()
+  }
+
+  @Test
+  fun membersTabDoesNotShowRemoveButtonForOwnerRole() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Remove button should NOT be visible for owner
+    composeRule.onNodeWithTag("RemoveMemberButton_creator1").assertDoesNotExist()
+  }
+
+  @Test
+  fun membersTabDoesNotShowAddButtonForNonOwner() = runTest {
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click Members tab
+    composeRule.onNodeWithTag(C.Tag.org_profile_tab_members).performClick()
+    composeRule.waitForIdle()
+
+    // Add button should NOT be visible for non-owners
+    composeRule.onNodeWithTag("AddMemberButton_Treasurer").assertDoesNotExist()
   }
 }
