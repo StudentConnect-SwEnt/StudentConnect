@@ -40,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -126,16 +125,16 @@ fun ProfileHeader(
   Column(
       modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.profile_header_padding)),
       horizontalAlignment = Alignment.Start) {
-      Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
           IconButton(
               onClick = { showDialog.value = true },
               colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)) {
-              Icon(
-                  imageVector = Icons.AutoMirrored.Filled.Logout,
-                  contentDescription = "Logout",
-              )
-          }
-      }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = "Logout",
+                )
+              }
+        }
         // Top Row: Profile Picture + Stats
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -416,12 +415,6 @@ private fun ActionButtons(actions: ProfileActions, modifier: Modifier = Modifier
     }
   }
 }
-      if (showDialog.value) {
-        LogoutDialog(showDialog = showDialog, logOut = onLogoutClick)
-      }
-    }
-  }
-}
 
 /**
  * A single stat item showing count and label.
@@ -473,7 +466,8 @@ private fun LogoutDialog(showDialog: MutableState<Boolean>, logOut: () -> Unit) 
         modifier =
             Modifier.background(
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius)))
+                    shape =
+                        RoundedCornerShape(dimensionResource(R.dimen.profile_button_corner_radius)))
                 .padding(dimensionResource(R.dimen.profile_spacing_large))) {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -487,9 +481,11 @@ private fun LogoutDialog(showDialog: MutableState<Boolean>, logOut: () -> Unit) 
                   Button(onClick = logOut, modifier = Modifier.width(buttonWidth)) {
                     Text(stringResource(R.string.button_yes))
                   }
-                  Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_large)))
+                  Spacer(
+                      modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_large)))
                   Button(
-                      onClick = { showDialog.value = false }, modifier = Modifier.width(buttonWidth)) {
+                      onClick = { showDialog.value = false },
+                      modifier = Modifier.width(buttonWidth)) {
                         Text(stringResource(R.string.button_no))
                       }
                 }
