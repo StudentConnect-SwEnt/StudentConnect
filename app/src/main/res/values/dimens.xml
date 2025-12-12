@@ -18,6 +18,7 @@
     <dimen name="profile_body_text_size">14sp</dimen>
     <dimen name="profile_stat_text_size">22sp</dimen>
     <dimen name="profile_stat_padding">8dp</dimen>
+    <dimen name="profile_dialog_button_width">80dp</dimen>
     
     <!-- Organization Management Screen dimensions -->
     <dimen name="org_management_padding">16dp</dimen>

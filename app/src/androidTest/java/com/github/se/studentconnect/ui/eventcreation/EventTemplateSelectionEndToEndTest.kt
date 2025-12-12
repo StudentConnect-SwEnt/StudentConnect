@@ -133,6 +133,7 @@ class EventTemplateSelectionEndToEndTest : FirestoreStudentConnectTest() {
             false
           }
         }
+    composeTestRule.waitForIdle()
 
     composeTestRule
         .onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)

@@ -60,6 +60,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -118,8 +120,10 @@ import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Calendar
 import java.util.Date
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // UI Constants
@@ -340,6 +344,9 @@ fun HomeScreen(
           initialPage = HomeScreenConstants.PAGER_HOME_PAGE,
           pageCount = { HomeScreenConstants.PAGER_HOME_PAGE + 1 })
   val coroutineScope = rememberCoroutineScope()
+  val snackbarHostState = remember { SnackbarHostState() }
+  var previousSelectedDate by remember { mutableStateOf<Date?>(null) }
+  val context = LocalContext.current
 
   // Separate scroll states for each tab to maintain independent scroll positions
   val forYouListState = rememberLazyListState()
@@ -366,6 +373,7 @@ fun HomeScreen(
       }) {
         Scaffold(
             modifier = Modifier.fillMaxSize().testTag("HomePage"),
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
               if (pagerState.currentPage == HomeScreenConstants.PAGER_HOME_PAGE) {
                 HomeTopBar(
@@ -607,10 +615,13 @@ fun HomeScreen(
 
         // Handle modal visibility
         LaunchedEffect(uiState.isCalendarVisible) {
-          if (uiState.isCalendarVisible) {
-            sheetState.show()
-          } else {
-            sheetState.hide()
+          when {
+            uiState.isCalendarVisible && !sheetState.isVisible -> {
+              sheetState.show()
+            }
+            !uiState.isCalendarVisible && sheetState.isVisible -> {
+              sheetState.hide()
+            }
           }
         }
 
@@ -618,6 +629,39 @@ fun HomeScreen(
         LaunchedEffect(sheetState.isVisible) {
           if (!sheetState.isVisible && uiState.isCalendarVisible) {
             onCalendarDismiss()
+          }
+        }
+
+        // Check for empty events when date is selected
+        LaunchedEffect(uiState.selectedDate, uiState.events) {
+          val selectedDate = uiState.selectedDate
+          // Only show snackbar on active date selection (not on initial load)
+          if (selectedDate != null && previousSelectedDate != selectedDate) {
+            // Filter events for the selected date
+            val calendar = Calendar.getInstance()
+            calendar.time = selectedDate
+
+            val eventsForDate =
+                uiState.events.filter { event ->
+                  val eventCalendar = Calendar.getInstance()
+                  eventCalendar.time = event.start.toDate()
+
+                  eventCalendar[Calendar.YEAR] == calendar[Calendar.YEAR] &&
+                      eventCalendar[Calendar.MONTH] == calendar[Calendar.MONTH] &&
+                      eventCalendar[Calendar.DAY_OF_MONTH] == calendar[Calendar.DAY_OF_MONTH]
+                }
+
+            // Show snackbar if no events found for the selected date
+            if (eventsForDate.isEmpty()) {
+              snackbarHostState.showSnackbar(context.getString(R.string.text_no_events_on_date))
+              // Dismiss after 2.5 seconds (between 2-3 seconds)
+              delay(2500)
+              snackbarHostState.currentSnackbarData?.dismiss()
+            }
+
+            previousSelectedDate = selectedDate
+          } else if (selectedDate == null) {
+            previousSelectedDate = null
           }
         }
       }
@@ -1537,6 +1581,7 @@ private suspend fun scrollToDate(
     }
   } catch (e: Exception) {
     // Handle any unexpected errors gracefully by scrolling to top
+
     try {
       listState.animateScrollToItem(0)
     } catch (scrollError: Exception) {

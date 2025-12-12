@@ -38,12 +38,15 @@ data class EventUiState(
     val showCreatePollDialog: Boolean = false,
     val showInviteFriendsDialog: Boolean = false,
     val showLeaveConfirmDialog: Boolean = false,
+    val showDeleteConfirmDialog: Boolean = false,
     val friends: List<User> = emptyList(),
     val invitedFriendIds: Set<String> = emptySet(),
     val initialInvitedFriendIds: Set<String> = emptySet(),
     val isLoadingFriends: Boolean = false,
     @StringRes val friendsErrorRes: Int? = null,
-    val isInvitingFriends: Boolean = false
+    val isInvitingFriends: Boolean = false,
+    val isDeletingEvent: Boolean = false,
+    @StringRes val deleteEventMessageRes: Int? = null
 )
 
 sealed class TicketValidationResult {
@@ -214,6 +217,68 @@ class EventViewModel(
 
   fun hideLeaveConfirmDialog() {
     _uiState.update { it.copy(showLeaveConfirmDialog = false) }
+  }
+
+  fun showDeleteConfirmDialog() {
+    _uiState.update { it.copy(showDeleteConfirmDialog = true, deleteEventMessageRes = null) }
+  }
+
+  fun hideDeleteConfirmDialog() {
+    _uiState.update { it.copy(showDeleteConfirmDialog = false, deleteEventMessageRes = null) }
+  }
+
+  fun deleteEvent(eventUid: String, onSuccess: () -> Unit) {
+    val currentUserId = AuthenticationProvider.currentUser
+    val event = _uiState.value.event
+
+    // Verify user is the owner
+    if (event == null || event.ownerId != currentUserId) {
+      _uiState.update {
+        it.copy(
+            showDeleteConfirmDialog = false, deleteEventMessageRes = R.string.delete_event_error)
+      }
+      return
+    }
+
+    _uiState.update { it.copy(isDeletingEvent = true, showDeleteConfirmDialog = false) }
+
+    viewModelScope.launch {
+      try {
+        // Delete from repository (handles Firebase or local based on implementation)
+        eventRepository.deleteEvent(eventUid)
+
+        // Clear the delete message and trigger success callback
+        _uiState.update {
+          it.copy(
+              isDeletingEvent = false,
+              deleteEventMessageRes = R.string.delete_event_success,
+              event = null)
+        }
+
+        // Call success callback to navigate back
+        onSuccess()
+      } catch (e: IllegalAccessException) {
+        // User is not the owner
+        _uiState.update {
+          it.copy(isDeletingEvent = false, deleteEventMessageRes = R.string.delete_event_error)
+        }
+      } catch (e: Exception) {
+        // Network or other errors
+        android.util.Log.e("EventViewModel", "Failed to delete event: ${e.message}", e)
+        val errorRes =
+            if (e.message?.contains("network", ignoreCase = true) == true ||
+                e.message?.contains("connection", ignoreCase = true) == true) {
+              R.string.delete_event_error_network
+            } else {
+              R.string.delete_event_error
+            }
+        _uiState.update { it.copy(isDeletingEvent = false, deleteEventMessageRes = errorRes) }
+      }
+    }
+  }
+
+  fun clearDeleteEventMessage() {
+    _uiState.update { it.copy(deleteEventMessageRes = null) }
   }
 
   /** Opens the invite friends dialog and triggers loading the friend list + existing invites. */
