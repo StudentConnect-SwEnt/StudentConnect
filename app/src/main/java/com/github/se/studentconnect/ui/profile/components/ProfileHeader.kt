@@ -125,16 +125,6 @@ fun ProfileHeader(
   Column(
       modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.profile_header_padding)),
       horizontalAlignment = Alignment.Start) {
-        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-          IconButton(
-              onClick = { showDialog.value = true },
-              colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = "Logout",
-                )
-              }
-        }
         // Top Row: Profile Picture + Stats
         Row(
             modifier = Modifier.fillMaxWidth(),
