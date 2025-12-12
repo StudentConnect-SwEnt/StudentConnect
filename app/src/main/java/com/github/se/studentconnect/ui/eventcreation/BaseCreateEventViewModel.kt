@@ -74,14 +74,16 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
-  private data class BannerUploadJob(
+  @VisibleForTesting
+  internal data class BannerUploadJob(
       val filePath: String,
       val storagePath: String,
       val eventUid: String,
       val existingImageUrl: String?
   )
 
-  private data class BannerResolution(
+  @VisibleForTesting
+  internal data class BannerResolution(
       val bannerPathForEvent: String?,
       val pendingUpload: BannerUploadJob?
   )
