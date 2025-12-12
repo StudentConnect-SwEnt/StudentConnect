@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
@@ -7,9 +8,11 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.github.se.studentconnect.service.ImageUploadWorker
+import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,6 +47,41 @@ class EditProfilePictureScreenTest {
     val copied = File(path!!)
     assertTrue(copied.exists())
     assertEquals(source.length(), copied.length())
+  }
+
+  @Test
+  fun `handleStagedProfilePicture enqueues work when staging succeeds`() = runTest {
+    val tmpDir = Files.createTempDirectory("profile_stage_handle_test").toFile()
+    val source = File(tmpDir, "source.jpg").apply { writeText("data") }
+    val uri = Uri.fromFile(source)
+    val mockContext = mockk<Context>(relaxed = true)
+    val mockResolver = mockk<ContentResolver>()
+    val mockViewModel = mockk<EditProfilePictureViewModel>(relaxed = true)
+    val mockWorkManager = mockk<WorkManager>(relaxed = true)
+    val workSlot = slot<androidx.work.OneTimeWorkRequest>()
+
+    every { mockContext.filesDir } returns tmpDir
+    every { mockContext.contentResolver } returns mockResolver
+    every { mockResolver.getType(uri) } returns "image/jpeg"
+    every { mockResolver.openInputStream(uri) } answers { source.inputStream() }
+    every { mockWorkManager.enqueueUniqueWork(any(), any(), capture(workSlot)) } returns
+        mockk(relaxed = true)
+
+    val localUrl =
+        handleStagedProfilePicture(
+            context = mockContext,
+            userId = "user-1",
+            uri = uri,
+            storagePath = "users/user-1/profile",
+            existingImageUrl = "old",
+            viewModel = mockViewModel,
+            workManager = mockWorkManager)
+
+    assertNotNull(localUrl)
+    verify { mockViewModel.updateProfilePicture(match { it.startsWith("file://") }) }
+    assertEquals(
+        "users/user-1/profile",
+        workSlot.captured.workSpec.input.getString(ImageUploadWorker.KEY_STORAGE_PATH))
   }
 
   @Test
