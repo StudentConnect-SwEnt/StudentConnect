@@ -623,7 +623,7 @@ constructor(
 
     val calendar = Calendar.getInstance()
     calendar.time = event.start.toDate()
-    val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+    val hourOfDay = calendar[Calendar.HOUR_OF_DAY]
 
     return when (preferredTime) {
       PreferredTimeOfDay.MORNING -> if (hourOfDay in 6..11) MAX_SCORE else TIME_NON_MATCH_SCORE
@@ -712,9 +712,9 @@ constructor(
       val eventCalendar = Calendar.getInstance()
       eventCalendar.time = event.start.toDate()
 
-      eventCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
-          eventCalendar.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
-          eventCalendar.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)
+      eventCalendar[Calendar.YEAR] == calendar[Calendar.YEAR] &&
+          eventCalendar[Calendar.MONTH] == calendar[Calendar.MONTH] &&
+          eventCalendar[Calendar.DAY_OF_MONTH] == calendar[Calendar.DAY_OF_MONTH]
     }
   }
 }

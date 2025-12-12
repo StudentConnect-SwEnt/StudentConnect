@@ -645,10 +645,9 @@ fun HomeScreen(
                   val eventCalendar = Calendar.getInstance()
                   eventCalendar.time = event.start.toDate()
 
-                  eventCalendar.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
-                      eventCalendar.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
-                      eventCalendar.get(Calendar.DAY_OF_MONTH) ==
-                          calendar.get(Calendar.DAY_OF_MONTH)
+                  eventCalendar[Calendar.YEAR] == calendar[Calendar.YEAR] &&
+                      eventCalendar[Calendar.MONTH] == calendar[Calendar.MONTH] &&
+                      eventCalendar[Calendar.DAY_OF_MONTH] == calendar[Calendar.DAY_OF_MONTH]
                 }
 
             // Show snackbar if no events found for the selected date
