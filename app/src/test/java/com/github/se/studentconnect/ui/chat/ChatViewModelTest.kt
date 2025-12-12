@@ -105,8 +105,7 @@ class ChatViewModelTest {
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     UserRepositoryProvider.overrideForTests(mockUserRepository)
 
-    viewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    viewModel = ChatViewModel()
   }
 
   @After
@@ -290,11 +289,9 @@ class ChatViewModelTest {
 
     viewModel.updateMessageText("Hello World!")
 
-    var successCallbackCalled = false
-    viewModel.sendMessage { successCallbackCalled = true }
+    viewModel.sendMessage()
     advanceUntilIdle()
 
-    assertTrue(successCallbackCalled)
     assertEquals("", viewModel.uiState.value.messageText)
     assertFalse(viewModel.uiState.value.isSending)
   }
@@ -376,7 +373,7 @@ class ChatViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals(1, state.typingUsers.size)
-    assertEquals("other-user", state.typingUsers[0].userId)
+    assertTrue(state.typingUsers.containsKey("other-user"))
   }
 
   @Test
@@ -422,8 +419,7 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutCurrentUser_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    val tempViewModel = ChatViewModel()
     AuthenticationProvider.testUserId = null
 
     tempViewModel.updateMessageText("Hello")
@@ -434,8 +430,7 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutEvent_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    val tempViewModel = ChatViewModel()
     `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
 
     tempViewModel.updateMessageText("Hello")
