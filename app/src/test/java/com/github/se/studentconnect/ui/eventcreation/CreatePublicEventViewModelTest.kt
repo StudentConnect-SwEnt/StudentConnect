@@ -23,8 +23,13 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.slot
 import io.mockk.unmockkAll
 import java.time.LocalDate
 import java.time.LocalTime
@@ -41,8 +46,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreatePublicEventViewModelTest {
@@ -58,13 +61,14 @@ class CreatePublicEventViewModelTest {
 
   @Before
   fun setUp() {
+    MockKAnnotations.init(this, relaxUnitFun = true)
     Dispatchers.setMain(testDispatcher)
-    mockEventRepository = Mockito.mock(EventRepository::class.java)
-    mockMediaRepository = Mockito.mock(MediaRepository::class.java)
-    mockUserRepository = Mockito.mock(UserRepository::class.java)
-    mockOrganizationRepository = Mockito.mock(OrganizationRepository::class.java)
-    mockFriendsRepository = Mockito.mock(FriendsRepository::class.java)
-    mockNotificationRepository = Mockito.mock(NotificationRepository::class.java)
+    mockEventRepository = mockk(relaxed = true)
+    mockMediaRepository = mockk(relaxed = true)
+    mockUserRepository = mockk(relaxed = true)
+    mockOrganizationRepository = mockk(relaxed = true)
+    mockFriendsRepository = mockk(relaxed = true)
+    mockNotificationRepository = mockk(relaxed = true)
 
     // override providers so ViewModel uses our mocks
     EventRepositoryProvider.overrideForTests(mockEventRepository)
@@ -73,6 +77,9 @@ class CreatePublicEventViewModelTest {
     OrganizationRepositoryProvider.overrideForTests(mockOrganizationRepository)
     FriendsRepositoryProvider.overrideForTests(mockFriendsRepository)
     NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
+
+    // Default UID for new events to avoid nulls in tests that don't stub getNewUid explicitly
+    every { mockEventRepository.getNewUid() } returns "generated-uid"
 
     viewModel = CreatePublicEventViewModel()
   }
@@ -236,7 +243,7 @@ class CreatePublicEventViewModelTest {
             tags = listOf("tech", "conference"),
             website = "https://test.com")
 
-    Mockito.`when`(mockEventRepository.getEvent("test-uid")).thenReturn(event)
+    coEvery { mockEventRepository.getEvent("test-uid") } returns event
 
     // Trigger loadEvent which will call the internal prefill in the coroutine
     viewModel.loadEvent("test-uid")
@@ -291,9 +298,9 @@ class CreatePublicEventViewModelTest {
     val mockAuth = mockk<FirebaseAuth>(relaxed = true)
     val mockUser = mockk<FirebaseUser>(relaxed = true)
     io.mockk.every { FirebaseAuth.getInstance() } returns mockAuth
-    io.mockk.every { FirebaseAuth.getInstance().currentUser } returns mockUser
-    io.mockk.every { mockUser.uid } returns "user-123"
+    io.mockk.every { mockAuth.currentUser } returns mockUser
     io.mockk.every { com.google.firebase.Firebase.auth } returns mockAuth
+    io.mockk.every { mockUser.uid } returns "user-123"
 
     // Network available
     val mockContext = mockk<Context>(relaxed = true)
@@ -316,9 +323,9 @@ class CreatePublicEventViewModelTest {
     viewModel.updateIsFlash(false)
 
     val newUid = "event-abc"
-    Mockito.`when`(mockEventRepository.getNewUid()).thenReturn(newUid)
-    Mockito.`when`(mockMediaRepository.upload(Mockito.eq(bannerUri), Mockito.anyString()))
-        .thenReturn("https://example.com/banner")
+    every { mockEventRepository.getNewUid() } returns newUid
+    coEvery { mockMediaRepository.upload(bannerUri, "events/$newUid/banner") } returns
+        "https://example.com/banner"
 
     viewModel.saveEvent(mockContext)
     testDispatcher.scheduler.advanceUntilIdle()
@@ -327,11 +334,11 @@ class CreatePublicEventViewModelTest {
     assertEquals("https://example.com/banner", state.bannerImagePath)
     assertNull(state.bannerImageUri)
 
-    val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
-    Mockito.verify(mockEventRepository).addEvent(eventCaptor.capture())
-    val savedEvent = eventCaptor.value as Event.Public
+    val eventSlot = slot<Event>()
+    coVerify { mockEventRepository.addEvent(capture(eventSlot)) }
+    val savedEvent = eventSlot.captured as Event.Public
     assertEquals("https://example.com/banner", savedEvent.imageUrl)
-    Mockito.verify(mockMediaRepository).upload(bannerUri, "events/$newUid/banner")
+    coVerify { mockMediaRepository.upload(bannerUri, "events/$newUid/banner") }
 
     unmockkAll()
   }
