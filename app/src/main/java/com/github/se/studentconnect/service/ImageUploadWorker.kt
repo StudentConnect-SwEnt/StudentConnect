@@ -58,7 +58,10 @@ class ImageUploadWorker(appContext: Context, params: WorkerParameters) :
         }
       }
 
-      file.delete()
+      val deleted = file.delete()
+      if (!deleted) {
+        Log.d(TAG, "Staged file $filePath not deleted; continuing")
+      }
       Result.success()
     } catch (e: Exception) {
       Log.w(TAG, "Image upload failed for $documentId, will retry", e)

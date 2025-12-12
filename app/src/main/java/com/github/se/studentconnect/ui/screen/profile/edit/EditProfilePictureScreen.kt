@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement
@@ -276,7 +277,7 @@ private suspend fun uploadProfilePicture(
   return try {
     repository.upload(uri, storagePath)
   } catch (exception: Exception) {
-    android.util.Log.e(
+    Log.e(
         "EditProfilePictureScreen",
         "Failed to upload profile image for user $userId with uri $uri",
         exception)
@@ -333,7 +334,10 @@ internal suspend fun stageProfilePicture(context: Context, uri: Uri, userId: Str
         target.absolutePath
       } catch (e: Exception) {
         if (e is java.util.concurrent.CancellationException) throw e
-        target.delete()
+        val deleted = target.delete()
+        if (!deleted) {
+          Log.d("EditProfilePictureScreen", "Failed to delete staged profile picture")
+        }
         null
       }
     }
