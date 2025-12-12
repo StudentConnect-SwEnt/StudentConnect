@@ -663,5 +663,4 @@
     <string name="content_description_user_card">User Card</string>
     <string name="content_description_organizations">Organizations</string>
     <string name="content_description_logout">Logout</string>
-    <string name="text_logout_popup">Are you sure you want to logout?</string>
 </resources>
