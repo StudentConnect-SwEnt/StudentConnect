@@ -36,7 +36,7 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun getEvent(eventUid: String): Event {
-    return events.find { it.uid == eventUid }
+    return events.toList().find { it.uid == eventUid }
         ?: throw NoSuchElementException("Event with UID $eventUid not found.")
   }
 
