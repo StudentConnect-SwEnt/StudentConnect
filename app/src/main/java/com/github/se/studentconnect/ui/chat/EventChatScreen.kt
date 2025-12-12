@@ -88,13 +88,12 @@ fun EventChatScreen(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis)
                 if (uiState.typingUsers.isNotEmpty()) {
+                  val userNames = uiState.typingUsers.values.toList()
                   val typingText =
-                      when (uiState.typingUsers.size) {
-                        1 -> "${uiState.typingUsers[0].userName} is typing..."
-                        2 ->
-                            "${uiState.typingUsers[0].userName} and ${uiState.typingUsers[1].userName} are typing..."
-                        else ->
-                            "${uiState.typingUsers[0].userName} and ${uiState.typingUsers.size - 1} others are typing..."
+                      when (userNames.size) {
+                        1 -> "${userNames[0]} is typing..."
+                        2 -> "${userNames[0]} and ${userNames[1]} are typing..."
+                        else -> "${userNames[0]} and ${userNames.size - 1} others are typing..."
                       }
                   Text(
                       text = typingText,
@@ -170,7 +169,7 @@ fun EventChatScreen(
                     // Typing indicator
                     if (uiState.typingUsers.isNotEmpty()) {
                       TypingIndicator(
-                          typingUserNames = uiState.typingUsers.map { it.userName },
+                          typingUserNames = uiState.typingUsers.values.toList(),
                           modifier = Modifier.testTag(EventChatScreenTestTags.TYPING_INDICATOR))
                     }
                   }
