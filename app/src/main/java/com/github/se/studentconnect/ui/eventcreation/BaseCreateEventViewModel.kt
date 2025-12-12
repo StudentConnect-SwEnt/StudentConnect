@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
@@ -281,7 +282,8 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   }
 
   /** Prepares banner handling for this save, staging uploads and returning the path to store. */
-  private suspend fun resolveBannerForSave(context: Context, eventUid: String): BannerResolution {
+  @VisibleForTesting
+  internal suspend fun resolveBannerForSave(context: Context, eventUid: String): BannerResolution {
     val s = uiState.value
     return when {
       s.bannerImageUri != null -> {
