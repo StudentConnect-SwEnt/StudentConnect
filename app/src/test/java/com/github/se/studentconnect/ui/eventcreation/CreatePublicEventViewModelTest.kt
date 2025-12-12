@@ -1,5 +1,10 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
@@ -15,6 +20,12 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +41,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -268,5 +280,58 @@ class CreatePublicEventViewModelTest {
     assertNull(state.endDate)
     assertEquals("300", state.numberOfParticipantsString)
     assertEquals(listOf("workshop"), state.tags)
+  }
+
+  @Test
+  fun `saveEvent uploads banner immediately when online`() = runTest {
+    // Mock Firebase auth current user
+    mockkStatic(FirebaseAuth::class)
+    mockkStatic("com.google.firebase.FirebaseKt")
+    val mockAuth = mockk<FirebaseAuth>(relaxed = true)
+    val mockUser = mockk<FirebaseUser>(relaxed = true)
+    io.mockk.every { FirebaseAuth.getInstance() } returns mockAuth
+    io.mockk.every { FirebaseAuth.getInstance().currentUser } returns mockUser
+    io.mockk.every { mockUser.uid } returns "user-123"
+    io.mockk.every { com.google.firebase.Firebase.auth } returns mockAuth
+
+    // Network available
+    val mockContext = mockk<Context>(relaxed = true)
+    val mockCm = mockk<ConnectivityManager>()
+    val mockNetwork = mockk<Network>()
+    val mockCapabilities = mockk<NetworkCapabilities>()
+    io.mockk.every { mockContext.applicationContext } returns mockContext
+    io.mockk.every { mockContext.getSystemService(ConnectivityManager::class.java) } returns mockCm
+    io.mockk.every { mockCm.activeNetwork } returns mockNetwork
+    io.mockk.every { mockCm.getNetworkCapabilities(mockNetwork) } returns mockCapabilities
+    io.mockk.every {
+      mockCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
+
+    val bannerUri = mockk<Uri>(relaxed = true)
+    viewModel.updateBannerImageUri(bannerUri)
+    viewModel.updateTitle("With Banner")
+    viewModel.updateStartDate(LocalDate.now())
+    viewModel.updateEndDate(LocalDate.now().plusDays(1))
+    viewModel.updateIsFlash(false)
+
+    val newUid = "event-abc"
+    Mockito.`when`(mockEventRepository.getNewUid()).thenReturn(newUid)
+    Mockito.`when`(mockMediaRepository.upload(Mockito.eq(bannerUri), Mockito.anyString()))
+        .thenReturn("https://example.com/banner")
+
+    viewModel.saveEvent(mockContext)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("https://example.com/banner", state.bannerImagePath)
+    assertNull(state.bannerImageUri)
+
+    val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+    Mockito.verify(mockEventRepository).addEvent(eventCaptor.capture())
+    val savedEvent = eventCaptor.value as Event.Public
+    assertEquals("https://example.com/banner", savedEvent.imageUrl)
+    Mockito.verify(mockMediaRepository).upload(bannerUri, "events/$newUid/banner")
+
+    unmockkAll()
   }
 }
