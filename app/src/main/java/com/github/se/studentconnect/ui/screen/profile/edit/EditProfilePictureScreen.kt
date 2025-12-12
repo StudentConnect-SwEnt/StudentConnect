@@ -233,24 +233,18 @@ fun EditProfilePictureScreen(
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
-                                        val stagedLocalUrl =
-                                            handleStagedProfilePicture(
-                                                context = context,
-                                                userId = userId,
-                                                uri = workingUri,
-                                                storagePath = storagePath,
-                                                existingImageUrl = previousImagePath,
-                                                viewModel = viewModel)
-                                        if (stagedLocalUrl == null) {
-                                          snackbarHostState.showSnackbar(
-                                              context.getString(
-                                                  R.string.error_failed_to_upload_photo))
-                                        } else {
-                                          currentImagePath = stagedLocalUrl
-                                          selectedImageUri = null
-                                          userModified = false
-                                          onNavigateBack?.invoke()
-                                        }
+                                        processOfflineProfilePicture(
+                                            context = context,
+                                            userId = userId,
+                                            uri = workingUri,
+                                            storagePath = storagePath,
+                                            previousImageUrl = previousImagePath,
+                                            viewModel = viewModel,
+                                            snackbarHostState = snackbarHostState,
+                                            onNavigateBack = onNavigateBack,
+                                            setCurrentImagePath = { currentImagePath = it },
+                                            clearSelection = { selectedImageUri = null },
+                                            clearUserModified = { userModified = false })
                                       }
                                     }
                                   } finally {
@@ -369,4 +363,58 @@ internal suspend fun handleStagedProfilePicture(
       existingImageUrl = existingImageUrl,
       workManager = workManager)
   return localUrl
+}
+
+@VisibleForTesting
+internal suspend fun applyStagedProfileOutcome(
+    stagedLocalUrl: String?,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+    onSuccess: (String) -> Unit,
+    onNavigateBack: (() -> Unit)? = null
+): Boolean {
+  return if (stagedLocalUrl == null) {
+    snackbarHostState.showSnackbar(context.getString(R.string.error_failed_to_upload_photo))
+    false
+  } else {
+    onSuccess(stagedLocalUrl)
+    onNavigateBack?.invoke()
+    true
+  }
+}
+
+@VisibleForTesting
+internal suspend fun processOfflineProfilePicture(
+    context: Context,
+    userId: String,
+    uri: Uri,
+    storagePath: String,
+    previousImageUrl: String?,
+    viewModel: EditProfilePictureViewModel,
+    snackbarHostState: SnackbarHostState,
+    onNavigateBack: (() -> Unit)?,
+    setCurrentImagePath: (String?) -> Unit,
+    clearSelection: () -> Unit,
+    clearUserModified: () -> Unit,
+    workManager: WorkManager = WorkManager.getInstance(context)
+): Boolean {
+  val stagedLocalUrl =
+      handleStagedProfilePicture(
+          context = context,
+          userId = userId,
+          uri = uri,
+          storagePath = storagePath,
+          existingImageUrl = previousImageUrl,
+          viewModel = viewModel,
+          workManager = workManager)
+  return applyStagedProfileOutcome(
+      stagedLocalUrl = stagedLocalUrl,
+      snackbarHostState = snackbarHostState,
+      context = context,
+      onSuccess = { localUrl ->
+        setCurrentImagePath(localUrl)
+        clearSelection()
+        clearUserModified()
+      },
+      onNavigateBack = onNavigateBack)
 }
