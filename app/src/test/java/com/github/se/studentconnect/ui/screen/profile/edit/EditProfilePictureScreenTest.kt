@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
+import androidx.work.Data
 import androidx.work.WorkManager
 import com.github.se.studentconnect.service.ImageUploadWorker
 import io.mockk.every
@@ -76,7 +77,7 @@ class EditProfilePictureScreenTest {
         storagePath = "users/user-123/profile",
         existingImageUrl = "old/url")
 
-    val input = workSlot.captured.inputData
+    val input: Data = workSlot.captured.workSpec.input
     assertEquals("user-123", input.getString(ImageUploadWorker.KEY_DOCUMENT_ID))
     assertEquals("/tmp/file.jpg", input.getString(ImageUploadWorker.KEY_FILE_PATH))
     assertEquals("users/user-123/profile", input.getString(ImageUploadWorker.KEY_STORAGE_PATH))
