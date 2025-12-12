@@ -233,24 +233,22 @@ fun EditProfilePictureScreen(
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
-                                        val stagedPath =
-                                            stageProfilePicture(context, workingUri, userId)
-                                        if (stagedPath == null) {
+                                        val stagedLocalUrl =
+                                            handleStagedProfilePicture(
+                                                context = context,
+                                                userId = userId,
+                                                uri = workingUri,
+                                                storagePath = storagePath,
+                                                existingImageUrl = previousImagePath,
+                                                viewModel = viewModel)
+                                        if (stagedLocalUrl == null) {
                                           snackbarHostState.showSnackbar(
                                               context.getString(
                                                   R.string.error_failed_to_upload_photo))
                                         } else {
-                                          val localUrl = "file://$stagedPath"
-                                          viewModel.updateProfilePicture(localUrl)
-                                          currentImagePath = localUrl
+                                          currentImagePath = stagedLocalUrl
                                           selectedImageUri = null
                                           userModified = false
-                                          enqueueProfilePictureUpload(
-                                              context = context,
-                                              userId = userId,
-                                              filePath = stagedPath,
-                                              storagePath = storagePath,
-                                              existingImageUrl = previousImagePath)
                                           onNavigateBack?.invoke()
                                         }
                                       }
@@ -348,3 +346,27 @@ internal suspend fun stageProfilePicture(
         null
       }
     }
+
+@VisibleForTesting
+internal suspend fun handleStagedProfilePicture(
+    context: Context,
+    userId: String,
+    uri: Uri,
+    storagePath: String,
+    existingImageUrl: String?,
+    viewModel: EditProfilePictureViewModel,
+    workManager: WorkManager = WorkManager.getInstance(context)
+): String? {
+  val stagedPath = stageProfilePicture(context, uri, userId)
+  if (stagedPath == null) return null
+  val localUrl = "file://$stagedPath"
+  viewModel.updateProfilePicture(localUrl)
+  enqueueProfilePictureUpload(
+      context = context,
+      userId = userId,
+      filePath = stagedPath,
+      storagePath = storagePath,
+      existingImageUrl = existingImageUrl,
+      workManager = workManager)
+  return localUrl
+}
