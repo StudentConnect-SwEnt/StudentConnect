@@ -297,7 +297,10 @@ fun EventView(
     // Only show loading indicator on initial load, not when refreshing an existing event
     if (isLoading && event == null) {
       Box(
-          modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
+          modifier =
+              Modifier.fillMaxSize()
+                  .padding(paddingValues)
+                  .testTag(EventViewTestTags.LOADING_INDICATOR),
           contentAlignment = Alignment.Center,
       ) {
         CircularProgressIndicator()
@@ -305,7 +308,7 @@ fun EventView(
     } else if (event != null) {
       HorizontalPager(
           state = pagerState,
-          modifier = Modifier.fillMaxSize(),
+          modifier = Modifier.fillMaxSize().padding(paddingValues),
           userScrollEnabled = false,
       ) { page ->
         when (page) {
