@@ -1030,24 +1030,6 @@ private fun WebsiteButton(currentEvent: Event.Public, context: Context) {
       modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
 }
 
-    ButtonIcon(
-        id = R.drawable.ic_share,
-        onClick = { DialogNotImplemented(context) },
-        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
-
-    Spacer(modifier = Modifier.weight(1f))
-
-    Text(
-        text =
-            if (currentEvent.participationFee == null) stringResource(R.string.event_free)
-            else
-                currentEvent.participationFee!!.toString() +
-                    stringResource(R.string.event_currency),
-        maxLines = 1,
-    )
-  }
-}
-
 @Composable
 private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifier) {
   IconButton(
