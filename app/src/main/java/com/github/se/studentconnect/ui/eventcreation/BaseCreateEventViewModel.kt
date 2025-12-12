@@ -16,6 +16,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
@@ -30,7 +31,7 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.service.EventBannerUploadWorker
+import com.github.se.studentconnect.service.ImageUploadWorker
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -544,14 +545,17 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   private fun enqueueBannerUpload(context: Context, job: BannerUploadJob) {
     val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
     val workRequest =
-        OneTimeWorkRequestBuilder<EventBannerUploadWorker>()
+        OneTimeWorkRequestBuilder<ImageUploadWorker>()
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
-                    EventBannerUploadWorker.KEY_EVENT_UID to job.eventUid,
-                    EventBannerUploadWorker.KEY_FILE_PATH to job.filePath,
-                    EventBannerUploadWorker.KEY_STORAGE_PATH to job.storagePath,
-                    EventBannerUploadWorker.KEY_EXISTING_IMAGE_URL to job.existingImageUrl))
+                    ImageUploadWorker.KEY_DOCUMENT_ID to job.eventUid,
+                    ImageUploadWorker.KEY_FILE_PATH to job.filePath,
+                    ImageUploadWorker.KEY_STORAGE_PATH to job.storagePath,
+                    ImageUploadWorker.KEY_EXISTING_IMAGE_URL to job.existingImageUrl,
+                    ImageUploadWorker.KEY_COLLECTION_PATH to
+                        EventRepositoryFirestore.EVENTS_COLLECTION_PATH,
+                    ImageUploadWorker.KEY_FIELD_NAME to "imageUrl"))
             .addTag("event_banner_upload_${job.eventUid}")
             .build()
 
