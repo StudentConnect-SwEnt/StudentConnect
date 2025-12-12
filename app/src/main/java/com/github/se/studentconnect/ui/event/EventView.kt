@@ -967,7 +967,7 @@ private fun CommonActionButtons(
     val publicEvent = currentEvent as? Event.Public
     val websiteUrl = publicEvent?.website
     if (!websiteUrl.isNullOrEmpty()) {
-      WebsiteButton(currentEvent, context)
+      WebsiteButton(publicEvent, context)
       Spacer(Modifier.size(smallSpacing))
     }
 
@@ -1007,7 +1007,7 @@ private fun LocationButton(currentEvent: Event, navController: NavHostController
 }
 
 @Composable
-private fun WebsiteButton(currentEvent: Event, context: Context) {
+private fun WebsiteButton(currentEvent: Event.Public, context: Context) {
   ButtonIcon(
       id = R.drawable.ic_web,
       onClick = {
