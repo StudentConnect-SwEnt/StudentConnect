@@ -31,6 +31,7 @@ data class EventUiState(
     val isLoading: Boolean = true,
     val isJoined: Boolean = false,
     val errorMessage: String? = null,
+    @StringRes val errorMessageRes: Int? = null,
     val showQrScanner: Boolean = false,
     val ticketValidationResult: TicketValidationResult? = null,
     val attendees: List<User> = emptyList(),
@@ -74,7 +75,7 @@ class EventViewModel(
   val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
   fun fetchEvent(eventUid: String) {
-    _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+    _uiState.update { it.copy(isLoading = true, errorMessage = null, errorMessageRes = null) }
     viewModelScope.launch {
       try {
         val fetchedEvent = eventRepository.getEvent(eventUid)
@@ -105,7 +106,9 @@ class EventViewModel(
               friendsErrorRes = null,
               isInvitingFriends = false,
               friends = emptyList(),
-              isLoadingFriends = false)
+              isLoadingFriends = false,
+              errorMessageRes = null,
+              errorMessage = null)
         }
 
         // Fetch active polls if user is already a participant
@@ -114,7 +117,10 @@ class EventViewModel(
         }
       } catch (e: Exception) {
         _uiState.update {
-          it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load event")
+          it.copy(
+              isLoading = false,
+              errorMessage = e.message,
+              errorMessageRes = if (e.message == null) R.string.event_error_load else null)
         }
       }
     }
