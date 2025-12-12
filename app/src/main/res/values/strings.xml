@@ -199,6 +199,7 @@
     <string name="text_scan_qr_code_to_connect">Scan QR code to connect!</string>
     <string name="text_scan_qr_to_connect">Scan QR to connect!</string>
     <string name="text_no_events_found">No events found matching your criteria.</string>
+    <string name="text_no_events_on_date">No events on this date</string>
     <string name="text_my_activities">MyActivities</string>
     <string name="text_no_upcoming_events">No upcoming events</string>
     <string name="text_no_new_invitations">No new invitations</string>
@@ -379,6 +380,16 @@
     <string name="leave_event_confirmation_message">Are you sure you want to leave this event?</string>
     <string name="leave_event_confirm">Leave</string>
     <string name="leave_event_cancel">Cancel</string>
+
+    <!-- Delete event confirmation dialog -->
+    <string name="delete_event_confirmation_title">Delete Event</string>
+    <string name="delete_event_confirmation_message">Are you sure you want to delete this event? This action cannot be undone.</string>
+    <string name="delete_event_confirm">Delete</string>
+    <string name="delete_event_cancel">Cancel</string>
+    <string name="button_delete">Delete</string>
+    <string name="delete_event_success">Event deleted successfully</string>
+    <string name="delete_event_error">Failed to delete event. Please try again.</string>
+    <string name="delete_event_error_network">Network error. Please check your connection and try again.</string>
 
     <!-- Event creation -->
     <string name="event_label_title">Title</string>

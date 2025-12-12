@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +64,7 @@ import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.theme.Dimensions
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
@@ -69,13 +72,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
+
+// New centralized size values to avoid hardcoded dp usages
 private val iconSize = 24.dp
 private val smallSpacing = 8.dp
 
+// URL protocol constants to avoid duplication
 private const val HTTP_PROTOCOL = "http://"
 private const val HTTPS_PROTOCOL = "https://"
+
 private const val DAY_IN_SECONDS = 86400
 
+/** Test tags for the EventView screen and its components. */
 object EventViewTestTags {
   const val EVENT_VIEW_SCREEN = "event_view_screen"
   const val TOP_APP_BAR = "event_view_top_app_bar"
@@ -113,6 +121,10 @@ object EventViewTestTags {
   const val LEAVE_CONFIRMATION_DIALOG = "event_view_leave_confirmation_dialog"
   const val LEAVE_CONFIRMATION_CONFIRM = "event_view_leave_confirmation_confirm"
   const val LEAVE_CONFIRMATION_CANCEL = "event_view_leave_confirmation_cancel"
+  const val DELETE_EVENT_BUTTON = "event_view_delete_event_button"
+  const val DELETE_CONFIRMATION_DIALOG = "event_view_delete_confirmation_dialog"
+  const val DELETE_CONFIRMATION_CONFIRM = "event_view_delete_confirmation_confirm"
+  const val DELETE_CONFIRMATION_CANCEL = "event_view_delete_confirmation_cancel"
 }
 
 /** Displays the event detail screen and wires QR validation, countdown, and action buttons. */
@@ -123,6 +135,7 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
+  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -131,10 +144,20 @@ fun EventView(
   val validationResult = uiState.ticketValidationResult
 
   val pagerState = rememberPagerState(initialPage = 1, pageCount = { 2 })
+  val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
   LaunchedEffect(key1 = eventUid) { eventViewModel.fetchEvent(eventUid) }
 
+  // Show snackbar for delete event messages
+  LaunchedEffect(uiState.deleteEventMessageRes) {
+    uiState.deleteEventMessageRes?.let { messageRes ->
+      snackbarHostState.showSnackbar(context.getString(messageRes))
+      eventViewModel.clearDeleteEventMessage()
+    }
+  }
+
+  // QR Scanner Dialog
   if (showQrScanner && event != null) {
     QrScannerDialog(
         eventUid = event.uid,
@@ -143,6 +166,7 @@ fun EventView(
         validationResult = validationResult)
   }
 
+  // Create Poll Dialog
   if (uiState.showCreatePollDialog && event != null) {
     CreatePollDialog(
         eventUid = event.uid,
@@ -158,6 +182,7 @@ fun EventView(
         onDismiss = { eventViewModel.hideInviteFriendsDialog() })
   }
 
+  // Leave Event Confirmation Dialog
   if (uiState.showLeaveConfirmDialog && event != null) {
     AlertDialog(
         onDismissRequest = { eventViewModel.hideLeaveConfirmDialog() },
@@ -179,6 +204,31 @@ fun EventView(
               onClick = { eventViewModel.hideLeaveConfirmDialog() },
               modifier = Modifier.testTag(EventViewTestTags.LEAVE_CONFIRMATION_CANCEL)) {
                 Text(text = stringResource(R.string.leave_event_cancel))
+              }
+        })
+  }
+
+  // Delete Event Confirmation Dialog
+  if (uiState.showDeleteConfirmDialog && event != null) {
+    AlertDialog(
+        onDismissRequest = { eventViewModel.hideDeleteConfirmDialog() },
+        modifier = Modifier.testTag(EventViewTestTags.DELETE_CONFIRMATION_DIALOG),
+        title = { Text(text = stringResource(R.string.delete_event_confirmation_title)) },
+        text = { Text(text = stringResource(R.string.delete_event_confirmation_message)) },
+        confirmButton = {
+          TextButton(
+              onClick = { eventViewModel.deleteEvent(event.uid) { navController.popBackStack() } },
+              modifier = Modifier.testTag(EventViewTestTags.DELETE_CONFIRMATION_CONFIRM),
+              colors =
+                  ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                Text(text = stringResource(R.string.delete_event_confirm))
+              }
+        },
+        dismissButton = {
+          TextButton(
+              onClick = { eventViewModel.hideDeleteConfirmDialog() },
+              modifier = Modifier.testTag(EventViewTestTags.DELETE_CONFIRMATION_CANCEL)) {
+                Text(text = stringResource(R.string.delete_event_cancel))
               }
         })
   }
@@ -262,7 +312,8 @@ fun EventView(
                   eventViewModel = eventViewModel,
                   event = event,
                   navController = navController,
-                  pagerState = pagerState)
+                  pagerState = pagerState,
+                  snackbarHostState = snackbarHostState)
         }
       }
     }
@@ -274,7 +325,8 @@ private fun BaseEventView(
     eventViewModel: EventViewModel,
     event: Event,
     navController: NavHostController,
-    pagerState: PagerState
+    pagerState: PagerState,
+    snackbarHostState: SnackbarHostState
 ) {
   val coroutineScope = rememberCoroutineScope()
   val uiState by eventViewModel.uiState.collectAsState()
@@ -422,9 +474,19 @@ private fun BaseEventView(
 
                 ChatButton()
 
+                // Delete Event Button - only show if user is owner
+                if (AuthenticationProvider.currentUser == event.ownerId) {
+                  DeleteEventButton(
+                      onClick = { eventViewModel.showDeleteConfirmDialog() },
+                      modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
               }
         }
+
+    // Snackbar Host
+    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
   }
 }
 
@@ -629,6 +691,31 @@ private fun ChatButton(context: Context = LocalContext.current) {
           modifier = Modifier.size(24.dp),
           tint = MaterialTheme.colorScheme.onSecondaryContainer)
     }
+  }
+}
+
+@Composable
+private fun DeleteEventButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+  Button(
+      onClick = onClick,
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(
+                  start = Dimensions.SpacingNormal,
+                  top = Dimensions.SpacingSmall,
+                  end = Dimensions.SpacingNormal,
+                  bottom = Dimensions.SpacingSmall)
+              .height(Dimensions.ButtonHeight),
+      colors =
+          ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+      shape = RoundedCornerShape(Dimensions.ButtonCornerRadius),
+  ) {
+    Text(
+        text = stringResource(R.string.button_delete),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onErrorContainer)
   }
 }
 
