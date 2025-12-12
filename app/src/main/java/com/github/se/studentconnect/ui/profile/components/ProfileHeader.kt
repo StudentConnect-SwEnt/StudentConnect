@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
@@ -225,91 +224,164 @@ private fun UserInformation(
     modifier: Modifier = Modifier
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically) {
-          // User Name
-          Text(
-              text = user.getFullName(),
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-              fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
-              color = MaterialTheme.colorScheme.onSurface,
-              modifier =
-                  if (isVisitorMode)
-                      Modifier.testTag(
-                          com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
-                  else Modifier)
+    UserNameHeader(
+        user = user,
+        isVisitorMode = isVisitorMode,
+        onLogoutClick = onLogoutClick,
+        showDialog = showDialog)
 
-          // Logout icon button (only in own profile mode)
-          if (!isVisitorMode && onLogoutClick != null) {
-            IconButton(
-                onClick = { showDialog.value = true },
-                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
-                modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size))) {
-                  Icon(
-                      imageVector = Icons.AutoMirrored.Filled.Logout,
-                      contentDescription = stringResource(R.string.content_description_logout))
-                }
-            if (showDialog.value) {
-              LogoutDialog(showDialog = showDialog, logOut = onLogoutClick)
-            }
-          }
+    UsernameSection(user = user, showUsername = showUsername)
+
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+
+    BioSection(user = user)
+
+    UniversitySection(user = user)
+
+    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+
+    LocationSection(user = user)
+  }
+}
+
+/**
+ * User name header with optional logout button.
+ *
+ * @param user The user whose name to display
+ * @param isVisitorMode Whether this is a visitor profile
+ * @param onLogoutClick Callback for logout action (null in visitor mode)
+ * @param showDialog State for showing logout confirmation dialog
+ */
+@Composable
+private fun UserNameHeader(
+    user: User,
+    isVisitorMode: Boolean,
+    onLogoutClick: (() -> Unit)?,
+    showDialog: MutableState<Boolean>
+) {
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically) {
+        // User Name
+        Text(
+            text = user.getFullName(),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier =
+                if (isVisitorMode)
+                    Modifier.testTag(
+                        com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
+                else Modifier)
+
+        LogoutButton(
+            isVisitorMode = isVisitorMode, onLogoutClick = onLogoutClick, showDialog = showDialog)
+      }
+}
+
+/**
+ * Logout button component.
+ *
+ * @param isVisitorMode Whether this is a visitor profile
+ * @param onLogoutClick Callback for logout action (null in visitor mode)
+ * @param showDialog State for showing logout confirmation dialog
+ */
+@Composable
+private fun LogoutButton(
+    isVisitorMode: Boolean,
+    onLogoutClick: (() -> Unit)?,
+    showDialog: MutableState<Boolean>
+) {
+  if (!isVisitorMode && onLogoutClick != null) {
+    IconButton(
+        onClick = { showDialog.value = true },
+        colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent),
+        modifier = Modifier.size(dimensionResource(R.dimen.profile_button_icon_size))) {
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.Logout,
+              contentDescription = stringResource(R.string.content_description_logout))
         }
-
-    // Username (if showUsername is true)
-    if (showUsername) {
-      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
-      Text(
-          text = "@${user.username}",
-          style = MaterialTheme.typography.bodyMedium,
-          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-          color = MaterialTheme.colorScheme.onSurfaceVariant)
+    if (showDialog.value) {
+      LogoutDialog(showDialog = showDialog, logOut = onLogoutClick)
     }
+  }
+}
 
+/**
+ * Username section component.
+ *
+ * @param user The user whose username to display
+ * @param showUsername Whether to show the username
+ */
+@Composable
+private fun UsernameSection(user: User, showUsername: Boolean) {
+  if (showUsername) {
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
-    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
-
-    // Bio (if available)
-    if (user.hasBio()) {
-      Text(
-          text = user.bio ?: "",
-          style = MaterialTheme.typography.bodyMedium,
-          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-          color = MaterialTheme.colorScheme.onSurface,
-          // modifier = Modifier.fillMaxWidth()
-      )
-
-      Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
-    }
-
-    // University
     Text(
-        text = user.university,
+        text = "@${user.username}",
+        style = MaterialTheme.typography.bodyMedium,
+        fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+  }
+}
+
+/**
+ * Bio section component.
+ *
+ * @param user The user whose bio to display
+ */
+@Composable
+private fun BioSection(user: User) {
+  if (user.hasBio()) {
+    Text(
+        text = user.bio ?: "",
         style = MaterialTheme.typography.bodyMedium,
         fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
         color = MaterialTheme.colorScheme.onSurface)
 
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
+  }
+}
 
-    // Location (Country)
-    if (user.country != null) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = Icons.Default.LocationOn,
-            contentDescription = stringResource(R.string.content_description_location),
-            modifier = Modifier.size(dimensionResource(R.dimen.profile_location_icon_size)),
-            tint = MaterialTheme.colorScheme.onSurface)
+/**
+ * University section component.
+ *
+ * @param user The user whose university to display
+ */
+@Composable
+private fun UniversitySection(user: User) {
+  Text(
+      text = user.university,
+      style = MaterialTheme.typography.bodyMedium,
+      fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+      color = MaterialTheme.colorScheme.onSurface)
+}
 
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_small)))
+/**
+ * Location section component.
+ *
+ * @param user The user whose location to display
+ */
+@Composable
+private fun LocationSection(user: User) {
+  if (user.country != null) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Icon(
+          imageVector = Icons.Default.LocationOn,
+          contentDescription = stringResource(R.string.content_description_location),
+          modifier = Modifier.size(dimensionResource(R.dimen.profile_location_icon_size)),
+          tint = MaterialTheme.colorScheme.onSurface)
 
-        Text(
-            text = user.country,
-            style = MaterialTheme.typography.bodyMedium,
-            fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-            color = MaterialTheme.colorScheme.onSurface)
-      }
+      Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_small)))
+
+      Text(
+          text = user.country,
+          style = MaterialTheme.typography.bodyMedium,
+          fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
+          color = MaterialTheme.colorScheme.onSurface)
     }
   }
 }
