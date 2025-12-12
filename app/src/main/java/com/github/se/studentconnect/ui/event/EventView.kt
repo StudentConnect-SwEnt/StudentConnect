@@ -959,19 +959,7 @@ private fun CommonActionButtons(
   Row(verticalAlignment = Alignment.CenterVertically) {
     // Only show location button if location exists
     if (currentEvent.location != null) {
-      ButtonIcon(
-          id = R.drawable.ic_location_pin,
-          onClick = {
-            currentEvent.location?.let { location ->
-              // Navigate to map with location and event UID to automatically select and display the
-              // event
-              val route =
-                  Route.mapWithLocation(
-                      location.latitude, location.longitude, eventUid = currentEvent.uid)
-              navController.navigate(route)
-            }
-          },
-          modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+      LocationButton(currentEvent, navController)
       Spacer(Modifier.size(smallSpacing))
     }
 
@@ -979,27 +967,7 @@ private fun CommonActionButtons(
     val publicEvent = currentEvent as? Event.Public
     val websiteUrl = publicEvent?.website
     if (!websiteUrl.isNullOrEmpty()) {
-      ButtonIcon(
-          id = R.drawable.ic_web,
-          onClick = {
-            currentEvent.website?.let { website ->
-              val fixedUrl =
-                  when {
-                    website.startsWith(HTTP_PROTOCOL) -> website
-                    website.startsWith(HTTPS_PROTOCOL) -> website
-                    else -> HTTPS_PROTOCOL + website
-                  }
-              try {
-                val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
-                context.startActivity(intent)
-              } catch (_: ActivityNotFoundException) {
-                Toast.makeText(
-                        context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
-                    .show()
-              }
-            }
-          },
-          modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
+      WebsiteButton(currentEvent, context)
       Spacer(Modifier.size(smallSpacing))
     }
 
@@ -1019,6 +987,47 @@ private fun CommonActionButtons(
         maxLines = 1,
     )
   }
+}
+
+@Composable
+private fun LocationButton(currentEvent: Event, navController: NavHostController) {
+  ButtonIcon(
+      id = R.drawable.ic_location_pin,
+      onClick = {
+        currentEvent.location?.let { location ->
+          // Navigate to map with location and event UID to automatically select and display the
+          // event
+          val route =
+              Route.mapWithLocation(
+                  location.latitude, location.longitude, eventUid = currentEvent.uid)
+          navController.navigate(route)
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+}
+
+@Composable
+private fun WebsiteButton(currentEvent: Event, context: Context) {
+  ButtonIcon(
+      id = R.drawable.ic_web,
+      onClick = {
+        currentEvent.website?.let { website ->
+          val fixedUrl =
+              when {
+                website.startsWith(HTTP_PROTOCOL) -> website
+                website.startsWith(HTTPS_PROTOCOL) -> website
+                else -> HTTPS_PROTOCOL + website
+              }
+          try {
+            val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
+            context.startActivity(intent)
+          } catch (_: ActivityNotFoundException) {
+            Toast.makeText(context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
+                .show()
+          }
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
 }
 
 @Composable
