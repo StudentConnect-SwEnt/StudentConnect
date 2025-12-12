@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile.edit
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import androidx.compose.material3.SnackbarHostState
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -110,5 +111,76 @@ class EditProfilePictureScreenTest {
     assertEquals("old/url", input.getString(ImageUploadWorker.KEY_EXISTING_IMAGE_URL))
     assertEquals("users", input.getString(ImageUploadWorker.KEY_COLLECTION_PATH))
     assertEquals("profilePictureUrl", input.getString(ImageUploadWorker.KEY_FIELD_NAME))
+  }
+
+  @Test
+  fun `applyStagedProfileOutcome updates state when staged url present`() = runTest {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val snackbarHostState = SnackbarHostState()
+    var currentImagePath: String? = null
+    var selectionCleared = false
+    var navigated = false
+
+    val result =
+        applyStagedProfileOutcome(
+            stagedLocalUrl = "file://staged",
+            snackbarHostState = snackbarHostState,
+            context = context,
+            onSuccess = {
+              currentImagePath = it
+              selectionCleared = true
+            },
+            onNavigateBack = { navigated = true })
+
+    assertTrue(result)
+    assertEquals("file://staged", currentImagePath)
+    assertTrue(selectionCleared)
+    assertTrue(navigated)
+  }
+
+  @Test
+  fun `processOfflineProfilePicture covers staged branch`() = runTest {
+    val tmpDir = Files.createTempDirectory("profile_stage_process_test").toFile()
+    val source = File(tmpDir, "source.jpg").apply { writeText("data") }
+    val uri = Uri.fromFile(source)
+    val mockContext = mockk<Context>(relaxed = true)
+    val mockResolver = mockk<ContentResolver>()
+    val mockViewModel = mockk<EditProfilePictureViewModel>(relaxed = true)
+    val mockWorkManager = mockk<WorkManager>(relaxed = true)
+    val workSlot = slot<androidx.work.OneTimeWorkRequest>()
+    val snackbarHostState = SnackbarHostState()
+
+    every { mockContext.filesDir } returns tmpDir
+    every { mockContext.contentResolver } returns mockResolver
+    every { mockResolver.getType(uri) } returns "image/jpeg"
+    every { mockResolver.openInputStream(uri) } answers { source.inputStream() }
+    every { mockWorkManager.enqueueUniqueWork(any(), any(), capture(workSlot)) } returns
+        mockk(relaxed = true)
+
+    var currentImagePath: String? = null
+    var selectionCleared = false
+    var userModifiedCleared = false
+    var navigated = false
+
+    val result =
+        processOfflineProfilePicture(
+            context = mockContext,
+            userId = "user-1",
+            uri = uri,
+            storagePath = "users/user-1/profile",
+            previousImageUrl = "old",
+            viewModel = mockViewModel,
+            snackbarHostState = snackbarHostState,
+            onNavigateBack = { navigated = true },
+            setCurrentImagePath = { currentImagePath = it },
+            clearSelection = { selectionCleared = true },
+            clearUserModified = { userModifiedCleared = true },
+            workManager = mockWorkManager)
+
+    assertTrue(result)
+    assertNotNull(currentImagePath)
+    assertTrue(selectionCleared)
+    assertTrue(userModifiedCleared)
+    assertTrue(navigated)
   }
 }
