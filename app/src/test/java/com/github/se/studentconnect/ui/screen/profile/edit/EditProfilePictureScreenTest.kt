@@ -1,63 +1,49 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.github.se.studentconnect.service.ImageUploadWorker
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.slot
-import io.mockk.unmockkAll
-import java.io.ByteArrayInputStream
 import java.io.File
+import java.nio.file.Files
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class EditProfilePictureScreenTest {
-
-  private val appContext = ApplicationProvider.getApplicationContext<Context>()
-
-  @Before
-  fun setup() {
-    mockkStatic(WorkManager::class)
-  }
-
-  @After
-  fun tearDown() {
-    unmockkAll()
-  }
 
   @Test
   fun `stageProfilePicture copies file and returns path`() = runTest {
-    val tmpDir = File(appContext.filesDir, "test_stage").apply { mkdirs() }
-    val mockContext = mockk<Context>(relaxed = true)
-    val mockResolver = mockk<ContentResolver>()
-    val uri = Uri.parse("content://test/image")
-    val data = "hello world".toByteArray()
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val tmpDir = Files.createTempDirectory("profile_stage_test").toFile()
+    val source = File(tmpDir, "source.png").apply { writeText("hello world") }
+    val uri = Uri.fromFile(source)
 
-    every { mockContext.filesDir } returns tmpDir
-    every { mockContext.contentResolver } returns mockResolver
-    every { mockResolver.getType(uri) } returns "image/png"
-    every { mockResolver.openInputStream(uri) } returns ByteArrayInputStream(data)
-
-    val path = stageProfilePicture(mockContext, uri, "user-1")
+    val path =
+        stageProfilePicture(
+            context = context,
+            uri = uri,
+            userId = "user-1",
+            contentResolver = context.contentResolver,
+            filesDir = tmpDir)
 
     assertNotNull(path)
     val copied = File(path!!)
     assertTrue(copied.exists())
-    assertEquals("image/png", mockResolver.getType(uri))
-    assertEquals(data.size.toLong(), copied.length())
+    assertEquals(source.length(), copied.length())
   }
 
   @Test
@@ -66,16 +52,18 @@ class EditProfilePictureScreenTest {
     val mockWorkManager = mockk<WorkManager>(relaxed = true)
     val workSlot = slot<androidx.work.OneTimeWorkRequest>()
 
-    every { WorkManager.getInstance(mockContext) } returns mockWorkManager
-    every { mockWorkManager.enqueueUniqueWork(any(), any(), capture(workSlot)) } returns
-        mockk(relaxed = true)
+    every {
+      mockWorkManager.enqueueUniqueWork(
+          "profile_picture_upload_user-123", ExistingWorkPolicy.REPLACE, capture(workSlot))
+    } returns mockk(relaxed = true)
 
     enqueueProfilePictureUpload(
         context = mockContext,
         userId = "user-123",
         filePath = "/tmp/file.jpg",
         storagePath = "users/user-123/profile",
-        existingImageUrl = "old/url")
+        existingImageUrl = "old/url",
+        workManager = mockWorkManager)
 
     val input: Data = workSlot.captured.workSpec.input
     assertEquals("user-123", input.getString(ImageUploadWorker.KEY_DOCUMENT_ID))

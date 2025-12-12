@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -291,7 +292,8 @@ internal fun enqueueProfilePictureUpload(
     userId: String,
     filePath: String,
     storagePath: String,
-    existingImageUrl: String?
+    existingImageUrl: String?,
+    workManager: WorkManager = WorkManager.getInstance(context)
 ) {
   val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
   val workRequest =
@@ -308,8 +310,8 @@ internal fun enqueueProfilePictureUpload(
           .addTag("profile_picture_upload_$userId")
           .build()
 
-  WorkManager.getInstance(context)
-      .enqueueUniqueWork("profile_picture_upload_$userId", ExistingWorkPolicy.REPLACE, workRequest)
+  workManager.enqueueUniqueWork(
+      "profile_picture_upload_$userId", ExistingWorkPolicy.REPLACE, workRequest)
 }
 
 private fun isNetworkAvailable(context: Context): Boolean {
@@ -320,15 +322,20 @@ private fun isNetworkAvailable(context: Context): Boolean {
 }
 
 @VisibleForTesting
-internal suspend fun stageProfilePicture(context: Context, uri: Uri, userId: String): String? =
+internal suspend fun stageProfilePicture(
+    context: Context,
+    uri: Uri,
+    userId: String,
+    contentResolver: ContentResolver = context.contentResolver,
+    filesDir: File = context.filesDir,
+    mimeTypeMap: MimeTypeMap = MimeTypeMap.getSingleton()
+): String? =
     withContext(kotlinx.coroutines.Dispatchers.IO) {
-      val dir = File(context.filesDir, "pending_profile_pictures").apply { mkdirs() }
-      val extension =
-          MimeTypeMap.getSingleton().getExtensionFromMimeType(context.contentResolver.getType(uri))
-              ?: "jpg"
+      val dir = File(filesDir, "pending_profile_pictures").apply { mkdirs() }
+      val extension = mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ?: "jpg"
       val target = File(dir, "${userId}_${System.currentTimeMillis()}.$extension")
       try {
-        context.contentResolver.openInputStream(uri)?.use { input ->
+        contentResolver.openInputStream(uri)?.use { input ->
           target.outputStream().use { output -> input.copyTo(output) }
         } ?: return@withContext null
         target.absolutePath
