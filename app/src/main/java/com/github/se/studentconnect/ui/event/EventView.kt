@@ -324,11 +324,11 @@ fun EventView(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
               CircularProgressIndicator()
               Spacer(Modifier.height(12.dp))
-              Text(
-                  text =
-                      uiState.errorMessage
-                          ?: stringResource(R.string.event_loading_message_pending_sync),
-                  style = MaterialTheme.typography.bodyMedium)
+              val message =
+                  uiState.errorMessage
+                      ?: uiState.errorMessageRes?.let { stringResource(it) }
+                      ?: stringResource(R.string.event_loading_message_pending_sync)
+              Text(text = message, style = MaterialTheme.typography.bodyMedium)
               Spacer(Modifier.height(12.dp))
               TextButton(onClick = { eventViewModel.fetchEvent(eventUid) }) {
                 Text(stringResource(R.string.event_button_retry))
