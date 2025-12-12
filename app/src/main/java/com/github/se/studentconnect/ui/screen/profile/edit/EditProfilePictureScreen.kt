@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.webkit.MimeTypeMap
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -283,7 +284,8 @@ private suspend fun uploadProfilePicture(
   }
 }
 
-private fun enqueueProfilePictureUpload(
+@VisibleForTesting
+internal fun enqueueProfilePictureUpload(
     context: Context,
     userId: String,
     filePath: String,
@@ -316,7 +318,8 @@ private fun isNetworkAvailable(context: Context): Boolean {
   return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 }
 
-private suspend fun stageProfilePicture(context: Context, uri: Uri, userId: String): String? =
+@VisibleForTesting
+internal suspend fun stageProfilePicture(context: Context, uri: Uri, userId: String): String? =
     withContext(kotlinx.coroutines.Dispatchers.IO) {
       val dir = File(context.filesDir, "pending_profile_pictures").apply { mkdirs() }
       val extension =
