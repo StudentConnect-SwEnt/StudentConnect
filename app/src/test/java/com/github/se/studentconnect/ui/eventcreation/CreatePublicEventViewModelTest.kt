@@ -86,6 +86,7 @@ class CreatePublicEventViewModelTest {
     OrganizationRepositoryProvider.cleanOverrideForTests()
     FriendsRepositoryProvider.cleanOverrideForTests()
     NotificationRepositoryProvider.cleanOverrideForTests()
+    unmockkAll()
   }
 
   @Test

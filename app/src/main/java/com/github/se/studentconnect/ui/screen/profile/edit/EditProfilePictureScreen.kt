@@ -54,7 +54,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
-import com.github.se.studentconnect.service.ProfilePictureUploadWorker
+import com.github.se.studentconnect.service.ImageUploadWorker
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
@@ -292,14 +292,16 @@ private fun enqueueProfilePictureUpload(
 ) {
   val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
   val workRequest =
-      OneTimeWorkRequestBuilder<ProfilePictureUploadWorker>()
+      OneTimeWorkRequestBuilder<ImageUploadWorker>()
           .setConstraints(constraints)
           .setInputData(
               workDataOf(
-                  ProfilePictureUploadWorker.KEY_USER_ID to userId,
-                  ProfilePictureUploadWorker.KEY_FILE_PATH to filePath,
-                  ProfilePictureUploadWorker.KEY_STORAGE_PATH to storagePath,
-                  ProfilePictureUploadWorker.KEY_EXISTING_IMAGE_URL to existingImageUrl))
+                  ImageUploadWorker.KEY_DOCUMENT_ID to userId,
+                  ImageUploadWorker.KEY_FILE_PATH to filePath,
+                  ImageUploadWorker.KEY_STORAGE_PATH to storagePath,
+                  ImageUploadWorker.KEY_EXISTING_IMAGE_URL to existingImageUrl,
+                  ImageUploadWorker.KEY_COLLECTION_PATH to "users",
+                  ImageUploadWorker.KEY_FIELD_NAME to "profilePictureUrl"))
           .addTag("profile_picture_upload_$userId")
           .build()
 
