@@ -179,6 +179,8 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
           .isNotEmpty()
     }
 
+    composeTestRule.waitForIdle()
+
     // Assertions: name, username, bio and add friend button
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_user_name)
