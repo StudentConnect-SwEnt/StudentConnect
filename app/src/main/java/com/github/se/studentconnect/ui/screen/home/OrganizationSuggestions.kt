@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.resources.Variables
 
 private object OrganizationSuggestionsConstants {
   // Section
@@ -120,7 +119,7 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
               .semantics(mergeDescendants = false) {}
               .testTag("${C.Tag.org_suggestions_card}_${organization.id}"),
       shape = RoundedCornerShape(OrganizationSuggestionsConstants.CARD_CORNER_RADIUS_DP.dp),
-      colors = CardDefaults.cardColors(containerColor = Variables.LightGreyBackground),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
       elevation =
           CardDefaults.cardElevation(
               defaultElevation = OrganizationSuggestionsConstants.CARD_ELEVATION_DP.dp)) {
@@ -142,7 +141,7 @@ private fun OrganizationImage(organizationId: String) {
           Modifier.fillMaxWidth()
               .aspectRatio(OrganizationSuggestionsConstants.IMAGE_ASPECT_RATIO)
               .background(
-                  color = Variables.LightGreyBackground,
+                  color = MaterialTheme.colorScheme.surfaceVariant,
                   shape =
                       RoundedCornerShape(
                           OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))
