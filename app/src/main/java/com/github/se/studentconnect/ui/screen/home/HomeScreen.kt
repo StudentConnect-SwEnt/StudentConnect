@@ -632,7 +632,7 @@ fun HomeScreen(
         }
 
         // Check for empty events when date is selected
-        LaunchedEffect(uiState.selectedDate) {
+        LaunchedEffect(uiState.selectedDate, uiState.events) {
           val selectedDate = uiState.selectedDate
           // Only show snackbar on active date selection (not on initial load)
           if (selectedDate != null && previousSelectedDate != selectedDate) {
