@@ -131,7 +131,7 @@ internal fun VisitorProfileContent(
                         }
                       }),
               isVisitorMode = true,
-              showUsername = false,
+              showUsername = true,
               friendButtonsContent = {
                 FriendActionButtons(
                     friendRequestStatus = friendRequestStatus,
