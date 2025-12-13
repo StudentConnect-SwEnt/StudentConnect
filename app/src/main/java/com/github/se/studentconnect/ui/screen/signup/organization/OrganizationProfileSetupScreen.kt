@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Map
@@ -123,7 +125,7 @@ fun OrganizationProfileSetupScreen(
         SignUpSmallSpacer()
 
         Column(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
             verticalArrangement =
                 Arrangement.spacedBy(SignUpScreenConstants.HEADER_TO_TITLE_SPACING)) {
               FormSectionLabel(text = stringResource(R.string.org_setup_main_location_label))

@@ -5,10 +5,12 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -249,9 +251,20 @@ class OrganizationRepositoryFirestoreTest {
     val orgDocRef = mockk<DocumentReference>(relaxed = true)
     val invDocRef = mockk<DocumentReference>(relaxed = true)
     val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+
+    val orgMap =
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
 
     val invMap =
-        mapOf(
+        mapOf<String, Any?>(
             "organizationId" to "org-1",
             "userId" to "user-1",
             "role" to "Member",
@@ -261,16 +274,127 @@ class OrganizationRepositoryFirestoreTest {
     every { db.collection("organization_member_invitations") } returns invCollection
     every { orgCollection.document("org-1") } returns orgDocRef
     every { invCollection.document("org-1_user-1") } returns invDocRef
+    every { orgDocRef.get() } returns Tasks.forResult(orgSnapshot)
     every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { orgSnapshot.exists() } returns true
+    every { orgSnapshot.data } returns orgMap
+    every { invSnapshot.exists() } returns true
     every { invSnapshot.data } returns invMap
-    every { orgDocRef.update(any()) } returns Tasks.forResult(null)
+    every { orgDocRef.update(any<Map<String, Any>>()) } returns Tasks.forResult(null)
     every { invDocRef.delete() } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
 
-    verify { orgDocRef.update(any()) }
+    verify { orgDocRef.update(any<Map<String, Any>>()) }
+    verify { invDocRef.delete() }
+  }
+
+  @Test
+  fun acceptMemberInvitation_addsUserWithRoleFromInvitation() = runTest {
+    val db = mockk<FirebaseFirestore>(relaxed = true)
+    val orgCollection = mockk<CollectionReference>(relaxed = true)
+    val invCollection = mockk<CollectionReference>(relaxed = true)
+    val orgDocRef = mockk<DocumentReference>(relaxed = true)
+    val invDocRef = mockk<DocumentReference>(relaxed = true)
+    val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+
+    val orgMap =
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
+
+    val invMap =
+        mapOf<String, Any?>(
+            "organizationId" to "org-1",
+            "userId" to "user-1",
+            "role" to "Admin",
+            "invitedBy" to "user-2")
+
+    every { db.collection("organizations") } returns orgCollection
+    every { db.collection("organization_member_invitations") } returns invCollection
+    every { orgCollection.document("org-1") } returns orgDocRef
+    every { invCollection.document("org-1_user-1") } returns invDocRef
+    every { orgDocRef.get() } returns Tasks.forResult(orgSnapshot)
+    every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { orgSnapshot.exists() } returns true
+    every { orgSnapshot.data } returns orgMap
+    every { invSnapshot.exists() } returns true
+    every { invSnapshot.data } returns invMap
+    every { orgDocRef.update(any<Map<String, Any>>()) } returns Tasks.forResult(null)
+    every { invDocRef.delete() } returns Tasks.forResult(null)
+
+    val repo = OrganizationRepositoryFirestore(db)
+
+    val updateSlot = slot<Map<String, Any>>()
+    every { orgDocRef.update(capture(updateSlot)) } returns Tasks.forResult(null)
+
+    repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
+
+    verify { orgDocRef.update(any<Map<String, Any>>()) }
+    val capturedMap = updateSlot.captured
+    // Check that FieldValue.arrayUnion is used for memberUids
+    val memberUidsValue = capturedMap["memberUids"]
+    assertTrue(memberUidsValue is FieldValue)
+    // Check that memberRoles.user-1 is set (using dot notation)
+    assertEquals("Admin", capturedMap["memberRoles.user-1"])
+    verify { invDocRef.delete() }
+  }
+
+  @Test
+  fun acceptMemberInvitation_usesDefaultRoleWhenInvitationMissing() = runTest {
+    val db = mockk<FirebaseFirestore>(relaxed = true)
+    val orgCollection = mockk<CollectionReference>(relaxed = true)
+    val invCollection = mockk<CollectionReference>(relaxed = true)
+    val orgDocRef = mockk<DocumentReference>(relaxed = true)
+    val invDocRef = mockk<DocumentReference>(relaxed = true)
+    val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+
+    val orgMap =
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf<String>(),
+            "memberRoles" to mapOf<String, String>())
+
+    every { db.collection("organizations") } returns orgCollection
+    every { db.collection("organization_member_invitations") } returns invCollection
+    every { orgCollection.document("org-1") } returns orgDocRef
+    every { invCollection.document("org-1_user-1") } returns invDocRef
+    every { orgDocRef.get() } returns Tasks.forResult(orgSnapshot)
+    every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { orgSnapshot.exists() } returns true
+    every { orgSnapshot.data } returns orgMap
+    every { invSnapshot.exists() } returns false // Invitation doesn't exist
+    every { invSnapshot.data } returns null
+    every { orgDocRef.update(any<Map<String, Any>>()) } returns Tasks.forResult(null)
+    every { invDocRef.delete() } returns Tasks.forResult(null)
+
+    val repo = OrganizationRepositoryFirestore(db)
+
+    val updateSlot = slot<Map<String, Any>>()
+    every { orgDocRef.update(capture(updateSlot)) } returns Tasks.forResult(null)
+
+    repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
+
+    verify { orgDocRef.update(any<Map<String, Any>>()) }
+    val capturedMap = updateSlot.captured
+    // Check that FieldValue.arrayUnion is used for memberUids
+    val memberUidsValue = capturedMap["memberUids"]
+    assertTrue(memberUidsValue is FieldValue)
+    // Check that memberRoles.user-1 is set (using dot notation)
+    assertEquals("Member", capturedMap["memberRoles.user-1"])
     verify { invDocRef.delete() }
   }
 
@@ -282,30 +406,45 @@ class OrganizationRepositoryFirestoreTest {
     val orgDocRef = mockk<DocumentReference>(relaxed = true)
     val invDocRef = mockk<DocumentReference>(relaxed = true)
     val invSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+    val orgSnapshot = mockk<DocumentSnapshot>(relaxed = true)
+
+    val orgMap =
+        mapOf<String, Any?>(
+            "id" to "org-1",
+            "name" to "Test Org",
+            "type" to "Company",
+            "createdBy" to "creator",
+            "createdAt" to Timestamp.now(),
+            "memberUids" to listOf("user-1"), // User already exists
+            "memberRoles" to mapOf("user-1" to "Member"))
 
     val invMap =
-        mapOf(
+        mapOf<String, Any?>(
             "organizationId" to "org-1",
             "userId" to "user-1",
-            "role" to "Member",
+            "role" to "Admin",
             "invitedBy" to "user-2")
 
     every { db.collection("organizations") } returns orgCollection
     every { db.collection("organization_member_invitations") } returns invCollection
     every { orgCollection.document("org-1") } returns orgDocRef
     every { invCollection.document("org-1_user-1") } returns invDocRef
+    every { orgDocRef.get() } returns Tasks.forResult(orgSnapshot)
     every { invDocRef.get() } returns Tasks.forResult(invSnapshot)
+    every { orgSnapshot.exists() } returns true
+    every { orgSnapshot.data } returns orgMap
+    every { invSnapshot.exists() } returns true
     every { invSnapshot.data } returns invMap
-    every { orgDocRef.update(any()) } returns Tasks.forResult(null)
+    every { orgDocRef.update(any<Map<String, Any>>()) } returns Tasks.forResult(null)
     every { invDocRef.delete() } returns Tasks.forResult(null)
 
     val repo = OrganizationRepositoryFirestore(db)
 
     repo.acceptMemberInvitation(organizationId = "org-1", userId = "user-1")
 
-    // Note: The implementation uses FieldValue.arrayUnion which handles duplicates automatically,
-    // so update will still be called, but it won't add a duplicate
-    verify { orgDocRef.update(any()) }
+    // FieldValue.arrayUnion handles duplicates automatically, so update is still called
+    // This is correct behavior - Firestore will ensure no duplicates
+    verify { orgDocRef.update(any<Map<String, Any>>()) }
     verify { invDocRef.delete() }
   }
 

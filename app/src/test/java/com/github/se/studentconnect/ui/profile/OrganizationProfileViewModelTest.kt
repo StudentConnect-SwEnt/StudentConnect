@@ -79,6 +79,17 @@ class OrganizationProfileViewModelTest {
           createdAt = 1000L,
           updatedAt = 1000L)
 
+  private val testCreator =
+      User(
+          userId = "creator1",
+          email = "creator@test.com",
+          username = "creator",
+          firstName = "Alice",
+          lastName = "Creator",
+          university = "EPFL",
+          createdAt = 1000L,
+          updatedAt = 1000L)
+
   private val testEvent =
       Event.Public(
           uid = "event1",
@@ -2094,5 +2105,386 @@ class OrganizationProfileViewModelTest {
     // Should not crash
     viewModel.rejectMemberInvitation("test_org")
     advanceUntilIdle()
+  }
+
+  // ===================== Remove Member Tests =====================
+
+  @Test
+  fun `removeMember removes member from organization`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    userRepository.saveUser(testUser2)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    val initialMemberCount = initialState.organization?.members?.size ?: 0
+    assertTrue(initialMemberCount > 0)
+
+    // Find a non-owner member to remove
+    val memberToRemove = initialState.organization?.members?.find { it.role != "Owner" }
+    assertNotNull(memberToRemove)
+
+    viewModel.removeMember(memberToRemove!!)
+    advanceUntilIdle()
+
+    // Verify member was removed
+    val updatedOrg = organizationRepository.getOrganizationById("test_org")
+    assertNotNull(updatedOrg)
+    assertFalse(updatedOrg?.memberUids?.contains(memberToRemove.memberId) == true)
+
+    // Verify organization data was reloaded
+    val finalState = viewModel.uiState.value
+    assertNotNull(finalState.organization)
+    assertTrue((finalState.organization?.members?.size ?: 0) < initialMemberCount)
+  }
+
+  @Test
+  fun `removeMember does nothing when organization is null`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "nonexistent_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.organization)
+
+    val member =
+        com.github.se.studentconnect.model.organization.OrganizationMember(
+            memberId = "user1", name = "Test User", role = "Member", avatarUrl = null)
+
+    viewModel.removeMember(member)
+    advanceUntilIdle()
+
+    // Should not crash
+  }
+
+  @Test
+  fun `removeMember does nothing when currentUserId is null`() = runTest {
+    AuthenticationProvider.testUserId = null
+    AuthenticationProvider.local = false
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val member =
+        com.github.se.studentconnect.model.organization.OrganizationMember(
+            memberId = "user1", name = "Test User", role = "Member", avatarUrl = null)
+
+    val initialMemberCount =
+        organizationRepository.getOrganizationById("test_org")?.memberUids?.size ?: 0
+
+    viewModel.removeMember(member)
+    advanceUntilIdle()
+
+    // Member should not be removed
+    val finalMemberCount =
+        organizationRepository.getOrganizationById("test_org")?.memberUids?.size ?: 0
+    assertEquals(initialMemberCount, finalMemberCount)
+  }
+
+  @Test
+  fun `removeMember prevents removing owner`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    val initialMemberCount = initialState.organization?.members?.size ?: 0
+
+    // Try to remove owner
+    val ownerMember =
+        com.github.se.studentconnect.model.organization.OrganizationMember(
+            memberId = "creator1", name = "Owner", role = "Owner", avatarUrl = null)
+
+    viewModel.removeMember(ownerMember)
+    advanceUntilIdle()
+
+    // Owner should still be in the organization
+    val updatedOrg = organizationRepository.getOrganizationById("test_org")
+    assertNotNull(updatedOrg)
+    assertTrue(
+        updatedOrg?.memberUids?.contains("creator1") == true || updatedOrg?.createdBy == "creator1")
+
+    // Member count should be unchanged
+    val finalState = viewModel.uiState.value
+    assertNotNull(finalState.organization)
+    assertEquals(initialMemberCount, finalState.organization?.members?.size)
+  }
+
+  @Test
+  fun `removeMember handles exception gracefully`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
+    coEvery { failingOrgRepository.saveOrganization(any()) } throws
+        RuntimeException("Failed to save")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val member =
+        com.github.se.studentconnect.model.organization.OrganizationMember(
+            memberId = "user1", name = "Test User", role = "Member", avatarUrl = null)
+
+    // Should not crash
+    viewModel.removeMember(member)
+    advanceUntilIdle()
+  }
+
+  // ===================== Refresh Organization Tests =====================
+
+  @Test
+  fun `refreshOrganization reloads organization data`() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertNotNull(initialState.organization)
+    val initialName = initialState.organization?.name
+
+    // Update organization in repository
+    val updatedOrg = testOrganization.copy(name = "Updated Organization")
+    organizationRepository.saveOrganization(updatedOrg)
+
+    // Refresh
+    viewModel.refreshOrganization()
+    advanceUntilIdle()
+
+    val finalState = viewModel.uiState.value
+    assertNotNull(finalState.organization)
+    assertEquals("Updated Organization", finalState.organization?.name)
+  }
+
+  @Test
+  fun `refreshOrganization handles errors gracefully`() = runTest {
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } throws
+        RuntimeException("Failed to load")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    // Should not crash
+    viewModel.refreshOrganization()
+    advanceUntilIdle()
+  }
+
+  // ===================== Pending Invitations Tests =====================
+
+  @Test
+  fun `pendingInvitations are loaded for owner`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testCreator)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Admin", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertNotNull(state.organization)
+    assertTrue(state.organization?.isOwner == true)
+    // Pending invitations should be loaded
+    assertTrue(state.pendingInvitations.containsKey("Admin"))
+    assertEquals("user3", state.pendingInvitations["Admin"])
+  }
+
+  @Test
+  fun `pendingInvitations are not loaded for non-owner`() = runTest {
+    AuthenticationProvider.testUserId = "user1"
+    AuthenticationProvider.local = true
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    organizationRepository.sendMemberInvitation("test_org", "user3", "Admin", "creator1")
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertNotNull(state.organization)
+    assertFalse(state.organization?.isOwner == true)
+    // Pending invitations should be empty for non-owners
+    assertTrue(state.pendingInvitations.isEmpty())
+  }
+
+  @Test
+  fun `pendingInvitations handles exception gracefully`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val failingOrgRepository = mockk<OrganizationRepositoryLocal>(relaxed = true)
+    coEvery { failingOrgRepository.getOrganizationById("test_org") } returns testOrganization
+    coEvery { failingOrgRepository.getPendingInvitations("test_org") } throws
+        RuntimeException("Failed to load invitations")
+
+    userRepository.saveUser(testCreator)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = failingOrgRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    // Should handle exception gracefully and return empty map
+    assertTrue(state.pendingInvitations.isEmpty())
+  }
+
+  @Test
+  fun `sendMemberInvitation updates pendingInvitations in UI`() = runTest {
+    AuthenticationProvider.testUserId = "creator1"
+    AuthenticationProvider.local = true
+
+    val inviter =
+        User(
+            userId = "creator1",
+            email = "creator@test.com",
+            username = "creator",
+            firstName = "Creator",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    val invitee =
+        User(
+            userId = "invitee_id",
+            email = "invitee@test.com",
+            username = "invitee",
+            firstName = "Invitee",
+            lastName = "User",
+            university = "EPFL",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(inviter)
+    userRepository.saveUser(invitee)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    advanceUntilIdle()
+
+    viewModel.showAddMemberDialog("Treasurer")
+    advanceUntilIdle()
+
+    val initialState = viewModel.uiState.value
+    assertFalse(initialState.pendingInvitations.containsKey("Treasurer"))
+
+    viewModel.sendMemberInvitation("invitee_id")
+    advanceUntilIdle()
+
+    val finalState = viewModel.uiState.value
+    // Pending invitations should be updated in UI
+    assertTrue(finalState.pendingInvitations.containsKey("Treasurer"))
+    assertEquals("invitee_id", finalState.pendingInvitations["Treasurer"])
   }
 }

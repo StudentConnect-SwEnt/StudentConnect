@@ -9,6 +9,7 @@ package com.github.se.studentconnect.model.organization
  * @property logoUrl URL to the organization's logo (optional).
  * @property isFollowing Whether the current user is following this organization.
  * @property isMember Whether the current user is a member of this organization.
+ * @property roles List of role names defined for this organization.
  * @property events List of events associated with this organization.
  * @property members List of members in this organization.
  */

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
@@ -38,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -48,15 +50,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationEvent
 import com.github.se.studentconnect.model.organization.OrganizationMember
 import com.github.se.studentconnect.model.organization.OrganizationProfile
@@ -77,10 +84,20 @@ import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Comp
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.EVENT_CARD_HEIGHT
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.EVENT_CARD_WIDTH
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.GRID_COLUMNS
-import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBERS_GRID_HEIGHT
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_AVATAR_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_ICON_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationTab
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
+
+/** Callbacks for organization profile actions. */
+data class OrganizationProfileCallbacks(
+    val onTabSelected: (OrganizationTab) -> Unit,
+    val onFollowClick: () -> Unit,
+    val onAddMemberClick: (String) -> Unit,
+    val onRemoveMemberClick: (OrganizationMember) -> Unit,
+    val onBackClick: () -> Unit
+)
 
 // Constants for UI spacing and sizing
 private object OrganizationProfileConstants {
@@ -157,9 +174,14 @@ fun OrganizationProfileScreen(
         OrganizationProfileContent(
             organization = uiState.organization!!,
             selectedTab = uiState.selectedTab,
-            onTabSelected = { viewModel.selectTab(it) },
-            onFollowClick = { viewModel.onFollowButtonClick() },
-            onBackClick = onBackClick,
+            pendingInvitations = uiState.pendingInvitations,
+            callbacks =
+                OrganizationProfileCallbacks(
+                    onTabSelected = { viewModel.selectTab(it) },
+                    onFollowClick = { viewModel.onFollowButtonClick() },
+                    onAddMemberClick = { role -> viewModel.showAddMemberDialog(role) },
+                    onRemoveMemberClick = { member -> viewModel.removeMember(member) },
+                    onBackClick = onBackClick),
             modifier = Modifier.padding(paddingValues))
       }
     }
@@ -171,6 +193,16 @@ fun OrganizationProfileScreen(
           onConfirm = { viewModel.confirmUnfollow() },
           onDismiss = { viewModel.dismissUnfollowDialog() })
     }
+
+    // Add member dialog
+    if (uiState.showAddMemberDialog && uiState.selectedRole != null) {
+      UserPickerDialog(
+          users = uiState.availableUsers,
+          role = uiState.selectedRole!!,
+          isLoading = uiState.isLoadingUsers,
+          onUserSelected = { userId -> viewModel.sendMemberInvitation(userId) },
+          onDismiss = { viewModel.dismissAddMemberDialog() })
+    }
   }
 }
 
@@ -179,18 +211,16 @@ fun OrganizationProfileScreen(
  *
  * @param organization The organization data to display
  * @param selectedTab The currently selected tab
- * @param onTabSelected Callback when a tab is selected
- * @param onFollowClick Callback when the follow button is clicked
- * @param onBackClick Callback when the back button is clicked
+ * @param pendingInvitations Map of role -> userId for pending invitations
+ * @param callbacks Callbacks for user interactions
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun OrganizationProfileContent(
     organization: OrganizationProfile,
     selectedTab: OrganizationTab,
-    onTabSelected: (OrganizationTab) -> Unit,
-    onFollowClick: () -> Unit,
-    onBackClick: () -> Unit,
+    pendingInvitations: Map<String, String>,
+    callbacks: OrganizationProfileCallbacks,
     modifier: Modifier = Modifier
 ) {
   Column(
@@ -205,21 +235,29 @@ private fun OrganizationProfileContent(
                   bottom = OrganizationProfileConstants.SCREEN_BOTTOM_PADDING.dp),
       verticalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.SECTION_SPACING.dp)) {
         // Top Bar with back button
-        OrganizationTopBar(organizationName = organization.name, onBackClick = onBackClick)
+        OrganizationTopBar(
+            organizationName = organization.name, onBackClick = callbacks.onBackClick)
 
         // Avatar Banner
-        AvatarBanner()
+        AvatarBanner(logoUrl = organization.logoUrl)
 
         // Organization Info Block
-        OrganizationInfoBlock(organization = organization, onFollowClick = onFollowClick)
+        OrganizationInfoBlock(organization = organization, onFollowClick = callbacks.onFollowClick)
 
         // About Section with Tabs
-        AboutSection(selectedTab = selectedTab, onTabSelected = onTabSelected)
+        AboutSection(selectedTab = selectedTab, onTabSelected = callbacks.onTabSelected)
 
         // Tab Content
         when (selectedTab) {
           OrganizationTab.EVENTS -> EventsTab(events = organization.events)
-          OrganizationTab.MEMBERS -> MembersTab(members = organization.members)
+          OrganizationTab.MEMBERS ->
+              MembersTab(
+                  members = organization.members,
+                  organizationRoles = organization.roles,
+                  isOwner = organization.isOwner,
+                  pendingInvitations = pendingInvitations,
+                  onAddMemberClick = callbacks.onAddMemberClick,
+                  onRemoveMemberClick = callbacks.onRemoveMemberClick)
         }
       }
 }
@@ -254,12 +292,31 @@ private fun OrganizationTopBar(
 }
 
 /**
- * Avatar banner with circular profile image placeholder.
+ * Avatar banner with circular profile image.
  *
+ * @param logoUrl URL to the organization logo (optional)
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun AvatarBanner(modifier: Modifier = Modifier) {
+private fun AvatarBanner(logoUrl: String? = null, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, logoUrl, repository) {
+        value =
+            logoUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e(
+                        "OrganizationProfileScreen",
+                        "Failed to download organization logo: $id",
+                        it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Box(
       modifier =
           modifier
@@ -280,12 +337,20 @@ private fun AvatarBanner(modifier: Modifier = Modifier) {
                     .background(MaterialTheme.colorScheme.surface)
                     .testTag(C.Tag.org_profile_avatar),
             contentAlignment = Alignment.Center) {
-              // Person icon
-              Icon(
-                  imageVector = Icons.Outlined.Person,
-                  contentDescription = "Organization avatar",
-                  modifier = Modifier.size(AVATAR_ICON_SIZE.dp),
-                  tint = MaterialTheme.colorScheme.primary)
+              if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap!!,
+                    contentDescription = "Organization avatar",
+                    modifier = Modifier.size(AVATAR_SIZE.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop)
+              } else {
+                // Person icon placeholder
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = "Organization avatar",
+                    modifier = Modifier.size(AVATAR_ICON_SIZE.dp),
+                    tint = MaterialTheme.colorScheme.primary)
+              }
             }
       }
 }
@@ -561,14 +626,31 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
 }
 
 /**
- * Members tab displaying member data in a grid.
+ * Members tab displaying role slots (filled or empty) in a 2-column grid.
  *
  * @param members List of members to display
+ * @param organizationRoles List of roles defined for this organization
+ * @param isOwner Whether the current user is the owner
+ * @param pendingInvitations Map of role -> userId for pending invitations
+ * @param onAddMemberClick Callback when add member button is clicked
+ * @param onRemoveMemberClick Callback when remove member button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun MembersTab(members: List<OrganizationMember>, modifier: Modifier = Modifier) {
-  if (members.isEmpty()) {
+private fun MembersTab(
+    members: List<OrganizationMember>,
+    organizationRoles: List<String>,
+    isOwner: Boolean,
+    pendingInvitations: Map<String, String>,
+    onAddMemberClick: (String) -> Unit,
+    onRemoveMemberClick: (OrganizationMember) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+  // Collect all roles: organizationRoles + any roles that members have but aren't in the list
+  // This ensures Owner and any other assigned roles always show up
+  val allRoles = (organizationRoles + members.map { it.role }).distinct()
+
+  if (allRoles.isEmpty() && members.isEmpty()) {
     Box(
         modifier =
             modifier
@@ -582,35 +664,159 @@ private fun MembersTab(members: List<OrganizationMember>, modifier: Modifier = M
               color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
   } else {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(GRID_COLUMNS),
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(MEMBERS_GRID_HEIGHT.dp)
-                .testTag(C.Tag.org_profile_members_grid),
-        horizontalArrangement =
-            Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
+    // Create a map of role -> member (first member with that role)
+    val membersByRole = members.groupBy { it.role }.mapValues { it.value.firstOrNull() }
+
+    // Sort roles to show Owner first, then others
+    val sortedRoles =
+        allRoles.sortedBy {
+          when (it) {
+            "Owner" -> 0 // Owner first
+            else -> 1 // Others after
+          }
+        }
+
+    // Create role slots: each role gets one slot
+    val roleSlots = sortedRoles.map { role -> RoleSlot(role = role, member = membersByRole[role]) }
+
+    Column(
+        modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_members_grid),
         verticalArrangement =
             Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
-          items(members) { member -> MemberCard(member = member, index = members.indexOf(member)) }
+          roleSlots.chunked(GRID_COLUMNS).forEach { rowSlots ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp)) {
+                  rowSlots.forEach { roleSlot ->
+                    Box(modifier = Modifier.weight(1f)) {
+                      RoleSlotCard(
+                          state =
+                              RoleSlotState(
+                                  role = roleSlot.role,
+                                  member = roleSlot.member,
+                                  index = sortedRoles.indexOf(roleSlot.role),
+                                  isOwner = isOwner,
+                                  hasPendingInvitation =
+                                      pendingInvitations.containsKey(roleSlot.role)),
+                          onAddClick = { onAddMemberClick(roleSlot.role) },
+                          onRemoveClick = { roleSlot.member?.let { onRemoveMemberClick(it) } })
+                    }
+                  }
+                  // Add spacer if last row has fewer items
+                  if (rowSlots.size < GRID_COLUMNS) {
+                    repeat(GRID_COLUMNS - rowSlots.size) { Spacer(modifier = Modifier.weight(1f)) }
+                  }
+                }
+          }
         }
   }
 }
 
+/** Data class representing a role slot (filled or empty). */
+private data class RoleSlot(val role: String, val member: OrganizationMember?)
+
+/** UI state for a role slot card. */
+data class RoleSlotState(
+    val role: String,
+    val member: OrganizationMember?,
+    val index: Int,
+    val isOwner: Boolean,
+    val hasPendingInvitation: Boolean
+)
+
 /**
- * Single member card with avatar and information.
+ * Role slot card showing either a filled member or empty placeholder.
  *
- * @param member Member data to display
- * @param index Index of the member in the list
+ * @param state The state containing role, member, and UI flags
+ * @param onAddClick Callback when add button is clicked
+ * @param onRemoveClick Callback when remove button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun MemberCard(member: OrganizationMember, index: Int, modifier: Modifier = Modifier) {
+private fun RoleSlotCard(
+    state: RoleSlotState,
+    onAddClick: () -> Unit,
+    onRemoveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Column(modifier = modifier.fillMaxWidth()) {
+    // Role title with add button or pending indicator
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              text = state.role,
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.testTag("RoleTitle_${state.role}"))
+
+          if (state.isOwner && state.role != "Owner") {
+            if (state.hasPendingInvitation) {
+              // Show "Request sent" indicator
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+                  modifier = Modifier.testTag("PendingInvitation_${state.role}")) {
+                    Box(
+                        modifier =
+                            Modifier.size(8.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF4CAF50))) // Green indicator
+                    Text(
+                        text = "Request sent",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Medium)
+                  }
+            } else {
+              // Show add button
+              IconButton(
+                  onClick = onAddClick,
+                  modifier = Modifier.size(32.dp).testTag("AddMemberButton_${state.role}")) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add ${state.role}",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp))
+                  }
+            }
+          }
+        }
+
+    // Show either member card or empty placeholder
+    if (state.member != null) {
+      MemberCard(
+          member = state.member,
+          index = state.index,
+          isOwner = state.isOwner,
+          canRemove = state.role != "Owner",
+          onRemoveClick = onRemoveClick)
+    } else {
+      EmptyRoleCard(role = state.role)
+    }
+  }
+}
+
+/**
+ * Empty role card placeholder when no member is assigned.
+ *
+ * @param role The role name
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun EmptyRoleCard(role: String, modifier: Modifier = Modifier) {
   Card(
-      modifier = modifier.fillMaxWidth().testTag("${C.Tag.org_profile_member_card_prefix}_$index"),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)) {
+      modifier = modifier.fillMaxWidth().testTag("EmptyRoleCard_$role"),
+      colors =
+          CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+      border =
+          androidx.compose.foundation.BorderStroke(
+              1.dp, MaterialTheme.colorScheme.outlineVariant)) {
         Column(
             modifier =
                 Modifier.fillMaxWidth()
@@ -618,38 +824,158 @@ private fun MemberCard(member: OrganizationMember, index: Int, modifier: Modifie
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement =
                 Arrangement.spacedBy(OrganizationProfileConstants.MEMBER_CARD_SPACING.dp)) {
-              // Avatar with image if available, otherwise gradient background
-              if (member.avatarUrl != null) {
-                val drawableId = getDrawableIdFromName(member.avatarUrl)
-                if (drawableId != null) {
-                  Image(
-                      painter = painterResource(id = drawableId),
-                      contentDescription = "Member avatar",
-                      modifier = Modifier.size(MEMBER_AVATAR_SIZE.dp).clip(CircleShape),
-                      contentScale = ContentScale.Crop)
-                } else {
-                  MemberAvatarPlaceholder()
-                }
-              } else {
-                MemberAvatarPlaceholder()
-              }
+              // Empty avatar placeholder
+              Box(
+                  modifier =
+                      Modifier.size(MEMBER_AVATAR_SIZE.dp)
+                          .clip(CircleShape)
+                          .background(MaterialTheme.colorScheme.surfaceVariant),
+                  contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = "No member assigned",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(MEMBER_ICON_SIZE.dp))
+                  }
 
-              // Member name
+              // "No one selected" text
               Text(
-                  text = member.name,
-                  style = MaterialTheme.typography.titleSmall,
-                  fontWeight = FontWeight.SemiBold,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  textAlign = TextAlign.Center)
-
-              // Member role
-              Text(
-                  text = member.role,
+                  text = "No one selected",
                   style = MaterialTheme.typography.bodySmall,
                   fontWeight = FontWeight.Normal,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                   textAlign = TextAlign.Center)
             }
+      }
+}
+
+/**
+ * Single member card with avatar and information.
+ *
+ * @param member Member data to display
+ * @param index Index of the member in the list
+ * @param isOwner Whether current user is owner
+ * @param canRemove Whether this member can be removed
+ * @param onRemoveClick Callback when remove button is clicked
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun MemberCard(
+    member: OrganizationMember,
+    index: Int,
+    isOwner: Boolean = false,
+    canRemove: Boolean = false,
+    onRemoveClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+  Card(
+      modifier = modifier.fillMaxWidth().testTag("${C.Tag.org_profile_member_card_prefix}_$index"),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+          Column(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(OrganizationProfileConstants.MEMBER_CARD_PADDING.dp)
+                      .padding(bottom = 8.dp), // Extra bottom padding for role text
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement =
+                  Arrangement.spacedBy(OrganizationProfileConstants.MEMBER_CARD_SPACING.dp)) {
+                // Avatar with image if available, otherwise gradient background
+                MemberAvatar(member = member)
+
+                // Member name
+                Text(
+                    text = member.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
+
+                // Member role
+                Text(
+                    text = member.role,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
+              }
+
+          // Remove button (only for owner and removable members)
+          if (isOwner && canRemove) {
+            IconButton(
+                onClick = onRemoveClick,
+                modifier =
+                    Modifier.align(Alignment.TopEnd)
+                        .size(32.dp)
+                        .testTag("RemoveMemberButton_${member.memberId}")) {
+                  Icon(
+                      imageVector = Icons.Default.Close,
+                      contentDescription = "Remove ${member.name}",
+                      tint = MaterialTheme.colorScheme.error,
+                      modifier = Modifier.size(18.dp))
+                }
+          }
+        }
+      }
+}
+
+/**
+ * Member avatar component that loads the image from Firebase Storage.
+ *
+ * @param member The member whose avatar to display
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun MemberAvatar(member: OrganizationMember, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val avatarUrl = member.avatarUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
+        value =
+            avatarUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e(
+                        "OrganizationProfileScreen", "Failed to download member avatar: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
+  Box(
+      modifier =
+          modifier
+              .size(MEMBER_AVATAR_SIZE.dp)
+              .clip(CircleShape)
+              .background(
+                  Brush.verticalGradient(
+                      colors =
+                          listOf(
+                              MaterialTheme.colorScheme.primaryContainer,
+                              MaterialTheme.colorScheme.primary.copy(
+                                  alpha =
+                                      OrganizationProfileConstants.PRIMARY_GRADIENT_END_ALPHA)))),
+      contentAlignment = Alignment.Center) {
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap!!,
+              contentDescription = "Member avatar",
+              modifier = Modifier.size(MEMBER_AVATAR_SIZE.dp).clip(CircleShape),
+              contentScale = ContentScale.Crop)
+        } else {
+          Icon(
+              imageVector = Icons.Outlined.Person,
+              contentDescription = "Member avatar placeholder",
+              tint = Color.White,
+              modifier = Modifier.size(MEMBER_ICON_SIZE.dp))
+        }
       }
 }
 
@@ -717,16 +1043,223 @@ private fun UnfollowConfirmationDialog(
 }
 
 /**
- * Helper function to get drawable resource ID from name.
+ * Dialog for selecting a user to invite to the organization.
  *
- * @param name The name of the drawable resource
- * @return The drawable resource ID, or null if not found
+ * @param users List of available users to invite
+ * @param role The role to assign to the selected user
+ * @param isLoading Whether the user list is loading
+ * @param onUserSelected Callback when a user is selected
+ * @param onDismiss Callback when the dialog is dismissed
  */
-private fun getDrawableIdFromName(name: String): Int? {
-  return when (name) {
-    "avatar_12" -> R.drawable.avatar_12
-    "avatar_13" -> R.drawable.avatar_13
-    "avatar_23" -> R.drawable.avatar_23
-    else -> null
-  }
+@Composable
+fun UserPickerDialog(
+    users: List<com.github.se.studentconnect.model.user.User>,
+    role: String,
+    isLoading: Boolean,
+    onUserSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+  var searchQuery by remember { mutableStateOf("") }
+
+  // Filter users based on search query
+  val filteredUsers =
+      users.filter { user ->
+        val query = searchQuery.lowercase()
+        user.getFullName().lowercase().contains(query) ||
+            user.username.lowercase().contains(query) ||
+            user.email.lowercase().contains(query)
+      }
+
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      title = { Text(text = "Invite $role") },
+      text = {
+        Column(modifier = Modifier.fillMaxWidth()) {
+          // Search field
+          OutlinedTextField(
+              value = searchQuery,
+              onValueChange = { searchQuery = it },
+              modifier = Modifier.fillMaxWidth().testTag("UserSearchField"),
+              placeholder = { Text("Search by name or username") },
+              singleLine = true)
+
+          Spacer(modifier = Modifier.height(16.dp))
+
+          // User grid
+          Box(modifier = Modifier.fillMaxWidth().height(400.dp)) {
+            if (isLoading) {
+              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(modifier = Modifier.testTag("UserPickerLoading"))
+              }
+            } else if (filteredUsers.isEmpty()) {
+              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text =
+                        if (searchQuery.isEmpty()) "No users available to invite"
+                        else "No users found",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("NoUsersFound"))
+              }
+            } else {
+              LazyVerticalGrid(
+                  columns = GridCells.Fixed(GRID_COLUMNS),
+                  horizontalArrangement =
+                      Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
+                  verticalArrangement =
+                      Arrangement.spacedBy(OrganizationProfileConstants.GRID_ITEM_SPACING.dp),
+                  modifier = Modifier.testTag("UserPickerList")) {
+                    items(filteredUsers) { user ->
+                      UserPickerCard(
+                          user = user,
+                          onClick = {
+                            onUserSelected(user.userId)
+                            onDismiss()
+                          })
+                    }
+                  }
+            }
+          }
+        }
+      },
+      confirmButton = {},
+      dismissButton = {
+        TextButton(onClick = onDismiss, modifier = Modifier.testTag("CancelButton")) {
+          Text("Cancel")
+        }
+      })
+}
+
+/**
+ * Single user card in the picker dialog (similar to MemberCard).
+ *
+ * @param user The user to display
+ * @param onClick Callback when the user is clicked
+ */
+@Composable
+private fun UserPickerCard(
+    user: com.github.se.studentconnect.model.user.User,
+    onClick: () -> Unit
+) {
+  Card(
+      modifier = Modifier.fillMaxWidth().testTag("UserPickerItem_${user.userId}"),
+      onClick = onClick,
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+      elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(OrganizationProfileConstants.MEMBER_CARD_PADDING.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement =
+                Arrangement.spacedBy(OrganizationProfileConstants.MEMBER_CARD_SPACING.dp)) {
+              // Avatar with image if available, otherwise gradient background
+              UserPickerAvatar(user = user)
+
+              // User name
+              Text(
+                  text = user.getFullName(),
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.SemiBold,
+                  color = MaterialTheme.colorScheme.onSurface,
+                  textAlign = TextAlign.Center,
+                  maxLines = 2,
+                  overflow = TextOverflow.Ellipsis)
+
+              // Username
+              Text(
+                  text = "@${user.username}",
+                  style = MaterialTheme.typography.bodySmall,
+                  fontWeight = FontWeight.Normal,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  textAlign = TextAlign.Center)
+            }
+      }
+}
+
+/**
+ * User avatar component for picker dialog that loads the image from Firebase Storage.
+ *
+ * @param user The user whose avatar to display
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun UserPickerAvatar(
+    user: com.github.se.studentconnect.model.user.User,
+    modifier: Modifier = Modifier
+) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val avatarUrl = user.profilePictureUrl
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
+        value =
+            avatarUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e(
+                        "OrganizationProfileScreen", "Failed to download user avatar: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
+  Box(
+      modifier =
+          modifier
+              .size(MEMBER_AVATAR_SIZE.dp)
+              .clip(CircleShape)
+              .background(
+                  Brush.verticalGradient(
+                      colors =
+                          listOf(
+                              MaterialTheme.colorScheme.primaryContainer,
+                              MaterialTheme.colorScheme.primary.copy(
+                                  alpha =
+                                      OrganizationProfileConstants.PRIMARY_GRADIENT_END_ALPHA)))),
+      contentAlignment = Alignment.Center) {
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap!!,
+              contentDescription = "User avatar",
+              modifier = Modifier.size(MEMBER_AVATAR_SIZE.dp).clip(CircleShape),
+              contentScale = ContentScale.Crop)
+        } else {
+          Icon(
+              imageVector = Icons.Outlined.Person,
+              contentDescription = "User avatar placeholder",
+              tint = Color.White,
+              modifier = Modifier.size(MEMBER_ICON_SIZE.dp))
+        }
+      }
+}
+
+/**
+ * User avatar placeholder with gradient background (for picker dialog).
+ *
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun UserAvatarPlaceholder(modifier: Modifier = Modifier) {
+  Box(
+      modifier =
+          modifier
+              .size(MEMBER_AVATAR_SIZE.dp)
+              .clip(CircleShape)
+              .background(
+                  Brush.verticalGradient(
+                      colors =
+                          listOf(
+                              MaterialTheme.colorScheme.primaryContainer,
+                              MaterialTheme.colorScheme.primary.copy(
+                                  alpha =
+                                      OrganizationProfileConstants.PRIMARY_GRADIENT_END_ALPHA)))),
+      contentAlignment = Alignment.Center) {
+        Icon(
+            imageVector = Icons.Outlined.Person,
+            contentDescription = "User avatar placeholder",
+            tint = Color.White,
+            modifier = Modifier.size(MEMBER_ICON_SIZE.dp))
+      }
 }

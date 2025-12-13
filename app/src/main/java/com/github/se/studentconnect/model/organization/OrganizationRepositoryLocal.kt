@@ -42,16 +42,23 @@ class OrganizationRepositoryLocal : OrganizationRepository {
 
   override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {
     val org = organizations[organizationId]
+    val invitationId = "${organizationId}_${userId}"
+    val invitation = invitations[invitationId]
+
     if (org != null) {
       val updatedMemberUids = org.memberUids.toMutableList()
+      val updatedMemberRoles = org.memberRoles.toMutableMap()
+
       if (!updatedMemberUids.contains(userId)) {
         updatedMemberUids.add(userId)
-        organizations[organizationId] = org.copy(memberUids = updatedMemberUids)
+        // Store the role from the invitation, default to "Member" if not found
+        updatedMemberRoles[userId] = invitation?.role ?: "Member"
+        organizations[organizationId] =
+            org.copy(memberUids = updatedMemberUids, memberRoles = updatedMemberRoles)
       }
     }
 
     // Delete the invitation
-    val invitationId = "${organizationId}_${userId}"
     invitations.remove(invitationId)
   }
 
