@@ -41,6 +41,9 @@ import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
+import com.github.se.studentconnect.ui.screen.home.NotificationBanner
+import com.github.se.studentconnect.ui.screen.home.NotificationViewModel
+import com.github.se.studentconnect.ui.screen.home.handleNotificationClick
 import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
@@ -271,6 +274,10 @@ internal fun MainAppContent(
   // Track whether camera mode selector is currently active to conditionally hide bottom nav
   var isCameraActive by remember { mutableStateOf(false) }
 
+  // Notification ViewModel for app-wide notifications
+  val notificationViewModel: NotificationViewModel = viewModel()
+  val notificationUiState by notificationViewModel.uiState.collectAsState()
+
   val currentBackStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -282,439 +289,465 @@ internal fun MainAppContent(
           currentRoute == Route.EDIT_PRIVATE_EVENT ||
           isCameraActive
 
-  Scaffold(
-      bottomBar = {
-        if (!isCameraActive) {
-          BottomNavigationBar(
-              selectedTab = selectedTab,
-              onTabSelected = { tab ->
-                onTabSelected(tab)
-                onQRScannerStateChange(false)
-                navController.navigate(tab.destination.route) {
-                  launchSingleTop = true
-                  restoreState = true
-                }
-              },
-              onCreatePublicEvent = {
-                navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
-              },
-              onCreatePrivateEvent = {
-                navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
-              },
-              onCreateFromTemplate = {
-                navController.navigate(Route.SELECT_EVENT_TEMPLATE) { launchSingleTop = true }
-              })
-        }
-      }) { paddingValues ->
-        // Use real repository from provider
-        val userRepository = UserRepositoryProvider.repository
-        val currentUserId = Firebase.auth.currentUser?.uid ?: ""
-
-        NavHost(
-            navController = navController,
-            startDestination = Route.HOME,
-            modifier = Modifier.padding(paddingValues),
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-        ) {
-          composable(Route.HOME) {
-            HomeScreen(
-                navController = navController,
-                shouldOpenQRScanner = shouldOpenQRScanner,
-                onQRScannerClosed = { onQRScannerStateChange(false) },
-                onCameraActiveChange = { isActive -> isCameraActive = isActive })
-          }
-          composable(Route.SEARCH) { SearchScreen(navController = navController) }
-          composable(Route.MAP) { MapScreen() }
-          composable(
-              Route.MAP_WITH_LOCATION,
-              arguments =
-                  listOf(
-                      navArgument("latitude") { type = NavType.StringType },
-                      navArgument("longitude") { type = NavType.StringType },
-                      navArgument("zoom") { type = NavType.StringType },
-                      navArgument("eventUid") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                      })) { backStackEntry ->
-                val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
-                val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
-                val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                MapScreen(
-                    targetLatitude = latitude,
-                    targetLongitude = longitude,
-                    targetZoom = zoom,
-                    targetEventUid = eventUid)
-              }
-          composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
-
-          // Profile Screen (Main Profile View)
-          composable(Route.PROFILE) {
-            ProfileScreen(
-                currentUserId = currentUserId,
-                userRepository = userRepository,
-                navigationCallbacks =
-                    ProfileNavigationCallbacks(
-                        onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
-                        onNavigateToUserCard = { navController.navigate(ProfileRoutes.USER_CARD) },
-                        onNavigateToFriendsList = { userId ->
-                          navController.navigate(ProfileRoutes.friendsList(userId))
-                        },
-                        onNavigateToJoinedEvents = { navController.navigate(Route.JOINED_EVENTS) },
-                        onNavigateToEventDetails = { eventId ->
-                          navController.navigate(Route.eventView(eventId, true))
-                        },
-                        onNavigateToOrganizationManagement = {
-                          navController.navigate(ProfileRoutes.ORGANIZATION_MANAGEMENT)
-                        }),
-                logout = logOut)
-          }
-
-          // Joined Events Screen
-          composable(
-              route = Route.JOINED_EVENTS,
-              arguments =
-                  listOf(
-                      navArgument("userId") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                      })) { backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId")
-                val viewModel: JoinedEventsViewModel =
-                    viewModel(
-                        factory =
-                            object : ViewModelProvider.Factory {
-                              override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                @Suppress("UNCHECKED_CAST")
-                                return JoinedEventsViewModel(targetUserId = userId) as T
-                              }
-                            })
-                JoinedEventsScreen(
-                    navController = navController,
-                    viewModel = viewModel,
-                    userId = userId,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-
-          // Visitor Profile Screen (shown when clicking on other users)
-          composable(
-              route = Route.VISITOR_PROFILE,
-              arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG) ?: ""
-                val vm: VisitorProfileViewModel = viewModel()
-                // Load profile when userId changes
-                LaunchedEffect(userId) { if (userId.isNotEmpty()) vm.loadProfile(userId) }
-
-                val uiState by vm.uiState.collectAsState()
-                val friendsCount by vm.friendsCount.collectAsState()
-                val eventsCount by vm.eventsCount.collectAsState()
-                val pinnedEvents by vm.pinnedEvents.collectAsState()
-
-                when {
-                  uiState.isLoading -> {
-                    // simple loading indicator
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                      CircularProgressIndicator()
-                    }
+  Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        bottomBar = {
+          if (!isCameraActive) {
+            BottomNavigationBar(
+                selectedTab = selectedTab,
+                onTabSelected = { tab ->
+                  onTabSelected(tab)
+                  onQRScannerStateChange(false)
+                  navController.navigate(tab.destination.route) {
+                    launchSingleTop = true
+                    restoreState = true
                   }
-                  uiState.user != null -> {
-                    VisitorProfileScreen(
-                        user = uiState.user!!,
-                        friendsCount = friendsCount,
-                        eventsCount = eventsCount,
-                        pinnedEvents = pinnedEvents,
-                        callbacks =
-                            VisitorProfileCallbacks(
-                                onBackClick = { navController.popBackStack() },
-                                onAddFriendClick = { vm.sendFriendRequest() },
-                                onCancelFriendClick = { vm.cancelFriendRequest() },
-                                onRemoveFriendClick = { vm.removeFriend() },
-                                onFriendsClick = {
-                                  navController.navigate(
-                                      ProfileRoutes.FRIENDS_LIST.replace("{userId}", userId))
-                                },
-                                onEventsClick = {
-                                  navController.navigate(Route.joinedEvents(userId))
-                                },
-                                onEventClick = { event ->
-                                  navController.navigate(Route.eventView(event.uid, true))
-                                }),
-                        friendRequestStatus = uiState.friendRequestStatus)
-                  }
-                  else -> {
-                    // show an error state
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                      Text(text = uiState.errorMessage ?: ProfileConstants.ERROR_PROFILE_NOT_FOUND)
-                    }
-                  }
-                }
-              }
-
-          // Organization Profile Screen
-          composable(
-              route = Route.ORGANIZATION_PROFILE,
-              arguments =
-                  listOf(navArgument(Route.ORGANIZATION_ID_ARG) { type = NavType.StringType })) {
-                  backStackEntry ->
-                val organizationId =
-                    requireNotNull(backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG)) {
-                      "Organization ID is required"
-                    }
-                OrganizationProfileScreen(
-                    organizationId = organizationId, onBackClick = { navController.popBackStack() })
-              }
-
-          // Friends List Screen
-          composable(
-              route = ProfileRoutes.FRIENDS_LIST,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                FriendsListScreen(
-                    userId = userId,
-                    onNavigateBack = { navController.popBackStack() },
-                    onFriendClick = { friendId ->
-                      navController.navigate(Route.visitorProfile(friendId))
-                    },
-                    userRepository = userRepository)
-              }
-
-          // User Card Screen
-          composable(ProfileRoutes.USER_CARD) {
-            UserCardScreen(
-                currentUserId = currentUserId,
-                userRepository = userRepository,
-                onNavigateBack = { navController.popBackStack() })
-          }
-
-          // Organization Management Screen
-          composable(ProfileRoutes.ORGANIZATION_MANAGEMENT) {
-            OrganizationManagementScreen(
-                currentUserId = currentUserId,
-                onBack = { navController.popBackStack() },
-                onCreateOrganization = {
-                  // Navigate to organization creation route
-                  navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
                 },
-                onJoinOrganization = {
-                  // Navigate to search screen to find and join organizations
-                  // Users can search for existing organizations and request to join them
-                  navController.navigate(Route.SEARCH)
+                onCreatePublicEvent = {
+                  navController.navigate(Route.CREATE_PUBLIC_EVENT) { launchSingleTop = true }
                 },
-                onOrganizationClick = { organizationId ->
-                  navController.navigate(Route.organizationProfile(organizationId))
+                onCreatePrivateEvent = {
+                  navController.navigate(Route.CREATE_PRIVATE_EVENT) { launchSingleTop = true }
+                },
+                onCreateFromTemplate = {
+                  navController.navigate(Route.SELECT_EVENT_TEMPLATE) { launchSingleTop = true }
                 })
           }
+        }) { paddingValues ->
+          // Use real repository from provider
+          val userRepository = UserRepositoryProvider.repository
+          val currentUserId = Firebase.auth.currentUser?.uid ?: ""
 
-          // Create Organization Screen
-          composable(ProfileRoutes.CREATE_ORGANIZATION) {
-            OrganizationSignUpOrchestrator(
-                firebaseUserId = currentUserId,
-                onLogout = {
-                  // User wants to logout during org creation - navigate back to profile
-                  // The actual logout will be handled by the user from settings
-                  navController.popBackStack(Route.PROFILE, inclusive = false)
-                },
-                onBackToSelection = {
-                  // User cancelled organization creation
-                  navController.popBackStack()
-                })
+          NavHost(
+              navController = navController,
+              startDestination = Route.HOME,
+              modifier = Modifier.padding(paddingValues),
+              enterTransition = { EnterTransition.None },
+              exitTransition = { ExitTransition.None },
+          ) {
+            composable(Route.HOME) {
+              HomeScreen(
+                  navController = navController,
+                  shouldOpenQRScanner = shouldOpenQRScanner,
+                  onQRScannerClosed = { onQRScannerStateChange(false) },
+                  onCameraActiveChange = { isActive -> isCameraActive = isActive })
+            }
+            composable(Route.SEARCH) { SearchScreen(navController = navController) }
+            composable(Route.MAP) { MapScreen() }
+            composable(
+                Route.MAP_WITH_LOCATION,
+                arguments =
+                    listOf(
+                        navArgument("latitude") { type = NavType.StringType },
+                        navArgument("longitude") { type = NavType.StringType },
+                        navArgument("zoom") { type = NavType.StringType },
+                        navArgument("eventUid") {
+                          type = NavType.StringType
+                          nullable = true
+                          defaultValue = null
+                        })) { backStackEntry ->
+                  val latitude = backStackEntry.arguments?.getString("latitude")?.toDoubleOrNull()
+                  val longitude = backStackEntry.arguments?.getString("longitude")?.toDoubleOrNull()
+                  val zoom = backStackEntry.arguments?.getString("zoom")?.toDoubleOrNull() ?: 15.0
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  MapScreen(
+                      targetLatitude = latitude,
+                      targetLongitude = longitude,
+                      targetZoom = zoom,
+                      targetEventUid = eventUid)
+                }
+            composable(Route.ACTIVITIES) { ActivitiesScreen(navController) }
+
+            // Profile Screen (Main Profile View)
+            composable(Route.PROFILE) {
+              ProfileScreen(
+                  currentUserId = currentUserId,
+                  userRepository = userRepository,
+                  navigationCallbacks =
+                      ProfileNavigationCallbacks(
+                          onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
+                          onNavigateToUserCard = {
+                            navController.navigate(ProfileRoutes.USER_CARD)
+                          },
+                          onNavigateToFriendsList = { userId ->
+                            navController.navigate(ProfileRoutes.friendsList(userId))
+                          },
+                          onNavigateToJoinedEvents = {
+                            navController.navigate(Route.JOINED_EVENTS)
+                          },
+                          onNavigateToEventDetails = { eventId ->
+                            navController.navigate(Route.eventView(eventId, true))
+                          },
+                          onNavigateToOrganizationManagement = {
+                            navController.navigate(ProfileRoutes.ORGANIZATION_MANAGEMENT)
+                          }),
+                  logout = logOut)
+            }
+
+            // Joined Events Screen
+            composable(
+                route = Route.JOINED_EVENTS,
+                arguments =
+                    listOf(
+                        navArgument("userId") {
+                          type = NavType.StringType
+                          nullable = true
+                          defaultValue = null
+                        })) { backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId")
+                  val viewModel: JoinedEventsViewModel =
+                      viewModel(
+                          factory =
+                              object : ViewModelProvider.Factory {
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                  @Suppress("UNCHECKED_CAST")
+                                  return JoinedEventsViewModel(targetUserId = userId) as T
+                                }
+                              })
+                  JoinedEventsScreen(
+                      navController = navController,
+                      viewModel = viewModel,
+                      userId = userId,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+
+            // Visitor Profile Screen (shown when clicking on other users)
+            composable(
+                route = Route.VISITOR_PROFILE,
+                arguments = listOf(navArgument(Route.USER_ID_ARG) { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString(Route.USER_ID_ARG) ?: ""
+                  val vm: VisitorProfileViewModel = viewModel()
+                  // Load profile when userId changes
+                  LaunchedEffect(userId) { if (userId.isNotEmpty()) vm.loadProfile(userId) }
+
+                  val uiState by vm.uiState.collectAsState()
+                  val friendsCount by vm.friendsCount.collectAsState()
+                  val eventsCount by vm.eventsCount.collectAsState()
+                  val pinnedEvents by vm.pinnedEvents.collectAsState()
+
+                  when {
+                    uiState.isLoading -> {
+                      // simple loading indicator
+                      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                      }
+                    }
+                    uiState.user != null -> {
+                      VisitorProfileScreen(
+                          user = uiState.user!!,
+                          friendsCount = friendsCount,
+                          eventsCount = eventsCount,
+                          pinnedEvents = pinnedEvents,
+                          callbacks =
+                              VisitorProfileCallbacks(
+                                  onBackClick = { navController.popBackStack() },
+                                  onAddFriendClick = { vm.sendFriendRequest() },
+                                  onCancelFriendClick = { vm.cancelFriendRequest() },
+                                  onRemoveFriendClick = { vm.removeFriend() },
+                                  onFriendsClick = {
+                                    navController.navigate(
+                                        ProfileRoutes.FRIENDS_LIST.replace("{userId}", userId))
+                                  },
+                                  onEventsClick = {
+                                    navController.navigate(Route.joinedEvents(userId))
+                                  },
+                                  onEventClick = { event ->
+                                    navController.navigate(Route.eventView(event.uid, true))
+                                  }),
+                          friendRequestStatus = uiState.friendRequestStatus)
+                    }
+                    else -> {
+                      // show an error state
+                      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.errorMessage ?: ProfileConstants.ERROR_PROFILE_NOT_FOUND)
+                      }
+                    }
+                  }
+                }
+
+            // Organization Profile Screen
+            composable(
+                route = Route.ORGANIZATION_PROFILE,
+                arguments =
+                    listOf(navArgument(Route.ORGANIZATION_ID_ARG) { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val organizationId =
+                      requireNotNull(
+                          backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG)) {
+                            "Organization ID is required"
+                          }
+                  OrganizationProfileScreen(
+                      organizationId = organizationId,
+                      onBackClick = { navController.popBackStack() })
+                }
+
+            // Friends List Screen
+            composable(
+                route = ProfileRoutes.FRIENDS_LIST,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  FriendsListScreen(
+                      userId = userId,
+                      onNavigateBack = { navController.popBackStack() },
+                      onFriendClick = { friendId ->
+                        navController.navigate(Route.visitorProfile(friendId))
+                      },
+                      userRepository = userRepository)
+                }
+
+            // User Card Screen
+            composable(ProfileRoutes.USER_CARD) {
+              UserCardScreen(
+                  currentUserId = currentUserId,
+                  userRepository = userRepository,
+                  onNavigateBack = { navController.popBackStack() })
+            }
+
+            // Organization Management Screen
+            composable(ProfileRoutes.ORGANIZATION_MANAGEMENT) {
+              OrganizationManagementScreen(
+                  currentUserId = currentUserId,
+                  onBack = { navController.popBackStack() },
+                  onCreateOrganization = {
+                    // Navigate to organization creation route
+                    navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
+                  },
+                  onJoinOrganization = {
+                    // Navigate to search screen to find and join organizations
+                    // Users can search for existing organizations and request to join them
+                    navController.navigate(Route.SEARCH)
+                  },
+                  onOrganizationClick = { organizationId ->
+                    navController.navigate(Route.organizationProfile(organizationId))
+                  })
+            }
+
+            // Create Organization Screen
+            composable(ProfileRoutes.CREATE_ORGANIZATION) {
+              OrganizationSignUpOrchestrator(
+                  firebaseUserId = currentUserId,
+                  onLogout = {
+                    // User wants to logout during org creation - navigate back to profile
+                    // The actual logout will be handled by the user from settings
+                    navController.popBackStack(Route.PROFILE, inclusive = false)
+                  },
+                  onBackToSelection = {
+                    // User cancelled organization creation
+                    navController.popBackStack()
+                  })
+            }
+
+            // Profile Settings Screen (Edit Profile View)
+            composable(ProfileRoutes.SETTINGS) {
+              ProfileSettingsScreen(
+                  currentUserId = currentUserId,
+                  userRepository = userRepository,
+                  onNavigateToEditPicture = { userId ->
+                    navController.navigate(ProfileRoutes.editPicture(userId))
+                  },
+                  onNavigateToEditName = { userId ->
+                    navController.navigate(ProfileRoutes.editName(userId))
+                  },
+                  onNavigateToEditBio = { userId ->
+                    navController.navigate(ProfileRoutes.editBio(userId))
+                  },
+                  onNavigateToEditActivities = { userId ->
+                    navController.navigate(ProfileRoutes.editActivities(userId))
+                  },
+                  onNavigateToEditBirthday = { userId ->
+                    navController.navigate(ProfileRoutes.editBirthday(userId))
+                  },
+                  onNavigateToEditNationality = { userId ->
+                    navController.navigate(ProfileRoutes.editNationality(userId))
+                  },
+                  onNavigateBack = { navController.popBackStack() })
+            }
+
+            // Edit Profile Picture Screen
+            composable(
+                route = ProfileRoutes.EDIT_PICTURE,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditProfilePictureScreen(
+                      userId = userId,
+                      onNavigateBack = { navController.popBackStack() },
+                      userRepository = userRepository)
+                }
+
+            // Edit Name Screen
+            composable(
+                route = ProfileRoutes.EDIT_NAME,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditNameScreen(
+                      userId = userId,
+                      userRepository = userRepository,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+
+            // Edit Nationality Screen
+            composable(
+                route = ProfileRoutes.EDIT_NATIONALITY,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditNationalityScreen(
+                      userId = userId,
+                      userRepository = userRepository,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+            // Edit Birthday Screen
+            composable(
+                route = ProfileRoutes.EDIT_BIRTHDAY,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditBirthdayScreen(
+                      userId = userId,
+                      userRepository = userRepository,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+            composable(
+                route = ProfileRoutes.EDIT_ACTIVITIES,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditActivitiesScreen(
+                      userId = userId,
+                      userRepository = userRepository,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+
+            // Edit Bio Screen
+            composable(
+                route = ProfileRoutes.EDIT_BIO,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
+                  EditBioScreen(
+                      userId = userId,
+                      userRepository = userRepository,
+                      onNavigateBack = { navController.popBackStack() })
+                }
+
+            composable(
+                route = "eventView/{eventUid}/{hasJoined}",
+                arguments =
+                    listOf(
+                        navArgument("eventUid") { type = NavType.StringType },
+                        navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required." }
+                  EventView(eventUid = eventUid, navController = navController)
+                }
+
+            composable(Route.CREATE_PRIVATE_EVENT) {
+              CreatePrivateEventScreen(navController = navController)
+            }
+
+            composable(Route.CREATE_PUBLIC_EVENT) {
+              CreatePublicEventScreen(navController = navController)
+            }
+
+            // Create from template routes
+            composable(Route.SELECT_EVENT_TEMPLATE) {
+              EventTemplateSelectionScreen(navController = navController)
+            }
+
+            composable(
+                Route.CREATE_PUBLIC_EVENT_FROM_TEMPLATE,
+                arguments =
+                    listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
+                  requireNotNull(templateEventUid) { "Template Event UID is required." }
+                  CreatePublicEventScreen(
+                      navController = navController, templateEventId = templateEventUid)
+                }
+
+            composable(
+                Route.CREATE_PRIVATE_EVENT_FROM_TEMPLATE,
+                arguments =
+                    listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
+                  requireNotNull(templateEventUid) { "Template Event UID is required." }
+                  CreatePrivateEventScreen(
+                      navController = navController, templateEventId = templateEventUid)
+                }
+
+            composable(
+                Route.EDIT_PRIVATE_EVENT,
+                arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required to edit a private event." }
+                  CreatePrivateEventScreen(
+                      navController = navController, existingEventId = eventUid)
+                }
+            composable(
+                Route.EDIT_PUBLIC_EVENT,
+                arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required to edit a public event." }
+                  CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
+                }
+
+            // Poll screens
+            composable(
+                Route.POLLS_LIST,
+                arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required for polls list." }
+                  com.github.se.studentconnect.ui.poll.PollsListScreen(
+                      eventUid = eventUid, navController = navController)
+                }
+
+            composable(
+                Route.POLL_SCREEN,
+                arguments =
+                    listOf(
+                        navArgument("eventUid") { type = NavType.StringType },
+                        navArgument("pollUid") { type = NavType.StringType })) { backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  val pollUid = backStackEntry.arguments?.getString("pollUid")
+                  requireNotNull(eventUid) { "Event UID is required for poll screen." }
+                  requireNotNull(pollUid) { "Poll UID is required for poll screen." }
+                  com.github.se.studentconnect.ui.poll.PollScreen(
+                      eventUid = eventUid, pollUid = pollUid, navController = navController)
+                }
+
+            // Event Statistics screen
+            composable(
+                Route.EVENT_STATISTICS,
+                arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required for statistics screen." }
+                  EventStatisticsScreen(eventUid = eventUid, navController = navController)
+                }
           }
-
-          // Profile Settings Screen (Edit Profile View)
-          composable(ProfileRoutes.SETTINGS) {
-            ProfileSettingsScreen(
-                currentUserId = currentUserId,
-                userRepository = userRepository,
-                onNavigateToEditPicture = { userId ->
-                  navController.navigate(ProfileRoutes.editPicture(userId))
-                },
-                onNavigateToEditName = { userId ->
-                  navController.navigate(ProfileRoutes.editName(userId))
-                },
-                onNavigateToEditBio = { userId ->
-                  navController.navigate(ProfileRoutes.editBio(userId))
-                },
-                onNavigateToEditActivities = { userId ->
-                  navController.navigate(ProfileRoutes.editActivities(userId))
-                },
-                onNavigateToEditBirthday = { userId ->
-                  navController.navigate(ProfileRoutes.editBirthday(userId))
-                },
-                onNavigateToEditNationality = { userId ->
-                  navController.navigate(ProfileRoutes.editNationality(userId))
-                },
-                onNavigateBack = { navController.popBackStack() })
-          }
-
-          // Edit Profile Picture Screen
-          composable(
-              route = ProfileRoutes.EDIT_PICTURE,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditProfilePictureScreen(
-                    userId = userId,
-                    onNavigateBack = { navController.popBackStack() },
-                    userRepository = userRepository)
-              }
-
-          // Edit Name Screen
-          composable(
-              route = ProfileRoutes.EDIT_NAME,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditNameScreen(
-                    userId = userId,
-                    userRepository = userRepository,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-
-          // Edit Nationality Screen
-          composable(
-              route = ProfileRoutes.EDIT_NATIONALITY,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditNationalityScreen(
-                    userId = userId,
-                    userRepository = userRepository,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-          // Edit Birthday Screen
-          composable(
-              route = ProfileRoutes.EDIT_BIRTHDAY,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditBirthdayScreen(
-                    userId = userId,
-                    userRepository = userRepository,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-          composable(
-              route = ProfileRoutes.EDIT_ACTIVITIES,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditActivitiesScreen(
-                    userId = userId,
-                    userRepository = userRepository,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-
-          // Edit Bio Screen
-          composable(
-              route = ProfileRoutes.EDIT_BIO,
-              arguments = listOf(navArgument("userId") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
-                EditBioScreen(
-                    userId = userId,
-                    userRepository = userRepository,
-                    onNavigateBack = { navController.popBackStack() })
-              }
-
-          composable(
-              route = "eventView/{eventUid}/{hasJoined}",
-              arguments =
-                  listOf(
-                      navArgument("eventUid") { type = NavType.StringType },
-                      navArgument("hasJoined") { type = NavType.BoolType })) { backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                requireNotNull(eventUid) { "Event UID is required." }
-                EventView(eventUid = eventUid, navController = navController)
-              }
-
-          composable(Route.CREATE_PRIVATE_EVENT) {
-            CreatePrivateEventScreen(navController = navController)
-          }
-
-          composable(Route.CREATE_PUBLIC_EVENT) {
-            CreatePublicEventScreen(navController = navController)
-          }
-
-          // Create from template routes
-          composable(Route.SELECT_EVENT_TEMPLATE) {
-            EventTemplateSelectionScreen(navController = navController)
-          }
-
-          composable(
-              Route.CREATE_PUBLIC_EVENT_FROM_TEMPLATE,
-              arguments = listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
-                requireNotNull(templateEventUid) { "Template Event UID is required." }
-                CreatePublicEventScreen(
-                    navController = navController, templateEventId = templateEventUid)
-              }
-
-          composable(
-              Route.CREATE_PRIVATE_EVENT_FROM_TEMPLATE,
-              arguments = listOf(navArgument("templateEventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val templateEventUid = backStackEntry.arguments?.getString("templateEventUid")
-                requireNotNull(templateEventUid) { "Template Event UID is required." }
-                CreatePrivateEventScreen(
-                    navController = navController, templateEventId = templateEventUid)
-              }
-
-          composable(
-              Route.EDIT_PRIVATE_EVENT,
-              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                requireNotNull(eventUid) { "Event UID is required to edit a private event." }
-                CreatePrivateEventScreen(navController = navController, existingEventId = eventUid)
-              }
-          composable(
-              Route.EDIT_PUBLIC_EVENT,
-              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                requireNotNull(eventUid) { "Event UID is required to edit a public event." }
-                CreatePublicEventScreen(navController = navController, existingEventId = eventUid)
-              }
-
-          // Poll screens
-          composable(
-              Route.POLLS_LIST,
-              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                requireNotNull(eventUid) { "Event UID is required for polls list." }
-                com.github.se.studentconnect.ui.poll.PollsListScreen(
-                    eventUid = eventUid, navController = navController)
-              }
-
-          composable(
-              Route.POLL_SCREEN,
-              arguments =
-                  listOf(
-                      navArgument("eventUid") { type = NavType.StringType },
-                      navArgument("pollUid") { type = NavType.StringType })) { backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                val pollUid = backStackEntry.arguments?.getString("pollUid")
-                requireNotNull(eventUid) { "Event UID is required for poll screen." }
-                requireNotNull(pollUid) { "Poll UID is required for poll screen." }
-                com.github.se.studentconnect.ui.poll.PollScreen(
-                    eventUid = eventUid, pollUid = pollUid, navController = navController)
-              }
-
-          // Event Statistics screen
-          composable(
-              Route.EVENT_STATISTICS,
-              arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
-                  backStackEntry ->
-                val eventUid = backStackEntry.arguments?.getString("eventUid")
-                requireNotNull(eventUid) { "Event UID is required for statistics screen." }
-                EventStatisticsScreen(eventUid = eventUid, navController = navController)
-              }
         }
-      }
+
+    // App-wide notification banner
+    NotificationBanner(
+        notification = notificationUiState.latestNotification,
+        onDismiss = { notificationViewModel.clearLatestNotification() },
+        onClick = {
+          notificationUiState.latestNotification?.let { notification ->
+            handleNotificationClick(
+                notification,
+                navController,
+                { notificationViewModel.markAsRead(it) },
+                { notificationViewModel.clearLatestNotification() })
+          }
+        })
+  }
 }
