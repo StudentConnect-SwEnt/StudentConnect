@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -808,6 +810,89 @@ private fun NotificationBadge(unreadCount: Int) {
       }
 }
 
+/** Banner notification that appears at the top of the screen */
+@Composable
+fun NotificationBanner(notification: Notification?, onDismiss: () -> Unit, onClick: () -> Unit) {
+  var visible by remember(notification) { mutableStateOf(notification != null) }
+
+  // Auto-dismiss after 4 seconds
+  LaunchedEffect(notification) {
+    if (notification != null) {
+      visible = true
+      delay(4000)
+      visible = false
+      delay(300) // Wait for animation to complete
+      onDismiss()
+    }
+  }
+
+  AnimatedVisibility(
+      visible = visible && notification != null,
+      enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+      exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+      modifier = Modifier.fillMaxWidth().zIndex(999f).testTag("NotificationBanner")) {
+        notification?.let {
+          Card(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .padding(horizontal = 16.dp, vertical = 8.dp)
+                      .clickable {
+                        visible = false
+                        onClick()
+                      }
+                      .testTag("NotificationBanner_${it.id}"),
+              colors =
+                  CardDefaults.cardColors(
+                      containerColor = MaterialTheme.colorScheme.primaryContainer),
+              elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Row(
+                          modifier = Modifier.weight(1f),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            NotificationIcon(notification = it)
+                            Column {
+                              Text(
+                                  text =
+                                      when (it) {
+                                        is Notification.FriendRequest -> "New Friend Request"
+                                        is Notification.EventStarting -> "Event Starting"
+                                        is Notification.OrganizationMemberInvitation ->
+                                            "Organization Invitation"
+                                      },
+                                  style = MaterialTheme.typography.labelMedium,
+                                  fontWeight = FontWeight.Bold,
+                                  color = MaterialTheme.colorScheme.onPrimaryContainer)
+                              Text(
+                                  text =
+                                      when (it) {
+                                        is Notification.FriendRequest -> it.getMessage()
+                                        is Notification.EventStarting -> it.getMessage()
+                                        is Notification.OrganizationMemberInvitation ->
+                                            it.getMessage()
+                                      },
+                                  style = MaterialTheme.typography.bodySmall,
+                                  maxLines = 1,
+                                  overflow = TextOverflow.Ellipsis,
+                                  color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            }
+                          }
+                      IconButton(onClick = { visible = false }, modifier = Modifier.size(24.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Dismiss",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                      }
+                    }
+              }
+        }
+      }
+}
+
 private fun getAcceptCallback(
     notification: Notification,
     onFriendRequestAccept: (String, String) -> Unit,
@@ -840,7 +925,7 @@ private fun getRejectCallback(
   }
 }
 
-private fun handleNotificationClick(
+fun handleNotificationClick(
     notification: Notification,
     navController: NavHostController,
     onNotificationRead: (String) -> Unit,
@@ -1040,7 +1125,7 @@ private fun FriendRequestActions(
           onAccept()
           onRead()
         },
-        modifier = Modifier.weight(1f).testTag("AcceptFriendRequestButton_$notificationId"),
+        modifier = Modifier.weight(1f).testTag("AcceptNotificationButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
           Text(stringResource(R.string.button_accept))
         }
@@ -1049,7 +1134,7 @@ private fun FriendRequestActions(
           onReject()
           onRead()
         },
-        modifier = Modifier.weight(1f).testTag("RejectFriendRequestButton_$notificationId"),
+        modifier = Modifier.weight(1f).testTag("RejectNotificationButton_$notificationId"),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
           Text(stringResource(R.string.button_reject))
         }
