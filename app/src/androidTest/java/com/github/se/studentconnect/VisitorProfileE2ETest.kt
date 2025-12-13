@@ -179,19 +179,25 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
           .isNotEmpty()
     }
 
+    composeTestRule.waitForIdle()
+
     // Assertions: name, username, bio and add friend button
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_user_name)
         .assertExists()
         .assertTextEquals(expectedFullName)
 
-    // username tag should show ritan with unique suffix
-    composeTestRule.onNodeWithText("@ritan$shortSuffix", useUnmergedTree = true).assertExists()
+    // username tag should show @ritan with unique suffix
+    composeTestRule
+        .onNodeWithTag(C.Tag.visitor_profile_user_id)
+        .assertExists()
+        .assertTextContains("@ritan$shortSuffix")
 
     composeTestRule
-        .onNodeWithText("This is Rita's bio for testing", substring = true, useUnmergedTree = true)
+        .onNodeWithTag(C.Tag.visitor_profile_bio)
         .performScrollTo()
         .assertExists()
+        .assertTextContains("This is Rita's bio for testing")
 
     composeTestRule.onNodeWithTag(C.Tag.visitor_profile_add_friend).assertExists()
   }

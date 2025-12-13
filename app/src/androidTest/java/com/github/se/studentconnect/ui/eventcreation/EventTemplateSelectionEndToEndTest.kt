@@ -110,13 +110,28 @@ class EventTemplateSelectionEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onNodeWithText(templateTitle).performClick()
     composeTestRule.waitForIdle()
 
-    // 7. Verify we navigated to "Create Public Event" and fields are pre-filled
+    // 7. Verify we navigated to "Create Public Event" and wait for template data to load
+    // The screen uses LaunchedEffect to load the template data asynchronously, so we need
+    // to wait for both the screen to appear AND the data to be prefilled
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "create public event screen to appear") {
-          composeTestRule
-              .onAllNodesWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
-              .fetchSemanticsNodes()
-              .isNotEmpty()
+        timeoutMillis = 15_000, message = "title input to be pre-filled with template data") {
+          try {
+            // Check if the title input exists and contains the template title
+            composeTestRule
+                .onAllNodesWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
+                .fetchSemanticsNodes()
+                .isNotEmpty() &&
+                try {
+                  composeTestRule
+                      .onNodeWithTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
+                      .assertTextContains(templateTitle)
+                  true
+                } catch (e: AssertionError) {
+                  false
+                }
+          } catch (e: AssertionError) {
+            false
+          }
         }
     composeTestRule.waitForIdle()
 

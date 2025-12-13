@@ -71,11 +71,11 @@ class UsernameTextFieldTest {
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule
-          .onAllNodesWithText("Username must be 3-20 characters long")
+          .onAllNodesWithText("Username must be 3–20 characters long")
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
-    composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
+    composeTestRule.onNodeWithText("Username must be 3–20 characters long").assertExists()
   }
 
   @Test
@@ -93,11 +93,11 @@ class UsernameTextFieldTest {
     composeTestRule.waitForIdle()
     composeTestRule.waitUntil(timeoutMillis = 2000) {
       composeTestRule
-          .onAllNodesWithText("Username must be 3-20 characters long")
+          .onAllNodesWithText("Username must be 3–20 characters long")
           .fetchSemanticsNodes()
           .isNotEmpty()
     }
-    composeTestRule.onNodeWithText("Username must be 3-20 characters long").assertExists()
+    composeTestRule.onNodeWithText("Username must be 3–20 characters long").assertExists()
   }
 
   @Test
