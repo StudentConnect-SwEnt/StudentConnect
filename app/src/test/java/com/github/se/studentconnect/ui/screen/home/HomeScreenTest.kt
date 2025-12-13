@@ -160,8 +160,8 @@ class HomeScreenTest {
     composeRule.onNodeWithTag("NotificationItem_notif1").assertExists()
 
     // Accept and reject buttons should be visible for organization invitations
-    composeRule.onNodeWithTag("AcceptFriendRequestButton_notif1").assertExists()
-    composeRule.onNodeWithTag("RejectFriendRequestButton_notif1").assertExists()
+    composeRule.onNodeWithTag("AcceptNotificationButton_notif1").assertExists()
+    composeRule.onNodeWithTag("RejectNotificationButton_notif1").assertExists()
   }
 
   @Test
@@ -214,7 +214,7 @@ class HomeScreenTest {
     composeRule.waitForIdle()
 
     // Accept button should be clickable
-    composeRule.onNodeWithTag("AcceptFriendRequestButton_notif1").assertIsDisplayed().performClick()
+    composeRule.onNodeWithTag("AcceptNotificationButton_notif1").assertIsDisplayed().performClick()
 
     // Wait for coroutines to complete (HomeScreen uses coroutineScope.launch)
     advanceUntilIdle()
@@ -279,7 +279,7 @@ class HomeScreenTest {
     composeRule.waitForIdle()
 
     // Reject button should be clickable
-    composeRule.onNodeWithTag("RejectFriendRequestButton_notif1").assertIsDisplayed().performClick()
+    composeRule.onNodeWithTag("RejectNotificationButton_notif1").assertIsDisplayed().performClick()
 
     // Wait for coroutines to complete (HomeScreen uses coroutineScope.launch)
     advanceUntilIdle()
