@@ -514,7 +514,7 @@ class OrganizationProfileViewModel(
    */
   fun removeMember(member: com.github.se.studentconnect.model.organization.OrganizationMember) {
     val currentOrg = _uiState.value.organization ?: return
-    val ownerId = currentUserId ?: return
+    currentUserId ?: return
 
     // Can't remove the owner
     if (member.role == "Owner") {

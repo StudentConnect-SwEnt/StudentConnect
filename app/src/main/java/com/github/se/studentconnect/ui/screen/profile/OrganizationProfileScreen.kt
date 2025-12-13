@@ -90,6 +90,15 @@ import com.github.se.studentconnect.ui.profile.OrganizationTab
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 
+/** Callbacks for organization profile actions. */
+data class OrganizationProfileCallbacks(
+    val onTabSelected: (OrganizationTab) -> Unit,
+    val onFollowClick: () -> Unit,
+    val onAddMemberClick: (String) -> Unit,
+    val onRemoveMemberClick: (OrganizationMember) -> Unit,
+    val onBackClick: () -> Unit
+)
+
 // Constants for UI spacing and sizing
 private object OrganizationProfileConstants {
   const val SCREEN_HORIZONTAL_PADDING = 24
@@ -166,11 +175,13 @@ fun OrganizationProfileScreen(
             organization = uiState.organization!!,
             selectedTab = uiState.selectedTab,
             pendingInvitations = uiState.pendingInvitations,
-            onTabSelected = { viewModel.selectTab(it) },
-            onFollowClick = { viewModel.onFollowButtonClick() },
-            onAddMemberClick = { role -> viewModel.showAddMemberDialog(role) },
-            onRemoveMemberClick = { member -> viewModel.removeMember(member) },
-            onBackClick = onBackClick,
+            callbacks =
+                OrganizationProfileCallbacks(
+                    onTabSelected = { viewModel.selectTab(it) },
+                    onFollowClick = { viewModel.onFollowButtonClick() },
+                    onAddMemberClick = { role -> viewModel.showAddMemberDialog(role) },
+                    onRemoveMemberClick = { member -> viewModel.removeMember(member) },
+                    onBackClick = onBackClick),
             modifier = Modifier.padding(paddingValues))
       }
     }
@@ -201,9 +212,7 @@ fun OrganizationProfileScreen(
  * @param organization The organization data to display
  * @param selectedTab The currently selected tab
  * @param pendingInvitations Map of role -> userId for pending invitations
- * @param onTabSelected Callback when a tab is selected
- * @param onFollowClick Callback when the follow button is clicked
- * @param onBackClick Callback when the back button is clicked
+ * @param callbacks Callbacks for user interactions
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -211,11 +220,7 @@ private fun OrganizationProfileContent(
     organization: OrganizationProfile,
     selectedTab: OrganizationTab,
     pendingInvitations: Map<String, String>,
-    onTabSelected: (OrganizationTab) -> Unit,
-    onFollowClick: () -> Unit,
-    onAddMemberClick: (String) -> Unit,
-    onRemoveMemberClick: (OrganizationMember) -> Unit,
-    onBackClick: () -> Unit,
+    callbacks: OrganizationProfileCallbacks,
     modifier: Modifier = Modifier
 ) {
   Column(
@@ -230,16 +235,17 @@ private fun OrganizationProfileContent(
                   bottom = OrganizationProfileConstants.SCREEN_BOTTOM_PADDING.dp),
       verticalArrangement = Arrangement.spacedBy(OrganizationProfileConstants.SECTION_SPACING.dp)) {
         // Top Bar with back button
-        OrganizationTopBar(organizationName = organization.name, onBackClick = onBackClick)
+        OrganizationTopBar(
+            organizationName = organization.name, onBackClick = callbacks.onBackClick)
 
         // Avatar Banner
         AvatarBanner(logoUrl = organization.logoUrl)
 
         // Organization Info Block
-        OrganizationInfoBlock(organization = organization, onFollowClick = onFollowClick)
+        OrganizationInfoBlock(organization = organization, onFollowClick = callbacks.onFollowClick)
 
         // About Section with Tabs
-        AboutSection(selectedTab = selectedTab, onTabSelected = onTabSelected)
+        AboutSection(selectedTab = selectedTab, onTabSelected = callbacks.onTabSelected)
 
         // Tab Content
         when (selectedTab) {
@@ -250,8 +256,8 @@ private fun OrganizationProfileContent(
                   organizationRoles = organization.roles,
                   isOwner = organization.isOwner,
                   pendingInvitations = pendingInvitations,
-                  onAddMemberClick = onAddMemberClick,
-                  onRemoveMemberClick = onRemoveMemberClick)
+                  onAddMemberClick = callbacks.onAddMemberClick,
+                  onRemoveMemberClick = callbacks.onRemoveMemberClick)
         }
       }
 }
@@ -685,11 +691,14 @@ private fun MembersTab(
                   rowSlots.forEach { roleSlot ->
                     Box(modifier = Modifier.weight(1f)) {
                       RoleSlotCard(
-                          role = roleSlot.role,
-                          member = roleSlot.member,
-                          index = sortedRoles.indexOf(roleSlot.role),
-                          isOwner = isOwner,
-                          hasPendingInvitation = pendingInvitations.containsKey(roleSlot.role),
+                          state =
+                              RoleSlotState(
+                                  role = roleSlot.role,
+                                  member = roleSlot.member,
+                                  index = sortedRoles.indexOf(roleSlot.role),
+                                  isOwner = isOwner,
+                                  hasPendingInvitation =
+                                      pendingInvitations.containsKey(roleSlot.role)),
                           onAddClick = { onAddMemberClick(roleSlot.role) },
                           onRemoveClick = { roleSlot.member?.let { onRemoveMemberClick(it) } })
                     }
@@ -707,25 +716,26 @@ private fun MembersTab(
 /** Data class representing a role slot (filled or empty). */
 private data class RoleSlot(val role: String, val member: OrganizationMember?)
 
+/** UI state for a role slot card. */
+data class RoleSlotState(
+    val role: String,
+    val member: OrganizationMember?,
+    val index: Int,
+    val isOwner: Boolean,
+    val hasPendingInvitation: Boolean
+)
+
 /**
  * Role slot card showing either a filled member or empty placeholder.
  *
- * @param role The role name
- * @param member The member filling this role (null if empty)
- * @param index Index in the grid
- * @param isOwner Whether current user is owner
- * @param hasPendingInvitation Whether there's a pending invitation for this role
+ * @param state The state containing role, member, and UI flags
  * @param onAddClick Callback when add button is clicked
  * @param onRemoveClick Callback when remove button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun RoleSlotCard(
-    role: String,
-    member: OrganizationMember?,
-    index: Int,
-    isOwner: Boolean,
-    hasPendingInvitation: Boolean,
+    state: RoleSlotState,
     onAddClick: () -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -737,19 +747,19 @@ private fun RoleSlotCard(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically) {
           Text(
-              text = role,
+              text = state.role,
               style = MaterialTheme.typography.titleSmall,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.primary,
-              modifier = Modifier.testTag("RoleTitle_$role"))
+              modifier = Modifier.testTag("RoleTitle_${state.role}"))
 
-          if (isOwner && role != "Owner") {
-            if (hasPendingInvitation) {
+          if (state.isOwner && state.role != "Owner") {
+            if (state.hasPendingInvitation) {
               // Show "Request sent" indicator
               Row(
                   verticalAlignment = Alignment.CenterVertically,
                   horizontalArrangement = Arrangement.spacedBy(4.dp),
-                  modifier = Modifier.testTag("PendingInvitation_$role")) {
+                  modifier = Modifier.testTag("PendingInvitation_${state.role}")) {
                     Box(
                         modifier =
                             Modifier.size(8.dp)
@@ -765,10 +775,10 @@ private fun RoleSlotCard(
               // Show add button
               IconButton(
                   onClick = onAddClick,
-                  modifier = Modifier.size(32.dp).testTag("AddMemberButton_$role")) {
+                  modifier = Modifier.size(32.dp).testTag("AddMemberButton_${state.role}")) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Add $role",
+                        contentDescription = "Add ${state.role}",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp))
                   }
@@ -777,15 +787,15 @@ private fun RoleSlotCard(
         }
 
     // Show either member card or empty placeholder
-    if (member != null) {
+    if (state.member != null) {
       MemberCard(
-          member = member,
-          index = index,
-          isOwner = isOwner,
-          canRemove = role != "Owner",
+          member = state.member,
+          index = state.index,
+          isOwner = state.isOwner,
+          canRemove = state.role != "Owner",
           onRemoveClick = onRemoveClick)
     } else {
-      EmptyRoleCard(role = role)
+      EmptyRoleCard(role = state.role)
     }
   }
 }

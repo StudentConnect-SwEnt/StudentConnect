@@ -393,7 +393,8 @@ fun HomeScreen(
                                     notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
-                                  // Handle error silently or show a message
+                                  android.util.Log.e(
+                                      "HomeScreen", "Failed to accept friend request", e)
                                 }
                               }
                             },
@@ -407,7 +408,8 @@ fun HomeScreen(
                                     notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
-                                  // Handle error silently or show a message
+                                  android.util.Log.e(
+                                      "HomeScreen", "Failed to reject friend request", e)
                                 }
                               }
                             },
@@ -421,7 +423,8 @@ fun HomeScreen(
                                     notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
-                                  // Handle error silently or show a message
+                                  android.util.Log.e(
+                                      "HomeScreen", "Failed to accept organization invitation", e)
                                 }
                               }
                             },
@@ -435,7 +438,8 @@ fun HomeScreen(
                                     notificationViewModel?.deleteNotification(notificationId)
                                   }
                                 } catch (e: Exception) {
-                                  // Handle error silently or show a message
+                                  android.util.Log.e(
+                                      "HomeScreen", "Failed to reject organization invitation", e)
                                 }
                               }
                             }),
