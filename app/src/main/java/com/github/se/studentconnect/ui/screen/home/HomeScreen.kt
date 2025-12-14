@@ -1122,9 +1122,9 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
 private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
   val username =
       when (notification) {
-        is Notification.FriendRequest -> notification.fromUserName
-        is Notification.EventStarting -> notification.eventTitle
         is Notification.EventInvitation -> notification.invitedByName
+        is Notification.FriendRequest -> notification.fromUserName
+        is Notification.EventStarting -> notification.eventOwnerName
         is Notification.OrganizationMemberInvitation -> notification.invitedByName
       }
 
