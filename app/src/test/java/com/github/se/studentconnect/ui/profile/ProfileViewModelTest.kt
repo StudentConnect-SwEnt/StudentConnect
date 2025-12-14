@@ -2,6 +2,10 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -18,6 +22,7 @@ class ProfileViewModelTest {
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
   private lateinit var repository: TestUserRepository
+  private lateinit var organizationRepository: TestOrganizationRepository
   private lateinit var viewModel: ProfileViewModel
   private val testUser =
       User(
@@ -32,10 +37,36 @@ class ProfileViewModelTest {
           hobbies = listOf("Reading", "Coding"),
           bio = "Test bio")
 
+  private val testOrganization1 =
+      Organization(
+          id = "org1",
+          name = "Test Org 1",
+          type = OrganizationType.StudentClub,
+          memberUids = listOf("test_user", "other_user"),
+          createdBy = "other_user")
+
+  private val testOrganization2 =
+      Organization(
+          id = "org2",
+          name = "Test Org 2",
+          type = OrganizationType.Association,
+          memberUids = listOf("other_user"),
+          createdBy = "test_user")
+
+  private val testOrganization3 =
+      Organization(
+          id = "org3",
+          name = "Test Org 3",
+          type = OrganizationType.Company,
+          memberUids = listOf("another_user"),
+          createdBy = "another_user")
+
   @Before
   fun setUp() {
     repository = TestUserRepository(testUser)
-    viewModel = ProfileViewModel(repository, testUser.userId)
+    organizationRepository =
+        TestOrganizationRepository(listOf(testOrganization1, testOrganization2, testOrganization3))
+    viewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
   }
 
   @Test
@@ -255,6 +286,59 @@ class ProfileViewModelTest {
     assertEquals(R.string.label_profile, EditingField.None.displayNameResId)
   }
 
+  @Test
+  fun `loadUserOrganizations loads organizations where user is member`() = runTest {
+    // Wait for async organization loading to complete
+    kotlinx.coroutines.delay(300)
+
+    val organizations = viewModel.userOrganizations.value
+    // Should include both org1 (where user is member) and org2 (where user is owner)
+    assertTrue(
+        "Expected at least 1 organization, got ${organizations.size}", organizations.size >= 1)
+    val memberOrg = organizations.find { it.id == "org1" }
+    assertNotNull("org1 should be in user's organizations", memberOrg)
+    assertTrue(memberOrg!!.memberUids.contains("test_user"))
+  }
+
+  @Test
+  fun `loadUserOrganizations loads organizations where user is owner`() = runTest {
+    // Wait for async organization loading to complete
+    kotlinx.coroutines.delay(300)
+
+    val organizations = viewModel.userOrganizations.value
+    val ownedOrg = organizations.find { it.createdBy == "test_user" }
+    assertNotNull("Should find organization owned by test_user", ownedOrg)
+    assertEquals("org2", ownedOrg?.id)
+  }
+
+  @Test
+  fun `loadUserOrganizations excludes organizations where user is neither member nor owner`() =
+      runTest {
+        kotlinx.coroutines.delay(100)
+
+        val organizations = viewModel.userOrganizations.value
+        val excludedOrg = organizations.find { it.id == "org3" }
+        assertNull(excludedOrg)
+      }
+
+  @Test
+  fun `loadUserOrganizations handles empty organization list`() = runTest {
+    organizationRepository.organizations = emptyList()
+    val emptyViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    assertEquals(0, emptyViewModel.userOrganizations.value.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations handles repository error gracefully`() = runTest {
+    organizationRepository.shouldThrowError = true
+    val errorViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    assertEquals(0, errorViewModel.userOrganizations.value.size)
+  }
+
   private class TestUserRepository(
       private var user: User? = null,
       var shouldThrowOnGet: Throwable? = null,
@@ -338,6 +422,52 @@ class ProfileViewModelTest {
 
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
+  }
+
+  private class TestOrganizationRepository(
+      var organizations: List<Organization>,
+      var shouldThrowError: Boolean = false
+  ) : OrganizationRepository {
+
+    override suspend fun saveOrganization(organization: Organization) {
+      organizations = organizations + organization
+    }
+
+    override suspend fun getOrganizationById(organizationId: String): Organization? {
+      return organizations.find { it.id == organizationId }
+    }
+
+    override suspend fun getAllOrganizations(): List<Organization> {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organizations")
+      }
+      return organizations
+    }
+
+    override suspend fun getNewOrganizationId(): String {
+      return "new_org_id"
+    }
+
+    override suspend fun sendMemberInvitation(
+        organizationId: String,
+        userId: String,
+        role: String,
+        invitedBy: String
+    ) {}
+
+    override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun getPendingInvitations(
+        organizationId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun getUserPendingInvitations(
+        userId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
   }
 
   companion object {

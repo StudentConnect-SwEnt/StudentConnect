@@ -71,14 +71,15 @@ class ProfileViewModel(
     }
   }
 
-  /** Loads organizations where the current user is a member. */
+  /** Loads organizations where the current user is a member or owner. */
   private fun loadUserOrganizations() {
     viewModelScope.launch {
       try {
         val allOrganizations = organizationRepository.getAllOrganizations()
-        val userOrgs = allOrganizations.filter { org ->
-          org.memberUids.contains(currentUserId)
-        }
+        val userOrgs =
+            allOrganizations.filter { org ->
+              org.memberUids.contains(currentUserId) || org.createdBy == currentUserId
+            }
         _userOrganizations.value = userOrgs
       } catch (exception: Exception) {
         // Silent fail - organizations are optional feature

@@ -42,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -141,7 +140,8 @@ fun ProfileHeader(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
-              ProfilePicture(imageBitmap = imageBitmap, organization = userOrganizations.firstOrNull())
+              ProfilePicture(
+                  imageBitmap = imageBitmap, organization = userOrganizations.firstOrNull())
 
               Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_xxlarge)))
 
@@ -273,55 +273,55 @@ private fun OrganizationBadge(organization: Organization, modifier: Modifier = M
 
     Box(
         modifier =
-            Modifier.size(60.dp)
-                .drawBehind {
-                  val radius = 25.dp.toPx()
-                  val centerX = size.width / 2f
-                  val centerY = size.height / 2f + 10.dp.toPx()
+            Modifier.size(60.dp).drawBehind {
+              val radius = 25.dp.toPx()
+              val centerX = size.width / 2f
+              val centerY = size.height / 2f + 10.dp.toPx()
 
-                  // Calculate arc for text placement
-                  val charCount = orgName.length
-                  val arcAngle = 120f // Total arc angle in degrees
-                  val startAngle = 240f // Start from top-left
+              // Calculate arc for text placement
+              val charCount = orgName.length
+              val arcAngle = 120f // Total arc angle in degrees
+              val startAngle = 240f // Start from top-left
 
-                  val paint =
-                      android.graphics.Paint().apply {
-                        color = textColor.hashCode()
-                        this.textSize = textSizePx
-                        isAntiAlias = true
-                        textAlign = android.graphics.Paint.Align.CENTER
-                        typeface = android.graphics.Typeface.create(
+              val paint =
+                  android.graphics.Paint().apply {
+                    color = textColor.hashCode()
+                    this.textSize = textSizePx
+                    isAntiAlias = true
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    typeface =
+                        android.graphics.Typeface.create(
                             android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                      }
-
-                  // Draw background arc for text
-                  val backgroundPaint =
-                      android.graphics.Paint().apply {
-                        color = backgroundColor.copy(alpha = 0.85f).hashCode()
-                        isAntiAlias = true
-                        style = android.graphics.Paint.Style.FILL
-                      }
-
-                  val canvas = drawContext.canvas.nativeCanvas
-
-                  // Draw each character along the arc
-                  orgName.forEachIndexed { index, char ->
-                    val angle = startAngle + (index * arcAngle / (charCount - 1).coerceAtLeast(1))
-                    val angleRad = Math.toRadians(angle.toDouble())
-
-                    val x = centerX + (radius * cos(angleRad)).toFloat()
-                    val y = centerY + (radius * sin(angleRad)).toFloat()
-
-                    // Draw background circle for each character
-                    canvas.drawCircle(x, y, textSizePx * 0.7f, backgroundPaint)
-
-                    // Rotate and draw character
-                    canvas.save()
-                    canvas.rotate(angle + 90f, x, y)
-                    canvas.drawText(char.toString(), x, y + textSizePx / 3, paint)
-                    canvas.restore()
                   }
-                })
+
+              // Draw background arc for text
+              val backgroundPaint =
+                  android.graphics.Paint().apply {
+                    color = backgroundColor.copy(alpha = 0.85f).hashCode()
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.FILL
+                  }
+
+              val canvas = drawContext.canvas.nativeCanvas
+
+              // Draw each character along the arc
+              orgName.forEachIndexed { index, char ->
+                val angle = startAngle + (index * arcAngle / (charCount - 1).coerceAtLeast(1))
+                val angleRad = Math.toRadians(angle.toDouble())
+
+                val x = centerX + (radius * cos(angleRad)).toFloat()
+                val y = centerY + (radius * sin(angleRad)).toFloat()
+
+                // Draw background circle for each character
+                canvas.drawCircle(x, y, textSizePx * 0.7f, backgroundPaint)
+
+                // Rotate and draw character
+                canvas.save()
+                canvas.rotate(angle + 90f, x, y)
+                canvas.drawText(char.toString(), x, y + textSizePx / 3, paint)
+                canvas.restore()
+              }
+            })
 
     // Badge circle with logo or star - positioned at center
     Box(
