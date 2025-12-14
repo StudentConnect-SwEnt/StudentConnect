@@ -52,6 +52,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
@@ -85,7 +87,10 @@ import kotlinx.coroutines.Dispatchers
 fun ProfileSettingsScreen(
     currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
-    viewModel: ProfileViewModel = viewModel { ProfileViewModel(userRepository, currentUserId) },
+    organizationRepository: OrganizationRepository = OrganizationRepositoryProvider.repository,
+    viewModel: ProfileViewModel = viewModel {
+      ProfileViewModel(userRepository, organizationRepository, currentUserId)
+    },
     onNavigateToEditPicture: ((String) -> Unit)? = null,
     onNavigateToEditName: ((String) -> Unit)? = null,
     onNavigateToEditBio: ((String) -> Unit)? = null,

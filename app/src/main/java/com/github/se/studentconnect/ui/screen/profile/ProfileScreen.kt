@@ -28,6 +28,8 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
@@ -73,11 +75,13 @@ fun ProfileScreen(
     currentUserId: String,
     userRepository: UserRepository = UserRepositoryFirestore(FirebaseFirestore.getInstance()),
     eventRepository: EventRepository = EventRepositoryProvider.repository,
+    organizationRepository: OrganizationRepository = OrganizationRepositoryProvider.repository,
     viewModel: ProfileScreenViewModel = viewModel {
       ProfileScreenViewModel(
           userRepository = userRepository,
           friendsRepository = FriendsRepositoryProvider.repository,
           eventRepository = eventRepository,
+          organizationRepository = organizationRepository,
           currentUserId = currentUserId)
     },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
@@ -88,6 +92,7 @@ fun ProfileScreen(
   val friendsCount by viewModel.friendsCount.collectAsState()
   val eventsCount by viewModel.eventsCount.collectAsState()
   val pinnedEvents by viewModel.pinnedEvents.collectAsState()
+  val userOrganizations by viewModel.userOrganizations.collectAsState()
 
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
@@ -160,7 +165,8 @@ fun ProfileScreen(
                           onOrganizationClick = {
                             navigationCallbacks.onNavigateToOrganizationManagement?.invoke()
                           },
-                          onLogoutClick = logout))
+                          onLogoutClick = logout),
+                  userOrganizations = userOrganizations)
 
               // Pinned events section
               PinnedEventsSection(
