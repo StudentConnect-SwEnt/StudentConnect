@@ -448,7 +448,15 @@ class ProfileScreenAndroidTest {
     }
 
     override suspend fun getEvent(eventUid: String): Event {
-      throw NotImplementedError("Not needed for tests")
+      // Return a dummy event for any requested event ID
+      // This simulates that all events exist
+      return Event.Private(
+          uid = eventUid,
+          ownerId = "owner",
+          title = "Test Event",
+          description = "Test",
+          start = com.google.firebase.Timestamp.now(),
+          isFlash = false)
     }
 
     override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
