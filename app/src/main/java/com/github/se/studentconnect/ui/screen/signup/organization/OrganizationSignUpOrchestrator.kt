@@ -17,14 +17,12 @@ import kotlinx.coroutines.launch
  * Orchestrates the organization signup flow after authentication is complete.
  *
  * @param firebaseUserId The Firebase user ID from authentication (must not be null)
- * @param onLogout Callback to log the user out
  * @param onBackToSelection Callback to return to profile screen
  * @param viewModel ViewModel managing the signup state
  */
 @Composable
 fun OrganizationSignUpOrchestrator(
     firebaseUserId: String,
-    onLogout: () -> Unit,
     onBackToSelection: () -> Unit,
     viewModel: OrganizationSignUpViewModel = viewModel()
 ) {
