@@ -276,14 +276,14 @@ class UserCardScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Verify user ID is displayed, not the birthday
-    composeTestRule.onNodeWithText("ID:", substring = true).assertIsDisplayed()
+    // Verify username is displayed with @ prefix, not the birthday
+    composeTestRule.onNodeWithText("@", substring = true).assertIsDisplayed()
     composeTestRule.onNodeWithText("01/01/2000").assertDoesNotExist()
   }
 
   @Test
   fun userCardScreen_displaysUserIdWithSpecialCharacters() {
-    val specialIdUser = testUser.copy(userId = "user_123-abc")
+    val specialIdUser = testUser.copy(userId = "user_123-abc", username = "user_special")
     mockUserRepository.user = specialIdUser
 
     val viewModel =
@@ -295,9 +295,9 @@ class UserCardScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Verify special characters in user ID are displayed correctly
+    // Verify username is displayed with @ prefix
     composeTestRule
-        .onNodeWithText("ID: ${specialIdUser.userId}", substring = true)
+        .onNodeWithText("@${specialIdUser.username}", substring = true)
         .assertIsDisplayed()
   }
 
