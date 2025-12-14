@@ -248,24 +248,29 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                   maxLines = 1,
                   overflow = TextOverflow.Ellipsis)
 
-              Spacer(modifier = Modifier.height(8.dp))
+              Spacer(modifier = Modifier.height(4.dp))
 
+              // Username
               Text(
                   text = "@${user.username}",
-                  style = MaterialTheme.typography.bodyMedium,
+                  style = MaterialTheme.typography.bodySmall,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            // University with icon
-            InfoRow(
-                icon = Icons.Outlined.School,
-                text = user.university,
-                contentDescription = "University")
 
-            Spacer(modifier = Modifier.height(4.dp))
+              Spacer(modifier = Modifier.height(6.dp))
 
-            // Birthday with icon (if available)
-            user.birthdate?.let { birthday ->
-              InfoRow(icon = Icons.Outlined.Cake, text = birthday, contentDescription = "Birthday")
+              // University with icon
+              InfoRow(
+                  icon = Icons.Outlined.School,
+                  text = user.university,
+                  contentDescription = "University")
+
+              Spacer(modifier = Modifier.height(2.dp))
+
+              // Birthday with icon (if available)
+              user.birthdate?.let { birthday ->
+                InfoRow(
+                    icon = Icons.Outlined.Cake, text = birthday, contentDescription = "Birthday")
+              }
             }
           }
     }
