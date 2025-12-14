@@ -380,6 +380,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       val recipients = getNotificationRecipients(ownerId)
       val notificationIdPrefix = "flash_${event.uid}_"
 
+      // Get owner username with @ prefix
+      val eventOwner = userRepository.getUserById(ownerId)
+      val eventOwnerName = eventOwner?.username?.let { "@$it" } ?: ""
+
       for ((index, userId) in recipients.withIndex()) {
         try {
           val notificationId = "${notificationIdPrefix}user_${userId}_$index"
@@ -389,6 +393,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
                   userId = userId,
                   eventId = event.uid,
                   eventTitle = event.title,
+                  eventOwnerName = eventOwnerName,
                   eventStart = event.start,
                   timestamp = Timestamp.now(),
                   isRead = false)

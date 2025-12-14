@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Timestamp
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
       val eventRepository = EventRepositoryProvider.repository
       val notificationRepository = NotificationRepositoryProvider.repository
 
+      val userRepository = UserRepositoryProvider.repository
       // Get all visible events
       val allEvents = eventRepository.getAllVisibleEvents()
 
@@ -57,6 +59,10 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
 
           Log.d(TAG, "Event ${event.title} has ${participants.size} participants")
 
+          // Get event owner username
+          val eventOwner = userRepository.getUserById(event.ownerId)
+          val eventOwnerName = eventOwner?.username ?: ""
+
           // Create notification for each participant
           for (participant in participants) {
             try {
@@ -71,6 +77,7 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
                       eventId = event.uid,
                       eventTitle = event.title,
                       eventStart = event.start,
+                      eventOwnerName = eventOwnerName,
                       timestamp = Timestamp.now(),
                       isRead = false)
 
