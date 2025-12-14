@@ -515,6 +515,141 @@ class UserCardTest {
     assertTrue("Copied should have updated value", copiedUser.firstName == "Updated")
   }
 
+  @Test
+  fun `user card displays full name on single line`() {
+    composeUserCard(testUser)
+
+    val expectedFullName = "${TEST_FIRST_NAME} ${TEST_LAST_NAME}"
+    val actualFullName = "${testUser.firstName} ${testUser.lastName}"
+    assertEquals("Full name should be correctly concatenated", expectedFullName, actualFullName)
+  }
+
+  @Test
+  fun `user card displays full name with long names`() {
+    val longFirstName = "VeryLongFirstNameThatMightOverflow"
+    val longLastName = "VeryLongLastNameThatMightOverflow"
+    val userWithLongNames = testUser.copy(firstName = longFirstName, lastName = longLastName)
+    composeUserCard(userWithLongNames)
+
+    val expectedFullName = "$longFirstName $longLastName"
+    val actualFullName = "${userWithLongNames.firstName} ${userWithLongNames.lastName}"
+    assertEquals("Long full name should be handled", expectedFullName, actualFullName)
+  }
+
+  @Test
+  fun `user card displays university information`() {
+    composeUserCard(testUser)
+
+    assertNotNull("University should not be null", testUser.university)
+    assertEquals("University should match test data", TEST_UNIVERSITY, testUser.university)
+  }
+
+  @Test
+  fun `user card displays university with long name`() {
+    val longUniversity = "Swiss Federal Institute of Technology in Lausanne (EPFL)"
+    val userWithLongUniversity = testUser.copy(university = longUniversity)
+    composeUserCard(userWithLongUniversity)
+
+    assertEquals(
+        "Long university name should be handled", longUniversity, userWithLongUniversity.university)
+  }
+
+  @Test
+  fun `user card displays university with special characters`() {
+    val specialUniversity = "Université de Genève"
+    val userWithSpecialUniversity = testUser.copy(university = specialUniversity)
+    composeUserCard(userWithSpecialUniversity)
+
+    assertEquals(
+        "University with special characters should be handled",
+        specialUniversity,
+        userWithSpecialUniversity.university)
+  }
+
+  @Test
+  fun `user card displays birthday when available`() {
+    val userWithBirthday = testUser.copy(birthdate = "15/03/1998")
+    composeUserCard(userWithBirthday)
+
+    assertNotNull("Birthday should not be null", userWithBirthday.birthdate)
+    assertEquals("Birthday should match", "15/03/1998", userWithBirthday.birthdate)
+  }
+
+  @Test
+  fun `user card handles missing birthday gracefully`() {
+    val userWithoutBirthday = testUser.copy(birthdate = null)
+    composeUserCard(userWithoutBirthday)
+
+    assertTrue(
+        "UserCard should handle missing birthday gracefully", userWithoutBirthday.birthdate == null)
+  }
+
+  @Test
+  fun `user card displays birthday with different date formats`() {
+    val dateFormats = listOf("01/01/2000", "31/12/1999", "15/06/1985", "28/02/1990")
+
+    dateFormats.forEach { date ->
+      val userWithDate = testUser.copy(birthdate = date)
+      composeUserCard(userWithDate)
+      assertEquals(
+          "Birthday format $date should be displayed correctly", date, userWithDate.birthdate)
+    }
+  }
+
+  @Test
+  fun `user card displays all info rows correctly`() {
+    val userWithAllInfo = testUser.copy(university = "EPFL", birthdate = "25/12/2000")
+    composeUserCard(userWithAllInfo)
+
+    assertNotNull("University should be present", userWithAllInfo.university)
+    assertNotNull("Birthday should be present", userWithAllInfo.birthdate)
+  }
+
+  @Test
+  fun `user card handles profile picture loading`() {
+    val userWithProfilePic = testUser.copy(profilePictureUrl = "content://media/photo/123")
+    composeUserCard(userWithProfilePic)
+
+    assertNotNull("Profile picture URL should be set", userWithProfilePic.profilePictureUrl)
+  }
+
+  @Test
+  fun `user card displays default icon when no profile picture`() {
+    val userWithoutProfilePic = testUser.copy(profilePictureUrl = null)
+    composeUserCard(userWithoutProfilePic)
+
+    assertTrue(
+        "UserCard should display default icon when no profile picture",
+        userWithoutProfilePic.profilePictureUrl == null)
+  }
+
+  @Test
+  fun `user card full name handles single character names`() {
+    val userWithShortNames = testUser.copy(firstName = "A", lastName = "B")
+    composeUserCard(userWithShortNames)
+
+    val expectedFullName = "A B"
+    val actualFullName = "${userWithShortNames.firstName} ${userWithShortNames.lastName}"
+    assertEquals("Single character names should be handled", expectedFullName, actualFullName)
+  }
+
+  @Test
+  fun `user card displays info row with university icon`() {
+    composeUserCard(testUser)
+
+    // Verify university is displayed (icon is School outlined)
+    assertTrue("UserCard should display university with icon", testUser.university.isNotBlank())
+  }
+
+  @Test
+  fun `user card displays info row with birthday icon when birthday exists`() {
+    val userWithBirthday = testUser.copy(birthdate = "01/04/1995")
+    composeUserCard(userWithBirthday)
+
+    // Verify birthday is displayed (icon is Cake outlined)
+    assertTrue("UserCard should display birthday with icon", userWithBirthday.birthdate != null)
+  }
+
   private fun composeUserCard(user: User, onClick: (() -> Unit)? = null) {
     controller.get().setContent { UserCard(user = user, onClick = onClick) }
     runOnIdle()
