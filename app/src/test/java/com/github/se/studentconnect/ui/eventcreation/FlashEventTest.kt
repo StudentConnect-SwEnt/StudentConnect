@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.content.Context
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -50,6 +51,7 @@ import org.mockito.Mockito
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlashEventTest {
 
+  private lateinit var context: Context
   private lateinit var viewModel: CreatePublicEventViewModel
   private lateinit var eventRepository: EventRepository
   private lateinit var mediaRepository: MediaRepository
@@ -64,6 +66,7 @@ class FlashEventTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
+    context = mockk(relaxed = true)
     eventRepository = EventRepositoryLocal()
     mediaRepository = Mockito.mock(MediaRepository::class.java)
     userRepository = UserRepositoryLocal()
@@ -256,7 +259,7 @@ class FlashEventTest {
     viewModel.updateFlashDurationHours(0)
     viewModel.updateFlashDurationMinutes(30)
 
-    viewModel.saveEvent()
+    viewModel.saveEvent(context)
     testDispatcher.scheduler.advanceUntilIdle()
 
     val events = eventRepository.getEventsByOwner(ownerId)
@@ -308,7 +311,7 @@ class FlashEventTest {
     viewModel.updateFlashDurationHours(1)
     viewModel.updateFlashDurationMinutes(0)
 
-    viewModel.saveEvent()
+    viewModel.saveEvent(context)
     testDispatcher.scheduler.advanceUntilIdle()
 
     var followerNotificationCount = 0
@@ -333,7 +336,7 @@ class FlashEventTest {
     viewModel.updateFlashDurationHours(1)
     viewModel.updateFlashDurationMinutes(0)
 
-    viewModel.saveEvent()
+    viewModel.saveEvent(context)
     testDispatcher.scheduler.advanceUntilIdle()
 
     val events = eventRepository.getEventsByOwner(ownerId)
@@ -474,7 +477,7 @@ class FlashEventTest {
 
     // Modify and save
     viewModel.updateTitle("Updated Title")
-    viewModel.saveEvent()
+    viewModel.saveEvent(context)
     testDispatcher.scheduler.advanceUntilIdle()
 
     // Verify no new notifications were created (notification count should remain 0)

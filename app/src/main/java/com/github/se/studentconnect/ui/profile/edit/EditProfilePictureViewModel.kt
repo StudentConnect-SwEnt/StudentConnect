@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** ViewModel for EditProfilePictureScreen. Manages profile picture editing state and operations. */
 class EditProfilePictureViewModel(
@@ -58,7 +59,20 @@ class EditProfilePictureViewModel(
         val currentUser = _user.value ?: return@launch
         val updatedUser = currentUser.copy(profilePictureUrl = profilePictureUrl)
 
-        userRepository.saveUser(updatedUser)
+        var saveResult: Result<Unit>? = null
+        val saveJob =
+            viewModelScope.launch {
+              saveResult = runCatching { userRepository.saveUser(updatedUser) }
+            }
+
+        // Wait briefly so the UI doesn't hang offline; allow Firestore to sync later.
+        withTimeoutOrNull(5_000) { saveJob.join() }
+
+        val result = saveResult
+        if (result != null && result.isFailure) {
+          throw result.exceptionOrNull()!!
+        }
+
         _user.value = updatedUser
         _successMessage.value = "Profile picture updated successfully"
       } catch (exception: Exception) {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Base ViewModel for edit screens that provides common functionality.
@@ -79,12 +80,33 @@ abstract class BaseEditViewModel(
       onError: (String) -> Unit = { setError(it) }
   ) {
     viewModelScope.launch {
-      try {
-        setLoading()
-        operation()
+      setLoading()
+
+      // Run the operation in a sibling job so we can give control back to the UI even if Firestore
+      // is offline and the write takes time to sync.
+      var handled = false
+      val job =
+          viewModelScope.launch {
+            try {
+              operation()
+              if (!handled) {
+                handled = true
+                onSuccess()
+              }
+            } catch (e: Exception) {
+              if (!handled) {
+                handled = true
+                onError(e.message ?: R.string.error_unexpected.toString())
+              }
+            }
+          }
+
+      // Wait a short time for the job to finish; if it takes longer (e.g., offline), assume success
+      // and let Firestore sync later.
+      withTimeoutOrNull(5_000) { job.join() }
+      if (!handled) {
+        handled = true
         onSuccess()
-      } catch (e: Exception) {
-        onError(e.message ?: R.string.error_unexpected.toString())
       }
     }
   }

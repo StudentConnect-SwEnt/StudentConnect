@@ -316,6 +316,25 @@ fun EventView(
                   snackbarHostState = snackbarHostState)
         }
       }
+    } else {
+      // Gracefully handle cases where the event couldn't be loaded yet (e.g., pending sync)
+      Box(
+          modifier = Modifier.fillMaxSize().padding(paddingValues),
+          contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              CircularProgressIndicator()
+              Spacer(Modifier.height(12.dp))
+              val message =
+                  uiState.errorMessage
+                      ?: uiState.errorMessageRes?.let { stringResource(it) }
+                      ?: stringResource(R.string.event_loading_message_pending_sync)
+              Text(text = message, style = MaterialTheme.typography.bodyMedium)
+              Spacer(Modifier.height(12.dp))
+              TextButton(onClick = { eventViewModel.fetchEvent(eventUid) }) {
+                Text(stringResource(R.string.event_button_retry))
+              }
+            }
+          }
     }
   }
 }
