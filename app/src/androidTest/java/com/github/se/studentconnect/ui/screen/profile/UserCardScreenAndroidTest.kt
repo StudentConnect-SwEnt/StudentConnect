@@ -201,13 +201,14 @@ class UserCardScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Verify user ID is displayed with ID: prefix
-    composeTestRule.onNodeWithText("ID: ${testUser.userId}", substring = true).assertIsDisplayed()
+    // Verify username is displayed with @ prefix
+    composeTestRule.onNodeWithText("@${testUser.username}", substring = true).assertIsDisplayed()
   }
 
   @Test
   fun userCardScreen_displaysUserIdWithLongId() {
-    val longIdUser = testUser.copy(userId = "very_long_user_id_12345")
+    val longIdUser =
+        testUser.copy(userId = "very_long_user_id_12345", username = "verylongusername")
     mockUserRepository.user = longIdUser
 
     val viewModel =
@@ -219,8 +220,8 @@ class UserCardScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Verify long user ID is displayed
-    composeTestRule.onNodeWithText("ID: ${longIdUser.userId}", substring = true).assertIsDisplayed()
+    // Verify username is displayed with @ prefix
+    composeTestRule.onNodeWithText("@${longIdUser.username}", substring = true).assertIsDisplayed()
   }
 
   @Test
