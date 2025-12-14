@@ -121,7 +121,20 @@ class ProfileScreenViewModel(
 
     // Combine and remove duplicates
     val allEventIds = combineEventIds(joinedEventIds, createdEventIds)
-    _eventsCount.value = allEventIds.size
+
+    // Verify that events actually exist before counting them
+    val existingEventsCount =
+        allEventIds.count { eventId ->
+          try {
+            eventRepository.getEvent(eventId)
+            true
+          } catch (e: Exception) {
+            Log.d(TAG, "Event $eventId no longer exists, excluding from count")
+            false
+          }
+        }
+
+    _eventsCount.value = existingEventsCount
   }
 
   /**

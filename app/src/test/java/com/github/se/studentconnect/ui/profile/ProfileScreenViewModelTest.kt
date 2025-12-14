@@ -103,6 +103,7 @@ class ProfileScreenViewModelTest {
   fun `viewModel loads events count correctly`() =
       testScope.runTest {
         userRepository.joinedEventIds = listOf("event1", "event2", "event3", "event4")
+        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4")
 
         viewModel =
             ProfileScreenViewModel(
@@ -274,6 +275,7 @@ class ProfileScreenViewModelTest {
   fun `loadUserProfile updates events count`() =
       testScope.runTest {
         userRepository.joinedEventIds = listOf("event1")
+        eventRepository.existingEventIds = setOf("event1", "event2")
 
         viewModel =
             ProfileScreenViewModel(
@@ -345,6 +347,7 @@ class ProfileScreenViewModelTest {
   fun `viewModel handles large events count`() =
       testScope.runTest {
         userRepository.joinedEventIds = (1..500).map { "event$it" }
+        eventRepository.existingEventIds = (1..500).map { "event$it" }.toSet()
 
         viewModel =
             ProfileScreenViewModel(
@@ -414,6 +417,7 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
+        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4", "event5")
 
         viewModel =
             ProfileScreenViewModel(
@@ -453,6 +457,7 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
+        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4")
 
         viewModel =
             ProfileScreenViewModel(
@@ -472,6 +477,7 @@ class ProfileScreenViewModelTest {
       testScope.runTest {
         // User has joined 2 events
         userRepository.joinedEventIds = listOf("event1", "event2")
+        eventRepository.existingEventIds = setOf("event1", "event2")
 
         // EventRepository will throw an error when fetching created events
         eventRepository.shouldThrowError = true
@@ -490,6 +496,28 @@ class ProfileScreenViewModelTest {
         // User profile should still load successfully
         assertEquals(testUser, viewModel.user.value)
         assertNull(viewModel.error.value)
+      }
+
+  @Test
+  fun `viewModel excludes deleted events from count`() =
+      testScope.runTest {
+        // User has joined 4 events, but 2 of them have been deleted
+        userRepository.joinedEventIds = listOf("event1", "event2", "event3", "event4")
+        // Only event1 and event3 still exist
+        eventRepository.existingEventIds = setOf("event1", "event3")
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        // Should only count existing events (event1 and event3), not deleted ones (event2 and
+        // event4)
+        assertEquals(2, viewModel.eventsCount.value)
       }
 
   // Test helper classes
@@ -601,7 +629,8 @@ class ProfileScreenViewModelTest {
 
   private class TestEventRepository(
       var createdEvents: List<Event> = emptyList(),
-      var shouldThrowError: Boolean = false
+      var shouldThrowError: Boolean = false,
+      var existingEventIds: Set<String> = emptySet()
   ) : EventRepository {
 
     override fun getNewUid(): String = "new_event_uid"
@@ -617,7 +646,28 @@ class ProfileScreenViewModelTest {
     }
 
     override suspend fun getEvent(eventUid: String): Event {
-      throw NotImplementedError("Not needed for tests")
+      // If shouldThrowError is true, throw for getEventsByOrganization but not for getEvent
+      // getEvent is used to verify event existence, so we need it to work separately
+
+      // If existingEventIds is specified, use it to determine which events exist
+      if (existingEventIds.isNotEmpty()) {
+        if (eventUid in existingEventIds) {
+          // Return a dummy event
+          return Event.Private(
+              uid = eventUid,
+              ownerId = "owner",
+              title = "Test Event",
+              description = "Test",
+              start = com.google.firebase.Timestamp.now(),
+              isFlash = false)
+        } else {
+          throw IllegalArgumentException("Event $eventUid does not exist")
+        }
+      }
+
+      // Otherwise, check in createdEvents or throw if not found
+      return createdEvents.find { it.uid == eventUid }
+          ?: throw IllegalArgumentException("Event $eventUid does not exist")
     }
 
     override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
