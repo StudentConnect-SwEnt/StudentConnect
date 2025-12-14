@@ -92,7 +92,9 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
     // Then wait for bottom navigation to appear (indicates MAIN_APP state)
     composeTestRule.waitUntil(timeoutMillis = 30000) {
       try {
-        composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertExists()
+        composeTestRule
+            .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
+            .assertExists()
         true
       } catch (e: Exception) {
         false
@@ -113,7 +115,9 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
   @Test
   fun mainActivity_hasBottomNavigation() {
     // Verify bottom navigation exists (already waited for in setup)
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertExists()
+    composeTestRule
+        .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
+        .assertExists()
   }
 
   @NoAnonymousSignIn
@@ -153,6 +157,8 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
   fun mainActivity_notificationViewModel_isInitialized() {
     // The notification system should be initialized
     // This is verified by the app not crashing and the UI being visible
-    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU).assertExists()
+    composeTestRule
+        .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
+        .assertExists()
   }
 }
