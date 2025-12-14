@@ -161,6 +161,17 @@ object C {
     const val STATS_CAMPUS_CARD = "event_statistics_campus_distribution"
     const val STATS_TIMELINE_CARD = "event_statistics_join_rate"
     const val STATS_FOLLOWERS_CARD = "event_statistics_attendees_followers"
+
+    // Notification test tags
+    const val notification_banner = "NotificationBanner"
+    const val accept_notification_button_prefix = "AcceptNotificationButton_"
+    const val reject_notification_button_prefix = "RejectNotificationButton_"
+
+    fun getAcceptNotificationButtonTag(notificationId: String): String =
+        "$accept_notification_button_prefix$notificationId"
+
+    fun getRejectNotificationButtonTag(notificationId: String): String =
+        "$reject_notification_button_prefix$notificationId"
   }
 
   object FlashEvent {

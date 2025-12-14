@@ -160,8 +160,14 @@ class HomeScreenTest {
     composeRule.onNodeWithTag("NotificationItem_notif1").assertExists()
 
     // Accept and reject buttons should be visible for organization invitations
-    composeRule.onNodeWithTag("AcceptNotificationButton_notif1").assertExists()
-    composeRule.onNodeWithTag("RejectNotificationButton_notif1").assertExists()
+    composeRule
+        .onNodeWithTag(
+            com.github.se.studentconnect.resources.C.Tag.getAcceptNotificationButtonTag("notif1"))
+        .assertExists()
+    composeRule
+        .onNodeWithTag(
+            com.github.se.studentconnect.resources.C.Tag.getRejectNotificationButtonTag("notif1"))
+        .assertExists()
   }
 
   @Test
@@ -214,7 +220,11 @@ class HomeScreenTest {
     composeRule.waitForIdle()
 
     // Accept button should be clickable
-    composeRule.onNodeWithTag("AcceptNotificationButton_notif1").assertIsDisplayed().performClick()
+    composeRule
+        .onNodeWithTag(
+            com.github.se.studentconnect.resources.C.Tag.getAcceptNotificationButtonTag("notif1"))
+        .assertIsDisplayed()
+        .performClick()
 
     // Wait for coroutines to complete (HomeScreen uses coroutineScope.launch)
     advanceUntilIdle()
@@ -279,7 +289,11 @@ class HomeScreenTest {
     composeRule.waitForIdle()
 
     // Reject button should be clickable
-    composeRule.onNodeWithTag("RejectNotificationButton_notif1").assertIsDisplayed().performClick()
+    composeRule
+        .onNodeWithTag(
+            com.github.se.studentconnect.resources.C.Tag.getRejectNotificationButtonTag("notif1"))
+        .assertIsDisplayed()
+        .performClick()
 
     // Wait for coroutines to complete (HomeScreen uses coroutineScope.launch)
     advanceUntilIdle()

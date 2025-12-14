@@ -109,6 +109,14 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
     // We can't directly test visibility without a notification, but we can verify the structure
     // This test verifies that the banner component is properly integrated
     // Setup already waits for MAIN_APP state, so we can proceed
+
+    // Verify that the bottom navigation is present (confirms MAIN_APP state)
+    composeTestRule
+        .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
+        .assertExists()
+
+    // This test primarily verifies that adding the notification banner to the layout
+    // doesn't break the app or cause crashes
   }
 
   @NoAnonymousSignIn
