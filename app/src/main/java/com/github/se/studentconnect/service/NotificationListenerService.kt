@@ -164,6 +164,12 @@ class NotificationListenerService : Service() {
             "${notification.eventTitle} is starting soon!",
             NotificationChannelManager.EVENT_STARTING_CHANNEL_ID)
       }
+      is Notification.EventInvitation -> {
+        Triple(
+            "Event Invitation",
+            "${notification.invitedByName} invited you to ${notification.eventTitle}",
+            NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID)
+      }
       is Notification.OrganizationMemberInvitation -> {
         Triple(
             "Organization Invitation",
@@ -182,8 +188,9 @@ class NotificationListenerService : Service() {
   private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
     val username =
         when (notification) {
-          is Notification.FriendRequest -> notification.fromUserId
-          is Notification.EventStarting -> notification.userId
+          is Notification.FriendRequest -> notification.fromUserName
+          is Notification.EventStarting -> notification.eventTitle
+          is Notification.EventInvitation -> notification.invitedByName
           is Notification.OrganizationMemberInvitation -> notification.invitedByName
         }
 

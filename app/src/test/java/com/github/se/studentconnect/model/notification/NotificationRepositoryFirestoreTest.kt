@@ -11,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.WriteBatch
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
@@ -478,5 +479,127 @@ class NotificationRepositoryFirestoreTest {
     assert(resultNotifications!!.isEmpty()) {
       "Malformed notification should be skipped"
     } // Malformed notification should be skipped
+  }
+
+  // EventInvitation Tests
+  @Test
+  fun createNotification_eventInvitation_setsCorrectly() {
+    val notification =
+        Notification.EventInvitation(
+            id = "invite-notif-1",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    `when`(mockCollectionReference.document("invite-notif-1")).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.set(any())).thenReturn(mockTask)
+
+    doAnswer { invocation ->
+          val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
+          listener.onSuccess(null)
+          mockTask
+        }
+        .`when`(mockTask)
+        .addOnSuccessListener(any())
+
+    doAnswer { mockTask }.`when`(mockTask).addOnFailureListener(any())
+
+    var successCalled = false
+
+    repository.createNotification(
+        notification, onSuccess = { successCalled = true }, onFailure = {})
+
+    assert(successCalled) { "Success callback was not called" }
+    verify(mockDocumentReference).set(any())
+  }
+
+  @Test
+  fun createNotification_eventInvitation_generatesIdWhenEmpty() {
+    val notification =
+        Notification.EventInvitation(
+            id = "",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Birthday Party",
+            invitedBy = "user-2",
+            invitedByName = "Bob Johnson",
+            timestamp = null,
+            isRead = false)
+
+    `when`(mockCollectionReference.document()).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.id).thenReturn("generated-invite-id")
+    `when`(mockCollectionReference.document(anyString())).thenReturn(mockDocumentReference)
+    `when`(mockDocumentReference.set(any())).thenReturn(mockTask)
+
+    doAnswer { invocation ->
+          val listener = invocation.getArgument<OnSuccessListener<Void>>(0)
+          listener.onSuccess(null)
+          mockTask
+        }
+        .`when`(mockTask)
+        .addOnSuccessListener(any())
+
+    doAnswer { mockTask }.`when`(mockTask).addOnFailureListener(any())
+
+    var successCalled = false
+
+    repository.createNotification(
+        notification, onSuccess = { successCalled = true }, onFailure = {})
+
+    assert(successCalled) { "Success callback was not called" }
+    verify(mockCollectionReference).document()
+  }
+
+  @Test
+  fun getNotifications_returnsEventInvitationCorrectly() {
+    val userId = "user-1"
+    val timestamp = Timestamp.now()
+
+    val notificationData =
+        mapOf(
+            "id" to "invite-1",
+            "userId" to userId,
+            "type" to "EVENT_INVITATION",
+            "eventId" to "event-1",
+            "eventTitle" to "Secret Meeting",
+            "invitedBy" to "user-2",
+            "invitedByName" to "Charlie Brown",
+            "timestamp" to timestamp,
+            "isRead" to false)
+
+    `when`(mockCollectionReference.whereEqualTo("userId", userId)).thenReturn(mockQuery)
+    `when`(mockQuery.orderBy("timestamp", Query.Direction.DESCENDING)).thenReturn(mockQuery)
+    `when`(mockQuery.get()).thenReturn(mockQueryTask)
+    `when`(mockQuerySnapshot.documents).thenReturn(listOf(mockDocumentSnapshot))
+    `when`(mockDocumentSnapshot.data).thenReturn(notificationData)
+
+    doAnswer { invocation ->
+          val listener = invocation.getArgument<OnSuccessListener<QuerySnapshot>>(0)
+          listener.onSuccess(mockQuerySnapshot)
+          mockQueryTask
+        }
+        .`when`(mockQueryTask)
+        .addOnSuccessListener(any())
+
+    doAnswer { mockQueryTask }.`when`(mockQueryTask).addOnFailureListener(any())
+
+    var resultNotifications: List<Notification>? = null
+
+    repository.getNotifications(userId, onSuccess = { resultNotifications = it }, onFailure = {})
+
+    assert(resultNotifications != null) { "Result notifications is null" }
+    assert(resultNotifications!!.size == 1) { "Expected 1 notification" }
+    assert(resultNotifications!![0] is Notification.EventInvitation) {
+      "Expected EventInvitation notification"
+    }
+    val inviteNotif = resultNotifications!![0] as Notification.EventInvitation
+    assertEquals("Secret Meeting", inviteNotif.eventTitle)
+    assertEquals("Charlie Brown", inviteNotif.invitedByName)
+    assertEquals("user-2", inviteNotif.invitedBy)
+    assertEquals("event-1", inviteNotif.eventId)
   }
 }

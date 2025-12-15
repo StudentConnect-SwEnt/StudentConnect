@@ -46,6 +46,7 @@ class NotificationRepositoryLocal : NotificationRepository {
           when (notification) {
             is Notification.FriendRequest -> notification.copy(isRead = true)
             is Notification.EventStarting -> notification.copy(isRead = true)
+            is Notification.EventInvitation -> notification.copy(isRead = true)
             is Notification.OrganizationMemberInvitation -> notification.copy(isRead = true)
           }
       notifications[index] = updated
@@ -68,6 +69,7 @@ class NotificationRepositoryLocal : NotificationRepository {
             when (notification) {
               is Notification.FriendRequest -> notification.copy(isRead = true)
               is Notification.EventStarting -> notification.copy(isRead = true)
+              is Notification.EventInvitation -> notification.copy(isRead = true)
               is Notification.OrganizationMemberInvitation -> notification.copy(isRead = true)
             }
       }

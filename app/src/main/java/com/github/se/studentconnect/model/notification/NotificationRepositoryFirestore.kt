@@ -82,6 +82,7 @@ class NotificationRepositoryFirestore(private val db: FirebaseFirestore) : Notif
         when (notification) {
           is Notification.FriendRequest -> notification.copy(id = notificationId)
           is Notification.EventStarting -> notification.copy(id = notificationId)
+          is Notification.EventInvitation -> notification.copy(id = notificationId)
           is Notification.OrganizationMemberInvitation -> notification.copy(id = notificationId)
         }
 

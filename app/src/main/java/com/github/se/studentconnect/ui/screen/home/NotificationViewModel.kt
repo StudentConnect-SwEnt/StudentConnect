@@ -70,6 +70,7 @@ class NotificationViewModel(
             when (notification) {
               is Notification.FriendRequest -> notification.copy(isRead = true)
               is Notification.EventStarting -> notification.copy(isRead = true)
+              is Notification.EventInvitation -> notification.copy(isRead = true)
               is Notification.OrganizationMemberInvitation -> notification.copy(isRead = true)
             }
           } else {
@@ -108,6 +109,7 @@ class NotificationViewModel(
           when (notification) {
             is Notification.FriendRequest -> notification.copy(isRead = true)
             is Notification.EventStarting -> notification.copy(isRead = true)
+            is Notification.EventInvitation -> notification.copy(isRead = true)
             is Notification.OrganizationMemberInvitation -> notification.copy(isRead = true)
           }
         }
