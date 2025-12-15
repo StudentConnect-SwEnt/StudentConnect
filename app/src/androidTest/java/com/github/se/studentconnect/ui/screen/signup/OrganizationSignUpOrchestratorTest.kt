@@ -52,6 +52,57 @@ class OrganizationSignUpOrchestratorTest {
   }
 
   @Test
+  fun organizationSignUpFlow_submissionSuccess_callsCallback() = runTest {
+    val viewModel = OrganizationSignUpViewModel()
+    var callbackCalled = false
+
+    // 1. Mock successful repository behavior
+    `when`(mockOrgRepository.getNewOrganizationId()).thenReturn("newOrgId")
+    // Ensure saveOrganization does not throw an error
+    // (Mockito voids return Unit by default, so specific stubbing for saveOrganization isn't
+    // strictly necessary unless you have strict mode on, but it's safe to assume it works)
+
+    composeTestRule.setContent {
+      OrganizationSignUpOrchestrator(
+          firebaseUserId = "user123",
+          // This captures the line 111 execution
+          onBackToSelection = { callbackCalled = true },
+          viewModel = viewModel)
+    }
+
+    // 2. Fast-forward to the final Team step
+    viewModel.setOrganizationName("My Org")
+    viewModel.toggleOrganizationType(OrganizationType.Association)
+    viewModel.nextStep() // Logo
+    viewModel.nextStep() // Description
+    viewModel.nextStep() // Socials
+    viewModel.nextStep() // ProfileSetup
+    viewModel.setLocation("Lausanne")
+    viewModel.toggleDomain("Tech")
+    viewModel.setEventSize("20-50")
+    viewModel.nextStep() // Move to Team
+
+    composeTestRule.waitForIdle()
+
+    // 3. ADD REQUIRED DATA: Add a role so the form is valid
+    composeTestRule.onNodeWithText("Role name").performTextInput("President")
+    composeTestRule.onNodeWithText("+ Add role").performClick()
+    composeTestRule.waitForIdle()
+
+    // 4. Perform the click that triggers the submission
+    composeTestRule.onNodeWithText("Start Now").performClick()
+
+    // 5. Wait for the coroutine to finish
+    composeTestRule.waitForIdle()
+
+    // Verify repository was actually called (Fixes "Wanted but not invoked")
+    verify(mockOrgRepository).saveOrganization(any())
+
+    // ASSERTION FOR LINE 111
+    assert(callbackCalled) { "onBackToSelection should have been called after successful save" }
+  }
+
+  @Test
   fun organizationSignUpFlow_navigationBack_works() = runTest {
     val viewModel = OrganizationSignUpViewModel()
     var backToSelectionCalled = false
