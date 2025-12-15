@@ -9,6 +9,7 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
@@ -28,6 +29,7 @@ class ProfileScreenAndroidTest {
   private lateinit var mockUserRepository: MockUserRepository
   private lateinit var mockFriendsRepository: MockFriendsRepository
   private lateinit var mockEventRepository: MockEventRepository
+  private lateinit var mockOrganizationRepository: OrganizationRepository
   private lateinit var testUser: User
 
   @Before
@@ -417,13 +419,13 @@ class ProfileScreenAndroidTest {
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+    override suspend fun unpinOrganization(userId: String) {}
+
+    override suspend fun getPinnedOrganization(userId: String): String? = null
   }
-
-  override suspend fun pinOrganization(userId: String, organizationId: String) {}
-
-  override suspend fun unpinOrganization(userId: String) {}
-
-  override suspend fun getPinnedOrganization(userId: String): String? = null
 
   private class MockFriendsRepository(var friendsList: List<String>) : FriendsRepository {
     override suspend fun getFriends(userId: String): List<String> {
