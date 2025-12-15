@@ -4,6 +4,7 @@ import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.model.user.UserRepository
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,6 +25,7 @@ class OrganizationManagementViewModelTest {
   private lateinit var testDispatcher: TestDispatcher
   private lateinit var testScope: TestScope
   private lateinit var organizationRepository: TestOrganizationRepository
+  private lateinit var userRepository: TestUserRepository
   private lateinit var viewModel: OrganizationManagementViewModel
 
   private val testUserId = "test_user_123"
@@ -67,6 +69,7 @@ class OrganizationManagementViewModelTest {
 
     organizationRepository =
         TestOrganizationRepository(listOf(testOrganization1, testOrganization2, testOrganization3))
+    userRepository = TestUserRepository()
   }
 
   @After
@@ -79,7 +82,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -97,7 +102,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -113,7 +120,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -128,7 +137,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = "non_existent_user", organizationRepository = organizationRepository)
+                userId = "non_existent_user",
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -144,7 +155,9 @@ class OrganizationManagementViewModelTest {
         val errorRepository = TestOrganizationRepository(emptyList(), shouldThrowError = true)
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = errorRepository)
+                userId = testUserId,
+                organizationRepository = errorRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -160,7 +173,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         // Check initial loading state
         assertTrue(viewModel.uiState.value.isLoading)
@@ -176,7 +191,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -192,7 +209,9 @@ class OrganizationManagementViewModelTest {
       testScope.runTest {
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = organizationRepository)
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -209,7 +228,9 @@ class OrganizationManagementViewModelTest {
         val errorRepository = TestOrganizationRepository(emptyList(), shouldThrowError = true)
         viewModel =
             OrganizationManagementViewModel(
-                userId = testUserId, organizationRepository = errorRepository)
+                userId = testUserId,
+                organizationRepository = errorRepository,
+                userRepository = userRepository)
 
         advanceUntilIdle()
 
@@ -233,7 +254,132 @@ class OrganizationManagementViewModelTest {
     assertFalse(defaultState.isLoading)
     assertNull(defaultState.error)
     assertFalse(defaultState.shouldRedirectToCreation)
+    assertNull(defaultState.pinnedOrganizationId)
   }
+
+  // Tests for pinned organization functionality
+  @Test
+  fun `viewModel loads pinned organization on init`() =
+      testScope.runTest {
+        userRepository.setPinnedOrganization(testUserId, "org1")
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
+
+        advanceUntilIdle()
+
+        assertEquals("org1", viewModel.uiState.value.pinnedOrganizationId)
+      }
+
+  @Test
+  fun `togglePinOrganization pins unpinned organization`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
+
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.pinnedOrganizationId)
+
+        viewModel.togglePinOrganization("org1")
+        advanceUntilIdle()
+
+        assertEquals("org1", viewModel.uiState.value.pinnedOrganizationId)
+        assertEquals("org1", userRepository.getPinnedOrganization(testUserId))
+      }
+
+  @Test
+  fun `togglePinOrganization unpins pinned organization`() =
+      testScope.runTest {
+        userRepository.setPinnedOrganization(testUserId, "org1")
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
+
+        advanceUntilIdle()
+        assertEquals("org1", viewModel.uiState.value.pinnedOrganizationId)
+
+        viewModel.togglePinOrganization("org1")
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.pinnedOrganizationId)
+        assertNull(userRepository.getPinnedOrganization(testUserId))
+      }
+
+  @Test
+  fun `togglePinOrganization replaces existing pin`() =
+      testScope.runTest {
+        userRepository.setPinnedOrganization(testUserId, "org1")
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
+
+        advanceUntilIdle()
+        assertEquals("org1", viewModel.uiState.value.pinnedOrganizationId)
+
+        viewModel.togglePinOrganization("org2")
+        advanceUntilIdle()
+
+        assertEquals("org2", viewModel.uiState.value.pinnedOrganizationId)
+        assertEquals("org2", userRepository.getPinnedOrganization(testUserId))
+      }
+
+  @Test
+  fun `togglePinOrganization handles repository errors`() =
+      testScope.runTest {
+        val errorUserRepo = TestUserRepository(shouldThrowError = true)
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = errorUserRepo)
+
+        advanceUntilIdle()
+
+        viewModel.togglePinOrganization("org1")
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.error)
+        assertTrue(viewModel.uiState.value.error!!.contains("Failed to update pin"))
+      }
+
+  @Test
+  fun `loadPinnedOrganization handles null pinned organization`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository)
+
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.pinnedOrganizationId)
+      }
+
+  @Test
+  fun `loadPinnedOrganization handles repository errors gracefully`() =
+      testScope.runTest {
+        val errorUserRepo = TestUserRepository(shouldThrowError = true)
+        viewModel =
+            OrganizationManagementViewModel(
+                userId = testUserId,
+                organizationRepository = organizationRepository,
+                userRepository = errorUserRepo)
+
+        advanceUntilIdle()
+
+        // Should not crash, just leave pinnedOrganizationId as null
+        assertNull(viewModel.uiState.value.pinnedOrganizationId)
+      }
 
   // Test helper repository
   private class TestOrganizationRepository(
@@ -280,5 +426,62 @@ class OrganizationManagementViewModelTest {
     ): List<OrganizationMemberInvitation> = emptyList()
 
     override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
+  }
+
+  // Test helper for UserRepository
+  private class TestUserRepository(var shouldThrowError: Boolean = false) : UserRepository {
+    private val pinnedOrganizations = mutableMapOf<String, String?>()
+
+    fun setPinnedOrganization(userId: String, orgId: String?) {
+      pinnedOrganizations[userId] = orgId
+    }
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {
+      if (shouldThrowError) throw Exception("Test error pinning organization")
+      pinnedOrganizations[userId] = organizationId
+    }
+
+    override suspend fun unpinOrganization(userId: String) {
+      if (shouldThrowError) throw Exception("Test error unpinning organization")
+      pinnedOrganizations[userId] = null
+    }
+
+    override suspend fun getPinnedOrganization(userId: String): String? {
+      if (shouldThrowError) throw Exception("Test error getting pinned organization")
+      return pinnedOrganizations[userId]
+    }
+
+    // Stub implementations for other methods
+    override suspend fun getUserById(userId: String) = null
+    override suspend fun getUserByEmail(email: String) = null
+    override suspend fun getAllUsers() = emptyList<com.github.se.studentconnect.model.user.User>()
+    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
+        emptyList<com.github.se.studentconnect.model.user.User>() to false
+    override suspend fun saveUser(user: com.github.se.studentconnect.model.user.User) {}
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+    override suspend fun deleteUser(userId: String) {}
+    override suspend fun getUsersByUniversity(university: String) =
+        emptyList<com.github.se.studentconnect.model.user.User>()
+    override suspend fun getUsersByHobby(hobby: String) =
+        emptyList<com.github.se.studentconnect.model.user.User>()
+    override suspend fun getNewUid() = "test_uid"
+    override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
+    override suspend fun addEventToUser(eventId: String, userId: String) {}
+    override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
+    override suspend fun getInvitations(userId: String) =
+        emptyList<com.github.se.studentconnect.model.activities.Invitation>()
+    override suspend fun acceptInvitation(eventId: String, userId: String) {}
+    override suspend fun declineInvitation(eventId: String, userId: String) {}
+    override suspend fun removeInvitation(eventId: String, userId: String) {}
+    override suspend fun joinEvent(eventId: String, userId: String) {}
+    override suspend fun leaveEvent(eventId: String, userId: String) {}
+    override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+    override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
+    override suspend fun addPinnedEvent(userId: String, eventId: String) {}
+    override suspend fun removePinnedEvent(userId: String, eventId: String) {}
+    override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+    override suspend fun checkUsernameAvailability(username: String) = true
   }
 }

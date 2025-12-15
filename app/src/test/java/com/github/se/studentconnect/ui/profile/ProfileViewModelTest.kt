@@ -287,43 +287,45 @@ class ProfileViewModelTest {
   }
 
   @Test
-  fun `loadUserOrganizations loads organizations where user is member`() = runTest {
-    // Wait for async organization loading to complete
+  fun `loadUserOrganizations loads only pinned organization`() = runTest {
+    // Pin org1 for the user
+    repository.pinOrganization("test_user", "org1")
+
+    // Create new ViewModel to load pinned organization
+    val vm = ProfileViewModel(repository, organizationRepository, testUser.userId)
     kotlinx.coroutines.delay(300)
 
-    val organizations = viewModel.userOrganizations.value
-    // Should include both org1 (where user is member) and org2 (where user is owner)
-    assertTrue(
-        "Expected at least 1 organization, got ${organizations.size}", organizations.size >= 1)
-    val memberOrg = organizations.find { it.id == "org1" }
-    assertNotNull("org1 should be in user's organizations", memberOrg)
-    assertTrue(memberOrg!!.memberUids.contains("test_user"))
+    val organizations = vm.userOrganizations.value
+    assertEquals("Should load exactly 1 organization (pinned)", 1, organizations.size)
+    assertEquals("org1", organizations[0].id)
   }
 
   @Test
-  fun `loadUserOrganizations loads organizations where user is owner`() = runTest {
-    // Wait for async organization loading to complete
-    kotlinx.coroutines.delay(300)
+  fun `loadUserOrganizations loads empty when no pinned organization`() = runTest {
+    // No pinned organization for test_user
+    kotlinx.coroutines.delay(100)
 
     val organizations = viewModel.userOrganizations.value
-    val ownedOrg = organizations.find { it.createdBy == "test_user" }
-    assertNotNull("Should find organization owned by test_user", ownedOrg)
-    assertEquals("org2", ownedOrg?.id)
+    assertEquals("Should have no organizations when nothing pinned", 0, organizations.size)
   }
 
   @Test
-  fun `loadUserOrganizations excludes organizations where user is neither member nor owner`() =
-      runTest {
-        kotlinx.coroutines.delay(100)
+  fun `loadUserOrganizations returns empty when pinned organization doesnt exist`() = runTest {
+    // Pin non-existent organization
+    repository.pinOrganization("test_user", "nonexistent_org")
 
-        val organizations = viewModel.userOrganizations.value
-        val excludedOrg = organizations.find { it.id == "org3" }
-        assertNull(excludedOrg)
-      }
+    val vm = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    val organizations = vm.userOrganizations.value
+    assertEquals("Should have no organizations when pinned org doesn't exist", 0, organizations.size)
+  }
 
   @Test
   fun `loadUserOrganizations handles empty organization list`() = runTest {
     organizationRepository.organizations = emptyList()
+    repository.pinOrganization("test_user", "org1")
+
     val emptyViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
     kotlinx.coroutines.delay(100)
 
@@ -333,10 +335,29 @@ class ProfileViewModelTest {
   @Test
   fun `loadUserOrganizations handles repository error gracefully`() = runTest {
     organizationRepository.shouldThrowError = true
+    repository.pinOrganization("test_user", "org1")
+
     val errorViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
     kotlinx.coroutines.delay(100)
 
     assertEquals(0, errorViewModel.userOrganizations.value.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations can be called to refresh pinned organization`() = runTest {
+    kotlinx.coroutines.delay(100)
+    assertEquals(0, viewModel.userOrganizations.value.size)
+
+    // Pin an organization
+    repository.pinOrganization("test_user", "org1")
+
+    // Manually reload
+    viewModel.loadUserOrganizations()
+    kotlinx.coroutines.delay(100)
+
+    val organizations = viewModel.userOrganizations.value
+    assertEquals(1, organizations.size)
+    assertEquals("org1", organizations[0].id)
   }
 
   private class TestUserRepository(
@@ -346,6 +367,7 @@ class ProfileViewModelTest {
       var saveDelay: Long = 0L
   ) : UserRepository {
     val savedUsers = mutableListOf<User>()
+    private val pinnedOrganizations = mutableMapOf<String, String?>()
 
     override suspend fun getUserById(userId: String): User? {
       shouldThrowOnGet?.let { throw it }
@@ -419,6 +441,18 @@ class ProfileViewModelTest {
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {
+      pinnedOrganizations[userId] = organizationId
+    }
+
+    override suspend fun unpinOrganization(userId: String) {
+      pinnedOrganizations[userId] = null
+    }
+
+    override suspend fun getPinnedOrganization(userId: String): String? {
+      return pinnedOrganizations[userId]
+    }
 
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
