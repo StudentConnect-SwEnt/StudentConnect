@@ -88,6 +88,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -1070,6 +1071,7 @@ private fun NotificationContent(
 @Composable
 private fun NotificationIcon(notification: Notification) {
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  var icon by remember { mutableStateOf<ImageVector>(Icons.Default.Notifications) }
   val context = LocalContext.current
   when (notification) {
     is Notification.FriendRequest -> {
@@ -1079,10 +1081,19 @@ private fun NotificationIcon(notification: Notification) {
       }
       imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
       if (imageBitmap == null) {
-        Icons.Default.Person
+        icon = Icons.Default.Person
       }
     }
-      is Notification.EventInvitation -> Icons.Default.Email
+    is Notification.EventInvitation -> {
+      var user by remember { mutableStateOf<User?>(null) }
+      LaunchedEffect(user) {
+        user = UserRepositoryProvider.repository.getUserById(notification.invitedBy)
+      }
+      imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
+      if (imageBitmap == null) {
+        icon = Icons.Default.Email
+      }
+    }
     is Notification.EventStarting -> {
       var event by remember { mutableStateOf<Event?>(null) }
       LaunchedEffect(event) {
@@ -1090,7 +1101,7 @@ private fun NotificationIcon(notification: Notification) {
       }
       imageBitmap = event?.let { loadBitmapFromEvent(context, event!!) }
       if (imageBitmap == null) {
-        Icons.Default.Event
+        icon = Icons.Default.Event
       }
     }
     is Notification.OrganizationMemberInvitation -> {
@@ -1102,7 +1113,7 @@ private fun NotificationIcon(notification: Notification) {
       }
       imageBitmap = orga?.let { loadBitmapFromOrganization(context, orga!!) }
       if (imageBitmap == null) {
-        Icons.Default.Group
+        icon = Icons.Default.Group
       }
     }
   }
@@ -1112,13 +1123,14 @@ private fun NotificationIcon(notification: Notification) {
         contentDescription = null,
         modifier = Modifier.size(24.dp).clip(CircleShape),
     )
-  }
+  } else {
 
     Icon(
-          imageVector = icon,
-    contentDescription = null,
-    modifier = Modifier.size(24.dp),
-    tint = MaterialTheme.colorScheme.primary)
+        imageVector = icon,
+        contentDescription = null,
+        modifier = Modifier.size(24.dp),
+        tint = MaterialTheme.colorScheme.primary)
+  }
 }
 
 @Composable
