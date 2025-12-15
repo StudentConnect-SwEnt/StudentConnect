@@ -61,9 +61,9 @@ class EventReminderWorker(appContext: Context, workerParams: WorkerParameters) :
 
           // Get event owner username
           val eventOwner = userRepository.getUserById(event.ownerId)
-          val eventOwnerName = eventOwner?.username ?: ""
+          val eventOwnerName = eventOwner?.username?.let { "@$it" } ?: ""
 
-          // Create notification for each participant
+            // Create notification for each participant
           for (participant in participants) {
             try {
               // Check if notification already exists for this user and event
