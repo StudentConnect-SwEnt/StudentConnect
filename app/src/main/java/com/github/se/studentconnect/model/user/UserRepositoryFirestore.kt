@@ -260,6 +260,22 @@ class UserRepositoryFirestore(private val db: FirebaseFirestore) : UserRepositor
     return document.documents.map { it.getString("eventId")!! }
   }
 
+  override suspend fun pinOrganization(userId: String, organizationId: String) {
+    db.collection(COLLECTION_NAME)
+        .document(userId)
+        .update("pinnedOrganizationId", organizationId)
+        .await()
+  }
+
+  override suspend fun unpinOrganization(userId: String) {
+    db.collection(COLLECTION_NAME).document(userId).update("pinnedOrganizationId", null).await()
+  }
+
+  override suspend fun getPinnedOrganization(userId: String): String? {
+    val document = db.collection(COLLECTION_NAME).document(userId).get().await()
+    return document.getString("pinnedOrganizationId")
+  }
+
   override suspend fun checkUsernameAvailability(username: String): Boolean {
     // Username is already normalized to lowercase by SignUpViewModel
     // Query Firestore for username (stored in lowercase)

@@ -168,19 +168,21 @@ class ProfileScreenViewModel(
     }
   }
 
-  /** Loads organizations where the current user is a member or owner. */
-  private fun loadUserOrganizations() {
+  /** Loads the pinned organization for the current user. */
+  fun loadUserOrganizations() {
     viewModelScope.launch {
       try {
-        val allOrganizations = organizationRepository.getAllOrganizations()
-        val userOrgs =
-            allOrganizations.filter { org ->
-              org.memberUids.contains(currentUserId) || org.createdBy == currentUserId
-            }
-        _userOrganizations.value = userOrgs
-        Log.d(TAG, "Loaded ${userOrgs.size} organizations for user: $currentUserId")
+        val pinnedOrgId = userRepository.getPinnedOrganization(currentUserId)
+        if (pinnedOrgId != null) {
+          val organization = organizationRepository.getOrganizationById(pinnedOrgId)
+          _userOrganizations.value = listOfNotNull(organization)
+          Log.d(TAG, "Loaded pinned organization for user: $currentUserId")
+        } else {
+          _userOrganizations.value = emptyList()
+          Log.d(TAG, "No pinned organization for user: $currentUserId")
+        }
       } catch (exception: Exception) {
-        Log.e(TAG, "Failed to load organizations for user: $currentUserId", exception)
+        Log.e(TAG, "Failed to load pinned organization for user: $currentUserId", exception)
         _userOrganizations.value = emptyList()
       }
     }

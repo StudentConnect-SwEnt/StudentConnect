@@ -112,6 +112,7 @@ fun ProfileScreen(
       if (event == Lifecycle.Event.ON_RESUME || event == Lifecycle.Event.ON_START) {
         viewModel.loadUserProfile()
         viewModel.loadPinnedEvents()
+        viewModel.loadUserOrganizations()
       }
     }
     lifecycleOwner.lifecycle.addObserver(observer)

@@ -24,6 +24,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -58,6 +60,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.profile.OrganizationManagementViewModel
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +89,8 @@ fun OrganizationManagementScreen(
     viewModel: OrganizationManagementViewModel = viewModel {
       OrganizationManagementViewModel(
           userId = currentUserId,
-          organizationRepository = OrganizationRepositoryProvider.repository)
+          organizationRepository = OrganizationRepositoryProvider.repository,
+          userRepository = UserRepositoryProvider.repository)
     },
     modifier: Modifier = Modifier
 ) {
@@ -285,6 +289,8 @@ fun OrganizationManagementScreen(
                   items(uiState.userOrganizations) { organization ->
                     OrganizationCard(
                         organization = organization,
+                        isPinned = uiState.pinnedOrganizationId == organization.id,
+                        onPinClick = { viewModel.togglePinOrganization(organization.id) },
                         onClick = { onOrganizationClick(organization.id) })
                   }
 
@@ -369,12 +375,16 @@ fun OrganizationManagementScreen(
  * Card component displaying organization information.
  *
  * @param organization The organization to display
+ * @param isPinned Whether this organization is pinned to the profile
+ * @param onPinClick Callback when the pin button is clicked
  * @param onClick Callback when the card is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun OrganizationCard(
     organization: Organization,
+    isPinned: Boolean,
+    onPinClick: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -466,6 +476,16 @@ private fun OrganizationCard(
                             organization.memberUids.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+
+              // Pin button
+              IconButton(onClick = onPinClick) {
+                Icon(
+                    imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription = if (isPinned) "Unpin organization" else "Pin organization",
+                    tint =
+                        if (isPinned) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant)
               }
             }
       }

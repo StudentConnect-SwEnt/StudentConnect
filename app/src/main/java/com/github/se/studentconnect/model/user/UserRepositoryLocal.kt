@@ -15,6 +15,7 @@ class UserRepositoryLocal : UserRepository {
   private val invitations = mutableMapOf<String, MutableList<Invitation>>()
   private val favoriteEvents = mutableMapOf<String, MutableList<String>>()
   private val pinnedEvents = mutableMapOf<String, MutableList<String>>()
+  private val pinnedOrganizations = mutableMapOf<String, String?>()
   private val followedOrganizations = mutableMapOf<String, MutableList<String>>()
 
   override suspend fun getUserById(userId: String): User? {
@@ -77,6 +78,7 @@ class UserRepositoryLocal : UserRepository {
     invitations.remove(userId)
     favoriteEvents.remove(userId)
     pinnedEvents.remove(userId)
+    pinnedOrganizations.remove(userId)
     followedOrganizations.remove(userId)
   }
 
@@ -180,6 +182,18 @@ class UserRepositoryLocal : UserRepository {
 
   override suspend fun getPinnedEvents(userId: String): List<String> {
     return pinnedEvents[userId] ?: emptyList()
+  }
+
+  override suspend fun pinOrganization(userId: String, organizationId: String) {
+    pinnedOrganizations[userId] = organizationId
+  }
+
+  override suspend fun unpinOrganization(userId: String) {
+    pinnedOrganizations[userId] = null
+  }
+
+  override suspend fun getPinnedOrganization(userId: String): String? {
+    return pinnedOrganizations[userId]
   }
 
   override suspend fun checkUsernameAvailability(username: String): Boolean {

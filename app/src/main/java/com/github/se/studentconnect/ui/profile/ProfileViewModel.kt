@@ -71,16 +71,17 @@ class ProfileViewModel(
     }
   }
 
-  /** Loads organizations where the current user is a member or owner. */
-  private fun loadUserOrganizations() {
+  /** Loads the pinned organization for the current user. */
+  fun loadUserOrganizations() {
     viewModelScope.launch {
       try {
-        val allOrganizations = organizationRepository.getAllOrganizations()
-        val userOrgs =
-            allOrganizations.filter { org ->
-              org.memberUids.contains(currentUserId) || org.createdBy == currentUserId
-            }
-        _userOrganizations.value = userOrgs
+        val pinnedOrgId = userRepository.getPinnedOrganization(currentUserId)
+        if (pinnedOrgId != null) {
+          val organization = organizationRepository.getOrganizationById(pinnedOrgId)
+          _userOrganizations.value = listOfNotNull(organization)
+        } else {
+          _userOrganizations.value = emptyList()
+        }
       } catch (exception: Exception) {
         // Silent fail - organizations are optional feature
         _userOrganizations.value = emptyList()

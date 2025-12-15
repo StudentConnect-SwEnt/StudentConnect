@@ -126,6 +126,7 @@ fun ProfileSettingsScreen(
     val observer = LifecycleEventObserver { _, event ->
       if (event == Lifecycle.Event.ON_RESUME) {
         viewModel.loadUserProfile()
+        viewModel.loadUserOrganizations()
       }
     }
     lifecycleOwner.lifecycle.addObserver(observer)

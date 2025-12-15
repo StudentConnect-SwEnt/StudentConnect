@@ -304,6 +304,26 @@ private fun OrganizationBadge(organization: Organization, modifier: Modifier = M
 
               val canvas = drawContext.canvas.nativeCanvas
 
+              // Draw background arc behind all text
+              val arcPath = android.graphics.Path()
+              val arcRect =
+                  android.graphics.RectF(
+                      centerX - radius - textSizePx,
+                      centerY - radius - textSizePx,
+                      centerX + radius + textSizePx,
+                      centerY + radius + textSizePx)
+              arcPath.addArc(arcRect, startAngle, arcAngle)
+
+              val strokePaint =
+                  android.graphics.Paint().apply {
+                    color = backgroundColor.copy(alpha = 0.9f).hashCode()
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = textSizePx * 1.8f
+                    strokeCap = android.graphics.Paint.Cap.ROUND
+                  }
+              canvas.drawPath(arcPath, strokePaint)
+
               // Draw each character along the arc
               orgName.forEachIndexed { index, char ->
                 val angle = startAngle + (index * arcAngle / (charCount - 1).coerceAtLeast(1))
@@ -311,9 +331,6 @@ private fun OrganizationBadge(organization: Organization, modifier: Modifier = M
 
                 val x = centerX + (radius * cos(angleRad)).toFloat()
                 val y = centerY + (radius * sin(angleRad)).toFloat()
-
-                // Draw background circle for each character
-                canvas.drawCircle(x, y, textSizePx * 0.7f, backgroundPaint)
 
                 // Rotate and draw character
                 canvas.save()
