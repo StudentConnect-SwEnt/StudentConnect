@@ -469,6 +469,9 @@ class ProfileViewModelTest {
     }
 
     override suspend fun getOrganizationById(organizationId: String): Organization? {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organization")
+      }
       return organizations.find { it.id == organizationId }
     }
 

@@ -530,6 +530,9 @@ class ProfileScreenViewModelTest {
                 createdBy = "other_user")
         val orgRepo = TestOrganizationRepository(listOf(testOrg1))
 
+        // Pin the organization for the user
+        userRepository.pinOrganization(testUser.userId, "org1")
+
         viewModel =
             ProfileScreenViewModel(
                 userRepository = userRepository,
@@ -595,6 +598,7 @@ class ProfileScreenViewModelTest {
       var shouldThrowErrorOnGetJoinedEvents: Boolean = false,
       var joinedEventIds: List<String> = emptyList()
   ) : UserRepository {
+    private val pinnedOrganizations = mutableMapOf<String, String?>()
 
     override suspend fun getUserById(userId: String): User? {
       if (delay > 0) delay(delay)
@@ -660,11 +664,17 @@ class ProfileScreenViewModelTest {
 
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
 
-    override suspend fun pinOrganization(userId: String, organizationId: String) {}
+    override suspend fun pinOrganization(userId: String, organizationId: String) {
+      pinnedOrganizations[userId] = organizationId
+    }
 
-    override suspend fun unpinOrganization(userId: String) {}
+    override suspend fun unpinOrganization(userId: String) {
+      pinnedOrganizations[userId] = null
+    }
 
-    override suspend fun getPinnedOrganization(userId: String): String? = null
+    override suspend fun getPinnedOrganization(userId: String): String? {
+      return pinnedOrganizations[userId]
+    }
   }
 
   private class TestFriendsRepository(
@@ -764,6 +774,9 @@ class ProfileScreenViewModelTest {
     }
 
     override suspend fun getOrganizationById(organizationId: String): Organization? {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organization")
+      }
       return organizations.find { it.id == organizationId }
     }
 
