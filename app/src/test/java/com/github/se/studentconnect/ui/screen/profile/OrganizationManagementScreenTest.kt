@@ -296,6 +296,440 @@ class OrganizationManagementScreenTest {
     composeTestRule.onNodeWithText("AGEPoly").assertExists()
   }
 
+  @Test
+  fun organizationCard_displaysWithNullLogoUrl() {
+    val orgWithoutLogo =
+        Organization(
+            id = "org_no_logo",
+            name = "No Logo Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now(),
+            logoUrl = null)
+
+    repository.organizations = listOf(orgWithoutLogo)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization card displays with Business icon fallback (logoUrl is null)
+    composeTestRule.onNodeWithText("No Logo Org").assertExists()
+    // Business icon should be displayed as fallback
+    composeTestRule.onNodeWithContentDescription("No Logo Org").assertExists()
+  }
+
+  @Test
+  fun organizationCard_displaysWithLogoUrl() {
+    val orgWithLogo =
+        Organization(
+            id = "org_with_logo",
+            name = "Logo Org",
+            type = OrganizationType.Company,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now(),
+            logoUrl = "test_logo_id")
+
+    repository.organizations = listOf(orgWithLogo)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization card displays (logo download may fail in test, but component renders)
+    composeTestRule.onNodeWithText("Logo Org").assertExists()
+    composeTestRule.onNodeWithContentDescription("Logo Org").assertExists()
+  }
+
+  @Test
+  fun organizationCard_handlesLogoDownloadFailure() {
+    val orgWithInvalidLogo =
+        Organization(
+            id = "org_failed_logo",
+            name = "Failed Logo Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now(),
+            logoUrl = "invalid_logo_id_that_will_fail")
+
+    repository.organizations = listOf(orgWithInvalidLogo)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization card falls back to Business icon when logo download fails
+    // (logoBitmap will be null, so Business icon is shown)
+    composeTestRule.onNodeWithText("Failed Logo Org").assertExists()
+    composeTestRule.onNodeWithContentDescription("Failed Logo Org").assertExists()
+  }
+
+  @Test
+  fun organizationCard_displaysOrganizationInfo() {
+    val orgWithDetails =
+        Organization(
+            id = "org_details",
+            name = "Detailed Org",
+            type = OrganizationType.Company,
+            description = "Test description",
+            memberUids = listOf(testUserId, "user2", "user3"),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(orgWithDetails)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization details are displayed
+    composeTestRule.onNodeWithText("Detailed Org").assertExists()
+    composeTestRule.onNodeWithText("Company").assertExists()
+    // Member count should be displayed
+    composeTestRule.onNodeWithText("3").assertExists()
+  }
+
+  @Test
+  fun organizationCard_isClickable() {
+    val org =
+        Organization(
+            id = "org_clickable",
+            name = "Clickable Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(org)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            onOrganizationClick = { clickedOrganizationId = it },
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Click on the organization card
+    composeTestRule.onNodeWithText("Clickable Org").performClick()
+
+    // Verify callback was called with correct organization ID
+    assertEquals("org_clickable", clickedOrganizationId)
+  }
+
+  @Test
+  fun organizationCard_displaysPinButton() {
+    val org =
+        Organization(
+            id = "org_pin",
+            name = "Pin Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(org)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify pin button is displayed
+    composeTestRule.onNodeWithContentDescription("Pin organization").assertExists()
+  }
+
+  @Test
+  fun organizationCard_displaysUnpinButtonWhenPinned() {
+    val org =
+        Organization(
+            id = "org_pinned",
+            name = "Pinned Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    // Pin the organization
+    userRepository.pinOrganization(testUserId, "org_pinned")
+
+    repository.organizations = listOf(org)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify unpin button is displayed (filled pin icon)
+    composeTestRule.onNodeWithContentDescription("Unpin organization").assertExists()
+  }
+
+  @Test
+  fun organizationCard_pinButtonIsClickable() {
+    val org =
+        Organization(
+            id = "org_toggle_pin",
+            name = "Toggle Pin Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(org)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Click pin button
+    composeTestRule.onNodeWithContentDescription("Pin organization").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify pin button changed to unpin (filled icon)
+    composeTestRule.onNodeWithContentDescription("Unpin organization").assertExists()
+  }
+
+  @Test
+  fun organizationCard_handlesDifferentOrganizationTypes() {
+    val studentClub =
+        Organization(
+            id = "org_student",
+            name = "Student Club",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    val company =
+        Organization(
+            id = "org_company",
+            name = "Company",
+            type = OrganizationType.Company,
+            description = "Test description",
+            memberUids = listOf(testUserId),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(studentClub, company)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify both organization types are displayed correctly
+    composeTestRule.onNodeWithText("Student Club").assertExists()
+    composeTestRule.onNodeWithText("StudentClub").assertExists()
+    composeTestRule.onNodeWithText("Company").assertExists()
+  }
+
+  @Test
+  fun organizationCard_handlesEmptyMemberList() {
+    val orgNoMembers =
+        Organization(
+            id = "org_no_members",
+            name = "No Members Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = emptyList(),
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(orgNoMembers)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization card handles empty member list
+    composeTestRule.onNodeWithText("No Members Org").assertExists()
+    composeTestRule.onNodeWithText("0").assertExists()
+  }
+
+  @Test
+  fun organizationCard_handlesLargeMemberCount() {
+    val orgManyMembers =
+        Organization(
+            id = "org_many",
+            name = "Large Org",
+            type = OrganizationType.Company,
+            description = "Test description",
+            memberUids = List(100) { "user$it" },
+            createdBy = testUserId,
+            createdAt = Timestamp.now())
+
+    repository.organizations = listOf(orgManyMembers)
+    val viewModel =
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationManagementScreen(
+            currentUserId = testUserId,
+            onBack = {},
+            onCreateOrganization = {},
+            viewModel = viewModel)
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify organization card handles large member counts
+    composeTestRule.onNodeWithText("Large Org").assertExists()
+    composeTestRule.onNodeWithText("100").assertExists()
+  }
+
   // Test helper repository
   private class TestOrganizationRepository(
       var organizations: List<Organization>,

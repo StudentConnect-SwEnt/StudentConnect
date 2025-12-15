@@ -3,7 +3,10 @@ package com.github.se.studentconnect.ui.profile.components
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
+import com.google.firebase.Timestamp
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -574,5 +577,264 @@ class ProfileHeaderAndroidTest {
     composeTestRule.onNodeWithText("Yes").performClick()
     // Verify that the logout was confirmed
     assert(logoutConfirmed)
+  }
+
+  // Tests for OrganizationBadge component
+  @Test
+  fun organizationBadge_displaysWithOrganization() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "Test Organization",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge is displayed (by checking organization name is accessible)
+    composeTestRule.onNodeWithContentDescription("Test Organization").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_displaysWithOrganizationWithoutLogo() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "AGEPoly",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now(),
+            logoUrl = null)
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge is displayed with star icon fallback (logoUrl is null)
+    composeTestRule.onNodeWithContentDescription("AGEPoly").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_displaysWithOrganizationWithLogoUrl() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "EPFL",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now(),
+            logoUrl = "test_logo_id")
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge is displayed (logo download may fail in test, but component
+    // renders)
+    composeTestRule.onNodeWithContentDescription("EPFL").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_handlesLongOrganizationName() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "Very Long Organization Name That Tests Curved Text",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge handles long names (curved text rendering)
+    composeTestRule
+        .onNodeWithContentDescription("Very Long Organization Name That Tests Curved Text")
+        .assertExists()
+  }
+
+  @Test
+  fun organizationBadge_handlesShortOrganizationName() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "EPFL",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge handles short names (tests charCount - 1 division by zero
+    // protection)
+    composeTestRule.onNodeWithContentDescription("EPFL").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_handlesSingleCharacterOrganizationName() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "A",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge handles single character names (tests coerceAtLeast(1))
+    composeTestRule.onNodeWithContentDescription("A").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_handlesEmptyOrganizationName() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge handles empty names gracefully
+    composeTestRule.onNodeWithContentDescription("").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_displaysMultipleOrganizations() {
+    val org1 =
+        Organization(
+            id = "org1",
+            name = "First Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+    val org2 =
+        Organization(
+            id = "org2",
+            name = "Second Org",
+            type = OrganizationType.Company,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(org1, org2))
+    }
+
+    // Verify only first organization badge is displayed (firstOrNull() behavior)
+    composeTestRule.onNodeWithContentDescription("First Org").assertExists()
+    composeTestRule.onNodeWithContentDescription("Second Org").assertDoesNotExist()
+  }
+
+  @Test
+  fun organizationBadge_handlesLogoDownloadFailure() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "Failed Logo Org",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now(),
+            logoUrl = "invalid_logo_id_that_will_fail")
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge falls back to star icon when logo download fails
+    // (logoBitmap will be null, so star icon is shown)
+    composeTestRule.onNodeWithContentDescription("Failed Logo Org").assertExists()
+  }
+
+  @Test
+  fun organizationBadge_handlesSpecialCharactersInOrganizationName() {
+    val organization =
+        Organization(
+            id = "org1",
+            name = "Org-Épfl & Co.",
+            type = OrganizationType.StudentClub,
+            description = "Test description",
+            memberUids = listOf("test123"),
+            createdBy = "test123",
+            createdAt = Timestamp.now())
+
+    composeTestRule.setContent {
+      ProfileHeader(
+          user = testUser,
+          stats = ProfileStats(friendsCount = 10, eventsCount = 5),
+          callbacks = ProfileHeaderCallbacks(onFriendsClick = {}, onEventsClick = {}),
+          userOrganizations = listOf(organization))
+    }
+
+    // Verify organization badge handles special characters in curved text
+    composeTestRule.onNodeWithContentDescription("Org-Épfl & Co.").assertExists()
   }
 }
