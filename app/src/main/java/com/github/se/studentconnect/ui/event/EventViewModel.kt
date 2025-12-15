@@ -343,11 +343,11 @@ class EventViewModel(
     viewModelScope.launch {
       _uiState.update { it.copy(isInvitingFriends = true, friendsErrorRes = null) }
       var hadError = false
-      
+
       // Fetch current user info to get the actual name
       val currentUser = userRepository.getUserById(currentUserId)
       val currentUserName = currentUser?.let { "${it.firstName} ${it.lastName}" } ?: "Someone"
-      
+
       toAdd.forEach { friendId ->
         runCatching {
               eventRepository.addInvitationToEvent(event.uid, friendId, currentUserId)

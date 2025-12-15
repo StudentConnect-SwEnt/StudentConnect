@@ -7,6 +7,8 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
@@ -62,6 +64,7 @@ class EventViewModelTest {
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var pollRepository: PollRepositoryLocal
   private lateinit var friendsRepository: FriendsRepository
+  private lateinit var notificationRepository: NotificationRepositoryLocal
 
   private val testEvent =
       Event.Public(
@@ -83,7 +86,14 @@ class EventViewModelTest {
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
     friendsRepository = FakeFriendsRepository()
-    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
+    notificationRepository = NotificationRepositoryLocal()
+    viewModel =
+        EventViewModel(
+            eventRepository,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     // Force un utilisateur courant non vide pendant les tests
     AuthenticationProvider.testUserId = "test-user-id"
   }
@@ -396,7 +406,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
 
     val userId = "user123"
 
@@ -458,7 +473,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
 
     val userId = "user123"
 
@@ -695,7 +715,10 @@ class EventViewModelTest {
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
-    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+    val localNotificationRepo = NotificationRepositoryLocal()
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
     advanceUntilIdle()
@@ -744,7 +767,10 @@ class EventViewModelTest {
     localEventRepo.addEvent(event)
     localEventRepo.addInvitationToEvent(event.uid, friend1.userId, ownerId)
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
-    val vm = EventViewModel(localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo)
+    val localNotificationRepo2 = NotificationRepositoryLocal()
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo2)
 
     vm.fetchEvent(event.uid)
     advanceUntilIdle()
@@ -781,7 +807,13 @@ class EventViewModelTest {
             isLoadingFriends = true)
 
     // Inject state into view model
-    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
+    viewModel =
+        EventViewModel(
+            eventRepository,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     // Force state
     val privateField = EventViewModel::class.java.getDeclaredField("_uiState")
     privateField.isAccessible = true
@@ -1050,7 +1082,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     mockViewModel.fetchEvent(event.uid)
     advanceUntilIdle()
 
@@ -1084,7 +1121,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     mockViewModel.fetchEvent(event.uid)
     advanceUntilIdle()
 
@@ -1119,7 +1161,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     mockViewModel.fetchEvent(event.uid)
     advanceUntilIdle()
 
@@ -1154,7 +1201,12 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(errorThrowingRepo, userRepository, pollRepository, friendsRepository)
+        EventViewModel(
+            errorThrowingRepo,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository)
     mockViewModel.fetchEvent(event.uid)
     advanceUntilIdle()
 
@@ -1189,5 +1241,352 @@ class EventViewModelTest {
     // Assert
     val uiState = viewModel.uiState.value
     assertNull(uiState.deleteEventMessageRes)
+  }
+
+  @Test
+  fun updateInvitationsForEvent_createsNotificationForInvitedFriend() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val ownerUser =
+        User(
+            userId = ownerId,
+            email = "owner@example.com",
+            username = "owner",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL")
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "friend1@example.com",
+            username = "friend1",
+            firstName = "Jane",
+            lastName = "Smith",
+            university = "EPFL")
+
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(ownerUser)
+    localUserRepo.saveUser(friend1)
+
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val localNotificationRepo = NotificationRepositoryLocal()
+
+    val event =
+        Event.Private(
+            uid = "event-123",
+            ownerId = ownerId,
+            title = "Basketball Game",
+            description = "Friendly match",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    localEventRepo.addEvent(event)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
+
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Act - invite friend1
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    // Assert - notification was created
+    var notifications: List<Notification> = emptyList()
+    localNotificationRepo.getNotifications(
+        friend1.userId, onSuccess = { notifications = it }, onFailure = { throw it })
+
+    assertEquals(1, notifications.size)
+    assertTrue(notifications[0] is Notification.EventInvitation)
+
+    val eventInvitation = notifications[0] as Notification.EventInvitation
+    assertEquals(friend1.userId, eventInvitation.userId)
+    assertEquals(event.uid, eventInvitation.eventId)
+    assertEquals(event.title, eventInvitation.eventTitle)
+    assertEquals(ownerId, eventInvitation.invitedBy)
+    assertEquals("John Doe", eventInvitation.invitedByName)
+    assertFalse(eventInvitation.isRead)
+  }
+
+  @Test
+  fun updateInvitationsForEvent_createsNotificationsForMultipleFriends() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val ownerUser =
+        User(
+            userId = ownerId,
+            email = "owner@example.com",
+            username = "owner",
+            firstName = "Alice",
+            lastName = "Johnson",
+            university = "EPFL")
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "friend1@example.com",
+            username = "friend1",
+            firstName = "Bob",
+            lastName = "Williams",
+            university = "EPFL")
+    val friend2 =
+        User(
+            userId = "friend2",
+            email = "friend2@example.com",
+            username = "friend2",
+            firstName = "Charlie",
+            lastName = "Brown",
+            university = "EPFL")
+
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(ownerUser)
+    localUserRepo.saveUser(friend1)
+    localUserRepo.saveUser(friend2)
+
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val localNotificationRepo = NotificationRepositoryLocal()
+
+    val event =
+        Event.Private(
+            uid = "event-456",
+            ownerId = ownerId,
+            title = "Study Group",
+            description = "Math study session",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    localEventRepo.addEvent(event)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
+
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Act - invite both friends
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.toggleFriendInvitation(friend2.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    // Assert - notifications were created for both friends
+    var notificationsForFriend1: List<Notification> = emptyList()
+    localNotificationRepo.getNotifications(
+        friend1.userId, onSuccess = { notificationsForFriend1 = it }, onFailure = { throw it })
+    assertEquals(1, notificationsForFriend1.size)
+    assertTrue(notificationsForFriend1[0] is Notification.EventInvitation)
+    val invitation1 = notificationsForFriend1[0] as Notification.EventInvitation
+    assertEquals("Alice Johnson", invitation1.invitedByName)
+    assertEquals("Study Group", invitation1.eventTitle)
+
+    var notificationsForFriend2: List<Notification> = emptyList()
+    localNotificationRepo.getNotifications(
+        friend2.userId, onSuccess = { notificationsForFriend2 = it }, onFailure = { throw it })
+    assertEquals(1, notificationsForFriend2.size)
+    assertTrue(notificationsForFriend2[0] is Notification.EventInvitation)
+    val invitation2 = notificationsForFriend2[0] as Notification.EventInvitation
+    assertEquals("Alice Johnson", invitation2.invitedByName)
+    assertEquals("Study Group", invitation2.eventTitle)
+  }
+
+  @Test
+  fun updateInvitationsForEvent_notificationFailureDoesNotBreakInvitation() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val ownerUser =
+        User(
+            userId = ownerId,
+            email = "owner@example.com",
+            username = "owner",
+            firstName = "David",
+            lastName = "Miller",
+            university = "EPFL")
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "friend1@example.com",
+            username = "friend1",
+            firstName = "Emma",
+            lastName = "Davis",
+            university = "EPFL")
+
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(ownerUser)
+    localUserRepo.saveUser(friend1)
+
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val localNotificationRepo = NotificationRepositoryLocal()
+
+    val event =
+        Event.Private(
+            uid = "event-789",
+            ownerId = ownerId,
+            title = "Conference",
+            description = "Tech conference",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    localEventRepo.addEvent(event)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
+
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Act - invite friend1
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    // Assert - invitation was still created even if notification might fail
+    val invitations = localEventRepo.getEventInvitations(event.uid)
+    assertTrue(invitations.contains(friend1.userId))
+
+    // And the dialog is closed
+    assertFalse(vm.uiState.value.showInviteFriendsDialog)
+  }
+
+  @Test
+  fun updateInvitationsForEvent_usesActualUserName() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    val ownerUser =
+        User(
+            userId = ownerId,
+            email = "owner@example.com",
+            username = "owner",
+            firstName = "Frank",
+            lastName = "Wilson",
+            university = "EPFL")
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "friend1@example.com",
+            username = "friend1",
+            firstName = "Grace",
+            lastName = "Taylor",
+            university = "EPFL")
+
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(ownerUser)
+    localUserRepo.saveUser(friend1)
+
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val localNotificationRepo = NotificationRepositoryLocal()
+
+    val event =
+        Event.Private(
+            uid = "event-abc",
+            ownerId = ownerId,
+            title = "Workshop",
+            description = "Design workshop",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    localEventRepo.addEvent(event)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
+
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Act
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    // Assert - notification has the actual user's full name, not "Someone"
+    var notifications: List<Notification> = emptyList()
+    localNotificationRepo.getNotifications(
+        friend1.userId, onSuccess = { notifications = it }, onFailure = { throw it })
+    assertEquals(1, notifications.size)
+    val invitation = notifications[0] as Notification.EventInvitation
+    assertEquals("Frank Wilson", invitation.invitedByName)
+    // Should NOT be "Someone"
+    assertTrue(invitation.invitedByName != "Someone")
+  }
+
+  @Test
+  fun updateInvitationsForEvent_whenUserNotFound_usesSomeone() = runTest {
+    // Arrange
+    val ownerId = AuthenticationProvider.testUserId!!
+    // Note: NOT saving owner user to userRepository
+    val friend1 =
+        User(
+            userId = "friend1",
+            email = "friend1@example.com",
+            username = "friend1",
+            firstName = "Grace",
+            lastName = "Taylor",
+            university = "EPFL")
+
+    val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(friend1)
+
+    val localEventRepo = EventRepositoryLocal()
+    val localPollRepo = PollRepositoryLocal()
+    val localNotificationRepo = NotificationRepositoryLocal()
+
+    val event =
+        Event.Private(
+            uid = "event-xyz",
+            ownerId = ownerId,
+            title = "Party",
+            description = "Birthday party",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    localEventRepo.addEvent(event)
+    val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
+
+    val vm =
+        EventViewModel(
+            localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
+
+    vm.fetchEvent(event.uid)
+    advanceUntilIdle()
+
+    vm.showInviteFriendsDialog()
+    advanceUntilIdle()
+
+    // Act
+    vm.toggleFriendInvitation(friend1.userId)
+    vm.updateInvitationsForEvent()
+    advanceUntilIdle()
+
+    // Assert - when user is not found, it should use "Someone" as fallback
+    var notifications: List<Notification> = emptyList()
+    localNotificationRepo.getNotifications(
+        friend1.userId, onSuccess = { notifications = it }, onFailure = { throw it })
+    assertEquals(1, notifications.size)
+    val invitation = notifications[0] as Notification.EventInvitation
+    assertEquals("Someone", invitation.invitedByName)
   }
 }

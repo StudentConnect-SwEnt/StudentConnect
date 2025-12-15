@@ -396,4 +396,194 @@ class NotificationTest {
     assertNull(notification.timestamp)
     assertFalse(notification.isRead)
   }
+
+  // EventInvitation Notification Tests
+  @Test
+  fun eventInvitationNotification_hasCorrectType() {
+    val notification =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    assertEquals(NotificationType.EVENT_INVITATION, notification.type)
+  }
+
+  @Test
+  fun eventInvitationNotification_getMessageReturnsCorrectFormat() {
+    val notification =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    assertEquals("Alice Smith invited you to \"Private Party\"", notification.getMessage())
+  }
+
+  @Test
+  fun eventInvitationNotification_toMapCreatesCorrectMap() {
+    val timestamp = Timestamp.now()
+    val notification =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = timestamp,
+            isRead = false)
+
+    val map = notification.toMap()
+
+    assertEquals("test-id", map["id"])
+    assertEquals("user-1", map["userId"])
+    assertEquals("EVENT_INVITATION", map["type"])
+    assertEquals("event-1", map["eventId"])
+    assertEquals("Private Party", map["eventTitle"])
+    assertEquals("user-2", map["invitedBy"])
+    assertEquals("Alice Smith", map["invitedByName"])
+    assertEquals(timestamp, map["timestamp"])
+    assertEquals(false, map["isRead"])
+  }
+
+  @Test
+  fun eventInvitationNotification_toMapWithNullTimestampUsesFieldValue() {
+    val notification =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = null,
+            isRead = false)
+
+    val map = notification.toMap()
+
+    assertNotNull(map["timestamp"]) // Should have FieldValue.serverTimestamp()
+    // Note: We can't directly test FieldValue.serverTimestamp() equality,
+    // but we verify it's not null
+  }
+
+  @Test
+  fun fromMap_createsEventInvitationNotificationCorrectly() {
+    val timestamp = Timestamp.now()
+    val map =
+        mapOf(
+            "id" to "test-id",
+            "userId" to "user-1",
+            "type" to "EVENT_INVITATION",
+            "eventId" to "event-1",
+            "eventTitle" to "Birthday Celebration",
+            "invitedBy" to "user-2",
+            "invitedByName" to "Bob Johnson",
+            "timestamp" to timestamp,
+            "isRead" to true)
+
+    val notification = Notification.fromMap(map) as? Notification.EventInvitation
+
+    assertNotNull(notification)
+    assertEquals("test-id", notification!!.id)
+    assertEquals("user-1", notification.userId)
+    assertEquals("event-1", notification.eventId)
+    assertEquals("Birthday Celebration", notification.eventTitle)
+    assertEquals("user-2", notification.invitedBy)
+    assertEquals("Bob Johnson", notification.invitedByName)
+    assertEquals(timestamp, notification.timestamp)
+    assertTrue(notification.isRead)
+  }
+
+  @Test
+  fun eventInvitationNotification_handlesDefaultValues() {
+    val notification = Notification.EventInvitation()
+
+    assertEquals("", notification.id)
+    assertEquals("", notification.userId)
+    assertEquals("", notification.eventId)
+    assertEquals("", notification.eventTitle)
+    assertEquals("", notification.invitedBy)
+    assertEquals("", notification.invitedByName)
+    assertNull(notification.timestamp)
+    assertFalse(notification.isRead)
+  }
+
+  @Test
+  fun eventInvitationNotification_copyWorksCorrectly() {
+    val original =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = null,
+            isRead = false)
+
+    val copy = original.copy(isRead = true)
+
+    assertEquals("test-id", copy.id)
+    assertEquals("user-1", copy.userId)
+    assertEquals("event-1", copy.eventId)
+    assertEquals("Private Party", copy.eventTitle)
+    assertEquals("user-2", copy.invitedBy)
+    assertEquals("Alice Smith", copy.invitedByName)
+    assertTrue(copy.isRead)
+  }
+
+  @Test
+  fun fromMap_eventInvitation_handlesDefaultValues() {
+    val map = mapOf("type" to "EVENT_INVITATION")
+
+    val notification = Notification.fromMap(map) as? Notification.EventInvitation
+
+    assertNotNull(notification)
+    assertEquals("", notification!!.id)
+    assertEquals("", notification.userId)
+    assertEquals("", notification.eventId)
+    assertEquals("", notification.eventTitle)
+    assertEquals("", notification.invitedBy)
+    assertEquals("", notification.invitedByName)
+    assertNull(notification.timestamp)
+    assertFalse(notification.isRead)
+  }
+
+  @Test
+  fun eventInvitationNotification_equalityWorksCorrectly() {
+    val notification1 =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = null,
+            isRead = false)
+
+    val notification2 =
+        Notification.EventInvitation(
+            id = "test-id",
+            userId = "user-1",
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = null,
+            isRead = false)
+
+    assertEquals(notification1, notification2)
+  }
 }
