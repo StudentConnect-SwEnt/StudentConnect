@@ -311,4 +311,180 @@ class NotificationRepositoryLocalTest {
     assertEquals(1, allNotifications!!.size)
     assertEquals(eventStartingNotification.id, allNotifications!![0].id)
   }
+
+  // EventInvitation Tests
+  @Test
+  fun markAsRead_eventInvitation_marksCorrectly() {
+    val eventInvitation =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId1,
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    repository.createNotification(eventInvitation, {}, {})
+
+    // Mark as read
+    var successCalled = false
+    repository.markAsRead(
+        notificationId = "invite-1", onSuccess = { successCalled = true }, onFailure = {})
+
+    assertTrue(successCalled)
+
+    // Verify notification is marked as read
+    var notifications: List<Notification>? = null
+    repository.getNotifications(testUserId1, { notifications = it }, {})
+
+    assertEquals(1, notifications!!.size)
+    val updated = notifications!![0] as Notification.EventInvitation
+    assertTrue(updated.isRead)
+    assertEquals("Private Party", updated.eventTitle)
+    assertEquals("Alice Smith", updated.invitedByName)
+  }
+
+  @Test
+  fun markAllAsRead_eventInvitation_marksCorrectly() {
+    val eventInvitation1 =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId1,
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    val eventInvitation2 =
+        Notification.EventInvitation(
+            id = "invite-2",
+            userId = testUserId1,
+            eventId = "event-2",
+            eventTitle = "Secret Meeting",
+            invitedBy = "user-3",
+            invitedByName = "Bob Johnson",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    repository.createNotification(eventInvitation1, {}, {})
+    repository.createNotification(eventInvitation2, {}, {})
+    repository.createNotification(friendRequestNotification, {}, {})
+
+    // Mark all as read for testUserId1
+    var successCalled = false
+    repository.markAllAsRead(testUserId1, { successCalled = true }, {})
+
+    assertTrue(successCalled)
+
+    // Verify all notifications are marked as read
+    var notifications: List<Notification>? = null
+    repository.getNotifications(testUserId1, { notifications = it }, {})
+
+    assertEquals(3, notifications!!.size)
+    notifications!!.forEach { assertTrue(it.isRead) }
+  }
+
+  @Test
+  fun createNotification_eventInvitation_storesCorrectly() {
+    val eventInvitation =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId1,
+            eventId = "event-1",
+            eventTitle = "Birthday Bash",
+            invitedBy = "user-2",
+            invitedByName = "Charlie Brown",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    var successCalled = false
+    repository.createNotification(eventInvitation, { successCalled = true }, {})
+
+    assertTrue(successCalled)
+
+    // Verify notification was stored correctly
+    var notifications: List<Notification>? = null
+    repository.getNotifications(testUserId1, { notifications = it }, {})
+
+    assertEquals(1, notifications!!.size)
+    val stored = notifications!![0] as Notification.EventInvitation
+    assertEquals("invite-1", stored.id)
+    assertEquals(testUserId1, stored.userId)
+    assertEquals("event-1", stored.eventId)
+    assertEquals("Birthday Bash", stored.eventTitle)
+    assertEquals("user-2", stored.invitedBy)
+    assertEquals("Charlie Brown", stored.invitedByName)
+    assertFalse(stored.isRead)
+  }
+
+  @Test
+  fun getUnreadNotifications_eventInvitation_filtersCorrectly() {
+    val unreadInvitation =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId1,
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    val readInvitation =
+        Notification.EventInvitation(
+            id = "invite-2",
+            userId = testUserId1,
+            eventId = "event-2",
+            eventTitle = "Secret Meeting",
+            invitedBy = "user-3",
+            invitedByName = "Bob Johnson",
+            timestamp = Timestamp.now(),
+            isRead = true)
+
+    repository.createNotification(unreadInvitation, {}, {})
+    repository.createNotification(readInvitation, {}, {})
+
+    // Get unread notifications
+    var unreadNotifications: List<Notification>? = null
+    repository.getUnreadNotifications(testUserId1, { unreadNotifications = it }, {})
+
+    assertEquals(1, unreadNotifications!!.size)
+    val unread = unreadNotifications!![0] as Notification.EventInvitation
+    assertEquals("invite-1", unread.id)
+    assertFalse(unread.isRead)
+  }
+
+  @Test
+  fun deleteNotification_eventInvitation_deletesCorrectly() {
+    val eventInvitation =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId1,
+            eventId = "event-1",
+            eventTitle = "Private Party",
+            invitedBy = "user-2",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    repository.createNotification(eventInvitation, {}, {})
+    repository.createNotification(friendRequestNotification, {}, {})
+
+    // Delete event invitation
+    var successCalled = false
+    repository.deleteNotification("invite-1", { successCalled = true }, {})
+
+    assertTrue(successCalled)
+
+    // Verify only friend request remains
+    var notifications: List<Notification>? = null
+    repository.getNotifications(testUserId1, { notifications = it }, {})
+
+    assertEquals(1, notifications!!.size)
+    assertTrue(notifications!![0] is Notification.FriendRequest)
+  }
 }

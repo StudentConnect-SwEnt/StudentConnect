@@ -12,6 +12,9 @@ class NotificationChannelManagerTest {
     assert(NotificationChannelManager.EVENT_STARTING_CHANNEL_ID.isNotEmpty()) {
       "Event starting channel ID should not be empty"
     }
+    assert(NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID.isNotEmpty()) {
+      "Event invitation channel ID should not be empty"
+    }
   }
 
   @Test
@@ -19,7 +22,17 @@ class NotificationChannelManagerTest {
     assert(
         NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID !=
             NotificationChannelManager.EVENT_STARTING_CHANNEL_ID) {
-          "Channel IDs should be different"
+          "Friend request and event starting channel IDs should be different"
+        }
+    assert(
+        NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID !=
+            NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID) {
+          "Friend request and event invitation channel IDs should be different"
+        }
+    assert(
+        NotificationChannelManager.EVENT_STARTING_CHANNEL_ID !=
+            NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID) {
+          "Event starting and event invitation channel IDs should be different"
         }
   }
 
@@ -31,6 +44,9 @@ class NotificationChannelManagerTest {
     assert(NotificationChannelManager.EVENT_STARTING_CHANNEL_ID == "event_starting") {
       "Event starting channel ID should be 'event_starting'"
     }
+    assert(NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID == "event_invitations") {
+      "Event invitation channel ID should be 'event_invitations'"
+    }
   }
 
   @Test
@@ -38,6 +54,7 @@ class NotificationChannelManagerTest {
     // Channel IDs should be lowercase with underscores
     val friendRequestId = NotificationChannelManager.FRIEND_REQUEST_CHANNEL_ID
     val eventStartingId = NotificationChannelManager.EVENT_STARTING_CHANNEL_ID
+    val eventInvitationId = NotificationChannelManager.EVENT_INVITATION_CHANNEL_ID
 
     assert(friendRequestId == friendRequestId.lowercase()) {
       "Friend request channel ID should be lowercase"
@@ -45,7 +62,13 @@ class NotificationChannelManagerTest {
     assert(eventStartingId == eventStartingId.lowercase()) {
       "Event starting channel ID should be lowercase"
     }
+    assert(eventInvitationId == eventInvitationId.lowercase()) {
+      "Event invitation channel ID should be lowercase"
+    }
     assert(!friendRequestId.contains(" ")) { "Friend request channel ID should not contain spaces" }
     assert(!eventStartingId.contains(" ")) { "Event starting channel ID should not contain spaces" }
+    assert(!eventInvitationId.contains(" ")) {
+      "Event invitation channel ID should not contain spaces"
+    }
   }
 }
