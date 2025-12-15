@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 /** ViewModel for EditActivitiesScreen. Handles activities/hobbies selection and search. */
 class EditActivitiesViewModel(
@@ -95,15 +95,7 @@ class EditActivitiesViewModel(
 
         // not using userRepository.updateUser, as it doesn't work
         val updatedUser = user.copy(hobbies = _selectedActivities.value.toList())
-        var saveResult: Result<Unit>? = null
-        val saveJob =
-            viewModelScope.launch {
-              saveResult = runCatching { userRepository.saveUser(updatedUser) }
-            }
-        withTimeoutOrNull(5_000) { saveJob.join() }
-        if (saveResult != null && saveResult!!.isFailure) {
-          throw saveResult!!.exceptionOrNull()!!
-        }
+        viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
 
         _uiState.value = UiState.Success(R.string.success_activities_updated.toString())
       } catch (e: Exception) {
