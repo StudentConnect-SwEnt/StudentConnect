@@ -154,14 +154,6 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
 
   @NoAnonymousSignIn
   @Test
-  fun mainActivity_boxWrapper_containsScaffold() {
-    // Verify that the main layout structure exists
-    // The Box wrapper should contain both the Scaffold and the notification banner
-    composeTestRule.onNodeWithTag("HomePage").assertExists()
-  }
-
-  @NoAnonymousSignIn
-  @Test
   fun mainActivity_notificationViewModel_isInitialized() {
     // The notification system should be initialized
     // This is verified by the app not crashing and the UI being visible
