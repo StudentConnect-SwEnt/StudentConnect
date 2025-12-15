@@ -139,7 +139,7 @@ sealed class Notification {
               "type" to type.name,
               "fromUserId" to fromUserId,
               "fromUserName" to fromUserName,
-              "timestamp" to (timestamp ?: FieldValue.serverTimestamp()),
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
       is EventStarting ->
           mapOf(
@@ -149,7 +149,7 @@ sealed class Notification {
               "eventId" to eventId,
               "eventTitle" to eventTitle,
               "eventStart" to eventStart,
-              "timestamp" to (timestamp ?: FieldValue.serverTimestamp()),
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
       is EventInvitation ->
           mapOf(
@@ -160,7 +160,7 @@ sealed class Notification {
               "eventTitle" to eventTitle,
               "invitedBy" to invitedBy,
               "invitedByName" to invitedByName,
-              "timestamp" to (timestamp ?: FieldValue.serverTimestamp()),
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
       is OrganizationMemberInvitation ->
           mapOf(
@@ -172,10 +172,17 @@ sealed class Notification {
               "role" to role,
               "invitedBy" to invitedBy,
               "invitedByName" to invitedByName,
-              "timestamp" to (timestamp ?: FieldValue.serverTimestamp()),
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
     }
   }
+
+  /**
+   * Helper function to get timestamp or server time if timestamp is null
+   *
+   * @return The timestamp if available, or FieldValue.serverTimestamp() for Firestore to set
+   */
+  private fun getTimestampOrServerTime(): Any = timestamp ?: FieldValue.serverTimestamp()
 
   companion object {
     /**

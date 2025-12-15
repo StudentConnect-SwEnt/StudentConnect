@@ -735,6 +735,14 @@ class EventViewModelTest {
   @Test
   fun updateInvitationsForEvent_addsAndKeepsExisting() = runTest {
     val ownerId = AuthenticationProvider.testUserId!!
+    val ownerUser =
+        User(
+            userId = ownerId,
+            email = "owner@example.com",
+            username = "owner",
+            firstName = "Owner",
+            lastName = "User",
+            university = "EPFL")
     val friend1 =
         User(
             userId = "friendA",
@@ -752,6 +760,7 @@ class EventViewModelTest {
             lastName = "LB",
             university = "EPFL")
     val localUserRepo = UserRepositoryLocal()
+    localUserRepo.saveUser(ownerUser)
     localUserRepo.saveUser(friend1)
     localUserRepo.saveUser(friend2)
     val localEventRepo = EventRepositoryLocal()
@@ -1534,10 +1543,10 @@ class EventViewModelTest {
   }
 
   @Test
-  fun updateInvitationsForEvent_whenUserNotFound_usesSomeone() = runTest {
+  fun updateInvitationsForEvent_whenUserNotFound_failsOperation() = runTest {
     // Arrange
     val ownerId = AuthenticationProvider.testUserId!!
-    // Note: NOT saving owner user to userRepository
+    // Note: NOT saving owner user to userRepository to simulate fetch failure
     val friend1 =
         User(
             userId = "friend1",
@@ -1581,12 +1590,18 @@ class EventViewModelTest {
     vm.updateInvitationsForEvent()
     advanceUntilIdle()
 
-    // Assert - when user is not found, it should use "Someone" as fallback
+    // Assert - when user is not found, the operation should fail
+    // No notification should be created
     var notifications: List<Notification> = emptyList()
     localNotificationRepo.getNotifications(
         friend1.userId, onSuccess = { notifications = it }, onFailure = { throw it })
-    assertEquals(1, notifications.size)
-    val invitation = notifications[0] as Notification.EventInvitation
-    assertEquals("Someone", invitation.invitedByName)
+    assertEquals(0, notifications.size)
+
+    // The invitation should also not be created
+    val invitations = localEventRepo.getEventInvitations(event.uid)
+    assertFalse(invitations.contains(friend1.userId))
+
+    // And an error should be shown
+    assertNotNull(vm.uiState.value.friendsErrorRes)
   }
 }

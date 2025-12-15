@@ -342,11 +342,20 @@ class EventViewModel(
 
     viewModelScope.launch {
       _uiState.update { it.copy(isInvitingFriends = true, friendsErrorRes = null) }
-      var hadError = false
 
       // Fetch current user info to get the actual name
+      // If this fails, we cannot proceed as we need a valid name for notifications
       val currentUser = userRepository.getUserById(currentUserId)
-      val currentUserName = currentUser?.let { "${it.firstName} ${it.lastName}" } ?: "Someone"
+      if (currentUser == null) {
+        android.util.Log.e("EventViewModel", "Failed to fetch current user info")
+        _uiState.update {
+          it.copy(isInvitingFriends = false, friendsErrorRes = R.string.event_invite_send_failed)
+        }
+        return@launch
+      }
+
+      val currentUserName = "${currentUser.firstName} ${currentUser.lastName}"
+      var hadError = false
 
       toAdd.forEach { friendId ->
         runCatching {
@@ -354,6 +363,8 @@ class EventViewModel(
               userRepository.addInvitationToUser(event.uid, friendId, currentUserId)
 
               // Create notification for event invitation
+              // Notification failures are logged but don't fail the invitation
+              // This is intentional - the invitation is the primary operation
               val notification =
                   Notification.EventInvitation(
                       userId = friendId,
@@ -368,6 +379,7 @@ class EventViewModel(
                         "EventViewModel", "Notification sent to $friendId for event ${event.uid}")
                   },
                   onFailure = { e ->
+                    // Log but don't fail - notifications are secondary to the invitation
                     android.util.Log.w(
                         "EventViewModel", "Failed to send notification to $friendId", e)
                   })
