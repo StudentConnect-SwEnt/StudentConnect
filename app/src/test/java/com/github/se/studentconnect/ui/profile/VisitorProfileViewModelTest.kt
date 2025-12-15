@@ -172,6 +172,12 @@ class VisitorProfileViewModelTest {
         TODO("Not yet implemented")
       }
 
+      override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+      override suspend fun unpinOrganization(userId: String) {}
+
+      override suspend fun getPinnedOrganization(userId: String): String? = null
+
       override suspend fun declineInvitation(eventId: String, userId: String) = Unit
     }
   }

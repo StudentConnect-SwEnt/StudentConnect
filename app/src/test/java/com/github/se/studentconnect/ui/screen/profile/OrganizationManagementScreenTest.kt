@@ -7,6 +7,7 @@ import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationType
+import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.OrganizationManagementViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,7 @@ class OrganizationManagementScreenTest {
 
   private lateinit var testDispatcher: TestDispatcher
   private lateinit var repository: TestOrganizationRepository
+  private lateinit var userRepository: TestUserRepository
   private val testUserId = "test_user_123"
 
   private val testOrganization1 =
@@ -62,6 +64,7 @@ class OrganizationManagementScreenTest {
     testDispatcher = StandardTestDispatcher()
     Dispatchers.setMain(testDispatcher)
     repository = TestOrganizationRepository(listOf(testOrganization1, testOrganization2))
+    userRepository = TestUserRepository()
     backPressed = false
     createOrganizationPressed = false
     joinOrganizationPressed = false
@@ -76,7 +79,10 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_displaysTitle() {
     val viewModel =
-        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -97,7 +103,10 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_displaysBackButton() {
     val viewModel =
-        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -115,7 +124,10 @@ class OrganizationManagementScreenTest {
   @Test
   fun organizationManagementScreen_backButtonWorks() {
     val viewModel =
-        OrganizationManagementViewModel(userId = testUserId, organizationRepository = repository)
+        OrganizationManagementViewModel(
+            userId = testUserId,
+            organizationRepository = repository,
+            userRepository = userRepository)
 
     composeTestRule.setContent {
       MaterialTheme {
@@ -317,5 +329,69 @@ class OrganizationManagementScreenTest {
     ): List<OrganizationMemberInvitation> = emptyList()
 
     override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
+  }
+
+  // Mock UserRepository
+  private class TestUserRepository : UserRepository {
+    override suspend fun leaveEvent(eventId: String, userId: String) {}
+
+    override suspend fun getUserById(userId: String) = null
+
+    override suspend fun getUserByEmail(email: String) = null
+
+    override suspend fun getAllUsers() = emptyList()
+
+    override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
+        Pair(emptyList(), false)
+
+    override suspend fun saveUser(user: com.github.se.studentconnect.model.user.User) {}
+
+    override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+
+    override suspend fun deleteUser(userId: String) {}
+
+    override suspend fun getUsersByUniversity(university: String) = emptyList()
+
+    override suspend fun getUsersByHobby(hobby: String) = emptyList()
+
+    override suspend fun getNewUid() = "new_uid"
+
+    override suspend fun getJoinedEvents(userId: String) = emptyList()
+
+    override suspend fun addEventToUser(eventId: String, userId: String) {}
+
+    override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
+
+    override suspend fun getInvitations(userId: String) = emptyList()
+
+    override suspend fun acceptInvitation(eventId: String, userId: String) {}
+
+    override suspend fun declineInvitation(eventId: String, userId: String) {}
+
+    override suspend fun removeInvitation(eventId: String, userId: String) {}
+
+    override suspend fun joinEvent(eventId: String, userId: String) {}
+
+    override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
+
+    override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+
+    override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+
+    override suspend fun getFavoriteEvents(userId: String) = emptyList()
+
+    override suspend fun addPinnedEvent(userId: String, eventId: String) {}
+
+    override suspend fun removePinnedEvent(userId: String, eventId: String) {}
+
+    override suspend fun getPinnedEvents(userId: String) = emptyList()
+
+    override suspend fun checkUsernameAvailability(username: String) = true
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+    override suspend fun unpinOrganization(userId: String) {}
+
+    override suspend fun getPinnedOrganization(userId: String): String? = null
   }
 }
