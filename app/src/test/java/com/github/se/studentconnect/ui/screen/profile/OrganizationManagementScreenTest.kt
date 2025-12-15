@@ -528,7 +528,7 @@ class OrganizationManagementScreenTest {
   }
 
   @Test
-  fun organizationCard_displaysUnpinButtonWhenPinned() {
+  fun organizationCard_displaysUnpinButtonWhenPinned() = runTest {
     val org =
         Organization(
             id = "org_pinned",
