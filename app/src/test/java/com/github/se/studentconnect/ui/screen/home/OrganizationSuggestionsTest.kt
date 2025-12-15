@@ -13,8 +13,14 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,7 +31,59 @@ import org.robolectric.annotation.Config
 @Config(sdk = [30])
 class OrganizationSuggestionsTest {
 
+  private val fakeOrganizationRepository =
+      object : OrganizationRepository {
+        override suspend fun saveOrganization(organization: Organization) {}
+
+        override suspend fun getOrganizationById(organizationId: String): Organization? {
+          return null
+        }
+
+        override suspend fun getAllOrganizations(): List<Organization> {
+          return emptyList()
+        }
+
+        override suspend fun getNewOrganizationId(): String {
+          return "test-organization-id"
+        }
+
+        override suspend fun sendMemberInvitation(
+            organizationId: String,
+            userId: String,
+            role: String,
+            invitedBy: String
+        ) {}
+
+        override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+        override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+        override suspend fun getPendingInvitations(
+            organizationId: String
+        ): List<OrganizationMemberInvitation> {
+          return emptyList()
+        }
+
+        override suspend fun getUserPendingInvitations(
+            userId: String
+        ): List<OrganizationMemberInvitation> {
+          return emptyList()
+        }
+
+        override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
+      }
+
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    OrganizationRepositoryProvider.overrideForTests(fakeOrganizationRepository)
+  }
+
+  @After
+  fun teardown() {
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+  }
 
   private val testOrganizations =
       listOf(

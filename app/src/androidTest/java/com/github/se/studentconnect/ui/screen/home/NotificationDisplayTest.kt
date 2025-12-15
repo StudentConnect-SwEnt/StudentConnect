@@ -45,7 +45,16 @@ class NotificationDisplayTest {
             predicate: (Event) -> Boolean
         ): List<Event> = emptyList()
 
-        override suspend fun getEvent(eventUid: String): Event = throw NotImplementedError()
+        override suspend fun getEvent(eventUid: String): Event =
+            Event.Public(
+                uid = "test-event-uid",
+                ownerId = "test-owner-id",
+                title = "Test Event",
+                description = "Test Description",
+                start = Timestamp.now(),
+                isFlash = false,
+                subtitle = "Test Subtitle",
+            )
 
         override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =
             emptyList()
