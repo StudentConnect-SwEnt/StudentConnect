@@ -318,7 +318,8 @@ class ProfileViewModelTest {
     kotlinx.coroutines.delay(100)
 
     val organizations = vm.userOrganizations.value
-    assertEquals("Should have no organizations when pinned org doesn't exist", 0, organizations.size)
+    assertEquals(
+        "Should have no organizations when pinned org doesn't exist", 0, organizations.size)
   }
 
   @Test

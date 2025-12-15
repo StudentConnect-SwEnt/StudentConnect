@@ -453,35 +453,61 @@ class OrganizationManagementViewModelTest {
 
     // Stub implementations for other methods
     override suspend fun getUserById(userId: String) = null
+
     override suspend fun getUserByEmail(email: String) = null
+
     override suspend fun getAllUsers() = emptyList<com.github.se.studentconnect.model.user.User>()
+
     override suspend fun getUsersPaginated(limit: Int, lastUserId: String?) =
         emptyList<com.github.se.studentconnect.model.user.User>() to false
+
     override suspend fun saveUser(user: com.github.se.studentconnect.model.user.User) {}
+
     override suspend fun updateUser(userId: String, updates: Map<String, Any?>) {}
+
     override suspend fun deleteUser(userId: String) {}
+
     override suspend fun getUsersByUniversity(university: String) =
         emptyList<com.github.se.studentconnect.model.user.User>()
+
     override suspend fun getUsersByHobby(hobby: String) =
         emptyList<com.github.se.studentconnect.model.user.User>()
+
     override suspend fun getNewUid() = "test_uid"
+
     override suspend fun getJoinedEvents(userId: String) = emptyList<String>()
+
     override suspend fun addEventToUser(eventId: String, userId: String) {}
+
     override suspend fun addInvitationToUser(eventId: String, userId: String, fromUserId: String) {}
+
     override suspend fun getInvitations(userId: String) =
         emptyList<com.github.se.studentconnect.model.activities.Invitation>()
+
     override suspend fun acceptInvitation(eventId: String, userId: String) {}
+
     override suspend fun declineInvitation(eventId: String, userId: String) {}
+
     override suspend fun removeInvitation(eventId: String, userId: String) {}
+
     override suspend fun joinEvent(eventId: String, userId: String) {}
+
     override suspend fun leaveEvent(eventId: String, userId: String) {}
+
     override suspend fun sendInvitation(eventId: String, fromUserId: String, toUserId: String) {}
+
     override suspend fun addFavoriteEvent(userId: String, eventId: String) {}
+
     override suspend fun removeFavoriteEvent(userId: String, eventId: String) {}
+
     override suspend fun getFavoriteEvents(userId: String) = emptyList<String>()
+
     override suspend fun addPinnedEvent(userId: String, eventId: String) {}
+
     override suspend fun removePinnedEvent(userId: String, eventId: String) {}
+
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
     override suspend fun checkUsernameAvailability(username: String) = true
   }
 }

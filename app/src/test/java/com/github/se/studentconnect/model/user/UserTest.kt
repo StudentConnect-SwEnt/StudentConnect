@@ -1114,8 +1114,7 @@ class UserTest {
 
   @Test
   fun testUpdatePinnedOrganization() {
-    val updatedUser =
-        validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org456"))
+    val updatedUser = validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org456"))
     Assert.assertEquals("org456", updatedUser.pinnedOrganizationId)
     Assert.assertEquals(validUser.firstName, updatedUser.firstName)
     Assert.assertTrue(updatedUser.updatedAt >= validUser.updatedAt)
@@ -1136,8 +1135,7 @@ class UserTest {
   fun testUpdatePinnedOrganizationNoChange() {
     val userWithPinnedOrg =
         validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org123"))
-    val updatedUser =
-        userWithPinnedOrg.update(pinnedOrganizationId = User.UpdateValue.NoChange())
+    val updatedUser = userWithPinnedOrg.update(pinnedOrganizationId = User.UpdateValue.NoChange())
     Assert.assertEquals("org123", updatedUser.pinnedOrganizationId)
   }
 
