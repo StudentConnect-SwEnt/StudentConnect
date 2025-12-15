@@ -85,12 +85,14 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.waitForIdle()
 
     // 3. ADD REQUIRED DATA: Add a role so the form is valid
-    composeTestRule.onNodeWithText("Role name").performTextInput("President")
-    composeTestRule.onNodeWithText("+ Add role").performClick()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.team_roles_name_label))
+        .performTextInput("President")
+    composeTestRule.onNodeWithText(ctx.getString(R.string.team_roles_add_button)).performClick()
     composeTestRule.waitForIdle()
 
     // 4. Perform the click that triggers the submission
-    composeTestRule.onNodeWithText("Start Now").performClick()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).performClick()
 
     // 5. Wait for the coroutine to finish
     composeTestRule.waitForIdle()
@@ -122,7 +124,9 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule
         .onNodeWithTag(OrganizationInfoScreenTestTags.ORG_NAME_INPUT)
         .performTextInput("My Org")
-    composeTestRule.onNodeWithText("Association").performClick()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.organization_type_association))
+        .performClick()
     composeTestRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).performClick()
 
     // 2. Logo Screen -> Back
@@ -206,7 +210,7 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.waitForIdle()
 
     // Verify Socials/Brand screen is displayed - check for Skip button
-    composeTestRule.onNodeWithText("Skip").assertIsDisplayed()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_skip)).assertIsDisplayed()
 
     // Test back navigation
     composeTestRule
@@ -244,7 +248,7 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.waitForIdle()
 
     // Click Skip
-    composeTestRule.onNodeWithText("Skip").performClick()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_skip)).performClick()
 
     composeTestRule.waitForIdle()
 
@@ -317,7 +321,7 @@ class OrganizationSignUpOrchestratorTest {
 
     // Should be on Team screen
     assert(viewModel.state.value.currentStep == OrganizationSignUpStep.Team)
-    composeTestRule.onNodeWithText("Start Now").assertIsDisplayed()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).assertIsDisplayed()
   }
 
   @Test
@@ -347,9 +351,13 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.waitForIdle()
 
     // Verify Team screen is displayed
-    composeTestRule.onNodeWithText("Start Now").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Role name").assertIsDisplayed()
-    composeTestRule.onNodeWithText("+ Add role").assertIsDisplayed()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.team_roles_name_label))
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.team_roles_add_button))
+        .assertIsDisplayed()
   }
 
   @Test
@@ -378,18 +386,20 @@ class OrganizationSignUpOrchestratorTest {
     viewModel.nextStep() // Team
 
     // Add role
-    composeTestRule.onNodeWithText("Role name").performTextInput("President")
-    composeTestRule.onNodeWithText("+ Add role").performClick()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.team_roles_name_label))
+        .performTextInput("President")
+    composeTestRule.onNodeWithText(ctx.getString(R.string.team_roles_add_button)).performClick()
 
     // Click Submit
-    composeTestRule.onNodeWithText("Start Now").performClick()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).performClick()
 
     // Verify repository interaction
     composeTestRule.waitForIdle()
     verify(mockOrgRepository).saveOrganization(any())
 
     // Verify we are STILL on the Team Roles screen (did not navigate away on error)
-    composeTestRule.onNodeWithText("Start Now").assertIsDisplayed()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).assertIsDisplayed()
   }
 
   @Test
@@ -408,7 +418,9 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule
         .onNodeWithTag(OrganizationInfoScreenTestTags.ORG_NAME_INPUT)
         .performTextInput("Test Organization")
-    composeTestRule.onNodeWithText("Association").performClick()
+    composeTestRule
+        .onNodeWithText(ctx.getString(R.string.organization_type_association))
+        .performClick()
     composeTestRule.onNodeWithTag(OrganizationInfoScreenTestTags.CONTINUE_BUTTON).performClick()
 
     composeTestRule.waitForIdle()
@@ -437,6 +449,6 @@ class OrganizationSignUpOrchestratorTest {
     composeTestRule.waitForIdle()
 
     // Verify we reached Team screen
-    composeTestRule.onNodeWithText("Start Now").assertIsDisplayed()
+    composeTestRule.onNodeWithText(ctx.getString(R.string.button_start_now)).assertIsDisplayed()
   }
 }
