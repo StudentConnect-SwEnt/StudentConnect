@@ -883,6 +883,7 @@ private fun androidx.compose.foundation.layout.RowScope.NotificationBannerConten
       when (notification) {
         is Notification.FriendRequest -> notification.getMessage()
         is Notification.EventStarting -> notification.getMessage()
+        is Notification.EventInvitation -> notification.getMessage()
         is Notification.OrganizationMemberInvitation -> notification.getMessage()
       }
 
@@ -925,6 +926,8 @@ private fun getNotificationBannerTitle(notification: Notification): String {
         stringResource(R.string.notification_banner_title_friend_request)
     is Notification.EventStarting ->
         stringResource(R.string.notification_banner_title_event_starting)
+    is Notification.EventInvitation ->
+        stringResource(R.string.notification_banner_title_event_invitation)
     is Notification.OrganizationMemberInvitation ->
         stringResource(R.string.notification_banner_title_organization_invitation)
   }
