@@ -135,6 +135,7 @@ fun EventView(
     navController: NavHostController,
     eventViewModel: EventViewModel = viewModel(),
 ) {
+  val context = LocalContext.current
   val uiState by eventViewModel.uiState.collectAsState()
   val event = uiState.event
   val isLoading = uiState.isLoading
@@ -370,7 +371,7 @@ private fun BaseEventView(
                   Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
                 if (imageBitmap != null) {
                   Image(
-                      bitmap = imageBitmap!!,
+                      bitmap = imageBitmap,
                       contentDescription = stringResource(R.string.content_description_event_image),
                       modifier = Modifier.fillMaxSize(),
                       contentScale = ContentScale.Crop)
@@ -1135,7 +1136,7 @@ private fun AttendeeItem(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, attendee)
+  val imageBitmap = loadBitmapFromUser(context, user)
   Row(
       modifier =
           modifier
@@ -1151,7 +1152,7 @@ private fun AttendeeItem(
             contentAlignment = Alignment.Center) {
               if (imageBitmap != null) {
                 Image(
-                    bitmap = imageBitmap!!,
+                    bitmap = imageBitmap,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
                     modifier = Modifier.size(56.dp).clip(CircleShape),

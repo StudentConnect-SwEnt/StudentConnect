@@ -1,7 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
 import android.widget.Toast
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -85,6 +84,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -108,13 +108,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
-import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
-import com.github.se.studentconnect.repository.UserRepositoryProvider
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -128,18 +130,14 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import com.github.se.studentconnect.viewmodel.NotificationUiState
-import com.github.se.studentconnect.viewmodel.NotificationViewModel
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUriComposable
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -1071,48 +1069,49 @@ private fun NotificationContent(
 
 @Composable
 private fun NotificationIcon(notification: Notification) {
-  val icon =
-      when (notification) {
-        is Notification.FriendRequest -> Icons.Default.Person
-        is Notification.EventStarting -> Icons.Default.Event
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  val context = LocalContext.current
+  when (notification) {
+    is Notification.FriendRequest -> {
+      var user by remember { mutableStateOf<User?>(null) }
+      LaunchedEffect(user) {
+        user = UserRepositoryProvider.repository.getUserById(notification.fromUserId)
       }
-      val imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
-      if (imageBitmap != null) {
-        Image(
-            imageBitmap,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
-      } else {
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary)
-      }
-    }
-    is Notification.EventStarting -> {
-      var event: Event? = null
-      LaunchedEffect(event) {
-        event = EventRepositoryProvider.repository.getEvent(notification.eventId)
-      }
-      val imageBitmap = event?.let { loadBitmapFromEvent(context, event) }
-      if (imageBitmap != null) {
-        Image(
-            imageBitmap,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
-      } else {
-        Icon(
-            imageVector = Icons.Default.Event,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary)
+      imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
+      if (imageBitmap == null) {
+        Icons.Default.Person
       }
     }
       is Notification.EventInvitation -> Icons.Default.Email
-      is Notification.OrganizationMemberInvitation -> Icons.Default.Group
+    is Notification.EventStarting -> {
+      var event by remember { mutableStateOf<Event?>(null) }
+      LaunchedEffect(event) {
+        event = EventRepositoryProvider.repository.getEvent(notification.eventId)
+      }
+      imageBitmap = event?.let { loadBitmapFromEvent(context, event!!) }
+      if (imageBitmap == null) {
+        Icons.Default.Event
+      }
+    }
+    is Notification.OrganizationMemberInvitation -> {
+      var orga by remember { mutableStateOf<Organization?>(null) }
+      LaunchedEffect(orga) {
+        orga =
+            OrganizationRepositoryProvider.repository.getOrganizationById(
+                notification.organizationId)
+      }
+      imageBitmap = orga?.let { loadBitmapFromOrganization(context, orga!!) }
+      if (imageBitmap == null) {
+        Icons.Default.Group
+      }
+    }
+  }
+  if (imageBitmap != null) {
+    Image(
+        imageBitmap!!,
+        contentDescription = null,
+        modifier = Modifier.size(24.dp).clip(CircleShape),
+    )
   }
 
     Icon(
@@ -1272,18 +1271,11 @@ fun StoryItem(
 
   // Download profile picture using MediaRepository (same as profile screen)
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
-        value =
-            avatarUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { // just do nothing
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val imageBitmap =
+      loadBitmapFromUriComposable(
+          context = context,
+          uri = avatarUrl,
+      )
 
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
@@ -1673,17 +1665,11 @@ fun StoryViewer(
 
   // Download profile picture using MediaRepository (same as profile screen)
   val repository = MediaRepositoryProvider.repository
-  val avatarBitmap by
-      produceState<ImageBitmap?>(initialValue = null, currentProfilePictureUrl, repository) {
-        value =
-            currentProfilePictureUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { // just do nothing
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  val avatarBitmap =
+      loadBitmapFromUriComposable(
+          context = context,
+          uri = currentProfilePictureUrl,
+      )
 
   AnimatedVisibility(
       visible = isVisible,

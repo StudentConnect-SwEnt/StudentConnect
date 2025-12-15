@@ -61,8 +61,6 @@ import com.github.se.studentconnect.model.activities.InvitationStatus
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import com.github.se.studentconnect.viewmodel.ActivitiesViewModel
 import com.github.se.studentconnect.ui.utils.LiveEventBadge
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.google.firebase.Timestamp
