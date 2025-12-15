@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -57,3 +58,7 @@ fun loadBitmapFromUser(context: Context, user: User): ImageBitmap? =
 @Composable
 fun loadBitmapFromEvent(context: Context, event: Event): ImageBitmap? =
     loadBitmapFromUriComposable(context, event.imageUrl)
+
+@Composable
+fun loadBitmapFromOrganization(context: Context, organization: Organization): ImageBitmap? =
+    loadBitmapFromUriComposable(context, organization.logoUrl)

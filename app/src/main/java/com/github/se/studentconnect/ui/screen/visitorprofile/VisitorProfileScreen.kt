@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.screen.visitorprofile
 
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.Image
@@ -49,11 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.User
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
@@ -395,14 +391,14 @@ internal fun VisitorProfileInfoCard(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
       Text(
           modifier = Modifier.padding(start = 10.dp),
-          text = stringResource(id = com.github.se.studentconnect.R.string.title_bio),
+          text = stringResource(id = R.string.title_bio),
           style =
               MaterialTheme.typography.titleSmall.copy(
                   fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary))
 
       val bio =
           user.bio?.takeIf { it.isNotBlank() }
-              ?: stringResource(id = com.github.se.studentconnect.R.string.no_bio_available)
+              ?: stringResource(id = R.string.no_bio_available)
       val bioColor =
           if (user.bio.isNullOrBlank()) MaterialTheme.colorScheme.onSurfaceVariant
           else MaterialTheme.colorScheme.onSurface
@@ -433,7 +429,7 @@ internal fun VisitorProfileInfoCard(
                     Text(
                         text =
                             stringResource(
-                                id = com.github.se.studentconnect.R.string.button_cancel),
+                                id = R.string.button_cancel),
                         style = MaterialTheme.typography.labelLarge)
                   }
 
@@ -449,7 +445,7 @@ internal fun VisitorProfileInfoCard(
                     Text(
                         text =
                             stringResource(
-                                id = com.github.se.studentconnect.R.string.text_request_sent),
+                                id = R.string.text_request_sent),
                         style = MaterialTheme.typography.labelLarge)
                   }
             }
@@ -470,7 +466,7 @@ internal fun VisitorProfileInfoCard(
                   Text(
                       text =
                           stringResource(
-                              id = com.github.se.studentconnect.R.string.text_remove_friend),
+                              id = R.string.text_remove_friend),
                       style = MaterialTheme.typography.labelLarge)
                 }
           }
@@ -478,11 +474,11 @@ internal fun VisitorProfileInfoCard(
             val buttonText =
                 when (friendRequestStatus) {
                   FriendRequestStatus.SENDING ->
-                      stringResource(id = com.github.se.studentconnect.R.string.text_sending)
+                      stringResource(id = R.string.text_sending)
                   FriendRequestStatus.ERROR ->
-                      stringResource(id = com.github.se.studentconnect.R.string.text_try_again)
+                      stringResource(id = R.string.text_try_again)
                   else ->
-                      stringResource(id = com.github.se.studentconnect.R.string.button_add_friend)
+                      stringResource(id = R.string.button_add_friend)
                 }
 
             val buttonEnabled =
@@ -518,13 +514,13 @@ internal fun VisitorProfileInfoCard(
             Text(
                 text =
                     stringResource(
-                        id = com.github.se.studentconnect.R.string.dialog_remove_friend_title))
+                        id = R.string.dialog_remove_friend_title))
           },
           text = {
             Text(
                 text =
                     stringResource(
-                        id = com.github.se.studentconnect.R.string.dialog_remove_friend_message))
+                        id = R.string.dialog_remove_friend_message))
           },
           confirmButton = {
             TextButton(
@@ -533,14 +529,14 @@ internal fun VisitorProfileInfoCard(
                   onRemoveFriendClick()
                 },
                 modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_confirm }) {
-                  Text(text = stringResource(id = com.github.se.studentconnect.R.string.button_yes))
+                  Text(text = stringResource(id = R.string.button_yes))
                 }
           },
           dismissButton = {
             TextButton(
                 onClick = { showRemoveFriendDialog = false },
                 modifier = Modifier.semantics { testTag = C.Tag.visitor_profile_dialog_dismiss }) {
-                  Text(text = stringResource(id = com.github.se.studentconnect.R.string.button_no))
+                  Text(text = stringResource(id = R.string.button_no))
                 }
           })
     }
@@ -572,7 +568,7 @@ internal fun VisitorProfileEventSection(title: String) {
                         text =
                             stringResource(
                                 id =
-                                    com.github.se.studentconnect.R.string
+                                    R.string
                                         .text_nothing_to_display_yet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
