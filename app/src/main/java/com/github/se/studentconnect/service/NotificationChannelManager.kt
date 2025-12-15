@@ -17,11 +17,17 @@ object NotificationChannelManager {
   /** Channel ID for event starting notifications */
   const val EVENT_STARTING_CHANNEL_ID = "event_starting"
 
+  /** Channel ID for event invitation notifications */
+  const val EVENT_INVITATION_CHANNEL_ID = "event_invitations"
+
   /** Channel name for friend requests */
   private const val FRIEND_REQUEST_CHANNEL_NAME = "Friend Requests"
 
   /** Channel name for event starting */
   private const val EVENT_STARTING_CHANNEL_NAME = "Event Reminders"
+
+  /** Channel name for event invitations */
+  private const val EVENT_INVITATION_CHANNEL_NAME = "Event Invitations"
 
   /**
    * Creates all notification channels for the app
@@ -56,7 +62,20 @@ object NotificationChannelManager {
               enableVibration(true)
             }
 
+    // Event Invitation Channel
+    val eventInvitationChannel =
+        NotificationChannel(
+                EVENT_INVITATION_CHANNEL_ID,
+                EVENT_INVITATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH)
+            .apply {
+              description = "Notifications for private event invitations"
+              enableLights(true)
+              enableVibration(true)
+            }
+
     notificationManager.createNotificationChannel(friendRequestChannel)
     notificationManager.createNotificationChannel(eventStartingChannel)
+    notificationManager.createNotificationChannel(eventInvitationChannel)
   }
 }

@@ -11,6 +11,9 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollRepository
 import com.github.se.studentconnect.model.poll.PollRepositoryProvider
@@ -61,7 +64,9 @@ class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val pollRepository: PollRepository = PollRepositoryProvider.repository,
-    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
+    private val notificationRepository: NotificationRepository =
+        NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
@@ -338,10 +343,34 @@ class EventViewModel(
     viewModelScope.launch {
       _uiState.update { it.copy(isInvitingFriends = true, friendsErrorRes = null) }
       var hadError = false
+      
+      // Fetch current user info to get the actual name
+      val currentUser = userRepository.getUserById(currentUserId)
+      val currentUserName = currentUser?.let { "${it.firstName} ${it.lastName}" } ?: "Someone"
+      
       toAdd.forEach { friendId ->
         runCatching {
               eventRepository.addInvitationToEvent(event.uid, friendId, currentUserId)
               userRepository.addInvitationToUser(event.uid, friendId, currentUserId)
+
+              // Create notification for event invitation
+              val notification =
+                  Notification.EventInvitation(
+                      userId = friendId,
+                      eventId = event.uid,
+                      eventTitle = event.title,
+                      invitedBy = currentUserId,
+                      invitedByName = currentUserName)
+              notificationRepository.createNotification(
+                  notification,
+                  onSuccess = {
+                    android.util.Log.d(
+                        "EventViewModel", "Notification sent to $friendId for event ${event.uid}")
+                  },
+                  onFailure = { e ->
+                    android.util.Log.w(
+                        "EventViewModel", "Failed to send notification to $friendId", e)
+                  })
             }
             .onFailure { e ->
               android.util.Log.w("EventViewModel", "Failed to invite friend $friendId", e)

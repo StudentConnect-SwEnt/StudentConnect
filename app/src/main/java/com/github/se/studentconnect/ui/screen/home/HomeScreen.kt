@@ -42,6 +42,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notifications
@@ -853,6 +854,9 @@ private fun handleNotificationClick(
     is Notification.EventStarting -> {
       navController.navigate("eventView/${notification.eventId}/true")
     }
+    is Notification.EventInvitation -> {
+      navController.navigate("eventView/${notification.eventId}/true")
+    }
     is Notification.OrganizationMemberInvitation -> {
       navController.navigate("organizationProfile/${notification.organizationId}")
     }
@@ -891,10 +895,13 @@ fun NotificationItem(
 
 @Composable
 private fun getNotificationBackgroundColor(notification: Notification): Color {
-  return if (notification.isRead) {
-    MaterialTheme.colorScheme.surface
-  } else {
-    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+  return when {
+    notification is Notification.EventInvitation && !notification.isRead ->
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f)
+    notification is Notification.EventInvitation && notification.isRead ->
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f)
+    !notification.isRead -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    else -> MaterialTheme.colorScheme.surface
   }
 }
 
@@ -925,6 +932,7 @@ private fun NotificationIcon(notification: Notification) {
       when (notification) {
         is Notification.FriendRequest -> Icons.Default.Person
         is Notification.EventStarting -> Icons.Default.Event
+        is Notification.EventInvitation -> Icons.Default.Email
         is Notification.OrganizationMemberInvitation -> Icons.Default.Group
       }
   Icon(
@@ -940,6 +948,7 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
       when (notification) {
         is Notification.FriendRequest -> notification.getMessage()
         is Notification.EventStarting -> notification.getMessage()
+        is Notification.EventInvitation -> notification.getMessage()
         is Notification.OrganizationMemberInvitation -> notification.getMessage()
       }
   val fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal
@@ -981,8 +990,9 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
 private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
   val username =
       when (notification) {
-        is Notification.FriendRequest -> notification.fromUserId
-        is Notification.EventStarting -> notification.userId
+        is Notification.FriendRequest -> notification.fromUserName
+        is Notification.EventStarting -> notification.eventTitle
+        is Notification.EventInvitation -> notification.invitedByName
         is Notification.OrganizationMemberInvitation -> notification.invitedByName
       }
 
