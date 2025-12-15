@@ -397,8 +397,7 @@ internal fun VisitorProfileInfoCard(
                   fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary))
 
       val bio =
-          user.bio?.takeIf { it.isNotBlank() }
-              ?: stringResource(id = R.string.no_bio_available)
+          user.bio?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.no_bio_available)
       val bioColor =
           if (user.bio.isNullOrBlank()) MaterialTheme.colorScheme.onSurfaceVariant
           else MaterialTheme.colorScheme.onSurface
@@ -427,9 +426,7 @@ internal fun VisitorProfileInfoCard(
                           contentColor = MaterialTheme.colorScheme.onSurface),
                   shape = RoundedCornerShape(10.dp)) {
                     Text(
-                        text =
-                            stringResource(
-                                id = R.string.button_cancel),
+                        text = stringResource(id = R.string.button_cancel),
                         style = MaterialTheme.typography.labelLarge)
                   }
 
@@ -443,9 +440,7 @@ internal fun VisitorProfileInfoCard(
                           contentColor = MaterialTheme.colorScheme.onPrimary),
                   shape = RoundedCornerShape(10.dp)) {
                     Text(
-                        text =
-                            stringResource(
-                                id = R.string.text_request_sent),
+                        text = stringResource(id = R.string.text_request_sent),
                         style = MaterialTheme.typography.labelLarge)
                   }
             }
@@ -464,21 +459,16 @@ internal fun VisitorProfileInfoCard(
                         contentColor = MaterialTheme.colorScheme.onSurface),
                 shape = RoundedCornerShape(10.dp)) {
                   Text(
-                      text =
-                          stringResource(
-                              id = R.string.text_remove_friend),
+                      text = stringResource(id = R.string.text_remove_friend),
                       style = MaterialTheme.typography.labelLarge)
                 }
           }
           else -> {
             val buttonText =
                 when (friendRequestStatus) {
-                  FriendRequestStatus.SENDING ->
-                      stringResource(id = R.string.text_sending)
-                  FriendRequestStatus.ERROR ->
-                      stringResource(id = R.string.text_try_again)
-                  else ->
-                      stringResource(id = R.string.button_add_friend)
+                  FriendRequestStatus.SENDING -> stringResource(id = R.string.text_sending)
+                  FriendRequestStatus.ERROR -> stringResource(id = R.string.text_try_again)
+                  else -> stringResource(id = R.string.button_add_friend)
                 }
 
             val buttonEnabled =
@@ -510,18 +500,8 @@ internal fun VisitorProfileInfoCard(
     if (showRemoveFriendDialog) {
       AlertDialog(
           onDismissRequest = { showRemoveFriendDialog = false },
-          title = {
-            Text(
-                text =
-                    stringResource(
-                        id = R.string.dialog_remove_friend_title))
-          },
-          text = {
-            Text(
-                text =
-                    stringResource(
-                        id = R.string.dialog_remove_friend_message))
-          },
+          title = { Text(text = stringResource(id = R.string.dialog_remove_friend_title)) },
+          text = { Text(text = stringResource(id = R.string.dialog_remove_friend_message)) },
           confirmButton = {
             TextButton(
                 onClick = {
@@ -565,11 +545,7 @@ internal fun VisitorProfileEventSection(title: String) {
                   verticalArrangement = Arrangement.spacedBy(8.dp),
                   horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text =
-                            stringResource(
-                                id =
-                                    R.string
-                                        .text_nothing_to_display_yet),
+                        text = stringResource(id = R.string.text_nothing_to_display_yet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier =
