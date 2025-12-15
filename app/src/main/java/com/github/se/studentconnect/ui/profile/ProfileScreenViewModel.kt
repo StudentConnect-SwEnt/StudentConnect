@@ -128,8 +128,13 @@ class ProfileScreenViewModel(
           try {
             eventRepository.getEvent(eventId)
             true
-          } catch (e: Exception) {
+          } catch (e: IllegalArgumentException) {
+            // Event does not exist (thrown by require() in EventRepositoryFirestore)
             Log.d(TAG, "Event $eventId no longer exists, excluding from count")
+            false
+          } catch (e: NoSuchElementException) {
+            // Event not found (alternative exception for missing events)
+            Log.d(TAG, "Event $eventId not found, excluding from count")
             false
           }
         }

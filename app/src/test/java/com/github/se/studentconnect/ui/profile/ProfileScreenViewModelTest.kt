@@ -102,8 +102,10 @@ class ProfileScreenViewModelTest {
   @Test
   fun `viewModel loads events count correctly`() =
       testScope.runTest {
-        userRepository.joinedEventIds = listOf("event1", "event2", "event3", "event4")
-        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4")
+        userRepository.joinedEventIds =
+            listOf("existing-event-1", "existing-event-2", "existing-event-3", "existing-event-4")
+        eventRepository.existingEventIds =
+            setOf("existing-event-1", "existing-event-2", "existing-event-3", "existing-event-4")
 
         viewModel =
             ProfileScreenViewModel(
@@ -274,8 +276,8 @@ class ProfileScreenViewModelTest {
   @Test
   fun `loadUserProfile updates events count`() =
       testScope.runTest {
-        userRepository.joinedEventIds = listOf("event1")
-        eventRepository.existingEventIds = setOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("existing-event-1")
+        eventRepository.existingEventIds = setOf("existing-event-1", "existing-event-2")
 
         viewModel =
             ProfileScreenViewModel(
@@ -287,7 +289,7 @@ class ProfileScreenViewModelTest {
         advanceUntilIdle()
         assertEquals(1, viewModel.eventsCount.value)
 
-        userRepository.joinedEventIds = listOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("existing-event-1", "existing-event-2")
 
         viewModel.loadUserProfile()
         advanceUntilIdle()
@@ -346,8 +348,8 @@ class ProfileScreenViewModelTest {
   @Test
   fun `viewModel handles large events count`() =
       testScope.runTest {
-        userRepository.joinedEventIds = (1..500).map { "event$it" }
-        eventRepository.existingEventIds = (1..500).map { "event$it" }.toSet()
+        userRepository.joinedEventIds = (1..500).map { "existing-event-$it" }
+        eventRepository.existingEventIds = (1..500).map { "existing-event-$it" }.toSet()
 
         viewModel =
             ProfileScreenViewModel(
@@ -388,12 +390,12 @@ class ProfileScreenViewModelTest {
   fun `viewModel counts both joined and created events`() =
       testScope.runTest {
         // User has joined 2 events
-        userRepository.joinedEventIds = listOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("joined-event-1", "joined-event-2")
 
         // User has created 3 events
         val createdEvent1 =
             Event.Private(
-                uid = "event3",
+                uid = "created-event-1",
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
@@ -401,7 +403,7 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
-                uid = "event4",
+                uid = "created-event-2",
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
@@ -409,7 +411,7 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
         val createdEvent3 =
             Event.Private(
-                uid = "event5",
+                uid = "created-event-3",
                 ownerId = testUser.userId,
                 title = "Created Event 3",
                 description = "Test",
@@ -417,7 +419,13 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
-        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4", "event5")
+        eventRepository.existingEventIds =
+            setOf(
+                "joined-event-1",
+                "joined-event-2",
+                "created-event-1",
+                "created-event-2",
+                "created-event-3")
 
         viewModel =
             ProfileScreenViewModel(
@@ -436,12 +444,13 @@ class ProfileScreenViewModelTest {
   fun `viewModel avoids counting duplicate events when user joined their own created event`() =
       testScope.runTest {
         // User has joined events including one they created
-        userRepository.joinedEventIds = listOf("event1", "event2", "event3")
+        userRepository.joinedEventIds =
+            listOf("joined-event-1", "duplicate-event", "joined-event-2")
 
-        // User has created events (event2 is also in joinedEvents)
+        // User has created events (duplicate-event is also in joinedEvents)
         val createdEvent1 =
             Event.Private(
-                uid = "event2",
+                uid = "duplicate-event",
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
@@ -449,7 +458,7 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
-                uid = "event4",
+                uid = "created-event-unique",
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
@@ -457,7 +466,8 @@ class ProfileScreenViewModelTest {
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
-        eventRepository.existingEventIds = setOf("event1", "event2", "event3", "event4")
+        eventRepository.existingEventIds =
+            setOf("joined-event-1", "duplicate-event", "joined-event-2", "created-event-unique")
 
         viewModel =
             ProfileScreenViewModel(
@@ -468,7 +478,8 @@ class ProfileScreenViewModelTest {
 
         advanceUntilIdle()
 
-        // Should count unique events: event1, event2, event3, event4 = 4 total (no duplicates)
+        // Should count unique events: joined-event-1, duplicate-event, joined-event-2,
+        // created-event-unique = 4 total (no duplicates)
         assertEquals(4, viewModel.eventsCount.value)
       }
 
@@ -476,8 +487,8 @@ class ProfileScreenViewModelTest {
   fun `viewModel handles created events fetch error gracefully`() =
       testScope.runTest {
         // User has joined 2 events
-        userRepository.joinedEventIds = listOf("event1", "event2")
-        eventRepository.existingEventIds = setOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("joined-event-1", "joined-event-2")
+        eventRepository.existingEventIds = setOf("joined-event-1", "joined-event-2")
 
         // EventRepository will throw an error when fetching created events
         eventRepository.shouldThrowError = true
@@ -502,9 +513,10 @@ class ProfileScreenViewModelTest {
   fun `viewModel excludes deleted events from count`() =
       testScope.runTest {
         // User has joined 4 events, but 2 of them have been deleted
-        userRepository.joinedEventIds = listOf("event1", "event2", "event3", "event4")
-        // Only event1 and event3 still exist
-        eventRepository.existingEventIds = setOf("event1", "event3")
+        userRepository.joinedEventIds =
+            listOf("existing-event-1", "deleted-event-1", "existing-event-2", "deleted-event-2")
+        // Only existing-event-1 and existing-event-2 still exist
+        eventRepository.existingEventIds = setOf("existing-event-1", "existing-event-2")
 
         viewModel =
             ProfileScreenViewModel(
@@ -515,8 +527,8 @@ class ProfileScreenViewModelTest {
 
         advanceUntilIdle()
 
-        // Should only count existing events (event1 and event3), not deleted ones (event2 and
-        // event4)
+        // Should only count existing events (existing-event-1 and existing-event-2), not deleted
+        // ones (deleted-event-1 and deleted-event-2)
         assertEquals(2, viewModel.eventsCount.value)
       }
 
