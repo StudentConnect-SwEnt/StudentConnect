@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,9 +41,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -50,8 +55,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.ui.profile.OrganizationManagementViewModel
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Organization management screen.
@@ -275,9 +284,7 @@ fun OrganizationManagementScreen(
 
                   items(uiState.userOrganizations) { organization ->
                     OrganizationCard(
-                        organizationName = organization.name,
-                        organizationType = organization.type.name,
-                        memberCount = organization.memberUids.size,
+                        organization = organization,
                         onClick = { onOrganizationClick(organization.id) })
                   }
 
@@ -361,20 +368,35 @@ fun OrganizationManagementScreen(
 /**
  * Card component displaying organization information.
  *
- * @param organizationName Name of the organization
- * @param organizationType Type of the organization
- * @param memberCount Number of members in the organization
+ * @param organization The organization to display
  * @param onClick Callback when the card is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun OrganizationCard(
-    organizationName: String,
-    organizationType: String,
-    memberCount: Int,
+    organization: Organization,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+
+  // Load organization logo if available
+  val logoUrl = organization.logoUrl
+  val logoBitmap by
+      produceState<ImageBitmap?>(initialValue = null, logoUrl, repository) {
+        value =
+            logoUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e(
+                        "OrganizationCard", "Failed to download organization logo: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Card(
       modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -387,7 +409,7 @@ private fun OrganizationCard(
                 Modifier.fillMaxWidth()
                     .padding(dimensionResource(R.dimen.org_management_card_padding)),
             verticalAlignment = Alignment.CenterVertically) {
-              // Organization Icon/Avatar
+              // Organization Logo/Avatar
               Box(
                   modifier =
                       Modifier.size(dimensionResource(R.dimen.org_management_card_icon_size))
@@ -398,13 +420,27 @@ private fun OrganizationCard(
                               color = MaterialTheme.colorScheme.primary,
                               shape = CircleShape),
                   contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Business,
-                        contentDescription = null,
-                        modifier =
-                            Modifier.size(
-                                dimensionResource(R.dimen.org_management_icon_size_medium)),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    val bitmap = logoBitmap
+                    if (bitmap != null) {
+                      // Show organization logo
+                      Image(
+                          bitmap = bitmap,
+                          contentDescription = organization.name,
+                          modifier =
+                              Modifier.size(
+                                      dimensionResource(R.dimen.org_management_card_icon_size))
+                                  .clip(CircleShape),
+                          contentScale = ContentScale.Crop)
+                    } else {
+                      // Show Business icon as fallback
+                      Icon(
+                          imageVector = Icons.Default.Business,
+                          contentDescription = null,
+                          modifier =
+                              Modifier.size(
+                                  dimensionResource(R.dimen.org_management_icon_size_medium)),
+                          tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
                   }
 
               Spacer(modifier = Modifier.width(dimensionResource(R.dimen.org_management_padding)))
@@ -412,20 +448,22 @@ private fun OrganizationCard(
               // Organization Info
               Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = organizationName,
+                    text = organization.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
                 Text(
-                    text = organizationType,
+                    text = organization.type.name,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
                 Text(
                     text =
                         pluralStringResource(
-                            R.plurals.text_members_count, memberCount, memberCount),
+                            R.plurals.text_members_count,
+                            organization.memberUids.size,
+                            organization.memberUids.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }
