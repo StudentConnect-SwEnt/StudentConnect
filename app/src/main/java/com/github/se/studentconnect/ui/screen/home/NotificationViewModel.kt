@@ -16,6 +16,7 @@ data class NotificationUiState(
     val notifications: List<Notification> = emptyList(),
     val unreadCount: Int = 0,
     val isLoading: Boolean = true,
+    val latestNotification: Notification? = null
 )
 
 /** ViewModel for managing notifications in the home screen */
@@ -27,6 +28,7 @@ class NotificationViewModel(
   val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
 
   private var stopListening: (() -> Unit)? = null
+  private var previousNotificationIds = emptySet<String>()
 
   init {
     startListeningToNotifications()
@@ -45,8 +47,25 @@ class NotificationViewModel(
     stopListening =
         repository.listenToNotifications(userId) { notifications ->
           val unreadCount = notifications.count { !it.isRead }
+
+          // Detect new notifications by comparing IDs
+          val currentNotificationIds = notifications.map { it.id }.toSet()
+          val newNotificationIds = currentNotificationIds - previousNotificationIds
+
+          // Find the most recent new notification (if any)
+          val latestNew =
+              if (newNotificationIds.isNotEmpty() && previousNotificationIds.isNotEmpty()) {
+                notifications.firstOrNull { it.id in newNotificationIds }
+              } else null
+
+          previousNotificationIds = currentNotificationIds
+
           _uiState.update {
-            it.copy(notifications = notifications, unreadCount = unreadCount, isLoading = false)
+            it.copy(
+                notifications = notifications,
+                unreadCount = unreadCount,
+                isLoading = false,
+                latestNotification = latestNew)
           }
         }
   }
@@ -161,6 +180,11 @@ class NotificationViewModel(
                 unreadCount = currentNotifications.count { !it.isRead })
           }
         })
+  }
+
+  /** Clears the latest notification banner */
+  fun clearLatestNotification() {
+    _uiState.update { it.copy(latestNotification = null) }
   }
 
   /** Refreshes notifications manually */

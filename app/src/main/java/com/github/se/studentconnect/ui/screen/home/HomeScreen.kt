@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -809,6 +811,125 @@ private fun NotificationBadge(unreadCount: Int) {
       }
 }
 
+/**
+ * Banner notification that appears at the top of the screen
+ *
+ * @param notification The notification to display, or null if no notification should be shown
+ * @param onDismiss Callback invoked when the banner is dismissed (auto or manual)
+ * @param onClick Callback invoked when the user clicks on the banner
+ */
+@Composable
+fun NotificationBanner(notification: Notification?, onDismiss: () -> Unit, onClick: () -> Unit) {
+  var visible by remember(notification) { mutableStateOf(notification != null) }
+
+  // Auto-dismiss after 4 seconds
+  LaunchedEffect(notification) {
+    if (notification != null) {
+      visible = true
+      delay(4000)
+      visible = false
+      delay(300) // Wait for animation to complete
+      onDismiss()
+    }
+  }
+
+  AnimatedVisibility(
+      visible = visible && notification != null,
+      enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+      exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+      modifier =
+          Modifier.fillMaxWidth()
+              .zIndex(999f)
+              .testTag(com.github.se.studentconnect.resources.C.Tag.notification_banner)) {
+        notification?.let {
+          NotificationBannerCard(
+              notification = it, onDismiss = { visible = false }, onClick = onClick)
+        }
+      }
+}
+
+@Composable
+private fun NotificationBannerCard(
+    notification: Notification,
+    onDismiss: () -> Unit,
+    onClick: () -> Unit
+) {
+  Card(
+      modifier =
+          Modifier.fillMaxWidth()
+              .padding(horizontal = 16.dp, vertical = 8.dp)
+              .clickable {
+                onDismiss()
+                onClick()
+              }
+              .testTag("NotificationBanner_${notification.id}"),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+              NotificationBannerContent(notification = notification)
+              NotificationBannerDismissButton(onDismiss = onDismiss)
+            }
+      }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.NotificationBannerContent(
+    notification: Notification
+) {
+  val message =
+      when (notification) {
+        is Notification.FriendRequest -> notification.getMessage()
+        is Notification.EventStarting -> notification.getMessage()
+        is Notification.OrganizationMemberInvitation -> notification.getMessage()
+      }
+
+  Row(
+      modifier = Modifier.weight(1f),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        NotificationIcon(notification = notification)
+        Column {
+          Text(
+              text = getNotificationBannerTitle(notification),
+              style = MaterialTheme.typography.labelMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onPrimaryContainer)
+          Text(
+              text = message,
+              style = MaterialTheme.typography.bodySmall,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              color = MaterialTheme.colorScheme.onPrimaryContainer)
+        }
+      }
+}
+
+@Composable
+private fun NotificationBannerDismissButton(onDismiss: () -> Unit) {
+  IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+    Icon(
+        imageVector = Icons.Default.Close,
+        contentDescription = stringResource(R.string.notification_banner_dismiss),
+        modifier = Modifier.size(16.dp),
+        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+  }
+}
+
+@Composable
+private fun getNotificationBannerTitle(notification: Notification): String {
+  return when (notification) {
+    is Notification.FriendRequest ->
+        stringResource(R.string.notification_banner_title_friend_request)
+    is Notification.EventStarting ->
+        stringResource(R.string.notification_banner_title_event_starting)
+    is Notification.OrganizationMemberInvitation ->
+        stringResource(R.string.notification_banner_title_organization_invitation)
+  }
+}
+
 private fun getAcceptCallback(
     notification: Notification,
     onFriendRequestAccept: (String, String) -> Unit,
@@ -841,7 +962,15 @@ private fun getRejectCallback(
   }
 }
 
-private fun handleNotificationClick(
+/**
+ * Handles notification click by navigating to the appropriate screen based on notification type.
+ *
+ * @param notification The notification that was clicked
+ * @param navController Navigation controller for screen navigation
+ * @param onNotificationRead Callback to mark the notification as read
+ * @param onDismiss Callback to dismiss the notification dropdown
+ */
+fun handleNotificationClick(
     notification: Notification,
     navController: NavHostController,
     onNotificationRead: (String) -> Unit,
@@ -1050,7 +1179,11 @@ private fun FriendRequestActions(
           onAccept()
           onRead()
         },
-        modifier = Modifier.weight(1f).testTag("AcceptFriendRequestButton_$notificationId"),
+        modifier =
+            Modifier.weight(1f)
+                .testTag(
+                    com.github.se.studentconnect.resources.C.Tag.getAcceptNotificationButtonTag(
+                        notificationId)),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
           Text(stringResource(R.string.button_accept))
         }
@@ -1059,7 +1192,11 @@ private fun FriendRequestActions(
           onReject()
           onRead()
         },
-        modifier = Modifier.weight(1f).testTag("RejectFriendRequestButton_$notificationId"),
+        modifier =
+            Modifier.weight(1f)
+                .testTag(
+                    com.github.se.studentconnect.resources.C.Tag.getRejectNotificationButtonTag(
+                        notificationId)),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
           Text(stringResource(R.string.button_reject))
         }

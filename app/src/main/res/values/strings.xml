@@ -622,6 +622,12 @@
     <string name="story_delete_failed">Failed to delete story</string>
     <string name="story_error">Error: %s</string>
     
+    <!-- Notification banner -->
+    <string name="notification_banner_title_friend_request">New Friend Request</string>
+    <string name="notification_banner_title_event_starting">Event Starting</string>
+    <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
+    <string name="notification_banner_dismiss">Dismiss</string>
+    
     <!-- HomeScreen constants -->
     <string name="home_story_item_width">80dp</string>
     <string name="home_story_spacer_height">8dp</string>
