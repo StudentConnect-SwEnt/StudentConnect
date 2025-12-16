@@ -67,6 +67,7 @@ class HomeScreenStoriesTest {
     return mockContext
   }
 
+  @androidx.compose.runtime.Composable
   private fun withOnlineContext(content: @androidx.compose.runtime.Composable () -> Unit) {
     val onlineContext = createOnlineContext()
     CompositionLocalProvider(LocalContext provides onlineContext) { content() }
