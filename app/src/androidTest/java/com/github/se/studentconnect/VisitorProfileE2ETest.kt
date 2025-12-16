@@ -188,10 +188,7 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
         .assertTextEquals(expectedFullName)
 
     // username tag should show @ritan with unique suffix
-    composeTestRule
-        .onNodeWithTag(C.Tag.visitor_profile_user_id)
-        .assertExists()
-        .assertTextContains("@ritan$shortSuffix")
+    composeTestRule.onNodeWithText("@ritan$shortSuffix", useUnmergedTree = true).assertExists()
 
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_bio)
