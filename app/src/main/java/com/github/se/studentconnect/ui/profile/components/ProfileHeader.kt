@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
@@ -59,11 +58,12 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.Dispatchers
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 
 /** Data class holding profile statistics */
 data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
@@ -232,23 +232,10 @@ private fun ProfilePicture(
 @Composable
 private fun OrganizationBadge(organization: Organization, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
   val density = LocalDensity.current
 
   // Load organization logo if available
-  val logoUrl = organization.logoUrl
-  val logoBitmap by
-      produceState<ImageBitmap?>(initialValue = null, logoUrl, repository) {
-        value =
-            logoUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("OrganizationBadge", "Failed to download org logo: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+    val logoBitmap = loadBitmapFromOrganization(context, organization)
 
   val textColor = MaterialTheme.colorScheme.onSurface
   val backgroundColor = MaterialTheme.colorScheme.surface
