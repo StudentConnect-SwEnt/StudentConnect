@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -181,6 +184,8 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
+  val context = LocalContext.current
+  val imageBitmap = loadBitmapFromEvent(context, event)
 
   // Calculate sizes relative to screen width
   val contentPadding = screenWidth * 0.04f
@@ -192,14 +197,22 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
       modifier = Modifier.fillMaxSize().padding(contentPadding),
       horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
         // Event image placeholder
-        Icon(
-            imageVector = Icons.Default.Image,
-            contentDescription = eventImageDescription,
-            modifier =
-                Modifier.size(imageSize)
-                    .clip(RoundedCornerShape(imageCornerRadius))
-                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-            tint = MaterialTheme.colorScheme.onPrimary)
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap,
+              contentDescription = eventImageDescription,
+              modifier = Modifier.size(imageSize).clip(RoundedCornerShape(imageCornerRadius)),
+              contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+        } else {
+          Icon(
+              imageVector = Icons.Default.Image,
+              contentDescription = eventImageDescription,
+              modifier =
+                  Modifier.size(imageSize)
+                      .clip(RoundedCornerShape(imageCornerRadius))
+                      .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+              tint = MaterialTheme.colorScheme.onPrimary)
+        }
 
         // Event details
         Column(
