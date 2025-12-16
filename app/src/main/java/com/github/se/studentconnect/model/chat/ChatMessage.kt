@@ -21,7 +21,17 @@ data class ChatMessage(
     val timestamp: Timestamp = Timestamp.now()
 ) {
   init {
-    if (messageId.isNotBlank()) {
+    // Allow completely empty default instances (all fields empty) for serialization
+    val isDefaultInstance =
+        messageId.isBlank() &&
+            eventId.isBlank() &&
+            senderId.isBlank() &&
+            senderName.isBlank() &&
+            content.isBlank()
+
+    // If not a default instance, validate all fields
+    if (!isDefaultInstance) {
+      require(messageId.isNotBlank()) { "Message ID cannot be blank" }
       require(eventId.isNotBlank()) { "Event ID cannot be blank" }
       require(senderId.isNotBlank()) { "Sender ID cannot be blank" }
       require(senderName.isNotBlank()) { "Sender name cannot be blank" }
