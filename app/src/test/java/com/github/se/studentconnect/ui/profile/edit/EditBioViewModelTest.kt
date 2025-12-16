@@ -430,7 +430,7 @@ class EditBioViewModelTest {
     val newBio = "Updated bio"
     viewModel.updateBioText(newBio)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)

@@ -507,7 +507,8 @@ class EventViewModelTest {
     viewModel.fetchEvent(testEvent.uid)
     advanceUntilIdle()
 
-    viewModel.joinEvent(testEvent.uid)
+    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
     // Assert
@@ -631,7 +632,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act - try to join as owner
-    viewModel.joinEvent(testEvent.uid)
+    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
     // Assert - owner should not be counted as participant
@@ -652,7 +654,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    viewModel.joinEvent(eventWithCapacity.uid)
+    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    viewModel.joinEvent(eventWithCapacity.uid, context)
     advanceUntilIdle()
 
     // Assert
@@ -921,7 +924,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    viewModel.joinEvent(testEvent.uid)
+    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
     // Assert

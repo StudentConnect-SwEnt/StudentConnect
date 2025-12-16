@@ -87,7 +87,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { uploadStateChanged = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(!result) { "Expected handleStoryUpload to return false when event is null" }
     assert(!uploadStateChanged) { "Upload state should not change when event is null" }
@@ -112,7 +113,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { uploadStateChanged = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(!result) { "Expected handleStoryUpload to return false when already uploading" }
     assert(!uploadStateChanged) { "Upload state should not change when already uploading" }
@@ -137,7 +139,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { uploadStateChanged = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(!result) { "Expected handleStoryUpload to return false when user is not logged in" }
     assert(!uploadStateChanged) { "Upload state should not change when user is not logged in" }
@@ -165,7 +168,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { stateChanges.add(it) },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(result) { "Expected handleStoryUpload to return true" }
     assert(stateChanges.isNotEmpty()) { "Expected upload state to change" }
@@ -193,7 +197,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { finalUploadState = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -219,7 +224,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { finalUploadState = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -245,7 +251,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = { finalUploadState = it },
-                    onStoryAccepted = { _, _, _ -> storyAccepted = true }))
+                    onStoryAccepted = { _, _, _ -> storyAccepted = true },
+                    onBackClick = {}))
 
     assert(result) { "Expected handleStoryUpload to return true" }
   }
@@ -279,7 +286,8 @@ class CameraModeSelectorScreenTest {
                       capturedUri = uri
                       capturedIsVideo = isVideo
                       capturedEvent = event
-                    }))
+                    },
+                    onBackClick = {}))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -312,7 +320,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = {},
-                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true }))
+                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true },
+                    onBackClick = {}))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -345,7 +354,8 @@ class CameraModeSelectorScreenTest {
             callbacks =
                 StoryUploadCallbacks(
                     onUploadStateChange = {},
-                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true }))
+                    onStoryAccepted = { _, _, _ -> onStoryAcceptedCalled = true },
+                    onBackClick = {}))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -375,9 +385,10 @@ class CameraModeSelectorScreenTest {
                     lifecycleOwner = mockLifecycleOwner,
                     storyRepository = mockStoryRepository),
             callbacks =
-                StoryUploadCallbacks(
-                    onUploadStateChange = { state -> stateChanges.add(state) },
-                    onStoryAccepted = { _, _, _ -> }))
+            StoryUploadCallbacks(
+                onUploadStateChange = { state -> stateChanges.add(state) },
+                onStoryAccepted = { _, _, _ -> },
+                onBackClick = {}))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
@@ -412,7 +423,8 @@ class CameraModeSelectorScreenTest {
         callbacks =
             StoryUploadCallbacks(
                 onUploadStateChange = { state -> finalState = state },
-                onStoryAccepted = { _, _, _ -> }))
+                onStoryAccepted = { _, _, _ -> },
+                onBackClick = {}))
 
     testScheduler.advanceUntilIdle()
 
@@ -439,7 +451,8 @@ class CameraModeSelectorScreenTest {
         callbacks =
             StoryUploadCallbacks(
                 onUploadStateChange = { state -> finalState = state },
-                onStoryAccepted = { _, _, _ -> }))
+                onStoryAccepted = { _, _, _ -> },
+                onBackClick = {}))
 
     testScheduler.advanceUntilIdle()
 
@@ -469,7 +482,8 @@ class CameraModeSelectorScreenTest {
         callbacks =
             StoryUploadCallbacks(
                 onUploadStateChange = { state -> finalState = state },
-                onStoryAccepted = { _, _, _ -> }))
+                onStoryAccepted = { _, _, _ -> },
+                onBackClick = {}))
 
     testScheduler.advanceUntilIdle()
 
@@ -498,7 +512,8 @@ class CameraModeSelectorScreenTest {
         callbacks =
             StoryUploadCallbacks(
                 onUploadStateChange = {},
-                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo }))
+                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo },
+                onBackClick = {}))
 
     testScheduler.advanceUntilIdle()
 
@@ -525,7 +540,8 @@ class CameraModeSelectorScreenTest {
         callbacks =
             StoryUploadCallbacks(
                 onUploadStateChange = {},
-                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo }))
+                onStoryAccepted = { _, isVideo, _ -> capturedIsVideo = isVideo },
+                onBackClick = {}))
 
     testScheduler.advanceUntilIdle()
 

@@ -5,9 +5,14 @@ import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.location.LocationRepository
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -16,13 +21,20 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocationTextFieldViewModelTest {
 
+  private val testDispatcher = StandardTestDispatcher()
   private lateinit var locationRepository: LocationRepository
   private lateinit var viewModel: LocationTextFieldViewModel
 
   @Before
   fun setUp() {
+    Dispatchers.setMain(testDispatcher)
     locationRepository = mockk(relaxed = true)
     viewModel = LocationTextFieldViewModel(locationRepository)
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
   }
 
   @Test

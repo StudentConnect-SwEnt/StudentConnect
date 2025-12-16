@@ -270,7 +270,7 @@ class EditNameViewModelTest {
     // First save
     viewModel.updateFirstName("Alice")
     viewModel.updateLastName("Smith")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for first save to complete
     kotlinx.coroutines.delay(300)
@@ -278,7 +278,7 @@ class EditNameViewModelTest {
     // Second save
     viewModel.updateFirstName("Bob")
     viewModel.updateLastName("Johnson")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for second save to complete
     kotlinx.coroutines.delay(300)
