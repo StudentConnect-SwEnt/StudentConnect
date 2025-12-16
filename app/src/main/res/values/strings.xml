@@ -642,6 +642,9 @@
     <!-- Generic error + retry -->
     <string name="error_generic">An error occurred</string>
     <string name="action_retry">Retry</string>
+    <string name="event_button_retry">Retry</string>
+    <string name="event_loading_message_pending_sync">Waiting for the event to finish syncing…</string>
+    <string name="event_error_load">Failed to load event</string>
 
     <!-- Event Template Selection -->
     <string name="title_select_template">Select Template</string>

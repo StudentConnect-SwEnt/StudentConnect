@@ -26,25 +26,15 @@ class MediaRepositoryFirebaseStorage(
   }
 
   override suspend fun download(id: String): Uri {
-    // Handle both cases: storage path or download URL
+    if (id.startsWith("file://")) return Uri.parse(id)
+    if (id.startsWith("/")) return Uri.fromFile(File(id))
+
     val ref =
         if (id.startsWith("http")) {
-          // It's a download URL, extract the path from it
-          // URL format: https://firebasestorage.googleapis.com/v0/b/[bucket]/o/[path]?[params]
-          val pathMatch = Regex("/o/([^?]+)").find(id)
-          if (pathMatch != null) {
-            val encodedPath = pathMatch.groupValues[1]
-            val decodedPath = java.net.URLDecoder.decode(encodedPath, "UTF-8")
-            storage.reference.child(decodedPath)
-          } else {
-            // Fallback to using id as-is
-            storage.reference.child(id)
-          }
+          storage.getReferenceFromUrl(id)
         } else {
-          // It's a direct storage path
           storage.reference.child(id)
         }
-
     val localFile = File.createTempFile("media_", null)
 
     // download to local cache file

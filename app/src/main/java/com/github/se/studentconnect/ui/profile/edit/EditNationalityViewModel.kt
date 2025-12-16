@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,7 +61,8 @@ class EditNationalityViewModel(
         val currentUser = _user.value ?: return@launch
         val updatedUser = currentUser.copy(country = countryName)
 
-        userRepository.saveUser(updatedUser)
+        viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
+
         _user.value = updatedUser
         _successMessage.value = R.string.success_nationality_updated
       } catch (exception: Exception) {
