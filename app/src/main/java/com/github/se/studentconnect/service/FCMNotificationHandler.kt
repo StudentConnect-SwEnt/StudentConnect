@@ -33,6 +33,9 @@ class FCMNotificationHandler(
     when (type) {
       NotificationType.FRIEND_REQUEST.name -> processFriendRequest(data, userId)
       NotificationType.EVENT_STARTING.name -> processEventStarting(data, userId)
+      NotificationType.EVENT_INVITATION.name -> processEventInvitation(data, userId)
+      NotificationType.ORGANIZATION_MEMBER_INVITATION.name ->
+          processOrganizationMemberInvitation(data, userId)
       else -> {
         Log.w(TAG, "Unknown notification type: $type")
       }
@@ -84,6 +87,66 @@ class FCMNotificationHandler(
             eventId = eventId,
             eventTitle = eventTitle,
             eventStart = Timestamp(Date(eventStartMillis)),
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    // Store in Firestore
+    storeNotification(notification)
+  }
+
+  /**
+   * Processes an event invitation notification
+   *
+   * @param data The notification data
+   * @param userId The user ID
+   */
+  fun processEventInvitation(data: Map<String, String>, userId: String) {
+    val eventId = data["eventId"] ?: return
+    val eventTitle = data["eventTitle"] ?: "Event"
+    val invitedBy = data["invitedBy"] ?: return
+    val invitedByName = data["invitedByName"] ?: "Someone"
+    val notificationId = data["notificationId"] ?: ""
+
+    // Create notification object
+    val notification =
+        Notification.EventInvitation(
+            id = notificationId,
+            userId = userId,
+            eventId = eventId,
+            eventTitle = eventTitle,
+            invitedBy = invitedBy,
+            invitedByName = invitedByName,
+            timestamp = Timestamp.now(),
+            isRead = false)
+
+    // Store in Firestore
+    storeNotification(notification)
+  }
+
+  /**
+   * Processes an organization member invitation notification
+   *
+   * @param data The notification data
+   * @param userId The user ID
+   */
+  fun processOrganizationMemberInvitation(data: Map<String, String>, userId: String) {
+    val organizationId = data["organizationId"] ?: return
+    val organizationName = data["organizationName"] ?: "Organization"
+    val role = data["role"] ?: "Member"
+    val invitedBy = data["invitedBy"] ?: return
+    val invitedByName = data["invitedByName"] ?: "Someone"
+    val notificationId = data["notificationId"] ?: ""
+
+    // Create notification object
+    val notification =
+        Notification.OrganizationMemberInvitation(
+            id = notificationId,
+            userId = userId,
+            organizationId = organizationId,
+            organizationName = organizationName,
+            role = role,
+            invitedBy = invitedBy,
+            invitedByName = invitedByName,
             timestamp = Timestamp.now(),
             isRead = false)
 

@@ -79,6 +79,39 @@ class FCMNotificationHandlerTest {
     verify(mockRepository, times(1)).createNotification(any(), any(), any())
   }
 
+  @Test
+  fun processMessage_withEventInvitation_callsProcessEventInvitation() {
+    val data =
+        mapOf(
+            "type" to NotificationType.EVENT_INVITATION.name,
+            "eventId" to "event-789",
+            "eventTitle" to "Study Session",
+            "invitedBy" to "user-456",
+            "invitedByName" to "Jane Smith",
+            "notificationId" to "notif-ghi")
+
+    handler.processMessage(data)
+
+    verify(mockRepository, times(1)).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun processMessage_withOrganizationMemberInvitation_callsProcessOrganizationMemberInvitation() {
+    val data =
+        mapOf(
+            "type" to NotificationType.ORGANIZATION_MEMBER_INVITATION.name,
+            "organizationId" to "org-123",
+            "organizationName" to "Tech Club",
+            "role" to "Member",
+            "invitedBy" to "admin-789",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processMessage(data)
+
+    verify(mockRepository, times(1)).createNotification(any(), any(), any())
+  }
+
   // ==================== processFriendRequest Tests ====================
 
   @Test
@@ -251,6 +284,213 @@ class FCMNotificationHandlerTest {
 
     val notification = captor.firstValue as Notification.EventStarting
     assertEquals(1704067200000L, notification.eventStart!!.toDate().time)
+  }
+
+  // ==================== processEventInvitation Tests ====================
+
+  @Test
+  fun processEventInvitation_withValidData_createsNotification() {
+    val data =
+        mapOf(
+            "eventId" to "event-789",
+            "eventTitle" to "Study Session",
+            "invitedBy" to "user-456",
+            "invitedByName" to "Jane Smith",
+            "notificationId" to "notif-ghi")
+
+    handler.processEventInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.EventInvitation
+    assertEquals(testUserId, notification.userId)
+    assertEquals("event-789", notification.eventId)
+    assertEquals("Study Session", notification.eventTitle)
+    assertEquals("user-456", notification.invitedBy)
+    assertEquals("Jane Smith", notification.invitedByName)
+    assertEquals("notif-ghi", notification.id)
+    assertFalse(notification.isRead)
+  }
+
+  @Test
+  fun processEventInvitation_withNoEventId_doesNothing() {
+    val data =
+        mapOf(
+            "eventTitle" to "Study Session",
+            "invitedBy" to "user-456",
+            "invitedByName" to "Jane Smith",
+            "notificationId" to "notif-ghi")
+
+    handler.processEventInvitation(data, testUserId)
+
+    verify(mockRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun processEventInvitation_withNoInvitedBy_doesNothing() {
+    val data =
+        mapOf(
+            "eventId" to "event-789",
+            "eventTitle" to "Study Session",
+            "invitedByName" to "Jane Smith",
+            "notificationId" to "notif-ghi")
+
+    handler.processEventInvitation(data, testUserId)
+
+    verify(mockRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun processEventInvitation_withNoInvitedByName_usesDefault() {
+    val data =
+        mapOf(
+            "eventId" to "event-789",
+            "eventTitle" to "Study Session",
+            "invitedBy" to "user-456",
+            "notificationId" to "notif-ghi")
+
+    handler.processEventInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.EventInvitation
+    assertEquals("Someone", notification.invitedByName)
+  }
+
+  @Test
+  fun processEventInvitation_withNoEventTitle_usesDefault() {
+    val data =
+        mapOf(
+            "eventId" to "event-789",
+            "invitedBy" to "user-456",
+            "invitedByName" to "Jane Smith",
+            "notificationId" to "notif-ghi")
+
+    handler.processEventInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.EventInvitation
+    assertEquals("Event", notification.eventTitle)
+  }
+
+  // ==================== processOrganizationMemberInvitation Tests ====================
+
+  @Test
+  fun processOrganizationMemberInvitation_withValidData_createsNotification() {
+    val data =
+        mapOf(
+            "organizationId" to "org-123",
+            "organizationName" to "Tech Club",
+            "role" to "Member",
+            "invitedBy" to "admin-789",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.OrganizationMemberInvitation
+    assertEquals(testUserId, notification.userId)
+    assertEquals("org-123", notification.organizationId)
+    assertEquals("Tech Club", notification.organizationName)
+    assertEquals("Member", notification.role)
+    assertEquals("admin-789", notification.invitedBy)
+    assertEquals("Admin User", notification.invitedByName)
+    assertEquals("notif-jkl", notification.id)
+    assertFalse(notification.isRead)
+  }
+
+  @Test
+  fun processOrganizationMemberInvitation_withNoOrganizationId_doesNothing() {
+    val data =
+        mapOf(
+            "organizationName" to "Tech Club",
+            "role" to "Member",
+            "invitedBy" to "admin-789",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    verify(mockRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun processOrganizationMemberInvitation_withNoInvitedBy_doesNothing() {
+    val data =
+        mapOf(
+            "organizationId" to "org-123",
+            "organizationName" to "Tech Club",
+            "role" to "Member",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    verify(mockRepository, never()).createNotification(any(), any(), any())
+  }
+
+  @Test
+  fun processOrganizationMemberInvitation_withNoInvitedByName_usesDefault() {
+    val data =
+        mapOf(
+            "organizationId" to "org-123",
+            "organizationName" to "Tech Club",
+            "role" to "Member",
+            "invitedBy" to "admin-789",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.OrganizationMemberInvitation
+    assertEquals("Someone", notification.invitedByName)
+  }
+
+  @Test
+  fun processOrganizationMemberInvitation_withNoOrganizationName_usesDefault() {
+    val data =
+        mapOf(
+            "organizationId" to "org-123",
+            "role" to "Member",
+            "invitedBy" to "admin-789",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.OrganizationMemberInvitation
+    assertEquals("Organization", notification.organizationName)
+  }
+
+  @Test
+  fun processOrganizationMemberInvitation_withNoRole_usesDefault() {
+    val data =
+        mapOf(
+            "organizationId" to "org-123",
+            "organizationName" to "Tech Club",
+            "invitedBy" to "admin-789",
+            "invitedByName" to "Admin User",
+            "notificationId" to "notif-jkl")
+
+    handler.processOrganizationMemberInvitation(data, testUserId)
+
+    val captor = argumentCaptor<Notification>()
+    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
+
+    val notification = captor.firstValue as Notification.OrganizationMemberInvitation
+    assertEquals("Member", notification.role)
   }
 
   // ==================== storeNotification Tests ====================
