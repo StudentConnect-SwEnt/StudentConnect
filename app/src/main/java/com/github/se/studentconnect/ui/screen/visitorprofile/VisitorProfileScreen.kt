@@ -355,7 +355,9 @@ internal fun VisitorProfileInfoCard(
           } else {
             Surface(
                 modifier =
-                    Modifier.size(72.dp).semantics { testTag = C.Tag.visitor_profile_avatar },
+                    Modifier.size(72.dp).semantics {
+                      testTag = C.Tag.visitor_profile_avatar_placeholder
+                    },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                 tonalElevation = 0.dp) {

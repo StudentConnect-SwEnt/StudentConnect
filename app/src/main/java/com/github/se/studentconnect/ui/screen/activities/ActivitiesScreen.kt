@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -380,27 +381,7 @@ fun CarouselCard(
               modifier = Modifier.fillMaxSize().padding(24.dp),
               verticalArrangement = Arrangement.Bottom,
               horizontalAlignment = Alignment.Start) {
-                if (imageBitmap != null) {
-                  Image(
-                      imageBitmap,
-                      contentDescription = "Event Image",
-                      modifier =
-                          Modifier.fillMaxWidth()
-                              .weight(1f)
-                              .clip(RoundedCornerShape(16.dp))
-                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                      contentScale = ContentScale.Crop)
-                } else {
-                  Icon(
-                      imageVector = Icons.Default.Image,
-                      contentDescription = "Event Image",
-                      modifier =
-                          Modifier.fillMaxWidth()
-                              .weight(1f)
-                              .clip(RoundedCornerShape(16.dp))
-                              .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                      tint = MaterialTheme.colorScheme.onPrimary)
-                }
+                CarouselImage(imageBitmap, modifier = Modifier.weight(1f))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -478,27 +459,7 @@ fun InvitationCarouselCard(
           modifier = Modifier.fillMaxSize().padding(24.dp),
           verticalArrangement = Arrangement.Bottom,
           horizontalAlignment = Alignment.Start) {
-            if (imageBitmap != null) {
-              Image(
-                  imageBitmap,
-                  contentDescription = "Event Image",
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .weight(1f)
-                          .clip(RoundedCornerShape(16.dp))
-                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                  contentScale = ContentScale.Crop)
-            } else {
-              Icon(
-                  imageVector = Icons.Default.Image,
-                  contentDescription = "Event Image",
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .weight(1f)
-                          .clip(RoundedCornerShape(16.dp))
-                          .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)),
-                  tint = MaterialTheme.colorScheme.onPrimary)
-            }
+            CarouselImage(imageBitmap, modifier = Modifier.weight(1f))
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -557,5 +518,30 @@ fun InvitationCarouselCard(
                 overflow = TextOverflow.Ellipsis)
           }
     }
+  }
+}
+
+@Composable
+fun CarouselImage(imageBitmap: ImageBitmap?, modifier: Modifier = Modifier) {
+  if (imageBitmap != null) {
+    Image(
+        imageBitmap,
+        contentDescription = "Event Image",
+        modifier =
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
+                .then(modifier),
+        contentScale = ContentScale.Crop)
+  } else {
+    Icon(
+        imageVector = Icons.Default.Image,
+        contentDescription = "Event Image Placeholder",
+        modifier =
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
+                .then(modifier),
+        tint = MaterialTheme.colorScheme.onPrimary)
   }
 }
