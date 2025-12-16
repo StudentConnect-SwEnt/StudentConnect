@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.utils
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -33,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
@@ -44,6 +47,7 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Shared composable for displaying live event badge (flash icon or LIVE text). This eliminates code
@@ -235,6 +239,20 @@ fun EventCard(
   val context = LocalContext.current
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
+
+  // Fetch event creator information
+  val userRepository = UserRepositoryProvider.repository
+  val creator by
+  produceState<com.github.se.studentconnect.model.user.User?>(
+      initialValue = null, event.ownerId) {
+      value =
+          runCatching { userRepository.getUserById(event.ownerId) }
+              .onFailure {
+                  Log.e("EventCard", "Failed to fetch creator for event ${event.uid}", it)
+              }
+              .getOrNull()
+  }
+
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
@@ -308,6 +326,15 @@ fun EventCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = MAX_LINES_FOR_ADDRESS_TEXT,
                 overflow = TextOverflow.Ellipsis)
+            creator?.let { user ->
+              Spacer(modifier = Modifier.height(4.dp))
+              Text(
+                  text =
+                      stringResource(R.string.text_event_creator_by, user.firstName, user.lastName),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.testTag("event_card_creator_${event.uid}"))
+            }
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

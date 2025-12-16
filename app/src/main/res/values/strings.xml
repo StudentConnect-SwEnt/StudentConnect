@@ -213,6 +213,7 @@
     <string name="text_no_new_invitations">No new invitations</string>
     <string name="text_no_past_events">No past events</string>
     <string name="text_participants_count">%d participants</string>
+    <string name="text_event_creator_by">by %1$s %2$s</string>
     <string name="text_empty_upcoming_description">You haven\'t joined any events yet. Explore to find some!</string>
     <string name="text_empty_invitations_description">You have no new event invitations at the moment.</string>
     <string name="text_empty_past_description">Events you have attended will appear here.</string>
