@@ -725,8 +725,8 @@ class ActivitiesScreenTest : StudentConnectTest() {
     // Verify carousel is displayed
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
 
-    composeTestRule.onNodeWithContentDescription("Event Image").assertIsDisplayed()
-    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertIsNotDisplayed()
+    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertDoesNotExist()
+    composeTestRule.onNodeWithContentDescription("Event Image").assertExists()
   }
 
   @Test
@@ -768,7 +768,7 @@ class ActivitiesScreenTest : StudentConnectTest() {
     // Verify carousel is displayed
     composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
 
-    composeTestRule.onNodeWithContentDescription("Event Image").assertIsNotDisplayed()
-    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Event Image").assertDoesNotExist()
+    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertExists()
   }
 }
