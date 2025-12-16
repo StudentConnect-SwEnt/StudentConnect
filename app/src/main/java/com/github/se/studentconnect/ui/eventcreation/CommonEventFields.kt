@@ -40,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -212,7 +211,8 @@ fun EventBannerField(
 @Composable
 private fun FlashingStars() {
   val primaryColor = MaterialTheme.colorScheme.primary
-  val infiniteTransition = rememberInfiniteTransition(label = "stars")
+  val infiniteTransition =
+      rememberInfiniteTransition(label = stringResource(R.string.content_description_stars))
 
   // Phase offset for each star
   val alpha1 by

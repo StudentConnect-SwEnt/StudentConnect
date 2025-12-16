@@ -645,7 +645,7 @@
     <string name="notification_banner_title_event_invitation">Event Invitation</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
-    
+
     <!-- HomeScreen constants -->
     <string name="home_story_item_width">80dp</string>
     <string name="home_story_spacer_height">8dp</string>
@@ -722,4 +722,5 @@
     <string name="chat_timestamp_just_now">Just now</string>
     <string name="chat_timestamp_yesterday">Yesterday, %1$s</string>
     <string name="button_dismiss">Dismiss</string>
+    <string name="content_description_stars">Stars</string>
 </resources>

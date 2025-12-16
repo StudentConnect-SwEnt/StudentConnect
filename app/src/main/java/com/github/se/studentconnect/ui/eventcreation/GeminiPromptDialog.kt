@@ -24,6 +24,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.github.se.studentconnect.R
 
+private val SPACER_HEIGHT_SMALL = 8.dp
+private val SPACER_HEIGHT_MEDIUM = 16.dp
+
+/**
+ * Dialog that prompts the user to enter a text prompt for the Gemini generator.
+ *
+ * This composable shows an AlertDialog containing:
+ * - a title and description read from string resources
+ * - an OutlinedTextField for the prompt (max 3 lines)
+ * - a loading state that displays a centered CircularProgressIndicator and a status text
+ * - a confirm button that calls [onGenerate] with the entered prompt
+ * - a dismiss button that calls [onDismiss]
+ *
+ * Spacing within the dialog is provided via the constants [SPACER_HEIGHT_SMALL] and
+ * [SPACER_HEIGHT_MEDIUM] to avoid hardcoded .dp values.
+ *
+ * @param onDismiss Callback invoked when the dialog should be dismissed.
+ * @param onGenerate Callback invoked when the user taps the generate button with the prompt String.
+ * @param isLoading When true, disables dismiss and shows a loading indicator.
+ */
 @Composable
 fun GeminiPromptDialog(onDismiss: () -> Unit, onGenerate: (String) -> Unit, isLoading: Boolean) {
   var prompt by remember { mutableStateOf("") }
@@ -38,7 +58,7 @@ fun GeminiPromptDialog(onDismiss: () -> Unit, onGenerate: (String) -> Unit, isLo
       text = {
         Column {
           Text(text = stringResource(R.string.gemini_dialog_description))
-          Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(SPACER_HEIGHT_MEDIUM))
           OutlinedTextField(
               value = prompt,
               onValueChange = { prompt = it },
@@ -49,11 +69,11 @@ fun GeminiPromptDialog(onDismiss: () -> Unit, onGenerate: (String) -> Unit, isLo
               singleLine = false,
               maxLines = 3)
           if (isLoading) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(SPACER_HEIGHT_MEDIUM))
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
               CircularProgressIndicator()
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(SPACER_HEIGHT_SMALL))
             Text(
                 stringResource(R.string.gemini_generating_cool),
                 modifier = Modifier.fillMaxWidth(),
