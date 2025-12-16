@@ -186,7 +186,7 @@ private fun ChatContent(
           }
           uiState.error != null -> {
             ErrorMessage(
-                message = uiState.error!!,
+                message = uiState.error,
                 onDismiss = onDismissError,
                 modifier =
                     Modifier.align(Alignment.TopCenter)
