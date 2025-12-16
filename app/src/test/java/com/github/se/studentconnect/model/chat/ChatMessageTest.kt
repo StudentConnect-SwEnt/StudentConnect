@@ -429,4 +429,205 @@ class ChatMessageTest {
     assert(map.containsKey("timestamp"))
     assertEquals(6, map.size)
   }
+
+  @Test
+  fun chatMessage_creation_withDefaultInstance_succeeds() {
+    // Default instance should be allowed for Firestore serialization
+    val message = ChatMessage()
+
+    assertEquals("", message.messageId)
+    assertEquals("", message.eventId)
+    assertEquals("", message.senderId)
+    assertEquals("", message.senderName)
+    assertEquals("", message.content)
+    assertNotNull(message.timestamp)
+  }
+
+  @Test
+  fun chatMessage_maxContentLength_isCorrect() {
+    assertEquals(1000, ChatMessage.MAX_CONTENT_LENGTH)
+  }
+
+  @Test
+  fun chatMessage_fromMap_withPartiallyBlankFields_returnsNull() {
+    val map =
+        mapOf(
+            "messageId" to "msg-123",
+            "eventId" to " ",
+            "senderId" to "user-789",
+            "senderName" to "John Doe",
+            "content" to "Hello")
+
+    val message = ChatMessage.fromMap(map)
+
+    assertNull(message)
+  }
+
+  @Test
+  fun chatMessage_creation_withNewlineContent_succeeds() {
+    val content = "Line 1\nLine 2\nLine 3"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = content)
+
+    assertEquals(content, message.content)
+    assert(message.content.contains("\n"))
+  }
+
+  @Test
+  fun chatMessage_creation_withTabContent_succeeds() {
+    val content = "Col1\tCol2\tCol3"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = content)
+
+    assertEquals(content, message.content)
+    assert(message.content.contains("\t"))
+  }
+
+  @Test
+  fun chatMessage_fromMap_withAllFieldsPresent_succeeds() {
+    val timestamp = Timestamp.now()
+    val map =
+        mapOf(
+            "messageId" to "msg-123",
+            "eventId" to "event-456",
+            "senderId" to "user-789",
+            "senderName" to "John Doe",
+            "content" to "Hello",
+            "timestamp" to timestamp)
+
+    val message = ChatMessage.fromMap(map)
+
+    assertNotNull(message)
+    assertEquals("msg-123", message?.messageId)
+  }
+
+  @Test
+  fun chatMessage_toMap_preservesTimestamp() {
+    val timestamp = Timestamp(1234567890, 0)
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = "Hello",
+            timestamp = timestamp)
+
+    val map = message.toMap()
+
+    assertEquals(timestamp, map["timestamp"])
+  }
+
+  @Test
+  fun chatMessage_creation_withMixedCaseContent_succeeds() {
+    val content = "HeLLo WoRLd!"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = content)
+
+    assertEquals(content, message.content)
+  }
+
+  @Test
+  fun chatMessage_creation_withNumericContent_succeeds() {
+    val content = "123456789"
+    val message =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = content)
+
+    assertEquals(content, message.content)
+  }
+
+  @Test
+  fun chatMessage_creation_withAllFieldsNonDefault_succeeds() {
+    val timestamp = Timestamp.now()
+    val message =
+        ChatMessage(
+            messageId = "unique-msg-id",
+            eventId = "unique-event-id",
+            senderId = "unique-sender-id",
+            senderName = "Unique Sender",
+            content = "Unique content",
+            timestamp = timestamp)
+
+    assertEquals("unique-msg-id", message.messageId)
+    assertEquals("unique-event-id", message.eventId)
+    assertEquals("unique-sender-id", message.senderId)
+    assertEquals("Unique Sender", message.senderName)
+    assertEquals("Unique content", message.content)
+    assertEquals(timestamp, message.timestamp)
+  }
+
+  @Test
+  fun chatMessage_fromMap_withWrongTypeForTimestamp_handlesGracefully() {
+    val map =
+        mapOf(
+            "messageId" to "msg-123",
+            "eventId" to "event-456",
+            "senderId" to "user-789",
+            "senderName" to "John Doe",
+            "content" to "Hello",
+            "timestamp" to 123456789L)
+
+    val message = ChatMessage.fromMap(map)
+
+    // Should handle the wrong type and use default timestamp
+    assertNotNull(message)
+  }
+
+  @Test
+  fun chatMessage_equality_differentMessages_areNotEqual() {
+    val message1 =
+        ChatMessage(
+            messageId = "msg-1",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = "Hello")
+
+    val message2 =
+        ChatMessage(
+            messageId = "msg-2",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = "Hello")
+
+    assert(message1 != message2)
+  }
+
+  @Test
+  fun chatMessage_copy_createsNewInstance() {
+    val original =
+        ChatMessage(
+            messageId = "msg-123",
+            eventId = "event-456",
+            senderId = "user-789",
+            senderName = "John Doe",
+            content = "Hello")
+
+    val copy = original.copy(content = "Modified")
+
+    assertEquals("Hello", original.content)
+    assertEquals("Modified", copy.content)
+    assertEquals(original.messageId, copy.messageId)
+  }
 }
