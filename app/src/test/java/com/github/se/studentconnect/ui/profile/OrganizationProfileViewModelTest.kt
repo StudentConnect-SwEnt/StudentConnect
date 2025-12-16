@@ -96,6 +96,7 @@ class OrganizationProfileViewModelTest {
           title = "Test Event",
           description = "Test Description",
           ownerId = "test_org",
+          organizationId = "test_org",
           start = Timestamp(Date()),
           end = Timestamp(Date(System.currentTimeMillis() + 3600000)),
           location = Location(46.5197, 6.6323, "EPFL"),
