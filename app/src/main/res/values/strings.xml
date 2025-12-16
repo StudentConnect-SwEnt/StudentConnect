@@ -624,6 +624,7 @@
     <string name="story_deleted">Story deleted</string>
     <string name="story_delete_failed">Failed to delete story</string>
     <string name="story_error">Error: %s</string>
+    <string name="story_title_format">%1$s @ %2$s</string>
     
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
