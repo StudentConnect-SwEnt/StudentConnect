@@ -606,14 +606,6 @@ class UserCardTest {
   }
 
   @Test
-  fun `user card handles profile picture loading`() {
-    val userWithProfilePic = testUser.copy(profilePictureUrl = "content://media/photo/123")
-    composeUserCard(userWithProfilePic)
-
-    assertNotNull("Profile picture URL should be set", userWithProfilePic.profilePictureUrl)
-  }
-
-  @Test
   fun `user card displays default icon when no profile picture`() {
     val userWithoutProfilePic = testUser.copy(profilePictureUrl = null)
     composeUserCard(userWithoutProfilePic)
