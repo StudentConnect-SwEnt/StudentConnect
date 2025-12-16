@@ -9,13 +9,13 @@ import android.webkit.MimeTypeMap
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.ai.GeminiService
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
@@ -93,6 +93,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   protected val _navigateToEvent = MutableSharedFlow<String>()
   /** Flow to signal navigation to the created/edited event. */
   val navigateToEvent: SharedFlow<String> = _navigateToEvent.asSharedFlow()
+
+  protected val _snackbarMessage = MutableSharedFlow<String>()
+  /** Flow to emit snackbar messages. */
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   protected val _uiState = MutableStateFlow(initialState)
   /** The current UI state. */

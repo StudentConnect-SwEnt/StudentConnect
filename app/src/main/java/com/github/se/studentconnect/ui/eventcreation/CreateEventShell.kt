@@ -40,6 +40,7 @@ data class CreateEventShellTestTags(
  * @param canSave Boolean indicating if the save button is enabled.
  * @param onSave Callback for the save action.
  * @param testTags Grouped test tags.
+ * @param snackbarHost Composable for the snackbar host.
  * @param content The form content to display.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +52,7 @@ fun CreateEventShell(
     canSave: Boolean,
     onSave: () -> Unit,
     testTags: CreateEventShellTestTags,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable ColumnScope.(onFocusChange: (Boolean) -> Unit) -> Unit
 ) {
   val scrollState = rememberScrollState()
@@ -76,6 +78,7 @@ fun CreateEventShell(
   Box(modifier = modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.testTag(testTags.scaffold),
+        snackbarHost = snackbarHost,
         topBar = {
           TopAppBar(
               modifier = Modifier.testTag(testTags.topBar),

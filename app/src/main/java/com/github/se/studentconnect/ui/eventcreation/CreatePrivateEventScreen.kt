@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -61,12 +64,20 @@ fun CreatePrivateEventScreen(
   val uiState by createPrivateEventViewModel.uiState.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val context = LocalContext.current
+  var showGeminiDialog by remember { mutableStateOf(false) }
+  val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
   LaunchedEffect(Unit) {
     createPrivateEventViewModel.navigateToEvent.collect { eventId ->
       navController?.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
       navController?.navigate(Route.eventView(eventId, true))
       createPrivateEventViewModel.resetFinishedSaving()
+    }
+  }
+
+  LaunchedEffect(Unit) {
+    createPrivateEventViewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
     }
   }
 
@@ -94,6 +105,8 @@ fun CreatePrivateEventScreen(
       canSave = canSave,
       onSave = { createPrivateEventViewModel.saveEvent(context) },
       testTags = shellTestTags) { onFocusChange ->
+      snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) }) { onFocusChange
+        ->
 
         // Title and Description
         EventTitleAndDescriptionFields(
@@ -115,7 +128,20 @@ fun CreatePrivateEventScreen(
             onImageSelected = createPrivateEventViewModel::updateBannerImageUri,
             onRemoveImage = createPrivateEventViewModel::removeBannerImage,
             pickerTag = CreatePrivateEventScreenTestTags.BANNER_PICKER,
-            removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON)
+            removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON,
+            isGenerating = uiState.isGeneratingBanner,
+            onGeminiClick = { showGeminiDialog = true })
+
+        val context = LocalContext.current
+        if (showGeminiDialog) {
+          GeminiPromptDialog(
+              onDismiss = { showGeminiDialog = false },
+              onGenerate = { prompt ->
+                createPrivateEventViewModel.generateBanner(context, prompt)
+                showGeminiDialog = false
+              },
+              isLoading = uiState.isGeneratingBanner)
+        }
 
         // Location
         EventLocationField(
