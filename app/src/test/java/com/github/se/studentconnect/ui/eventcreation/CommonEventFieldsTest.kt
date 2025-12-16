@@ -3,11 +3,16 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.performClick
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.theme.AppTheme
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -16,6 +21,19 @@ import org.robolectric.annotation.Config
 class CommonEventFieldsTest {
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  private lateinit var mockMediaRepository: MediaRepository
+
+  @Before
+  fun setUp() {
+    mockMediaRepository = Mockito.mock(MediaRepository::class.java)
+    MediaRepositoryProvider.overrideForTests(mockMediaRepository)
+  }
+
+  @After
+  fun tearDown() {
+    MediaRepositoryProvider.cleanOverrideForTests()
+  }
 
   @Test
   fun flashEventToggle_displaysCorrectly() {
@@ -217,5 +235,62 @@ class CommonEventFieldsTest {
 
     assert(hours == C.FlashEvent.MAX_DURATION_HOURS.toInt() - 1)
     assert(minutes == 15)
+  }
+
+  @Test
+  fun eventBannerField_displaysGeminiButton() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventBannerField(
+            bannerImageUri = null,
+            bannerImagePath = null,
+            onImageSelected = {},
+            onRemoveImage = {},
+            pickerTag = "banner_picker",
+            removeButtonTag = "remove_banner",
+            onGeminiClick = {})
+      }
+    }
+
+    // Verify the Gemini button is displayed
+    composeTestRule.onNodeWithContentDescription("Generate Banner with Gemini").assertIsDisplayed()
+  }
+
+  @Test
+  fun eventBannerField_geminiButtonCallsCallback() {
+    var geminiClicked = false
+    composeTestRule.setContent {
+      AppTheme {
+        EventBannerField(
+            bannerImageUri = null,
+            bannerImagePath = null,
+            onImageSelected = {},
+            onRemoveImage = {},
+            pickerTag = "banner_picker",
+            removeButtonTag = "remove_banner",
+            onGeminiClick = { geminiClicked = true })
+      }
+    }
+
+    composeTestRule.onNodeWithContentDescription("Generate Banner with Gemini").performClick()
+    assert(geminiClicked)
+  }
+
+  @Test
+  fun eventBannerField_displaysRemoveButtonDisabledWhenNoBanner() {
+    composeTestRule.setContent {
+      AppTheme {
+        EventBannerField(
+            bannerImageUri = null,
+            bannerImagePath = null,
+            onImageSelected = {},
+            onRemoveImage = {},
+            pickerTag = "banner_picker",
+            removeButtonTag = "remove_banner",
+            onGeminiClick = {})
+      }
+    }
+
+    composeTestRule.onNodeWithTag("remove_banner").assertIsNotEnabled()
   }
 }
