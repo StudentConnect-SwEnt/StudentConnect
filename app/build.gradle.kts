@@ -375,3 +375,17 @@ configurations.forEach { configuration ->
     // This fixes a fatal exception for tests interacting with Cloud Firestore
     configuration.exclude("com.google.protobuf", "protobuf-lite")
 }
+
+tasks.withType<Test>().configureEach {
+    maxHeapSize = "2g"              // ajuste à "3g" si ça passe sur le runner
+    minHeapSize = "512m"
+
+    // Très important en CI : éviter trop de forks en parallèle
+    maxParallelForks = 1
+
+    jvmArgs(
+        "-XX:MaxMetaspaceSize=512m",
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:+ExitOnOutOfMemoryError"
+    )
+}
