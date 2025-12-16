@@ -512,7 +512,8 @@ private fun BioSection(user: User) {
         text = user.bio ?: "",
         style = MaterialTheme.typography.bodyMedium,
         fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurface)
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.testTag(C.Tag.visitor_profile_bio))
 
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
   }
