@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -93,6 +94,7 @@ fun CreatePublicEventScreen(
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+  val context = LocalContext.current
 
   LaunchedEffect(Unit) {
     createPublicEventViewModel.navigateToEvent.collect { eventId ->
@@ -127,7 +129,7 @@ fun CreatePublicEventScreen(
           if (existingEventId != null) stringResource(R.string.title_edit_public_event)
           else stringResource(R.string.title_create_public_event),
       canSave = canSave,
-      onSave = { createPublicEventViewModel.saveEvent() },
+      onSave = { createPublicEventViewModel.saveEvent(context) },
       testTags = shellTestTags) { onFocusChange ->
 
         // Title

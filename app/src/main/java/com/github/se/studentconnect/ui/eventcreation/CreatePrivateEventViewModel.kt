@@ -75,8 +75,12 @@ class CreatePrivateEventViewModel :
   override fun loadEvent(eventUid: String) {
     super.loadEvent(eventUid)
     viewModelScope.launch {
-      val event = eventRepository.getEvent(eventUid)
-      if (event is Event.Private) prefill(event)
+      try {
+        val event = eventRepository.getEvent(eventUid)
+        if (event is Event.Private) prefill(event)
+      } catch (_: Exception) {
+        // Ignore to avoid crashing if we cannot load the event (e.g., permission denied/offline)
+      }
     }
   }
 

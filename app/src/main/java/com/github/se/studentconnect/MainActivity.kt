@@ -533,11 +533,6 @@ internal fun MainAppContent(
             composable(ProfileRoutes.CREATE_ORGANIZATION) {
               OrganizationSignUpOrchestrator(
                   firebaseUserId = currentUserId,
-                  onLogout = {
-                    // User wants to logout during org creation - navigate back to profile
-                    // The actual logout will be handled by the user from settings
-                    navController.popBackStack(Route.PROFILE, inclusive = false)
-                  },
                   onBackToSelection = {
                     // User cancelled organization creation
                     navController.popBackStack()

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +59,8 @@ class EditProfilePictureViewModel(
         val currentUser = _user.value ?: return@launch
         val updatedUser = currentUser.copy(profilePictureUrl = profilePictureUrl)
 
-        userRepository.saveUser(updatedUser)
+        viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
+
         _user.value = updatedUser
         _successMessage.value = "Profile picture updated successfully"
       } catch (exception: Exception) {

@@ -1,6 +1,13 @@
 package com.github.se.studentconnect.ui.screen.profile.edit
 
+import android.content.ContentResolver
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.util.Log
+import android.webkit.MimeTypeMap
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,15 +47,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.service.ImageUploadWorker
 import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
+import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Screen for editing profile picture. Shows current profile picture and options to change it.
@@ -188,6 +204,7 @@ fun EditProfilePictureScreen(
                                   isUploading = true
                                   try {
                                     val workingUri = selectedImageUri
+                                    val previousImagePath = currentImagePath
                                     if (workingUri == null) {
                                       viewModel.updateProfilePicture(null)
                                       userModified = false
@@ -195,11 +212,20 @@ fun EditProfilePictureScreen(
                                       currentImagePath = null
                                       onNavigateBack?.invoke()
                                     } else {
+                                      val storagePath = "users/$userId/profile"
+
+                                      // Try immediate upload if we have network; otherwise stage
+                                      // for
+                                      // background upload.
                                       val uploadedId =
-                                          uploadProfilePicture(
-                                              repository = repository,
-                                              userId = userId,
-                                              uri = workingUri)
+                                          if (isNetworkAvailable(context)) {
+                                            uploadProfilePicture(
+                                                repository = repository,
+                                                userId = userId,
+                                                uri = workingUri,
+                                                storagePath = storagePath)
+                                          } else null
+
                                       if (uploadedId != null) {
                                         viewModel.updateProfilePicture(uploadedId)
                                         currentImagePath = uploadedId
@@ -207,9 +233,18 @@ fun EditProfilePictureScreen(
                                         userModified = false
                                         onNavigateBack?.invoke()
                                       } else {
-                                        snackbarHostState.showSnackbar(
-                                            context.getString(
-                                                R.string.error_failed_to_upload_photo))
+                                        processOfflineProfilePicture(
+                                            context = context,
+                                            userId = userId,
+                                            uri = workingUri,
+                                            storagePath = storagePath,
+                                            previousImageUrl = previousImagePath,
+                                            viewModel = viewModel,
+                                            snackbarHostState = snackbarHostState,
+                                            onNavigateBack = onNavigateBack,
+                                            setCurrentImagePath = { currentImagePath = it },
+                                            clearSelection = { selectedImageUri = null },
+                                            clearUserModified = { userModified = false })
                                       }
                                     }
                                   } finally {
@@ -229,15 +264,157 @@ fun EditProfilePictureScreen(
 private suspend fun uploadProfilePicture(
     repository: MediaRepository,
     userId: String,
-    uri: Uri
+    uri: Uri,
+    storagePath: String
 ): String? {
   return try {
-    repository.upload(uri, "users/$userId/profile")
+    repository.upload(uri, storagePath)
   } catch (exception: Exception) {
-    android.util.Log.e(
+    Log.e(
         "EditProfilePictureScreen",
         "Failed to upload profile image for user $userId with uri $uri",
         exception)
     null
   }
+}
+
+@VisibleForTesting
+internal fun enqueueProfilePictureUpload(
+    context: Context,
+    userId: String,
+    filePath: String,
+    storagePath: String,
+    existingImageUrl: String?,
+    workManager: WorkManager = WorkManager.getInstance(context)
+) {
+  val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+  val workRequest =
+      OneTimeWorkRequestBuilder<ImageUploadWorker>()
+          .setConstraints(constraints)
+          .setInputData(
+              workDataOf(
+                  ImageUploadWorker.KEY_DOCUMENT_ID to userId,
+                  ImageUploadWorker.KEY_FILE_PATH to filePath,
+                  ImageUploadWorker.KEY_STORAGE_PATH to storagePath,
+                  ImageUploadWorker.KEY_EXISTING_IMAGE_URL to existingImageUrl,
+                  ImageUploadWorker.KEY_COLLECTION_PATH to "users",
+                  ImageUploadWorker.KEY_FIELD_NAME to "profilePictureUrl"))
+          .addTag("profile_picture_upload_$userId")
+          .build()
+
+  workManager.enqueueUniqueWork(
+      "profile_picture_upload_$userId", ExistingWorkPolicy.REPLACE, workRequest)
+}
+
+private fun isNetworkAvailable(context: Context): Boolean {
+  val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
+  val network = cm.activeNetwork ?: return false
+  val capabilities = cm.getNetworkCapabilities(network) ?: return false
+  return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}
+
+@VisibleForTesting
+internal suspend fun stageProfilePicture(
+    context: Context,
+    uri: Uri,
+    userId: String,
+    contentResolver: ContentResolver = context.contentResolver,
+    filesDir: File = context.filesDir,
+    mimeTypeMap: MimeTypeMap = MimeTypeMap.getSingleton()
+): String? =
+    withContext(kotlinx.coroutines.Dispatchers.IO) {
+      val dir = File(filesDir, "pending_profile_pictures").apply { mkdirs() }
+      val extension = mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ?: "jpg"
+      val target = File(dir, "${userId}_${System.currentTimeMillis()}.$extension")
+      try {
+        contentResolver.openInputStream(uri)?.use { input ->
+          target.outputStream().use { output -> input.copyTo(output) }
+        } ?: return@withContext null
+        target.absolutePath
+      } catch (e: Exception) {
+        if (e is java.util.concurrent.CancellationException) throw e
+        val deleted = target.delete()
+        if (!deleted) {
+          Log.d("EditProfilePictureScreen", "Failed to delete staged profile picture")
+        }
+        null
+      }
+    }
+
+@VisibleForTesting
+internal suspend fun handleStagedProfilePicture(
+    context: Context,
+    userId: String,
+    uri: Uri,
+    storagePath: String,
+    existingImageUrl: String?,
+    viewModel: EditProfilePictureViewModel,
+    workManager: WorkManager = WorkManager.getInstance(context)
+): String? {
+  val stagedPath = stageProfilePicture(context, uri, userId)
+  if (stagedPath == null) return null
+  val localUrl = "file://$stagedPath"
+  viewModel.updateProfilePicture(localUrl)
+  enqueueProfilePictureUpload(
+      context = context,
+      userId = userId,
+      filePath = stagedPath,
+      storagePath = storagePath,
+      existingImageUrl = existingImageUrl,
+      workManager = workManager)
+  return localUrl
+}
+
+@VisibleForTesting
+internal suspend fun applyStagedProfileOutcome(
+    stagedLocalUrl: String?,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+    onSuccess: (String) -> Unit,
+    onNavigateBack: (() -> Unit)? = null
+): Boolean {
+  return if (stagedLocalUrl == null) {
+    snackbarHostState.showSnackbar(context.getString(R.string.error_failed_to_upload_photo))
+    false
+  } else {
+    onSuccess(stagedLocalUrl)
+    onNavigateBack?.invoke()
+    true
+  }
+}
+
+@VisibleForTesting
+internal suspend fun processOfflineProfilePicture(
+    context: Context,
+    userId: String,
+    uri: Uri,
+    storagePath: String,
+    previousImageUrl: String?,
+    viewModel: EditProfilePictureViewModel,
+    snackbarHostState: SnackbarHostState,
+    onNavigateBack: (() -> Unit)?,
+    setCurrentImagePath: (String?) -> Unit,
+    clearSelection: () -> Unit,
+    clearUserModified: () -> Unit,
+    workManager: WorkManager = WorkManager.getInstance(context)
+): Boolean {
+  val stagedLocalUrl =
+      handleStagedProfilePicture(
+          context = context,
+          userId = userId,
+          uri = uri,
+          storagePath = storagePath,
+          existingImageUrl = previousImageUrl,
+          viewModel = viewModel,
+          workManager = workManager)
+  return applyStagedProfileOutcome(
+      stagedLocalUrl = stagedLocalUrl,
+      snackbarHostState = snackbarHostState,
+      context = context,
+      onSuccess = { localUrl ->
+        setCurrentImagePath(localUrl)
+        clearSelection()
+        clearUserModified()
+      },
+      onNavigateBack = onNavigateBack)
 }

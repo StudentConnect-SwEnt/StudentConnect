@@ -77,6 +77,7 @@ fun CreatePrivateEventScreen(
 
   val uiState by createPrivateEventViewModel.uiState.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+  val context = LocalContext.current
 
   LaunchedEffect(Unit) {
     createPrivateEventViewModel.navigateToEvent.collect { eventId ->
@@ -108,7 +109,7 @@ fun CreatePrivateEventScreen(
           if (existingEventId != null) stringResource(R.string.title_edit_private_event)
           else stringResource(R.string.title_create_private_event),
       canSave = canSave,
-      onSave = { createPrivateEventViewModel.saveEvent() },
+      onSave = { createPrivateEventViewModel.saveEvent(context) },
       testTags = shellTestTags) { onFocusChange ->
 
         // Title and Description
