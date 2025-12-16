@@ -36,6 +36,7 @@
     <string name="error_failed_to_load_event">Failed to load event: %s</string>
     <string name="error_failed_to_load_user">Failed to load user: %s</string>
     <string name="error_failed_to_send_message">Failed to send message: %s</string>
+    <string name="error_failed_to_update_pin">Failed to update pin: %s</string>
 
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
@@ -594,6 +595,8 @@
     <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
     <string name="content_description_pin_event">Pin event</string>
     <string name="content_description_unpin_event">Unpin event</string>
+    <string name="content_description_pin_organization">Pin organization</string>
+    <string name="content_description_unpin_organization">Unpin organization</string>
     <string name="date_format_pinned_event">dd MMM, yyyy</string>
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
     <string name="text_pinned_events">Pinned Events</string>
@@ -625,6 +628,7 @@
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
     <string name="notification_banner_title_event_starting">Event Starting</string>
+    <string name="notification_banner_title_event_invitation">Event Invitation</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
     

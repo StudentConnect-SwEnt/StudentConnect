@@ -2,6 +2,10 @@ package com.github.se.studentconnect.ui.profile
 
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
@@ -18,6 +22,7 @@ class ProfileViewModelTest {
   @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
   private lateinit var repository: TestUserRepository
+  private lateinit var organizationRepository: TestOrganizationRepository
   private lateinit var viewModel: ProfileViewModel
   private val testUser =
       User(
@@ -32,10 +37,36 @@ class ProfileViewModelTest {
           hobbies = listOf("Reading", "Coding"),
           bio = "Test bio")
 
+  private val testOrganization1 =
+      Organization(
+          id = "org1",
+          name = "Test Org 1",
+          type = OrganizationType.StudentClub,
+          memberUids = listOf("test_user", "other_user"),
+          createdBy = "other_user")
+
+  private val testOrganization2 =
+      Organization(
+          id = "org2",
+          name = "Test Org 2",
+          type = OrganizationType.Association,
+          memberUids = listOf("other_user"),
+          createdBy = "test_user")
+
+  private val testOrganization3 =
+      Organization(
+          id = "org3",
+          name = "Test Org 3",
+          type = OrganizationType.Company,
+          memberUids = listOf("another_user"),
+          createdBy = "another_user")
+
   @Before
   fun setUp() {
     repository = TestUserRepository(testUser)
-    viewModel = ProfileViewModel(repository, testUser.userId)
+    organizationRepository =
+        TestOrganizationRepository(listOf(testOrganization1, testOrganization2, testOrganization3))
+    viewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
   }
 
   @Test
@@ -255,6 +286,81 @@ class ProfileViewModelTest {
     assertEquals(R.string.label_profile, EditingField.None.displayNameResId)
   }
 
+  @Test
+  fun `loadUserOrganizations loads only pinned organization`() = runTest {
+    // Pin org1 for the user
+    repository.pinOrganization("test_user", "org1")
+
+    // Create new ViewModel to load pinned organization
+    val vm = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(300)
+
+    val organizations = vm.userOrganizations.value
+    assertEquals("Should load exactly 1 organization (pinned)", 1, organizations.size)
+    assertEquals("org1", organizations[0].id)
+  }
+
+  @Test
+  fun `loadUserOrganizations loads empty when no pinned organization`() = runTest {
+    // No pinned organization for test_user
+    kotlinx.coroutines.delay(100)
+
+    val organizations = viewModel.userOrganizations.value
+    assertEquals("Should have no organizations when nothing pinned", 0, organizations.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations returns empty when pinned organization doesnt exist`() = runTest {
+    // Pin non-existent organization
+    repository.pinOrganization("test_user", "nonexistent_org")
+
+    val vm = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    val organizations = vm.userOrganizations.value
+    assertEquals(
+        "Should have no organizations when pinned org doesn't exist", 0, organizations.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations handles empty organization list`() = runTest {
+    organizationRepository.organizations = emptyList()
+    repository.pinOrganization("test_user", "org1")
+
+    val emptyViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    assertEquals(0, emptyViewModel.userOrganizations.value.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations handles repository error gracefully`() = runTest {
+    organizationRepository.shouldThrowError = true
+    repository.pinOrganization("test_user", "org1")
+
+    val errorViewModel = ProfileViewModel(repository, organizationRepository, testUser.userId)
+    kotlinx.coroutines.delay(100)
+
+    assertEquals(0, errorViewModel.userOrganizations.value.size)
+  }
+
+  @Test
+  fun `loadUserOrganizations can be called to refresh pinned organization`() = runTest {
+    kotlinx.coroutines.delay(100)
+    assertEquals(0, viewModel.userOrganizations.value.size)
+
+    // Pin an organization
+    repository.pinOrganization("test_user", "org1")
+
+    // Manually reload
+    viewModel.loadUserOrganizations()
+    kotlinx.coroutines.delay(100)
+
+    val organizations = viewModel.userOrganizations.value
+    assertEquals(1, organizations.size)
+    assertEquals("org1", organizations[0].id)
+  }
+
   private class TestUserRepository(
       private var user: User? = null,
       var shouldThrowOnGet: Throwable? = null,
@@ -262,6 +368,7 @@ class ProfileViewModelTest {
       var saveDelay: Long = 0L
   ) : UserRepository {
     val savedUsers = mutableListOf<User>()
+    private val pinnedOrganizations = mutableMapOf<String, String?>()
 
     override suspend fun getUserById(userId: String): User? {
       shouldThrowOnGet?.let { throw it }
@@ -336,8 +443,69 @@ class ProfileViewModelTest {
 
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
 
+    override suspend fun pinOrganization(userId: String, organizationId: String) {
+      pinnedOrganizations[userId] = organizationId
+    }
+
+    override suspend fun unpinOrganization(userId: String) {
+      pinnedOrganizations[userId] = null
+    }
+
+    override suspend fun getPinnedOrganization(userId: String): String? {
+      return pinnedOrganizations[userId]
+    }
+
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("Not required for test")
+  }
+
+  private class TestOrganizationRepository(
+      var organizations: List<Organization>,
+      var shouldThrowError: Boolean = false
+  ) : OrganizationRepository {
+
+    override suspend fun saveOrganization(organization: Organization) {
+      organizations = organizations + organization
+    }
+
+    override suspend fun getOrganizationById(organizationId: String): Organization? {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organization")
+      }
+      return organizations.find { it.id == organizationId }
+    }
+
+    override suspend fun getAllOrganizations(): List<Organization> {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organizations")
+      }
+      return organizations
+    }
+
+    override suspend fun getNewOrganizationId(): String {
+      return "new_org_id"
+    }
+
+    override suspend fun sendMemberInvitation(
+        organizationId: String,
+        userId: String,
+        role: String,
+        invitedBy: String
+    ) {}
+
+    override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun getPendingInvitations(
+        organizationId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun getUserPendingInvitations(
+        userId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
   }
 
   companion object {

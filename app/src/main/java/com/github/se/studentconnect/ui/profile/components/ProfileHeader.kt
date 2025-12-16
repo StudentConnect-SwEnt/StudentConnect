@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,10 +41,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
@@ -52,8 +58,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.Dispatchers
 
 /** Data class holding profile statistics */
@@ -86,6 +95,7 @@ data class ProfileHeaderCallbacks(
  *   edit/card)
  * @param friendButtonsContent Optional composable for friend action buttons in visitor mode
  * @param showUsername Whether to show the username below the name
+ * @param userOrganizations List of organizations the user is a member of
  * @param modifier Modifier for the composable
  */
 @Composable
@@ -96,6 +106,7 @@ fun ProfileHeader(
     isVisitorMode: Boolean = false,
     friendButtonsContent: (@Composable () -> Unit)? = null,
     showUsername: Boolean = false,
+    userOrganizations: List<Organization> = emptyList(),
     modifier: Modifier = Modifier
 ) {
   // Create actions from the callbacks for backward compatibility
@@ -129,7 +140,8 @@ fun ProfileHeader(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
-              ProfilePicture(imageBitmap = imageBitmap)
+              ProfilePicture(
+                  imageBitmap = imageBitmap, organization = userOrganizations.firstOrNull())
 
               Spacer(modifier = Modifier.width(dimensionResource(R.dimen.profile_spacing_xxlarge)))
 
@@ -171,37 +183,195 @@ fun ProfileHeader(
 }
 
 /**
- * Profile picture component.
+ * Profile picture component with optional organization badge.
  *
  * @param imageBitmap The profile image bitmap, or null for placeholder
+ * @param organization The user's organization to display as a badge (null if not a member)
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun ProfilePicture(imageBitmap: ImageBitmap?, modifier: Modifier = Modifier) {
-  Box(
-      modifier =
-          modifier
-              .size(dimensionResource(R.dimen.profile_picture_size))
-              .clip(CircleShape)
-              .background(MaterialTheme.colorScheme.secondaryContainer)
-              .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
-      contentAlignment = Alignment.Center) {
-        val profilePictureDescription = stringResource(R.string.content_description_profile_picture)
-        if (imageBitmap != null) {
-          Image(
-              bitmap = imageBitmap,
-              contentDescription = profilePictureDescription,
-              modifier =
-                  Modifier.size(dimensionResource(R.dimen.profile_picture_size)).clip(CircleShape),
-              contentScale = ContentScale.Crop)
-        } else {
-          Icon(
-              imageVector = Icons.Default.Person,
-              contentDescription = profilePictureDescription,
-              modifier = Modifier.size(dimensionResource(R.dimen.profile_picture_icon_size)),
-              tint = MaterialTheme.colorScheme.primary)
+private fun ProfilePicture(
+    imageBitmap: ImageBitmap?,
+    organization: Organization? = null,
+    modifier: Modifier = Modifier
+) {
+  Box(modifier = modifier.size(dimensionResource(R.dimen.profile_picture_size))) {
+    // Main profile picture
+    Box(
+        modifier =
+            Modifier.size(dimensionResource(R.dimen.profile_picture_size))
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .border(width = 0.dp, color = Color.Transparent, shape = CircleShape),
+        contentAlignment = Alignment.Center) {
+          val profilePictureDescription =
+              stringResource(R.string.content_description_profile_picture)
+          if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = profilePictureDescription,
+                modifier =
+                    Modifier.size(dimensionResource(R.dimen.profile_picture_size))
+                        .clip(CircleShape),
+                contentScale = ContentScale.Crop)
+          } else {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = profilePictureDescription,
+                modifier = Modifier.size(dimensionResource(R.dimen.profile_picture_icon_size)),
+                tint = MaterialTheme.colorScheme.primary)
+          }
         }
+
+    // Organization badge overlay
+    if (organization != null) {
+      OrganizationBadge(
+          organization = organization,
+          modifier =
+              Modifier.align(Alignment.TopEnd)
+                  .offset(
+                      x = dimensionResource(R.dimen.profile_badge_offset),
+                      y = -dimensionResource(R.dimen.profile_badge_offset)))
+    }
+  }
+}
+
+/**
+ * Organization badge overlay showing membership with organization name in curved text.
+ *
+ * @param organization The organization to display
+ * @param modifier Modifier for the composable
+ */
+@Composable
+private fun OrganizationBadge(organization: Organization, modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+  val density = LocalDensity.current
+
+  // Load organization logo if available
+  val logoUrl = organization.logoUrl
+  val logoBitmap by
+      produceState<ImageBitmap?>(initialValue = null, logoUrl, repository) {
+        value =
+            logoUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure {
+                    android.util.Log.e("OrganizationBadge", "Failed to download org logo: $id", it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
       }
+
+  val textColor = MaterialTheme.colorScheme.onSurface
+  val backgroundColor = MaterialTheme.colorScheme.surface
+  val textSizePx = with(density) { 8.sp.toPx() }
+
+  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    // Curved text above the badge
+    val orgName = organization.name
+
+    Box(
+        modifier =
+            Modifier.size(60.dp).drawBehind {
+              val radius = 25.dp.toPx()
+              val centerX = size.width / 2f
+              val centerY = size.height / 2f + 10.dp.toPx()
+
+              // Calculate arc for text placement
+              val charCount = orgName.length
+              val arcAngle = 120f // Total arc angle in degrees
+              val startAngle = 240f // Start from top-left
+
+              val paint =
+                  android.graphics.Paint().apply {
+                    color = textColor.hashCode()
+                    this.textSize = textSizePx
+                    isAntiAlias = true
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    typeface =
+                        android.graphics.Typeface.create(
+                            android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+                  }
+
+              // Draw background arc for text
+              val backgroundPaint =
+                  android.graphics.Paint().apply {
+                    color = backgroundColor.copy(alpha = 0.85f).hashCode()
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.FILL
+                  }
+
+              val canvas = drawContext.canvas.nativeCanvas
+
+              // Draw background arc behind all text
+              val arcPath = android.graphics.Path()
+              val arcRect =
+                  android.graphics.RectF(
+                      centerX - radius - textSizePx,
+                      centerY - radius - textSizePx,
+                      centerX + radius + textSizePx,
+                      centerY + radius + textSizePx)
+              arcPath.addArc(arcRect, startAngle, arcAngle)
+
+              val strokePaint =
+                  android.graphics.Paint().apply {
+                    color = backgroundColor.copy(alpha = 0.9f).hashCode()
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = textSizePx * 1.8f
+                    strokeCap = android.graphics.Paint.Cap.ROUND
+                  }
+              canvas.drawPath(arcPath, strokePaint)
+
+              // Draw each character along the arc
+              orgName.forEachIndexed { index, char ->
+                val angle = startAngle + (index * arcAngle / (charCount - 1).coerceAtLeast(1))
+                val angleRad = Math.toRadians(angle.toDouble())
+
+                val x = centerX + (radius * cos(angleRad)).toFloat()
+                val y = centerY + (radius * sin(angleRad)).toFloat()
+
+                // Rotate and draw character
+                canvas.save()
+                canvas.rotate(angle + 90f, x, y)
+                canvas.drawText(char.toString(), x, y + textSizePx / 3, paint)
+                canvas.restore()
+              }
+            })
+
+    // Badge circle with logo or star - positioned at center
+    Box(
+        modifier =
+            Modifier.align(Alignment.Center)
+                .offset(y = 10.dp)
+                .size(dimensionResource(R.dimen.profile_badge_size))
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .border(
+                    width = dimensionResource(R.dimen.profile_badge_border_width),
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = CircleShape),
+        contentAlignment = Alignment.Center) {
+          val bitmap = logoBitmap
+          if (bitmap != null) {
+            // Show organization logo
+            Image(
+                bitmap = bitmap,
+                contentDescription = organization.name,
+                modifier =
+                    Modifier.size(dimensionResource(R.dimen.profile_badge_size)).clip(CircleShape),
+                contentScale = ContentScale.Crop)
+          } else {
+            // Show star icon as fallback
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = organization.name,
+                modifier = Modifier.size(dimensionResource(R.dimen.profile_badge_icon_size)),
+                tint = MaterialTheme.colorScheme.primary)
+          }
+        }
+  }
 }
 
 /**

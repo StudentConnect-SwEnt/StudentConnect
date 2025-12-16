@@ -9,6 +9,8 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
@@ -27,6 +29,7 @@ class ProfileScreenAndroidTest {
   private lateinit var mockUserRepository: MockUserRepository
   private lateinit var mockFriendsRepository: MockFriendsRepository
   private lateinit var mockEventRepository: MockEventRepository
+  private lateinit var mockOrganizationRepository: OrganizationRepository
   private lateinit var testUser: User
 
   @Before
@@ -45,6 +48,7 @@ class ProfileScreenAndroidTest {
     mockUserRepository = MockUserRepository(testUser)
     mockFriendsRepository = MockFriendsRepository(listOf("friend1", "friend2", "friend3"))
     mockEventRepository = MockEventRepository()
+    mockOrganizationRepository = OrganizationRepositoryProvider.repository
   }
 
   @Test
@@ -54,6 +58,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -85,6 +90,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -109,6 +115,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -129,6 +136,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -151,6 +159,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -177,6 +186,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -201,6 +211,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -218,6 +229,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -238,6 +250,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -261,6 +274,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -285,6 +299,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -308,6 +323,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -326,6 +342,7 @@ class ProfileScreenAndroidTest {
             userRepository = mockUserRepository,
             friendsRepository = mockFriendsRepository,
             eventRepository = mockEventRepository,
+            organizationRepository = mockOrganizationRepository,
             currentUserId = testUser.userId)
 
     composeTestRule.setContent {
@@ -402,6 +419,12 @@ class ProfileScreenAndroidTest {
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getPinnedEvents(userId: String): List<String> = emptyList()
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+    override suspend fun unpinOrganization(userId: String) {}
+
+    override suspend fun getPinnedOrganization(userId: String): String? = null
   }
 
   private class MockFriendsRepository(var friendsList: List<String>) : FriendsRepository {

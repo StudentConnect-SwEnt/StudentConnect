@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.user.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 /** UI state for the organization management screen. */
 data class OrganizationManagementUiState(
     val userOrganizations: List<Organization> = emptyList(),
+    val pinnedOrganizationId: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val shouldRedirectToCreation: Boolean = false
@@ -25,10 +27,12 @@ data class OrganizationManagementUiState(
  *
  * @param userId The ID of the current user
  * @param organizationRepository Repository for organization data
+ * @param userRepository Repository for user data
  */
 class OrganizationManagementViewModel(
     private val userId: String,
-    private val organizationRepository: OrganizationRepository
+    private val organizationRepository: OrganizationRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
   companion object {
@@ -40,6 +44,7 @@ class OrganizationManagementViewModel(
 
   init {
     loadUserOrganizations()
+    loadPinnedOrganization()
   }
 
   /** Loads organizations where the user is a member. */
@@ -79,5 +84,44 @@ class OrganizationManagementViewModel(
   /** Resets the redirect flag. */
   fun resetRedirectFlag() {
     _uiState.value = _uiState.value.copy(shouldRedirectToCreation = false)
+  }
+
+  /** Loads the user's pinned organization ID. */
+  private fun loadPinnedOrganization() {
+    viewModelScope.launch {
+      try {
+        val pinnedOrgId = userRepository.getPinnedOrganization(userId)
+        _uiState.value = _uiState.value.copy(pinnedOrganizationId = pinnedOrgId)
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to load pinned organization", e)
+      }
+    }
+  }
+
+  /**
+   * Pins or unpins an organization.
+   *
+   * @param organizationId The ID of the organization to pin/unpin
+   */
+  fun togglePinOrganization(organizationId: String) {
+    viewModelScope.launch {
+      try {
+        val currentPinned = _uiState.value.pinnedOrganizationId
+        if (currentPinned == organizationId) {
+          // Unpin
+          userRepository.unpinOrganization(userId)
+          _uiState.value = _uiState.value.copy(pinnedOrganizationId = null)
+          Log.d(TAG, "Unpinned organization: $organizationId")
+        } else {
+          // Pin
+          userRepository.pinOrganization(userId, organizationId)
+          _uiState.value = _uiState.value.copy(pinnedOrganizationId = organizationId)
+          Log.d(TAG, "Pinned organization: $organizationId")
+        }
+      } catch (e: Exception) {
+        Log.e(TAG, "Failed to toggle pin organization", e)
+        _uiState.value = _uiState.value.copy(error = "Failed to update pin: ${e.message}")
+      }
+    }
   }
 }

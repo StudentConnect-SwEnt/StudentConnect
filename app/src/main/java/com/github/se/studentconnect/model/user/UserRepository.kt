@@ -200,6 +200,29 @@ interface UserRepository : Repository {
   suspend fun getPinnedEvents(userId: String): List<String>
 
   /**
+   * Pins an organization to the user's profile.
+   *
+   * @param userId The unique identifier of the user.
+   * @param organizationId The unique identifier of the organization to pin.
+   */
+  suspend fun pinOrganization(userId: String, organizationId: String)
+
+  /**
+   * Unpins the organization from the user's profile.
+   *
+   * @param userId The unique identifier of the user.
+   */
+  suspend fun unpinOrganization(userId: String)
+
+  /**
+   * Retrieves the pinned organization ID for a given user.
+   *
+   * @param userId The unique identifier of the user.
+   * @return The organization ID that is pinned by the user, or null if none.
+   */
+  suspend fun getPinnedOrganization(userId: String): String?
+
+  /**
    * Checks if a username is available (not already taken). Performs case-insensitive check.
    *
    * @param username The username to check (will be normalized to lowercase for comparison).

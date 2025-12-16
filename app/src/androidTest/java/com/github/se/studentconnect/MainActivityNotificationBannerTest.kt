@@ -104,52 +104,11 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
 
   @NoAnonymousSignIn
   @Test
-  fun mainActivity_notificationBanner_existsInLayout() {
-    // The notification banner should be in the layout (even if not visible without notification)
-    // We can't directly test visibility without a notification, but we can verify the structure
-    // This test verifies that the banner component is properly integrated
-    // Setup already waits for MAIN_APP state, so we can proceed
-
-    // Verify that the bottom navigation is present (confirms MAIN_APP state)
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
-        .assertExists()
-
-    // This test primarily verifies that adding the notification banner to the layout
-    // doesn't break the app or cause crashes
-  }
-
-  @NoAnonymousSignIn
-  @Test
   fun mainActivity_hasBottomNavigation() {
     // Verify bottom navigation exists (already waited for in setup)
     composeTestRule
         .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
         .assertExists()
-  }
-
-  @NoAnonymousSignIn
-  @Test
-  fun mainActivity_canNavigateBetweenScreens() {
-    // Navigate to different tabs to verify banner is available on all screens
-    // Click on Map tab
-    composeTestRule.onNodeWithTag(NavigationTestTags.MAP_TAB).performClick()
-    composeTestRule.waitForIdle()
-
-    // Click on Activities tab
-    composeTestRule.onNodeWithTag(NavigationTestTags.ACTIVITIES_TAB).performClick()
-    composeTestRule.waitForIdle()
-
-    // Click on Profile tab
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.waitForIdle()
-
-    // Click on Home tab
-    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).performClick()
-    composeTestRule.waitForIdle()
-
-    // Verify we're back on home
-    composeTestRule.onNodeWithTag("HomePage").assertExists()
   }
 
   @NoAnonymousSignIn

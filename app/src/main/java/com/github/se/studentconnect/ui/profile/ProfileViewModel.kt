@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import java.text.SimpleDateFormat
@@ -24,12 +26,17 @@ import kotlinx.coroutines.launch
  */
 class ProfileViewModel(
     private val userRepository: UserRepository,
+    private val organizationRepository: OrganizationRepository,
     private val currentUserId: String
 ) : ViewModel() {
 
   // User data state
   private val _user = MutableStateFlow<User?>(null)
   val user: StateFlow<User?> = _user.asStateFlow()
+
+  // User's organizations state
+  private val _userOrganizations = MutableStateFlow<List<Organization>>(emptyList())
+  val userOrganizations: StateFlow<List<Organization>> = _userOrganizations.asStateFlow()
 
   // Editing state management
   private val _editingField = MutableStateFlow<EditingField>(EditingField.None)
@@ -49,6 +56,7 @@ class ProfileViewModel(
 
   init {
     loadUserProfile()
+    loadUserOrganizations()
   }
 
   /** Loads the current user's profile from the repository. */
@@ -59,6 +67,24 @@ class ProfileViewModel(
         _user.value = loadedUser
       } catch (exception: Exception) {
         _fieldErrors.value = mapOf(EditingField.None to R.string.error_failed_to_load_profile)
+      }
+    }
+  }
+
+  /** Loads the pinned organization for the current user. */
+  fun loadUserOrganizations() {
+    viewModelScope.launch {
+      try {
+        val pinnedOrgId = userRepository.getPinnedOrganization(currentUserId)
+        if (pinnedOrgId != null) {
+          val organization = organizationRepository.getOrganizationById(pinnedOrgId)
+          _userOrganizations.value = listOfNotNull(organization)
+        } else {
+          _userOrganizations.value = emptyList()
+        }
+      } catch (exception: Exception) {
+        // Silent fail - organizations are optional feature
+        _userOrganizations.value = emptyList()
       }
     }
   }

@@ -585,4 +585,80 @@ class UserRepositoryLocalTest {
     val events = repository.getJoinedEvents("user1")
     assertEquals(1, events.size) // Event should still be added
   }
+
+  // Tests for pinned organization functionality
+  @Test
+  fun pinOrganization_setsOrganization() = runTest {
+    repository.pinOrganization("user1", "org123")
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertEquals("org123", pinnedOrg)
+  }
+
+  @Test
+  fun pinOrganization_replacesExistingPin() = runTest {
+    repository.pinOrganization("user1", "org123")
+    repository.pinOrganization("user1", "org456")
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertEquals("org456", pinnedOrg)
+  }
+
+  @Test
+  fun unpinOrganization_removesPin() = runTest {
+    repository.pinOrganization("user1", "org123")
+    repository.unpinOrganization("user1")
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertNull(pinnedOrg)
+  }
+
+  @Test
+  fun unpinOrganization_whenNoPinExists_handlesGracefully() = runTest {
+    repository.unpinOrganization("user1")
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertNull(pinnedOrg)
+  }
+
+  @Test
+  fun getPinnedOrganization_returnsNull_whenNoPinExists() = runTest {
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertNull(pinnedOrg)
+  }
+
+  @Test
+  fun getPinnedOrganization_returnsNull_forNonExistentUser() = runTest {
+    val pinnedOrg = repository.getPinnedOrganization("nonexistent")
+    assertNull(pinnedOrg)
+  }
+
+  @Test
+  fun deleteUser_removesPinnedOrganization() = runTest {
+    repository.saveUser(testUser1)
+    repository.pinOrganization("user1", "org123")
+    repository.deleteUser("user1")
+    val pinnedOrg = repository.getPinnedOrganization("user1")
+    assertNull(pinnedOrg)
+  }
+
+  @Test
+  fun pinOrganization_multipleDifferentUsers() = runTest {
+    repository.pinOrganization("user1", "org123")
+    repository.pinOrganization("user2", "org456")
+
+    val pinnedOrg1 = repository.getPinnedOrganization("user1")
+    val pinnedOrg2 = repository.getPinnedOrganization("user2")
+
+    assertEquals("org123", pinnedOrg1)
+    assertEquals("org456", pinnedOrg2)
+  }
+
+  @Test
+  fun pinOrganization_sameOrgForMultipleUsers() = runTest {
+    repository.pinOrganization("user1", "org123")
+    repository.pinOrganization("user2", "org123")
+
+    val pinnedOrg1 = repository.getPinnedOrganization("user1")
+    val pinnedOrg2 = repository.getPinnedOrganization("user2")
+
+    assertEquals("org123", pinnedOrg1)
+    assertEquals("org123", pinnedOrg2)
+  }
 }
