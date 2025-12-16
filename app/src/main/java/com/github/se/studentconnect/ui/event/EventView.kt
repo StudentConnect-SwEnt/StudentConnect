@@ -159,6 +159,14 @@ fun EventView(
     }
   }
 
+  // Show snackbar for offline messages
+  LaunchedEffect(uiState.offlineMessageRes) {
+    uiState.offlineMessageRes?.let { messageRes ->
+      snackbarHostState.showSnackbar(context.getString(messageRes))
+      eventViewModel.clearOfflineMessage()
+    }
+  }
+
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
     QrScannerDialog(
@@ -887,7 +895,7 @@ private fun NonOwnerActionButtons(
         if (joined) {
           eventViewModel.showLeaveConfirmDialog()
         } else if (!isFull && !eventHasStarted) {
-          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+          eventViewModel.joinEvent(eventUid = currentEvent.uid, context = context)
         }
       },
       modifier =

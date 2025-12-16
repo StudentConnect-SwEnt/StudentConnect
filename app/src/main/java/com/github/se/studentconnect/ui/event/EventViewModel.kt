@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,7 +53,8 @@ data class EventUiState(
     @StringRes val friendsErrorRes: Int? = null,
     val isInvitingFriends: Boolean = false,
     val isDeletingEvent: Boolean = false,
-    @StringRes val deleteEventMessageRes: Int? = null
+    @StringRes val deleteEventMessageRes: Int? = null,
+    @StringRes val offlineMessageRes: Int? = null
 )
 
 sealed class TicketValidationResult {
@@ -145,7 +148,14 @@ class EventViewModel(
     }
   }
 
-  fun joinEvent(eventUid: String) {
+  fun joinEvent(eventUid: String, context: Context) {
+    // Show message if offline (but still allow attempt)
+    if (!NetworkUtils.isNetworkAvailable(context)) {
+      _uiState.update { it.copy(offlineMessageRes = R.string.offline_no_internet_try_later) }
+    } else {
+      _uiState.update { it.copy(offlineMessageRes = null) }
+    }
+
     val currentUserUid = AuthenticationProvider.currentUser
     viewModelScope.launch {
       val event = _uiState.value.event
@@ -298,6 +308,10 @@ class EventViewModel(
 
   fun clearDeleteEventMessage() {
     _uiState.update { it.copy(deleteEventMessageRes = null) }
+  }
+
+  fun clearOfflineMessage() {
+    _uiState.update { it.copy(offlineMessageRes = null) }
   }
 
   /** Opens the invite friends dialog and triggers loading the friend list + existing invites. */
