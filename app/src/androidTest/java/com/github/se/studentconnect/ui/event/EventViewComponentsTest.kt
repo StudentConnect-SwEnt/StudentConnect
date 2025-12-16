@@ -33,8 +33,7 @@ class EventViewComponentsTest {
 
   private lateinit var mockNavController: NavHostController
   private lateinit var mockEventViewModel: EventViewModel
-  private val testContext: Context =
-      InstrumentationRegistry.getInstrumentation().targetContext
+  private val testContext: Context = InstrumentationRegistry.getInstrumentation().targetContext
 
   private val testEventUid = "test-event-123"
   private val testUserId = "user-123"
