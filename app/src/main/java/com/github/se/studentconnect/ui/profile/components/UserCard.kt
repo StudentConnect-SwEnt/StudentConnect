@@ -262,14 +262,16 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               InfoRow(
                   icon = Icons.Outlined.School,
                   text = user.university,
-                  contentDescription = "University")
+                  contentDescription = stringResource(R.string.content_description_university))
 
               Spacer(modifier = Modifier.height(2.dp))
 
               // Birthday with icon (if available)
               user.birthdate?.let { birthday ->
                 InfoRow(
-                    icon = Icons.Outlined.Cake, text = birthday, contentDescription = "Birthday")
+                    icon = Icons.Outlined.Cake,
+                    text = birthday,
+                    contentDescription = stringResource(R.string.content_description_birthday))
               }
             }
           }
