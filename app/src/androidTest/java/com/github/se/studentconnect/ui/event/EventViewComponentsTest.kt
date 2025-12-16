@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
@@ -31,6 +33,8 @@ class EventViewComponentsTest {
 
   private lateinit var mockNavController: NavHostController
   private lateinit var mockEventViewModel: EventViewModel
+  private val testContext: Context =
+      InstrumentationRegistry.getInstrumentation().targetContext
 
   private val testEventUid = "test-event-123"
   private val testUserId = "user-123"
@@ -356,7 +360,7 @@ class EventViewComponentsTest {
     }
 
     composeTestRule.onNodeWithTag("event_view_join_button").performClick()
-    verify { mockEventViewModel.joinEvent(testEventUid) }
+    verify { mockEventViewModel.joinEvent(testEventUid, testContext) }
   }
 
   @Test
