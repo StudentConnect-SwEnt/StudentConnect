@@ -93,6 +93,7 @@ object EventViewTestTags {
   const val COUNTDOWN_TIMER = "event_view_countdown_timer"
   const val COUNTDOWN_DAYS = "event_view_countdown_days"
   const val TAGS_SECTION = "event_view_tags"
+  const val SUBTITLE_TEXT = "event_view_subtitle_text"
   const val DESCRIPTION_TEXT = "event_view_description_text"
   const val CHAT_BUTTON = "event_view_chat_button"
   const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
@@ -457,6 +458,18 @@ private fun BaseEventView(
                       Column(
                           modifier = Modifier.fillMaxWidth().padding(20.dp),
                           verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            if (event is Event.Public && event.subtitle.isNotBlank()) {
+                              Text(
+                                  text = event.subtitle,
+                                  modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
+                                  style =
+                                      MaterialTheme.typography.titleMedium.copy(
+                                          fontWeight = FontWeight.SemiBold),
+                                  color = MaterialTheme.colorScheme.onSurface,
+                                  maxLines = 2,
+                                  overflow = TextOverflow.Ellipsis)
+                            }
+
                             if (event is Event.Public && event.tags.isNotEmpty()) {
                               EventTagsRow(tags = event.tags)
                             }
