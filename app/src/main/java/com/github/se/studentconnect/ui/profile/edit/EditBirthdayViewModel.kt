@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.BirthdayFormatter
+import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,7 +81,7 @@ class EditBirthdayViewModel(
         if (user != null) {
           val updatedUser =
               user.copy(birthdate = birthdayToSave, updatedAt = System.currentTimeMillis())
-          userRepository.saveUser(updatedUser)
+          viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
           _uiState.value = UiState.Success(R.string.success_birthday_updated.toString())
         } else {
           _uiState.value = UiState.Error(R.string.error_user_not_found.toString())
@@ -101,7 +102,7 @@ class EditBirthdayViewModel(
         val user = userRepository.getUserById(userId)
         if (user != null) {
           val updatedUser = user.copy(birthdate = null, updatedAt = System.currentTimeMillis())
-          userRepository.saveUser(updatedUser)
+          viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
           _selectedDateMillis.value = null
           _birthdayString.value = null
           _uiState.value = UiState.Success(R.string.success_birthday_removed.toString())

@@ -100,8 +100,12 @@ class CreatePublicEventViewModel :
   override fun loadEvent(eventUid: String) {
     super.loadEvent(eventUid)
     viewModelScope.launch {
-      val event = eventRepository.getEvent(eventUid)
-      if (event is Event.Public) prefill(event)
+      try {
+        val event = eventRepository.getEvent(eventUid)
+        if (event is Event.Public) prefill(event)
+      } catch (e: Exception) {
+        // Swallow to avoid crashes when permissions/offline prevent loading; user can retry.
+      }
     }
   }
 

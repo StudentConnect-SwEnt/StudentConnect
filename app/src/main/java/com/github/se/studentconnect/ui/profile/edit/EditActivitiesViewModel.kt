@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -94,7 +95,8 @@ class EditActivitiesViewModel(
 
         // not using userRepository.updateUser, as it doesn't work
         val updatedUser = user.copy(hobbies = _selectedActivities.value.toList())
-        userRepository.saveUser(updatedUser)
+        viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
+
         _uiState.value = UiState.Success(R.string.success_activities_updated.toString())
       } catch (e: Exception) {
         _uiState.value =

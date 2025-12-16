@@ -236,7 +236,16 @@ class ProfileViewModel(
   private fun updateUserInFirebase(updatedUser: User, field: EditingField) {
     viewModelScope.launch {
       try {
-        userRepository.saveUser(updatedUser)
+        viewModelScope.saveUserWithTimeout(userRepository, updatedUser)
+      } catch (exception: Exception) {
+        _fieldErrors.value =
+            _fieldErrors.value +
+                (field to (R.string.error_unexpected)) // Generic error if save failed
+        setFieldLoading(field, false)
+        return@launch
+      }
+
+      try {
         _user.value = updatedUser
         _editingField.value = EditingField.None
         _successMessage.value = getSuccessMessage(field)
