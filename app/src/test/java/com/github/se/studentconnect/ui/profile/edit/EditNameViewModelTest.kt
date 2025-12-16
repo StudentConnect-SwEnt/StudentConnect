@@ -1,11 +1,12 @@
 package com.github.se.studentconnect.ui.profile.edit
 
-import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -40,6 +41,23 @@ class EditNameViewModelTest {
   fun setUp() {
     repository = TestUserRepository(testUser)
     viewModel = EditNameViewModel(repository, testUser.userId)
+  }
+
+  private fun createOnlineContext(): android.content.Context {
+    val mockContext = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+    val network = mockk<android.net.Network>(relaxed = true)
+    val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
+
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every {
+      capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
+
+    return mockContext
   }
 
   @Test
@@ -83,7 +101,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty first name`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("Doe")
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -100,7 +118,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty last name`() = runTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("")
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -116,7 +134,7 @@ class EditNameViewModelTest {
   fun `saveName validates both empty names`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -134,7 +152,7 @@ class EditNameViewModelTest {
   fun `saveName validates whitespace only names`() = runTest {
     viewModel.updateFirstName("   ")
     viewModel.updateLastName("   ")
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -155,7 +173,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(newFirstName)
     viewModel.updateLastName(newLastName)
 
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -176,7 +194,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(firstNameWithWhitespace)
     viewModel.updateLastName(lastNameWithWhitespace)
 
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -190,7 +208,7 @@ class EditNameViewModelTest {
 
   @Test
   fun `saveName handles user not found error`() = runTest {
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     repository = TestUserRepository(null)
     val errorViewModel = EditNameViewModel(repository, "non_existent_user")
     errorViewModel.updateFirstName("John")
@@ -210,7 +228,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("Doe")
 
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -220,12 +238,15 @@ class EditNameViewModelTest {
   }
 
   @Test
-  fun `clearErrors clears all validation errors`() {
+  fun `clearErrors clears all validation errors`() = runTest {
     // Given: there are validation errors
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
+    
+    // Wait for validation to complete
+    kotlinx.coroutines.delay(200)
 
     // When: clearErrors is called
     viewModel.clearErrors()
@@ -242,7 +263,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(specialFirstName)
     viewModel.updateLastName(specialLastName)
 
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -261,7 +282,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(longFirstName)
     viewModel.updateLastName(longLastName)
 
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -275,7 +296,7 @@ class EditNameViewModelTest {
 
   @Test
   fun `multiple save operations work correctly`() = runTest {
-    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    val testContext = createOnlineContext()
     // First save
     viewModel.updateFirstName("Alice")
     viewModel.updateLastName("Smith")

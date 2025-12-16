@@ -27,6 +27,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
+import io.mockk.every
+import io.mockk.mockk
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -44,6 +48,30 @@ class HomeScreenStoriesTest {
       FirebaseApp.initializeApp(context)
     }
     AuthenticationProvider.testUserId = "testUser123"
+  }
+  
+  private fun createOnlineContext(): android.content.Context {
+    val mockContext = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+    val network = mockk<android.net.Network>(relaxed = true)
+    val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
+
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every {
+      capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
+
+    return mockContext
+  }
+  
+  private fun withOnlineContext(content: @androidx.compose.runtime.Composable () -> Unit) {
+    val onlineContext = createOnlineContext()
+    CompositionLocalProvider(LocalContext provides onlineContext) {
+      content()
+    }
   }
 
   @After
@@ -541,12 +569,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -571,13 +601,15 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(ownStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {},
-          onDeleteStory = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(ownStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {},
+            onDeleteStory = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -602,12 +634,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(otherUserStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(otherUserStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -632,12 +666,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(imageStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(imageStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -662,12 +698,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(videoStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(videoStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -706,12 +744,14 @@ class HomeScreenStoriesTest {
                 profilePictureUrl = null))
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = stories,
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = stories,
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -736,12 +776,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -766,12 +808,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 100, // Out of bounds
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 100, // Out of bounds
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -796,12 +840,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = "profile_url")
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -826,12 +872,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -892,12 +940,14 @@ class HomeScreenStoriesTest {
         }
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = stories,
-          initialStoryIndex = 2, // Start at middle story
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = stories,
+            initialStoryIndex = 2, // Start at middle story
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
@@ -922,12 +972,14 @@ class HomeScreenStoriesTest {
             profilePictureUrl = null)
 
     composeTestRule.setContent {
-      StoryViewer(
-          event = testEvent1,
-          stories = listOf(testStory),
-          initialStoryIndex = 0,
-          isVisible = true,
-          onDismiss = {})
+      withOnlineContext {
+        StoryViewer(
+            event = testEvent1,
+            stories = listOf(testStory),
+            initialStoryIndex = 0,
+            isVisible = true,
+            onDismiss = {})
+      }
     }
 
     composeTestRule.onNodeWithTag("story_viewer").assertIsDisplayed()
