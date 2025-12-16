@@ -1,13 +1,26 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +28,39 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NotificationActionsTest {
 
+  private val mediaRepositoryTest =
+      object : MediaRepository {
+        // Implement required methods with no-op or mock behavior
+        override suspend fun upload(uri: Uri, path: String?): String {
+          return "test-media-id"
+        }
+
+        override suspend fun download(id: String): Uri {
+          return Uri.EMPTY
+        }
+
+        override suspend fun delete(id: String) {}
+      }
+
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
+    MediaRepositoryProvider.overrideForTests(mediaRepositoryTest)
+  }
+
+  @After
+  fun teardown() {
+    NotificationRepositoryProvider.cleanOverrideForTests()
+    UserRepositoryProvider.cleanOverrideForTests()
+    EventRepositoryProvider.cleanOverrideForTests()
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
+  }
 
   @Test
   fun notificationItem_friendRequest_showsAcceptRejectButtons() {
