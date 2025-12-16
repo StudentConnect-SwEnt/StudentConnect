@@ -46,9 +46,12 @@ jobs:
           local_properties: ${{ secrets.LOCAL_PROPERTIES }}
 
       - name: Run unit tests
+        env:
+          # Limiter la mémoire Gradle/JVM depuis le job
+          GRADLE_OPTS: -Xmx2g -XX:MaxMetaspaceSize=512m
         run: |
           # To run the CI with debug information, add --info
-          ./gradlew testResOverrideDebugUnitTest --parallel --build-cache
+          ./gradlew testResOverrideDebugUnitTest --no-parallel --build-cache
 
       - name: Upload unit exec
         uses: actions/upload-artifact@v4
