@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -39,12 +41,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
@@ -96,7 +100,7 @@ private fun CardContainer(modifier: Modifier = Modifier, content: @Composable ()
 
 /**
  * A flippable card that displays user profile information on the front and a QR code on the back.
- * Tapping anywhere on the card triggers a flip animation) that reveals the QR code.
+ * Tapping anywhere on the card triggers a flip animation that reveals the QR code.
  *
  * @param user The user whose information will be displayed on the card.
  * @param modifier Optional modifier for positioning and styling the card container.
@@ -170,6 +174,8 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = user.profilePictureUrl
+
+  // Load profile picture using the loadBitmapFromUri utility
   val imageBitmap by
       produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
         value =
@@ -187,13 +193,13 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
       // App Logo (Top Right)
       Box(
-          modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+          modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
           contentAlignment = Alignment.Center) {
             Icon(
                 painter = painterResource(id = R.drawable.studnet_logo),
                 contentDescription =
                     stringResource(R.string.content_description_student_connect_logo),
-                modifier = Modifier.size(64.dp, 22.dp),
+                modifier = Modifier.size(56.dp, 18.dp),
                 tint = MaterialTheme.colorScheme.primary)
           }
 
@@ -204,7 +210,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
             // Profile Picture (Left Side)
             Box(
                 modifier =
-                    Modifier.size(80.dp)
+                    Modifier.size(72.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                         .border(
@@ -218,45 +224,84 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                     Image(
                         bitmap = imageBitmap!!,
                         contentDescription = profilePictureDescription,
-                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(12.dp)),
+                        modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop)
                   } else {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = profilePictureDescription,
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        modifier = Modifier.fillMaxSize().padding(14.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                   }
                 }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             // User Information (Right Side)
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+              // Full name on one line
               Text(
-                  text = user.firstName,
-                  style = MaterialTheme.typography.headlineSmall,
+                  text = "${user.firstName} ${user.lastName}",
+                  style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface)
+                  color = MaterialTheme.colorScheme.onSurface,
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis)
 
               Spacer(modifier = Modifier.height(4.dp))
 
-              Text(
-                  text = user.lastName,
-                  style = MaterialTheme.typography.headlineSmall,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface)
-
-              Spacer(modifier = Modifier.height(8.dp))
-
+              // Username
               Text(
                   text = "@${user.username}",
-                  style = MaterialTheme.typography.bodyMedium,
+                  style = MaterialTheme.typography.bodySmall,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+              Spacer(modifier = Modifier.height(6.dp))
+
+              // University with icon
+              InfoRow(
+                  icon = Icons.Outlined.School,
+                  text = user.university,
+                  contentDescription = "University")
+
+              Spacer(modifier = Modifier.height(2.dp))
+
+              // Birthday with icon (if available)
+              user.birthdate?.let { birthday ->
+                InfoRow(
+                    icon = Icons.Outlined.Cake, text = birthday, contentDescription = "Birthday")
+              }
             }
           }
     }
   }
+}
+
+/** A row displaying an icon and text, used for user info items like university and birthday. */
+@Composable
+private fun InfoRow(
+    icon: ImageVector,
+    text: String,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+  Row(
+      modifier = modifier,
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Start) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis)
+      }
 }
 
 /**
@@ -281,7 +326,7 @@ private fun UserCardBack(user: User, modifier: Modifier = Modifier) {
 
           Spacer(modifier = Modifier.height(16.dp))
 
-          // QR Code (even smaller size)
+          // QR Code
           Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
             UserQRCode(userId = user.userId)
           }
