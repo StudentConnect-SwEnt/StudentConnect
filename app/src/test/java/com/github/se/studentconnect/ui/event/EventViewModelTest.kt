@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -13,6 +14,8 @@ import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -1603,5 +1606,66 @@ class EventViewModelTest {
 
     // And an error should be shown
     assertNotNull(vm.uiState.value.friendsErrorRes)
+  }
+
+  @Test
+  fun `joinEvent sets offline message when offline`() = runTest {
+    val context = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns null
+
+    eventRepository.addEvent(testEvent)
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    viewModel.joinEvent(testEvent.uid, context)
+    advanceUntilIdle()
+
+    assertEquals(R.string.offline_no_internet_try_later, viewModel.uiState.value.offlineMessageRes)
+  }
+
+  @Test
+  fun `joinEvent clears offline message when online`() = runTest {
+    val context = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+    val network = mockk<android.net.Network>(relaxed = true)
+    val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
+
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every { capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+
+    eventRepository.addEvent(testEvent)
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    viewModel.joinEvent(testEvent.uid, context)
+    advanceUntilIdle()
+
+    assertNull(viewModel.uiState.value.offlineMessageRes)
+  }
+
+  @Test
+  fun `clearOfflineMessage clears offline message`() = runTest {
+    val context = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+
+    eventRepository.addEvent(testEvent)
+    viewModel.fetchEvent(testEvent.uid)
+    advanceUntilIdle()
+
+    // Set offline message
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns null
+    viewModel.joinEvent(testEvent.uid, context)
+    advanceUntilIdle()
+    assertEquals(R.string.offline_no_internet_try_later, viewModel.uiState.value.offlineMessageRes)
+
+    // Clear it
+    viewModel.clearOfflineMessage()
+    assertNull(viewModel.uiState.value.offlineMessageRes)
   }
 }

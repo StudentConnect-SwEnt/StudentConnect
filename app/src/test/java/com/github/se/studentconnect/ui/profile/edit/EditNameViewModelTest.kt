@@ -1,10 +1,13 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -21,6 +24,7 @@ class EditNameViewModelTest {
 
   private lateinit var repository: TestUserRepository
   private lateinit var viewModel: EditNameViewModel
+  private val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
   private val testUser =
       User(
           userId = "test_user",
@@ -82,7 +86,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty first name`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("Doe")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -98,7 +102,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty last name`() = runTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -113,7 +117,7 @@ class EditNameViewModelTest {
   fun `saveName validates both empty names`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -130,7 +134,7 @@ class EditNameViewModelTest {
   fun `saveName validates whitespace only names`() = runTest {
     viewModel.updateFirstName("   ")
     viewModel.updateLastName("   ")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -150,7 +154,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(newFirstName)
     viewModel.updateLastName(newLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -170,7 +174,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(firstNameWithWhitespace)
     viewModel.updateLastName(lastNameWithWhitespace)
 
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -188,7 +192,7 @@ class EditNameViewModelTest {
     errorViewModel.updateFirstName("John")
     errorViewModel.updateLastName("Doe")
 
-    errorViewModel.saveName()
+    errorViewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -202,7 +206,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("Doe")
 
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -215,7 +219,7 @@ class EditNameViewModelTest {
     // Given: there are validation errors
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // When: clearErrors is called
     viewModel.clearErrors()
@@ -232,7 +236,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(specialFirstName)
     viewModel.updateLastName(specialLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -250,7 +254,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(longFirstName)
     viewModel.updateLastName(longLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)

@@ -1,8 +1,12 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.friends.FriendsRepository
@@ -12,7 +16,11 @@ import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.user.UserRepository
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
@@ -21,6 +29,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -85,7 +94,15 @@ class BaseCreateEventViewModelTest {
     val source = File(tmpDir, "banner.png").apply { writeText("banner-bytes") }
     val uri = Uri.fromFile(source)
 
-    val vm = FakeViewModel(initialState = CreateEventUiState.Public(bannerImageUri = uri))
+    val vm =
+        FakeViewModel(
+            initialState = CreateEventUiState.Public(bannerImageUri = uri),
+            eventRepository = mockk(relaxed = true),
+            mediaRepository = mockk(relaxed = true),
+            userRepository = mockk(relaxed = true),
+            organizationRepository = mockk(relaxed = true),
+            friendsRepository = mockk(relaxed = true),
+            notificationRepository = mockk(relaxed = true))
 
     val result = vm.resolveBannerForSave(appContext, "event-1")
 
@@ -616,5 +633,102 @@ class BaseCreateEventViewModelTest {
   fun isGeneratingBanner_canBeSetToTrue() {
     val vm = createViewModel(CreateEventUiState.Public(isGeneratingBanner = true))
     assertTrue(vm.uiState.value.isGeneratingBanner)
+  }
+
+  @Test
+  fun `saveEvent sets offline message when offline`() = runTest {
+    val appContext = ApplicationProvider.getApplicationContext<Context>()
+    val context = mockk<Context>(relaxed = true)
+    val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
+
+    every { context.applicationContext } returns appContext
+    every { context.getSystemService(Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns null
+
+    val vm =
+        FakeViewModel(
+            initialState = CreateEventUiState.Public(title = "Test Event"),
+            eventRepository = mockk(relaxed = true),
+            mediaRepository = mockk(relaxed = true),
+            userRepository = mockk(relaxed = true),
+            organizationRepository = mockk(relaxed = true),
+            friendsRepository = mockk(relaxed = true),
+            notificationRepository = mockk(relaxed = true))
+
+    mockkStatic(FirebaseAuth::class)
+    val mockAuth = mockk<FirebaseAuth>(relaxed = true)
+    val mockUser = mockk<FirebaseUser>(relaxed = true)
+    every { FirebaseAuth.getInstance() } returns mockAuth
+    every { mockAuth.currentUser } returns mockUser
+    every { mockUser.uid } returns "test-user-id"
+
+    vm.saveEvent(context)
+    kotlinx.coroutines.delay(100)
+
+    assertEquals(R.string.offline_changes_will_sync, vm.offlineMessageRes.value)
+  }
+
+  @Test
+  fun `saveEvent clears offline message when online`() = runTest {
+    val appContext = ApplicationProvider.getApplicationContext<Context>()
+    val context = mockk<Context>(relaxed = true)
+    val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
+    val network = mockk<Network>(relaxed = true)
+    val capabilities = mockk<NetworkCapabilities>(relaxed = true)
+
+    every { context.applicationContext } returns appContext
+    every { context.getSystemService(Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every { capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+
+    val vm =
+        FakeViewModel(
+            initialState = CreateEventUiState.Public(title = "Test Event"),
+            eventRepository = mockk(relaxed = true),
+            mediaRepository = mockk(relaxed = true),
+            userRepository = mockk(relaxed = true),
+            organizationRepository = mockk(relaxed = true),
+            friendsRepository = mockk(relaxed = true),
+            notificationRepository = mockk(relaxed = true))
+
+    mockkStatic(FirebaseAuth::class)
+    val mockAuth = mockk<FirebaseAuth>(relaxed = true)
+    val mockUser = mockk<FirebaseUser>(relaxed = true)
+    every { FirebaseAuth.getInstance() } returns mockAuth
+    every { mockAuth.currentUser } returns mockUser
+    every { mockUser.uid } returns "test-user-id"
+
+    vm.saveEvent(context)
+    kotlinx.coroutines.delay(100)
+
+    assertNull(vm.offlineMessageRes.value)
+  }
+
+  @Test
+  fun `clearOfflineMessage clears offline message`() {
+    val vm =
+        FakeViewModel(
+            initialState = CreateEventUiState.Public(),
+            eventRepository = mockk(relaxed = true),
+            mediaRepository = mockk(relaxed = true),
+            userRepository = mockk(relaxed = true),
+            organizationRepository = mockk(relaxed = true),
+            friendsRepository = mockk(relaxed = true),
+            notificationRepository = mockk(relaxed = true))
+
+    // Set offline message manually via reflection
+    val offlineMessageField =
+        BaseCreateEventViewModel::class.java.getDeclaredField("_offlineMessageRes").apply {
+          isAccessible = true
+        }
+    val offlineMessageFlow = offlineMessageField.get(vm) as kotlinx.coroutines.flow.MutableStateFlow<Int?>
+    offlineMessageFlow.value = R.string.offline_changes_will_sync
+
+    assertEquals(R.string.offline_changes_will_sync, vm.offlineMessageRes.value)
+
+    vm.clearOfflineMessage()
+
+    assertNull(vm.offlineMessageRes.value)
   }
 }

@@ -1,10 +1,13 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -21,6 +24,7 @@ class EditBioViewModelTest {
 
   private lateinit var repository: TestUserRepository
   private lateinit var viewModel: EditBioViewModel
+  private val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
   private val testUser =
       User(
           userId = "test_user",
@@ -103,7 +107,7 @@ class EditBioViewModelTest {
   fun `updateBioText clears validation error`() = runTest {
     // Set up an error first
     viewModel.updateBioText("")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(100)
 
     // Now update with valid text
@@ -153,7 +157,7 @@ class EditBioViewModelTest {
   @Test
   fun `saveBio validates empty bio`() = runTest {
     viewModel.updateBioText("")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -165,7 +169,7 @@ class EditBioViewModelTest {
   @Test
   fun `saveBio validates whitespace only bio`() = runTest {
     viewModel.updateBioText("   ")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -185,7 +189,7 @@ class EditBioViewModelTest {
     viewModel.updateBioText("A".repeat(ProfileConstants.MAX_BIO_LENGTH))
 
     // Now try to save - should succeed at max length
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(200)
 
     // Should save successfully
@@ -197,7 +201,7 @@ class EditBioViewModelTest {
     val newBio = "This is my new and improved bio"
     viewModel.updateBioText(newBio)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -213,7 +217,7 @@ class EditBioViewModelTest {
     val bioWithWhitespace = "  This is my bio  "
     viewModel.updateBioText(bioWithWhitespace)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -231,7 +235,7 @@ class EditBioViewModelTest {
 
     // Add small delay to ensure timestamp difference
     kotlinx.coroutines.delay(10)
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -249,7 +253,7 @@ class EditBioViewModelTest {
     val errorViewModel = EditBioViewModel(repository, "non_existent_user")
     errorViewModel.updateBioText("Some bio")
 
-    errorViewModel.saveBio()
+    errorViewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -262,7 +266,7 @@ class EditBioViewModelTest {
     repository.shouldThrowOnSave = RuntimeException("Save failed")
     viewModel.updateBioText("Valid bio")
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -274,7 +278,7 @@ class EditBioViewModelTest {
   fun `saveBio sets success state on successful save`() = runTest {
     viewModel.updateBioText("New bio")
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -288,7 +292,7 @@ class EditBioViewModelTest {
   fun `saveBio clears previous validation errors before validation`() = runTest {
     // First attempt with empty bio
     viewModel.updateBioText("")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(100)
 
     // Should have error
@@ -296,7 +300,7 @@ class EditBioViewModelTest {
 
     // Second attempt with valid bio
     viewModel.updateBioText("Valid bio")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(200)
 
     // Error should be cleared and save successful
@@ -307,7 +311,7 @@ class EditBioViewModelTest {
   @Test
   fun `clearValidationError clears validation error`() {
     viewModel.updateBioText("")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Given: there is a validation error
     viewModel.clearValidationError()
@@ -321,7 +325,7 @@ class EditBioViewModelTest {
     val specialBio = "Bio with émojis 🎉 and spëcial çharacters!"
     viewModel.updateBioText(specialBio)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -336,7 +340,7 @@ class EditBioViewModelTest {
     val multilineBio = "Line 1\nLine 2\nLine 3"
     viewModel.updateBioText(multilineBio)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -351,7 +355,7 @@ class EditBioViewModelTest {
     val longBio = "A".repeat(ProfileConstants.MAX_BIO_LENGTH)
     viewModel.updateBioText(longBio)
 
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -365,16 +369,52 @@ class EditBioViewModelTest {
   fun `multiple save operations work correctly`() = runTest {
     // First save
     viewModel.updateBioText("First bio")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(300)
 
     // Second save
     viewModel.updateBioText("Second bio")
-    viewModel.saveBio()
+    viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(300)
 
     assertEquals(2, repository.savedUsers.size)
     assertEquals("Second bio", repository.savedUsers.last().bio)
+  }
+
+  @Test
+  fun `saveBio sets offline message when offline`() = runTest {
+    val context = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns null
+
+    viewModel.updateBioText("Test bio")
+    viewModel.saveBio(context)
+
+    kotlinx.coroutines.delay(200)
+
+    assertEquals(com.github.se.studentconnect.R.string.offline_changes_will_sync, viewModel.offlineMessageRes.value)
+  }
+
+  @Test
+  fun `saveBio clears offline message when online`() = runTest {
+    val context = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
+    val network = mockk<android.net.Network>(relaxed = true)
+    val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
+
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every { capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+
+    viewModel.updateBioText("Test bio")
+    viewModel.saveBio(context)
+
+    kotlinx.coroutines.delay(200)
+
+    assertNull(viewModel.offlineMessageRes.value)
   }
 
   @Test
