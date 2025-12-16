@@ -1468,7 +1468,7 @@ private fun StoryUserHeader(
     avatarBitmap: ImageBitmap?
 ) {
   val storyTitle = stringResource(R.string.story_title_format, currentStory.username, eventTitle)
-  
+
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
       verticalAlignment = Alignment.CenterVertically) {
