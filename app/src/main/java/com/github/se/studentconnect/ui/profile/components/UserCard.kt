@@ -250,7 +250,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
               Spacer(modifier = Modifier.height(8.dp))
 
               Text(
-                  text = stringResource(R.string.text_user_id_label, user.userId),
+                  text = "@${user.username}",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

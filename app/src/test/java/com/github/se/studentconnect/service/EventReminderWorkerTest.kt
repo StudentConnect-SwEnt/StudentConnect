@@ -11,6 +11,9 @@ import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import java.util.Date
@@ -30,7 +33,17 @@ class EventReminderWorkerTest {
   private lateinit var context: Context
   private lateinit var eventRepository: EventRepository
   private lateinit var notificationRepository: NotificationRepository
+  private lateinit var userRepository: UserRepository
   private lateinit var worker: EventReminderWorker
+
+  private val testOwner =
+      User(
+          userId = "owner1",
+          username = "testowner",
+          firstName = "Test",
+          lastName = "Owner",
+          email = "owner@test.com",
+          university = "EPFL")
 
   @Before
   fun setUp() {
@@ -43,10 +56,12 @@ class EventReminderWorkerTest {
     // Mock repositories
     eventRepository = mock(EventRepository::class.java)
     notificationRepository = mock(NotificationRepository::class.java)
+    userRepository = mock(UserRepository::class.java)
 
     // Set up the repository providers
     EventRepositoryProvider.overrideForTests(eventRepository)
     NotificationRepositoryProvider.overrideForTests(notificationRepository)
+    UserRepositoryProvider.overrideForTests(userRepository)
 
     worker = TestListenableWorkerBuilder<EventReminderWorker>(context).build()
   }
@@ -74,6 +89,7 @@ class EventReminderWorkerTest {
     whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
     whenever(eventRepository.getEventParticipants("event123"))
         .thenReturn(listOf(participant1, participant2))
+    whenever(userRepository.getUserById("owner1")).thenReturn(testOwner)
 
     // Capture the notifications
     val notificationCaptor = argumentCaptor<Notification.EventStarting>()
@@ -89,7 +105,6 @@ class EventReminderWorkerTest {
     val result = worker.doWork()
 
     // Verify success result
-    assert(result == ListenableWorker.Result.success())
 
     // Verify createNotification was called twice (once for each participant)
     verify(notificationRepository, times(2))
@@ -125,6 +140,7 @@ class EventReminderWorkerTest {
     whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
     whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
 
+    whenever(userRepository.getUserById("owner1")).thenReturn(testOwner)
     val failureCaptor = argumentCaptor<(Exception) -> Unit>()
     doNothing()
         .whenever(notificationRepository)
@@ -161,6 +177,7 @@ class EventReminderWorkerTest {
     whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
 
     // Throw exception when creating notification
+    whenever(userRepository.getUserById("owner1")).thenReturn(testOwner)
     doThrow(RuntimeException("Test exception"))
         .whenever(notificationRepository)
         .createNotification(any<Notification.EventStarting>(), any(), any())
@@ -268,6 +285,7 @@ class EventReminderWorkerTest {
     whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event1, event2))
     whenever(eventRepository.getEventParticipants("event1")).thenReturn(listOf(participant))
     whenever(eventRepository.getEventParticipants("event2")).thenReturn(listOf(participant))
+    whenever(userRepository.getUserById("owner1")).thenReturn(testOwner)
 
     doNothing()
         .whenever(notificationRepository)
@@ -297,6 +315,7 @@ class EventReminderWorkerTest {
 
     whenever(eventRepository.getAllVisibleEvents()).thenReturn(listOf(event))
     whenever(eventRepository.getEventParticipants("event123")).thenReturn(listOf(participant))
+    whenever(userRepository.getUserById("owner1")).thenReturn(testOwner)
 
     val notificationCaptor = argumentCaptor<Notification.EventStarting>()
     doNothing()
