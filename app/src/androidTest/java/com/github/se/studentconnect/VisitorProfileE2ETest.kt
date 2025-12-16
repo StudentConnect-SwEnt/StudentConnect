@@ -191,7 +191,7 @@ class VisitorProfileE2ETest : FirestoreStudentConnectTest() {
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_user_id)
         .assertExists()
-        .assertTextContains("ritan$shortSuffix")
+        .assertTextContains("@ritan$shortSuffix")
 
     composeTestRule
         .onNodeWithTag(C.Tag.visitor_profile_bio)
