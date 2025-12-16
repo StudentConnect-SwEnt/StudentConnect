@@ -113,6 +113,16 @@ internal fun handleStoryUpload(
     return false
   }
 
+  // Show message if offline (but still allow attempt)
+  if (!com.github.se.studentconnect.utils.NetworkUtils.isNetworkAvailable(params.context)) {
+    Toast.makeText(
+            params.context,
+            params.context.getString(R.string.offline_no_internet_try_later),
+            Toast.LENGTH_LONG)
+        .show()
+    // Continue with upload attempt - it will fail naturally if offline
+  }
+
   callbacks.onUploadStateChange(true)
   Toast.makeText(
           params.context, params.context.getString(R.string.story_uploading), Toast.LENGTH_SHORT)

@@ -123,6 +123,7 @@ import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
@@ -570,6 +571,18 @@ fun HomeScreen(
                                                   }
                                                 },
                                                 onClick = { event, seenStories ->
+                                                  // Show message if offline (but still allow
+                                                  // viewing attempt)
+                                                  if (!NetworkUtils.isNetworkAvailable(context)) {
+                                                    coroutineScope.launch {
+                                                      snackbarHostState.showSnackbar(
+                                                          context.getString(
+                                                              R.string
+                                                                  .offline_no_internet_try_later))
+                                                    }
+                                                    // Continue - story viewer will handle offline
+                                                    // state naturally
+                                                  }
                                                   selectedStory = event
                                                   selectedStoryIndex = seenStories
                                                   showStoryViewer = true
