@@ -581,7 +581,7 @@
     <!-- Event Selection for Stories -->
     <string name="event_selection_button_label">Link to Event</string>
     <string name="event_selection_title">Select an Event</string>
-    <string name="event_selection_empty">No joined events available</string>
+    <string name="event_selection_empty">No events available</string>
     <string name="event_selection_loading">Loading events…</string>
     <string name="event_selection_error">Failed to load events</string>
     <string name="event_selection_no_event">No event selected</string>

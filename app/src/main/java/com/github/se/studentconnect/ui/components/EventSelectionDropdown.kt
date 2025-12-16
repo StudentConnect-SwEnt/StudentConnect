@@ -120,8 +120,9 @@ sealed interface EventSelectionState {
 /**
  * A composable that displays a button to select an event to link to a story.
  *
- * When clicked, it opens a dialog showing the user's joined events. The user can select one event
- * to link to their story, or deselect the currently selected event.
+ * When clicked, it opens a dialog showing the user's available events (both joined events and
+ * events created by the user). The user can select one event to link to their story, or deselect
+ * the currently selected event.
  *
  * @param state The current state of event loading (Loading, Success, or Error)
  * @param selectedEvent The currently selected event, or null if none selected

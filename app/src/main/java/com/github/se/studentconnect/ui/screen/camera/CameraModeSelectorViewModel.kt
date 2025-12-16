@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel for managing event selection state in the camera/story capture flow.
  *
- * This ViewModel handles fetching the list of events the user has joined, which can then be linked
- * to stories they capture.
+ * This ViewModel handles fetching the list of events available for story linking, including both
+ * events the user has joined and events created by the user.
  *
- * @param storyRepository Repository for fetching user's joined events
+ * @param storyRepository Repository for fetching user's events (joined and owned)
  */
 class CameraModeSelectorViewModel(private val storyRepository: StoryRepository) : ViewModel() {
 
@@ -27,7 +27,7 @@ class CameraModeSelectorViewModel(private val storyRepository: StoryRepository) 
   val eventSelectionState: StateFlow<EventSelectionState> = _eventSelectionState.asStateFlow()
 
   /**
-   * Loads the user's joined events from the repository.
+   * Loads the user's events (both joined and owned) from the repository.
    *
    * If no user is authenticated, returns an empty list. Otherwise, fetches events asynchronously
    * and updates [eventSelectionState] accordingly.

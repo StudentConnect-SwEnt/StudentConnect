@@ -36,13 +36,30 @@ class StoryRepositoryFirestore(
 
   override suspend fun getUserJoinedEvents(userId: String): List<Event> {
     return try {
+      // Get events the user has joined
       val joinedEventIds = userRepository.getJoinedEvents(userId)
-      joinedEventIds.mapNotNull { eventId ->
-        try {
-          eventRepository.getEvent(eventId)
-        } catch (e: Exception) {
-          null
-        }
+      val joinedEvents =
+          joinedEventIds.mapNotNull { eventId ->
+            try {
+              eventRepository.getEvent(eventId)
+            } catch (e: Exception) {
+              null
+            }
+          }
+
+      // Get events created by the user
+      val ownedEvents =
+          try {
+            eventRepository.getEventsByOwner(userId)
+          } catch (e: Exception) {
+            emptyList()
+          }
+
+      // Combine joined and owned events, removing duplicates by event UID
+      val allEventIds = (joinedEvents.map { it.uid } + ownedEvents.map { it.uid }).distinct()
+      allEventIds.mapNotNull { eventId ->
+        // Prefer owned event if it exists (in case user both owns and joined)
+        ownedEvents.find { it.uid == eventId } ?: joinedEvents.find { it.uid == eventId }
       }
     } catch (e: Exception) {
       emptyList()
