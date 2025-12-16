@@ -2,8 +2,15 @@ package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
@@ -51,6 +59,8 @@ object CreatePublicEventScreenTestTags {
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
   const val TAG_SELECTOR = "tagSelector"
+  const val CREATE_AS_ORG_SWITCH = "createAsOrgSwitch"
+  const val ORG_DROPDOWN = "orgDropdown"
 }
 
 /**
@@ -69,6 +79,7 @@ object CreatePublicEventScreenTestTags {
  * @param templateEventId Optional template event ID for creating an event from a template
  * @param createPublicEventViewModel ViewModel managing the event creation/editing state
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePublicEventScreen(
     navController: NavHostController?,
@@ -166,6 +177,72 @@ fun CreatePublicEventScreen(
             onRemoveImage = createPublicEventViewModel::removeBannerImage,
             pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
             removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON)
+
+        // Organization Creation Toggle (only shown if user owns organizations)
+        if (uiState.userOrganizations.isNotEmpty()) {
+          Column(
+              modifier = Modifier.fillMaxWidth(),
+              verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Toggle Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Text(
+                          text = stringResource(R.string.event_label_create_as_organization),
+                          style = MaterialTheme.typography.titleMedium,
+                          color = MaterialTheme.colorScheme.onSurface)
+                      Switch(
+                          checked = uiState.createAsOrganization,
+                          onCheckedChange = createPublicEventViewModel::updateCreateAsOrganization,
+                          modifier =
+                              Modifier.testTag(
+                                  CreatePublicEventScreenTestTags.CREATE_AS_ORG_SWITCH))
+                    }
+
+                // Organization Dropdown (shown when toggle is on)
+                if (uiState.createAsOrganization) {
+                  var expanded by remember { mutableStateOf(false) }
+                  val selectedOrgName =
+                      uiState.userOrganizations
+                          .find { it.first == uiState.selectedOrganizationId }
+                          ?.second ?: ""
+
+                  ExposedDropdownMenuBox(
+                      expanded = expanded,
+                      onExpandedChange = { expanded = !expanded },
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .testTag(CreatePublicEventScreenTestTags.ORG_DROPDOWN)) {
+                        OutlinedTextField(
+                            value = selectedOrgName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = {
+                              Text(stringResource(R.string.event_label_select_organization))
+                            },
+                            trailingIcon = {
+                              ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors())
+
+                        ExposedDropdownMenu(
+                            expanded = expanded, onDismissRequest = { expanded = false }) {
+                              uiState.userOrganizations.forEach { (orgId, orgName) ->
+                                DropdownMenuItem(
+                                    text = { Text(orgName) },
+                                    onClick = {
+                                      createPublicEventViewModel.updateSelectedOrganizationId(orgId)
+                                      expanded = false
+                                    },
+                                    modifier = Modifier.testTag("orgDropdownItem_$orgId"))
+                              }
+                            }
+                      }
+                }
+              }
+        }
 
         // Tags (Specific to Public)
         Column(

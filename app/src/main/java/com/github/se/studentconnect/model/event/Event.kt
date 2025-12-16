@@ -7,6 +7,7 @@ import com.google.firebase.Timestamp
 sealed class Event {
   abstract val uid: String
   abstract val ownerId: String
+  abstract val organizationId: String? // optional organization ID (if created as organization)
   abstract val title: String
   abstract val description: String
   abstract val imageUrl: String? // optional image url (in Firebase Storage)
@@ -21,6 +22,7 @@ sealed class Event {
       mapOf(
           "uid" to uid,
           "ownerId" to ownerId,
+          "organizationId" to organizationId,
           "title" to title,
           "description" to description,
           "imageUrl" to imageUrl,
@@ -39,6 +41,7 @@ sealed class Event {
   data class Private(
       override val uid: String,
       override val ownerId: String,
+      override val organizationId: String? = null,
       override val title: String,
       override val description: String,
       override val imageUrl: String? = null,
@@ -58,6 +61,7 @@ sealed class Event {
   data class Public(
       override val uid: String,
       override val ownerId: String,
+      override val organizationId: String? = null,
       override val title: String,
       override val description: String,
       override val imageUrl: String? = null,

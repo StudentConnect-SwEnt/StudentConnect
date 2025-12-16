@@ -64,6 +64,11 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
   protected var editingEventUid: String? = null
 
+  init {
+    // Load user's organizations on initialization
+    loadUserOrganizations()
+  }
+
   // --- Shared Update Functions ---
 
   /**
@@ -204,6 +209,48 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   /** Resets the finished saving flag after handling. */
   fun resetFinishedSaving() {
     updateState { copyCommon(finishedSaving = false, isSaving = false) }
+  }
+
+  /**
+   * Updates whether to create the event as an organization.
+   *
+   * @param createAsOrg The new create as organization value.
+   */
+  fun updateCreateAsOrganization(createAsOrg: Boolean) {
+    updateState {
+      copyCommon(
+          createAsOrganization = createAsOrg,
+          selectedOrganizationId =
+              if (!createAsOrg) null
+              else
+                  this.userOrganizations.firstOrNull()?.first) // Auto-select first org when enabled
+    }
+  }
+
+  /**
+   * Updates the selected organization ID.
+   *
+   * @param organizationId The new selected organization ID.
+   */
+  fun updateSelectedOrganizationId(organizationId: String?) {
+    updateState { copyCommon(selectedOrganizationId = organizationId) }
+  }
+
+  /** Loads the organizations that the current user owns (is the creator of). */
+  private fun loadUserOrganizations() {
+    val currentUserId = Firebase.auth.currentUser?.uid ?: return
+
+    viewModelScope.launch {
+      try {
+        val allOrganizations = organizationRepository.getAllOrganizations()
+        val userOrgs =
+            allOrganizations.filter { it.createdBy == currentUserId }.map { it.id to it.name }
+
+        updateState { copyCommon(userOrganizations = userOrgs) }
+      } catch (e: Exception) {
+        Log.e("BaseCreateEventViewModel", "Error loading user organizations", e)
+      }
+    }
   }
 
   /**

@@ -154,7 +154,9 @@ fun Event.toOrganizationEvent(context: Context): OrganizationEvent {
       cardDate = cardDate,
       title = this.title,
       subtitle = subtitle,
-      location = this.location?.name)
+      location = this.location?.name,
+      endTimestamp = this.end,
+      imageUrl = this.imageUrl)
 }
 
 /**

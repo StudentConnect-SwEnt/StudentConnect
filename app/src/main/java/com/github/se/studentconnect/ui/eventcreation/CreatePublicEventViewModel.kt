@@ -76,9 +76,13 @@ class CreatePublicEventViewModel :
           null
         }
 
+    // Use organization ID if creating as organization, otherwise use user ID
+    val organizationId = if (s.createAsOrganization) s.selectedOrganizationId else null
+
     return Event.Public(
         uid = uid,
         ownerId = ownerId,
+        organizationId = organizationId,
         title = s.title,
         description = s.description,
         imageUrl = bannerPath,

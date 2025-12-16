@@ -1,11 +1,26 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -34,6 +49,8 @@ object CreatePrivateEventScreenTestTags {
   const val SAVE_BUTTON = "saveButton"
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
+  const val CREATE_AS_ORG_SWITCH = "createAsOrgSwitch"
+  const val SELECT_ORG_DROPDOWN = "selectOrgDropdown"
 }
 
 /**
@@ -43,6 +60,7 @@ object CreatePrivateEventScreenTestTags {
  * @param existingEventId The ID of the event to edit, or null if creating a new event.
  * @param createPrivateEventViewModel The ViewModel managing state for private events.
  */
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun CreatePrivateEventScreen(
     navController: NavHostController?,
@@ -114,6 +132,73 @@ fun CreatePrivateEventScreen(
             onRemoveImage = createPrivateEventViewModel::removeBannerImage,
             pickerTag = CreatePrivateEventScreenTestTags.BANNER_PICKER,
             removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON)
+
+        // Organization Selection (Only show if user owns organizations)
+        if (uiState.userOrganizations.isNotEmpty()) {
+          androidx.compose.foundation.layout.Column(
+              modifier = Modifier.fillMaxWidth(),
+              verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Toggle Switch
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                      Text(
+                          text = stringResource(R.string.event_label_create_as_organization),
+                          style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+                          color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
+                      Switch(
+                          checked = uiState.createAsOrganization,
+                          onCheckedChange = createPrivateEventViewModel::updateCreateAsOrganization,
+                          modifier =
+                              Modifier.testTag(
+                                  CreatePrivateEventScreenTestTags.CREATE_AS_ORG_SWITCH))
+                    }
+
+                // Organization Dropdown (shown when toggle is on)
+                if (uiState.createAsOrganization) {
+                  var expanded by remember { mutableStateOf(false) }
+                  val selectedOrgName =
+                      uiState.userOrganizations
+                          .find { it.first == uiState.selectedOrganizationId }
+                          ?.second ?: ""
+
+                  ExposedDropdownMenuBox(
+                      expanded = expanded,
+                      onExpandedChange = { expanded = !expanded },
+                      modifier =
+                          Modifier.fillMaxWidth()
+                              .testTag(CreatePrivateEventScreenTestTags.SELECT_ORG_DROPDOWN)) {
+                        OutlinedTextField(
+                            value = selectedOrgName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = {
+                              Text(stringResource(R.string.event_label_select_organization))
+                            },
+                            trailingIcon = {
+                              ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors())
+
+                        ExposedDropdownMenu(
+                            expanded = expanded, onDismissRequest = { expanded = false }) {
+                              uiState.userOrganizations.forEach { (orgId, orgName) ->
+                                DropdownMenuItem(
+                                    text = { Text(orgName) },
+                                    onClick = {
+                                      createPrivateEventViewModel.updateSelectedOrganizationId(
+                                          orgId)
+                                      expanded = false
+                                    },
+                                    modifier = Modifier.testTag("orgDropdownItem_$orgId"))
+                              }
+                            }
+                      }
+                }
+              }
+        }
 
         // Location
         EventLocationField(

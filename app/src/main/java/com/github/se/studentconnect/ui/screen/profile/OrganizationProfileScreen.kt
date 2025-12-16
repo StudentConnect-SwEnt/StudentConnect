@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.screen.profile
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -96,7 +97,8 @@ data class OrganizationProfileCallbacks(
     val onFollowClick: () -> Unit,
     val onAddMemberClick: (String) -> Unit,
     val onRemoveMemberClick: (OrganizationMember) -> Unit,
-    val onBackClick: () -> Unit
+    val onBackClick: () -> Unit,
+    val onEventClick: (String) -> Unit = {}
 )
 
 // Constants for UI spacing and sizing
@@ -138,6 +140,7 @@ private object OrganizationProfileConstants {
  *
  * @param organizationId The ID of the organization to display (optional for preview/testing)
  * @param onBackClick Callback when the back button is clicked
+ * @param onEventClick Callback when an event is clicked (passes event ID)
  * @param viewModel ViewModel for managing screen state
  * @param modifier Modifier for the composable
  */
@@ -146,6 +149,7 @@ private object OrganizationProfileConstants {
 fun OrganizationProfileScreen(
     organizationId: String? = null,
     onBackClick: () -> Unit = {},
+    onEventClick: (String) -> Unit = {},
     viewModel: OrganizationProfileViewModel = run {
       val context = LocalContext.current
       viewModel { OrganizationProfileViewModel(organizationId, context) }
@@ -181,7 +185,8 @@ fun OrganizationProfileScreen(
                     onFollowClick = { viewModel.onFollowButtonClick() },
                     onAddMemberClick = { role -> viewModel.showAddMemberDialog(role) },
                     onRemoveMemberClick = { member -> viewModel.removeMember(member) },
-                    onBackClick = onBackClick),
+                    onBackClick = onBackClick,
+                    onEventClick = onEventClick),
             modifier = Modifier.padding(paddingValues))
       }
     }
@@ -249,7 +254,8 @@ private fun OrganizationProfileContent(
 
         // Tab Content
         when (selectedTab) {
-          OrganizationTab.EVENTS -> EventsTab(events = organization.events)
+          OrganizationTab.EVENTS ->
+              EventsTab(events = organization.events, onEventClick = callbacks.onEventClick)
           OrganizationTab.MEMBERS ->
               MembersTab(
                   members = organization.members,
@@ -516,15 +522,47 @@ private fun AboutSection(
  * Events tab displaying event data.
  *
  * @param events List of events to display
+ * @param onEventClick Callback when an event is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun EventsTab(events: List<OrganizationEvent>, modifier: Modifier = Modifier) {
+private fun EventsTab(
+    events: List<OrganizationEvent>,
+    onEventClick: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+  var selectedFilter by remember { mutableStateOf(OrgEventFilter.ALL) }
+
+  val filteredEvents =
+      when (selectedFilter) {
+        OrgEventFilter.ALL -> events
+        OrgEventFilter.UPCOMING -> events.filter { !it.hasEnded() }
+        OrgEventFilter.PAST -> events.filter { it.hasEnded() }
+      }
+
   Column(
       modifier = modifier.fillMaxWidth().testTag(C.Tag.org_profile_events_list),
       verticalArrangement =
           Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp)) {
-        if (events.isEmpty()) {
+        // Filter chips
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .testTag(C.Tag.org_profile_event_filters),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              OrgEventFilter.entries.forEach { filter ->
+                FilterChip(
+                    selected = selectedFilter == filter,
+                    onClick = { selectedFilter = filter },
+                    label = stringResource(filter.labelResId),
+                    modifier =
+                        Modifier.testTag(
+                            "${C.Tag.org_profile_event_filter_prefix}_${filter.name.lowercase()}"))
+              }
+            }
+
+        if (filteredEvents.isEmpty()) {
           Box(
               modifier =
                   Modifier.fillMaxWidth()
@@ -537,8 +575,43 @@ private fun EventsTab(events: List<OrganizationEvent>, modifier: Modifier = Modi
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }
         } else {
-          events.forEachIndexed { index, event -> EventRow(event = event, index = index) }
+          filteredEvents.forEachIndexed { index, event ->
+            EventRow(event = event, index = index, onEventClick = onEventClick)
+          }
         }
+      }
+}
+
+/** Organization event filter options */
+private enum class OrgEventFilter(val labelResId: Int) {
+  ALL(R.string.org_profile_filter_all),
+  UPCOMING(R.string.org_profile_filter_upcoming),
+  PAST(R.string.org_profile_filter_past)
+}
+
+/** Filter chip for event filtering */
+@Composable
+private fun FilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+  Button(
+      onClick = onClick,
+      modifier = modifier.height(32.dp),
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor =
+                  if (selected) MaterialTheme.colorScheme.primary
+                  else MaterialTheme.colorScheme.surfaceVariant,
+              contentColor =
+                  if (selected) MaterialTheme.colorScheme.onPrimary
+                  else MaterialTheme.colorScheme.onSurfaceVariant),
+      shape = RoundedCornerShape(16.dp),
+      contentPadding =
+          androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
+        Text(text = label, style = MaterialTheme.typography.labelMedium, fontSize = 12.sp)
       }
 }
 
@@ -547,20 +620,48 @@ private fun EventsTab(events: List<OrganizationEvent>, modifier: Modifier = Modi
  *
  * @param event Event data to display
  * @param index Index of the event in the list
+ * @param onEventClick Callback when the event is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
-private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = Modifier) {
+private fun EventRow(
+    event: OrganizationEvent,
+    index: Int,
+    onEventClick: (String) -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+  val hasEnded = event.hasEnded()
+  val context = LocalContext.current
+  val repository = MediaRepositoryProvider.repository
+
+  // Load event banner image
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, event.imageUrl, repository) {
+        value =
+            event.imageUrl?.let { imageId ->
+              runCatching { repository.download(imageId) }
+                  .onFailure {
+                    android.util.Log.e(
+                        "OrganizationProfileScreen",
+                        "Failed to download event banner: $imageId",
+                        it)
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
+
   Row(
       modifier =
           modifier
               .fillMaxWidth()
+              .clickable { onEventClick(event.eventId) }
               .padding(vertical = OrganizationProfileConstants.EVENT_ROW_VERTICAL_PADDING.dp)
               .testTag("${C.Tag.org_profile_event_row_prefix}_$index"),
       horizontalArrangement =
           Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        // Event card with gradient
+        // Event card with image or gradient
         Box(
             modifier =
                 Modifier.width(EVENT_CARD_WIDTH.dp)
@@ -568,15 +669,48 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
                     .clip(
                         RoundedCornerShape(
                             OrganizationProfileConstants.EVENT_CARD_CORNER_RADIUS.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(
-                                        alpha =
-                                            OrganizationProfileConstants.PRIMARY_GRADIENT_ALPHA),
-                                    MaterialTheme.colorScheme.primary)))
                     .testTag("${C.Tag.org_profile_event_card_prefix}_$index")) {
+              // Background image or gradient
+              if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap!!,
+                    contentDescription = "Event banner",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop)
+              } else {
+                // Fallback gradient background
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .background(
+                                if (hasEnded) {
+                                  // Grey background for ended events
+                                  Brush.verticalGradient(
+                                      colors =
+                                          listOf(
+                                              Color.Gray.copy(alpha = 0.3f),
+                                              Color.Gray.copy(alpha = 0.5f)))
+                                } else {
+                                  Brush.verticalGradient(
+                                      colors =
+                                          listOf(
+                                              MaterialTheme.colorScheme.primaryContainer.copy(
+                                                  alpha =
+                                                      OrganizationProfileConstants
+                                                          .PRIMARY_GRADIENT_ALPHA),
+                                              MaterialTheme.colorScheme.primary))
+                                }))
+              }
+
+              // Gradient overlay for better text readability
+              Box(
+                  modifier =
+                      Modifier.fillMaxSize()
+                          .background(
+                              Brush.verticalGradient(
+                                  colors =
+                                      listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
+
               // Location icon
               Icon(
                   imageVector = Icons.Default.LocationOn,
@@ -605,6 +739,20 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = OrganizationProfileConstants.WHITE_ALPHA))
                   }
+
+              // "Event Ended" overlay for past events
+              if (hasEnded) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
+                    contentAlignment = Alignment.Center) {
+                      Text(
+                          text = stringResource(R.string.org_profile_event_ended),
+                          style = MaterialTheme.typography.titleMedium,
+                          fontWeight = FontWeight.Bold,
+                          color = Color.White,
+                          textAlign = TextAlign.Center)
+                    }
+              }
             }
 
         // Event details
@@ -615,12 +763,16 @@ private fun EventRow(event: OrganizationEvent, index: Int, modifier: Modifier = 
                   text = event.title,
                   style = MaterialTheme.typography.titleMedium,
                   fontWeight = FontWeight.SemiBold,
-                  color = MaterialTheme.colorScheme.onSurface)
+                  color =
+                      if (hasEnded) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                      else MaterialTheme.colorScheme.onSurface)
 
               Text(
                   text = event.subtitle,
                   style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  color =
+                      if (hasEnded) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                      else MaterialTheme.colorScheme.onSurfaceVariant)
             }
       }
 }

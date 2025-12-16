@@ -111,7 +111,8 @@ class OrganizationProfileScreenTest {
           uid = "event1",
           title = "Test Event",
           description = "Test Description",
-          ownerId = "test_org",
+          ownerId = "creator1",
+          organizationId = "test_org",
           start = Timestamp(Date()),
           end = Timestamp(Date(System.currentTimeMillis() + 3600000)),
           location = Location(46.5197, 6.6323, "EPFL"),
@@ -170,6 +171,80 @@ class OrganizationProfileScreenTest {
 
     // Clean up MediaRepository override
     MediaRepositoryProvider.cleanOverrideForTests()
+  }
+
+  @Test
+  fun eventRowIsClickable() = runTest {
+    var clickedEventId: String? = null
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    eventRepository.addEvent(testEvent)
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme {
+        OrganizationProfileScreen(
+            organizationId = "test_org",
+            onEventClick = { clickedEventId = it },
+            viewModel = viewModel)
+      }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Click on the event row
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").performClick()
+    composeRule.waitForIdle()
+
+    // Verify the callback was called with the correct event ID
+    assertEquals("event1", clickedEventId)
+  }
+
+  @Test
+  fun endedEventShowsOverlay() = runTest {
+    val endedEvent =
+        testEvent.copy(
+            uid = "ended_event",
+            start = Timestamp(Date(System.currentTimeMillis() - 7200000)), // 2 hours ago
+            end = Timestamp(Date(System.currentTimeMillis() - 3600000))) // 1 hour ago
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    eventRepository.addEvent(endedEvent)
+
+    // Mock the "Event Ended" string
+    every { mockContext.getString(R.string.org_profile_event_ended) } returns "Event Ended"
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Event should be displayed
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
+
+    // "Event Ended" text should be displayed
+    composeRule.onNodeWithText("Event Ended").assertIsDisplayed()
   }
 
   @Test
@@ -724,7 +799,8 @@ class OrganizationProfileScreenTest {
         testEvent.copy(
             uid = "event2",
             title = "Second Event",
-            start = Timestamp(Date(System.currentTimeMillis() + 86400000)))
+            start = Timestamp(Date(System.currentTimeMillis() + 86400000)),
+            end = Timestamp(Date(System.currentTimeMillis() + 90000000)))
 
     organizationRepository.saveOrganization(testOrganization)
     userRepository.saveUser(testUser1)

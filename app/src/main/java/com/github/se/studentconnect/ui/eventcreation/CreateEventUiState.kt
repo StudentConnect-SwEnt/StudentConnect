@@ -31,6 +31,9 @@ sealed class CreateEventUiState {
   abstract val bannerImageUri: Uri?
   abstract val bannerImagePath: String?
   abstract val shouldRemoveBanner: Boolean
+  abstract val createAsOrganization: Boolean
+  abstract val selectedOrganizationId: String?
+  abstract val userOrganizations: List<Pair<String, String>> // List of (id, name) pairs
 
   /** UI State for creating a Public Event. */
   data class Public(
@@ -52,6 +55,9 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val createAsOrganization: Boolean = false,
+      override val selectedOrganizationId: String? = null,
+      override val userOrganizations: List<Pair<String, String>> = emptyList(),
       val subtitle: String = "",
       val website: String = "",
       val tags: List<String> = emptyList(),
@@ -77,6 +83,9 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val createAsOrganization: Boolean = false,
+      override val selectedOrganizationId: String? = null,
+      override val userOrganizations: List<Pair<String, String>> = emptyList(),
   ) : CreateEventUiState()
 }
 
@@ -106,7 +115,10 @@ fun CreateEventUiState.copyCommon(
     isSaving: Boolean = this.isSaving,
     bannerImageUri: Uri? = this.bannerImageUri,
     bannerImagePath: String? = this.bannerImagePath,
-    shouldRemoveBanner: Boolean = this.shouldRemoveBanner
+    shouldRemoveBanner: Boolean = this.shouldRemoveBanner,
+    createAsOrganization: Boolean = this.createAsOrganization,
+    selectedOrganizationId: String? = this.selectedOrganizationId,
+    userOrganizations: List<Pair<String, String>> = this.userOrganizations
 ): CreateEventUiState {
   return when (this) {
     is CreateEventUiState.Public ->
@@ -128,7 +140,10 @@ fun CreateEventUiState.copyCommon(
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
-            shouldRemoveBanner = shouldRemoveBanner)
+            shouldRemoveBanner = shouldRemoveBanner,
+            createAsOrganization = createAsOrganization,
+            selectedOrganizationId = selectedOrganizationId,
+            userOrganizations = userOrganizations)
     is CreateEventUiState.Private ->
         copy(
             title = title,
@@ -148,6 +163,9 @@ fun CreateEventUiState.copyCommon(
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
-            shouldRemoveBanner = shouldRemoveBanner)
+            shouldRemoveBanner = shouldRemoveBanner,
+            createAsOrganization = createAsOrganization,
+            selectedOrganizationId = selectedOrganizationId,
+            userOrganizations = userOrganizations)
   }
 }
