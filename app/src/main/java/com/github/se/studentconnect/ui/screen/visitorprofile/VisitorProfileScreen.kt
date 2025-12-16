@@ -141,7 +141,8 @@ internal fun VisitorProfileContent(
               },
           )
           // Pinned Events Section
-          PinnedEventsSection(pinnedEvents = pinnedEvents, onEventClick = callbacks.onEventClick, visitor = true)
+          PinnedEventsSection(
+              pinnedEvents = pinnedEvents, onEventClick = callbacks.onEventClick, visitor = true)
         }
   }
 }
@@ -306,4 +307,3 @@ internal fun FriendActionButtons(
         })
   }
 }
-

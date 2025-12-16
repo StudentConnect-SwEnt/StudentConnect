@@ -92,11 +92,12 @@ private fun EmptyPinnedEventsState(visitor: Boolean) {
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
 
-    val text = if (visitor) {
+  val text =
+      if (visitor) {
         stringResource(R.string.pinned_events_empty_state_visitor)
-    } else {
+      } else {
         stringResource(R.string.pinned_events_empty_state)
-    }
+      }
 
   // Dynamic padding based on screen width
   val emptyStateHorizontalPadding = screenWidth * 0.04f
