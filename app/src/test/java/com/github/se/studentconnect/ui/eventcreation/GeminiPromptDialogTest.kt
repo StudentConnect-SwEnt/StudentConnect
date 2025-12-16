@@ -28,7 +28,7 @@ class GeminiPromptDialogTest {
       AppTheme { GeminiPromptDialog(onDismiss = {}, onGenerate = {}, isLoading = false) }
     }
 
-    composeTestRule.onNodeWithText("Generate Banner with AI").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Generate with Gemini").assertIsDisplayed()
   }
 
   @Test
@@ -38,7 +38,7 @@ class GeminiPromptDialogTest {
     }
 
     composeTestRule
-        .onNodeWithText("Describe the style or theme you want for your event banner.")
+        .onNodeWithText("Provide a short prompt and Gemini will generate content for your event.")
         .assertIsDisplayed()
   }
 
@@ -58,7 +58,7 @@ class GeminiPromptDialogTest {
     }
 
     composeTestRule
-        .onNodeWithText("e.g., 'Modern neon party', 'Professional conference blue'")
+        .onNodeWithText("Describe the event (theme, tone, duration)...")
         .assertIsDisplayed()
   }
 
@@ -114,7 +114,7 @@ class GeminiPromptDialogTest {
       AppTheme { GeminiPromptDialog(onDismiss = {}, onGenerate = {}, isLoading = true) }
     }
 
-    composeTestRule.onNodeWithText("Generating...").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Conjuring your masterpiece... ✨").assertIsDisplayed()
   }
 
   @Test
@@ -123,7 +123,7 @@ class GeminiPromptDialogTest {
       AppTheme { GeminiPromptDialog(onDismiss = {}, onGenerate = {}, isLoading = false) }
     }
 
-    composeTestRule.onNodeWithText("Generating...").assertDoesNotExist()
+    composeTestRule.onNodeWithText("Conjuring your masterpiece... ✨").assertDoesNotExist()
   }
 
   @Test
