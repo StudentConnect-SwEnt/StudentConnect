@@ -733,7 +733,6 @@ internal fun MainAppContent(
                   requireNotNull(eventUid) { "Event UID is required for statistics screen." }
                   EventStatisticsScreen(eventUid = eventUid, navController = navController)
                 }
-          }
 
             // Event Chat screen
             composable(
@@ -746,6 +745,7 @@ internal fun MainAppContent(
                       eventId = eventUid, navController = navController)
                 }
           }
+        }
 
     // App-wide notification banner
     NotificationBanner(
