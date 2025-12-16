@@ -53,7 +53,7 @@ class VisitorProfileScreenTest {
 
           override suspend fun download(id: String): Uri {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            return Uri.parse("android.resource://${context.packageName}/${R.drawable.avatar_12}")
+            return Uri.parse("android.resource://${context.packageName}/${R.drawable.pixel}")
           }
 
           override suspend fun delete(id: String) = Unit
