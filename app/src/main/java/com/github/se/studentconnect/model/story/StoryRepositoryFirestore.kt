@@ -11,6 +11,9 @@ import com.github.se.studentconnect.utils.MediaTypeDetector
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -36,14 +39,43 @@ class StoryRepositoryFirestore(
 
   override suspend fun getUserJoinedEvents(userId: String): List<Event> {
     return try {
+      // Get events the user has joined
       val joinedEventIds = userRepository.getJoinedEvents(userId)
-      joinedEventIds.mapNotNull { eventId ->
-        try {
-          eventRepository.getEvent(eventId)
-        } catch (e: Exception) {
-          null
-        }
-      }
+      val joinedEvents =
+          if (joinedEventIds.isEmpty()) {
+            emptyList()
+          } else {
+            // Fetch all visible events and filter by joined IDs to avoid N+1 queries
+            try {
+              eventRepository.getAllVisibleEventsSatisfying { it.uid in joinedEventIds }
+            } catch (e: Exception) {
+              // Fallback to individual fetches if getAllVisibleEvents fails
+              joinedEventIds.mapNotNull { eventId ->
+                try {
+                  eventRepository.getEvent(eventId)
+                } catch (e: Exception) {
+                  null
+                }
+              }
+            }
+          }
+
+      // Get events created by the user
+      val ownedEvents =
+          try {
+            eventRepository.getEventsByOwner(userId)
+          } catch (e: Exception) {
+            emptyList()
+          }
+
+      // Filter to only include events from today or in the future
+      val startOfToday = getStartOfToday()
+      val filteredJoinedEvents = joinedEvents.filter { it.start >= startOfToday }
+      val filteredOwnedEvents = ownedEvents.filter { it.start >= startOfToday }
+
+      // Combine joined and owned events, removing duplicates by event UID
+      // Prefer owned events when a user both owns and joins the same event
+      (filteredOwnedEvents + filteredJoinedEvents).distinctBy { it.uid }
     } catch (e: Exception) {
       emptyList()
     }
@@ -184,5 +216,15 @@ class StoryRepositoryFirestore(
     } catch (e: Exception) {
       false
     }
+  }
+
+  /**
+   * Gets the start of today (midnight) as a Timestamp for filtering events.
+   *
+   * @return Timestamp representing the start of today at 00:00:00
+   */
+  private fun getStartOfToday(): Timestamp {
+    val startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    return Timestamp(Date(startOfDay))
   }
 }
