@@ -5,6 +5,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.media.MediaRepository
@@ -29,6 +30,16 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class NotificationBannerTest {
+  private val eventTest =
+      Event.Public(
+          uid = "event-1",
+          title = "Test Event",
+          description = "This is a test event.",
+          start = Timestamp.now(),
+          ownerId = "user-1",
+          imageUrl = null,
+          isFlash = false,
+          subtitle = "Test Subtitle")
 
   private val mediaRepositoryTest =
       object : MediaRepository {
@@ -47,12 +58,13 @@ class NotificationBannerTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
-  fun setup() {
+  suspend fun setup() {
     NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
     UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
     OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
     MediaRepositoryProvider.overrideForTests(mediaRepositoryTest)
+    EventRepositoryProvider.repository.addEvent(eventTest)
   }
 
   @After
