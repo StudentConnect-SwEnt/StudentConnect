@@ -37,7 +37,6 @@
     <string name="error_failed_to_load_user">Failed to load user: %1$s</string>
     <string name="error_failed_to_send_message">Failed to send message: %1$s</string>
     <string name="error_failed_to_update_pin">Failed to update pin: %s</string>
-    <string name="error_failed_to_load_messages">Failed to load messages: %1$s</string>
 
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
@@ -694,7 +693,10 @@
     <string name="chat_default_title">Event Chat</string>
     <string name="chat_typing_single">%1$s is typing…</string>
     <string name="chat_typing_two">%1$s and %2$s are typing…</string>
-    <string name="chat_typing_multiple">%1$s and %2$d others are typing…</string>
+    <plurals name="chat_typing_multiple">
+        <item quantity="one">%1$s and %2$d other is typing…</item>
+        <item quantity="other">%1$s and %2$d others are typing…</item>
+    </plurals>
     <string name="chat_timestamp_just_now">Just now</string>
     <string name="chat_timestamp_yesterday">Yesterday, %1$s</string>
     <string name="button_dismiss">Dismiss</string>

@@ -103,7 +103,6 @@ class ChatViewModel : ViewModel() {
               chatRepository
                   .observeMessages(eventId)
                   .catch { e: Throwable ->
-                    // Error message uses string resource R.string.error_failed_to_load_messages
                     _uiState.value =
                         _uiState.value.copy(error = "Failed to load messages: ${e.message}")
                   }
@@ -117,7 +116,7 @@ class ChatViewModel : ViewModel() {
             viewModelScope.launch {
               chatRepository
                   .observeTypingUsers(eventId)
-                  .catch { e: Throwable ->
+                  .catch { _: Throwable ->
                     // Silently handle typing status errors
                   }
                   .collect { typingStatuses: List<TypingStatus> ->

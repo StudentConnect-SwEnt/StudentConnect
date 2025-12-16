@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,45 +81,10 @@ fun EventChatScreen(
   Scaffold(
       modifier = Modifier.fillMaxSize().testTag(EventChatScreenTestTags.SCREEN),
       topBar = {
-        TopAppBar(
-            title = {
-              Column {
-                Text(
-                    text = uiState.event?.title ?: stringResource(R.string.chat_default_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis)
-                if (uiState.typingUsers.isNotEmpty()) {
-                  val userNames = uiState.typingUsers.values.toList()
-                  val typingText =
-                      when (userNames.size) {
-                        1 -> stringResource(R.string.chat_typing_single, userNames[0])
-                        2 -> stringResource(R.string.chat_typing_two, userNames[0], userNames[1])
-                        else ->
-                            stringResource(
-                                R.string.chat_typing_multiple, userNames[0], userNames.size - 1)
-                      }
-                  Text(
-                      text = typingText,
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.primary)
-                }
-              }
-            },
-            navigationIcon = {
-              IconButton(
-                  onClick = { navController.popBackStack() },
-                  modifier = Modifier.testTag(EventChatScreenTestTags.BACK_BUTTON)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.content_description_back))
-                  }
-            },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface),
-            modifier = Modifier.testTag(EventChatScreenTestTags.TOP_APP_BAR))
+        ChatTopAppBar(
+            eventTitle = uiState.event?.title,
+            typingUsers = uiState.typingUsers,
+            onBackClick = { navController.popBackStack() })
       },
       bottomBar = {
         ChatInputBar(
@@ -127,65 +94,154 @@ fun EventChatScreen(
             isSending = uiState.isSending,
             enabled = !uiState.isLoading && uiState.currentUser != null)
       }) { paddingValues ->
-        Box(
-            modifier =
-                Modifier.fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
-              when {
-                uiState.isLoading -> {
-                  CircularProgressIndicator(
-                      modifier =
-                          Modifier.align(Alignment.Center)
-                              .testTag(EventChatScreenTestTags.LOADING_INDICATOR))
-                }
-                uiState.error != null -> {
-                  ErrorMessage(
-                      message = uiState.error!!,
-                      onDismiss = { chatViewModel.clearError() },
-                      modifier =
-                          Modifier.align(Alignment.TopCenter)
-                              .padding(dimensionResource(R.dimen.chat_error_padding)))
-                }
-                uiState.messages.isEmpty() -> {
-                  EmptyChat(modifier = Modifier.align(Alignment.Center))
-                }
-                else -> {
-                  Column(modifier = Modifier.fillMaxSize()) {
-                    LazyColumn(
-                        state = listState,
-                        modifier =
-                            Modifier.weight(1f)
-                                .fillMaxWidth()
-                                .testTag(EventChatScreenTestTags.MESSAGES_LIST),
-                        contentPadding =
-                            PaddingValues(
-                                horizontal = dimensionResource(R.dimen.chat_messages_padding),
-                                vertical = dimensionResource(R.dimen.chat_messages_padding)),
-                        verticalArrangement =
-                            Arrangement.spacedBy(
-                                dimensionResource(R.dimen.chat_messages_spacing))) {
-                          items(items = uiState.messages, key = { it.messageId }) { message ->
-                            MessageItem(
-                                message = message,
-                                isCurrentUser = message.senderId == uiState.currentUser?.userId,
-                                onSenderClick = {
-                                  navController.navigate(Route.visitorProfile(message.senderId))
-                                })
-                          }
-                        }
-
-                    // Typing indicator
-                    if (uiState.typingUsers.isNotEmpty()) {
-                      TypingIndicator(
-                          typingUserNames = uiState.typingUsers.values.toList(),
-                          modifier = Modifier.testTag(EventChatScreenTestTags.TYPING_INDICATOR))
-                    }
-                  }
-                }
-              }
-            }
+        ChatContent(
+            uiState = uiState,
+            listState = listState,
+            paddingValues = paddingValues,
+            navController = navController,
+            onDismissError = { chatViewModel.clearError() })
       }
+}
+
+/** Top app bar for the chat screen showing event title and typing indicators. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChatTopAppBar(
+    eventTitle: String?,
+    typingUsers: Map<String, String>,
+    onBackClick: () -> Unit
+) {
+  TopAppBar(
+      title = { ChatTopAppBarTitle(eventTitle = eventTitle, typingUsers = typingUsers) },
+      navigationIcon = {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.testTag(EventChatScreenTestTags.BACK_BUTTON)) {
+              Icon(
+                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                  contentDescription = stringResource(R.string.content_description_back))
+            }
+      },
+      colors =
+          TopAppBarDefaults.topAppBarColors(
+              containerColor = MaterialTheme.colorScheme.surface,
+              titleContentColor = MaterialTheme.colorScheme.onSurface),
+      modifier = Modifier.testTag(EventChatScreenTestTags.TOP_APP_BAR))
+}
+
+/** Title section of the top app bar with event name and typing indicator. */
+@Composable
+private fun ChatTopAppBarTitle(eventTitle: String?, typingUsers: Map<String, String>) {
+  Column {
+    Text(
+        text = eventTitle ?: stringResource(R.string.chat_default_title),
+        style = MaterialTheme.typography.titleMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis)
+    if (typingUsers.isNotEmpty()) {
+      TypingStatusText(typingUsers = typingUsers)
+    }
+  }
+}
+
+/** Displays the typing status text based on the number of users typing. */
+@Composable
+private fun TypingStatusText(typingUsers: Map<String, String>) {
+  val userNames = typingUsers.values.toList()
+  val othersCount = userNames.size - 1
+  val typingText =
+      when (userNames.size) {
+        1 -> stringResource(R.string.chat_typing_single, userNames[0])
+        2 -> stringResource(R.string.chat_typing_two, userNames[0], userNames[1])
+        else ->
+            pluralStringResource(
+                R.plurals.chat_typing_multiple, othersCount, userNames[0], othersCount)
+      }
+  Text(
+      text = typingText,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.primary)
+}
+
+/** Main content area of the chat screen. */
+@Composable
+private fun ChatContent(
+    uiState: ChatUiState,
+    listState: LazyListState,
+    paddingValues: PaddingValues,
+    navController: NavHostController,
+    onDismissError: () -> Unit
+) {
+  Box(
+      modifier =
+          Modifier.fillMaxSize()
+              .padding(paddingValues)
+              .background(MaterialTheme.colorScheme.surfaceContainerLowest)) {
+        when {
+          uiState.isLoading -> {
+            CircularProgressIndicator(
+                modifier =
+                    Modifier.align(Alignment.Center)
+                        .testTag(EventChatScreenTestTags.LOADING_INDICATOR))
+          }
+          uiState.error != null -> {
+            ErrorMessage(
+                message = uiState.error!!,
+                onDismiss = onDismissError,
+                modifier =
+                    Modifier.align(Alignment.TopCenter)
+                        .padding(dimensionResource(R.dimen.chat_error_padding)))
+          }
+          uiState.messages.isEmpty() -> {
+            EmptyChat(modifier = Modifier.align(Alignment.Center))
+          }
+          else -> {
+            MessagesColumn(
+                messages = uiState.messages,
+                typingUsers = uiState.typingUsers,
+                currentUserId = uiState.currentUser?.userId,
+                listState = listState,
+                navController = navController)
+          }
+        }
+      }
+}
+
+/** Column containing the messages list and typing indicator. */
+@Composable
+private fun MessagesColumn(
+    messages: List<ChatMessage>,
+    typingUsers: Map<String, String>,
+    currentUserId: String?,
+    listState: LazyListState,
+    navController: NavHostController
+) {
+  Column(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        state = listState,
+        modifier =
+            Modifier.weight(1f).fillMaxWidth().testTag(EventChatScreenTestTags.MESSAGES_LIST),
+        contentPadding =
+            PaddingValues(
+                horizontal = dimensionResource(R.dimen.chat_messages_padding),
+                vertical = dimensionResource(R.dimen.chat_messages_padding)),
+        verticalArrangement =
+            Arrangement.spacedBy(dimensionResource(R.dimen.chat_messages_spacing))) {
+          items(items = messages, key = { it.messageId }) { message ->
+            MessageItem(
+                message = message,
+                isCurrentUser = message.senderId == currentUserId,
+                onSenderClick = { navController.navigate(Route.visitorProfile(message.senderId)) })
+          }
+        }
+
+    // Typing indicator
+    if (typingUsers.isNotEmpty()) {
+      TypingIndicator(
+          typingUserNames = typingUsers.values.toList(),
+          modifier = Modifier.testTag(EventChatScreenTestTags.TYPING_INDICATOR))
+    }
+  }
 }
 
 /**
@@ -300,53 +356,82 @@ private fun ChatInputBar(
             horizontalArrangement =
                 Arrangement.spacedBy(dimensionResource(R.dimen.chat_input_spacing)),
             verticalAlignment = Alignment.CenterVertically) {
-              OutlinedTextField(
-                  value = messageText,
-                  onValueChange = onMessageTextChange,
-                  modifier = Modifier.weight(1f).testTag(EventChatScreenTestTags.INPUT_FIELD),
-                  placeholder = {
-                    Text(
-                        text = stringResource(R.string.chat_message_placeholder),
-                        style = MaterialTheme.typography.bodyMedium)
-                  },
-                  textStyle = MaterialTheme.typography.bodyMedium,
+              ChatTextField(
+                  messageText = messageText,
+                  onMessageTextChange = onMessageTextChange,
                   enabled = enabled && !isSending,
-                  singleLine = false,
-                  maxLines = 4,
-                  shape = RoundedCornerShape(dimensionResource(R.dimen.chat_input_corner_radius)),
-                  colors =
-                      OutlinedTextFieldDefaults.colors(
-                          focusedBorderColor = MaterialTheme.colorScheme.primary,
-                          unfocusedBorderColor = MaterialTheme.colorScheme.outline))
+                  modifier = Modifier.weight(1f))
 
-              // Send button
-              IconButton(
+              SendButton(
                   onClick = onSendClick,
                   enabled = enabled && !isSending && messageText.isNotBlank(),
-                  modifier =
-                      Modifier.size(dimensionResource(R.dimen.chat_send_button_size))
-                          .clip(CircleShape)
-                          .background(
-                              if (enabled && !isSending && messageText.isNotBlank())
-                                  MaterialTheme.colorScheme.primary
-                              else MaterialTheme.colorScheme.surfaceVariant)
-                          .testTag(EventChatScreenTestTags.SEND_BUTTON)) {
-                    if (isSending) {
-                      CircularProgressIndicator(
-                          modifier =
-                              Modifier.size(dimensionResource(R.dimen.chat_send_button_icon_size)),
-                          color = MaterialTheme.colorScheme.onPrimary,
-                          strokeWidth = dimensionResource(R.dimen.chat_send_button_progress_stroke))
-                    } else {
-                      Icon(
-                          imageVector = Icons.AutoMirrored.Filled.Send,
-                          contentDescription = stringResource(R.string.chat_send_message),
-                          tint =
-                              if (messageText.isNotBlank()) MaterialTheme.colorScheme.onPrimary
-                              else MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                  }
+                  isSending = isSending,
+                  hasText = messageText.isNotBlank())
             }
+      }
+}
+
+/** Text field for composing chat messages. */
+@Composable
+private fun ChatTextField(
+    messageText: String,
+    onMessageTextChange: (String) -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+  OutlinedTextField(
+      value = messageText,
+      onValueChange = onMessageTextChange,
+      modifier = modifier.testTag(EventChatScreenTestTags.INPUT_FIELD),
+      placeholder = {
+        Text(
+            text = stringResource(R.string.chat_message_placeholder),
+            style = MaterialTheme.typography.bodyMedium)
+      },
+      textStyle = MaterialTheme.typography.bodyMedium,
+      enabled = enabled,
+      singleLine = false,
+      maxLines = 4,
+      shape = RoundedCornerShape(dimensionResource(R.dimen.chat_input_corner_radius)),
+      colors =
+          OutlinedTextFieldDefaults.colors(
+              focusedBorderColor = MaterialTheme.colorScheme.primary,
+              unfocusedBorderColor = MaterialTheme.colorScheme.outline))
+}
+
+/** Send button for the chat input bar. */
+@Composable
+private fun SendButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    isSending: Boolean,
+    hasText: Boolean
+) {
+  val backgroundColor =
+      if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+
+  IconButton(
+      onClick = onClick,
+      enabled = enabled,
+      modifier =
+          Modifier.size(dimensionResource(R.dimen.chat_send_button_size))
+              .clip(CircleShape)
+              .background(backgroundColor)
+              .testTag(EventChatScreenTestTags.SEND_BUTTON)) {
+        if (isSending) {
+          CircularProgressIndicator(
+              modifier = Modifier.size(dimensionResource(R.dimen.chat_send_button_icon_size)),
+              color = MaterialTheme.colorScheme.onPrimary,
+              strokeWidth = dimensionResource(R.dimen.chat_send_button_progress_stroke))
+        } else {
+          val iconTint =
+              if (hasText) MaterialTheme.colorScheme.onPrimary
+              else MaterialTheme.colorScheme.onSurfaceVariant
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.Send,
+              contentDescription = stringResource(R.string.chat_send_message),
+              tint = iconTint)
+        }
       }
 }
 
