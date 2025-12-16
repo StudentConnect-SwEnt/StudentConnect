@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,7 +70,8 @@ fun EditNameScreen(
   LaunchedEffect(offlineMessageRes) {
     offlineMessageRes?.let { messageRes ->
       coroutineScope.launch {
-        snackbarHostState.showSnackbar(context.getString(messageRes))
+        snackbarHostState.showSnackbar(
+            message = context.getString(messageRes), duration = SnackbarDuration.Short)
         viewModel.clearOfflineMessage()
       }
     }

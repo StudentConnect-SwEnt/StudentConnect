@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -143,7 +144,8 @@ fun LocationTextField(
     offlineMessageRes?.let { messageRes ->
       snackbarHostState?.let { hostState ->
         coroutineScope.launch {
-          hostState.showSnackbar(context.getString(messageRes))
+          hostState.showSnackbar(
+              message = context.getString(messageRes), duration = SnackbarDuration.Short)
           locationTextFieldViewModel.clearOfflineMessage()
         }
       }

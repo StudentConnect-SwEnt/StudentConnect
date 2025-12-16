@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -116,7 +117,8 @@ fun CreatePublicEventScreen(
   LaunchedEffect(offlineMessageRes) {
     offlineMessageRes?.let { messageRes ->
       coroutineScope.launch {
-        snackbarHostState.showSnackbar(context.getString(messageRes))
+        snackbarHostState.showSnackbar(
+            message = context.getString(messageRes), duration = SnackbarDuration.Short)
         createPublicEventViewModel.clearOfflineMessage()
       }
     }

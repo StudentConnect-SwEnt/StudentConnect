@@ -73,7 +73,8 @@ internal data class StoryUploadParams(
 /** Callbacks for story upload handling. */
 internal data class StoryUploadCallbacks(
     val onUploadStateChange: (Boolean) -> Unit,
-    val onStoryAccepted: (Uri, Boolean, Event?) -> Unit
+    val onStoryAccepted: (Uri, Boolean, Event?) -> Unit,
+    val onBackClick: () -> Unit
 )
 
 /**
@@ -113,14 +114,16 @@ internal fun handleStoryUpload(
     return false
   }
 
-  // Show message if offline (but still allow attempt)
+  // Check if offline - if so, show message and return to home without starting upload
   if (!com.github.se.studentconnect.utils.NetworkUtils.isNetworkAvailable(params.context)) {
     Toast.makeText(
             params.context,
             params.context.getString(R.string.offline_no_internet_try_later),
             Toast.LENGTH_LONG)
         .show()
-    // Continue with upload attempt - it will fail naturally if offline
+    // Navigate back to home page
+    callbacks.onBackClick()
+    return false
   }
 
   callbacks.onUploadStateChange(true)
@@ -216,7 +219,8 @@ fun CameraModeSelectorScreen(
                     callbacks =
                         StoryUploadCallbacks(
                             onUploadStateChange = { uploading -> isUploading = uploading },
-                            onStoryAccepted = onStoryAccepted))
+                            onStoryAccepted = onStoryAccepted,
+                            onBackClick = onBackClick))
               },
               eventSelectionState = eventSelectionState,
               onLoadEvents = { viewModel.loadJoinedEvents() },

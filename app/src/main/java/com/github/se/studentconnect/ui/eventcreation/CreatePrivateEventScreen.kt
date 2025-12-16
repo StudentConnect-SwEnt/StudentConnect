@@ -1,8 +1,9 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -94,7 +95,8 @@ fun CreatePrivateEventScreen(
   LaunchedEffect(offlineMessageRes) {
     offlineMessageRes?.let { messageRes ->
       coroutineScope.launch {
-        snackbarHostState.showSnackbar(context.getString(messageRes))
+        snackbarHostState.showSnackbar(
+            message = context.getString(messageRes), duration = SnackbarDuration.Short)
         createPrivateEventViewModel.clearOfflineMessage()
       }
     }

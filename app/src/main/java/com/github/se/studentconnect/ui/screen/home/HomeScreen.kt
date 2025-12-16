@@ -63,6 +63,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -576,9 +577,11 @@ fun HomeScreen(
                                                   if (!NetworkUtils.isNetworkAvailable(context)) {
                                                     coroutineScope.launch {
                                                       snackbarHostState.showSnackbar(
-                                                          context.getString(
-                                                              R.string
-                                                                  .offline_no_internet_try_later))
+                                                          message =
+                                                              context.getString(
+                                                                  R.string
+                                                                      .offline_no_internet_try_later),
+                                                          duration = SnackbarDuration.Short)
                                                     }
                                                     // Continue - story viewer will handle offline
                                                     // state naturally
