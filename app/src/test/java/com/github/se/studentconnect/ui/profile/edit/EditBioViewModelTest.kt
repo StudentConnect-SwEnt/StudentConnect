@@ -405,7 +405,8 @@ class EditBioViewModelTest {
     val mockContext = mockk<android.content.Context>(relaxed = true)
     val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
 
-    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
     every { connectivityManager.activeNetwork } returns null
 
     viewModel.updateBioText("Test bio")
@@ -414,7 +415,9 @@ class EditBioViewModelTest {
     // Wait for coroutine to complete
     kotlinx.coroutines.delay(300)
 
-    assertEquals(com.github.se.studentconnect.R.string.offline_changes_will_sync, viewModel.offlineMessageRes.value)
+    assertEquals(
+        com.github.se.studentconnect.R.string.offline_changes_will_sync,
+        viewModel.offlineMessageRes.value)
   }
 
   @Test
@@ -427,10 +430,13 @@ class EditBioViewModelTest {
     val network = mockk<android.net.Network>(relaxed = true)
     val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
 
-    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
     every { connectivityManager.activeNetwork } returns network
     every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
-    every { capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+    every {
+      capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
 
     viewModel.updateBioText("Test bio")
     viewModel.saveBio(mockContext)

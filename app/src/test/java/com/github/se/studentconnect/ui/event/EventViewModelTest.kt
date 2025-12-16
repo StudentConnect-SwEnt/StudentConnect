@@ -507,7 +507,8 @@ class EventViewModelTest {
     viewModel.fetchEvent(testEvent.uid)
     advanceUntilIdle()
 
-    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context =
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
@@ -632,7 +633,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act - try to join as owner
-    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context =
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
@@ -654,7 +656,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context =
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.joinEvent(eventWithCapacity.uid, context)
     advanceUntilIdle()
 
@@ -924,7 +927,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context =
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
@@ -1617,7 +1621,8 @@ class EventViewModelTest {
     val context = mockk<android.content.Context>(relaxed = true)
     val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
 
-    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
     every { connectivityManager.activeNetwork } returns null
 
     eventRepository.addEvent(testEvent)
@@ -1637,10 +1642,13 @@ class EventViewModelTest {
     val network = mockk<android.net.Network>(relaxed = true)
     val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
 
-    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
     every { connectivityManager.activeNetwork } returns network
     every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
-    every { capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+    every {
+      capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
 
     eventRepository.addEvent(testEvent)
     viewModel.fetchEvent(testEvent.uid)
@@ -1662,7 +1670,8 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Set offline message
-    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
     every { connectivityManager.activeNetwork } returns null
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()

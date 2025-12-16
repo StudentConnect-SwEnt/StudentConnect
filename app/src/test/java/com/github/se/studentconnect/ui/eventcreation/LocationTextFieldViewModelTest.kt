@@ -82,9 +82,10 @@ class LocationTextFieldViewModelTest {
 
   @Test
   fun `updateLocationSuggestions performs search when online`() = runTest {
-    val mockLocations = listOf(
-        Location(latitude = 48.8566, longitude = 2.3522, name = "Paris"),
-        Location(latitude = 46.5197, longitude = 6.6323, name = "Lausanne"))
+    val mockLocations =
+        listOf(
+            Location(latitude = 48.8566, longitude = 2.3522, name = "Paris"),
+            Location(latitude = 46.5197, longitude = 6.6323, name = "Lausanne"))
     coEvery { locationRepository.search("Paris") } returns mockLocations
 
     viewModel.updateLocationSuggestions("Paris", isNetworkAvailable = true)

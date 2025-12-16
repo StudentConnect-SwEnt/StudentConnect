@@ -246,7 +246,8 @@ class EventViewModelPollIntegrationTest {
     advanceUntilIdle()
 
     // Act
-    val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context =
+        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 

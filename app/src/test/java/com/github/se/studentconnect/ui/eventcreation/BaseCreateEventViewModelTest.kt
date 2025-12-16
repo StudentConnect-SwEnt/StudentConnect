@@ -647,12 +647,13 @@ class BaseCreateEventViewModelTest {
     every { connectivityManager.activeNetwork } returns null
 
     // Create a valid event state for validation to pass
-    val initialState = CreateEventUiState.Public(
-        title = "Test Event",
-        startDate = java.time.LocalDate.now(),
-        endDate = java.time.LocalDate.now().plusDays(1),
-        startTime = java.time.LocalTime.now(),
-        endTime = java.time.LocalTime.now().plusHours(1))
+    val initialState =
+        CreateEventUiState.Public(
+            title = "Test Event",
+            startDate = java.time.LocalDate.now(),
+            endDate = java.time.LocalDate.now().plusDays(1),
+            startTime = java.time.LocalTime.now(),
+            endTime = java.time.LocalTime.now().plusHours(1))
 
     val vm =
         FakeViewModel(
@@ -692,12 +693,13 @@ class BaseCreateEventViewModelTest {
     every { capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
 
     // Create a valid event state for validation to pass
-    val initialState = CreateEventUiState.Public(
-        title = "Test Event",
-        startDate = java.time.LocalDate.now(),
-        endDate = java.time.LocalDate.now().plusDays(1),
-        startTime = java.time.LocalTime.now(),
-        endTime = java.time.LocalTime.now().plusHours(1))
+    val initialState =
+        CreateEventUiState.Public(
+            title = "Test Event",
+            startDate = java.time.LocalDate.now(),
+            endDate = java.time.LocalDate.now().plusDays(1),
+            startTime = java.time.LocalTime.now(),
+            endTime = java.time.LocalTime.now().plusHours(1))
 
     val vm =
         FakeViewModel(
@@ -733,12 +735,13 @@ class BaseCreateEventViewModelTest {
     every { connectivityManager.activeNetwork } returns null
 
     // Create a valid event state for validation to pass
-    val initialState = CreateEventUiState.Public(
-        title = "Test Event",
-        startDate = java.time.LocalDate.now(),
-        endDate = java.time.LocalDate.now().plusDays(1),
-        startTime = java.time.LocalTime.now(),
-        endTime = java.time.LocalTime.now().plusHours(1))
+    val initialState =
+        CreateEventUiState.Public(
+            title = "Test Event",
+            startDate = java.time.LocalDate.now(),
+            endDate = java.time.LocalDate.now().plusDays(1),
+            startTime = java.time.LocalTime.now(),
+            endTime = java.time.LocalTime.now().plusHours(1))
 
     val vm =
         FakeViewModel(

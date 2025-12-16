@@ -63,7 +63,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -1674,7 +1673,8 @@ fun StoryViewer(
                             .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
                       Icon(
                           imageVector = Icons.Default.Close,
-                          contentDescription = stringResource(R.string.content_description_close_story),
+                          contentDescription =
+                              stringResource(R.string.content_description_close_story),
                           tint = Color.White)
                     }
               }

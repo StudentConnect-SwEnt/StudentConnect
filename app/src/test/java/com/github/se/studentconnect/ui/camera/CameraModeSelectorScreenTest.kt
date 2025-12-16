@@ -385,10 +385,10 @@ class CameraModeSelectorScreenTest {
                     lifecycleOwner = mockLifecycleOwner,
                     storyRepository = mockStoryRepository),
             callbacks =
-            StoryUploadCallbacks(
-                onUploadStateChange = { state -> stateChanges.add(state) },
-                onStoryAccepted = { _, _, _ -> },
-                onBackClick = {}))
+                StoryUploadCallbacks(
+                    onUploadStateChange = { state -> stateChanges.add(state) },
+                    onStoryAccepted = { _, _, _ -> },
+                    onBackClick = {}))
 
     // Wait for coroutine to complete
     testScheduler.advanceUntilIdle()
