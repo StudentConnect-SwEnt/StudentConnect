@@ -51,7 +51,8 @@ object PinnedEventsSectionTestTags {
 fun PinnedEventsSection(
     pinnedEvents: List<Event>,
     onEventClick: (Event) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visitor: Boolean = false
 ) {
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
@@ -78,7 +79,7 @@ fun PinnedEventsSection(
         Spacer(modifier = Modifier.height(titleBottomSpacing))
 
         if (pinnedEvents.isEmpty()) {
-          EmptyPinnedEventsState()
+          EmptyPinnedEventsState(visitor)
         } else {
           PinnedEventsHorizontalList(pinnedEvents = pinnedEvents, onEventClick = onEventClick)
         }
@@ -87,9 +88,15 @@ fun PinnedEventsSection(
 
 // Empty state when no events are pinned
 @Composable
-private fun EmptyPinnedEventsState() {
+private fun EmptyPinnedEventsState(visitor: Boolean) {
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
+
+    val text = if (visitor) {
+        stringResource(R.string.pinned_events_empty_state_visitor)
+    } else {
+        stringResource(R.string.pinned_events_empty_state)
+    }
 
   // Dynamic padding based on screen width
   val emptyStateHorizontalPadding = screenWidth * 0.04f
@@ -103,7 +110,7 @@ private fun EmptyPinnedEventsState() {
               .testTag(PinnedEventsSectionTestTags.EMPTY_STATE),
       contentAlignment = Alignment.Center) {
         Text(
-            text = stringResource(R.string.pinned_events_empty_state),
+            text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
       }

@@ -593,6 +593,7 @@
     <!-- Pinned Events -->
     <string name="pinned_events_title">Pinned Events</string>
     <string name="pinned_events_empty_state">Pin your favorite past events to display them here :)</string>
+    <string name="pinned_events_empty_state_visitor">This user has no pinned event yet.</string>
     <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
     <string name="content_description_pin_event">Pin event</string>
     <string name="content_description_unpin_event">Unpin event</string>
