@@ -22,6 +22,7 @@ import com.google.firebase.Timestamp
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -58,13 +59,12 @@ class NotificationBannerTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
-  suspend fun setup() {
+  fun setup() {
     NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
     UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
     OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
     MediaRepositoryProvider.overrideForTests(mediaRepositoryTest)
-    EventRepositoryProvider.repository.addEvent(eventTest)
   }
 
   @After
@@ -120,6 +120,7 @@ class NotificationBannerTest {
             timestamp = Timestamp.now(),
             isRead = false)
 
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
     composeTestRule.setContent {
       AppTheme { NotificationBanner(notification = notification, onDismiss = {}, onClick = {}) }
     }
@@ -346,6 +347,7 @@ class NotificationBannerTest {
 
     var readNotificationId: String? = null
     var dismissCalled = false
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
 
     // Mock NavController to avoid navigation graph requirements
     val navController = mockk<NavHostController>(relaxed = true)
