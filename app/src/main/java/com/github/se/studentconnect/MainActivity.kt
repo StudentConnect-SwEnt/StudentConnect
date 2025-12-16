@@ -515,11 +515,6 @@ internal fun MainAppContent(
                     // Navigate to organization creation route
                     navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
                   },
-                  onJoinOrganization = {
-                    // Navigate to search screen to find and join organizations
-                    // Users can search for existing organizations and request to join them
-                    navController.navigate(Route.SEARCH)
-                  },
                   onOrganizationClick = { organizationId ->
                     navController.navigate(Route.organizationProfile(organizationId))
                   })
