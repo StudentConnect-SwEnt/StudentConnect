@@ -129,18 +129,18 @@ fun CreatePrivateEventScreen(
           testTags = shellTestTags,
           snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
 
-          // Title and Description
-          EventTitleAndDescriptionFields(
-              title = uiState.title,
-              onTitleChange = createPrivateEventViewModel::updateTitle,
-              titleTag = CreatePrivateEventScreenTestTags.TITLE_INPUT,
-              description = uiState.description,
-              onDescriptionChange = createPrivateEventViewModel::updateDescription,
-              descriptionTag = CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT,
-              onFocusChange = onFocusChange,
-              titleError =
-                  if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
-                  else null)
+        // Title and Description
+        EventTitleAndDescriptionFields(
+            title = uiState.title,
+            onTitleChange = createPrivateEventViewModel::updateTitle,
+            titleTag = CreatePrivateEventScreenTestTags.TITLE_INPUT,
+            description = uiState.description,
+            onDescriptionChange = createPrivateEventViewModel::updateDescription,
+            descriptionTag = CreatePrivateEventScreenTestTags.DESCRIPTION_INPUT,
+            onFocusChange = onFocusChange,
+            titleError =
+                if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
+                else null)
 
         // Banner Image
         EventBannerField(
@@ -164,69 +164,69 @@ fun CreatePrivateEventScreen(
               isLoading = uiState.isGeneratingBanner)
         }
 
-          // Location
-          EventLocationField(
-              location = uiState.location,
-              onLocationChange = createPrivateEventViewModel::updateLocation,
+        // Location
+        EventLocationField(
+            location = uiState.location,
+            onLocationChange = createPrivateEventViewModel::updateLocation,
               testTag = CreatePrivateEventScreenTestTags.LOCATION_INPUT,
               snackbarHostState = snackbarHostState)
 
-          // Flash Event Toggle (before date/time fields)
-          FlashEventToggle(
-              isFlash = uiState.isFlash,
-              onIsFlashChange = createPrivateEventViewModel::updateIsFlash,
-              flashSwitchTag = CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
+        // Flash Event Toggle (before date/time fields)
+        FlashEventToggle(
+            isFlash = uiState.isFlash,
+            onIsFlashChange = createPrivateEventViewModel::updateIsFlash,
+            flashSwitchTag = CreatePrivateEventScreenTestTags.FLASH_EVENT_SWITCH)
 
-          // Conditional: Show duration picker for flash events, date/time for normal events
-          if (uiState.isFlash) {
-            FlashEventDurationFields(
-                hours = uiState.flashDurationHours,
-                minutes = uiState.flashDurationMinutes,
-                onHoursChange = createPrivateEventViewModel::updateFlashDurationHours,
-                onMinutesChange = createPrivateEventViewModel::updateFlashDurationMinutes,
-                hoursTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS,
-                minutesTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
-          } else {
-            EventDateTimeFields(
-                state =
-                    DateTimeState(
-                        startDate = uiState.startDate?.format(dateFormatter) ?: "",
-                        startTime = uiState.startTime,
-                        endDate = uiState.endDate?.format(dateFormatter) ?: "",
-                        endTime = uiState.endTime),
-                callbacks =
-                    DateTimeCallbacks(
-                        onStartDateChange = createPrivateEventViewModel::updateStartDate,
-                        onStartTimeChange = createPrivateEventViewModel::updateStartTime,
-                        onEndDateChange = createPrivateEventViewModel::updateEndDate,
-                        onEndTimeChange = createPrivateEventViewModel::updateEndTime),
-                startDateTag = CreatePrivateEventScreenTestTags.START_DATE_INPUT,
-                startTimeTag = CreatePrivateEventScreenTestTags.START_TIME_BUTTON,
-                endDateTag = CreatePrivateEventScreenTestTags.END_DATE_INPUT,
-                endTimeTag = CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
-          }
-
-          // Participants and Fees (Grouped into State and Callbacks)
-          EventParticipantsAndFeesFields(
+        // Conditional: Show duration picker for flash events, date/time for normal events
+        if (uiState.isFlash) {
+          FlashEventDurationFields(
+              hours = uiState.flashDurationHours,
+              minutes = uiState.flashDurationMinutes,
+              onHoursChange = createPrivateEventViewModel::updateFlashDurationHours,
+              onMinutesChange = createPrivateEventViewModel::updateFlashDurationMinutes,
+              hoursTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_HOURS,
+              minutesTag = CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
+        } else {
+          EventDateTimeFields(
               state =
-                  ParticipantsFeeState(
-                      numberOfParticipants = uiState.numberOfParticipantsString,
-                      hasParticipationFee = uiState.hasParticipationFee,
-                      participationFee = uiState.participationFeeString,
-                      isFlash = uiState.isFlash),
+                  DateTimeState(
+                      startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                      startTime = uiState.startTime,
+                      endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                      endTime = uiState.endTime),
               callbacks =
-                  ParticipantsFeeCallbacks(
-                      onParticipantsChange =
-                          createPrivateEventViewModel::updateNumberOfParticipantsString,
-                      onHasFeeChange = createPrivateEventViewModel::updateHasParticipationFee,
-                      onFeeStringChange = createPrivateEventViewModel::updateParticipationFeeString,
-                      onIsFlashChange = createPrivateEventViewModel::updateIsFlash),
-              participantsTag = CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
-              feeSwitchTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
-              feeInputTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-              onFocusChange = onFocusChange)
+                  DateTimeCallbacks(
+                      onStartDateChange = createPrivateEventViewModel::updateStartDate,
+                      onStartTimeChange = createPrivateEventViewModel::updateStartTime,
+                      onEndDateChange = createPrivateEventViewModel::updateEndDate,
+                      onEndTimeChange = createPrivateEventViewModel::updateEndTime),
+              startDateTag = CreatePrivateEventScreenTestTags.START_DATE_INPUT,
+              startTimeTag = CreatePrivateEventScreenTestTags.START_TIME_BUTTON,
+              endDateTag = CreatePrivateEventScreenTestTags.END_DATE_INPUT,
+              endTimeTag = CreatePrivateEventScreenTestTags.END_TIME_BUTTON)
+        }
+
+        // Participants and Fees (Grouped into State and Callbacks)
+        EventParticipantsAndFeesFields(
+            state =
+                ParticipantsFeeState(
+                    numberOfParticipants = uiState.numberOfParticipantsString,
+                    hasParticipationFee = uiState.hasParticipationFee,
+                    participationFee = uiState.participationFeeString,
+                    isFlash = uiState.isFlash),
+            callbacks =
+                ParticipantsFeeCallbacks(
+                    onParticipantsChange =
+                        createPrivateEventViewModel::updateNumberOfParticipantsString,
+                    onHasFeeChange = createPrivateEventViewModel::updateHasParticipationFee,
+                    onFeeStringChange = createPrivateEventViewModel::updateParticipationFeeString,
+                    onIsFlashChange = createPrivateEventViewModel::updateIsFlash),
+            participantsTag = CreatePrivateEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
+            feeSwitchTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
+            feeInputTag = CreatePrivateEventScreenTestTags.PARTICIPATION_FEE_INPUT,
+            onFocusChange = onFocusChange)
         }
 
     SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
-  }
+      }
 }

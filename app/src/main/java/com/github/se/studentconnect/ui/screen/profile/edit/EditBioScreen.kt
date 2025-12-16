@@ -58,8 +58,8 @@ fun EditBioScreen(
       }
       is BaseEditViewModel.UiState.Error -> {
         coroutineScope.launch {
-          snackbarHostState.showSnackbar(state.message)
-          viewModel.resetState()
+        snackbarHostState.showSnackbar(state.message)
+        viewModel.resetState()
         }
       }
       else -> {
