@@ -482,7 +482,10 @@ private fun OrganizationCard(
               IconButton(onClick = onPinClick) {
                 Icon(
                     imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = if (isPinned) "Unpin organization" else "Pin organization",
+                    contentDescription =
+                        stringResource(
+                            if (isPinned) R.string.content_description_unpin_organization
+                            else R.string.content_description_pin_organization),
                     tint =
                         if (isPinned) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant)
