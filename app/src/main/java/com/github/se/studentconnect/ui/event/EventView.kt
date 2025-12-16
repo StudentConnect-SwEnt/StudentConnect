@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -504,7 +505,10 @@ private fun BaseEventView(
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                 }
 
-                ChatButton()
+                // Chat Button - only show if user is joined or is owner
+                if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
+                  ChatButton(event = event, navController = navController)
+                }
 
                 // Delete Event Button - only show if user is owner
                 if (AuthenticationProvider.currentUser == event.ownerId) {
@@ -691,12 +695,17 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
 }
 
 @Composable
-private fun ChatButton(context: Context = LocalContext.current) {
+private fun ChatButton(event: Event, navController: NavHostController) {
+  val verticalPadding = dimensionResource(R.dimen.event_view_chat_button_padding_vertical)
   Button(
-      onClick = { DialogNotImplemented(context) },
+      onClick = { navController.navigate(Route.eventChat(event.uid)) },
       modifier =
           Modifier.fillMaxWidth()
-              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
+              .padding(
+                  start = screenPadding,
+                  top = verticalPadding,
+                  end = screenPadding,
+                  bottom = verticalPadding)
               .testTag(EventViewTestTags.CHAT_BUTTON),
       colors =
           ButtonDefaults.buttonColors(

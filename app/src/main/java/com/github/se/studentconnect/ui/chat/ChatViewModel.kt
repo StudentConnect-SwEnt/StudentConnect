@@ -1,246 +1,241 @@
 package com.github.se.studentconnect.ui.chat
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.chat.ChatMessage
-import com.github.se.studentconnect.model.chat.ChatRepository
 import com.github.se.studentconnect.model.chat.ChatRepositoryProvider
 import com.github.se.studentconnect.model.chat.TypingStatus
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.user.User
-import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 /**
- * UI state for the chat screen.
+ * UI state for the event chat screen.
  *
- * @property event The event this chat belongs to.
- * @property messages List of chat messages.
- * @property currentUser The currently logged-in user.
- * @property typingUsers List of users currently typing.
- * @property messageText The current text in the message input field.
- * @property isLoading Whether the chat is loading.
- * @property error Error message if any.
- * @property isSending Whether a message is currently being sent.
+ * @property event The current event, or null if not loaded
+ * @property messages List of chat messages
+ * @property messageText Current text in the message input field
+ * @property typingUsers Map of user IDs to their display names who are currently typing
+ * @property isSending Whether a message is currently being sent
+ * @property isLoading Whether data is being loaded
+ * @property error Error message if something went wrong
+ * @property currentUser The current logged-in user
  */
 data class ChatUiState(
     val event: Event? = null,
     val messages: List<ChatMessage> = emptyList(),
-    val currentUser: User? = null,
-    val typingUsers: List<TypingStatus> = emptyList(),
     val messageText: String = "",
+    val typingUsers: Map<String, String> = emptyMap(),
+    val isSending: Boolean = false,
     val isLoading: Boolean = true,
     val error: String? = null,
-    val isSending: Boolean = false
+    val currentUser: User? = null
 )
 
 /**
- * ViewModel for managing event chat functionality.
+ * ViewModel for managing the event chat screen state and operations.
  *
- * This ViewModel handles: - Real-time message streaming - Sending messages - Typing indicators -
- * User profile lookups
+ * Handles:
+ * - Chat repository integration
+ * - Real-time message sync
+ * - Typing indicators
+ * - Message sending/receiving
  *
- * @param chatRepository Repository for chat operations.
- * @param eventRepository Repository for event data.
- * @param userRepository Repository for user data.
  * @param getString Function to retrieve string resources by resource ID.
  */
-class ChatViewModel(
-    private val chatRepository: ChatRepository = ChatRepositoryProvider.repository,
-    private val eventRepository: EventRepository = EventRepositoryProvider.repository,
-    private val userRepository: UserRepository = UserRepositoryProvider.repository,
-    private val getString: (resId: Int) -> String = { _ -> "" }
-) : ViewModel() {
+class ChatViewModel(private val getString: (resId: Int) -> String = { _ -> "" }) : ViewModel() {
 
   private val _uiState = MutableStateFlow(ChatUiState())
   val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-  private var messagesJob: Job? = null
-  private var typingJob: Job? = null
+  private val chatRepository = ChatRepositoryProvider.repository
+  private val eventRepository = EventRepositoryProvider.repository
+  private val userRepository = UserRepositoryProvider.repository
+
+  private var messageObserverJob: Job? = null
+  private var typingObserverJob: Job? = null
   private var typingDebounceJob: Job? = null
 
-  companion object {
-    private const val TAG = "ChatViewModel"
-
-    /** Typing indicator debounce delay in milliseconds. */
-    private const val TYPING_DEBOUNCE_DELAY_MS = 2000L
-  }
-
   /**
-   * Initializes the chat for a specific event.
+   * Initialize the chat for a specific event.
    *
-   * @param eventId The ID of the event to load the chat for.
+   * @param eventId The ID of the event to load chat for
    */
   fun initializeChat(eventId: String) {
-    _uiState.update { it.copy(isLoading = true, error = null) }
+    // Cancel any existing jobs
+    messageObserverJob?.cancel()
+    typingObserverJob?.cancel()
+    typingDebounceJob?.cancel()
 
-    // Load event details
+    // Reset state to loading
+    _uiState.value = ChatUiState(isLoading = true)
+
     viewModelScope.launch {
       try {
+        // Load event
         val event = eventRepository.getEvent(eventId)
-        _uiState.update { it.copy(event = event) }
-      } catch (e: Exception) {
-        _uiState.update {
-          it.copy(error = getString(R.string.error_failed_to_load_event).format(e.message))
-        }
-      }
-    }
+        _uiState.value = _uiState.value.copy(event = event)
 
-    // Load current user
-    viewModelScope.launch {
-      try {
+        // Load current user
         val currentUserId = AuthenticationProvider.currentUser
-        if (currentUserId.isNotEmpty()) {
-          val user = userRepository.getUserById(currentUserId)
-          _uiState.update { it.copy(currentUser = user) }
+        if (currentUserId.isNotBlank()) {
+          try {
+            val user = userRepository.getUserById(currentUserId)
+            _uiState.value = _uiState.value.copy(currentUser = user)
+          } catch (e: Exception) {
+            val errorMsg = getString(R.string.error_failed_to_load_user).format(e.message ?: "")
+            _uiState.value = _uiState.value.copy(error = errorMsg, isLoading = false)
+            return@launch
+          }
         }
+
+        // Start observing messages
+        messageObserverJob =
+            viewModelScope.launch {
+              chatRepository
+                  .observeMessages(eventId)
+                  .catch { e: Throwable ->
+                    val errorMsg =
+                        getString(R.string.error_failed_to_load_messages).format(e.message ?: "")
+                    _uiState.value = _uiState.value.copy(error = errorMsg)
+                  }
+                  .collect { messages: List<ChatMessage> ->
+                    _uiState.value = _uiState.value.copy(messages = messages)
+                  }
+            }
+
+        // Start observing typing status
+        typingObserverJob =
+            viewModelScope.launch {
+              chatRepository
+                  .observeTypingUsers(eventId)
+                  .catch { _: Throwable ->
+                    // Silently handle typing status errors
+                  }
+                  .collect { typingStatuses: List<TypingStatus> ->
+                    val filteredTypingUsers =
+                        typingStatuses
+                            .filter { status -> status.isTyping && status.userId != currentUserId }
+                            .associate { status -> status.userId to status.userName }
+                    _uiState.value = _uiState.value.copy(typingUsers = filteredTypingUsers)
+                  }
+            }
+
+        _uiState.value = _uiState.value.copy(isLoading = false)
       } catch (e: Exception) {
-        _uiState.update {
-          it.copy(error = getString(R.string.error_failed_to_load_user).format(e.message))
-        }
+        val errorMsg = getString(R.string.error_failed_to_load_event).format(e.message ?: "")
+        _uiState.value = _uiState.value.copy(error = errorMsg, isLoading = false)
       }
     }
-
-    // Observe messages
-    messagesJob?.cancel()
-    messagesJob =
-        viewModelScope.launch {
-          chatRepository.observeMessages(eventId).collect { messages ->
-            _uiState.update { it.copy(messages = messages, isLoading = false) }
-          }
-        }
-
-    // Observe typing status
-    typingJob?.cancel()
-    typingJob =
-        viewModelScope.launch {
-          chatRepository.observeTypingUsers(eventId).collect { typingUsers ->
-            // Filter out the current user from typing indicators
-            val currentUserId = AuthenticationProvider.currentUser
-            val filteredTypingUsers = typingUsers.filter { it.userId != currentUserId }
-            _uiState.update { it.copy(typingUsers = filteredTypingUsers) }
-          }
-        }
   }
 
   /**
-   * Updates the message text in the input field.
+   * Update the message text as the user types.
    *
-   * @param text The new message text.
+   * @param text The new message text
    */
   fun updateMessageText(text: String) {
-    _uiState.update { it.copy(messageText = text) }
+    _uiState.value = _uiState.value.copy(messageText = text)
 
     // Update typing status
-    val currentState = _uiState.value
-    if (text.isNotBlank() && currentState.event != null && currentState.currentUser != null) {
-      updateTypingStatus(isTyping = true)
+    val currentUser = _uiState.value.currentUser
+    val event = _uiState.value.event
 
-      // Debounce: Stop typing status after user stops typing
+    if (currentUser != null && event != null) {
+      // Cancel previous debounce job
       typingDebounceJob?.cancel()
-      typingDebounceJob =
-          viewModelScope.launch {
-            delay(TYPING_DEBOUNCE_DELAY_MS)
-            updateTypingStatus(isTyping = false)
-          }
-    } else if (text.isBlank()) {
-      updateTypingStatus(isTyping = false)
-      typingDebounceJob?.cancel()
+
+      if (text.isNotBlank()) {
+        // User is typing
+        updateTypingStatus(true)
+
+        // Schedule a job to stop typing after 2 seconds of inactivity
+        typingDebounceJob =
+            viewModelScope.launch {
+              delay(2000)
+              updateTypingStatus(false)
+            }
+      } else {
+        // User cleared the text, stop typing immediately
+        updateTypingStatus(false)
+      }
     }
   }
 
   /**
-   * Sends the current message.
+   * Updates the typing status for the current user.
    *
-   * @param onSuccess Callback invoked when the message is successfully sent.
+   * @param isTyping Whether the user is currently typing
    */
-  fun sendMessage(onSuccess: () -> Unit = {}) {
-    val currentState = _uiState.value
-    val messageText = currentState.messageText.trim()
+  private fun updateTypingStatus(isTyping: Boolean) {
+    val currentUser = _uiState.value.currentUser ?: return
+    val event = _uiState.value.event ?: return
 
-    if (messageText.isBlank()) return
+    val typingStatus =
+        TypingStatus(
+            userId = currentUser.userId,
+            userName = "${currentUser.firstName} ${currentUser.lastName}",
+            eventId = event.uid,
+            isTyping = isTyping)
 
-    val currentUser = currentState.currentUser ?: return
-    val event = currentState.event ?: return
+    chatRepository.updateTypingStatus(typingStatus, onSuccess = {}, onFailure = {})
+  }
 
-    _uiState.update { it.copy(isSending = true) }
+  /** Send the current message. */
+  fun sendMessage() {
+    val messageText = _uiState.value.messageText.trim()
+    val currentUser = _uiState.value.currentUser
+    val event = _uiState.value.event
+
+    // Validate preconditions
+    if (messageText.isBlank() || currentUser == null || event == null) {
+      return
+    }
+
+    // Set sending state
+    _uiState.value = _uiState.value.copy(isSending = true)
 
     val message =
         ChatMessage(
             messageId = chatRepository.getNewMessageId(),
             eventId = event.uid,
             senderId = currentUser.userId,
-            senderName = currentUser.getFullName(),
-            content = messageText,
-            timestamp = Timestamp.now())
+            senderName = "${currentUser.firstName} ${currentUser.lastName}",
+            content = messageText)
 
     chatRepository.sendMessage(
-        message = message,
+        message,
         onSuccess = {
-          _uiState.update { it.copy(messageText = "", isSending = false) }
-          // Stop typing indicator after sending
-          updateTypingStatus(isTyping = false)
-          typingDebounceJob?.cancel()
-          onSuccess()
+          _uiState.value = _uiState.value.copy(messageText = "", isSending = false)
+          // Stop typing status after sending
+          updateTypingStatus(false)
         },
-        onFailure = { exception ->
-          _uiState.update {
-            it.copy(
-                error = getString(R.string.error_failed_to_send_message).format(exception.message),
-                isSending = false)
-          }
+        onFailure = { exception: Exception ->
+          val errorMsg =
+              getString(R.string.error_failed_to_send_message).format(exception.message ?: "")
+          _uiState.value = _uiState.value.copy(error = errorMsg, isSending = false)
         })
   }
 
-  /**
-   * Updates the typing status for the current user.
-   *
-   * @param isTyping Whether the user is currently typing.
-   */
-  private fun updateTypingStatus(isTyping: Boolean) {
-    val currentState = _uiState.value
-    val currentUser = currentState.currentUser ?: return
-    val event = currentState.event ?: return
-
-    val typingStatus =
-        TypingStatus(
-            userId = currentUser.userId,
-            userName = currentUser.getFullName(),
-            eventId = event.uid,
-            isTyping = isTyping,
-            lastUpdate = Timestamp.now())
-
-    chatRepository.updateTypingStatus(
-        typingStatus = typingStatus,
-        onSuccess = {},
-        onFailure = { exception -> Log.e(TAG, "Failed to update typing status", exception) })
-  }
-
-  /** Clears any error messages. */
+  /** Clear any error messages. */
   fun clearError() {
-    _uiState.update { it.copy(error = null) }
+    _uiState.value = _uiState.value.copy(error = null)
   }
 
   override fun onCleared() {
     super.onCleared()
-    messagesJob?.cancel()
-    typingJob?.cancel()
+    messageObserverJob?.cancel()
+    typingObserverJob?.cancel()
     typingDebounceJob?.cancel()
-
-    // Stop typing indicator when leaving chat
-    updateTypingStatus(isTyping = false)
   }
 }

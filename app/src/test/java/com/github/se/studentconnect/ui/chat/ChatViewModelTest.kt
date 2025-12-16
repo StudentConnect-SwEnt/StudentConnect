@@ -52,9 +52,10 @@ class ChatViewModelTest {
   // Mock getString function that returns proper error messages for tests
   private val mockGetString: (Int) -> String = { resId ->
     when (resId) {
-      R.string.error_failed_to_load_event -> "Failed to load event: %s"
-      R.string.error_failed_to_load_user -> "Failed to load user: %s"
-      R.string.error_failed_to_send_message -> "Failed to send message: %s"
+      R.string.error_failed_to_load_event -> "Failed to load event: %1\$s"
+      R.string.error_failed_to_load_user -> "Failed to load user: %1\$s"
+      R.string.error_failed_to_load_messages -> "Failed to load messages: %1\$s"
+      R.string.error_failed_to_send_message -> "Failed to send message: %1\$s"
       else -> ""
     }
   }
@@ -105,8 +106,7 @@ class ChatViewModelTest {
     EventRepositoryProvider.overrideForTests(mockEventRepository)
     UserRepositoryProvider.overrideForTests(mockUserRepository)
 
-    viewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    viewModel = ChatViewModel(getString = mockGetString)
   }
 
   @After
@@ -290,11 +290,9 @@ class ChatViewModelTest {
 
     viewModel.updateMessageText("Hello World!")
 
-    var successCallbackCalled = false
-    viewModel.sendMessage { successCallbackCalled = true }
+    viewModel.sendMessage()
     advanceUntilIdle()
 
-    assertTrue(successCallbackCalled)
     assertEquals("", viewModel.uiState.value.messageText)
     assertFalse(viewModel.uiState.value.isSending)
   }
@@ -376,7 +374,7 @@ class ChatViewModelTest {
 
     val state = viewModel.uiState.value
     assertEquals(1, state.typingUsers.size)
-    assertEquals("other-user", state.typingUsers[0].userId)
+    assertTrue(state.typingUsers.containsKey("other-user"))
   }
 
   @Test
@@ -422,8 +420,7 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutCurrentUser_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    val tempViewModel = ChatViewModel(getString = mockGetString)
     AuthenticationProvider.testUserId = null
 
     tempViewModel.updateMessageText("Hello")
@@ -434,8 +431,7 @@ class ChatViewModelTest {
 
   @Test
   fun updateMessageText_withoutEvent_doesNotUpdateTypingStatus() = runTest {
-    val tempViewModel =
-        ChatViewModel(mockChatRepository, mockEventRepository, mockUserRepository, mockGetString)
+    val tempViewModel = ChatViewModel(getString = mockGetString)
     `when`(mockUserRepository.getUserById(testUserId)).thenReturn(testUser)
 
     tempViewModel.updateMessageText("Hello")

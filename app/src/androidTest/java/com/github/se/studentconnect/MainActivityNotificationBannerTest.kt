@@ -70,6 +70,13 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
               firstName = "Test",
               lastName = "User",
               university = "EPFL"))
+
+      // Wait a bit to ensure Firestore write completes
+      kotlinx.coroutines.delay(500)
+
+      // Verify the user was saved successfully
+      val savedUser = userRepository.getUserById(currentUser.uid)
+      require(savedUser != null) { "User profile was not saved successfully" }
     }
 
     // Launch activity AFTER authentication and profile creation
