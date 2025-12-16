@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.activities
 
+import android.net.Uri
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.compose.rememberNavController
@@ -10,12 +11,15 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.github.se.studentconnect.utils.StudentConnectTest
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -23,20 +27,39 @@ import org.junit.Test
 class ActivitiesScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
-
   private lateinit var ownerId: String
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var activitiesViewModel: ActivitiesViewModel
   private lateinit var repository: EventRepository
+  private val mediaRepository =
+      object : MediaRepository {
+        override suspend fun upload(uri: Uri, path: String?): String {
+          return ""
+        }
+
+        override suspend fun download(id: String): Uri {
+          val context = InstrumentationRegistry.getInstrumentation().targetContext
+          return Uri.parse("android.resource://${context.packageName}/${R.drawable.fond}")
+        }
+
+        override suspend fun delete(id: String) {}
+      }
 
   @Before
   fun setup() {
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    MediaRepositoryProvider.overrideForTests(mediaRepository)
     repository = EventRepositoryProvider.repository
 
     ownerId = currentUser.uid
     userRepository = UserRepositoryLocal()
     activitiesViewModel = ActivitiesViewModel(repository, userRepository)
+  }
+
+  @After
+  fun teardown() {
+    EventRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -661,5 +684,91 @@ class ActivitiesScreenTest : StudentConnectTest() {
     composeTestRule
         .onNodeWithText(context.getString(R.string.event_label_live))
         .assertDoesNotExist()
+  }
+
+  @Test
+  fun activitiesScreen_eventWithImage_showsImage() {
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
+    val publicEvent =
+        Event.Public(
+            uid = "public-activity",
+            ownerId = ownerId,
+            title = "Public Activity",
+            description = "Public event",
+            imageUrl = "https://example.com/image.jpg",
+            location = Location(46.52, 6.56, "Public Location"),
+            start = futureStart,
+            end = futureEnd,
+            maxCapacity = 100u,
+            participationFee = null,
+            isFlash = false,
+            subtitle = "Public subtitle",
+            tags = listOf("public"),
+            website = "https://public.com")
+
+    runBlocking {
+      repository.addEvent(publicEvent)
+      userRepository.joinEvent(ownerId, publicEvent.uid)
+    }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        ActivitiesScreen(navController = navController, activitiesViewModel = activitiesViewModel)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify carousel is displayed
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
+
+    composeTestRule.onNodeWithContentDescription("Event Image").assertIsDisplayed()
+    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun activitiesScreen_eventWithoutImage_showsPlaceholder() {
+    val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
+    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
+
+    val publicEvent =
+        Event.Public(
+            uid = "public-activity",
+            ownerId = ownerId,
+            title = "Public Activity",
+            description = "Public event",
+            imageUrl = null,
+            location = Location(46.52, 6.56, "Public Location"),
+            start = futureStart,
+            end = futureEnd,
+            maxCapacity = 100u,
+            participationFee = null,
+            isFlash = false,
+            subtitle = "Public subtitle",
+            tags = listOf("public"),
+            website = "https://public.com")
+
+    runBlocking {
+      repository.addEvent(publicEvent)
+      userRepository.joinEvent(ownerId, publicEvent.uid)
+    }
+
+    composeTestRule.setContent {
+      AppTheme {
+        val navController = rememberNavController()
+        ActivitiesScreen(navController = navController, activitiesViewModel = activitiesViewModel)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Verify carousel is displayed
+    composeTestRule.onNodeWithTag(ActivitiesScreenTestTags.ACTIVITIES_CAROUSEL).assertIsDisplayed()
+
+    composeTestRule.onNodeWithContentDescription("Event Image").assertIsNotDisplayed()
+    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertIsDisplayed()
   }
 }

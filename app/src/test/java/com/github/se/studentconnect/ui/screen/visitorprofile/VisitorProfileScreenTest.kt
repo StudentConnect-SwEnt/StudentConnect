@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
@@ -32,6 +34,16 @@ class VisitorProfileScreenTest {
           email = "jane@example.com",
           university = "Uni")
 
+  private val sampleUserWithImage =
+      User(
+          userId = "u1",
+          username = "jane",
+          firstName = "Jane",
+          lastName = "Doe",
+          email = "jane@example.com",
+          profilePictureUrl = "https://example.com/image.jpg",
+          university = "Uni")
+
   @Before
   fun setup() {
     // Initialize MediaRepository with a fake implementation to avoid Firebase initialization
@@ -39,7 +51,10 @@ class VisitorProfileScreenTest {
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "fake-id"
 
-          override suspend fun download(id: String): Uri = Uri.EMPTY
+          override suspend fun download(id: String): Uri {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            return Uri.parse("android.resource://${context.packageName}/${R.drawable.avatar_12}")
+          }
 
           override suspend fun delete(id: String) = Unit
         })
@@ -288,5 +303,59 @@ class VisitorProfileScreenTest {
     // Click on events count (should invoke callback)
     composeTestRule.onNodeWithText("3", useUnmergedTree = true).performClick()
     composeTestRule.runOnIdle { assert(eventsClicked) }
+  }
+
+  @Test
+  fun visitorProfileScreen_withoutImage_showsPlaceholder() {
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUser,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {}),
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Check that the placeholder avatar is displayed
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar_placeholder).assertExists()
+  }
+
+  @Test
+  fun visitorProfileScreen_withImage_showsImage() {
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        VisitorProfileContent(
+            user = sampleUserWithImage,
+            friendsCount = 0,
+            eventsCount = 0,
+            pinnedEvents = emptyList(),
+            callbacks =
+                VisitorProfileCallbacks(
+                    onBackClick = {},
+                    onAddFriendClick = {},
+                    onCancelFriendClick = {},
+                    onRemoveFriendClick = {}),
+            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
+      }
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Check that the placeholder avatar is displayed
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar).assertExists()
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar_placeholder).assertDoesNotExist()
   }
 }
