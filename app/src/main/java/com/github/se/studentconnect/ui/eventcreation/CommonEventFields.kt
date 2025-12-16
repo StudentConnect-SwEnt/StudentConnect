@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -266,14 +267,16 @@ private fun FlashingStars() {
 fun EventLocationField(
     location: Location?,
     onLocationChange: (Location?) -> Unit,
-    testTag: String
+    testTag: String,
+    snackbarHostState: SnackbarHostState? = null
 ) {
   LocationTextField(
       modifier = Modifier.fillMaxWidth().testTag(testTag),
       label = stringResource(R.string.event_label_location),
       placeholder = stringResource(R.string.event_placeholder_location),
       selectedLocation = location,
-      onLocationChange = onLocationChange)
+      onLocationChange = onLocationChange,
+      snackbarHostState = snackbarHostState)
 }
 
 /**
