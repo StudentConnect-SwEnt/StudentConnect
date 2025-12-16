@@ -224,11 +224,7 @@ class StoryRepositoryFirestore(
    * @return Timestamp representing the start of today at 00:00:00
    */
   private fun getStartOfToday(): Timestamp {
-    val startOfDay =
-        LocalDate.now()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
+    val startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     return Timestamp(Date(startOfDay))
   }
 }
