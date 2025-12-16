@@ -39,7 +39,7 @@ class ActivitiesScreenTest : StudentConnectTest() {
 
         override suspend fun download(id: String): Uri {
           val context = InstrumentationRegistry.getInstrumentation().targetContext
-          return Uri.parse("android.resource://${context.packageName}/${R.drawable.fond}")
+          return Uri.parse("android.resource://${context.packageName}/${R.drawable.avatar_12}")
         }
 
         override suspend fun delete(id: String) {}
@@ -689,7 +689,6 @@ class ActivitiesScreenTest : StudentConnectTest() {
   @Test
   fun activitiesScreen_eventWithImage_showsImage() {
     val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
-    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
 
     val publicEvent =
         Event.Public(
@@ -698,15 +697,9 @@ class ActivitiesScreenTest : StudentConnectTest() {
             title = "Public Activity",
             description = "Public event",
             imageUrl = "https://example.com/image.jpg",
-            location = Location(46.52, 6.56, "Public Location"),
             start = futureStart,
-            end = futureEnd,
-            maxCapacity = 100u,
-            participationFee = null,
             isFlash = false,
-            subtitle = "Public subtitle",
-            tags = listOf("public"),
-            website = "https://public.com")
+            subtitle = "Public subtitle")
 
     runBlocking {
       repository.addEvent(publicEvent)
@@ -732,7 +725,6 @@ class ActivitiesScreenTest : StudentConnectTest() {
   @Test
   fun activitiesScreen_eventWithoutImage_showsPlaceholder() {
     val futureStart = Timestamp(java.util.Date(System.currentTimeMillis() + 3600000))
-    val futureEnd = Timestamp(java.util.Date(System.currentTimeMillis() + 7200000))
 
     val publicEvent =
         Event.Public(
@@ -741,15 +733,9 @@ class ActivitiesScreenTest : StudentConnectTest() {
             title = "Public Activity",
             description = "Public event",
             imageUrl = null,
-            location = Location(46.52, 6.56, "Public Location"),
             start = futureStart,
-            end = futureEnd,
-            maxCapacity = 100u,
-            participationFee = null,
             isFlash = false,
-            subtitle = "Public subtitle",
-            tags = listOf("public"),
-            website = "https://public.com")
+            subtitle = "Public subtitle")
 
     runBlocking {
       repository.addEvent(publicEvent)
