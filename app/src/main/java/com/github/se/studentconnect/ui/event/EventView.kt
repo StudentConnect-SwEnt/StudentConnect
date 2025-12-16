@@ -889,6 +889,7 @@ private fun NonOwnerActionButtons(
 ) {
   val now = Timestamp.now()
   val eventHasStarted = now >= currentEvent.start
+  val context = LocalContext.current
 
   Button(
       onClick = {
