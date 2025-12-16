@@ -10,7 +10,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
-import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import kotlinx.coroutines.launch
 
@@ -18,15 +17,12 @@ import kotlinx.coroutines.launch
  * Orchestrates the organization signup flow after authentication is complete.
  *
  * @param firebaseUserId The Firebase user ID from authentication (must not be null)
- * @param onSignUpComplete Callback when signup is complete with the created Organization
- * @param onLogout Callback to log the user out
- * @param onBackToSelection Callback to return to organization/user selection screen
+ * @param onBackToSelection Callback to return to profile screen
  * @param viewModel ViewModel managing the signup state
  */
 @Composable
 fun OrganizationSignUpOrchestrator(
     firebaseUserId: String,
-    onLogout: () -> Unit,
     onBackToSelection: () -> Unit,
     viewModel: OrganizationSignUpViewModel = viewModel()
 ) {
@@ -34,16 +30,7 @@ fun OrganizationSignUpOrchestrator(
   val coroutineScope = rememberCoroutineScope()
   var isSubmitting by remember { mutableStateOf(false) }
 
-  // State to track if we should show the confirmation screen
-  var createdOrganization by remember { mutableStateOf<Organization?>(null) }
-
-  // IF organization is created, show the "To Be Continued" screen
-  if (createdOrganization != null) {
-    OrganizationToBeContinuedScreen(organization = createdOrganization, onLogout = onLogout)
-    return
-  }
-
-  // Otherwise, show the signup flow steps
+  // Show the signup flow steps
   when (state.currentStep) {
     OrganizationSignUpStep.Info -> {
       OrganizationInfoScreen(
@@ -120,8 +107,8 @@ fun OrganizationSignUpOrchestrator(
                   // Save
                   orgRepository.saveOrganization(organization)
 
-                  // Show Confirmation Screen instead of exiting immediately
-                  createdOrganization = organization
+                  // Go back to profile after successful creation
+                  onBackToSelection()
                 } catch (e: Exception) {
                   Log.e("OrganizationSignUp", "Failed to create organization", e)
                   isSubmitting = false

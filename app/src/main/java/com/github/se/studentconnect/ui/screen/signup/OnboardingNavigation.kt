@@ -1,11 +1,7 @@
 package com.github.se.studentconnect.ui.screen.signup
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.model.user.UserRepository
-import com.github.se.studentconnect.ui.screen.signup.organization.OrganizationSignUpOrchestrator
-import com.github.se.studentconnect.ui.screen.signup.regularuser.SignUpViewModel
 
 @Composable
 fun OnboardingNavigation(
@@ -14,28 +10,11 @@ fun OnboardingNavigation(
     userRepository: UserRepository,
     onOnboardingComplete: (isLogout: Boolean) -> Unit
 ) {
-  val signUpViewModel: SignUpViewModel = viewModel()
-  val signUpState by signUpViewModel.state
-
-  when (signUpState.accountTypeSelection) {
-    AccountTypeOption.RegularUser -> {
-      SignUpOrchestrator(
-          firebaseUserId = firebaseUserId,
-          email = email,
-          userRepository = userRepository,
-          onSignUpComplete = { _ -> onOnboardingComplete(false) },
-          signUpViewModel = signUpViewModel,
-          onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
-    }
-    AccountTypeOption.Organization -> {
-      OrganizationSignUpOrchestrator(
-          firebaseUserId = firebaseUserId,
-          onLogout = { onOnboardingComplete(true) },
-          onBackToSelection = { signUpViewModel.setAccountTypeSelection(null) })
-    }
-    null ->
-        AccountTypeSelectionScreen(
-            onContinue = { accountType -> signUpViewModel.setAccountTypeSelection(accountType) },
-            onBack = { onOnboardingComplete(true) })
-  }
+  // Directly show the regular user sign-up flow without account type selection
+  SignUpOrchestrator(
+      firebaseUserId = firebaseUserId,
+      email = email,
+      userRepository = userRepository,
+      onSignUpComplete = { _ -> onOnboardingComplete(false) },
+      onBackToSelection = { onOnboardingComplete(true) })
 }
