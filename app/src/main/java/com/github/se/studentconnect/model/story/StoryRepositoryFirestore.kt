@@ -11,7 +11,9 @@ import com.github.se.studentconnect.utils.MediaTypeDetector
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -222,11 +224,11 @@ class StoryRepositoryFirestore(
    * @return Timestamp representing the start of today at 00:00:00
    */
   private fun getStartOfToday(): Timestamp {
-    val calendar = Calendar.getInstance()
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    return Timestamp(calendar.time)
+    val startOfDay =
+        LocalDate.now()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    return Timestamp(Date(startOfDay))
   }
 }
