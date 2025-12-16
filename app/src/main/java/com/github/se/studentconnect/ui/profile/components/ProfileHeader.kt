@@ -60,6 +60,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlin.math.cos
 import kotlin.math.sin
@@ -494,7 +495,8 @@ private fun UsernameSection(user: User, showUsername: Boolean) {
         text = "@${user.username}",
         style = MaterialTheme.typography.bodyMedium,
         fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.testTag(C.Tag.visitor_profile_user_id))
   }
 }
 
