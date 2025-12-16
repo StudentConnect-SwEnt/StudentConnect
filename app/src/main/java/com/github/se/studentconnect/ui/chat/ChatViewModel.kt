@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.chat.ChatMessage
 import com.github.se.studentconnect.model.chat.ChatRepositoryProvider
@@ -49,8 +50,10 @@ data class ChatUiState(
  * - Real-time message sync
  * - Typing indicators
  * - Message sending/receiving
+ *
+ * @param getString Function to retrieve string resources by resource ID.
  */
-class ChatViewModel : ViewModel() {
+class ChatViewModel(private val getString: (resId: Int) -> String = { _ -> "" }) : ViewModel() {
 
   private val _uiState = MutableStateFlow(ChatUiState())
   val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -90,9 +93,8 @@ class ChatViewModel : ViewModel() {
             val user = userRepository.getUserById(currentUserId)
             _uiState.value = _uiState.value.copy(currentUser = user)
           } catch (e: Exception) {
-            // Error message uses string resource R.string.error_failed_to_load_user
-            _uiState.value =
-                _uiState.value.copy(error = "Failed to load user: ${e.message}", isLoading = false)
+            val errorMsg = getString(R.string.error_failed_to_load_user).format(e.message ?: "")
+            _uiState.value = _uiState.value.copy(error = errorMsg, isLoading = false)
             return@launch
           }
         }
@@ -103,8 +105,9 @@ class ChatViewModel : ViewModel() {
               chatRepository
                   .observeMessages(eventId)
                   .catch { e: Throwable ->
-                    _uiState.value =
-                        _uiState.value.copy(error = "Failed to load messages: ${e.message}")
+                    val errorMsg =
+                        getString(R.string.error_failed_to_load_messages).format(e.message ?: "")
+                    _uiState.value = _uiState.value.copy(error = errorMsg)
                   }
                   .collect { messages: List<ChatMessage> ->
                     _uiState.value = _uiState.value.copy(messages = messages)
@@ -130,9 +133,8 @@ class ChatViewModel : ViewModel() {
 
         _uiState.value = _uiState.value.copy(isLoading = false)
       } catch (e: Exception) {
-        // Error message uses string resource R.string.error_failed_to_load_event
-        _uiState.value =
-            _uiState.value.copy(error = "Failed to load event: ${e.message}", isLoading = false)
+        val errorMsg = getString(R.string.error_failed_to_load_event).format(e.message ?: "")
+        _uiState.value = _uiState.value.copy(error = errorMsg, isLoading = false)
       }
     }
   }
@@ -219,10 +221,9 @@ class ChatViewModel : ViewModel() {
           updateTypingStatus(false)
         },
         onFailure = { exception: Exception ->
-          // Error message uses string resource R.string.error_failed_to_send_message
-          _uiState.value =
-              _uiState.value.copy(
-                  error = "Failed to send message: ${exception.message}", isSending = false)
+          val errorMsg =
+              getString(R.string.error_failed_to_send_message).format(exception.message ?: "")
+          _uiState.value = _uiState.value.copy(error = errorMsg, isSending = false)
         })
   }
 

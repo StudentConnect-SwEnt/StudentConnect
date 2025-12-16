@@ -35,6 +35,7 @@
     <string name="error_failed_to_load_events">Failed to load events: %s</string>
     <string name="error_failed_to_load_event">Failed to load event: %1$s</string>
     <string name="error_failed_to_load_user">Failed to load user: %1$s</string>
+    <string name="error_failed_to_load_messages">Failed to load messages: %1$s</string>
     <string name="error_failed_to_send_message">Failed to send message: %1$s</string>
     <string name="error_failed_to_update_pin">Failed to update pin: %s</string>
 
@@ -696,6 +697,12 @@
     <plurals name="chat_typing_multiple">
         <item quantity="one">%1$s and %2$d other is typing…</item>
         <item quantity="other">%1$s and %2$d others are typing…</item>
+    </plurals>
+    <string name="typing_indicator_single">%1$s is typing</string>
+    <string name="typing_indicator_two">%1$s and %2$s are typing</string>
+    <plurals name="typing_indicator_multiple">
+        <item quantity="one">%1$s and %2$d other are typing</item>
+        <item quantity="other">%1$s and %2$d others are typing</item>
     </plurals>
     <string name="chat_timestamp_just_now">Just now</string>
     <string name="chat_timestamp_yesterday">Yesterday, %1$s</string>

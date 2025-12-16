@@ -44,6 +44,9 @@
     
     <!-- Typing Indicator dimensions -->
     <dimen name="typing_indicator_dot_size">6dp</dimen>
+    <dimen name="typing_indicator_padding_horizontal">16dp</dimen>
+    <dimen name="typing_indicator_padding_vertical">8dp</dimen>
+    <dimen name="typing_indicator_spacing">4dp</dimen>
     
     <!-- Event View dimensions -->
     <dimen name="event_view_chat_button_padding_vertical">6dp</dimen>

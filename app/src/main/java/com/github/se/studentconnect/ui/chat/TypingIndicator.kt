@@ -13,7 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import com.github.se.studentconnect.R
 
 /**
@@ -27,21 +28,36 @@ fun TypingIndicator(typingUserNames: List<String>, modifier: Modifier = Modifier
   if (typingUserNames.isEmpty()) return
 
   Column(
-      modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-      verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .padding(
+                  horizontal = dimensionResource(R.dimen.typing_indicator_padding_horizontal),
+                  vertical = dimensionResource(R.dimen.typing_indicator_padding_vertical)),
+      verticalArrangement =
+          Arrangement.spacedBy(dimensionResource(R.dimen.typing_indicator_spacing))) {
         // Display typing users' names
+        val othersCount = typingUserNames.size - 1
         val typingText =
             when {
               typingUserNames.isEmpty() -> ""
-              typingUserNames.size == 1 -> "${typingUserNames[0]} is typing"
+              typingUserNames.size == 1 ->
+                  stringResource(R.string.typing_indicator_single, typingUserNames[0])
               typingUserNames.size == 2 ->
-                  "${typingUserNames[0]} and ${typingUserNames[1]} are typing"
-              else -> "${typingUserNames[0]} and ${typingUserNames.size - 1} others are typing"
+                  stringResource(
+                      R.string.typing_indicator_two, typingUserNames[0], typingUserNames[1])
+              else ->
+                  pluralStringResource(
+                      R.plurals.typing_indicator_multiple,
+                      othersCount,
+                      typingUserNames[0],
+                      othersCount)
             }
 
         Row(
             modifier = Modifier.fillMaxWidth().testTag("typing_indicator"),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement =
+                Arrangement.spacedBy(dimensionResource(R.dimen.typing_indicator_spacing)),
             verticalAlignment = Alignment.CenterVertically) {
               Text(
                   text = typingText,
@@ -51,7 +67,8 @@ fun TypingIndicator(typingUserNames: List<String>, modifier: Modifier = Modifier
 
               // Animated dots
               Row(
-                  horizontalArrangement = Arrangement.spacedBy(4.dp),
+                  horizontalArrangement =
+                      Arrangement.spacedBy(dimensionResource(R.dimen.typing_indicator_spacing)),
                   verticalAlignment = Alignment.CenterVertically) {
                     repeat(3) { index ->
                       AnimatedDot(
