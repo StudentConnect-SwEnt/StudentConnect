@@ -21,6 +21,7 @@ import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -57,13 +58,12 @@ class NotificationDisplayTest {
   @get:Rule val composeTestRule = createComposeRule()
 
   @Before
-  suspend fun setup() {
+  fun setup() {
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
     UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
     OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
     MediaRepositoryProvider.overrideForTests(fakeMediaRepository)
     NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
-    EventRepositoryProvider.repository.addEvent(eventTest)
   }
 
   @After
@@ -122,6 +122,7 @@ class NotificationDisplayTest {
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
             isRead = false)
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
 
     composeTestRule.setContent {
       AppTheme {
