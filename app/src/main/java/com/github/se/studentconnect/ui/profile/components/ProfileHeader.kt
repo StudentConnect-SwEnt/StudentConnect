@@ -55,15 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlinx.coroutines.Dispatchers
 
 /** Data class holding profile statistics */
 data class ProfileStats(val friendsCount: Int, val eventsCount: Int)
@@ -235,7 +232,7 @@ private fun OrganizationBadge(organization: Organization, modifier: Modifier = M
   val density = LocalDensity.current
 
   // Load organization logo if available
-    val logoBitmap = loadBitmapFromOrganization(context, organization)
+  val logoBitmap = loadBitmapFromOrganization(context, organization)
 
   val textColor = MaterialTheme.colorScheme.onSurface
   val backgroundColor = MaterialTheme.colorScheme.surface
