@@ -27,6 +27,7 @@ import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -37,6 +38,23 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class EventViewTest {
+
+  /**
+   * Forces the [EventViewModel] into an error state by updating its private `_uiState` field via
+   * reflection. This lets us trigger the fallback UI branch without changing production code.
+   */
+  private fun forceErrorState(viewModel: EventViewModel, message: String) {
+    val field = EventViewModel::class.java.getDeclaredField("_uiState")
+    field.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    val stateFlow = field.get(viewModel) as MutableStateFlow<EventUiState>
+    stateFlow.value =
+        EventUiState(
+            event = null,
+            isLoading = false,
+            errorMessage = message,
+        )
+  }
 
   companion object {
     @BeforeClass
@@ -2287,5 +2305,46 @@ class EventViewTest {
     } finally {
       AuthenticationProvider.testUserId = null
     }
+  }
+
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun eventView_subtitle_isDisplayedForPublicEvent() {
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+        }
+      }
+    }
+
+    composeTestRule.waitUntilAtLeastOneExists(hasTestTag(EventViewTestTags.SUBTITLE_TEXT), 10_000)
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.SUBTITLE_TEXT)
+        .performScrollTo()
+        .assertIsDisplayed()
+  }
+
+  @Test
+  fun eventView_errorState_displaysRetryButton() {
+    val errorViewModel = EventViewModel(eventRepository, userRepository)
+    forceErrorState(errorViewModel, "Test error")
+
+    composeTestRule.setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "event") {
+        composable("event") {
+          EventView(
+              eventUid = "test-event",
+              navController = navController,
+              eventViewModel = errorViewModel)
+        }
+      }
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
   }
 }
