@@ -123,7 +123,7 @@ fun EditBioScreen(
 
               // Save Button
               Button(
-                  onClick = { viewModel.saveBio(LocalContext.current) },
+                  onClick = { viewModel.saveBio(context) },
                   modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT),
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&
