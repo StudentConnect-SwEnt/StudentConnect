@@ -226,6 +226,48 @@ class CreatePublicEventViewModelTest {
   }
 
   @Test
+  fun `initial state has isGeneratingBanner false`() {
+    assertFalse(viewModel.uiState.value.isGeneratingBanner)
+  }
+
+  @Test
+  fun `updateFlashDurationHours updates hours in state`() {
+    viewModel.updateFlashDurationHours(3)
+    assertEquals(3, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours clamps value to max`() {
+    viewModel.updateFlashDurationHours(10)
+    // Should be clamped to MAX_DURATION_HOURS (5)
+    assertEquals(5, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours clamps negative value to 0`() {
+    viewModel.updateFlashDurationHours(-1)
+    assertEquals(0, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes updates minutes in state`() {
+    viewModel.updateFlashDurationMinutes(30)
+    assertEquals(30, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes clamps value to 59`() {
+    viewModel.updateFlashDurationMinutes(75)
+    assertEquals(59, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes clamps negative value to 0`() {
+    viewModel.updateFlashDurationMinutes(-5)
+    assertEquals(0, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
   fun `prefill sets all fields from public event`() = runTest {
     val event =
         Event.Public(

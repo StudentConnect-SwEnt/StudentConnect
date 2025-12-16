@@ -345,4 +345,9 @@ class CreatePrivateEventViewModelTest {
     assertEquals(1, state.flashDurationHours)
     assertEquals(45, state.flashDurationMinutes)
   }
+
+  @Test
+  fun `initial state has isGeneratingBanner false`() {
+    assertFalse(viewModel.uiState.value.isGeneratingBanner)
+  }
 }
