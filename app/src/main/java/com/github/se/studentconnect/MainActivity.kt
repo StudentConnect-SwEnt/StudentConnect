@@ -24,6 +24,9 @@ import androidx.navigation.navArgument
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -39,6 +42,7 @@ import com.github.se.studentconnect.ui.navigation.Tab
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.ProfileRoutes
+import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreen
 import com.github.se.studentconnect.ui.screen.home.HomeScreen
 import com.github.se.studentconnect.ui.screen.home.NotificationBanner
@@ -171,6 +175,38 @@ fun MainContent() {
 
   // Initial auth check on app start
   LaunchedEffect(Unit) { viewModel.checkInitialAuthState() }
+
+  // Track previous app state to detect transitions
+  var previousAppState by remember { mutableStateOf<AppState?>(null) }
+  var previousUserId by remember { mutableStateOf<String?>(null) }
+
+  // Clear navigation stack and reset to HOME when logging out or when user changes
+  LaunchedEffect(uiState.appState, uiState.currentUserId) {
+    val stateChanged = previousAppState != uiState.appState
+    val userChanged = previousUserId != null && previousUserId != uiState.currentUserId
+
+    if (stateChanged && uiState.appState == AppState.AUTHENTICATION) {
+      // Clear the entire back stack when logging out
+      if (navController.currentBackStackEntry != null) {
+        navController.popBackStack(navController.graph.startDestinationId, inclusive = false)
+      }
+      selectedTab = Tab.Home
+    } else if ((stateChanged && uiState.appState == AppState.MAIN_APP) ||
+        (userChanged && uiState.appState == AppState.MAIN_APP && uiState.currentUserId != null)) {
+      // When entering MAIN_APP or when user changes, navigate to HOME
+      val currentRoute = navController.currentBackStackEntry?.destination?.route
+      if (currentRoute != Route.HOME) {
+        navController.navigate(Route.HOME) {
+          popUpTo(navController.graph.startDestinationId) { inclusive = false }
+          launchSingleTop = true
+        }
+        selectedTab = Tab.Home
+      }
+    }
+
+    previousAppState = uiState.appState
+    previousUserId = uiState.currentUserId
+  }
 
   // Render based on app state from ViewModel
   AppNavigationOrchestrator(
@@ -360,9 +396,28 @@ internal fun MainAppContent(
 
             // Profile Screen (Main Profile View)
             composable(Route.PROFILE) {
+              // Use currentUserId as key to ensure ViewModel is recreated when user changes
+              val profileViewModel: ProfileScreenViewModel =
+                  viewModel(
+                      key = "profile_$currentUserId",
+                      factory =
+                          object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                              return ProfileScreenViewModel(
+                                  userRepository = userRepository,
+                                  friendsRepository = FriendsRepositoryProvider.repository,
+                                  eventRepository = EventRepositoryProvider.repository,
+                                  organizationRepository =
+                                      OrganizationRepositoryProvider.repository,
+                                  currentUserId = currentUserId)
+                                  as T
+                            }
+                          })
               ProfileScreen(
                   currentUserId = currentUserId,
                   userRepository = userRepository,
+                  viewModel = profileViewModel,
                   navigationCallbacks =
                       ProfileNavigationCallbacks(
                           onNavigateToSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
