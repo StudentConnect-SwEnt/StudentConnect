@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,6 +34,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -302,6 +305,8 @@ private fun BoxScope.EventCardContent(
   val eventImageDescription = stringResource(R.string.content_description_event_image)
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
+  val context = LocalContext.current
+  val imageBitmap = loadBitmapFromEvent(context, event)
 
   // Calculate sizes relative to screen width
   val contentPadding = screenWidth * 0.04f
@@ -312,14 +317,22 @@ private fun BoxScope.EventCardContent(
   Row(
       modifier = Modifier.fillMaxSize().padding(contentPadding),
       horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
-        Icon(
-            imageVector = Icons.Default.Image,
-            contentDescription = eventImageDescription,
-            modifier =
-                Modifier.size(imageSize)
-                    .clip(RoundedCornerShape(imageCornerRadius))
-                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-            tint = MaterialTheme.colorScheme.onPrimary)
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap,
+              contentDescription = eventImageDescription,
+              modifier = Modifier.size(imageSize).clip(RoundedCornerShape(imageCornerRadius)),
+              contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+        } else {
+          Icon(
+              imageVector = Icons.Default.Image,
+              contentDescription = eventImageDescription,
+              modifier =
+                  Modifier.size(imageSize)
+                      .clip(RoundedCornerShape(imageCornerRadius))
+                      .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
+              tint = MaterialTheme.colorScheme.onPrimary)
+        }
 
         EventCardDetails(event = event, footerText = footerText)
       }
