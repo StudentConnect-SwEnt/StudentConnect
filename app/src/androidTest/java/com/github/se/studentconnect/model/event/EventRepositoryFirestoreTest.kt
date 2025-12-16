@@ -211,21 +211,19 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Party",
-              "secret",
+              title = "Party",
+              description = "secret",
               start = now,
               isFlash = false)
       val e2 =
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Hackathon",
-              "fun",
-              "Hack all day!",
-              null,
-              now,
+              title = "Hackathon",
+              description = "Hack all day!",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "fun")
       repository.addEvent(e1)
       repository.addEvent(e2)
 
@@ -250,7 +248,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val currentOwnerId = getCurrentUserId()
       val e =
           Event.Private(
-              repository.getNewUid(), currentOwnerId, "Title", "d", start = now, isFlash = false)
+              repository.getNewUid(),
+              currentOwnerId,
+              title = "Title",
+              description = "d",
+              start = now,
+              isFlash = false)
       repository.addEvent(e)
       repository.editEvent("different", e)
     }
@@ -264,8 +267,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               getCurrentUserId(),
-              "Draft",
-              "d",
+              title = "Draft",
+              description = "d",
               start = now,
               isFlash = false)
       repository.addEvent(e)
@@ -284,7 +287,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
         val currentOwnerId = getCurrentUserId()
         val e =
             Event.Private(
-                repository.getNewUid(), currentOwnerId, "Draft", "d", start = now, isFlash = false)
+                repository.getNewUid(),
+                currentOwnerId,
+                title = "Draft",
+                description = "d",
+                start = now,
+                isFlash = false)
         repository.addEvent(e)
 
         signIn("other")
@@ -301,7 +309,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       signIn("owner")
       val e =
           Event.Private(
-              repository.getNewUid(), getCurrentUserId(), "Temp", "d", start = now, isFlash = false)
+              repository.getNewUid(),
+              getCurrentUserId(),
+              title = "Temp",
+              description = "d",
+              start = now,
+              isFlash = false)
       repository.addEvent(e)
       repository.deleteEvent(e.uid)
 
@@ -327,7 +340,12 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
         val currentOwnerId = getCurrentUserId()
         val e =
             Event.Private(
-                repository.getNewUid(), currentOwnerId, "Temp", "d", isFlash = false, start = now)
+                repository.getNewUid(),
+                currentOwnerId,
+                title = "Temp",
+                description = "d",
+                isFlash = false,
+                start = now)
         repository.addEvent(e)
 
         signIn("other")
@@ -346,13 +364,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Concert",
-              "Epic!",
-              "d",
-              null,
-              now,
+              title = "Concert",
+              description = "d",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Epic!")
       repository.addEvent(e)
 
       signIn("participant")
@@ -374,13 +390,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Concert",
-              "Epic!",
-              "d",
-              null,
-              now,
+              title = "Concert",
+              description = "d",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Epic!")
       repository.addEvent(e)
 
       signIn("participant")
@@ -412,13 +426,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Empty",
-              "Nothing",
-              "d",
-              null,
-              now,
+              title = "Empty",
+              description = "d",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Nothing")
       repository.addEvent(e)
       signIn("other")
       Assert.assertTrue(repository.getEventParticipants(e.uid).isEmpty())
@@ -435,11 +447,9 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               eventId,
               currentOwnerId,
-              "Concert",
-              "",
-              "d",
-              null,
-              now,
+              title = "Concert",
+              description = "d",
+              start = now,
               isFlash = false,
               subtitle = "")
       repository.addEvent(e)
@@ -498,21 +508,19 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Party",
-              "s",
+              title = "Private Party",
+              description = "s",
               start = now,
               isFlash = false)
       val e2 =
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Public Concert",
-              "fun",
-              "Exciting!",
-              null,
-              now,
+              title = "Public Concert",
+              description = "Exciting!",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "fun")
       repository.addEvent(e1)
       repository.addEvent(e2)
 
@@ -533,8 +541,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "VIP Party",
-              "members only",
+              title = "VIP Party",
+              description = "members only",
               start = now,
               isFlash = false)
       repository.addEvent(privateEvent)
@@ -565,13 +573,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              title = "Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       repository.addEvent(event)
 
       repository.addInvitationToEvent(event.uid, invitedId, currentOwnerId)
@@ -600,13 +606,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
             Event.Public(
                 repository.getNewUid(),
                 currentOwnerId,
-                "Event",
-                "Sub",
-                "desc",
-                null,
-                now,
+                title = "Event",
+                description = "desc",
+                start = now,
                 isFlash = false,
-                subtitle = "")
+                subtitle = "Sub")
         repository.addEvent(event)
 
         signIn("other")
@@ -625,13 +629,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              title = "Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       repository.addEvent(event)
 
       signIn("participant")
@@ -727,13 +729,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Valid",
-              "Good",
-              "desc",
-              null,
-              now,
+              title = "Valid",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Good")
       repository.addEvent(validEvent)
 
       // Add a malformed event directly to Firestore (missing required field)
@@ -767,24 +767,20 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Event 1",
-              "Sub1",
-              "desc1",
-              null,
-              now,
+              title = "Event 1",
+              description = "desc1",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub1")
       val event2 =
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Event 2",
-              "Sub2",
-              "desc2",
-              null,
-              now,
+              title = "Event 2",
+              description = "desc2",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub2")
 
       repository.addEvent(event1)
       repository.addEvent(event2)
@@ -805,21 +801,19 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "My Private Event",
-              "secret",
+              title = "My Private Event",
+              description = "secret",
               start = now,
               isFlash = false)
       val publicEvent =
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "My Public Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              title = "My Public Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
 
       repository.addEvent(privateEvent)
       repository.addEvent(publicEvent)
@@ -841,21 +835,19 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Owner Private",
-              "secret",
+              title = "Owner Private",
+              description = "secret",
               start = now,
               isFlash = false)
       val publicEvent =
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Public Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              title = "Public Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
 
       repository.addEvent(privateEvent)
       repository.addEvent(publicEvent)
@@ -882,13 +874,11 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Valid Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              title = "Valid Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       repository.addEvent(validEvent)
 
       // Add a corrupted private event with invalid data
@@ -921,8 +911,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Exclusive Party",
-              "Members only",
+              title = "Exclusive Party",
+              description = "Members only",
               start = now,
               isFlash = false)
       repository.addEvent(privateEvent)
@@ -961,24 +951,24 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Event 1",
-              "desc1",
+              title = "Private Event 1",
+              description = "desc1",
               start = now,
               isFlash = false)
       val privateEvent2 =
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Event 2",
-              "desc2",
+              title = "Private Event 2",
+              description = "desc2",
               start = now,
               isFlash = false)
       val privateEvent3 =
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Event 3",
-              "desc3",
+              title = "Private Event 3",
+              description = "desc3",
               start = now,
               isFlash = false)
 
@@ -1025,20 +1015,18 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               repository.getNewUid(),
               currentOwnerId,
-              "Public Concert",
-              "Sub",
-              "Everyone welcome",
-              null,
-              now,
+              title = "Public Concert",
+              description = "Everyone welcome",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
 
       val privateEventJoined =
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Party - Joined",
-              "VIP only",
+              title = "Private Party - Joined",
+              description = "VIP only",
               start = now,
               isFlash = false)
 
@@ -1046,8 +1034,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Party - Not Joined",
-              "Super VIP",
+              title = "Private Party - Not Joined",
+              description = "Super VIP",
               start = now,
               isFlash = false)
 
@@ -1088,8 +1076,8 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Private(
               repository.getNewUid(),
               currentOwnerId,
-              "Private Party",
-              "VIP only",
+              title = "Private Party",
+              description = "VIP only",
               start = now,
               isFlash = false)
       repository.addEvent(privateEvent)
@@ -1133,25 +1121,23 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val event1 =
           Event.Public(
               repository.getNewUid(),
-              orgId,
-              "Org Event 1",
-              "Sub1",
-              "desc1",
-              null,
-              now,
+              ownerId = orgId,
+              organizationId = orgId,
+              title = "Org Event 1",
+              description = "desc1",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub1")
       val event2 =
           Event.Public(
               repository.getNewUid(),
-              orgId,
-              "Org Event 2",
-              "Sub2",
-              "desc2",
-              null,
-              now,
+              ownerId = orgId,
+              organizationId = orgId,
+              title = "Org Event 2",
+              description = "desc2",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub2")
 
       // Create another organization for the "other" event
       val otherOrgId = "other_org"
@@ -1172,14 +1158,13 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val otherEvent =
           Event.Public(
               repository.getNewUid(),
-              otherOrgId,
-              "Other Org Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              ownerId = otherOrgId,
+              organizationId = otherOrgId,
+              title = "Other Org Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
 
       repository.addEvent(otherEvent)
 
@@ -1218,17 +1203,22 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val publicEvent =
           Event.Public(
               repository.getNewUid(),
-              orgId,
-              "Public Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              ownerId = orgId,
+              organizationId = orgId,
+              title = "Public Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       val privateEvent =
           Event.Private(
-              repository.getNewUid(), orgId, "Private Event", "desc", start = now, isFlash = false)
+              repository.getNewUid(),
+              ownerId = orgId,
+              organizationId = orgId,
+              title = "Private Event",
+              description = "desc",
+              start = now,
+              isFlash = false)
 
       repository.addEvent(publicEvent)
       repository.addEvent(privateEvent)
@@ -1252,14 +1242,13 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
       val validEvent =
           Event.Public(
               repository.getNewUid(),
-              orgId,
-              "Valid Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              ownerId = orgId,
+              organizationId = orgId,
+              title = "Valid Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       repository.addEvent(validEvent)
 
       // Add a malformed event directly to Firestore
@@ -1293,29 +1282,27 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
 
       signIn("owner")
 
-      // Create events with different owners
+      // Create events with different owners (as organizations)
       val event1 =
           Event.Public(
               repository.getNewUid(),
-              currentOwnerId,
-              "Owner Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              ownerId = currentOwnerId,
+              organizationId = currentOwnerId,
+              title = "Owner Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
       val event2 =
           Event.Public(
               repository.getNewUid(),
-              otherOwnerId,
-              "Other Event",
-              "Sub",
-              "desc",
-              null,
-              now,
+              ownerId = otherOwnerId,
+              organizationId = otherOwnerId,
+              title = "Other Event",
+              description = "desc",
+              start = now,
               isFlash = false,
-              subtitle = "")
+              subtitle = "Sub")
 
       repository.addEvent(event1)
 
@@ -1345,6 +1332,7 @@ class EventRepositoryFirestoreTest : FirestoreStudentConnectTest() {
           Event.Public(
               uid = repository.getNewUid(),
               ownerId = orgId,
+              organizationId = orgId,
               title = "Full Event",
               subtitle = "Complete",
               description = "All fields present",

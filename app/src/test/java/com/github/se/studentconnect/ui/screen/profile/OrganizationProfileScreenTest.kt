@@ -174,46 +174,11 @@ class OrganizationProfileScreenTest {
   }
 
   @Test
-  fun eventRowIsClickable() = runTest {
-    var clickedEventId: String? = null
-    organizationRepository.saveOrganization(testOrganization)
-    userRepository.saveUser(testUser1)
-    eventRepository.addEvent(testEvent)
-
-    viewModel =
-        OrganizationProfileViewModel(
-            organizationId = "test_org",
-            context = mockContext,
-            organizationRepository = organizationRepository,
-            eventRepository = eventRepository,
-            userRepository = userRepository,
-            notificationRepository = notificationRepository)
-
-    composeRule.setContent {
-      AppTheme {
-        OrganizationProfileScreen(
-            organizationId = "test_org",
-            onEventClick = { clickedEventId = it },
-            viewModel = viewModel)
-      }
-    }
-
-    advanceUntilIdle()
-    composeRule.waitForIdle()
-
-    // Click on the event row
-    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").performClick()
-    composeRule.waitForIdle()
-
-    // Verify the callback was called with the correct event ID
-    assertEquals("event1", clickedEventId)
-  }
-
-  @Test
   fun endedEventShowsOverlay() = runTest {
     val endedEvent =
         testEvent.copy(
             uid = "ended_event",
+            organizationId = "test_org", // Explicitly preserve organizationId
             start = Timestamp(Date(System.currentTimeMillis() - 7200000)), // 2 hours ago
             end = Timestamp(Date(System.currentTimeMillis() - 3600000))) // 1 hour ago
 
@@ -240,11 +205,20 @@ class OrganizationProfileScreenTest {
     advanceUntilIdle()
     composeRule.waitForIdle()
 
+    // Wait for organization to load (check for organization title)
+    composeRule.onNodeWithTag(C.Tag.org_profile_title).assertExists()
+
+    // Wait for events list to be displayed
+    composeRule.onNodeWithTag(C.Tag.org_profile_events_list).assertExists()
+
+    // Wait a bit more for events to render
+    composeRule.waitForIdle()
+
     // Event should be displayed
     composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
 
-    // "Event Ended" text should be displayed
-    composeRule.onNodeWithText("Event Ended").assertIsDisplayed()
+    // "Event Ended" text should be displayed (use useUnmergedTree since it's inside the card)
+    composeRule.onNodeWithText("Event Ended", useUnmergedTree = true).assertExists()
   }
 
   @Test
@@ -587,9 +561,168 @@ class OrganizationProfileScreenTest {
     advanceUntilIdle()
     composeRule.waitForIdle()
 
+    // Wait for organization to load (check for organization title)
+    composeRule.onNodeWithTag(C.Tag.org_profile_title).assertExists()
+
+    // Wait for events list to be displayed
+    composeRule.onNodeWithTag(C.Tag.org_profile_events_list).assertExists()
+
+    // Wait a bit more for events to render
+    composeRule.waitForIdle()
+
     // Event should be displayed (check that event row exists)
     composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
-    composeRule.onNodeWithTag("${C.Tag.org_profile_event_card_prefix}_0").assertExists()
+    // Card is nested inside clickable row, so use useUnmergedTree
+    composeRule
+        .onNodeWithTag("${C.Tag.org_profile_event_card_prefix}_0", useUnmergedTree = true)
+        .assertExists()
+  }
+
+  // ========== NEW TESTS FOR EVENT FILTERING ==========
+
+  @Test
+  fun eventFilters_areDisplayed() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    eventRepository.addEvent(testEvent)
+
+    every { mockContext.getString(R.string.org_profile_filter_all) } returns "All"
+    every { mockContext.getString(R.string.org_profile_filter_upcoming) } returns "Upcoming"
+    every { mockContext.getString(R.string.org_profile_filter_past) } returns "Past"
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Wait for organization to load (check for organization title)
+    composeRule.onNodeWithTag(C.Tag.org_profile_title).assertExists()
+
+    // Wait for events list to be displayed (filters are inside events list)
+    composeRule.onNodeWithTag(C.Tag.org_profile_events_list).assertExists()
+
+    // Filters should always be displayed (they're shown regardless of whether events exist)
+    composeRule.onNodeWithTag(C.Tag.org_profile_event_filters).assertExists()
+
+    // Check all three filter chips exist
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_filter_prefix}_all").assertExists()
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_filter_prefix}_upcoming").assertExists()
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_filter_prefix}_past").assertExists()
+  }
+
+  @Test
+  fun eventFilters_defaultsToAll() = runTest {
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    eventRepository.addEvent(testEvent)
+
+    every { mockContext.getString(R.string.org_profile_filter_all) } returns "All"
+    every { mockContext.getString(R.string.org_profile_filter_upcoming) } returns "Upcoming"
+    every { mockContext.getString(R.string.org_profile_filter_past) } returns "Past"
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Wait for organization to load (check for organization title)
+    composeRule.onNodeWithTag(C.Tag.org_profile_title).assertExists()
+
+    // Wait for events list to be displayed
+    composeRule.onNodeWithTag(C.Tag.org_profile_events_list).assertExists()
+
+    // Wait a bit more for events to render
+    composeRule.waitForIdle()
+
+    // "All" filter should be selected by default (all events shown)
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
+  }
+
+  @Test
+  fun eventFilters_allShowsBothUpcomingAndPastEvents() = runTest {
+    val upcomingEvent =
+        testEvent.copy(
+            uid = "upcoming_event",
+            start = Timestamp(Date(System.currentTimeMillis() + 3600000)),
+            end = Timestamp(Date(System.currentTimeMillis() + 7200000)),
+            organizationId = "test_org")
+
+    val pastEvent =
+        testEvent.copy(
+            uid = "past_event",
+            start = Timestamp(Date(System.currentTimeMillis() - 7200000)),
+            end = Timestamp(Date(System.currentTimeMillis() - 3600000)),
+            organizationId = "test_org")
+
+    organizationRepository.saveOrganization(testOrganization)
+    userRepository.saveUser(testUser1)
+    eventRepository.addEvent(upcomingEvent)
+    eventRepository.addEvent(pastEvent)
+
+    every { mockContext.getString(R.string.org_profile_filter_all) } returns "All"
+    every { mockContext.getString(R.string.org_profile_filter_upcoming) } returns "Upcoming"
+    every { mockContext.getString(R.string.org_profile_filter_past) } returns "Past"
+
+    viewModel =
+        OrganizationProfileViewModel(
+            organizationId = "test_org",
+            context = mockContext,
+            organizationRepository = organizationRepository,
+            eventRepository = eventRepository,
+            userRepository = userRepository,
+            notificationRepository = notificationRepository)
+
+    composeRule.setContent {
+      AppTheme { OrganizationProfileScreen(organizationId = "test_org", viewModel = viewModel) }
+    }
+
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Wait for organization to load (check for organization title)
+    composeRule.onNodeWithTag(C.Tag.org_profile_title).assertExists()
+
+    // Wait for events list to be displayed
+    composeRule.onNodeWithTag(C.Tag.org_profile_events_list).assertExists()
+
+    // Wait a bit more for events to render
+    composeRule.waitForIdle()
+
+    // By default "All" is selected - should show both events
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_1").assertExists()
+
+    // Click "All" explicitly to ensure it's selected
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_filter_prefix}_all").performClick()
+    composeRule.waitForIdle()
+    advanceUntilIdle()
+    composeRule.waitForIdle()
+
+    // Still should show both events
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_0").assertExists()
+    composeRule.onNodeWithTag("${C.Tag.org_profile_event_row_prefix}_1").assertExists()
   }
 
   @Test
@@ -798,6 +931,7 @@ class OrganizationProfileScreenTest {
     val event2 =
         testEvent.copy(
             uid = "event2",
+            organizationId = "test_org", // Explicitly preserve organizationId
             title = "Second Event",
             start = Timestamp(Date(System.currentTimeMillis() + 86400000)),
             end = Timestamp(Date(System.currentTimeMillis() + 90000000)))

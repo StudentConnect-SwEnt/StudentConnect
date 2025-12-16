@@ -221,9 +221,14 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       copyCommon(
           createAsOrganization = createAsOrg,
           selectedOrganizationId =
-              if (!createAsOrg) null
-              else
-                  this.userOrganizations.firstOrNull()?.first) // Auto-select first org when enabled
+              if (createAsOrg) {
+                // Only auto-select first org if no organization is currently selected
+                this.selectedOrganizationId ?: this.userOrganizations.firstOrNull()?.first
+              } else {
+                // Keep selectedOrganizationId when disabling createAsOrganization
+                // (don't clear it, as it might be set manually)
+                this.selectedOrganizationId
+              })
     }
   }
 
@@ -238,7 +243,14 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
   /** Loads the organizations that the current user owns (is the creator of). */
   private fun loadUserOrganizations() {
-    val currentUserId = Firebase.auth.currentUser?.uid ?: return
+    val currentUserId =
+        try {
+          Firebase.auth.currentUser?.uid
+        } catch (e: IllegalStateException) {
+          // Firebase not initialized (e.g., in unit tests)
+          Log.d("BaseCreateEventViewModel", "Firebase not initialized, skipping organization load")
+          return
+        } ?: return
 
     viewModelScope.launch {
       try {
@@ -356,7 +368,13 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   fun saveEvent() {
     if (!validateState()) return
 
-    val currentUserId = Firebase.auth.currentUser?.uid
+    val currentUserId =
+        try {
+          Firebase.auth.currentUser?.uid
+        } catch (e: IllegalStateException) {
+          Log.e("BaseCreateEventViewModel", "Firebase not initialized, cannot save event", e)
+          return
+        }
     checkNotNull(currentUserId)
 
     updateState { copyCommon(isSaving = true) }
