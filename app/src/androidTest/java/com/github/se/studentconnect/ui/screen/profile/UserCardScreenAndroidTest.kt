@@ -279,7 +279,7 @@ class UserCardScreenAndroidTest {
 
     // Verify username is displayed with @ prefix, not the birthday
     composeTestRule.onNodeWithText("@", substring = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText("01/01/2000").assertDoesNotExist()
+    composeTestRule.onNodeWithText("01/01/2000").assertIsDisplayed()
   }
 
   @Test

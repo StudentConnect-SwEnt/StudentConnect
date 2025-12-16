@@ -169,6 +169,10 @@
     <string name="content_description_live_icon">Live Icon</string>
     <string name="content_description_flash_event">Flash Event</string>
     <string name="event_label_live">LIVE</string>
+
+    <string name="content_description_university">University</string>
+    <string name="content_description_birthday">Birthday</string>
+
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
