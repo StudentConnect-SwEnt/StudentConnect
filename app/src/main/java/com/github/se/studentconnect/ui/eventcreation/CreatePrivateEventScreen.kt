@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -7,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -104,9 +104,8 @@ fun CreatePrivateEventScreen(
           else stringResource(R.string.title_create_private_event),
       canSave = canSave,
       onSave = { createPrivateEventViewModel.saveEvent(context) },
-      testTags = shellTestTags) { onFocusChange ->
-      snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) }) { onFocusChange
-        ->
+      testTags = shellTestTags,
+      snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
 
         // Title and Description
         EventTitleAndDescriptionFields(
