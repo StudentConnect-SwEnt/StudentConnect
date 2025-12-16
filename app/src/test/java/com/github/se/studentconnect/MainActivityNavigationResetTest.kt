@@ -1,5 +1,6 @@
 package com.github.se.studentconnect
 
+import android.content.Context
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.user.UserRepository
@@ -47,7 +48,7 @@ class MainActivityNavigationResetTest {
 
   @Before
   fun setup() {
-    val context = ApplicationProvider.getApplicationContext()
+    val context = ApplicationProvider.getApplicationContext<Context>()
 
     // Initialize Firebase if not already initialized
     if (FirebaseApp.getApps(context).isEmpty()) {
