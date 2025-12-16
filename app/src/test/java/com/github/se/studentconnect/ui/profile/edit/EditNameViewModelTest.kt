@@ -24,7 +24,6 @@ class EditNameViewModelTest {
 
   private lateinit var repository: TestUserRepository
   private lateinit var viewModel: EditNameViewModel
-  private val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
   private val testUser =
       User(
           userId = "test_user",
@@ -86,6 +85,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty first name`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("Doe")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -102,6 +102,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty last name`() = runTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -117,6 +118,7 @@ class EditNameViewModelTest {
   fun `saveName validates both empty names`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -134,6 +136,7 @@ class EditNameViewModelTest {
   fun `saveName validates whitespace only names`() = runTest {
     viewModel.updateFirstName("   ")
     viewModel.updateLastName("   ")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for validation to complete
@@ -154,6 +157,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(newFirstName)
     viewModel.updateLastName(newLastName)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -174,6 +178,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(firstNameWithWhitespace)
     viewModel.updateLastName(lastNameWithWhitespace)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -187,6 +192,7 @@ class EditNameViewModelTest {
 
   @Test
   fun `saveName handles user not found error`() = runTest {
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     repository = TestUserRepository(null)
     val errorViewModel = EditNameViewModel(repository, "non_existent_user")
     errorViewModel.updateFirstName("John")
@@ -206,6 +212,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("Doe")
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -219,6 +226,7 @@ class EditNameViewModelTest {
     // Given: there are validation errors
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // When: clearErrors is called
@@ -236,6 +244,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(specialFirstName)
     viewModel.updateLastName(specialLastName)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -254,6 +263,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(longFirstName)
     viewModel.updateLastName(longLastName)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveName(testContext)
 
     // Wait for save to complete
@@ -267,6 +277,7 @@ class EditNameViewModelTest {
 
   @Test
   fun `multiple save operations work correctly`() = runTest {
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     // First save
     viewModel.updateFirstName("Alice")
     viewModel.updateLastName("Smith")

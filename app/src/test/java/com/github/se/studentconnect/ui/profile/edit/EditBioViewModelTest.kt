@@ -24,7 +24,6 @@ class EditBioViewModelTest {
 
   private lateinit var repository: TestUserRepository
   private lateinit var viewModel: EditBioViewModel
-  private val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
   private val testUser =
       User(
           userId = "test_user",
@@ -107,6 +106,7 @@ class EditBioViewModelTest {
   fun `updateBioText clears validation error`() = runTest {
     // Set up an error first
     viewModel.updateBioText("")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(100)
 
@@ -157,6 +157,7 @@ class EditBioViewModelTest {
   @Test
   fun `saveBio validates empty bio`() = runTest {
     viewModel.updateBioText("")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for validation to complete
@@ -169,6 +170,7 @@ class EditBioViewModelTest {
   @Test
   fun `saveBio validates whitespace only bio`() = runTest {
     viewModel.updateBioText("   ")
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for validation to complete
@@ -189,6 +191,7 @@ class EditBioViewModelTest {
     viewModel.updateBioText("A".repeat(ProfileConstants.MAX_BIO_LENGTH))
 
     // Now try to save - should succeed at max length
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
     kotlinx.coroutines.delay(200)
 
@@ -201,6 +204,7 @@ class EditBioViewModelTest {
     val newBio = "This is my new and improved bio"
     viewModel.updateBioText(newBio)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -217,6 +221,7 @@ class EditBioViewModelTest {
     val bioWithWhitespace = "  This is my bio  "
     viewModel.updateBioText(bioWithWhitespace)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -235,6 +240,7 @@ class EditBioViewModelTest {
 
     // Add small delay to ensure timestamp difference
     kotlinx.coroutines.delay(10)
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -253,7 +259,8 @@ class EditBioViewModelTest {
     val errorViewModel = EditBioViewModel(repository, "non_existent_user")
     errorViewModel.updateBioText("Some bio")
 
-    errorViewModel.saveBio(testContext)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    errorViewModel.saveBio(context)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -266,7 +273,8 @@ class EditBioViewModelTest {
     repository.shouldThrowOnSave = RuntimeException("Save failed")
     viewModel.updateBioText("Valid bio")
 
-    viewModel.saveBio(testContext)
+    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    viewModel.saveBio(context)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -278,6 +286,7 @@ class EditBioViewModelTest {
   fun `saveBio sets success state on successful save`() = runTest {
     viewModel.updateBioText("New bio")
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -290,6 +299,7 @@ class EditBioViewModelTest {
 
   @Test
   fun `saveBio clears previous validation errors before validation`() = runTest {
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     // First attempt with empty bio
     viewModel.updateBioText("")
     viewModel.saveBio(testContext)
@@ -310,6 +320,7 @@ class EditBioViewModelTest {
 
   @Test
   fun `clearValidationError clears validation error`() {
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.updateBioText("")
     viewModel.saveBio(testContext)
 
@@ -325,6 +336,7 @@ class EditBioViewModelTest {
     val specialBio = "Bio with émojis 🎉 and spëcial çharacters!"
     viewModel.updateBioText(specialBio)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -340,6 +352,7 @@ class EditBioViewModelTest {
     val multilineBio = "Line 1\nLine 2\nLine 3"
     viewModel.updateBioText(multilineBio)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -355,6 +368,7 @@ class EditBioViewModelTest {
     val longBio = "A".repeat(ProfileConstants.MAX_BIO_LENGTH)
     viewModel.updateBioText(longBio)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete
@@ -367,6 +381,7 @@ class EditBioViewModelTest {
 
   @Test
   fun `multiple save operations work correctly`() = runTest {
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     // First save
     viewModel.updateBioText("First bio")
     viewModel.saveBio(testContext)
@@ -383,36 +398,45 @@ class EditBioViewModelTest {
 
   @Test
   fun `saveBio sets offline message when offline`() = runTest {
-    val context = mockk<android.content.Context>(relaxed = true)
+    // Wait for initial load to complete
+    kotlinx.coroutines.delay(200)
+
+    // Use a mock context that returns null for network to simulate offline
+    val mockContext = mockk<android.content.Context>(relaxed = true)
     val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
 
-    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
     every { connectivityManager.activeNetwork } returns null
 
     viewModel.updateBioText("Test bio")
-    viewModel.saveBio(context)
+    viewModel.saveBio(mockContext)
 
-    kotlinx.coroutines.delay(200)
+    // Wait for coroutine to complete
+    kotlinx.coroutines.delay(300)
 
     assertEquals(com.github.se.studentconnect.R.string.offline_changes_will_sync, viewModel.offlineMessageRes.value)
   }
 
   @Test
   fun `saveBio clears offline message when online`() = runTest {
-    val context = mockk<android.content.Context>(relaxed = true)
+    // Wait for initial load to complete
+    kotlinx.coroutines.delay(200)
+
+    val mockContext = mockk<android.content.Context>(relaxed = true)
     val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
     val network = mockk<android.net.Network>(relaxed = true)
     val capabilities = mockk<android.net.NetworkCapabilities>(relaxed = true)
 
-    every { context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns connectivityManager
     every { connectivityManager.activeNetwork } returns network
     every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
     every { capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
 
     viewModel.updateBioText("Test bio")
-    viewModel.saveBio(context)
+    viewModel.saveBio(mockContext)
 
-    kotlinx.coroutines.delay(200)
+    // Wait for coroutine to complete
+    kotlinx.coroutines.delay(300)
 
     assertNull(viewModel.offlineMessageRes.value)
   }
@@ -430,6 +454,7 @@ class EditBioViewModelTest {
     val newBio = "Updated bio"
     viewModel.updateBioText(newBio)
 
+    val testContext = ApplicationProvider.getApplicationContext<android.content.Context>()
     viewModel.saveBio(testContext)
 
     // Wait for save to complete

@@ -25,6 +25,7 @@ import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -645,9 +646,17 @@ class BaseCreateEventViewModelTest {
     every { context.getSystemService(Context.CONNECTIVITY_SERVICE) } returns connectivityManager
     every { connectivityManager.activeNetwork } returns null
 
+    // Create a valid event state for validation to pass
+    val initialState = CreateEventUiState.Public(
+        title = "Test Event",
+        startDate = java.time.LocalDate.now(),
+        endDate = java.time.LocalDate.now().plusDays(1),
+        startTime = java.time.LocalTime.now(),
+        endTime = java.time.LocalTime.now().plusHours(1))
+
     val vm =
         FakeViewModel(
-            initialState = CreateEventUiState.Public(title = "Test Event"),
+            initialState = initialState,
             eventRepository = mockk(relaxed = true),
             mediaRepository = mockk(relaxed = true),
             userRepository = mockk(relaxed = true),
@@ -663,7 +672,7 @@ class BaseCreateEventViewModelTest {
     every { mockUser.uid } returns "test-user-id"
 
     vm.saveEvent(context)
-    kotlinx.coroutines.delay(100)
+    advanceUntilIdle()
 
     assertEquals(R.string.offline_changes_will_sync, vm.offlineMessageRes.value)
   }
@@ -682,9 +691,17 @@ class BaseCreateEventViewModelTest {
     every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
     every { capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
 
+    // Create a valid event state for validation to pass
+    val initialState = CreateEventUiState.Public(
+        title = "Test Event",
+        startDate = java.time.LocalDate.now(),
+        endDate = java.time.LocalDate.now().plusDays(1),
+        startTime = java.time.LocalTime.now(),
+        endTime = java.time.LocalTime.now().plusHours(1))
+
     val vm =
         FakeViewModel(
-            initialState = CreateEventUiState.Public(title = "Test Event"),
+            initialState = initialState,
             eventRepository = mockk(relaxed = true),
             mediaRepository = mockk(relaxed = true),
             userRepository = mockk(relaxed = true),
@@ -700,16 +717,32 @@ class BaseCreateEventViewModelTest {
     every { mockUser.uid } returns "test-user-id"
 
     vm.saveEvent(context)
-    kotlinx.coroutines.delay(100)
+    advanceUntilIdle()
 
     assertNull(vm.offlineMessageRes.value)
   }
 
   @Test
-  fun `clearOfflineMessage clears offline message`() {
+  fun `clearOfflineMessage clears offline message`() = runTest {
+    val appContext = ApplicationProvider.getApplicationContext<Context>()
+    val context = mockk<Context>(relaxed = true)
+    val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
+
+    every { context.applicationContext } returns appContext
+    every { context.getSystemService(Context.CONNECTIVITY_SERVICE) } returns connectivityManager
+    every { connectivityManager.activeNetwork } returns null
+
+    // Create a valid event state for validation to pass
+    val initialState = CreateEventUiState.Public(
+        title = "Test Event",
+        startDate = java.time.LocalDate.now(),
+        endDate = java.time.LocalDate.now().plusDays(1),
+        startTime = java.time.LocalTime.now(),
+        endTime = java.time.LocalTime.now().plusHours(1))
+
     val vm =
         FakeViewModel(
-            initialState = CreateEventUiState.Public(),
+            initialState = initialState,
             eventRepository = mockk(relaxed = true),
             mediaRepository = mockk(relaxed = true),
             userRepository = mockk(relaxed = true),
@@ -717,13 +750,16 @@ class BaseCreateEventViewModelTest {
             friendsRepository = mockk(relaxed = true),
             notificationRepository = mockk(relaxed = true))
 
-    // Set offline message manually via reflection
-    val offlineMessageField =
-        BaseCreateEventViewModel::class.java.getDeclaredField("_offlineMessageRes").apply {
-          isAccessible = true
-        }
-    val offlineMessageFlow = offlineMessageField.get(vm) as kotlinx.coroutines.flow.MutableStateFlow<Int?>
-    offlineMessageFlow.value = R.string.offline_changes_will_sync
+    mockkStatic(FirebaseAuth::class)
+    val mockAuth = mockk<FirebaseAuth>(relaxed = true)
+    val mockUser = mockk<FirebaseUser>(relaxed = true)
+    every { FirebaseAuth.getInstance() } returns mockAuth
+    every { mockAuth.currentUser } returns mockUser
+    every { mockUser.uid } returns "test-user-id"
+
+    // Set offline message by calling saveEvent offline
+    vm.saveEvent(context)
+    advanceUntilIdle()
 
     assertEquals(R.string.offline_changes_will_sync, vm.offlineMessageRes.value)
 
