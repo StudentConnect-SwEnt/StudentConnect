@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
+import com.github.se.studentconnect.R
 
 /**
  * Animated typing indicator showing three pulsing dots.
@@ -54,12 +56,20 @@ fun TypingIndicator(typingUserNames: List<String>, modifier: Modifier = Modifier
                     repeat(3) { index ->
                       AnimatedDot(
                           delayMillis = index * 150,
-                          modifier = Modifier.testTag("typing_indicator_dot_$index"))
+                          modifier = Modifier.testTag(typingIndicatorDotTestTag(index)))
                     }
                   }
             }
       }
 }
+
+/**
+ * Returns the test tag for a typing indicator dot at the given index.
+ *
+ * @param index The index of the dot (0-2).
+ * @return The test tag string.
+ */
+fun typingIndicatorDotTestTag(index: Int): String = "typing_indicator_dot_$index"
 
 /**
  * Single animated dot for the typing indicator.
@@ -69,7 +79,7 @@ fun TypingIndicator(typingUserNames: List<String>, modifier: Modifier = Modifier
  */
 @Composable
 private fun AnimatedDot(delayMillis: Int, modifier: Modifier = Modifier) {
-  val infiniteTransition = rememberInfiniteTransition(label = "dot_animation")
+  val infiniteTransition = rememberInfiniteTransition(label = "")
 
   val alpha by
       infiniteTransition.animateFloat(
@@ -85,12 +95,12 @@ private fun AnimatedDot(delayMillis: Int, modifier: Modifier = Modifier) {
                         0.3f at 600 + delayMillis
                       },
                   repeatMode = RepeatMode.Restart),
-          label = "dot_alpha")
+          label = "")
 
   Box(
       modifier =
           modifier
-              .size(6.dp)
+              .size(dimensionResource(R.dimen.typing_indicator_dot_size))
               .alpha(alpha)
               .background(color = MaterialTheme.colorScheme.onSurfaceVariant, shape = CircleShape))
 }

@@ -17,10 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -83,7 +83,7 @@ fun EventChatScreen(
             title = {
               Column {
                 Text(
-                    text = uiState.event?.title ?: "Event Chat",
+                    text = uiState.event?.title ?: stringResource(R.string.chat_default_title),
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis)
@@ -91,9 +91,11 @@ fun EventChatScreen(
                   val userNames = uiState.typingUsers.values.toList()
                   val typingText =
                       when (userNames.size) {
-                        1 -> "${userNames[0]} is typing..."
-                        2 -> "${userNames[0]} and ${userNames[1]} are typing..."
-                        else -> "${userNames[0]} and ${userNames.size - 1} others are typing..."
+                        1 -> stringResource(R.string.chat_typing_single, userNames[0])
+                        2 -> stringResource(R.string.chat_typing_two, userNames[0], userNames[1])
+                        else ->
+                            stringResource(
+                                R.string.chat_typing_multiple, userNames[0], userNames.size - 1)
                       }
                   Text(
                       text = typingText,
@@ -141,7 +143,9 @@ fun EventChatScreen(
                   ErrorMessage(
                       message = uiState.error!!,
                       onDismiss = { chatViewModel.clearError() },
-                      modifier = Modifier.align(Alignment.TopCenter).padding(16.dp))
+                      modifier =
+                          Modifier.align(Alignment.TopCenter)
+                              .padding(dimensionResource(R.dimen.chat_error_padding)))
                 }
                 uiState.messages.isEmpty() -> {
                   EmptyChat(modifier = Modifier.align(Alignment.Center))
@@ -154,8 +158,13 @@ fun EventChatScreen(
                             Modifier.weight(1f)
                                 .fillMaxWidth()
                                 .testTag(EventChatScreenTestTags.MESSAGES_LIST),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        contentPadding =
+                            PaddingValues(
+                                horizontal = dimensionResource(R.dimen.chat_messages_padding),
+                                vertical = dimensionResource(R.dimen.chat_messages_padding)),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                dimensionResource(R.dimen.chat_messages_spacing))) {
                           items(items = uiState.messages, key = { it.messageId }) { message ->
                             MessageItem(
                                 message = message,
@@ -210,17 +219,28 @@ private fun MessageItem(
       horizontalArrangement = alignment) {
         Column(
             modifier =
-                Modifier.widthIn(max = 280.dp)
+                Modifier.widthIn(max = dimensionResource(R.dimen.chat_message_max_width))
                     .clip(
                         RoundedCornerShape(
-                            topStart = if (isCurrentUser) 16.dp else 4.dp,
-                            topEnd = if (isCurrentUser) 4.dp else 16.dp,
-                            bottomStart = 16.dp,
-                            bottomEnd = 16.dp))
+                            topStart =
+                                if (isCurrentUser)
+                                    dimensionResource(R.dimen.chat_message_corner_radius_normal)
+                                else dimensionResource(R.dimen.chat_message_corner_radius_small),
+                            topEnd =
+                                if (isCurrentUser)
+                                    dimensionResource(R.dimen.chat_message_corner_radius_small)
+                                else dimensionResource(R.dimen.chat_message_corner_radius_normal),
+                            bottomStart =
+                                dimensionResource(R.dimen.chat_message_corner_radius_normal),
+                            bottomEnd =
+                                dimensionResource(R.dimen.chat_message_corner_radius_normal)))
                     .background(bubbleColor)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.chat_message_padding_horizontal),
+                        vertical = dimensionResource(R.dimen.chat_message_padding_vertical))
                     .testTag(EventChatScreenTestTags.MESSAGE_BUBBLE),
-            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            verticalArrangement =
+                Arrangement.spacedBy(dimensionResource(R.dimen.chat_message_spacing))) {
               // Sender name (only show for other users)
               if (!isCurrentUser) {
                 Text(
@@ -270,10 +290,15 @@ private fun ChatInputBar(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       color = MaterialTheme.colorScheme.surface,
-      shadowElevation = 8.dp) {
+      shadowElevation = dimensionResource(R.dimen.chat_input_elevation)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.chat_input_padding_horizontal),
+                        vertical = dimensionResource(R.dimen.chat_input_padding_vertical)),
+            horizontalArrangement =
+                Arrangement.spacedBy(dimensionResource(R.dimen.chat_input_spacing)),
             verticalAlignment = Alignment.CenterVertically) {
               OutlinedTextField(
                   value = messageText,
@@ -288,7 +313,7 @@ private fun ChatInputBar(
                   enabled = enabled && !isSending,
                   singleLine = false,
                   maxLines = 4,
-                  shape = RoundedCornerShape(24.dp),
+                  shape = RoundedCornerShape(dimensionResource(R.dimen.chat_input_corner_radius)),
                   colors =
                       OutlinedTextFieldDefaults.colors(
                           focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -299,7 +324,7 @@ private fun ChatInputBar(
                   onClick = onSendClick,
                   enabled = enabled && !isSending && messageText.isNotBlank(),
                   modifier =
-                      Modifier.size(48.dp)
+                      Modifier.size(dimensionResource(R.dimen.chat_send_button_size))
                           .clip(CircleShape)
                           .background(
                               if (enabled && !isSending && messageText.isNotBlank())
@@ -308,9 +333,10 @@ private fun ChatInputBar(
                           .testTag(EventChatScreenTestTags.SEND_BUTTON)) {
                     if (isSending) {
                       CircularProgressIndicator(
-                          modifier = Modifier.size(24.dp),
+                          modifier =
+                              Modifier.size(dimensionResource(R.dimen.chat_send_button_icon_size)),
                           color = MaterialTheme.colorScheme.onPrimary,
-                          strokeWidth = 2.dp)
+                          strokeWidth = dimensionResource(R.dimen.chat_send_button_progress_stroke))
                     } else {
                       Icon(
                           imageVector = Icons.AutoMirrored.Filled.Send,
@@ -333,9 +359,12 @@ private fun ChatInputBar(
 private fun EmptyChat(modifier: Modifier = Modifier) {
   Column(
       modifier =
-          modifier.fillMaxWidth().padding(32.dp).testTag(EventChatScreenTestTags.EMPTY_STATE),
+          modifier
+              .fillMaxWidth()
+              .padding(dimensionResource(R.dimen.chat_empty_padding))
+              .testTag(EventChatScreenTestTags.EMPTY_STATE),
       horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.chat_empty_spacing))) {
         Text(
             text = stringResource(R.string.chat_empty_title),
             style = MaterialTheme.typography.titleMedium,
@@ -360,7 +389,8 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit, modifier: Modif
       modifier = modifier.fillMaxWidth().testTag(EventChatScreenTestTags.ERROR_MESSAGE),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier =
+                Modifier.fillMaxWidth().padding(dimensionResource(R.dimen.chat_error_card_padding)),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
@@ -383,20 +413,22 @@ private fun ErrorMessage(message: String, onDismiss: () -> Unit, modifier: Modif
  * @param date The date to format.
  * @return A formatted time string (e.g., "10:30 AM" or "Yesterday, 3:45 PM").
  */
+@Composable
 private fun formatTimestamp(date: Date): String {
   val now = Date()
   val diff = now.time - date.time
   val dayInMillis = 24 * 60 * 60 * 1000
 
   return when {
-    diff < 60000 -> "Just now" // Less than a minute
+    diff < 60000 -> stringResource(R.string.chat_timestamp_just_now)
     diff < dayInMillis -> {
       // Today - show time only
       SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
     }
     diff < 2 * dayInMillis -> {
       // Yesterday
-      "Yesterday, " + SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
+      val timeStr = SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
+      stringResource(R.string.chat_timestamp_yesterday, timeStr)
     }
     else -> {
       // Older - show date and time

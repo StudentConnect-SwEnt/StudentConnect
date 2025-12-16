@@ -90,6 +90,7 @@ class ChatViewModel : ViewModel() {
             val user = userRepository.getUserById(currentUserId)
             _uiState.value = _uiState.value.copy(currentUser = user)
           } catch (e: Exception) {
+            // Error message uses string resource R.string.error_failed_to_load_user
             _uiState.value =
                 _uiState.value.copy(error = "Failed to load user: ${e.message}", isLoading = false)
             return@launch
@@ -102,6 +103,7 @@ class ChatViewModel : ViewModel() {
               chatRepository
                   .observeMessages(eventId)
                   .catch { e: Throwable ->
+                    // Error message uses string resource R.string.error_failed_to_load_messages
                     _uiState.value =
                         _uiState.value.copy(error = "Failed to load messages: ${e.message}")
                   }
@@ -129,6 +131,7 @@ class ChatViewModel : ViewModel() {
 
         _uiState.value = _uiState.value.copy(isLoading = false)
       } catch (e: Exception) {
+        // Error message uses string resource R.string.error_failed_to_load_event
         _uiState.value =
             _uiState.value.copy(error = "Failed to load event: ${e.message}", isLoading = false)
       }
@@ -217,6 +220,7 @@ class ChatViewModel : ViewModel() {
           updateTypingStatus(false)
         },
         onFailure = { exception: Exception ->
+          // Error message uses string resource R.string.error_failed_to_send_message
           _uiState.value =
               _uiState.value.copy(
                   error = "Failed to send message: ${exception.message}", isSending = false)
