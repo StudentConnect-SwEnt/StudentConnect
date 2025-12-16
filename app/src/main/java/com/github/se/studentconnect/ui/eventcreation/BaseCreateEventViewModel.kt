@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
@@ -35,6 +33,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.ImageUploadWorker
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -97,6 +96,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   protected val _snackbarMessage = MutableSharedFlow<String>()
   /** Flow to emit snackbar messages. */
   val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
+
+  private val _offlineMessageRes = MutableStateFlow<Int?>(null)
+  /** Resource ID for offline message to display. */
+  val offlineMessageRes: StateFlow<Int?> = _offlineMessageRes.asStateFlow()
 
   protected val _uiState = MutableStateFlow(initialState)
   /** The current UI state. */
@@ -295,7 +298,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     val s = uiState.value
     return when {
       s.bannerImageUri != null -> {
-        val hasNetwork = isNetworkAvailable(context)
+        val hasNetwork = NetworkUtils.isNetworkAvailable(context)
 
         if (hasNetwork) {
           try {
@@ -372,6 +375,14 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
     val currentUserId = Firebase.auth.currentUser?.uid
     checkNotNull(currentUserId)
+
+    // Check if offline and show message
+    if (!NetworkUtils.isNetworkAvailable(context)) {
+      _offlineMessageRes.value = R.string.offline_changes_will_sync
+      // Still proceed with save as Firestore will cache offline
+    } else {
+      _offlineMessageRes.value = null
+    }
 
     updateState { copyCommon(isSaving = true) }
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
@@ -617,10 +628,8 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
             "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
   }
 
-  private fun isNetworkAvailable(context: Context): Boolean {
-    val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
-    val network = cm.activeNetwork ?: return false
-    val capabilities = cm.getNetworkCapabilities(network) ?: return false
-    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+  /** Clears the offline message. */
+  fun clearOfflineMessage() {
+    _offlineMessageRes.value = null
   }
 }

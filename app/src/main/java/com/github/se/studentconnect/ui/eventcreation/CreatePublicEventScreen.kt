@@ -1,9 +1,13 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,8 +15,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
@@ -26,6 +32,7 @@ import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.navigation.Route
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
 /** Constant Test Tags for the Public Event Screen */
 object CreatePublicEventScreenTestTags {
@@ -85,9 +92,11 @@ fun CreatePublicEventScreen(
   }
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
+  val offlineMessageRes by createPublicEventViewModel.offlineMessageRes.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val context = LocalContext.current
-  val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+  val snackbarHostState = remember { SnackbarHostState() }
+  val coroutineScope = rememberCoroutineScope()
 
   LaunchedEffect(Unit) {
     createPublicEventViewModel.navigateToEvent.collect { eventId ->
@@ -100,6 +109,16 @@ fun CreatePublicEventScreen(
   LaunchedEffect(Unit) {
     createPublicEventViewModel.snackbarMessage.collect { message ->
       snackbarHostState.showSnackbar(message)
+    }
+  }
+
+  // Show snackbar for offline messages
+  LaunchedEffect(offlineMessageRes) {
+    offlineMessageRes?.let { messageRes ->
+      coroutineScope.launch {
+        snackbarHostState.showSnackbar(context.getString(messageRes))
+        createPublicEventViewModel.clearOfflineMessage()
+      }
     }
   }
 
@@ -124,175 +143,180 @@ fun CreatePublicEventScreen(
           scrollColumn = CreatePublicEventScreenTestTags.SCROLL_COLUMN,
           saveButton = CreatePublicEventScreenTestTags.SAVE_BUTTON)
 
-  CreateEventShell(
-      navController = navController,
-      title =
-          if (existingEventId != null) stringResource(R.string.title_edit_public_event)
-          else stringResource(R.string.title_create_public_event),
-      canSave = canSave,
-      onSave = { createPublicEventViewModel.saveEvent(context) },
-      testTags = shellTestTags,
-      snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) }) { onFocusChange
-        ->
+  Box(modifier = Modifier.fillMaxSize()) {
+    CreateEventShell(
+        navController = navController,
+        title =
+            if (existingEventId != null) stringResource(R.string.title_edit_public_event)
+            else stringResource(R.string.title_create_public_event),
+        canSave = canSave,
+        onSave = { createPublicEventViewModel.saveEvent(context) },
+        testTags = shellTestTags,
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
 
-        // Title
-        FormTextField(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .testTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
-                    .onFocusChanged { onFocusChange(it.isFocused) },
-            label = stringResource(R.string.event_label_title),
-            placeholder = stringResource(R.string.event_placeholder_title),
-            value = uiState.title,
-            onValueChange = createPublicEventViewModel::updateTitle,
-            errorText =
-                if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
-                else null,
-            required = true)
 
-        // Subtitle (Specific to Public)
-        FormTextField(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
-                    .onFocusChanged { onFocusChange(it.isFocused) },
-            label = stringResource(R.string.event_label_subtitle),
-            placeholder = stringResource(R.string.event_placeholder_subtitle),
-            value = uiState.subtitle,
-            onValueChange = createPublicEventViewModel::updateSubtitle,
-        )
+          // Title
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.TITLE_INPUT)
+                      .onFocusChanged { onFocusChange(it.isFocused) },
+              label = stringResource(R.string.event_label_title),
+              placeholder = stringResource(R.string.event_placeholder_title),
+              value = uiState.title,
+              onValueChange = createPublicEventViewModel::updateTitle,
+              errorText =
+                  if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
+                  else null,
+              required = true)
 
-        // Description
-        FormTextField(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
-                    .onFocusChanged { onFocusChange(it.isFocused) },
-            label = stringResource(R.string.event_label_description),
-            placeholder = stringResource(R.string.event_placeholder_description),
-            value = uiState.description,
-            onValueChange = createPublicEventViewModel::updateDescription,
-        )
+          // Subtitle (Specific to Public)
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.SUBTITLE_INPUT)
+                      .onFocusChanged { onFocusChange(it.isFocused) },
+              label = stringResource(R.string.event_label_subtitle),
+              placeholder = stringResource(R.string.event_placeholder_subtitle),
+              value = uiState.subtitle,
+              onValueChange = createPublicEventViewModel::updateSubtitle,
+          )
 
-        // Banner
-        EventBannerField(
-            bannerImageUri = uiState.bannerImageUri,
-            bannerImagePath = uiState.bannerImagePath,
-            onImageSelected = createPublicEventViewModel::updateBannerImageUri,
-            onRemoveImage = createPublicEventViewModel::removeBannerImage,
-            pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
-            removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON,
-            isGenerating = uiState.isGeneratingBanner,
-            onGeminiClick = { showGeminiDialog = true })
+          // Description
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.DESCRIPTION_INPUT)
+                      .onFocusChanged { onFocusChange(it.isFocused) },
+              label = stringResource(R.string.event_label_description),
+              placeholder = stringResource(R.string.event_placeholder_description),
+              value = uiState.description,
+              onValueChange = createPublicEventViewModel::updateDescription,
+          )
 
-        val context = androidx.compose.ui.platform.LocalContext.current
-        if (showGeminiDialog) {
-          GeminiPromptDialog(
-              onDismiss = { showGeminiDialog = false },
-              onGenerate = { prompt ->
-                createPublicEventViewModel.generateBanner(context, prompt)
-                showGeminiDialog = false
-              },
-              isLoading = uiState.isGeneratingBanner)
-        }
+            // Banner
+            EventBannerField(
+                bannerImageUri = uiState.bannerImageUri,
+                bannerImagePath = uiState.bannerImagePath,
+                onImageSelected = createPublicEventViewModel::updateBannerImageUri,
+                onRemoveImage = createPublicEventViewModel::removeBannerImage,
+                pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
+                removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON,
+                isGenerating = uiState.isGeneratingBanner,
+                onGeminiClick = { showGeminiDialog = true })
 
-        // Tags (Specific to Public)
-        Column(
-            modifier =
-                Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TAG_SELECTOR),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(
-                  text = stringResource(R.string.event_label_tags),
-                  style = MaterialTheme.typography.titleMedium,
-                  color = MaterialTheme.colorScheme.onSurface)
-
-              val availableTagOptions =
-                  Activities.experienceTopics[selectedTagCategory] ?: emptyList()
-              TopicChipGrid(
-                  tags = availableTagOptions,
-                  selectedTags = uiState.tags.toSet(),
-                  onTagToggle = { tag ->
-                    val updatedTags =
-                        if (uiState.tags.contains(tag)) uiState.tags - tag else uiState.tags + tag
-                    createPublicEventViewModel.updateTags(updatedTags)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            if (showGeminiDialog) {
+              GeminiPromptDialog(
+                  onDismiss = { showGeminiDialog = false },
+                  onGenerate = { prompt ->
+                    createPublicEventViewModel.generateBanner(context, prompt)
+                    showGeminiDialog = false
                   },
-                  modifier = Modifier.fillMaxWidth(),
-                  filterOptions = Activities.filterOptions,
-                  selectedFilter = selectedTagCategory,
-                  onFilterSelected = { selectedTagCategory = it })
+                  isLoading = uiState.isGeneratingBanner)
             }
 
-        // Common Bottom Fields
-        EventLocationField(
-            location = uiState.location,
-            onLocationChange = createPublicEventViewModel::updateLocation,
-            testTag = CreatePublicEventScreenTestTags.LOCATION_INPUT)
+          // Tags (Specific to Public)
+          Column(
+              modifier =
+                  Modifier.fillMaxWidth().testTag(CreatePublicEventScreenTestTags.TAG_SELECTOR),
+              verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.event_label_tags),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
 
-        // Flash Event Toggle (before date/time fields)
-        FlashEventToggle(
-            isFlash = uiState.isFlash,
-            onIsFlashChange = createPublicEventViewModel::updateIsFlash,
-            flashSwitchTag = CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
+                val availableTagOptions =
+                    Activities.experienceTopics[selectedTagCategory] ?: emptyList()
+                TopicChipGrid(
+                    tags = availableTagOptions,
+                    selectedTags = uiState.tags.toSet(),
+                    onTagToggle = { tag ->
+                      val updatedTags =
+                          if (uiState.tags.contains(tag)) uiState.tags - tag else uiState.tags + tag
+                      createPublicEventViewModel.updateTags(updatedTags)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    filterOptions = Activities.filterOptions,
+                    selectedFilter = selectedTagCategory,
+                    onFilterSelected = { selectedTagCategory = it })
+              }
 
-        // Conditional: Show duration picker for flash events, date/time for normal events
-        if (uiState.isFlash) {
-          FlashEventDurationFields(
-              hours = uiState.flashDurationHours,
-              minutes = uiState.flashDurationMinutes,
-              onHoursChange = createPublicEventViewModel::updateFlashDurationHours,
-              onMinutesChange = createPublicEventViewModel::updateFlashDurationMinutes,
-              hoursTag = CreatePublicEventScreenTestTags.FLASH_DURATION_HOURS,
-              minutesTag = CreatePublicEventScreenTestTags.FLASH_DURATION_MINUTES)
-        } else {
-          EventDateTimeFields(
+          // Common Bottom Fields
+          EventLocationField(
+              location = uiState.location,
+              onLocationChange = createPublicEventViewModel::updateLocation,
+              testTag = CreatePublicEventScreenTestTags.LOCATION_INPUT,
+              snackbarHostState = snackbarHostState)
+
+          // Flash Event Toggle (before date/time fields)
+          FlashEventToggle(
+              isFlash = uiState.isFlash,
+              onIsFlashChange = createPublicEventViewModel::updateIsFlash,
+              flashSwitchTag = CreatePublicEventScreenTestTags.FLASH_EVENT_SWITCH)
+
+          // Conditional: Show duration picker for flash events, date/time for normal events
+          if (uiState.isFlash) {
+            FlashEventDurationFields(
+                hours = uiState.flashDurationHours,
+                minutes = uiState.flashDurationMinutes,
+                onHoursChange = createPublicEventViewModel::updateFlashDurationHours,
+                onMinutesChange = createPublicEventViewModel::updateFlashDurationMinutes,
+                hoursTag = CreatePublicEventScreenTestTags.FLASH_DURATION_HOURS,
+                minutesTag = CreatePublicEventScreenTestTags.FLASH_DURATION_MINUTES)
+          } else {
+            EventDateTimeFields(
+                state =
+                    DateTimeState(
+                        startDate = uiState.startDate?.format(dateFormatter) ?: "",
+                        startTime = uiState.startTime,
+                        endDate = uiState.endDate?.format(dateFormatter) ?: "",
+                        endTime = uiState.endTime),
+                callbacks =
+                    DateTimeCallbacks(
+                        onStartDateChange = createPublicEventViewModel::updateStartDate,
+                        onStartTimeChange = createPublicEventViewModel::updateStartTime,
+                        onEndDateChange = createPublicEventViewModel::updateEndDate,
+                        onEndTimeChange = createPublicEventViewModel::updateEndTime),
+                startDateTag = CreatePublicEventScreenTestTags.START_DATE_INPUT,
+                startTimeTag = CreatePublicEventScreenTestTags.START_TIME_BUTTON,
+                endDateTag = CreatePublicEventScreenTestTags.END_DATE_INPUT,
+                endTimeTag = CreatePublicEventScreenTestTags.END_TIME_BUTTON)
+          }
+
+          EventParticipantsAndFeesFields(
               state =
-                  DateTimeState(
-                      startDate = uiState.startDate?.format(dateFormatter) ?: "",
-                      startTime = uiState.startTime,
-                      endDate = uiState.endDate?.format(dateFormatter) ?: "",
-                      endTime = uiState.endTime),
+                  ParticipantsFeeState(
+                      numberOfParticipants = uiState.numberOfParticipantsString,
+                      hasParticipationFee = uiState.hasParticipationFee,
+                      participationFee = uiState.participationFeeString,
+                      isFlash = uiState.isFlash),
               callbacks =
-                  DateTimeCallbacks(
-                      onStartDateChange = createPublicEventViewModel::updateStartDate,
-                      onStartTimeChange = createPublicEventViewModel::updateStartTime,
-                      onEndDateChange = createPublicEventViewModel::updateEndDate,
-                      onEndTimeChange = createPublicEventViewModel::updateEndTime),
-              startDateTag = CreatePublicEventScreenTestTags.START_DATE_INPUT,
-              startTimeTag = CreatePublicEventScreenTestTags.START_TIME_BUTTON,
-              endDateTag = CreatePublicEventScreenTestTags.END_DATE_INPUT,
-              endTimeTag = CreatePublicEventScreenTestTags.END_TIME_BUTTON)
+                  ParticipantsFeeCallbacks(
+                      onParticipantsChange =
+                          createPublicEventViewModel::updateNumberOfParticipantsString,
+                      onHasFeeChange = createPublicEventViewModel::updateHasParticipationFee,
+                      onFeeStringChange = createPublicEventViewModel::updateParticipationFeeString,
+                      onIsFlashChange = createPublicEventViewModel::updateIsFlash),
+              participantsTag = CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
+              feeSwitchTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
+              feeInputTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT,
+              onFocusChange = onFocusChange)
+
+          // Website (Specific to Public)
+          FormTextField(
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
+                      .onFocusChanged { onFocusChange(it.isFocused) },
+              label = stringResource(R.string.event_label_website),
+              value = uiState.website,
+              onValueChange = createPublicEventViewModel::updateWebsite,
+          )
         }
 
-        EventParticipantsAndFeesFields(
-            state =
-                ParticipantsFeeState(
-                    numberOfParticipants = uiState.numberOfParticipantsString,
-                    hasParticipationFee = uiState.hasParticipationFee,
-                    participationFee = uiState.participationFeeString,
-                    isFlash = uiState.isFlash),
-            callbacks =
-                ParticipantsFeeCallbacks(
-                    onParticipantsChange =
-                        createPublicEventViewModel::updateNumberOfParticipantsString,
-                    onHasFeeChange = createPublicEventViewModel::updateHasParticipationFee,
-                    onFeeStringChange = createPublicEventViewModel::updateParticipationFeeString,
-                    onIsFlashChange = createPublicEventViewModel::updateIsFlash),
-            participantsTag = CreatePublicEventScreenTestTags.NUMBER_OF_PARTICIPANTS_INPUT,
-            feeSwitchTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_SWITCH,
-            feeInputTag = CreatePublicEventScreenTestTags.PARTICIPATION_FEE_INPUT,
-            onFocusChange = onFocusChange)
-
-        // Website (Specific to Public)
-        FormTextField(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .testTag(CreatePublicEventScreenTestTags.WEBSITE_INPUT)
-                    .onFocusChanged { onFocusChange(it.isFocused) },
-            label = stringResource(R.string.event_label_website),
-            value = uiState.website,
-            onValueChange = createPublicEventViewModel::updateWebsite,
-        )
-      }
+    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+  }
 }
 
 private fun handlePrefill(
