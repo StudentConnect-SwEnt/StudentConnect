@@ -572,20 +572,6 @@ fun HomeScreen(
                                                   }
                                                 },
                                                 onClick = { event, seenStories ->
-                                                  // Show message if offline (but still allow
-                                                  // viewing attempt)
-                                                  if (!NetworkUtils.isNetworkAvailable(context)) {
-                                                    coroutineScope.launch {
-                                                      snackbarHostState.showSnackbar(
-                                                          message =
-                                                              context.getString(
-                                                                  R.string
-                                                                      .offline_no_internet_try_later),
-                                                          duration = SnackbarDuration.Short)
-                                                    }
-                                                    // Continue - story viewer will handle offline
-                                                    // state naturally
-                                                  }
                                                   selectedStory = event
                                                   selectedStoryIndex = seenStories
                                                   showStoryViewer = true
@@ -1631,6 +1617,7 @@ fun StoryViewer(
   var currentStoryIndex by
       remember(event.uid) { mutableStateOf(initialStoryIndex.coerceIn(0, stories.size - 1)) }
   val context = LocalContext.current
+  val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)
   val currentUserId =
       com.github.se.studentconnect.model.authentication.AuthenticationProvider.currentUser
   var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -1662,7 +1649,36 @@ fun StoryViewer(
           fadeOut(animationSpec = tween(200)) +
               scaleOut(targetScale = 0.9f, animationSpec = tween(200)),
       modifier = Modifier.fillMaxSize().zIndex(1000f)) {
-        if (stories.isEmpty()) {
+        if (!isNetworkAvailable) {
+          // Show offline message in the viewer
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(Color.Black)
+                      .testTag(HomeScreenTestTags.STORY_VIEWER)) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                      Text(
+                          text = stringResource(R.string.offline_no_internet_try_later),
+                          color = Color.White,
+                          style = MaterialTheme.typography.titleMedium,
+                          textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                IconButton(
+                    onClick = onDismiss,
+                    modifier =
+                        Modifier.align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .testTag(HomeScreenTestTags.STORY_CLOSE_BUTTON)) {
+                      Icon(
+                          imageVector = Icons.Default.Close,
+                          contentDescription = stringResource(R.string.content_description_close_story),
+                          tint = Color.White)
+                    }
+              }
+        } else if (stories.isEmpty()) {
           Box(
               modifier =
                   Modifier.fillMaxSize()
