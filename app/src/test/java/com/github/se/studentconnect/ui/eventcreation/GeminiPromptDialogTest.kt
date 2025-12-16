@@ -38,7 +38,8 @@ class GeminiPromptDialogTest {
     }
 
     composeTestRule
-        .onNodeWithText("Provide a short prompt and Gemini will generate content for your event.")
+        .onNodeWithText(
+            "The event title and description are already included in the final prompt. Use this field to add an extra description that will be used to generate the image.")
         .assertIsDisplayed()
   }
 

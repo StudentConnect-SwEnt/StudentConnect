@@ -57,8 +57,12 @@ fun GeminiPromptDialog(onDismiss: () -> Unit, onGenerate: (String) -> Unit, isLo
       },
       text = {
         Column {
-          Text(text = stringResource(R.string.gemini_dialog_description))
           Spacer(modifier = Modifier.height(SPACER_HEIGHT_MEDIUM))
+          Text(
+              text = stringResource(R.string.gemini_dialog_prompt_note),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Spacer(modifier = Modifier.height(SPACER_HEIGHT_SMALL))
           OutlinedTextField(
               value = prompt,
               onValueChange = { prompt = it },

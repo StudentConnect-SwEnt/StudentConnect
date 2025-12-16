@@ -622,7 +622,7 @@
     <string name="gemini_dialog_description">Provide a short prompt and Gemini will generate content for your event.</string>
     <string name="gemini_dialog_prompt_label">Prompt</string>
     <string name="gemini_dialog_prompt_placeholder">Describe the event (theme, tone, duration)...</string>
-    <string name="gemini_dialog_generating">Generating…</string>
+    <string name="gemini_dialog_prompt_note">The event title and description are already included in the final prompt. Use this field to add an extra description that will be used to generate the image.</string>
     <string name="gemini_dialog_button_generate">Generate</string>
     <string name="gemini_generating_cool">Conjuring your masterpiece... ✨</string>
     <string name="error_banner_generation_failed">Magic failed 🪄. We picked a nice fallback for you!</string>
