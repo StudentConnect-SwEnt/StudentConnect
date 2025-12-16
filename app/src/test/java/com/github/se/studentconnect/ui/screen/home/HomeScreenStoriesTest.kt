@@ -1,5 +1,7 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -20,6 +22,8 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.junit.After
@@ -27,10 +31,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.CompositionLocalProvider
-import io.mockk.every
-import io.mockk.mockk
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -49,7 +49,7 @@ class HomeScreenStoriesTest {
     }
     AuthenticationProvider.testUserId = "testUser123"
   }
-  
+
   private fun createOnlineContext(): android.content.Context {
     val mockContext = mockk<android.content.Context>(relaxed = true)
     val connectivityManager = mockk<android.net.ConnectivityManager>(relaxed = true)
@@ -66,12 +66,10 @@ class HomeScreenStoriesTest {
 
     return mockContext
   }
-  
+
   private fun withOnlineContext(content: @androidx.compose.runtime.Composable () -> Unit) {
     val onlineContext = createOnlineContext()
-    CompositionLocalProvider(LocalContext provides onlineContext) {
-      content()
-    }
+    CompositionLocalProvider(LocalContext provides onlineContext) { content() }
   }
 
   @After

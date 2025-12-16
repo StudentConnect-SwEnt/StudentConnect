@@ -244,7 +244,7 @@ class EditNameViewModelTest {
     viewModel.updateLastName("")
     val testContext = createOnlineContext()
     viewModel.saveName(testContext)
-    
+
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
 
