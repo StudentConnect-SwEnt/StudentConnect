@@ -669,10 +669,9 @@
     <string name="title_my_organizations">My Organizations</string>
     <string name="button_retry">Retry</string>
     <string name="text_no_organizations_yet">No Organizations Yet</string>
-    <string name="text_no_organizations_description">You\'re not a member of any organizations. Create one or join an existing one!</string>
+    <string name="text_no_organizations_description">You\'re not a member of any organizations yet. Create one or get invited to join.</string>
     <string name="button_create_organization">Create Organization</string>
     <string name="button_create_new_organization">Create New Organization</string>
-    <string name="button_join_organization">Join Organization</string>
     <string name="text_your_organizations">Your Organizations</string>
     <plurals name="text_members_count">
         <item quantity="one">%d member</item>

@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
@@ -73,7 +72,6 @@ import kotlinx.coroutines.Dispatchers
  * @param currentUserId The ID of the current user
  * @param onBack Callback when back button is pressed
  * @param onCreateOrganization Callback to navigate to organization creation flow
- * @param onJoinOrganization Callback to navigate to join organization flow
  * @param onOrganizationClick Callback when an organization is clicked (passes organization ID)
  * @param viewModel ViewModel for organization management
  * @param modifier Modifier for the composable
@@ -84,7 +82,6 @@ fun OrganizationManagementScreen(
     currentUserId: String,
     onBack: () -> Unit,
     onCreateOrganization: () -> Unit,
-    onJoinOrganization: () -> Unit = {},
     onOrganizationClick: (String) -> Unit = {},
     viewModel: OrganizationManagementViewModel = viewModel {
       OrganizationManagementViewModel(
@@ -228,41 +225,6 @@ fun OrganizationManagementScreen(
                         Spacer(
                             modifier =
                                 Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
-
-                        // Join Organization Button
-                        Button(
-                            onClick = onJoinOrganization,
-                            modifier =
-                                Modifier.fillMaxWidth()
-                                    .height(
-                                        dimensionResource(R.dimen.org_management_button_height)),
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
-                            shape =
-                                RoundedCornerShape(
-                                    dimensionResource(
-                                        R.dimen.org_management_button_corner_radius))) {
-                              Icon(
-                                  imageVector = Icons.Default.PersonAdd,
-                                  contentDescription = null,
-                                  modifier =
-                                      Modifier.size(
-                                          dimensionResource(
-                                              R.dimen.org_management_icon_size_small)))
-                              Spacer(
-                                  modifier =
-                                      Modifier.width(
-                                          dimensionResource(R.dimen.org_management_spacing)))
-                              Text(
-                                  text = stringResource(R.string.button_join_organization),
-                                  fontSize =
-                                      dimensionResource(R.dimen.org_management_button_text_size)
-                                          .value
-                                          .sp,
-                                  fontWeight = FontWeight.SemiBold)
-                            }
                       }
                 }
           }
@@ -333,37 +295,6 @@ fun OrganizationManagementScreen(
                     Spacer(
                         modifier =
                             Modifier.height(dimensionResource(R.dimen.org_management_spacing)))
-
-                    // Join Organization Button
-                    Button(
-                        onClick = onJoinOrganization,
-                        modifier =
-                            Modifier.fillMaxWidth()
-                                .height(dimensionResource(R.dimen.org_management_button_height)),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
-                        shape =
-                            RoundedCornerShape(
-                                dimensionResource(R.dimen.org_management_button_corner_radius))) {
-                          Icon(
-                              imageVector = Icons.Default.PersonAdd,
-                              contentDescription = null,
-                              modifier =
-                                  Modifier.size(
-                                      dimensionResource(R.dimen.org_management_icon_size_small)))
-                          Spacer(
-                              modifier =
-                                  Modifier.width(dimensionResource(R.dimen.org_management_spacing)))
-                          Text(
-                              text = stringResource(R.string.button_join_organization),
-                              fontSize =
-                                  dimensionResource(R.dimen.org_management_button_text_size_small)
-                                      .value
-                                      .sp,
-                              fontWeight = FontWeight.Medium)
-                        }
                   }
                 }
           }
