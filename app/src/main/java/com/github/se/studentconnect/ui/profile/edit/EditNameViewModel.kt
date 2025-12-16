@@ -1,7 +1,9 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -68,7 +70,7 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
   }
 
   /** Validates and saves the name. */
-  fun saveName() {
+  fun saveName(context: Context) {
     val trimmedFirstName = _firstName.value.trim()
     val trimmedLastName = _lastName.value.trim()
 
@@ -90,6 +92,14 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
     }
 
     if (hasError) return
+
+    // Check if offline and show message
+    if (!NetworkUtils.isNetworkAvailable(context)) {
+      setOfflineMessage(R.string.offline_changes_will_sync)
+      // Still proceed with save as Firestore will cache offline
+    } else {
+      clearOfflineMessage()
+    }
 
     executeWithErrorHandling(
         operation = {

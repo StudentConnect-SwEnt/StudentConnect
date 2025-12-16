@@ -28,6 +28,11 @@ abstract class BaseEditViewModel(
   private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
   val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+  // Offline message
+  private val _offlineMessageRes = MutableStateFlow<Int?>(null)
+  /** Resource ID for offline message to display. */
+  val offlineMessageRes: StateFlow<Int?> = _offlineMessageRes.asStateFlow()
+
   /** UI state sealed class for edit screens. */
   sealed class UiState {
     object Idle : UiState()
@@ -42,6 +47,16 @@ abstract class BaseEditViewModel(
   /** Resets UI state to idle. */
   fun resetState() {
     _uiState.value = UiState.Idle
+  }
+
+  /** Sets the offline message. */
+  protected fun setOfflineMessage(messageRes: Int) {
+    _offlineMessageRes.value = messageRes
+  }
+
+  /** Clears the offline message. */
+  fun clearOfflineMessage() {
+    _offlineMessageRes.value = null
   }
 
   /** Sets the UI state to loading. */

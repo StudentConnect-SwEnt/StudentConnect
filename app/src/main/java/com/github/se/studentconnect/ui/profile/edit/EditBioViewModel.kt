@@ -1,7 +1,10 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,7 +67,7 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
   }
 
   /** Validates and saves the bio. */
-  fun saveBio() {
+  fun saveBio(context: Context) {
     val trimmedBio = _bioText.value.trim()
 
     // Clear previous errors
@@ -79,6 +82,14 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
     if (trimmedBio.length > ProfileConstants.MAX_BIO_LENGTH) {
       _validationError.value = ProfileConstants.ERROR_BIO_TOO_LONG
       return
+    }
+
+    // Check if offline and show message
+    if (!NetworkUtils.isNetworkAvailable(context)) {
+      setOfflineMessage(R.string.offline_changes_will_sync)
+      // Still proceed with save as Firestore will cache offline
+    } else {
+      clearOfflineMessage()
     }
 
     executeWithErrorHandling(

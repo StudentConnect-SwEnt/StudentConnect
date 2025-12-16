@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -16,6 +17,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditNameViewModel
+import kotlinx.coroutines.launch
 
 /**
  * Screen for editing user name (first name and last name).
@@ -39,7 +41,10 @@ fun EditNameScreen(
   val uiState by viewModel.uiState.collectAsState()
   val firstNameError by viewModel.firstNameError.collectAsState()
   val lastNameError by viewModel.lastNameError.collectAsState()
+  val offlineMessageRes by viewModel.offlineMessageRes.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+  val coroutineScope = rememberCoroutineScope()
 
   // Handle UI state changes
   LaunchedEffect(uiState) {
@@ -51,10 +56,22 @@ fun EditNameScreen(
         viewModel.resetState()
       }
       is BaseEditViewModel.UiState.Error -> {
-        snackbarHostState.showSnackbar(state.message)
-        viewModel.resetState()
+        coroutineScope.launch {
+          snackbarHostState.showSnackbar(state.message)
+          viewModel.resetState()
+        }
       }
       else -> {}
+    }
+  }
+
+  // Show snackbar for offline messages
+  LaunchedEffect(offlineMessageRes) {
+    offlineMessageRes?.let { messageRes ->
+      coroutineScope.launch {
+        snackbarHostState.showSnackbar(context.getString(messageRes))
+        viewModel.clearOfflineMessage()
+      }
     }
   }
 
@@ -135,7 +152,7 @@ fun EditNameScreen(
 
               // Save Button
               ProfileSaveButton(
-                  onClick = { viewModel.saveName() },
+                  onClick = { viewModel.saveName(context) },
                   isLoading = uiState is BaseEditViewModel.UiState.Loading,
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&
