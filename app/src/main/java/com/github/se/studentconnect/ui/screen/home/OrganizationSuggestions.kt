@@ -172,7 +172,8 @@ private fun OrganizationImage(organizationId: String) {
         } else {
           Image(
               painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
-              contentDescription = stringResource(R.string.content_description_organization_image),
+              contentDescription =
+                  stringResource(R.string.content_description_organization_image_placeholder),
               contentScale = ContentScale.Fit,
               modifier = Modifier.matchParentSize())
         }

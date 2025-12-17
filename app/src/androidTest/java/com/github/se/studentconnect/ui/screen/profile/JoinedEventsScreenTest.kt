@@ -10,6 +10,8 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
+import com.github.se.studentconnect.utils.afterTestRepositoriesCleanup
+import com.github.se.studentconnect.utils.beforeTestRepositoriesInitialization
 import com.google.firebase.Timestamp
 import java.util.Calendar
 import kotlinx.coroutines.delay
@@ -31,11 +33,13 @@ class JoinedEventsScreenTest {
     mockEventRepository = MockEventRepository()
     mockUserRepository = MockUserRepository()
     AuthenticationProvider.testUserId = "user1"
+    beforeTestRepositoriesInitialization()
   }
 
   @org.junit.After
   fun tearDown() {
     AuthenticationProvider.testUserId = null
+    afterTestRepositoriesCleanup()
   }
 
   @Test
@@ -502,7 +506,10 @@ class JoinedEventsScreenTest {
     composeTestRule.onNodeWithContentDescription("Private Event").assertIsDisplayed()
 
     // Verify Date formatting
-    composeTestRule.onAllNodesWithContentDescription("Event Image").onFirst().assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithContentDescription("Event Image Placeholder")
+        .onFirst()
+        .assertIsDisplayed()
   }
 
   @Test
@@ -1031,5 +1038,46 @@ class JoinedEventsScreenTest {
     val cal = Calendar.getInstance()
     cal.add(Calendar.DAY_OF_YEAR, daysAhead)
     return Timestamp(cal.time)
+  }
+
+  @Test
+  fun joinedEventsScreen_displaysEventsWithImages() {
+    val publicEvent =
+        Event.Public(
+            uid = "public_event",
+            ownerId = "user1",
+            title = "Public Event Title",
+            imageUrl = "https://example.com/image.jpg",
+            subtitle = "Public Subtitle",
+            description = "Description",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    val privateEvent =
+        Event.Private(
+            uid = "private_event",
+            ownerId = "user1",
+            title = "Private Event Title",
+            description = "Description",
+            start = createTimestamp(daysAgo = 1),
+            end = createTimestamp(daysAgo = 1),
+            isFlash = false)
+
+    mockUserRepository.joinedEvents = listOf("public_event", "private_event")
+    mockEventRepository.events = listOf(publicEvent, privateEvent)
+
+    val viewModel =
+        JoinedEventsViewModel(
+            eventRepository = mockEventRepository, userRepository = mockUserRepository)
+
+    composeTestRule.setContent { JoinedEventsScreen(viewModel = viewModel, onNavigateBack = {}) }
+
+    composeTestRule.waitUntil(timeoutMillis = 5000) {
+      composeTestRule.onAllNodesWithText("Public Event Title").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Verify Date formatting
+    composeTestRule.onNodeWithContentDescription("Event Image").assertIsDisplayed()
   }
 }

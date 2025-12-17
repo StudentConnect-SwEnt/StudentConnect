@@ -182,6 +182,8 @@ private fun PinnedEventCard(event: Event, onClick: () -> Unit) {
 @Composable
 private fun PinnedEventCardContent(event: Event, formattedDate: String) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
+  val eventImagePlaceholderDescription =
+      stringResource(R.string.content_description_event_image_placeholder)
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
   val context = LocalContext.current
@@ -196,7 +198,7 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
   Row(
       modifier = Modifier.fillMaxSize().padding(contentPadding),
       horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
-        // Event image placeholder
+        // Event image
         if (imageBitmap != null) {
           Image(
               bitmap = imageBitmap,
@@ -206,7 +208,7 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
         } else {
           Icon(
               imageVector = Icons.Default.Image,
-              contentDescription = eventImageDescription,
+              contentDescription = eventImagePlaceholderDescription,
               modifier =
                   Modifier.size(imageSize)
                       .clip(RoundedCornerShape(imageCornerRadius))

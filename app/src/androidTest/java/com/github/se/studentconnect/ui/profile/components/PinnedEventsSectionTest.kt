@@ -5,9 +5,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
+import com.github.se.studentconnect.utils.MockMediaRepository
 import com.google.firebase.Timestamp
 import java.util.*
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,13 +21,18 @@ class PinnedEventsSectionTest {
 
   @get:Rule val composeTestRule = createComposeRule()
 
-  private fun createTestEvent(uid: String, title: String, startDate: Date = Date()): Event.Public {
+  private fun createTestEvent(
+      uid: String,
+      title: String,
+      startDate: Date = Date(),
+      url: String? = null
+  ): Event.Public {
     return Event.Public(
         uid = uid,
         ownerId = "owner123",
         title = title,
         description = "Test event description",
-        imageUrl = null,
+        imageUrl = url,
         location = Location(latitude = 46.5191, longitude = 6.5668, name = "Test Location"),
         start = Timestamp(startDate),
         end = Timestamp(Date(startDate.time + 3600000)),
@@ -33,6 +42,16 @@ class PinnedEventsSectionTest {
         subtitle = "Test Subtitle",
         tags = emptyList(),
         website = null)
+  }
+
+  @Before
+  fun setup() {
+    MediaRepositoryProvider.overrideForTests(MockMediaRepository())
+  }
+
+  @After
+  fun teardown() {
+    MediaRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -299,6 +318,22 @@ class PinnedEventsSectionTest {
   }
 
   @Test
+  fun pinnedEventCard_displaysImage() {
+    val event = createTestEvent("event1", "Test Event", url = "https://example.com/image.jpg")
+
+    composeTestRule.setContent {
+      AppTheme { PinnedEventsSection(pinnedEvents = listOf(event), onEventClick = {}) }
+    }
+
+    // Card should have image placeholder (Icon)
+    composeTestRule
+        .onNodeWithTag(PinnedEventsSectionTestTags.eventCard("event1"))
+        .assertIsDisplayed()
+
+    composeTestRule.onNodeWithContentDescription("Event Image").assertIsDisplayed()
+  }
+
+  @Test
   fun pinnedEventCard_displaysImagePlaceholder() {
     val event = createTestEvent("event1", "Test Event")
 
@@ -310,6 +345,8 @@ class PinnedEventsSectionTest {
     composeTestRule
         .onNodeWithTag(PinnedEventsSectionTestTags.eventCard("event1"))
         .assertIsDisplayed()
+
+    composeTestRule.onNodeWithContentDescription("Event Image Placeholder").assertIsDisplayed()
   }
 
   @Test

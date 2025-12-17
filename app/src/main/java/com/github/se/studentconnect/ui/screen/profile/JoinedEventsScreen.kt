@@ -303,6 +303,8 @@ private fun BoxScope.EventCardContent(
     actionContent: @Composable (BoxScope.() -> Unit)?
 ) {
   val eventImageDescription = stringResource(R.string.content_description_event_image)
+  val eventImagePlaceholderDescription =
+      stringResource(R.string.content_description_event_image_placeholder)
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
   val context = LocalContext.current
@@ -326,7 +328,7 @@ private fun BoxScope.EventCardContent(
         } else {
           Icon(
               imageVector = Icons.Default.Image,
-              contentDescription = eventImageDescription,
+              contentDescription = eventImagePlaceholderDescription,
               modifier =
                   Modifier.size(imageSize)
                       .clip(RoundedCornerShape(imageCornerRadius))
