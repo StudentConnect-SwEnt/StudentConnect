@@ -20,7 +20,12 @@ import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.ui.profile.CalendarItem
 import com.github.se.studentconnect.utils.NetworkUtils
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,6 +34,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+sealed class TicketValidationResult {
+  data class Valid(val participantId: String) : TicketValidationResult()
+
+  data class Invalid(val userId: String) : TicketValidationResult()
+
+  data class Error(val message: String) : TicketValidationResult()
+}
 
 data class EventUiState(
     val event: Event? = null,
@@ -55,16 +68,10 @@ data class EventUiState(
     @StringRes val friendsErrorRes: Int? = null,
     val isInvitingFriends: Boolean = false,
     val isDeletingEvent: Boolean = false,
-    @StringRes val deleteEventMessageRes: Int? = null
+    @StringRes val deleteEventMessageRes: Int? = null,
+    val conflictingEvents: List<CalendarItem> = emptyList(),
+    val isCheckingConflicts: Boolean = false
 )
-
-sealed class TicketValidationResult {
-  data class Valid(val participantId: String) : TicketValidationResult()
-
-  data class Invalid(val userId: String) : TicketValidationResult()
-
-  data class Error(val message: String) : TicketValidationResult()
-}
 
 class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
@@ -72,7 +79,10 @@ class EventViewModel(
     private val pollRepository: PollRepository = PollRepositoryProvider.repository,
     private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
     private val notificationRepository: NotificationRepository =
-        NotificationRepositoryProvider.repository
+        NotificationRepositoryProvider.repository,
+    private val personalCalendarRepository:
+        com.github.se.studentconnect.model.calendar.PersonalCalendarRepository =
+        com.github.se.studentconnect.model.calendar.PersonalCalendarRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
@@ -115,13 +125,17 @@ class EventViewModel(
               friends = emptyList(),
               isLoadingFriends = false,
               errorMessageRes = null,
-              errorMessage = null)
+              errorMessage = null,
+              isCheckingConflicts = false)
         }
 
         // Fetch active polls if user is already a participant
         if (finalIsJoined) {
           fetchActivePolls(eventUid)
         }
+
+        // Check for conflicts
+        checkConflicts(fetchedEvent)
       } catch (e: Exception) {
         _uiState.update {
           it.copy(
@@ -129,6 +143,102 @@ class EventViewModel(
               errorMessage = e.message,
               errorMessageRes = if (e.message == null) R.string.event_error_load else null)
         }
+      }
+    }
+  }
+
+  private fun checkConflicts(event: Event) {
+    val userId = AuthenticationProvider.currentUser
+    _uiState.update { it.copy(isCheckingConflicts = true) }
+    viewModelScope.launch {
+      try {
+        coroutineScope {
+          // 1. Fetch personal events (async)
+          val personalEventsDeferred = async { personalCalendarRepository.getEventsForUser(userId) }
+
+          // 2. Fetch joined event IDs (async)
+          val joinedEventIdsDeferred = async { userRepository.getJoinedEvents(userId) }
+
+          // 3. Fetch owned events (async) - Optimized using getEventsByOwner
+          val ownedEventsDeferred = async {
+            eventRepository.getEventsByOwner(userId).filter { it.uid != event.uid }
+          }
+
+          val personalEvents = personalEventsDeferred.await()
+          val joinedEventIds = joinedEventIdsDeferred.await()
+          val ownedEvents = ownedEventsDeferred.await()
+
+          // 4. Fetch joined events details in parallel (N+1 optimisation)
+          val joinedEvents =
+              joinedEventIds
+                  .map { eventId ->
+                    async {
+                      if (eventId == event.uid) null
+                      else {
+                        runCatching { eventRepository.getEvent(eventId) }.getOrNull()
+                      }
+                    }
+                  }
+                  .awaitAll()
+                  .filterNotNull()
+
+          // Combine and map to CalendarItem
+          val personalItems =
+              personalEvents.map { pEvent ->
+                CalendarItem.Personal(
+                    uid = pEvent.uid,
+                    title = pEvent.title,
+                    start = pEvent.start,
+                    end = pEvent.end,
+                    location = pEvent.location,
+                    color = pEvent.color ?: "#2196F3")
+              }
+
+          val joinedItems =
+              joinedEvents.map { jEvent ->
+                CalendarItem.AppEvent(
+                    uid = jEvent.uid,
+                    title = jEvent.title,
+                    start = jEvent.start,
+                    end = jEvent.end,
+                    location = jEvent.location?.name,
+                    color = if (jEvent.ownerId == userId) "#FF9800" else "#4CAF50",
+                    isOwner = jEvent.ownerId == userId)
+              }
+
+          val ownedItems =
+              ownedEvents.map { oEvent ->
+                CalendarItem.AppEvent(
+                    uid = oEvent.uid,
+                    title = oEvent.title,
+                    start = oEvent.start,
+                    end = oEvent.end,
+                    location = oEvent.location?.name,
+                    color = "#FF9800",
+                    isOwner = true)
+              }
+
+          // Combine and remove duplicates
+          val allAppEvents = (joinedItems + ownedItems).distinctBy { it.uid }
+          val allItems = personalItems + allAppEvents
+
+          val eventStart = event.start.seconds
+          val eventEnd = (event.end ?: Timestamp(event.start.seconds + 3600, 0)).seconds
+
+          val conflicts =
+              allItems.filter { item ->
+                val itemStart = item.start.seconds
+                val itemEnd = (item.end ?: Timestamp(item.start.seconds + 3600, 0)).seconds
+
+                // Check overlap: (StartA < EndB) and (EndA > StartB)
+                itemStart < eventEnd && itemEnd > eventStart
+              }
+
+          _uiState.update { it.copy(conflictingEvents = conflicts, isCheckingConflicts = false) }
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("EventViewModel", "Error checking conflicts", e)
+        _uiState.update { it.copy(isCheckingConflicts = false) }
       }
     }
   }

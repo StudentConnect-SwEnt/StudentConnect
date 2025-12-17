@@ -60,6 +60,7 @@ import com.github.se.studentconnect.ui.event.CountDownViewModel
 import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.InviteFriendsDialog
+import com.github.se.studentconnect.ui.event.ScheduleConflictCard
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
@@ -540,6 +541,17 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
                     .padding(horizontal = Dimensions.SpacingNormal)
                     .offset(y = Dimensions.EventContentOffsetNegative),
             verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
+
+              // Show conflict card if event dates are available
+              if (event.start != null) {
+                ScheduleConflictCard(
+                    eventStart = event.start,
+                    eventEnd = event.end,
+                    conflictingItems = uiState.conflictingEvents,
+                    isCheckingConflicts = uiState.isCheckingConflicts,
+                    onConflictClick = { /* Optional: Navigate to calendar */})
+              }
+
               CountdownCard(
                   timeLeft = params.timeLeft, event = params.event, isJoined = params.isJoined)
 
