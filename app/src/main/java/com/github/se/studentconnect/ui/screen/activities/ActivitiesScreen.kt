@@ -369,7 +369,8 @@ fun CarouselCard(
   val isLive = now >= item.start && now < endTime
   val isPrivate = item is Event.Private
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, item)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(item) { imageBitmap = loadBitmapFromEvent(context, item) }
 
   Card(
       onClick = onEventClick,
@@ -446,7 +447,8 @@ fun InvitationCarouselCard(
   val isDeclined = item.invitation.status == InvitationStatus.Declined || declineState
   val cardAlpha = if (isDeclined) 0.7f else 1.0f
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, item.event)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(item) { imageBitmap = loadBitmapFromEvent(context, item.event) }
 
   Card(
       onClick = onCardClick,
@@ -521,6 +523,10 @@ fun InvitationCarouselCard(
   }
 }
 
+/**
+ * Composable to display an image in the carousel with proper styling. If the imageBitmap is null, a
+ * placeholder icon is shown instead.
+ */
 @Composable
 fun CarouselImage(imageBitmap: ImageBitmap?, modifier: Modifier = Modifier) {
   if (imageBitmap != null) {

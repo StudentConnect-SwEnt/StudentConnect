@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -145,6 +146,10 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
       }
 }
 
+/**
+ * Composable function to display the organization's image. Displays a placeholder if the image is
+ * not available.
+ */
 @Composable
 private fun OrganizationImage(organizationId: String) {
   val context = LocalContext.current
@@ -152,7 +157,10 @@ private fun OrganizationImage(organizationId: String) {
   LaunchedEffect(organization) {
     organization = OrganizationRepositoryProvider.repository.getOrganizationById(organizationId)
   }
-  val imageBitmap = organization?.let { loadBitmapFromOrganization(context, it) }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  organization?.let {
+    LaunchedEffect(organization) { imageBitmap = loadBitmapFromOrganization(context, it) }
+  }
   Box(
       modifier =
           Modifier.fillMaxWidth()
@@ -164,7 +172,7 @@ private fun OrganizationImage(organizationId: String) {
                           OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))) {
         if (imageBitmap != null) {
           Image(
-              bitmap = imageBitmap,
+              bitmap = imageBitmap!!,
               contentDescription = stringResource(R.string.content_description_organization_image),
               contentScale = ContentScale.Crop,
               modifier =

@@ -36,6 +36,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +59,7 @@ import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUriComposable
+import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
 
 // UI Constants
 private object CardDimensions {
@@ -231,7 +236,8 @@ private fun PeopleSection(viewModel: SearchViewModel, navController: NavHostCont
 @Composable
 private fun rememberImageBitmap(imageId: String?, logTag: String): ImageBitmap? {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUriComposable(context, imageId)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(imageId) { imageBitmap = loadBitmapFromStringUri(context, imageId) }
   return imageBitmap
 }
 

@@ -111,7 +111,6 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
@@ -133,7 +132,7 @@ import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUriComposable
+import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -1068,6 +1067,10 @@ private fun NotificationContent(
       }
 }
 
+/**
+ * Loads and displays the appropriate image for the notification type. Loads a placeholder when no
+ * imageBitmap found.
+ */
 @Composable
 private fun NotificationIcon(notification: Notification) {
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -1076,42 +1079,44 @@ private fun NotificationIcon(notification: Notification) {
   when (notification) {
     is Notification.FriendRequest -> {
       var user by remember { mutableStateOf<User?>(null) }
-      LaunchedEffect(user) {
+      LaunchedEffect(notification.fromUserId) {
         user = UserRepositoryProvider.repository.getUserById(notification.fromUserId)
       }
-      imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
+      user?.let { LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user!!) } }
       if (imageBitmap == null) {
         icon = Icons.Default.Person
       }
     }
     is Notification.EventInvitation -> {
       var user by remember { mutableStateOf<User?>(null) }
-      LaunchedEffect(user) {
+      LaunchedEffect(notification.invitedBy) {
         user = UserRepositoryProvider.repository.getUserById(notification.invitedBy)
       }
-      imageBitmap = user?.let { loadBitmapFromUser(context, user!!) }
+      user?.let { LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user!!) } }
       if (imageBitmap == null) {
         icon = Icons.Default.Email
       }
     }
     is Notification.EventStarting -> {
       var event by remember { mutableStateOf<Event?>(null) }
-      LaunchedEffect(event) {
+      LaunchedEffect(notification.eventId) {
         event = EventRepositoryProvider.repository.getEvent(notification.eventId)
       }
-      imageBitmap = event?.let { loadBitmapFromEvent(context, event!!) }
+      event?.let { LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event!!) } }
       if (imageBitmap == null) {
         icon = Icons.Default.Event
       }
     }
     is Notification.OrganizationMemberInvitation -> {
       var orga by remember { mutableStateOf<Organization?>(null) }
-      LaunchedEffect(orga) {
+      LaunchedEffect(notification.invitedBy) {
         orga =
             OrganizationRepositoryProvider.repository.getOrganizationById(
                 notification.organizationId)
       }
-      imageBitmap = orga?.let { loadBitmapFromOrganization(context, orga!!) }
+      orga?.let {
+        LaunchedEffect(orga) { imageBitmap = loadBitmapFromOrganization(context, orga!!) }
+      }
       if (imageBitmap == null) {
         icon = Icons.Default.Group
       }
@@ -1283,11 +1288,14 @@ fun StoryItem(
 
   // Download profile picture using MediaRepository (same as profile screen)
   val context = LocalContext.current
-  val imageBitmap =
-      loadBitmapFromUriComposable(
-          context = context,
-          uri = avatarUrl,
-      )
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(avatarUrl) {
+    imageBitmap =
+        loadBitmapFromStringUri(
+            context = context,
+            uri = avatarUrl,
+        )
+  }
 
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
@@ -1676,12 +1684,14 @@ fun StoryViewer(
       if (stories.isNotEmpty()) stories[currentStoryIndex].profilePictureUrl else null
 
   // Download profile picture using MediaRepository (same as profile screen)
-  val repository = MediaRepositoryProvider.repository
-  val avatarBitmap =
-      loadBitmapFromUriComposable(
-          context = context,
-          uri = currentProfilePictureUrl,
-      )
+  var avatarBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(currentProfilePictureUrl) {
+    avatarBitmap =
+        loadBitmapFromStringUri(
+            context = context,
+            uri = currentProfilePictureUrl,
+        )
+  }
 
   AnimatedVisibility(
       visible = isVisible,

@@ -50,6 +50,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -86,7 +88,8 @@ import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Comp
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_AVATAR_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_ICON_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationTab
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUriComposable
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganizationEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 
 /** Callbacks for organization profile actions. */
@@ -304,7 +307,8 @@ private fun OrganizationTopBar(
 @Composable
 private fun AvatarBanner(logoUrl: String? = null, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUriComposable(context, logoUrl)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(logoUrl) { imageBitmap = loadBitmapFromStringUri(context, logoUrl) }
 
   Box(
       modifier =
@@ -615,24 +619,10 @@ private fun EventRow(
 ) {
   val hasEnded = event.hasEnded()
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
 
   // Load event banner image
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, event.imageUrl, repository) {
-        value =
-            event.imageUrl?.let { imageId ->
-              runCatching { repository.download(imageId) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "OrganizationProfileScreen",
-                        "Failed to download event banner: $imageId",
-                        it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromOrganizationEvent(context, event) }
 
   Row(
       modifier =
@@ -1098,7 +1088,8 @@ private fun MemberCard(
 private fun MemberAvatar(member: OrganizationMember, modifier: Modifier = Modifier) {
   val context = LocalContext.current
   val avatarUrl = member.avatarUrl
-  val imageBitmap = loadBitmapFromUriComposable(context, avatarUrl)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(avatarUrl) { imageBitmap = loadBitmapFromStringUri(context, avatarUrl) }
 
   Box(
       modifier =
@@ -1340,7 +1331,8 @@ private fun UserPickerAvatar(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, user)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
 
   Box(
       modifier =
