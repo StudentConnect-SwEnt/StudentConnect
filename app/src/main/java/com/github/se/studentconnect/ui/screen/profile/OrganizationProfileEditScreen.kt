@@ -70,6 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -227,7 +228,7 @@ private fun OrganizationEditContent(
     modifier: Modifier = Modifier
 ) {
   LazyColumn(
-      modifier = modifier.fillMaxSize().padding(horizontal = 20.dp),
+      modifier = modifier.fillMaxSize().padding(horizontal = 20.dp).testTag("profile_edit_list"),
       verticalArrangement = Arrangement.spacedBy(20.dp)) {
         item { Spacer(modifier = Modifier.height(16.dp)) }
 

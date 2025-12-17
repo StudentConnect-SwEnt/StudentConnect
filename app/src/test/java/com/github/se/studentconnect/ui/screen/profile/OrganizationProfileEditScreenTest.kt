@@ -876,6 +876,142 @@ class OrganizationProfileEditScreenTest {
     }
   }
 
+  @Test
+  fun organizationProfileEditScreen_displaysOwnerBadge() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Scroll to Test User. This triggers composition of the Owner card.
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("Test User"))
+    composeTestRule.onNodeWithText("Test User").assertExists()
+  }
+
+  @Test
+  fun organizationProfileEditScreen_socialLinksEditing() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Scroll to Social Links header
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("Social Links"))
+
+    // Edit Instagram
+    // Note: Scroll to specific fields if needed
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("Instagram"))
+    composeTestRule.onNodeWithText("Instagram").performTextReplacement("@new_insta")
+
+    // Scroll to X
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("X"))
+    composeTestRule.onNodeWithText("X").performTextReplacement("@new_x")
+
+    // Scroll to LinkedIn
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("LinkedIn"))
+    composeTestRule.onNodeWithText("LinkedIn").performTextReplacement("new_linkedin")
+
+    // Save
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify
+    assertEquals("@new_insta", organizationRepository.savedOrganization?.socialLinks?.instagram)
+    assertEquals("@new_x", organizationRepository.savedOrganization?.socialLinks?.x)
+    assertEquals("new_linkedin", organizationRepository.savedOrganization?.socialLinks?.linkedin)
+  }
+
+  @Test
+  fun organizationProfileEditScreen_organizationTypeSelection() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Scroll to Association
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("Association"))
+
+    // Click on Association
+    composeTestRule.onNodeWithText("Association").performClick()
+
+    // Save
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify type updated
+    assertEquals(OrganizationType.Association, organizationRepository.savedOrganization?.type)
+  }
+
+  @Test
+  fun organizationProfileEditScreen_removeLogo() {
+    // Setup organization with logo
+    val orgWithLogo = testOrganization.copy(logoUrl = "http://example.com/logo.png")
+    val repo = TestOrganizationRepository(listOf(orgWithLogo))
+    OrganizationRepositoryProvider.overrideForTests(repo)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Scroll to Remove Logo
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("Remove Logo"))
+
+    // Click Remove Logo
+    composeTestRule.onNodeWithText("Remove Logo").performClick()
+
+    // Save
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Verify logo is null
+    assertNull(repo.savedOrganization?.logoUrl)
+  }
+
+  @Test
+  fun organizationProfileEditScreen_characterCount() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Check character count is displayed (16 characters for "Test description")
+    composeTestRule.onNodeWithTag("profile_edit_list").performScrollToNode(hasText("16 characters"))
+    composeTestRule.onNodeWithText("16 characters").assertExists()
+
+    // Update text
+    composeTestRule.onNodeWithText("Test description").performTextReplacement("New")
+
+    // Check updated count (3 characters)
+    composeTestRule.onNodeWithText("3 characters").assertExists()
+  }
+
   // Test helper repositories
   private class TestOrganizationRepository(var organizations: List<Organization>) :
       OrganizationRepository {
