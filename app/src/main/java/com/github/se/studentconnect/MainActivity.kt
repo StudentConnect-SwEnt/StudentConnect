@@ -24,9 +24,13 @@ import androidx.navigation.navArgument
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.service.EventReminderWorker
 import com.github.se.studentconnect.service.NotificationChannelManager
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
@@ -65,6 +69,7 @@ import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewM
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
 /**
@@ -83,15 +88,13 @@ class MainActivity : ComponentActivity() {
     // Initialize notification channels
     NotificationChannelManager.createNotificationChannels(this)
 
-    // DISABLED: Schedule periodic event reminder worker (runs every 15 minutes)
-    // This worker has been disabled to prevent OutOfMemoryError in CI environments.
-    // Notifications are still handled via FCM push notifications and other mechanisms.
-    // val eventReminderRequest =
-    //     PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
-    //
-    // WorkManager.getInstance(this)
-    //     .enqueueUniquePeriodicWork(
-    //         "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
+    // Schedule periodic event reminder worker (runs every 15 minutes)
+    val eventReminderRequest =
+        PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
+
+    WorkManager.getInstance(this)
+        .enqueueUniquePeriodicWork(
+            "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
 
     setContent {
       AppTheme {
