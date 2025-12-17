@@ -15,10 +15,13 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
@@ -91,6 +94,9 @@ class HomeScreenUITest {
     notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
     notificationViewModel = NotificationViewModel(notificationRepository)
+    NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
@@ -102,6 +108,7 @@ class HomeScreenUITest {
   fun tearDown() {
     // Clean up test user ID
     AuthenticationProvider.testUserId = null
+    NotificationRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test

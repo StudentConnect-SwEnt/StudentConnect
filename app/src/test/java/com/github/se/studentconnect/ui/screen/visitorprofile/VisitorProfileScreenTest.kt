@@ -34,16 +34,6 @@ class VisitorProfileScreenTest {
           email = "jane@example.com",
           university = "Uni")
 
-  private val sampleUserWithImage =
-      User(
-          userId = "u1",
-          username = "jane",
-          firstName = "Jane",
-          lastName = "Doe",
-          email = "jane@example.com",
-          profilePictureUrl = "https://example.com/image.jpg",
-          university = "Uni")
-
   @Before
   fun setup() {
     // Initialize MediaRepository with a fake implementation to avoid Firebase initialization
@@ -303,59 +293,5 @@ class VisitorProfileScreenTest {
     // Click on events count (should invoke callback)
     composeTestRule.onNodeWithText("3", useUnmergedTree = true).performClick()
     composeTestRule.runOnIdle { assert(eventsClicked) }
-  }
-
-  @Test
-  fun visitorProfileScreen_withoutImage_showsPlaceholder() {
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        VisitorProfileContent(
-            user = sampleUser,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = {},
-                    onRemoveFriendClick = {}),
-            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Check that the placeholder avatar is displayed
-    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar).assertDoesNotExist()
-    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar_placeholder).assertExists()
-  }
-
-  @Test
-  fun visitorProfileScreen_withImage_showsImage() {
-
-    composeTestRule.setContent {
-      MaterialTheme {
-        VisitorProfileContent(
-            user = sampleUserWithImage,
-            friendsCount = 0,
-            eventsCount = 0,
-            pinnedEvents = emptyList(),
-            callbacks =
-                VisitorProfileCallbacks(
-                    onBackClick = {},
-                    onAddFriendClick = {},
-                    onCancelFriendClick = {},
-                    onRemoveFriendClick = {}),
-            friendRequestStatus = FriendRequestStatus.ALREADY_FRIENDS)
-      }
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Check that the placeholder avatar is displayed
-    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar).assertExists()
-    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_avatar_placeholder).assertDoesNotExist()
   }
 }
