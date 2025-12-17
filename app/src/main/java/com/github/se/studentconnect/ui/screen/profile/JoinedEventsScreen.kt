@@ -36,6 +36,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -102,7 +103,7 @@ fun JoinedEventsScreen(
 
   Scaffold(
       modifier = Modifier.testTag(JoinedEventsScreenTestTags.JOINED_EVENTS_SCREEN),
-      snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       topBar = {
         CenterAlignedTopAppBar(
             title = { Text(titleMyEvents) },

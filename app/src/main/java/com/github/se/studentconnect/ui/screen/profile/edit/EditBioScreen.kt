@@ -15,6 +15,7 @@ import com.github.se.studentconnect.ui.components.BioTextField
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditBioViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /** Standard button height following Material Design guidelines */
 private val BUTTON_HEIGHT = 56.dp
@@ -84,7 +85,7 @@ fun EditBioScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),

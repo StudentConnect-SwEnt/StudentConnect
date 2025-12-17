@@ -22,6 +22,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditActivitiesViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /**
  * Screen for selecting user activities/hobbies with searchable multi-select interface.
@@ -90,7 +91,7 @@ fun EditActivitiesScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           // Search Bar

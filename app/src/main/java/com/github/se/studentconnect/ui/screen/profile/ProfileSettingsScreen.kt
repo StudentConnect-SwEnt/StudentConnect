@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -62,6 +61,8 @@ import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
 import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
 
@@ -150,7 +151,7 @@ fun ProfileSettingsScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         when (val currentUser = user) {
           null -> {

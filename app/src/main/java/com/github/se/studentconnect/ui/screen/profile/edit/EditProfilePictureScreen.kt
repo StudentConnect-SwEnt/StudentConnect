@@ -26,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -62,6 +61,7 @@ import com.github.se.studentconnect.ui.components.PicturePickerCard
 import com.github.se.studentconnect.ui.components.PicturePickerStyle
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditProfilePictureViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -125,7 +125,7 @@ fun EditProfilePictureScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier =

@@ -66,7 +66,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -129,6 +128,7 @@ import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.utils.NetworkUtils
@@ -392,7 +392,7 @@ fun HomeScreen(
       }) {
         Scaffold(
             modifier = Modifier.fillMaxSize().testTag("HomePage"),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
             topBar = {
               if (pagerState.currentPage == HomeScreenConstants.PAGER_HOME_PAGE) {
                 HomeTopBar(

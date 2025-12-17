@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,6 +70,8 @@ import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewMode
 import com.github.se.studentconnect.ui.screen.statistics.LoadingState
 import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
@@ -401,7 +402,7 @@ private fun BaseEventView(
     }
 
     // Snackbar Host
-    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    TopSnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
   }
 }
 

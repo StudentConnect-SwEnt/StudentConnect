@@ -16,6 +16,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /**
  * Screen for editing user birthday with Material 3 DatePicker.
@@ -106,7 +107,7 @@ fun EditBirthdayScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),

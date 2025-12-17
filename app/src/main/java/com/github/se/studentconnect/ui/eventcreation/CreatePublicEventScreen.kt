@@ -26,6 +26,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.ui.components.TopicChipGrid
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import java.time.format.DateTimeFormatter
 
 /** Constant Test Tags for the Public Event Screen */
@@ -136,8 +137,7 @@ fun CreatePublicEventScreen(
       canSave = canSave,
       onSave = { createPublicEventViewModel.saveEvent(context) },
       testTags = shellTestTags,
-      snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) }) { onFocusChange
-        ->
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) }) { onFocusChange ->
 
         // Title
         FormTextField(

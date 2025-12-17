@@ -15,7 +15,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,6 +43,7 @@ import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.components.filterCountries
 import com.github.se.studentconnect.ui.components.loadCountries
 import com.github.se.studentconnect.ui.profile.edit.EditNationalityViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 // Spacing values
 private val SmallSpacing = 4.dp
@@ -159,7 +159,7 @@ fun EditNationalityScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier =
