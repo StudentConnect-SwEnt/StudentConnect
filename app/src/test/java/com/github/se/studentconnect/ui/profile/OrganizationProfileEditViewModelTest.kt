@@ -715,22 +715,324 @@ class OrganizationProfileEditViewModelTest {
         assertNull(state.error)
       }
 
+  @Test
+  fun `updateMainDomains updates state correctly`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        viewModel.updateMainDomains(listOf("Domain1", "Domain2"))
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf("Domain1", "Domain2"), state.mainDomains)
+      }
+
+  @Test
+  fun `updateAgeRanges updates state correctly`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        viewModel.updateAgeRanges(listOf("18-25", "26-35"))
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf("18-25", "26-35"), state.ageRanges)
+      }
+
+  @Test
+  fun `updateTypicalEventSize updates state correctly`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        viewModel.updateTypicalEventSize("50-100")
+
+        val state = viewModel.uiState.value
+        assertEquals("50-100", state.typicalEventSize)
+      }
+
+  @Test
+  fun `updateRoles updates state correctly`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val newRoles = listOf(OrganizationRole("VP", "Vice President"))
+        viewModel.updateRoles(newRoles)
+
+        val state = viewModel.uiState.value
+        assertEquals(newRoles, state.roles)
+      }
+
+  @Test
+  fun `saveOrganization handles upload error`() =
+      testScope.runTest {
+        val failingMediaRepo = TestMediaRepository(shouldFail = true)
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = failingMediaRepo)
+
+        advanceUntilIdle()
+
+        val mockUri = Mockito.mock(Uri::class.java)
+        viewModel.updateLogoUri(mockUri)
+        viewModel.saveOrganization()
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isSaving)
+        assertTrue(state.error?.contains("Failed to upload logo") == true)
+      }
+
+  @Test
+  fun `saveOrganization handles repository error`() =
+      testScope.runTest {
+        val failingOrgRepo =
+            TestOrganizationRepository(listOf(testOrganization), shouldFailOnSave = true)
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = failingOrgRepo,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        viewModel.updateName("Valid Name")
+        viewModel.saveOrganization()
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isSaving)
+        assertTrue(state.error?.contains("Failed to update organization") == true)
+      }
+
+  @Test
+  fun `loadOrganizationData handles error`() =
+      testScope.runTest {
+        val failingRepo = TestOrganizationRepository(emptyList(), shouldFail = true)
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = failingRepo,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isLoading)
+        assertTrue(state.error?.contains("Failed to load organization") == true)
+      }
+
+  @Test
+  fun `members are loaded with correct roles`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(2, state.members.size)
+
+        val owner = state.members.find { it.userId == testUserId }
+        assertNotNull(owner)
+        assertTrue(owner!!.isOwner)
+        assertEquals("Owner", owner.role)
+
+        val member = state.members.find { it.userId == otherUserId }
+        assertNotNull(member)
+        assertFalse(member!!.isOwner)
+        assertEquals("President", member.role)
+      }
+
+  @Test
+  fun `confirmRemoveMember handles error`() =
+      testScope.runTest {
+        val failingRepo =
+            TestOrganizationRepository(listOf(testOrganization), shouldFailOnSave = true)
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = failingRepo,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val member =
+            OrganizationMemberEdit(
+                userId = otherUserId,
+                name = "Other User",
+                role = "Member",
+                avatarUrl = null,
+                isOwner = false)
+
+        viewModel.showRemoveMemberDialog(member)
+        viewModel.confirmRemoveMember()
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.error?.contains("Failed to remove member") == true)
+      }
+
+  @Test
+  fun `confirmChangeRole handles error`() =
+      testScope.runTest {
+        val failingRepo =
+            TestOrganizationRepository(listOf(testOrganization), shouldFailOnSave = true)
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = failingRepo,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val member =
+            OrganizationMemberEdit(
+                userId = otherUserId,
+                name = "Other User",
+                role = "President",
+                avatarUrl = null,
+                isOwner = false)
+
+        viewModel.showChangeRoleDialog(member)
+        viewModel.confirmChangeRole("Vice President")
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.error?.contains("Failed to change role") == true)
+      }
+
+  @Test
+  fun `loadMembers handles user not found`() =
+      testScope.runTest {
+        val emptyUserRepo = TestUserRepository(emptyList())
+
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = emptyUserRepo,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        // Should still load but with empty members list
+        assertNotNull(state.organization)
+        assertEquals(0, state.members.size)
+      }
+
+  @Test
+  fun `saveOrganization preserves empty description`() =
+      testScope.runTest {
+        viewModel =
+            OrganizationProfileEditViewModel(
+                organizationId = testOrgId,
+                context = context,
+                organizationRepository = organizationRepository,
+                userRepository = userRepository,
+                mediaRepository = mediaRepository)
+
+        advanceUntilIdle()
+
+        viewModel.updateName("Valid Name")
+        viewModel.updateDescription("")
+        viewModel.saveOrganization()
+
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("Organization updated successfully", state.successMessage)
+        assertNotNull(organizationRepository.savedOrganization)
+        assertNull(organizationRepository.savedOrganization?.description)
+      }
+
   // Test helper repositories
-  private class TestOrganizationRepository(var organizations: List<Organization>) :
-      OrganizationRepository {
+  private class TestOrganizationRepository(
+      var organizations: List<Organization>,
+      var shouldFail: Boolean = false,
+      var shouldFailOnSave: Boolean = false
+  ) : OrganizationRepository {
 
     var savedOrganization: Organization? = null
 
     override suspend fun saveOrganization(organization: Organization) {
+      if (shouldFailOnSave) {
+        throw Exception("Test save error")
+      }
       savedOrganization = organization
       organizations = organizations.map { if (it.id == organization.id) organization else it }
     }
 
     override suspend fun getOrganizationById(organizationId: String): Organization? {
+      if (shouldFail) {
+        throw Exception("Test load error")
+      }
       return organizations.find { it.id == organizationId }
     }
 
-    override suspend fun getAllOrganizations(): List<Organization> = organizations
+    override suspend fun getAllOrganizations(): List<Organization> {
+      if (shouldFail) {
+        throw Exception("Test error")
+      }
+      return organizations
+    }
 
     override suspend fun getNewOrganizationId(): String = "new_org_id"
 
@@ -824,11 +1126,14 @@ class OrganizationProfileEditViewModelTest {
     override suspend fun leaveEvent(eventId: String, userId: String) {}
   }
 
-  private class TestMediaRepository : MediaRepository {
+  private class TestMediaRepository(var shouldFail: Boolean = false) : MediaRepository {
     var uploadCalled = false
     var uploadedUri: Uri? = null
 
     override suspend fun upload(uri: Uri, path: String?): String {
+      if (shouldFail) {
+        throw Exception("Upload failed")
+      }
       uploadCalled = true
       uploadedUri = uri
       return "new_logo_id"

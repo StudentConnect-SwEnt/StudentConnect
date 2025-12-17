@@ -316,6 +316,115 @@ class OrganizationProfileEditScreenTest {
   // Dialog tests removed - LazyColumn items (member cards) don't render reliably in unit tests
   // Dialog functionality is thoroughly tested in ViewModel tests
 
+  @Test
+  fun organizationProfileEditScreen_showsErrorWhenOrganizationNotFound() {
+    val emptyRepo = TestOrganizationRepository(emptyList())
+    OrganizationRepositoryProvider.overrideForTests(emptyRepo)
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(
+            organizationId = "nonexistent", onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Should show error snackbar for organization not found
+    composeTestRule.onNode(hasText("Organization not found", substring = true)).assertExists()
+  }
+
+  @Test
+  fun organizationProfileEditScreen_handlesNonOwnerAccess() {
+    every { AuthenticationProvider.currentUser } returns otherUserId
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Should show error for non-owner access
+    composeTestRule
+        .onNode(hasText("Only the owner can edit this organization", substring = true))
+        .assertExists()
+  }
+
+  @Test
+  fun organizationProfileEditScreen_handlesTrimmedName() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Add whitespace to name
+    composeTestRule.onNodeWithText("Test Organization").performTextReplacement("  Valid Name  ")
+
+    // Save
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Should trim and save
+    assertNotNull(organizationRepository.savedOrganization)
+    assertEquals("Valid Name", organizationRepository.savedOrganization?.name)
+  }
+
+  @Test
+  fun organizationProfileEditScreen_handlesSaveWithoutChanges() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Save without making changes
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Should still save successfully
+    assertNotNull(organizationRepository.savedOrganization)
+  }
+
+  @Test
+  fun organizationProfileEditScreen_handlesLongOrganizationName() {
+    composeTestRule.setContent {
+      MaterialTheme {
+        OrganizationProfileEditScreen(organizationId = testOrgId, onBack = { backPressed = true })
+      }
+    }
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Enter a name that exceeds the limit
+    val longName = "a".repeat(201)
+    composeTestRule.onNodeWithText("Test Organization").performTextReplacement(longName)
+
+    // Try to save
+    composeTestRule.onNodeWithText("Save").performClick()
+
+    testDispatcher.scheduler.advanceUntilIdle()
+    composeTestRule.waitForIdle()
+
+    // Should show error
+    composeTestRule.onNode(hasText("exceeds", substring = true)).assertExists()
+  }
+
   // Test helper repositories
   private class TestOrganizationRepository(var organizations: List<Organization>) :
       OrganizationRepository {
