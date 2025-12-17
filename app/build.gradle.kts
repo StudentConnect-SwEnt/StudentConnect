@@ -303,6 +303,8 @@ configurations.all {
 }
 
 tasks.withType<Test>().configureEach {
+    // Raise heap for Robolectric/Compose unit tests in CI
+    maxHeapSize = "2g"
     // Show only failing tests to reduce noise while keeping visibility of failures
     testLogging {
         events(
