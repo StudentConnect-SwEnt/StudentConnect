@@ -317,16 +317,14 @@ tasks.withType<Test>().configureEach {
         showStandardStreams = false
     }
 
-    afterTest { description, result ->
-        val millis = result.endTime - result.startTime
-        println("${description.className}.${description.name} took ${millis} ms")
-    }
-
     // Print only a summary after all tests
     addTestListener(object : TestListener {
         override fun beforeSuite(suite: TestDescriptor) {}
         override fun beforeTest(testDescriptor: TestDescriptor) {}
-        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            val millis = result.endTime - result.startTime
+            println("${testDescriptor.className}.${testDescriptor.name} took ${millis} ms")
+        }
         override fun afterSuite(desc: TestDescriptor, result: TestResult) {
             if (desc.parent == null) {
                 println(
