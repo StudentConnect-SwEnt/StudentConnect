@@ -505,8 +505,7 @@ private fun EventDetailsContent(
               if (imageBitmap != null) {
                 Image(
                     bitmap = imageBitmap,
-                    contentDescription =
-                        stringResource(R.string.content_description_event_image),
+                    contentDescription = stringResource(R.string.content_description_event_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop)
                 // Gradient overlay for better text readability
@@ -547,8 +546,7 @@ private fun EventDetailsContent(
                     .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             shape = RoundedCornerShape(20.dp),
-            colors =
-                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
               Column(
                   modifier = Modifier.fillMaxWidth().padding(16.dp),
                   verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -564,8 +562,7 @@ private fun EventDetailsContent(
 
         // Main Content with negative margin to overlap with card
         Column(
-            modifier =
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
               CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
 
@@ -574,8 +571,7 @@ private fun EventDetailsContent(
                   elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                   shape = RoundedCornerShape(16.dp),
                   colors =
-                      CardDefaults.cardColors(
-                          containerColor = MaterialTheme.colorScheme.surface)) {
+                      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -654,7 +650,8 @@ private fun EventStatisticsTabContent(
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                   if (modelClass.isAssignableFrom(EventStatisticsViewModel::class.java)) {
-                    return EventStatisticsViewModel(getString = { id -> context.getString(id) }) as T
+                    return EventStatisticsViewModel(getString = { id -> context.getString(id) })
+                        as T
                   }
                   throw IllegalArgumentException("Unknown ViewModel class")
                 }
@@ -671,9 +668,7 @@ private fun EventStatisticsTabContent(
     uiState.error != null -> {
       ErrorState(
           message = uiState.error ?: "",
-          onRetry = {
-            viewModel.refresh()
-          },
+          onRetry = { viewModel.refresh() },
           modifier = Modifier.fillMaxSize())
     }
     uiState.statistics != null -> {
