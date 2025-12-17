@@ -217,9 +217,6 @@ class OrganizationProfileEditScreenTest {
     composeTestRule.onNodeWithText("New Name").assertExists()
   }
 
-  // Note: LazyColumn items don't render reliably in unit tests
-  // These tests are covered by the ViewModel tests which verify the business logic
-
   @Test
   fun organizationProfileEditScreen_displaysLogoSection() {
     composeTestRule.setContent {
@@ -233,8 +230,6 @@ class OrganizationProfileEditScreenTest {
 
     composeTestRule.onNodeWithText("Change Logo").assertExists()
   }
-
-  // Loading state test removed - LazyColumn rendering in tests is not reliable
 
   @Test
   fun organizationProfileEditScreen_savesChanges() {
@@ -312,9 +307,6 @@ class OrganizationProfileEditScreenTest {
         .onNode(hasText("successfully", substring = true, ignoreCase = true))
         .assertExists()
   }
-
-  // Dialog tests removed - LazyColumn items (member cards) don't render reliably in unit tests
-  // Dialog functionality is thoroughly tested in ViewModel tests
 
   @Test
   fun organizationProfileEditScreen_showsErrorWhenOrganizationNotFound() {
