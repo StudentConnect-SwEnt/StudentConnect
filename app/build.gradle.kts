@@ -305,7 +305,21 @@ configurations.all {
 tasks.withType<Test>().configureEach {
     // Show only failing tests to reduce noise while keeping visibility of failures
     testLogging {
-        events(TestLogEvent.FAILED)
+        events(
+            TestLogEvent.PASSED,
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED
+        )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = false
+    }
+
+    afterTest { description, result ->
+        val millis = result.endTime - result.startTime
+        println("${description.className}.${description.name} took ${millis} ms")
     }
 
     // Print only a summary after all tests
