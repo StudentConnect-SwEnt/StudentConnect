@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,7 +65,7 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
   }
 
   /** Validates and saves the bio. */
-  fun saveBio() {
+  fun saveBio(context: Context) {
     val trimmedBio = _bioText.value.trim()
 
     // Clear previous errors
@@ -80,6 +81,9 @@ class EditBioViewModel(userRepository: UserRepository, userId: String) :
       _validationError.value = ProfileConstants.ERROR_BIO_TOO_LONG
       return
     }
+
+    // Check network and notify if offline
+    checkAndNotifyOffline(context)
 
     executeWithErrorHandling(
         operation = {

@@ -165,6 +165,13 @@ fun EventView(
     }
   }
 
+  // Handle snackbar messages from ViewModel
+  LaunchedEffect(Unit) {
+    eventViewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
+    }
+  }
+
   // QR Scanner Dialog
   if (showQrScanner && event != null) {
     QrScannerDialog(
@@ -1115,7 +1122,8 @@ private fun NonOwnerActionButtons(
         if (canLeave) {
           eventViewModel.showLeaveConfirmDialog()
         } else if (canJoin) {
-          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+          val context = LocalContext.current
+          eventViewModel.joinEvent(eventUid = currentEvent.uid, context = context)
         }
       },
       modifier =

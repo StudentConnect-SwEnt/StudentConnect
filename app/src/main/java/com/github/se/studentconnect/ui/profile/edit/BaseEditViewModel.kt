@@ -1,11 +1,16 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
+import com.github.se.studentconnect.utils.NetworkUtils
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -27,6 +32,10 @@ abstract class BaseEditViewModel(
   // UI State
   private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
   val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+  // Snackbar messages
+  private val _snackbarMessage = MutableSharedFlow<String>()
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   /** UI state sealed class for edit screens. */
   sealed class UiState {
@@ -65,6 +74,22 @@ abstract class BaseEditViewModel(
    */
   protected fun setError(message: String) {
     _uiState.value = UiState.Error(message)
+  }
+
+  /**
+   * Checks if offline and emits snackbar message if so.
+   *
+   * @param context The application context
+   * @return true if offline, false otherwise
+   */
+  protected fun checkAndNotifyOffline(context: Context): Boolean {
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
+    if (isOffline) {
+      viewModelScope.launch {
+        _snackbarMessage.emit(context.getString(R.string.offline_changes_sync_message))
+      }
+    }
+    return isOffline
   }
 
   /**

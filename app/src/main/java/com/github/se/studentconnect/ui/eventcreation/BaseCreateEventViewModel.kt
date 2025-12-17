@@ -35,6 +35,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.ImageUploadWorker
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -449,6 +450,14 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         }
     checkNotNull(currentUserId)
 
+    // Check network status and show feedback if offline
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
+    if (isOffline) {
+      viewModelScope.launch {
+        _snackbarMessage.emit(context.getString(R.string.offline_changes_sync_message))
+      }
+    }
+
     updateState { copyCommon(isSaving = true) }
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
     val appContext = context.applicationContext
@@ -694,9 +703,6 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   }
 
   private fun isNetworkAvailable(context: Context): Boolean {
-    val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
-    val network = cm.activeNetwork ?: return false
-    val capabilities = cm.getNetworkCapabilities(network) ?: return false
-    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    return NetworkUtils.isNetworkAvailable(context)
   }
 }

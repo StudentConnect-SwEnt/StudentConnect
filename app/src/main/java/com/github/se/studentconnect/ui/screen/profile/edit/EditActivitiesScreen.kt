@@ -46,6 +46,14 @@ fun EditActivitiesScreen(
   val selectedActivities by viewModel.selectedActivities.collectAsState()
   val uiState by viewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
+    }
+  }
 
   LaunchedEffect(uiState) {
     when (val state = uiState) {
@@ -128,7 +136,7 @@ fun EditActivitiesScreen(
               }
 
           ProfileSaveButton(
-              onClick = { viewModel.saveActivities() },
+              onClick = { viewModel.saveActivities(context) },
               isLoading = isLoading,
               enabled = !isLoading,
               text = stringResource(R.string.button_save),

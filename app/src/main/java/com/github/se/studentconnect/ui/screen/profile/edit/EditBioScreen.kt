@@ -41,6 +41,7 @@ fun EditBioScreen(
   val characterCount by viewModel.characterCount.collectAsState()
   val validationError by viewModel.validationError.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
 
   // Handle UI state changes
   LaunchedEffect(uiState) {
@@ -56,6 +57,13 @@ fun EditBioScreen(
       else -> {
         /* Nothing */
       }
+    }
+  }
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
     }
   }
 
@@ -105,7 +113,7 @@ fun EditBioScreen(
 
               // Save Button
               Button(
-                  onClick = { viewModel.saveBio() },
+                  onClick = { viewModel.saveBio(context) },
                   modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT),
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&

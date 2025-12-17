@@ -130,6 +130,8 @@ import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
@@ -1612,6 +1614,8 @@ private fun StoryViewerContent(
     onShowDeleteConfirmation: () -> Unit
 ) {
   val currentStory = stories[currentStoryIndex]
+  val context = LocalContext.current
+  val isOffline = !NetworkUtils.isNetworkAvailable(context)
 
   Box(
       modifier =
@@ -1629,7 +1633,16 @@ private fun StoryViewerContent(
                     })
               }
               .testTag(HomeScreenTestTags.STORY_VIEWER)) {
-        StoryMediaContent(currentStory)
+        if (isOffline) {
+          // Show offline message in place of story content
+          Text(
+              text = stringResource(R.string.offline_no_internet_message),
+              color = Color.White,
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.align(Alignment.Center).padding(16.dp))
+        } else {
+          StoryMediaContent(currentStory)
+        }
 
         Box(modifier = Modifier.align(Alignment.TopCenter)) {
           StoryProgressIndicators(stories, currentStoryIndex)

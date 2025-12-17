@@ -47,6 +47,7 @@ import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.story.StoryRepository
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.launch
 
 enum class CameraMode {
@@ -100,6 +101,18 @@ internal fun handleStoryUpload(
             params.context.getString(R.string.story_upload_in_progress),
             Toast.LENGTH_SHORT)
         .show()
+    return false
+  }
+
+  // Check network and show message if offline
+  if (!NetworkUtils.isNetworkAvailable(params.context)) {
+    Toast.makeText(
+            params.context,
+            params.context.getString(R.string.offline_no_internet_message),
+            Toast.LENGTH_LONG)
+        .show()
+    // Navigate back to home screen
+    callbacks.onStoryAccepted(params.mediaUri, params.isVideo, null)
     return false
   }
 

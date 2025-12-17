@@ -40,6 +40,7 @@ fun EditNameScreen(
   val firstNameError by viewModel.firstNameError.collectAsState()
   val lastNameError by viewModel.lastNameError.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
 
   // Handle UI state changes
   LaunchedEffect(uiState) {
@@ -55,6 +56,13 @@ fun EditNameScreen(
         viewModel.resetState()
       }
       else -> {}
+    }
+  }
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
     }
   }
 
@@ -135,7 +143,7 @@ fun EditNameScreen(
 
               // Save Button
               ProfileSaveButton(
-                  onClick = { viewModel.saveName() },
+                  onClick = { viewModel.saveName(context) },
                   isLoading = uiState is BaseEditViewModel.UiState.Loading,
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&

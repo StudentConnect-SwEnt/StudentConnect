@@ -240,6 +240,7 @@ fun CreatePublicEventScreen(
 
         // Common Bottom Fields
         EventLocationField(
+            snackbarHostState = snackbarHostState,
             location = uiState.location,
             onLocationChange = createPublicEventViewModel::updateLocation,
             testTag = CreatePublicEventScreenTestTags.LOCATION_INPUT)

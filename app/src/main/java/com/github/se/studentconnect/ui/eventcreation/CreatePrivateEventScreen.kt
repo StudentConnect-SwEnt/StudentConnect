@@ -196,6 +196,7 @@ fun CreatePrivateEventScreen(
 
         // Location
         EventLocationField(
+            snackbarHostState = snackbarHostState,
             location = uiState.location,
             onLocationChange = createPrivateEventViewModel::updateLocation,
             testTag = CreatePrivateEventScreenTestTags.LOCATION_INPUT)

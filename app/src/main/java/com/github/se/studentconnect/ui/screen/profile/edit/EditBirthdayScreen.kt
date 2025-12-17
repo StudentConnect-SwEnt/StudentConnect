@@ -37,6 +37,14 @@ fun EditBirthdayScreen(
   val birthdayString by viewModel.birthdayString.collectAsState()
   val uiState by viewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
+    }
+  }
 
   // Create DatePickerState without initialSelectedDateMillis to avoid ghost circle
   val datePickerState = rememberDatePickerState()
@@ -127,7 +135,7 @@ fun EditBirthdayScreen(
 
               // Save Button
               ProfileSaveButton(
-                  onClick = { viewModel.saveBirthday() },
+                  onClick = { viewModel.saveBirthday(context) },
                   isLoading = uiState is EditBirthdayViewModel.UiState.Loading,
                   enabled =
                       uiState !is EditBirthdayViewModel.UiState.Loading &&
