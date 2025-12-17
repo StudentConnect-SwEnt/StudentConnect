@@ -88,12 +88,14 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   private fun privateEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Private {
     val uid = documentSnapshot.id
     val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+    val organizationId = documentSnapshot.getString("organizationId")
     val title = checkNotNull(documentSnapshot.getString("title"))
     val commonFields = extractCommonEventFields(documentSnapshot)
 
     return Event.Private(
         uid = uid,
         ownerId = ownerId,
+        organizationId = organizationId,
         title = title,
         description = commonFields.description,
         imageUrl = commonFields.imageUrl,
@@ -108,6 +110,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
   private fun publicEventFromDocumentSnapshot(documentSnapshot: DocumentSnapshot): Event.Public {
     val uid = documentSnapshot.id
     val ownerId = checkNotNull(documentSnapshot.getString("ownerId"))
+    val organizationId = documentSnapshot.getString("organizationId")
     val title = checkNotNull(documentSnapshot.getString("title"))
     val subtitle = checkNotNull(documentSnapshot.getString("subtitle"))
     val commonFields = extractCommonEventFields(documentSnapshot)
@@ -117,6 +120,7 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
     return Event.Public(
         uid = uid,
         ownerId = ownerId,
+        organizationId = organizationId,
         title = title,
         subtitle = subtitle,
         description = commonFields.description,
@@ -248,7 +252,10 @@ class EventRepositoryFirestore(private val db: FirebaseFirestore) : EventReposit
 
   override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
     val querySnapshot =
-        db.collection(EVENTS_COLLECTION_PATH).whereEqualTo("ownerId", organizationId).get().await()
+        db.collection(EVENTS_COLLECTION_PATH)
+            .whereEqualTo("organizationId", organizationId)
+            .get()
+            .await()
 
     return querySnapshot.documents.mapNotNull { doc ->
       try {

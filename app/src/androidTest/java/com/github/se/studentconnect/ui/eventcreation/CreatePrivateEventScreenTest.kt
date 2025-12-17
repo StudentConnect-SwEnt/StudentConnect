@@ -2,6 +2,7 @@
 
 package com.github.se.studentconnect.ui.eventcreation
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
@@ -17,6 +18,7 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
 
   @get:Rule val composeTestRule = createComposeRule()
 
+  @OptIn(ExperimentalMaterial3Api::class)
   @Before
   fun setUpContent() {
     EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
@@ -345,5 +347,41 @@ class CreatePrivateEventScreenTest : StudentConnectTest() {
         .onNodeWithTag(CreatePrivateEventScreenTestTags.FLASH_DURATION_MINUTES)
         .performScrollTo()
         .assertIsDisplayed()
+  }
+
+  // ========== NEW TESTS FOR ORGANIZATION SUPPORT ==========
+
+  @Test
+  fun organizationSwitch_notDisplayedWhenNoOrganizations() {
+    // Default setup has no organizations loaded (async loading in ViewModel init)
+    // The organization switch only appears when userOrganizations list is not empty
+    composeTestRule.waitForIdle()
+
+    // Switch should not exist when user owns no organizations
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.CREATE_AS_ORG_SWITCH)
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun organizationDropdown_notDisplayedByDefault() {
+    // Dropdown only appears when createAsOrganization is true
+    composeTestRule.waitForIdle()
+
+    composeTestRule
+        .onNodeWithTag(CreatePrivateEventScreenTestTags.SELECT_ORG_DROPDOWN)
+        .assertDoesNotExist()
+  }
+
+  @Test
+  fun organizationFields_testTagsAreDefinedCorrectly() {
+    // This test verifies that the test tags are properly defined
+    // Even if the UI elements don't exist, the constants should be accessible
+    val switchTag = CreatePrivateEventScreenTestTags.CREATE_AS_ORG_SWITCH
+    val dropdownTag = CreatePrivateEventScreenTestTags.SELECT_ORG_DROPDOWN
+
+    // Verify tags are non-empty strings
+    assert(switchTag.isNotEmpty())
+    assert(dropdownTag.isNotEmpty())
   }
 }

@@ -3,6 +3,7 @@ package com.github.se.studentconnect.ui.eventcreation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +53,8 @@ object CreatePublicEventScreenTestTags {
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
   const val TAG_SELECTOR = "tagSelector"
+  const val CREATE_AS_ORG_SWITCH = "createAsOrgSwitch"
+  const val ORG_DROPDOWN = "orgDropdown"
 }
 
 /**
@@ -70,6 +73,7 @@ object CreatePublicEventScreenTestTags {
  * @param templateEventId Optional template event ID for creating an event from a template
  * @param createPublicEventViewModel ViewModel managing the event creation/editing state
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePublicEventScreen(
     navController: NavHostController?,
@@ -194,6 +198,18 @@ fun CreatePublicEventScreen(
                 showGeminiDialog = false
               },
               isLoading = uiState.isGeneratingBanner)
+        }
+
+        // Organization Creation Toggle (only shown if user owns organizations)
+        if (uiState.userOrganizations.isNotEmpty()) {
+          OrganizationSelectionSection(
+              userOrganizations = uiState.userOrganizations,
+              createAsOrganization = uiState.createAsOrganization,
+              selectedOrganizationId = uiState.selectedOrganizationId,
+              onCreateAsOrganizationChange = createPublicEventViewModel::updateCreateAsOrganization,
+              onOrganizationSelected = createPublicEventViewModel::updateSelectedOrganizationId,
+              switchTestTag = CreatePublicEventScreenTestTags.CREATE_AS_ORG_SWITCH,
+              dropdownTestTag = CreatePublicEventScreenTestTags.ORG_DROPDOWN)
         }
 
         // Tags (Specific to Public)

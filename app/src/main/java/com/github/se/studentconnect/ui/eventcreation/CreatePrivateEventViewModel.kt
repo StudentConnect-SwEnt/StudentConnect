@@ -35,6 +35,7 @@ class CreatePrivateEventViewModel :
     return Event.Private(
         uid = uid,
         ownerId = ownerId,
+        organizationId = if (s.createAsOrganization) s.selectedOrganizationId else null,
         title = s.title,
         description = s.description,
         imageUrl = bannerPath,

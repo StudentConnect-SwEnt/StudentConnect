@@ -77,6 +77,7 @@ object HttpClientProvider {
   var client: OkHttpClient = OkHttpClient()
 }
 
+@ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -480,7 +481,10 @@ internal fun MainAppContent(
                           }
                   OrganizationProfileScreen(
                       organizationId = organizationId,
-                      onBackClick = { navController.popBackStack() })
+                      onBackClick = { navController.popBackStack() },
+                      onEventClick = { eventId ->
+                        navController.navigate(Route.eventView(eventId, true))
+                      })
                 }
 
             // Friends List Screen

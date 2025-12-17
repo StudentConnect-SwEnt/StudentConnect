@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +39,65 @@ object CreatePrivateEventScreenTestTags {
   const val SAVE_BUTTON = "saveButton"
   const val BANNER_PICKER = "bannerPicker"
   const val REMOVE_BANNER_BUTTON = "removeBannerButton"
+  const val CREATE_AS_ORG_SWITCH = "createAsOrgSwitch"
+  const val SELECT_ORG_DROPDOWN = "selectOrgDropdown"
+}
+
+/**
+ * Determines if the event form can be saved based on validation rules.
+ *
+ * @param uiState The current UI state
+ * @return true if the form is valid and can be saved
+ */
+private fun canSaveEvent(uiState: CreateEventUiState.Private): Boolean {
+  if (uiState.title.isBlank() || uiState.isSaving) return false
+
+  return if (uiState.isFlash) {
+    uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0
+  } else {
+    uiState.startDate != null && uiState.endDate != null
+  }
+}
+
+/** Handles navigation after event is saved. */
+@Composable
+private fun NavigationHandler(
+    viewModel: CreatePrivateEventViewModel,
+    navController: NavHostController?
+) {
+  LaunchedEffect(Unit) {
+    viewModel.navigateToEvent.collect { eventId ->
+      navController?.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
+      navController?.navigate(Route.eventView(eventId, true))
+      viewModel.resetFinishedSaving()
+    }
+  }
+}
+
+/** Handles displaying snackbar messages. */
+@Composable
+private fun SnackbarHandler(
+    viewModel: CreatePrivateEventViewModel,
+    snackbarHostState: SnackbarHostState
+) {
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
+  }
+}
+
+/** Handles initial event loading (editing or template). */
+@Composable
+private fun EventLoadingHandler(
+    existingEventId: String?,
+    templateEventId: String?,
+    viewModel: CreatePrivateEventViewModel
+) {
+  LaunchedEffect(existingEventId, templateEventId) {
+    when {
+      existingEventId != null -> viewModel.loadEvent(existingEventId)
+      templateEventId != null -> viewModel.loadEventAsTemplate(templateEventId)
+    }
+  }
 }
 
 /**
@@ -47,6 +107,7 @@ object CreatePrivateEventScreenTestTags {
  * @param existingEventId The ID of the event to edit, or null if creating a new event.
  * @param createPrivateEventViewModel The ViewModel managing state for private events.
  */
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun CreatePrivateEventScreen(
     navController: NavHostController?,
@@ -54,39 +115,17 @@ fun CreatePrivateEventScreen(
     templateEventId: String? = null,
     createPrivateEventViewModel: CreatePrivateEventViewModel = viewModel(),
 ) {
-  LaunchedEffect(existingEventId, templateEventId) {
-    when {
-      existingEventId != null -> createPrivateEventViewModel.loadEvent(existingEventId)
-      templateEventId != null -> createPrivateEventViewModel.loadEventAsTemplate(templateEventId)
-    }
-  }
-
   val uiState by createPrivateEventViewModel.uiState.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val context = LocalContext.current
   var showGeminiDialog by remember { mutableStateOf(false) }
-  val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+  val snackbarHostState = remember { SnackbarHostState() }
 
-  LaunchedEffect(Unit) {
-    createPrivateEventViewModel.navigateToEvent.collect { eventId ->
-      navController?.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
-      navController?.navigate(Route.eventView(eventId, true))
-      createPrivateEventViewModel.resetFinishedSaving()
-    }
-  }
+  EventLoadingHandler(existingEventId, templateEventId, createPrivateEventViewModel)
+  NavigationHandler(createPrivateEventViewModel, navController)
+  SnackbarHandler(createPrivateEventViewModel, snackbarHostState)
 
-  LaunchedEffect(Unit) {
-    createPrivateEventViewModel.snackbarMessage.collect { message ->
-      snackbarHostState.showSnackbar(message)
-    }
-  }
-
-  val canSave =
-      uiState.title.isNotBlank() &&
-          ((uiState.isFlash &&
-              uiState.flashDurationHours * 60 + uiState.flashDurationMinutes > 0) ||
-              (!uiState.isFlash && uiState.startDate != null && uiState.endDate != null)) &&
-          !uiState.isSaving
+  val canSave = canSaveEvent(uiState)
 
   // Group test tags for the shell
   val shellTestTags =
@@ -140,6 +179,19 @@ fun CreatePrivateEventScreen(
                 showGeminiDialog = false
               },
               isLoading = uiState.isGeneratingBanner)
+        }
+
+        // Organization Selection (Only show if user owns organizations)
+        if (uiState.userOrganizations.isNotEmpty()) {
+          OrganizationSelectionSection(
+              userOrganizations = uiState.userOrganizations,
+              createAsOrganization = uiState.createAsOrganization,
+              selectedOrganizationId = uiState.selectedOrganizationId,
+              onCreateAsOrganizationChange =
+                  createPrivateEventViewModel::updateCreateAsOrganization,
+              onOrganizationSelected = createPrivateEventViewModel::updateSelectedOrganizationId,
+              switchTestTag = CreatePrivateEventScreenTestTags.CREATE_AS_ORG_SWITCH,
+              dropdownTestTag = CreatePrivateEventScreenTestTags.SELECT_ORG_DROPDOWN)
         }
 
         // Location

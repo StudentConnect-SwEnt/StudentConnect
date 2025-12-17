@@ -99,9 +99,9 @@ class EventRepositoryLocalTest {
 
   @Test
   fun `getEventsByOrganization returns events by organization`() = runTest {
-    val event1 = createTestPublicEvent("event1", "org1")
-    val event2 = createTestPublicEvent("event2", "org2")
-    val event3 = createTestPublicEvent("event3", "org1")
+    val event1 = createTestPublicEvent("event1", "owner1").copy(organizationId = "org1")
+    val event2 = createTestPublicEvent("event2", "owner2").copy(organizationId = "org2")
+    val event3 = createTestPublicEvent("event3", "owner3").copy(organizationId = "org1")
 
     repository.addEvent(event1)
     repository.addEvent(event2)
@@ -109,6 +109,8 @@ class EventRepositoryLocalTest {
 
     val orgEvents = repository.getEventsByOrganization("org1")
     assertEquals(2, orgEvents.size)
+    assertTrue(orgEvents.any { it.uid == "event1" })
+    assertTrue(orgEvents.any { it.uid == "event3" })
   }
 
   @Test

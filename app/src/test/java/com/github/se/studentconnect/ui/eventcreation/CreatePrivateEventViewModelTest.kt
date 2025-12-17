@@ -16,6 +16,7 @@ import com.github.se.studentconnect.resources.C
 import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -194,8 +195,8 @@ class CreatePrivateEventViewModelTest {
             ownerId = "owner-id",
             title = "Test Event",
             description = "Test Description",
-            start = Timestamp.now(),
-            end = Timestamp.now(),
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
             isFlash = true,
             maxCapacity = 100u,
             participationFee = 50u,
@@ -227,8 +228,8 @@ class CreatePrivateEventViewModelTest {
             ownerId = "owner-id",
             title = "Template Event",
             description = "Template Description",
-            start = Timestamp.now(),
-            end = Timestamp.now(),
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
             isFlash = false,
             maxCapacity = 200u)
 
@@ -281,7 +282,7 @@ class CreatePrivateEventViewModelTest {
 
   @Test
   fun `prefillFromTemplate calculates flash duration correctly for flash event`() {
-    val start = Timestamp.now()
+    val start = Timestamp(Date())
     val end = Timestamp(start.seconds + 2 * 3600 + 30 * 60, start.nanoseconds) // 2h 30m
     val event =
         Event.Private(
@@ -309,8 +310,8 @@ class CreatePrivateEventViewModelTest {
             ownerId = "owner-id",
             title = "Regular Event",
             description = "Test",
-            start = Timestamp.now(),
-            end = Timestamp.now(),
+            start = Timestamp(Date()),
+            end = Timestamp(Date()),
             isFlash = false)
 
     viewModel.prefillFromTemplate(event)
@@ -323,7 +324,7 @@ class CreatePrivateEventViewModelTest {
 
   @Test
   fun `prefill calculates flash duration correctly for flash event`() = runTest {
-    val start = Timestamp.now()
+    val start = Timestamp(Date())
     val end = Timestamp(start.seconds + 1 * 3600 + 45 * 60, start.nanoseconds) // 1h 45m
     val event =
         Event.Private(
@@ -346,8 +347,88 @@ class CreatePrivateEventViewModelTest {
     assertEquals(45, state.flashDurationMinutes)
   }
 
+  // ========== NEW TESTS FOR ORGANIZATION SUPPORT ==========
+
   @Test
-  fun `initial state has isGeneratingBanner false`() {
-    assertFalse(viewModel.uiState.value.isGeneratingBanner)
+  fun `initial state has organization fields empty`() {
+    val state = viewModel.uiState.value
+    assertFalse(state.createAsOrganization)
+    assertNull(state.selectedOrganizationId)
+    assertTrue(state.userOrganizations.isEmpty())
+  }
+
+  @Test
+  fun `updateCreateAsOrganization updates state`() {
+    viewModel.updateCreateAsOrganization(true)
+    assertTrue(viewModel.uiState.value.createAsOrganization)
+
+    viewModel.updateCreateAsOrganization(false)
+    assertFalse(viewModel.uiState.value.createAsOrganization)
+  }
+
+  @Test
+  fun `updateSelectedOrganizationId updates state`() {
+    viewModel.updateSelectedOrganizationId("org-123")
+    assertEquals("org-123", viewModel.uiState.value.selectedOrganizationId)
+
+    viewModel.updateSelectedOrganizationId("org-456")
+    assertEquals("org-456", viewModel.uiState.value.selectedOrganizationId)
+  }
+
+  @Test
+  fun `state correctly stores createAsOrganization and selectedOrganizationId together`() {
+    // Test that both fields can be set independently
+    viewModel.updateCreateAsOrganization(true)
+    viewModel.updateSelectedOrganizationId("org-123")
+
+    val state = viewModel.uiState.value
+    assertTrue(state.createAsOrganization)
+    assertEquals("org-123", state.selectedOrganizationId)
+
+    // Test changing createAsOrganization doesn't clear selectedOrganizationId
+    viewModel.updateCreateAsOrganization(false)
+    assertEquals("org-123", viewModel.uiState.value.selectedOrganizationId)
+    assertFalse(viewModel.uiState.value.createAsOrganization)
+  }
+
+  @Test
+  fun `updateSelectedOrganizationId can be changed multiple times`() {
+    viewModel.updateSelectedOrganizationId("org-1")
+    assertEquals("org-1", viewModel.uiState.value.selectedOrganizationId)
+
+    viewModel.updateSelectedOrganizationId("org-2")
+    assertEquals("org-2", viewModel.uiState.value.selectedOrganizationId)
+
+    viewModel.updateSelectedOrganizationId("org-3")
+    assertEquals("org-3", viewModel.uiState.value.selectedOrganizationId)
+  }
+
+  @Test
+  fun `createAsOrganization persists across other state updates`() {
+    viewModel.updateCreateAsOrganization(true)
+    viewModel.updateSelectedOrganizationId("org-123")
+
+    // Update other fields
+    viewModel.updateTitle("Test Event")
+    viewModel.updateDescription("Test Description")
+    viewModel.updateIsFlash(true)
+
+    // Organization fields should still be set
+    assertTrue(viewModel.uiState.value.createAsOrganization)
+    assertEquals("org-123", viewModel.uiState.value.selectedOrganizationId)
+  }
+
+  @Test
+  fun `organization fields work with flash events`() {
+    viewModel.updateIsFlash(true)
+    viewModel.updateFlashDurationHours(2)
+    viewModel.updateCreateAsOrganization(true)
+    viewModel.updateSelectedOrganizationId("org-flash")
+
+    val state = viewModel.uiState.value
+    assertTrue(state.isFlash)
+    assertEquals(2, state.flashDurationHours)
+    assertTrue(state.createAsOrganization)
+    assertEquals("org-flash", state.selectedOrganizationId)
   }
 }

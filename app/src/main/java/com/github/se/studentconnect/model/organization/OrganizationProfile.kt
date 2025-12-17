@@ -60,7 +60,9 @@ data class OrganizationEvent(
     val cardDate: String,
     val title: String,
     val subtitle: String,
-    val location: String? = null
+    val location: String? = null,
+    val endTimestamp: com.google.firebase.Timestamp? = null,
+    val imageUrl: String? = null
 ) {
   init {
     require(eventId.isNotBlank()) { "Event ID cannot be blank" }
@@ -68,6 +70,12 @@ data class OrganizationEvent(
     require(cardDate.isNotBlank()) { "Card date cannot be blank" }
     require(title.isNotBlank()) { "Event title cannot be blank" }
     require(subtitle.isNotBlank()) { "Event subtitle cannot be blank" }
+  }
+
+  /** Returns true if the event has ended (end time is in the past). */
+  fun hasEnded(): Boolean {
+    val end = endTimestamp ?: return false
+    return end.toDate().time < System.currentTimeMillis()
   }
 }
 

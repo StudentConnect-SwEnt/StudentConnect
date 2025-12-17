@@ -429,6 +429,8 @@
     <string name="event_label_flash_duration_hours">Hours</string>
     <string name="event_label_flash_duration_minutes">Minutes</string>
     <string name="event_label_flash_starts_immediately">Starts immediately</string>
+    <string name="event_label_create_as_organization">Create as organization</string>
+    <string name="event_label_select_organization">Select organization</string>
     <string name="event_label_username">Username</string>
     <string name="event_label_invite_friends">Invite friends</string>
     <string name="event_invite_friends_help">Select friends to invite to this event.</string>
@@ -486,6 +488,10 @@
     <string name="org_profile_tab_members">Members</string>
     <string name="org_profile_no_events">No events yet</string>
     <string name="org_profile_no_members">No members yet</string>
+    <string name="org_profile_event_ended">Event Ended</string>
+    <string name="org_profile_filter_all">All</string>
+    <string name="org_profile_filter_upcoming">Upcoming</string>
+    <string name="org_profile_filter_past">Past</string>
 
     <!-- Organization suggestions -->
     <string name="org_suggestions_title">Organizations</string>

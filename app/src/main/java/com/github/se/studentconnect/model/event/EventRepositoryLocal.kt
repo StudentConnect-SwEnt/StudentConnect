@@ -28,7 +28,7 @@ class EventRepositoryLocal : EventRepository {
   }
 
   override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
-    return events.filter { it.ownerId == organizationId }
+    return events.filter { it.organizationId == organizationId }
   }
 
   override suspend fun getEventsByOwner(userId: String): List<Event> {

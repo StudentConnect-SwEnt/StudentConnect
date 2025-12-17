@@ -118,6 +118,8 @@ object C {
     const val org_profile_member_card_prefix = "org_profile_member_card"
     const val org_profile_events_empty = "org_profile_events_empty"
     const val org_profile_members_empty = "org_profile_members_empty"
+    const val org_profile_event_filters = "org_profile_event_filters"
+    const val org_profile_event_filter_prefix = "org_profile_event_filter"
 
     // Organization suggestions test tags
     const val org_suggestions_section = "organization_suggestions_section"

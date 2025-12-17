@@ -30,10 +30,13 @@ interface EventRepository : Repository {
   suspend fun getAllVisibleEventsSatisfying(predicate: (Event) -> Boolean): List<Event>
 
   /**
-   * Retrieves all events owned by a specific organization.
+   * Retrieves all events created by a specific organization.
+   *
+   * This method filters events where the organizationId field matches the provided ID, indicating
+   * the event was created as/by that organization.
    *
    * @param organizationId The unique identifier of the organization.
-   * @return A list of [Event] objects owned by the organization.
+   * @return A list of [Event] objects created by the organization.
    * @throws Exception if the retrieval fails.
    */
   suspend fun getEventsByOrganization(organizationId: String): List<Event> {

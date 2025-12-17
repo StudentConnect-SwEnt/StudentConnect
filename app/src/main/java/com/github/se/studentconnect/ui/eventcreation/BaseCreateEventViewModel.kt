@@ -104,6 +104,11 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
   protected var editingEventUid: String? = null
 
+  init {
+    // Load user's organizations on initialization
+    loadUserOrganizations()
+  }
+
   // --- Shared Update Functions ---
 
   /**
@@ -247,6 +252,71 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   }
 
   /**
+   * Updates whether to create the event as an organization.
+   *
+   * @param createAsOrg The new create as organization value.
+   */
+  fun updateCreateAsOrganization(createAsOrg: Boolean) {
+    updateState {
+      copyCommon(
+          createAsOrganization = createAsOrg,
+          selectedOrganizationId =
+              if (createAsOrg) {
+                // Only auto-select first org if no organization is currently selected
+                this.selectedOrganizationId ?: this.userOrganizations.firstOrNull()?.first
+              } else {
+                // Keep selectedOrganizationId when disabling createAsOrganization
+                // (don't clear it, as it might be set manually)
+                this.selectedOrganizationId
+              })
+    }
+  }
+
+  /**
+   * Updates the selected organization ID.
+   *
+   * @param organizationId The new selected organization ID.
+   */
+  fun updateSelectedOrganizationId(organizationId: String?) {
+    updateState { copyCommon(selectedOrganizationId = organizationId) }
+  }
+
+  /**
+   * Loads the organizations that the current user owns (is the creator of).
+   *
+   * This function gracefully handles failures:
+   * - If Firebase is not initialized (e.g., in unit tests), it logs and returns
+   * - If there's no current user, it returns early
+   * - If the repository throws an exception, it catches and logs the error
+   *
+   * On failure, the userOrganizations list remains empty, which is handled by the UI (organization
+   * selection UI is not shown when the list is empty).
+   */
+  private fun loadUserOrganizations() {
+    val currentUserId =
+        try {
+          Firebase.auth.currentUser?.uid
+        } catch (e: IllegalStateException) {
+          // Firebase not initialized (e.g., in unit tests)
+          Log.d("BaseCreateEventViewModel", "Firebase not initialized, skipping organization load")
+          return
+        } ?: return
+
+    viewModelScope.launch {
+      try {
+        val allOrganizations = organizationRepository.getAllOrganizations()
+        val userOrgs =
+            allOrganizations.filter { it.createdBy == currentUserId }.map { it.id to it.name }
+
+        updateState { copyCommon(userOrganizations = userOrgs) }
+      } catch (e: Exception) {
+        // Log error but don't crash - userOrganizations stays empty
+        Log.e("BaseCreateEventViewModel", "Error loading user organizations", e)
+      }
+    }
+  }
+
+  /**
    * Helper to safely update state using the copyCommon mechanism. Performs an unchecked cast which
    * is safe as copyCommon preserves the runtime type.
    */
@@ -370,7 +440,13 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   fun saveEvent(context: Context) {
     if (!validateState()) return
 
-    val currentUserId = Firebase.auth.currentUser?.uid
+    val currentUserId =
+        try {
+          Firebase.auth.currentUser?.uid
+        } catch (e: IllegalStateException) {
+          Log.e("BaseCreateEventViewModel", "Firebase not initialized, cannot save event", e)
+          return
+        }
     checkNotNull(currentUserId)
 
     updateState { copyCommon(isSaving = true) }

@@ -31,6 +31,9 @@ sealed class CreateEventUiState {
   abstract val bannerImageUri: Uri?
   abstract val bannerImagePath: String?
   abstract val shouldRemoveBanner: Boolean
+  abstract val createAsOrganization: Boolean
+  abstract val selectedOrganizationId: String?
+  abstract val userOrganizations: List<Pair<String, String>> // List of (id, name) pairs
   abstract val isGeneratingBanner: Boolean
 
   /** UI State for creating a Public Event. */
@@ -53,6 +56,9 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val createAsOrganization: Boolean = false,
+      override val selectedOrganizationId: String? = null,
+      override val userOrganizations: List<Pair<String, String>> = emptyList(),
       override val isGeneratingBanner: Boolean = false,
       val subtitle: String = "",
       val website: String = "",
@@ -79,6 +85,9 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val createAsOrganization: Boolean = false,
+      override val selectedOrganizationId: String? = null,
+      override val userOrganizations: List<Pair<String, String>> = emptyList(),
       override val isGeneratingBanner: Boolean = false,
   ) : CreateEventUiState()
 }
@@ -110,7 +119,10 @@ fun CreateEventUiState.copyCommon(
     bannerImageUri: Uri? = this.bannerImageUri,
     bannerImagePath: String? = this.bannerImagePath,
     shouldRemoveBanner: Boolean = this.shouldRemoveBanner,
-    isGeneratingBanner: Boolean = this.isGeneratingBanner
+    isGeneratingBanner: Boolean = this.isGeneratingBanner,
+    createAsOrganization: Boolean = this.createAsOrganization,
+    selectedOrganizationId: String? = this.selectedOrganizationId,
+    userOrganizations: List<Pair<String, String>> = this.userOrganizations
 ): CreateEventUiState {
   return when (this) {
     is CreateEventUiState.Public ->
@@ -133,7 +145,10 @@ fun CreateEventUiState.copyCommon(
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
             shouldRemoveBanner = shouldRemoveBanner,
-            isGeneratingBanner = isGeneratingBanner)
+            isGeneratingBanner = isGeneratingBanner,
+            createAsOrganization = createAsOrganization,
+            selectedOrganizationId = selectedOrganizationId,
+            userOrganizations = userOrganizations)
     is CreateEventUiState.Private ->
         copy(
             title = title,
@@ -154,6 +169,9 @@ fun CreateEventUiState.copyCommon(
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
             shouldRemoveBanner = shouldRemoveBanner,
-            isGeneratingBanner = isGeneratingBanner)
+            isGeneratingBanner = isGeneratingBanner,
+            createAsOrganization = createAsOrganization,
+            selectedOrganizationId = selectedOrganizationId,
+            userOrganizations = userOrganizations)
   }
 }
