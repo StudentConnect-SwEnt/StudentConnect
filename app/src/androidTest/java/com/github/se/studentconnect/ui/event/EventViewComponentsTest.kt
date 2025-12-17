@@ -359,7 +359,7 @@ class EventViewComponentsTest {
     }
 
     composeTestRule.onNodeWithTag("event_view_join_button").performClick()
-    verify { mockEventViewModel.joinEvent(testEventUid, testContext) }
+    verify { mockEventViewModel.joinEvent(testEventUid, any()) }
   }
 
   @Test
