@@ -472,7 +472,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -621,7 +621,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -666,7 +666,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Math Lecture",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -737,7 +737,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -918,7 +918,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-read",
             userId = "user123",
-            eventId = "event456",
+            eventId = "event-2",
             eventTitle = "Workshop",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -1157,7 +1157,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event789",
+            eventId = "event-1",
             eventTitle = "Meeting",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
