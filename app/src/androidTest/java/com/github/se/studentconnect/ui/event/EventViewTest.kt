@@ -22,9 +22,6 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
-import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.poll.Poll
-import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.activities.EventView
