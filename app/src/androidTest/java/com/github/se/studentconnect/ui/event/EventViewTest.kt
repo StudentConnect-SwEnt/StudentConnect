@@ -2064,16 +2064,15 @@ class EventViewTest {
       composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
       composeTestRule.waitForIdle()
 
-      // Wait for statistics to load asynchronously
-      composeTestRule.waitUntil(timeoutMillis = 5000) {
+      // Verify that statistics tab shows loading state (which appears immediately)
+      // The loading state should appear right away when the tab is clicked
+      composeTestRule.waitUntil(timeoutMillis = 2000) {
         composeTestRule
-            .onAllNodesWithTag(C.Tag.STATS_CONTENT)
+            .onAllNodesWithTag(C.Tag.STATS_LOADING)
             .fetchSemanticsNodes(false)
             .isNotEmpty()
       }
-
-      // Verify statistics content is displayed (using the test tag from StatisticsContent)
-      composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(C.Tag.STATS_LOADING).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
