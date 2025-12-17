@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -2062,6 +2063,12 @@ class EventViewTest {
       // Click the Statistics tab
       composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
       composeTestRule.waitForIdle()
+
+      // Wait for statistics to load asynchronously
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        composeTestRule.onAllNodesWithTag(C.Tag.STATS_CONTENT).fetchSemanticsNodes(false)
+            .isNotEmpty()
+      }
 
       // Verify statistics content is displayed (using the test tag from StatisticsContent)
       composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertIsDisplayed()
