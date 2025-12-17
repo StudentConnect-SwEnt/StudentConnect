@@ -84,6 +84,7 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.profile.OrganizationMemberEdit
+import com.github.se.studentconnect.ui.profile.OrganizationProfileEditUiState
 import com.github.se.studentconnect.ui.profile.OrganizationProfileEditViewModel
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlinx.coroutines.Dispatchers
@@ -119,6 +120,42 @@ fun OrganizationProfileEditScreen(
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+
+  HandleEffects(uiState, snackbarHostState, viewModel)
+
+  Scaffold(
+      modifier = modifier.fillMaxSize(),
+      snackbarHost = { SnackbarHost(snackbarHostState) },
+      topBar = {
+        OrganizationEditTopBar(
+            onBack = onBack,
+            onSave = { viewModel.saveOrganization() },
+            isSaving = uiState.isSaving,
+            isLoading = uiState.isLoading)
+      }) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+          when {
+            uiState.isLoading -> {
+              Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+              }
+            }
+            uiState.organization != null -> {
+              OrganizationEditContent(uiState = uiState, viewModel = viewModel, modifier = Modifier)
+            }
+          }
+        }
+
+        OrganizationEditDialogs(uiState, viewModel)
+      }
+}
+
+@Composable
+private fun HandleEffects(
+    uiState: OrganizationProfileEditUiState,
+    snackbarHostState: SnackbarHostState,
+    viewModel: OrganizationProfileEditViewModel
+) {
   val scope = rememberCoroutineScope()
 
   // Show snackbar for success/error messages
@@ -139,85 +176,78 @@ fun OrganizationProfileEditScreen(
       }
     }
   }
+}
 
-  Scaffold(
-      modifier = modifier.fillMaxSize(),
-      snackbarHost = { SnackbarHost(snackbarHostState) },
-      topBar = {
-        TopAppBar(
-            title = {
-              Text(
-                  stringResource(R.string.title_edit_organization),
-                  style = MaterialTheme.typography.titleLarge)
-            },
-            navigationIcon = {
-              IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.content_description_back))
-              }
-            },
-            actions = {
-              // Save button with enhanced visibility
-              FilledTonalButton(
-                  onClick = { viewModel.saveOrganization() },
-                  enabled = !uiState.isSaving && !uiState.isLoading,
-                  modifier = Modifier.padding(end = 12.dp),
-                  colors =
-                      ButtonDefaults.filledTonalButtonColors(
-                          containerColor = MaterialTheme.colorScheme.primaryContainer,
-                          contentColor = MaterialTheme.colorScheme.onPrimaryContainer)) {
-                    if (uiState.isSaving) {
-                      CircularProgressIndicator(
-                          modifier = Modifier.size(20.dp),
-                          color = MaterialTheme.colorScheme.onPrimaryContainer,
-                          strokeWidth = 2.dp)
-                      Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    Text(
-                        text =
-                            if (uiState.isSaving) stringResource(R.string.button_save) + "..."
-                            else stringResource(R.string.button_save),
-                        fontWeight = FontWeight.SemiBold)
-                  }
-            },
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OrganizationEditTopBar(
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    isSaving: Boolean,
+    isLoading: Boolean
+) {
+  TopAppBar(
+      title = {
+        Text(
+            stringResource(R.string.title_edit_organization),
+            style = MaterialTheme.typography.titleLarge)
+      },
+      navigationIcon = {
+        IconButton(onClick = onBack) {
+          Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = stringResource(R.string.content_description_back))
+        }
+      },
+      actions = {
+        // Save button with enhanced visibility
+        FilledTonalButton(
+            onClick = onSave,
+            enabled = !isSaving && !isLoading,
+            modifier = Modifier.padding(end = 12.dp),
             colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface))
-      }) { paddingValues ->
-        when {
-          uiState.isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center) {
-                  CircularProgressIndicator()
-                }
-          }
-          uiState.organization != null -> {
-            OrganizationEditContent(
-                uiState = uiState,
-                viewModel = viewModel,
-                modifier = Modifier.padding(paddingValues))
-          }
-        }
+                ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer)) {
+              if (isSaving) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    strokeWidth = 2.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+              }
+              Text(
+                  text =
+                      if (isSaving) stringResource(R.string.button_save) + "..."
+                      else stringResource(R.string.button_save),
+                  fontWeight = FontWeight.SemiBold)
+            }
+      },
+      colors =
+          TopAppBarDefaults.topAppBarColors(
+              containerColor = MaterialTheme.colorScheme.surface,
+              titleContentColor = MaterialTheme.colorScheme.onSurface))
+}
 
-        // Dialogs
-        if (uiState.showRemoveMemberDialog && uiState.memberToRemove != null) {
-          RemoveMemberDialog(
-              member = uiState.memberToRemove!!,
-              onConfirm = { viewModel.confirmRemoveMember() },
-              onDismiss = { viewModel.dismissRemoveMemberDialog() })
-        }
+@Composable
+private fun OrganizationEditDialogs(
+    uiState: OrganizationProfileEditUiState,
+    viewModel: OrganizationProfileEditViewModel
+) {
+  if (uiState.showRemoveMemberDialog && uiState.memberToRemove != null) {
+    RemoveMemberDialog(
+        member = uiState.memberToRemove!!,
+        onConfirm = { viewModel.confirmRemoveMember() },
+        onDismiss = { viewModel.dismissRemoveMemberDialog() })
+  }
 
-        if (uiState.showChangeRoleDialog && uiState.memberToChangeRole != null) {
-          ChangeRoleDialog(
-              member = uiState.memberToChangeRole!!,
-              availableRoles = uiState.roles.map { it.name } + listOf("Member"),
-              onConfirm = { newRole -> viewModel.confirmChangeRole(newRole) },
-              onDismiss = { viewModel.dismissChangeRoleDialog() })
-        }
-      }
+  if (uiState.showChangeRoleDialog && uiState.memberToChangeRole != null) {
+    ChangeRoleDialog(
+        member = uiState.memberToChangeRole!!,
+        availableRoles = uiState.roles.map { it.name } + listOf("Member"),
+        onConfirm = { newRole -> viewModel.confirmChangeRole(newRole) },
+        onDismiss = { viewModel.dismissChangeRoleDialog() })
+  }
 }
 
 /** Main edit content. */
@@ -557,48 +587,56 @@ private fun OrganizationTypeSelector(
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
       OrganizationType.entries.forEach { type ->
-        val isSelected = selectedType == type
-        ElevatedCard(
-            onClick = { onTypeSelected(type) },
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                CardDefaults.elevatedCardColors(
-                    containerColor =
-                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface),
-            elevation =
-                CardDefaults.elevatedCardElevation(
-                    defaultElevation = if (isSelected) 4.dp else 1.dp)) {
-              Row(
-                  modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                  verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = isSelected,
-                        onClick = { onTypeSelected(type) },
-                        colors =
-                            androidx.compose.material3.RadioButtonDefaults.colors(
-                                selectedColor = MaterialTheme.colorScheme.primary))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                      Text(
-                          text = getOrganizationTypeLabel(type),
-                          style = MaterialTheme.typography.bodyLarge,
-                          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                          color =
-                              if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                              else MaterialTheme.colorScheme.onSurface)
-                      if (isSelected) {
-                        Text(
-                            text = "Selected",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary)
-                      }
-                    }
-                  }
-            }
+        OrganizationTypeItem(
+            type = type, isSelected = selectedType == type, onTypeSelected = onTypeSelected)
       }
     }
   }
+}
+
+@Composable
+private fun OrganizationTypeItem(
+    type: OrganizationType,
+    isSelected: Boolean,
+    onTypeSelected: (OrganizationType) -> Unit
+) {
+  ElevatedCard(
+      onClick = { onTypeSelected(type) },
+      modifier = Modifier.fillMaxWidth(),
+      colors =
+          CardDefaults.elevatedCardColors(
+              containerColor =
+                  if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                  else MaterialTheme.colorScheme.surface),
+      elevation =
+          CardDefaults.elevatedCardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+              RadioButton(
+                  selected = isSelected,
+                  onClick = { onTypeSelected(type) },
+                  colors =
+                      androidx.compose.material3.RadioButtonDefaults.colors(
+                          selectedColor = MaterialTheme.colorScheme.primary))
+              Spacer(modifier = Modifier.width(12.dp))
+              Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = getOrganizationTypeLabel(type),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    color =
+                        if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurface)
+                if (isSelected) {
+                  Text(
+                      text = "Selected",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.primary)
+                }
+              }
+            }
+      }
 }
 
 /** Get localized label for organization type. */
@@ -822,33 +860,10 @@ private fun ChangeRoleDialog(
 
           Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             availableRoles.forEach { role ->
-              val isSelected = selectedRole == role
-              ElevatedCard(
-                  onClick = { selectedRole = role },
-                  colors =
-                      CardDefaults.elevatedCardColors(
-                          containerColor =
-                              if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                              else MaterialTheme.colorScheme.surfaceVariant),
-                  elevation =
-                      CardDefaults.elevatedCardElevation(
-                          defaultElevation = if (isSelected) 4.dp else 1.dp)) {
-                    Row(
-                        modifier =
-                            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                          RadioButton(selected = isSelected, onClick = { selectedRole = role })
-                          Spacer(modifier = Modifier.width(12.dp))
-                          Text(
-                              text = role,
-                              style = MaterialTheme.typography.bodyLarge,
-                              fontWeight =
-                                  if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                              color =
-                                  if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                  else MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                  }
+              RoleSelectionItem(
+                  role = role,
+                  isSelected = selectedRole == role,
+                  onRoleSelected = { selectedRole = it })
             }
           }
         }
@@ -864,4 +879,31 @@ private fun ChangeRoleDialog(
         }
       },
       shape = RoundedCornerShape(20.dp))
+}
+
+@Composable
+private fun RoleSelectionItem(role: String, isSelected: Boolean, onRoleSelected: (String) -> Unit) {
+  ElevatedCard(
+      onClick = { onRoleSelected(role) },
+      colors =
+          CardDefaults.elevatedCardColors(
+              containerColor =
+                  if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                  else MaterialTheme.colorScheme.surfaceVariant),
+      elevation =
+          CardDefaults.elevatedCardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+              RadioButton(selected = isSelected, onClick = { onRoleSelected(role) })
+              Spacer(modifier = Modifier.width(12.dp))
+              Text(
+                  text = role,
+                  style = MaterialTheme.typography.bodyLarge,
+                  fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                  color =
+                      if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                      else MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+      }
 }
