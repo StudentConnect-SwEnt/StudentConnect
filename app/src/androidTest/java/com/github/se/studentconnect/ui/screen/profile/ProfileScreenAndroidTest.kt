@@ -14,7 +14,6 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import org.junit.Before
 import org.junit.Rule
@@ -99,11 +98,11 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Verify friends count
+    // Verify friends count using testTag
     composeTestRule.onNodeWithText("5").assertIsDisplayed()
     composeTestRule.onNodeWithText("Friends").assertIsDisplayed()
 
-    // Verify events count
+    // Verify events count using testTag
     composeTestRule.onNodeWithText("3").assertIsDisplayed()
     composeTestRule.onNodeWithText("Events").assertIsDisplayed()
   }
@@ -308,10 +307,15 @@ class ProfileScreenAndroidTest {
 
     composeTestRule.waitForIdle()
 
-    // Vérifier qu'il y a un "0" (pour friends) et "Friends" label
-    composeTestRule.onNodeWithText("Friends").assertIsDisplayed()
-    // Vérifier qu'il y a au moins un "0" affiché
-    composeTestRule.onAllNodesWithText("0").assertCountEquals(1)
+    // Vérifier qu'il y a un "0" (pour friends) et "Friends" label via testTag
+    composeTestRule
+        .onNodeWithTag("friends_count", useUnmergedTree = true)
+        .onChildAt(0)
+        .assertTextEquals("0")
+    composeTestRule
+        .onNodeWithTag("friends_count", useUnmergedTree = true)
+        .onChildAt(1)
+        .assertTextEquals("Friends")
   }
 
   @Test
@@ -331,8 +335,14 @@ class ProfileScreenAndroidTest {
     }
 
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("0").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Events").assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag("events_count", useUnmergedTree = true)
+        .onChildAt(0)
+        .assertTextEquals("0")
+    composeTestRule
+        .onNodeWithTag("events_count", useUnmergedTree = true)
+        .onChildAt(1)
+        .assertTextEquals("Events")
   }
 
   @Test
@@ -361,7 +371,7 @@ class ProfileScreenAndroidTest {
     var joinedEvents: List<String> = emptyList()
 
     override suspend fun getUserById(userId: String): User? {
-      delay(50)
+      // deterministic, no artificial delay
       return user
     }
 
@@ -429,7 +439,7 @@ class ProfileScreenAndroidTest {
 
   private class MockFriendsRepository(var friendsList: List<String>) : FriendsRepository {
     override suspend fun getFriends(userId: String): List<String> {
-      delay(50)
+      // deterministic, no artificial delay
       return friendsList
     }
 
@@ -452,7 +462,8 @@ class ProfileScreenAndroidTest {
     override suspend fun hasPendingRequest(fromUserId: String, toUserId: String) = false
 
     override fun observeFriendship(userId: String, otherUserId: String): Flow<Boolean> {
-      TODO("Not yet implemented")
+      // deterministic implementation for tests
+      return kotlinx.coroutines.flow.flow { emit(false) }
     }
   }
 
@@ -466,7 +477,7 @@ class ProfileScreenAndroidTest {
         emptyList()
 
     override suspend fun getEventsByOrganization(organizationId: String): List<Event> {
-      delay(50)
+      // deterministic, no delay
       return createdEvents.filter { it.ownerId == organizationId }
     }
 
