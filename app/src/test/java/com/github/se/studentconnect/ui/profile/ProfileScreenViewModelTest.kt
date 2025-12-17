@@ -12,6 +12,7 @@ import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -108,7 +109,10 @@ class ProfileScreenViewModelTest {
   @Test
   fun `viewModel loads events count correctly`() =
       testScope.runTest {
-        userRepository.joinedEventIds = listOf("event1", "event2", "event3", "event4")
+        userRepository.joinedEventIds =
+            listOf("existing-event-1", "existing-event-2", "existing-event-3", "existing-event-4")
+        eventRepository.existingEventIds =
+            setOf("existing-event-1", "existing-event-2", "existing-event-3", "existing-event-4")
 
         viewModel =
             ProfileScreenViewModel(
@@ -288,7 +292,8 @@ class ProfileScreenViewModelTest {
   @Test
   fun `loadUserProfile updates events count`() =
       testScope.runTest {
-        userRepository.joinedEventIds = listOf("event1")
+        userRepository.joinedEventIds = listOf("existing-event-1")
+        eventRepository.existingEventIds = setOf("existing-event-1", "existing-event-2")
 
         viewModel =
             ProfileScreenViewModel(
@@ -301,7 +306,7 @@ class ProfileScreenViewModelTest {
         advanceUntilIdle()
         assertEquals(1, viewModel.eventsCount.value)
 
-        userRepository.joinedEventIds = listOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("existing-event-1", "existing-event-2")
 
         viewModel.loadUserProfile()
         advanceUntilIdle()
@@ -363,7 +368,8 @@ class ProfileScreenViewModelTest {
   @Test
   fun `viewModel handles large events count`() =
       testScope.runTest {
-        userRepository.joinedEventIds = (1..500).map { "event$it" }
+        userRepository.joinedEventIds = (1..500).map { "existing-event-$it" }
+        eventRepository.existingEventIds = (1..500).map { "existing-event-$it" }.toSet()
 
         viewModel =
             ProfileScreenViewModel(
@@ -406,35 +412,42 @@ class ProfileScreenViewModelTest {
   fun `viewModel counts both joined and created events`() =
       testScope.runTest {
         // User has joined 2 events
-        userRepository.joinedEventIds = listOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("joined-event-1", "joined-event-2")
 
         // User has created 3 events
         val createdEvent1 =
             Event.Private(
-                uid = "event3",
+                uid = "created-event-1",
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
-                uid = "event4",
+                uid = "created-event-2",
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent3 =
             Event.Private(
-                uid = "event5",
+                uid = "created-event-3",
                 ownerId = testUser.userId,
                 title = "Created Event 3",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
+        eventRepository.existingEventIds =
+            setOf(
+                "joined-event-1",
+                "joined-event-2",
+                "created-event-1",
+                "created-event-2",
+                "created-event-3")
 
         viewModel =
             ProfileScreenViewModel(
@@ -454,27 +467,30 @@ class ProfileScreenViewModelTest {
   fun `viewModel avoids counting duplicate events when user joined their own created event`() =
       testScope.runTest {
         // User has joined events including one they created
-        userRepository.joinedEventIds = listOf("event1", "event2", "event3")
+        userRepository.joinedEventIds =
+            listOf("joined-event-1", "duplicate-event", "joined-event-2")
 
-        // User has created events (event2 is also in joinedEvents)
+        // User has created events (duplicate-event is also in joinedEvents)
         val createdEvent1 =
             Event.Private(
-                uid = "event2",
+                uid = "duplicate-event",
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
-                uid = "event4",
+                uid = "created-event-unique",
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
+        eventRepository.existingEventIds =
+            setOf("joined-event-1", "duplicate-event", "joined-event-2", "created-event-unique")
 
         val tempOrgRepo = TestOrganizationRepository(emptyList())
         viewModel =
@@ -487,7 +503,8 @@ class ProfileScreenViewModelTest {
 
         advanceUntilIdle()
 
-        // Should count unique events: event1, event2, event3, event4 = 4 total (no duplicates)
+        // Should count unique events: joined-event-1, duplicate-event, joined-event-2,
+        // created-event-unique = 4 total (no duplicates)
         assertEquals(4, viewModel.eventsCount.value)
       }
 
@@ -495,7 +512,8 @@ class ProfileScreenViewModelTest {
   fun `viewModel handles created events fetch error gracefully`() =
       testScope.runTest {
         // User has joined 2 events
-        userRepository.joinedEventIds = listOf("event1", "event2")
+        userRepository.joinedEventIds = listOf("joined-event-1", "joined-event-2")
+        eventRepository.existingEventIds = setOf("joined-event-1", "joined-event-2")
 
         // EventRepository will throw an error when fetching created events
         eventRepository.shouldThrowError = true
@@ -516,6 +534,30 @@ class ProfileScreenViewModelTest {
         // User profile should still load successfully
         assertEquals(testUser, viewModel.user.value)
         assertNull(viewModel.error.value)
+      }
+
+  @Test
+  fun `viewModel excludes deleted events from count`() =
+      testScope.runTest {
+        // User has joined 4 events, but 2 of them have been deleted
+        userRepository.joinedEventIds =
+            listOf("existing-event-1", "deleted-event-1", "existing-event-2", "deleted-event-2")
+        // Only existing-event-1 and existing-event-2 still exist
+        eventRepository.existingEventIds = setOf("existing-event-1", "existing-event-2")
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                currentUserId = testUser.userId,
+                organizationRepository = TestOrganizationRepository(emptyList()))
+
+        advanceUntilIdle()
+
+        // Should only count existing events (existing-event-1 and existing-event-2), not deleted
+        // ones (deleted-event-1 and deleted-event-2)
+        assertEquals(2, viewModel.eventsCount.value)
       }
 
   @Test
@@ -712,7 +754,8 @@ class ProfileScreenViewModelTest {
 
   private class TestEventRepository(
       var createdEvents: List<Event> = emptyList(),
-      var shouldThrowError: Boolean = false
+      var shouldThrowError: Boolean = false,
+      var existingEventIds: Set<String> = emptySet()
   ) : EventRepository {
 
     override fun getNewUid(): String = "new_event_uid"
@@ -728,7 +771,28 @@ class ProfileScreenViewModelTest {
     }
 
     override suspend fun getEvent(eventUid: String): Event {
-      throw NotImplementedError("Not needed for tests")
+      // If shouldThrowError is true, throw for getEventsByOrganization but not for getEvent
+      // getEvent is used to verify event existence, so we need it to work separately
+
+      // If existingEventIds is specified, use it to determine which events exist
+      if (existingEventIds.isNotEmpty()) {
+        if (eventUid in existingEventIds) {
+          // Return a dummy event
+          return Event.Private(
+              uid = eventUid,
+              ownerId = "owner",
+              title = "Test Event",
+              description = "Test",
+              start = Timestamp.now(),
+              isFlash = false)
+        } else {
+          throw IllegalArgumentException("Event $eventUid does not exist")
+        }
+      }
+
+      // Otherwise, check in createdEvents or throw if not found
+      return createdEvents.find { it.uid == eventUid }
+          ?: throw IllegalArgumentException("Event $eventUid does not exist")
     }
 
     override suspend fun getEventParticipants(eventUid: String): List<EventParticipant> =

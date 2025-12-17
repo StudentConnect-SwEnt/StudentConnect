@@ -1085,7 +1085,7 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
       }
   val fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal
 
-  // Get username and time info
+  // Get username  and time info
   val (username, timeAgo) = getUsernameAndTime(notification)
 
   Column(modifier = modifier) {
