@@ -45,6 +45,11 @@ class CameraModeSelectorScreenTest {
   fun setup() {
     // Use Robolectric's application context for Toast support
     mockContext = RuntimeEnvironment.getApplication()
+
+    // Set up network availability for Robolectric
+    // Robolectric provides a default network, but we need to ensure it has internet capability
+    // The default setup should work for most tests
+
     mockLifecycleOwner = mockk(relaxed = true)
     val lifecycleRegistry = LifecycleRegistry(mockLifecycleOwner)
     lifecycleRegistry.currentState = Lifecycle.State.RESUMED

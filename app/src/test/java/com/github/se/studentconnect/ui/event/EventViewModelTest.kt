@@ -1,5 +1,8 @@
 package com.github.se.studentconnect.ui.event
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
@@ -106,6 +109,21 @@ class EventViewModelTest {
     Dispatchers.resetMain()
     // Réinitialise l’UID de test
     AuthenticationProvider.testUserId = null
+  }
+
+  private fun createOnlineContext(): android.content.Context {
+    val mockContext = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
+    val network = mockk<Network>(relaxed = true)
+    val capabilities = mockk<NetworkCapabilities>(relaxed = true)
+
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every { capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+
+    return mockContext
   }
 
   @Test
@@ -507,8 +525,7 @@ class EventViewModelTest {
     viewModel.fetchEvent(testEvent.uid)
     advanceUntilIdle()
 
-    val context =
-        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context = createOnlineContext()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
@@ -633,8 +650,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act - try to join as owner
-    val context =
-        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context = createOnlineContext()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
@@ -656,8 +672,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    val context =
-        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context = createOnlineContext()
     viewModel.joinEvent(eventWithCapacity.uid, context)
     advanceUntilIdle()
 
@@ -927,8 +942,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    val context =
-        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context = createOnlineContext()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 

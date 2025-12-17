@@ -1,5 +1,8 @@
 package com.github.se.studentconnect.ui.event
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -12,6 +15,8 @@ import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -65,6 +70,21 @@ class EventViewModelPollIntegrationTest {
   fun tearDown() {
     Dispatchers.resetMain()
     AuthenticationProvider.testUserId = null
+  }
+
+  private fun createOnlineContext(): android.content.Context {
+    val mockContext = mockk<android.content.Context>(relaxed = true)
+    val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
+    val network = mockk<Network>(relaxed = true)
+    val capabilities = mockk<NetworkCapabilities>(relaxed = true)
+
+    every { mockContext.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) } returns
+        connectivityManager
+    every { connectivityManager.activeNetwork } returns network
+    every { connectivityManager.getNetworkCapabilities(network) } returns capabilities
+    every { capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) } returns true
+
+    return mockContext
   }
 
   @Test
@@ -246,8 +266,7 @@ class EventViewModelPollIntegrationTest {
     advanceUntilIdle()
 
     // Act
-    val context =
-        androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+    val context = createOnlineContext()
     viewModel.joinEvent(testEvent.uid, context)
     advanceUntilIdle()
 
