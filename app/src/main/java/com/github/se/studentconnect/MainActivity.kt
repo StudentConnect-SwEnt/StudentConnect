@@ -48,6 +48,7 @@ import com.github.se.studentconnect.ui.screen.map.MapScreen
 import com.github.se.studentconnect.ui.screen.profile.FriendsListScreen
 import com.github.se.studentconnect.ui.screen.profile.JoinedEventsScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationManagementScreen
+import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileEditScreen
 import com.github.se.studentconnect.ui.screen.profile.OrganizationProfileScreen
 import com.github.se.studentconnect.ui.screen.profile.ProfileNavigationCallbacks
 import com.github.se.studentconnect.ui.screen.profile.ProfileScreen
@@ -483,6 +484,21 @@ internal fun MainAppContent(
                       onBackClick = { navController.popBackStack() })
                 }
 
+            // Organization Profile Edit Screen
+            composable(
+                route = Route.ORGANIZATION_PROFILE_EDIT,
+                arguments =
+                    listOf(navArgument(Route.ORGANIZATION_ID_ARG) { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val organizationId =
+                      requireNotNull(
+                          backStackEntry.arguments?.getString(Route.ORGANIZATION_ID_ARG)) {
+                            "Organization ID is required"
+                          }
+                  OrganizationProfileEditScreen(
+                      organizationId = organizationId, onBack = { navController.popBackStack() })
+                }
+
             // Friends List Screen
             composable(
                 route = ProfileRoutes.FRIENDS_LIST,
@@ -517,6 +533,9 @@ internal fun MainAppContent(
                   },
                   onOrganizationClick = { organizationId ->
                     navController.navigate(Route.organizationProfile(organizationId))
+                  },
+                  onEditOrganization = { organizationId ->
+                    navController.navigate(Route.organizationProfileEdit(organizationId))
                   })
             }
 

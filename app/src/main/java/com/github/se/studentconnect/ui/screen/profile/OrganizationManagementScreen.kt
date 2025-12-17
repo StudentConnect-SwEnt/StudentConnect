@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
@@ -54,6 +55,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -77,6 +79,7 @@ import kotlinx.coroutines.Dispatchers
  * @param onBack Callback when back button is pressed
  * @param onCreateOrganization Callback to navigate to organization creation flow
  * @param onOrganizationClick Callback when an organization is clicked (passes organization ID)
+ * @param onEditOrganization Callback when edit organization is clicked (passes organization ID)
  * @param viewModel ViewModel for organization management
  * @param modifier Modifier for the composable
  */
@@ -87,6 +90,7 @@ fun OrganizationManagementScreen(
     onBack: () -> Unit,
     onCreateOrganization: () -> Unit,
     onOrganizationClick: (String) -> Unit = {},
+    onEditOrganization: (String) -> Unit = {},
     viewModel: OrganizationManagementViewModel = viewModel {
       OrganizationManagementViewModel(
           userId = currentUserId,
@@ -267,9 +271,11 @@ fun OrganizationManagementScreen(
                   items(uiState.userOrganizations) { organization ->
                     OrganizationCard(
                         organization = organization,
+                        currentUserId = currentUserId,
                         isPinned = uiState.pinnedOrganizationId == organization.id,
                         onPinClick = { viewModel.togglePinOrganization(organization.id) },
-                        onClick = { onOrganizationClick(organization.id) })
+                        onClick = { onOrganizationClick(organization.id) },
+                        onEditClick = { onEditOrganization(organization.id) })
                   }
 
                   item {
@@ -322,17 +328,21 @@ fun OrganizationManagementScreen(
  * Card component displaying organization information.
  *
  * @param organization The organization to display
+ * @param currentUserId The ID of the current user
  * @param isPinned Whether this organization is pinned to the profile
  * @param onPinClick Callback when the pin button is clicked
  * @param onClick Callback when the card is clicked
+ * @param onEditClick Callback when the edit button is clicked
  * @param modifier Modifier for the composable
  */
 @Composable
 private fun OrganizationCard(
     organization: Organization,
+    currentUserId: String,
     isPinned: Boolean,
     onPinClick: () -> Unit,
     onClick: () -> Unit,
+    onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -425,17 +435,46 @@ private fun OrganizationCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }
 
-              // Pin button
-              IconButton(onClick = onPinClick) {
-                Icon(
-                    imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription =
-                        stringResource(
-                            if (isPinned) R.string.content_description_unpin_organization
-                            else R.string.content_description_pin_organization),
-                    tint =
-                        if (isPinned) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant)
+              // Action buttons column
+              Column(horizontalAlignment = Alignment.End) {
+                // Edit button (only for owner)
+                val isOwner = organization.createdBy == currentUserId
+                if (isOwner) {
+                  Button(
+                      onClick = onEditClick,
+                      modifier = Modifier.height(32.dp),
+                      colors =
+                          ButtonDefaults.buttonColors(
+                              containerColor = MaterialTheme.colorScheme.primaryContainer,
+                              contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                      contentPadding =
+                          androidx.compose.foundation.layout.PaddingValues(
+                              horizontal = 12.dp, vertical = 4.dp),
+                      shape = RoundedCornerShape(16.dp)) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = stringResource(R.string.button_edit),
+                            modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.button_edit),
+                            style = MaterialTheme.typography.labelMedium)
+                      }
+                  Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                // Pin button
+                IconButton(onClick = onPinClick) {
+                  Icon(
+                      imageVector = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                      contentDescription =
+                          stringResource(
+                              if (isPinned) R.string.content_description_unpin_organization
+                              else R.string.content_description_pin_organization),
+                      tint =
+                          if (isPinned) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
               }
             }
       }

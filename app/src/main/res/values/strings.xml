@@ -724,4 +724,40 @@
     <string name="chat_timestamp_yesterday">Yesterday, %1$s</string>
     <string name="button_dismiss">Dismiss</string>
     <string name="content_description_stars">Stars</string>
+
+    <!-- Organization Edit Screen -->
+    <string name="title_edit_organization">Edit Organization</string>
+    <string name="label_organization_name">Organization Name</string>
+    <string name="label_organization_type">Organization Type</string>
+    <string name="label_organization_description">Description</string>
+    <string name="label_organization_location">Location</string>
+    <string name="label_organization_domains">Main Domains</string>
+    <string name="label_organization_age_ranges">Age Ranges</string>
+    <string name="label_organization_event_size">Typical Event Size</string>
+    <string name="label_organization_roles">Team Roles</string>
+    <string name="label_organization_logo">Organization Logo</string>
+    <string name="placeholder_organization_name">Enter organization name</string>
+    <string name="placeholder_organization_description">Describe your organization</string>
+    <string name="error_organization_name_empty">Organization name cannot be empty</string>
+    <string name="error_organization_name_too_long">Organization name exceeds %d characters</string>
+    <string name="error_organization_description_too_long">Description exceeds %d characters</string>
+    <string name="success_organization_updated">Organization updated successfully</string>
+    <string name="error_failed_to_update_organization">Failed to update organization</string>
+    <string name="section_basic_info">Basic Information</string>
+    <string name="section_social_links">Social Links</string>
+    <string name="section_members">Members</string>
+    <string name="button_change_logo">Change Logo</string>
+    <string name="button_remove_logo">Remove Logo</string>
+    <string name="text_role_owner">Owner</string>
+    <string name="text_role_member">Member</string>
+    <string name="button_change_role">Change Role</string>
+    <string name="button_remove_member">Remove Member</string>
+    <string name="dialog_remove_member_title">Remove Member</string>
+    <string name="dialog_remove_member_message">Are you sure you want to remove %1$s from the organization?</string>
+    <string name="dialog_change_role_title">Change Role</string>
+    <string name="dialog_select_role">Select a role for %1$s</string>
+    <string name="content_description_organization_logo">Organization Logo</string>
+    <string name="content_description_change_logo">Change organization logo</string>
+    <string name="content_description_remove_member">Remove member from organization</string>
+    <string name="content_description_change_member_role">Change member role</string>
 </resources>
