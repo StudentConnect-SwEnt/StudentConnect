@@ -224,7 +224,9 @@ private fun EventsList(
                 event = event,
                 onClick = { onEventClick(event) },
                 footerText = formattedDate,
-                modifier = Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
+                modifier =
+                    Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid))
+                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
                 actionContent =
                     if (isOwnProfile && selectedFilter == EventFilter.Past) {
                       {

@@ -170,7 +170,21 @@ class JoinedEventsViewModel(
                 event.title.contains(currentSearchQuery, ignoreCase = true)
               }
             }
-            .sortedByDescending { it.start }
+            .sortedWith(
+                compareByDescending<Event> { event ->
+                      // Pinned events come first (on own profile only)
+                      if (isOwnProfile && currentState.pinnedEventIds.contains(event.uid)) 1 else 0
+                    }
+                    .thenBy { event ->
+                      // Among pinned events, sort by pin order (earlier in list = earlier pinned)
+                      if (isOwnProfile && currentState.pinnedEventIds.contains(event.uid)) {
+                        currentState.pinnedEventIds.indexOf(event.uid)
+                      } else {
+                        Int.MAX_VALUE // Non-pinned events go after pinned ones
+                      }
+                    }
+                    .thenByDescending { it.start } // Then sort by event start date
+                )
 
     _uiState.update { it.copy(filteredEvents = filtered) }
   }
@@ -190,6 +204,7 @@ class JoinedEventsViewModel(
           val newPinnedIds = currentPinnedIds - eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
           userRepository.removePinnedEvent(viewingUserId, eventId)
+          applyFilters() // Re-sort the list after unpinning
         } else {
           // Check if user already has 3 pinned events
           if (currentPinnedIds.size >= MAX_PINNED_EVENTS) {
@@ -199,6 +214,7 @@ class JoinedEventsViewModel(
           val newPinnedIds = currentPinnedIds + eventId
           _uiState.update { it.copy(pinnedEventIds = newPinnedIds) }
           userRepository.addPinnedEvent(viewingUserId, eventId)
+          applyFilters() // Re-sort the list after pinning
         }
       } catch (e: Exception) {
         android.util.Log.e(TAG, "Failed to toggle pin", e)
