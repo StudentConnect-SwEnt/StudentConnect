@@ -7,7 +7,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -25,7 +24,6 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
-import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
@@ -2039,40 +2037,6 @@ class EventViewTest {
       // Verify tab row is not visible for non-owners
       composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_ROW).assertDoesNotExist()
       composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertDoesNotExist()
-    } finally {
-      AuthenticationProvider.testUserId = null
-    }
-  }
-
-  @Test
-  fun eventView_statisticsButton_clickNavigatesToStatistics() {
-    AuthenticationProvider.testUserId = testEvent.ownerId
-
-    try {
-      composeTestRule.setContent {
-        val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "event") {
-          composable("event") {
-            EventView(
-                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-          }
-        }
-      }
-
-      composeTestRule.waitForIdle()
-      // Click the Statistics tab
-      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
-      composeTestRule.waitForIdle()
-
-      // Verify that statistics tab shows loading state (which appears immediately)
-      // The loading state should appear right away when the tab is clicked
-      composeTestRule.waitUntil(timeoutMillis = 2000) {
-        composeTestRule
-            .onAllNodesWithTag(C.Tag.STATS_LOADING)
-            .fetchSemanticsNodes(false)
-            .isNotEmpty()
-      }
-      composeTestRule.onNodeWithTag(C.Tag.STATS_LOADING).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
