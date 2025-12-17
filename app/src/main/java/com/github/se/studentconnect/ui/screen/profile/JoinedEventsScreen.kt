@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.profile
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -224,7 +225,9 @@ private fun EventsList(
                 event = event,
                 onClick = { onEventClick(event) },
                 footerText = formattedDate,
-                modifier = Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid)),
+                modifier =
+                    Modifier.testTag(JoinedEventsScreenTestTags.eventCard(event.uid))
+                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
                 actionContent =
                     if (isOwnProfile && selectedFilter == EventFilter.Past) {
                       {
