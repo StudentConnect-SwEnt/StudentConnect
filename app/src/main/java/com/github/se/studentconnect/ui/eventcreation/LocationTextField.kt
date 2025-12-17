@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -115,6 +116,7 @@ fun LocationTextField(
   val locationTextFieldUiState by locationTextFieldViewModel.uiState.collectAsState()
   val locationSuggestions = locationTextFieldUiState.locationSuggestions
   val isLoadingLocationSuggestions = locationTextFieldUiState.isLoadingLocationSuggestions
+  val coroutineScope = rememberCoroutineScope()
 
   var userSelectedLocation by remember { mutableStateOf(selectedLocation) }
   var hasActiveQuery by remember { mutableStateOf(false) }
@@ -154,7 +156,7 @@ fun LocationTextField(
     // Check network before searching
     if (!NetworkUtils.isNetworkAvailable(context)) {
       snackbarHostState?.let { snackbar ->
-        launch { snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message)) }
+        snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message))
       }
       dropdownVisible = false
       hasActiveQuery = false
@@ -206,7 +208,7 @@ fun LocationTextField(
           // Disable search when offline
           if (hasText && isOffline) {
             snackbarHostState?.let { snackbar ->
-              launch {
+              coroutineScope.launch {
                 snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message))
               }
             }
