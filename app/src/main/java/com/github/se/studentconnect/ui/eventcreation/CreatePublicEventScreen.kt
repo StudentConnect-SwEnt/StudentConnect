@@ -156,7 +156,6 @@ fun CreatePublicEventScreen(
         testTags = shellTestTags,
         snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
 
-
           // Title
           FormTextField(
               modifier =
@@ -196,27 +195,27 @@ fun CreatePublicEventScreen(
               onValueChange = createPublicEventViewModel::updateDescription,
           )
 
-            // Banner
-            EventBannerField(
-                bannerImageUri = uiState.bannerImageUri,
-                bannerImagePath = uiState.bannerImagePath,
-                onImageSelected = createPublicEventViewModel::updateBannerImageUri,
-                onRemoveImage = createPublicEventViewModel::removeBannerImage,
-                pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
-                removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON,
-                isGenerating = uiState.isGeneratingBanner,
-                onGeminiClick = { showGeminiDialog = true })
+          // Banner
+          EventBannerField(
+              bannerImageUri = uiState.bannerImageUri,
+              bannerImagePath = uiState.bannerImagePath,
+              onImageSelected = createPublicEventViewModel::updateBannerImageUri,
+              onRemoveImage = createPublicEventViewModel::removeBannerImage,
+              pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
+              removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON,
+              isGenerating = uiState.isGeneratingBanner,
+              onGeminiClick = { showGeminiDialog = true })
 
-            val context = androidx.compose.ui.platform.LocalContext.current
-            if (showGeminiDialog) {
-              GeminiPromptDialog(
-                  onDismiss = { showGeminiDialog = false },
-                  onGenerate = { prompt ->
-                    createPublicEventViewModel.generateBanner(context, prompt)
-                    showGeminiDialog = false
-                  },
-                  isLoading = uiState.isGeneratingBanner)
-            }
+          val context = androidx.compose.ui.platform.LocalContext.current
+          if (showGeminiDialog) {
+            GeminiPromptDialog(
+                onDismiss = { showGeminiDialog = false },
+                onGenerate = { prompt ->
+                  createPublicEventViewModel.generateBanner(context, prompt)
+                  showGeminiDialog = false
+                },
+                isLoading = uiState.isGeneratingBanner)
+          }
 
           // Tags (Specific to Public)
           Column(

@@ -11,8 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -118,16 +118,16 @@ fun CreatePrivateEventScreen(
           scrollColumn = CreatePrivateEventScreenTestTags.SCROLL_COLUMN,
           saveButton = CreatePrivateEventScreenTestTags.SAVE_BUTTON)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        CreateEventShell(
-          navController = navController,
-          title =
-              if (existingEventId != null) stringResource(R.string.title_edit_private_event)
-              else stringResource(R.string.title_create_private_event),
-          canSave = canSave,
-          onSave = { createPrivateEventViewModel.saveEvent(context) },
-          testTags = shellTestTags,
-          snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
+  Box(modifier = Modifier.fillMaxSize()) {
+    CreateEventShell(
+        navController = navController,
+        title =
+            if (existingEventId != null) stringResource(R.string.title_edit_private_event)
+            else stringResource(R.string.title_create_private_event),
+        canSave = canSave,
+        onSave = { createPrivateEventViewModel.saveEvent(context) },
+        testTags = shellTestTags,
+        snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
 
           // Title and Description
           EventTitleAndDescriptionFields(
@@ -142,27 +142,27 @@ fun CreatePrivateEventScreen(
                   if (uiState.title.isBlank()) stringResource(R.string.event_error_title_blank)
                   else null)
 
-        // Banner Image
-        EventBannerField(
-            bannerImageUri = uiState.bannerImageUri,
-            bannerImagePath = uiState.bannerImagePath,
-            onImageSelected = createPrivateEventViewModel::updateBannerImageUri,
-            onRemoveImage = createPrivateEventViewModel::removeBannerImage,
-            pickerTag = CreatePrivateEventScreenTestTags.BANNER_PICKER,
-            removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON,
-            isGenerating = uiState.isGeneratingBanner,
-            onGeminiClick = { showGeminiDialog = true })
+          // Banner Image
+          EventBannerField(
+              bannerImageUri = uiState.bannerImageUri,
+              bannerImagePath = uiState.bannerImagePath,
+              onImageSelected = createPrivateEventViewModel::updateBannerImageUri,
+              onRemoveImage = createPrivateEventViewModel::removeBannerImage,
+              pickerTag = CreatePrivateEventScreenTestTags.BANNER_PICKER,
+              removeButtonTag = CreatePrivateEventScreenTestTags.REMOVE_BANNER_BUTTON,
+              isGenerating = uiState.isGeneratingBanner,
+              onGeminiClick = { showGeminiDialog = true })
 
-        val context = LocalContext.current
-        if (showGeminiDialog) {
-          GeminiPromptDialog(
-              onDismiss = { showGeminiDialog = false },
-              onGenerate = { prompt ->
-                createPrivateEventViewModel.generateBanner(context, prompt)
-                showGeminiDialog = false
-              },
-              isLoading = uiState.isGeneratingBanner)
-        }
+          val context = LocalContext.current
+          if (showGeminiDialog) {
+            GeminiPromptDialog(
+                onDismiss = { showGeminiDialog = false },
+                onGenerate = { prompt ->
+                  createPrivateEventViewModel.generateBanner(context, prompt)
+                  showGeminiDialog = false
+                },
+                isLoading = uiState.isGeneratingBanner)
+          }
 
           // Location
           EventLocationField(
