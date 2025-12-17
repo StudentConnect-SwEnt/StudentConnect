@@ -38,6 +38,7 @@
     <string name="error_failed_to_load_messages">Failed to load messages: %1$s</string>
     <string name="error_failed_to_send_message">Failed to send message: %1$s</string>
     <string name="error_failed_to_update_pin">Failed to update pin: %s</string>
+    <string name="error_unknown_viewmodel_class">Unknown ViewModel class</string>
 
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
