@@ -161,21 +161,25 @@ private fun OrganizationImage(organizationId: String) {
                   color = MaterialTheme.colorScheme.surfaceVariant,
                   shape =
                       RoundedCornerShape(
-                          OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))
-              .testTag("${C.Tag.org_suggestions_card_image}_$organizationId")) {
+                          OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))) {
         if (imageBitmap != null) {
           Image(
               bitmap = imageBitmap,
               contentDescription = stringResource(R.string.content_description_organization_image),
               contentScale = ContentScale.Crop,
-              modifier = Modifier.matchParentSize().clip(CircleShape))
+              modifier =
+                  Modifier.matchParentSize()
+                      .clip(CircleShape)
+                      .testTag("${C.Tag.org_suggestions_card_image}_$organizationId"))
         } else {
           Image(
               painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
               contentDescription =
                   stringResource(R.string.content_description_organization_image_placeholder),
               contentScale = ContentScale.Fit,
-              modifier = Modifier.matchParentSize())
+              modifier =
+                  Modifier.matchParentSize()
+                      .testTag("${C.Tag.org_suggestions_card_image}_$organizationId"))
         }
       }
 }
