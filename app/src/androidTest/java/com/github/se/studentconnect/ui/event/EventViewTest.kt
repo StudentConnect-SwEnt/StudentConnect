@@ -2548,28 +2548,18 @@ class EventViewTest {
       // Wait for any statistics state to appear (loading, error, or content)
       // This covers the branch where statistics content is displayed
       composeTestRule.waitUntil(timeoutMillis = 10000) {
-        try {
-          composeTestRule
-              .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_LOADING)
-              .assertExists()
-          true
-        } catch (e: Exception) {
-          try {
+        composeTestRule
+            .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_LOADING)
+            .fetchSemanticsNodes(false)
+            .isNotEmpty() ||
             composeTestRule
-                .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
-                .assertExists()
-            true
-          } catch (e2: Exception) {
-            try {
-              composeTestRule
-                  .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
-                  .assertExists()
-              true
-            } catch (e3: Exception) {
-              false
-            }
-          }
-        }
+                .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
+                .fetchSemanticsNodes(false)
+                .isNotEmpty() ||
+            composeTestRule
+                .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
+                .fetchSemanticsNodes(false)
+                .isNotEmpty()
       }
       // Verify at least one statistics state is displayed (covers the branch)
       val hasLoading =
@@ -2658,28 +2648,18 @@ class EventViewTest {
       composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
       // Verify statistics tab content is shown (loading, error, or content state)
       composeTestRule.waitUntil(timeoutMillis = 5000) {
-        try {
-          composeTestRule
-              .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_LOADING)
-              .assertExists()
-          true
-        } catch (e: Exception) {
-          try {
+        composeTestRule
+            .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_LOADING)
+            .fetchSemanticsNodes(false)
+            .isNotEmpty() ||
             composeTestRule
-                .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
-                .assertExists()
-            true
-          } catch (e2: Exception) {
-            try {
-              composeTestRule
-                  .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
-                  .assertExists()
-              true
-            } catch (e3: Exception) {
-              false
-            }
-          }
-        }
+                .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
+                .fetchSemanticsNodes(false)
+                .isNotEmpty() ||
+            composeTestRule
+                .onAllNodesWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
+                .fetchSemanticsNodes(false)
+                .isNotEmpty()
       }
     } finally {
       AuthenticationProvider.testUserId = null
