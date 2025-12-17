@@ -153,16 +153,17 @@ class EventViewModel(
 
   fun joinEvent(eventUid: String, context: android.content.Context) {
     val currentUserUid = AuthenticationProvider.currentUser
-    
+
     // Check network and show snackbar if offline
     val isOffline = !com.github.se.studentconnect.utils.NetworkUtils.isNetworkAvailable(context)
     if (isOffline) {
       viewModelScope.launch {
-        _snackbarMessage.emit(context.getString(com.github.se.studentconnect.R.string.offline_no_internet_message))
+        _snackbarMessage.emit(
+            context.getString(com.github.se.studentconnect.R.string.offline_no_internet_message))
       }
       return
     }
-    
+
     viewModelScope.launch {
       val event = _uiState.value.event
       val ownerId = event?.ownerId

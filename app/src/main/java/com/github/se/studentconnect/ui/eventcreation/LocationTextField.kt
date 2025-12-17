@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -155,9 +154,7 @@ fun LocationTextField(
     // Check network before searching
     if (!NetworkUtils.isNetworkAvailable(context)) {
       snackbarHostState?.let { snackbar ->
-        launch {
-          snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message))
-        }
+        launch { snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message)) }
       }
       dropdownVisible = false
       hasActiveQuery = false

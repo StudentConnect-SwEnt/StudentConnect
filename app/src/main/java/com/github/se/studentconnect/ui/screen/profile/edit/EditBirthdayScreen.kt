@@ -41,9 +41,7 @@ fun EditBirthdayScreen(
 
   // Handle snackbar messages
   LaunchedEffect(Unit) {
-    viewModel.snackbarMessage.collect { message ->
-      snackbarHostState.showSnackbar(message)
-    }
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   // Create DatePickerState without initialSelectedDateMillis to avoid ghost circle

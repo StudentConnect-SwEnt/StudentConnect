@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap

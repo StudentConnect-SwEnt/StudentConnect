@@ -167,9 +167,7 @@ fun EventView(
 
   // Handle snackbar messages from ViewModel
   LaunchedEffect(Unit) {
-    eventViewModel.snackbarMessage.collect { message ->
-      snackbarHostState.showSnackbar(message)
-    }
+    eventViewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   // QR Scanner Dialog

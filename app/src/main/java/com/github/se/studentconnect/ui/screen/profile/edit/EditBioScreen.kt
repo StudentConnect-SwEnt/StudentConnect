@@ -62,9 +62,7 @@ fun EditBioScreen(
 
   // Handle snackbar messages
   LaunchedEffect(Unit) {
-    viewModel.snackbarMessage.collect { message ->
-      snackbarHostState.showSnackbar(message)
-    }
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   Scaffold(
