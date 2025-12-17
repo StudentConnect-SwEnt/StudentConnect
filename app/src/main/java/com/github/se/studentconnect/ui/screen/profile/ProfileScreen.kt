@@ -4,7 +4,9 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,7 +34,10 @@ import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryFirestore
+import com.github.se.studentconnect.ui.profile.CalendarItem
+import com.github.se.studentconnect.ui.profile.PersonalCalendarViewModel
 import com.github.se.studentconnect.ui.profile.ProfileScreenViewModel
+import com.github.se.studentconnect.ui.profile.components.PersonalCalendarSection
 import com.github.se.studentconnect.ui.profile.components.PinnedEventsSection
 import com.github.se.studentconnect.ui.profile.components.ProfileHeader
 import com.github.se.studentconnect.ui.profile.components.ProfileHeaderCallbacks
@@ -84,6 +89,9 @@ fun ProfileScreen(
           organizationRepository = organizationRepository,
           currentUserId = currentUserId)
     },
+    calendarViewModel: PersonalCalendarViewModel = viewModel {
+      PersonalCalendarViewModel(userId = currentUserId)
+    },
     navigationCallbacks: ProfileNavigationCallbacks = ProfileNavigationCallbacks(),
     modifier: Modifier = Modifier,
     logout: () -> Unit = {},
@@ -113,6 +121,7 @@ fun ProfileScreen(
         viewModel.loadUserProfile()
         viewModel.loadPinnedEvents()
         viewModel.loadUserOrganizations()
+        calendarViewModel.loadEvents()
       }
     }
     lifecycleOwner.lifecycle.addObserver(observer)
@@ -169,12 +178,25 @@ fun ProfileScreen(
                           onLogoutClick = logout),
                   userOrganizations = userOrganizations)
 
+              // Personal Calendar Section
+              Spacer(modifier = Modifier.height(16.dp))
+              PersonalCalendarSection(
+                  viewModel = calendarViewModel,
+                  onEventClick = { item ->
+                    if (item is CalendarItem.AppEvent) {
+                      navigationCallbacks.onNavigateToEventDetails?.invoke(item.uid)
+                    }
+                  })
+
               // Pinned events section
+              Spacer(modifier = Modifier.height(16.dp))
               PinnedEventsSection(
                   pinnedEvents = pinnedEvents,
                   onEventClick = { event ->
                     navigationCallbacks.onNavigateToEventDetails?.invoke(event.uid)
                   })
+
+              Spacer(modifier = Modifier.height(16.dp))
             }
       }
     }
