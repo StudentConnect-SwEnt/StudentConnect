@@ -124,8 +124,10 @@ object EventViewTestTags {
   const val BASE_SCREEN = "event_view_base_screen"
   const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
   const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
-  const val VIEW_STATISTICS_BUTTON = "event_view_view_statistics_button"
   const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
+  const val OWNER_TAB_ROW = "event_view_owner_tab_row"
+  const val OWNER_TAB_EVENT = "event_view_owner_tab_event"
+  const val OWNER_TAB_STATISTICS = "event_view_owner_tab_statistics"
   const val LEAVE_CONFIRMATION_DIALOG = "event_view_leave_confirmation_dialog"
   const val LEAVE_CONFIRMATION_CONFIRM = "event_view_leave_confirmation_confirm"
   const val LEAVE_CONFIRMATION_CANCEL = "event_view_leave_confirmation_cancel"
@@ -464,20 +466,28 @@ private fun EventOwnerTabRow(selectedTab: EventOwnerTab, onTabSelected: (EventOw
           EventOwnerTab.STATISTICS to stringResource(R.string.tab_statistics))
   val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
 
-  TabRow(selectedTabIndex = selectedIndex, modifier = Modifier.fillMaxWidth()) {
-    tabs.forEachIndexed { index, (tab, title) ->
-      Tab(
-          selected = selectedIndex == index,
-          onClick = { onTabSelected(tab) },
-          text = {
-            Text(
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-          })
-    }
-  }
+  TabRow(
+      selectedTabIndex = selectedIndex,
+      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.OWNER_TAB_ROW)) {
+        tabs.forEachIndexed { index, (tab, title) ->
+          val testTag =
+              when (tab) {
+                EventOwnerTab.EVENT -> EventViewTestTags.OWNER_TAB_EVENT
+                EventOwnerTab.STATISTICS -> EventViewTestTags.OWNER_TAB_STATISTICS
+              }
+          Tab(
+              selected = selectedIndex == index,
+              onClick = { onTabSelected(tab) },
+              modifier = Modifier.testTag(testTag),
+              text = {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+              })
+        }
+      }
 }
 
 @Composable

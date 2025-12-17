@@ -24,6 +24,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
 import com.google.firebase.Timestamp
@@ -2009,7 +2010,9 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertIsDisplayed()
+      // Verify tab row is visible for owners
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_ROW).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
@@ -2032,7 +2035,9 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertDoesNotExist()
+      // Verify tab row is not visible for non-owners
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_ROW).assertDoesNotExist()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertDoesNotExist()
     } finally {
       AuthenticationProvider.testUserId = null
     }
@@ -2050,19 +2055,16 @@ class EventViewTest {
             EventView(
                 eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
           }
-          composable("eventStatistics/{eventUid}") {
-            // Statistics screen placeholder for navigation test
-            androidx.compose.material3.Text("Statistics Screen")
-          }
         }
       }
 
       composeTestRule.waitForIdle()
-      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).performClick()
+      // Click the Statistics tab
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
       composeTestRule.waitForIdle()
 
-      // Verify navigation occurred by checking if statistics screen is displayed
-      composeTestRule.onNodeWithText("Statistics Screen").assertIsDisplayed()
+      // Verify statistics content is displayed (using the test tag from StatisticsContent)
+      composeTestRule.onNodeWithTag(C.Tag.STATS_CONTENT).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
@@ -2070,7 +2072,7 @@ class EventViewTest {
 
   @Test
   fun eventView_statisticsButton_hasContentDescription() {
-    // Test that button has content description (covers EventView.kt lines 233-234)
+    // Test that statistics tab is accessible and can be clicked
     AuthenticationProvider.testUserId = testEvent.ownerId
 
     try {
@@ -2085,8 +2087,9 @@ class EventViewTest {
       }
 
       composeTestRule.waitForIdle()
-      // Verify button exists and has content description
-      composeTestRule.onNodeWithTag(EventViewTestTags.VIEW_STATISTICS_BUTTON).assertExists()
+      // Verify statistics tab exists and is clickable
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertExists()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
     } finally {
       AuthenticationProvider.testUserId = null
     }
