@@ -94,9 +94,10 @@ class HomeScreenUITest {
     notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
     notificationViewModel = NotificationViewModel(notificationRepository)
-    NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
-    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
-    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
+    NotificationRepositoryProvider.overrideForTests(notificationRepository)
+    EventRepositoryProvider.overrideForTests(eventRepository)
+    UserRepositoryProvider.overrideForTests(userRepository)
+
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
