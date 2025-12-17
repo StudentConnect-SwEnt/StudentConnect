@@ -1,11 +1,24 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.net.Uri
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -13,9 +26,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -119,7 +134,9 @@ fun EventBannerField(
     onImageSelected: (Uri) -> Unit,
     onRemoveImage: () -> Unit,
     pickerTag: String,
-    removeButtonTag: String
+    removeButtonTag: String,
+    isGenerating: Boolean = false,
+    onGeminiClick: () -> Unit = {}
 ) {
   Card(
       modifier = Modifier.fillMaxWidth(),
@@ -130,27 +147,118 @@ fun EventBannerField(
                   text = stringResource(R.string.event_label_banner),
                   style =
                       MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
-              PicturePickerCard(
-                  modifier = Modifier.fillMaxWidth().testTag(pickerTag),
-                  style = PicturePickerStyle.Banner,
-                  existingImagePath = bannerImagePath,
-                  selectedImageUri = bannerImageUri,
-                  onImageSelected = onImageSelected,
-                  placeholderText = stringResource(R.string.event_placeholder_banner),
-                  overlayText = stringResource(R.string.instruction_tap_to_change_photo),
-                  imageDescription = stringResource(R.string.event_label_banner))
+
+              Box(modifier = Modifier.fillMaxWidth()) {
+                PicturePickerCard(
+                    modifier = Modifier.fillMaxWidth().testTag(pickerTag),
+                    style = PicturePickerStyle.Banner,
+                    existingImagePath = bannerImagePath,
+                    selectedImageUri = bannerImageUri,
+                    onImageSelected = {
+                      // When an image is received we consider that generation is complete
+                      onImageSelected(it)
+                    },
+                    placeholderText = stringResource(R.string.event_placeholder_banner),
+                    overlayText = stringResource(R.string.instruction_tap_to_change_photo),
+                    imageDescription = stringResource(R.string.event_label_banner))
+
+                // Cool area to indicate generation with twinkling stars
+                if (isGenerating) {
+                  Box(
+                      modifier =
+                          Modifier.matchParentSize()
+                              .background(
+                                  MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                  RoundedCornerShape(12.dp)),
+                      contentAlignment = Alignment.Center) {
+                        FlashingStars()
+                      }
+                }
+
+                // Gemini Floating Button
+                SmallFloatingActionButton(
+                    onClick = {
+                      // Triggers the external action and activates the generation state
+                      onGeminiClick()
+                    },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                    containerColor =
+                        if (isGenerating) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+                      Icon(
+                          imageVector = Icons.Filled.AutoAwesome,
+                          contentDescription =
+                              stringResource(R.string.content_description_generate_banner_gemini))
+                    }
+              }
+
               Text(
                   text = stringResource(R.string.event_text_banner_help),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant)
               OutlinedButton(
-                  onClick = onRemoveImage,
                   enabled = bannerImageUri != null || bannerImagePath != null,
-                  modifier = Modifier.fillMaxWidth().testTag(removeButtonTag)) {
+                  modifier = Modifier.fillMaxWidth().testTag(removeButtonTag),
+                  onClick = onRemoveImage) {
                     Text(stringResource(R.string.event_button_remove_banner))
                   }
             }
       }
+}
+
+/** Animated composable with flashing stars */
+@Composable
+private fun FlashingStars() {
+  val primaryColor = MaterialTheme.colorScheme.primary
+  val infiniteTransition =
+      rememberInfiniteTransition(label = stringResource(R.string.content_description_stars))
+
+  // Phase offset for each star
+  val alpha1 by
+      infiniteTransition.animateFloat(
+          initialValue = 0.2f,
+          targetValue = 1f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(600, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
+          label = "star1")
+
+  val alpha2 by
+      infiniteTransition.animateFloat(
+          initialValue = 1f,
+          targetValue = 0.2f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(500, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
+          label = "star2")
+
+  val alpha3 by
+      infiniteTransition.animateFloat(
+          initialValue = 0.5f,
+          targetValue = 1f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(700, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
+          label = "star3")
+
+  Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+    Icon(
+        imageVector = Icons.Filled.AutoAwesome,
+        contentDescription = null,
+        tint = primaryColor.copy(alpha = alpha1),
+        modifier = Modifier.size(28.dp).offset(y = (-4).dp))
+    Icon(
+        imageVector = Icons.Filled.AutoAwesome,
+        contentDescription = null,
+        tint = primaryColor.copy(alpha = alpha2),
+        modifier = Modifier.size(36.dp))
+    Icon(
+        imageVector = Icons.Filled.AutoAwesome,
+        contentDescription = null,
+        tint = primaryColor.copy(alpha = alpha3),
+        modifier = Modifier.size(28.dp).offset(y = (-4).dp))
+  }
 }
 
 /** Composable for Location input. */

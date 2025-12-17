@@ -34,6 +34,7 @@ sealed class CreateEventUiState {
   abstract val createAsOrganization: Boolean
   abstract val selectedOrganizationId: String?
   abstract val userOrganizations: List<Pair<String, String>> // List of (id, name) pairs
+  abstract val isGeneratingBanner: Boolean
 
   /** UI State for creating a Public Event. */
   data class Public(
@@ -58,6 +59,7 @@ sealed class CreateEventUiState {
       override val createAsOrganization: Boolean = false,
       override val selectedOrganizationId: String? = null,
       override val userOrganizations: List<Pair<String, String>> = emptyList(),
+      override val isGeneratingBanner: Boolean = false,
       val subtitle: String = "",
       val website: String = "",
       val tags: List<String> = emptyList(),
@@ -86,6 +88,7 @@ sealed class CreateEventUiState {
       override val createAsOrganization: Boolean = false,
       override val selectedOrganizationId: String? = null,
       override val userOrganizations: List<Pair<String, String>> = emptyList(),
+      override val isGeneratingBanner: Boolean = false,
   ) : CreateEventUiState()
 }
 
@@ -116,6 +119,7 @@ fun CreateEventUiState.copyCommon(
     bannerImageUri: Uri? = this.bannerImageUri,
     bannerImagePath: String? = this.bannerImagePath,
     shouldRemoveBanner: Boolean = this.shouldRemoveBanner,
+    isGeneratingBanner: Boolean = this.isGeneratingBanner,
     createAsOrganization: Boolean = this.createAsOrganization,
     selectedOrganizationId: String? = this.selectedOrganizationId,
     userOrganizations: List<Pair<String, String>> = this.userOrganizations
@@ -141,6 +145,7 @@ fun CreateEventUiState.copyCommon(
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
             shouldRemoveBanner = shouldRemoveBanner,
+            isGeneratingBanner = isGeneratingBanner,
             createAsOrganization = createAsOrganization,
             selectedOrganizationId = selectedOrganizationId,
             userOrganizations = userOrganizations)
@@ -164,6 +169,7 @@ fun CreateEventUiState.copyCommon(
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
             shouldRemoveBanner = shouldRemoveBanner,
+            isGeneratingBanner = isGeneratingBanner,
             createAsOrganization = createAsOrganization,
             selectedOrganizationId = selectedOrganizationId,
             userOrganizations = userOrganizations)

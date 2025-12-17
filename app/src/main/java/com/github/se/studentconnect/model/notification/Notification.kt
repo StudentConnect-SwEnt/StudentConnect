@@ -51,6 +51,7 @@ sealed class Notification {
    * @param userId The user who should receive this notification
    * @param eventId The ID of the event that is starting
    * @param eventTitle The title of the event
+   * @param eventOwnerName The name of the event owner/organizer
    * @param eventStart The start time of the event
    * @param timestamp When the notification was created
    * @param isRead Whether the notification has been read
@@ -60,6 +61,7 @@ sealed class Notification {
       override val userId: String = "",
       val eventId: String = "",
       val eventTitle: String = "",
+      val eventOwnerName: String = "",
       val eventStart: Timestamp? = null,
       @ServerTimestamp override val timestamp: Timestamp? = null,
       override val isRead: Boolean = false
@@ -148,6 +150,7 @@ sealed class Notification {
               "type" to type.name,
               "eventId" to eventId,
               "eventTitle" to eventTitle,
+              "eventOwnerName" to eventOwnerName,
               "eventStart" to eventStart,
               "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
@@ -215,6 +218,7 @@ sealed class Notification {
                 userId = map["userId"] as? String ?: "",
                 eventId = map["eventId"] as? String ?: "",
                 eventTitle = map["eventTitle"] as? String ?: "",
+                eventOwnerName = map["eventOwnerName"] as? String ?: "",
                 eventStart = map["eventStart"] as? Timestamp,
                 timestamp = map["timestamp"] as? Timestamp,
                 isRead = map["isRead"] as? Boolean ?: false)

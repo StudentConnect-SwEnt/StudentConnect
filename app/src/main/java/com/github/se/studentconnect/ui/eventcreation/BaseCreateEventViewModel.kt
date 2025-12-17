@@ -15,6 +15,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.ai.GeminiService
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryFirestore
@@ -91,6 +93,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
   protected val _navigateToEvent = MutableSharedFlow<String>()
   /** Flow to signal navigation to the created/edited event. */
   val navigateToEvent: SharedFlow<String> = _navigateToEvent.asSharedFlow()
+
+  protected val _snackbarMessage = MutableSharedFlow<String>()
+  /** Flow to emit snackbar messages. */
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   protected val _uiState = MutableStateFlow(initialState)
   /** The current UI state. */
@@ -517,6 +523,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       val recipients = getNotificationRecipients(ownerId)
       val notificationIdPrefix = "flash_${event.uid}_"
 
+      // Get owner username with @ prefix
+      val eventOwner = userRepository.getUserById(ownerId)
+      val eventOwnerName = eventOwner?.username?.let { "@$it" } ?: ""
+
       for ((index, userId) in recipients.withIndex()) {
         try {
           val notificationId = "${notificationIdPrefix}user_${userId}_$index"
@@ -526,6 +536,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
                   userId = userId,
                   eventId = event.uid,
                   eventTitle = event.title,
+                  eventOwnerName = eventOwnerName,
                   eventStart = event.start,
                   timestamp = Timestamp.now(),
                   isRead = false)
@@ -588,6 +599,43 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       Pair(totalMinutes / 60, totalMinutes % 60)
     } else {
       Pair(1, 0)
+    }
+  }
+
+  private val geminiService = GeminiService()
+
+  /**
+   * Generates a banner using Gemini based on the prompt and current event details.
+   *
+   * @param context Context required for file operations.
+   * @param prompt The user's style/theme prompt.
+   */
+  fun generateBanner(context: android.content.Context, prompt: String) {
+    val s = uiState.value
+    updateState { copyCommon(isGeneratingBanner = true) }
+
+    viewModelScope.launch {
+      val uri =
+          geminiService.generateBanner(
+              context = context,
+              prompt = prompt,
+              eventTitle =
+                  s.title.ifBlank { context.getString(R.string.gemini_default_event_title) },
+              eventDescription =
+                  s.description.ifBlank {
+                    context.getString(R.string.gemini_default_event_description)
+                  })
+
+      updateState {
+        if (uri != null) {
+          copyCommon(bannerImageUri = uri, shouldRemoveBanner = false, isGeneratingBanner = false)
+        } else {
+          copyCommon(isGeneratingBanner = false)
+        }
+      }
+      if (uri == null) {
+        _snackbarMessage.emit(context.getString(R.string.error_banner_generation_failed))
+      }
     }
   }
 

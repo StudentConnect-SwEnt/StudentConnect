@@ -89,18 +89,28 @@ fun CreatePublicEventScreen(
     createPublicEventViewModel: CreatePublicEventViewModel = viewModel(),
 ) {
   LaunchedEffect(existingEventId, templateEventId) {
-    handlePrefill(existingEventId, templateEventId, createPublicEventViewModel)
+    when {
+      existingEventId != null -> createPublicEventViewModel.loadEvent(existingEventId)
+      templateEventId != null -> createPublicEventViewModel.loadEventAsTemplate(templateEventId)
+    }
   }
 
   val uiState by createPublicEventViewModel.uiState.collectAsState()
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
   val context = LocalContext.current
+  val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
   LaunchedEffect(Unit) {
     createPublicEventViewModel.navigateToEvent.collect { eventId ->
       navController?.navigate(Route.ACTIVITIES) { popUpTo(Route.HOME) { inclusive = false } }
       navController?.navigate(Route.eventView(eventId, true))
       createPublicEventViewModel.resetFinishedSaving()
+    }
+  }
+
+  LaunchedEffect(Unit) {
+    createPublicEventViewModel.snackbarMessage.collect { message ->
+      snackbarHostState.showSnackbar(message)
     }
   }
 
@@ -114,6 +124,8 @@ fun CreatePublicEventScreen(
   var selectedTagCategory by rememberSaveable {
     mutableStateOf(Activities.filterOptions.firstOrNull() ?: "")
   }
+
+  var showGeminiDialog by remember { mutableStateOf(false) }
 
   val shellTestTags =
       CreateEventShellTestTags(
@@ -130,7 +142,9 @@ fun CreatePublicEventScreen(
           else stringResource(R.string.title_create_public_event),
       canSave = canSave,
       onSave = { createPublicEventViewModel.saveEvent(context) },
-      testTags = shellTestTags) { onFocusChange ->
+      testTags = shellTestTags,
+      snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) }) { onFocusChange
+        ->
 
         // Title
         FormTextField(
@@ -178,7 +192,20 @@ fun CreatePublicEventScreen(
             onImageSelected = createPublicEventViewModel::updateBannerImageUri,
             onRemoveImage = createPublicEventViewModel::removeBannerImage,
             pickerTag = CreatePublicEventScreenTestTags.BANNER_PICKER,
-            removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON)
+            removeButtonTag = CreatePublicEventScreenTestTags.REMOVE_BANNER_BUTTON,
+            isGenerating = uiState.isGeneratingBanner,
+            onGeminiClick = { showGeminiDialog = true })
+
+        val context = androidx.compose.ui.platform.LocalContext.current
+        if (showGeminiDialog) {
+          GeminiPromptDialog(
+              onDismiss = { showGeminiDialog = false },
+              onGenerate = { prompt ->
+                createPublicEventViewModel.generateBanner(context, prompt)
+                showGeminiDialog = false
+              },
+              isLoading = uiState.isGeneratingBanner)
+        }
 
         // Organization Creation Toggle (only shown if user owns organizations)
         if (uiState.userOrganizations.isNotEmpty()) {

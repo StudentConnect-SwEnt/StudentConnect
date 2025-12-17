@@ -21,13 +21,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.service.EventReminderWorker
 import com.github.se.studentconnect.service.NotificationChannelManager
 import com.github.se.studentconnect.ui.activities.EventView
 import com.github.se.studentconnect.ui.eventcreation.CreatePrivateEventScreen
@@ -65,7 +61,6 @@ import com.github.se.studentconnect.ui.screen.visitorprofile.VisitorProfileViewM
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 
 /**
@@ -85,13 +80,15 @@ class MainActivity : ComponentActivity() {
     // Initialize notification channels
     NotificationChannelManager.createNotificationChannels(this)
 
-    // Schedule periodic event reminder worker (runs every 15 minutes)
-    val eventReminderRequest =
-        PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
-
-    WorkManager.getInstance(this)
-        .enqueueUniquePeriodicWork(
-            "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
+    // DISABLED: Schedule periodic event reminder worker (runs every 15 minutes)
+    // This worker has been disabled to prevent OutOfMemoryError in CI environments.
+    // Notifications are still handled via FCM push notifications and other mechanisms.
+    // val eventReminderRequest =
+    //     PeriodicWorkRequestBuilder<EventReminderWorker>(15, TimeUnit.MINUTES).build()
+    //
+    // WorkManager.getInstance(this)
+    //     .enqueueUniquePeriodicWork(
+    //         "event_reminder_work", ExistingPeriodicWorkPolicy.KEEP, eventReminderRequest)
 
     setContent {
       AppTheme {
@@ -519,11 +516,6 @@ internal fun MainAppContent(
                     // Navigate to organization creation route
                     navController.navigate(ProfileRoutes.CREATE_ORGANIZATION)
                   },
-                  onJoinOrganization = {
-                    // Navigate to search screen to find and join organizations
-                    // Users can search for existing organizations and request to join them
-                    navController.navigate(Route.SEARCH)
-                  },
                   onOrganizationClick = { organizationId ->
                     navController.navigate(Route.organizationProfile(organizationId))
                   })
@@ -731,6 +723,17 @@ internal fun MainAppContent(
                   val eventUid = backStackEntry.arguments?.getString("eventUid")
                   requireNotNull(eventUid) { "Event UID is required for statistics screen." }
                   EventStatisticsScreen(eventUid = eventUid, navController = navController)
+                }
+
+            // Event Chat screen
+            composable(
+                Route.EVENT_CHAT,
+                arguments = listOf(navArgument("eventUid") { type = NavType.StringType })) {
+                    backStackEntry ->
+                  val eventUid = backStackEntry.arguments?.getString("eventUid")
+                  requireNotNull(eventUid) { "Event UID is required for chat screen." }
+                  com.github.se.studentconnect.ui.chat.EventChatScreen(
+                      eventId = eventUid, navController = navController)
                 }
           }
         }

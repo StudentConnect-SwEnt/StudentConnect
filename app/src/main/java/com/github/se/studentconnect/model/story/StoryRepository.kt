@@ -15,10 +15,11 @@ import com.github.se.studentconnect.model.event.Event
 interface StoryRepository : Repository {
 
   /**
-   * Gets all events that a user has joined.
+   * Gets all events available for story linking, including both events the user has joined and
+   * events created by the user.
    *
    * @param userId The user identifier
-   * @return List of events the user has joined
+   * @return List of events the user can link stories to (joined events and owned events)
    */
   suspend fun getUserJoinedEvents(userId: String): List<Event>
 

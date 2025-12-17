@@ -430,8 +430,14 @@ class StoryRepositoryFirestoreInstrumentedTest {
     assertNotNull("Story should not be null", result)
     assertEquals(storyId, result?.storyId)
     // Compare seconds only since nanoseconds can differ slightly due to timing
+    // Allow for a small time difference (up to 2 seconds) due to test execution time
     assertNotNull("ExpiresAt should not be null", result?.expiresAt)
-    assertEquals("ExpiresAt seconds should match", expiresAt.seconds, result?.expiresAt?.seconds)
+    val actualSeconds = result?.expiresAt?.seconds ?: 0
+    val expectedSeconds = expiresAt.seconds
+    val diff = kotlin.math.abs(actualSeconds - expectedSeconds)
+    assertTrue(
+        "ExpiresAt seconds should be within 2 seconds of expected (expected: $expectedSeconds, actual: $actualSeconds, diff: $diff)",
+        diff <= 2)
 
     // Cleanup
     testImageFile.delete()

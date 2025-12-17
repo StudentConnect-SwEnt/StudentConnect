@@ -1122,9 +1122,9 @@ private fun NotificationMessage(notification: Notification, modifier: Modifier =
 private fun getUsernameAndTime(notification: Notification): Pair<String, String> {
   val username =
       when (notification) {
-        is Notification.FriendRequest -> notification.fromUserName
-        is Notification.EventStarting -> notification.eventTitle
         is Notification.EventInvitation -> notification.invitedByName
+        is Notification.FriendRequest -> notification.fromUserName
+        is Notification.EventStarting -> notification.eventOwnerName
         is Notification.OrganizationMemberInvitation -> notification.invitedByName
       }
 
@@ -1369,9 +1369,16 @@ fun StoriesRow(
           // Get the first story's user info for display
           val firstStory = eventStories[event.uid]?.firstOrNull()
           val profilePictureUrl = firstStory?.profilePictureUrl
+          val username = firstStory?.username ?: ""
+          val storyTitle =
+              if (username.isNotEmpty()) {
+                stringResource(R.string.story_title_format, username, event.title)
+              } else {
+                event.title
+              }
 
           StoryItem(
-              name = event.title,
+              name = storyTitle,
               avatarUrl = profilePictureUrl,
               viewed = allStoriesViewed,
               onClick = { onClick(event, seenStories) },
@@ -1460,6 +1467,8 @@ private fun StoryUserHeader(
     eventTitle: String,
     avatarBitmap: ImageBitmap?
 ) {
+  val storyTitle = stringResource(R.string.story_title_format, currentStory.username, eventTitle)
+
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
       verticalAlignment = Alignment.CenterVertically) {
@@ -1486,14 +1495,10 @@ private fun StoryUserHeader(
         Spacer(modifier = Modifier.width(12.dp))
         Column {
           Text(
-              text = currentStory.username,
+              text = storyTitle,
               color = Color.White,
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold)
-          Text(
-              text = eventTitle,
-              color = Color.White.copy(alpha = 0.7f),
-              style = MaterialTheme.typography.bodySmall)
         }
       }
 }

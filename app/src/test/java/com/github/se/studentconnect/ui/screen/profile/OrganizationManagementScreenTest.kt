@@ -62,7 +62,6 @@ class OrganizationManagementScreenTest {
 
   private var backPressed = false
   private var createOrganizationPressed = false
-  private var joinOrganizationPressed = false
   private var clickedOrganizationId: String? = null
 
   @Before
@@ -77,7 +76,6 @@ class OrganizationManagementScreenTest {
 
     backPressed = false
     createOrganizationPressed = false
-    joinOrganizationPressed = false
     clickedOrganizationId = null
   }
 
@@ -183,12 +181,12 @@ class OrganizationManagementScreenTest {
     composeTestRule.onNodeWithText("No Organizations Yet").assertExists()
     composeTestRule
         .onNodeWithText(
-            "You're not a member of any organizations. Create one or join an existing one!")
+            "You're not a member of any organizations yet. Create one or get invited to join.")
         .assertExists()
   }
 
   @Test
-  fun organizationManagementScreen_emptyState_hasCreateAndJoinButtons() {
+  fun organizationManagementScreen_emptyState_hasCreateButton() {
     val emptyRepository = TestOrganizationRepository(emptyList())
     val viewModel =
         OrganizationManagementViewModel(
@@ -202,7 +200,6 @@ class OrganizationManagementScreenTest {
             currentUserId = "no_orgs_user",
             onBack = { backPressed = true },
             onCreateOrganization = { createOrganizationPressed = true },
-            onJoinOrganization = { joinOrganizationPressed = true },
             viewModel = viewModel)
       }
     }
@@ -211,7 +208,7 @@ class OrganizationManagementScreenTest {
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithText("Create Organization").assertExists()
-    composeTestRule.onNode(hasText("Join Organization", substring = false)).assertExists()
+    composeTestRule.onNode(hasText("Join Organization", substring = false)).assertDoesNotExist()
   }
 
   @Test

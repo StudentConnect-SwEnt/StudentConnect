@@ -1,6 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import java.util.Locale
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     jacoco
@@ -40,6 +42,15 @@ android {
             testInstrumentationRunnerArguments["numShards"] = numShards.toString()
             testInstrumentationRunnerArguments["shardIndex"] = shardIndex.toString()
         }
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile)) // Correction ici
+        }
+        val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
+
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     signingConfigs {
@@ -277,6 +288,9 @@ dependencies {
     androidTestImplementation(libs.kaspresso.compose.support)
 
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // AI
+    implementation(libs.generative.ai)
 }
 
 configurations.all {
