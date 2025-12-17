@@ -1,6 +1,7 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
@@ -260,58 +261,55 @@ private fun OrganizationSelectionSection(
     switchTestTag: String,
     dropdownTestTag: String
 ) {
-  androidx.compose.foundation.layout.Column(
-      modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Toggle Switch
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-              Text(
-                  text = stringResource(R.string.event_label_create_as_organization),
-                  style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
-                  color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
-              Switch(
-                  checked = createAsOrganization,
-                  onCheckedChange = onCreateAsOrganizationChange,
-                  modifier = Modifier.testTag(switchTestTag))
-            }
-
-        // Organization Dropdown (shown when toggle is on)
-        if (createAsOrganization) {
-          var expanded by remember { mutableStateOf(false) }
-          val selectedOrgName =
-              userOrganizations.find { it.first == selectedOrganizationId }?.second ?: ""
-
-          ExposedDropdownMenuBox(
-              expanded = expanded,
-              onExpandedChange = { expanded = !expanded },
-              modifier = Modifier.fillMaxWidth().testTag(dropdownTestTag)) {
-                OutlinedTextField(
-                    value = selectedOrgName,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.event_label_select_organization)) },
-                    trailingIcon = {
-                      ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors())
-
-                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                  userOrganizations.forEach { (orgId, orgName) ->
-                    DropdownMenuItem(
-                        text = { Text(orgName) },
-                        onClick = {
-                          onOrganizationSelected(orgId)
-                          expanded = false
-                        },
-                        modifier = Modifier.testTag("orgDropdownItem_$orgId"))
-                  }
-                }
-              }
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Toggle Switch
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              text = stringResource(R.string.event_label_create_as_organization),
+              style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+              color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
+          Switch(
+              checked = createAsOrganization,
+              onCheckedChange = onCreateAsOrganizationChange,
+              modifier = Modifier.testTag(switchTestTag))
         }
-      }
+
+    // Organization Dropdown (shown when toggle is on)
+    if (createAsOrganization) {
+      var expanded by remember { mutableStateOf(false) }
+      val selectedOrgName =
+          userOrganizations.find { it.first == selectedOrganizationId }?.second ?: ""
+
+      ExposedDropdownMenuBox(
+          expanded = expanded,
+          onExpandedChange = { expanded = !expanded },
+          modifier = Modifier.fillMaxWidth().testTag(dropdownTestTag)) {
+            OutlinedTextField(
+                value = selectedOrgName,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.event_label_select_organization)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors())
+
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+              userOrganizations.forEach { (orgId, orgName) ->
+                DropdownMenuItem(
+                    text = { Text(orgName) },
+                    onClick = {
+                      onOrganizationSelected(orgId)
+                      expanded = false
+                    },
+                    modifier = Modifier.testTag("orgDropdownItem_$orgId"))
+              }
+            }
+          }
+    }
+  }
 }
