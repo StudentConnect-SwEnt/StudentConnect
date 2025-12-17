@@ -173,8 +173,7 @@ class JoinedEventsViewModel(
             .sortedWith(
                 compareByDescending<Event> { event ->
                       // Pinned events come first (on own profile only)
-                      if (isOwnProfile && currentState.pinnedEventIds.contains(event.uid)) 1
-                      else 0
+                      if (isOwnProfile && currentState.pinnedEventIds.contains(event.uid)) 1 else 0
                     }
                     .thenBy { event ->
                       // Among pinned events, sort by pin order (earlier in list = earlier pinned)

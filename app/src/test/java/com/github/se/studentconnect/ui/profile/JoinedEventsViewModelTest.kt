@@ -551,27 +551,35 @@ class JoinedEventsViewModelTest {
     advanceUntilIdle()
 
     // Initially sorted by date (newest first)
-    assert(viewModel.uiState.value.filteredEvents.map { it.uid } == listOf(event3Id, event2Id, event1Id))
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event3Id, event2Id, event1Id))
 
     // When - Pin oldest event
     viewModel.togglePinEvent(event1Id, "Max")
     advanceUntilIdle()
 
     // Then - Pinned event moves to top
-    assert(viewModel.uiState.value.filteredEvents.map { it.uid } == listOf(event1Id, event3Id, event2Id))
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event1Id, event3Id, event2Id))
 
     // When - Pin middle event
     viewModel.togglePinEvent(event2Id, "Max")
     advanceUntilIdle()
 
     // Then - Both pinned events at top, sorted by pin order (oldest pinned first)
-    assert(viewModel.uiState.value.filteredEvents.map { it.uid } == listOf(event1Id, event2Id, event3Id))
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event1Id, event2Id, event3Id))
 
     // When - Unpin first event
     viewModel.togglePinEvent(event1Id, "Max")
     advanceUntilIdle()
 
     // Then - Only event2 pinned at top, rest sorted by date
-    assert(viewModel.uiState.value.filteredEvents.map { it.uid } == listOf(event2Id, event3Id, event1Id))
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event2Id, event3Id, event1Id))
   }
 }
