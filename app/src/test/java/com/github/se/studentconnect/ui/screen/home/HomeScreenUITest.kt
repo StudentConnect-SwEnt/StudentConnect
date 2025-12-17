@@ -98,7 +98,6 @@ class HomeScreenUITest {
     EventRepositoryProvider.overrideForTests(eventRepository)
     UserRepositoryProvider.overrideForTests(userRepository)
 
-
     runBlocking {
       eventRepository.addEvent(testEvent1)
       eventRepository.addEvent(testEvent2)
