@@ -157,7 +157,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: ${{ runner.os }}-avd-34
+          key: ${{ runner.os }}-avd-34-ram4096
 
       # If the cache does not hit, create the Android emulator
       - name: Create AVD and generate snapshot for caching
@@ -168,7 +168,7 @@ jobs:
           target: google_apis
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated -memory 4096
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
@@ -339,7 +339,7 @@ jobs:
           target: google_apis
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front emulated -memory 4096
           disable-animations: true
           script: |
             set -e
@@ -477,5 +477,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -PuseResOverrideForUnitTestResults --parallel --build-cache --stacktrace --info
-
 
