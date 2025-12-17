@@ -2485,4 +2485,175 @@ class EventViewTest {
       AuthenticationProvider.testUserId = null
     }
   }
+
+  @Test
+  fun eventView_statisticsTab_displaysErrorState() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = "non-existent-event",
+                navController = navController,
+                eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Click statistics tab
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
+      composeTestRule.waitForIdle()
+      // Wait for error state to appear (statistics will fail to load for non-existent event)
+      composeTestRule.waitUntil(timeoutMillis = 5000) {
+        try {
+          composeTestRule
+              .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
+              .assertExists()
+          true
+        } catch (e: Exception) {
+          false
+        }
+      }
+      composeTestRule
+          .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_ERROR)
+          .assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsTab_displaysContentState() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Click statistics tab
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
+      composeTestRule.waitForIdle()
+      // Wait for content state to appear (statistics should load successfully)
+      composeTestRule.waitUntil(timeoutMillis = 10000) {
+        try {
+          composeTestRule
+              .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
+              .assertExists()
+          true
+        } catch (e: Exception) {
+          false
+        }
+      }
+      composeTestRule
+          .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
+          .assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsTab_eventTabSelectedState() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Event tab should be selected by default
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_EVENT).assertIsDisplayed()
+      // Verify we're on the event content (not statistics)
+      composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertIsDisplayed()
+      composeTestRule
+          .onNodeWithTag(com.github.se.studentconnect.resources.C.Tag.STATS_CONTENT)
+          .assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsTab_statisticsTabSelectedState() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Click statistics tab to select it
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
+      composeTestRule.waitForIdle()
+      // Statistics tab should be selected (we should see statistics content or loading)
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
+      // Verify we're not on the event content
+      composeTestRule.onNodeWithTag(EventViewTestTags.BASE_SCREEN).assertDoesNotExist()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
+
+  @Test
+  fun eventView_statisticsTab_bothTabsInTabRow() {
+    AuthenticationProvider.testUserId = testEvent.ownerId
+
+    try {
+      composeTestRule.setContent {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "event") {
+          composable("event") {
+            EventView(
+                eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
+          }
+        }
+      }
+
+      composeTestRule.waitForIdle()
+      // Both tabs should be in the tab row
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_ROW).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_EVENT).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
+
+      // When EVENT is selected, STATISTICS should be unselected (both still visible)
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_EVENT).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
+
+      // Switch to STATISTICS tab
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).performClick()
+      composeTestRule.waitForIdle()
+
+      // Both tabs should still be visible
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_EVENT).assertIsDisplayed()
+      composeTestRule.onNodeWithTag(EventViewTestTags.OWNER_TAB_STATISTICS).assertIsDisplayed()
+    } finally {
+      AuthenticationProvider.testUserId = null
+    }
+  }
 }
