@@ -236,14 +236,14 @@ private fun OrganizationEditDialogs(
 ) {
   if (uiState.showRemoveMemberDialog && uiState.memberToRemove != null) {
     RemoveMemberDialog(
-        member = uiState.memberToRemove!!,
+        member = uiState.memberToRemove,
         onConfirm = { viewModel.confirmRemoveMember() },
         onDismiss = { viewModel.dismissRemoveMemberDialog() })
   }
 
   if (uiState.showChangeRoleDialog && uiState.memberToChangeRole != null) {
     ChangeRoleDialog(
-        member = uiState.memberToChangeRole!!,
+        member = uiState.memberToChangeRole,
         availableRoles = uiState.roles.map { it.name } + listOf("Member"),
         onConfirm = { newRole -> viewModel.confirmChangeRole(newRole) },
         onDismiss = { viewModel.dismissChangeRoleDialog() })
