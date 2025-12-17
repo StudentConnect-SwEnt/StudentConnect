@@ -2066,7 +2066,9 @@ class EventViewTest {
 
       // Wait for statistics to load asynchronously
       composeTestRule.waitUntil(timeoutMillis = 5000) {
-        composeTestRule.onAllNodesWithTag(C.Tag.STATS_CONTENT).fetchSemanticsNodes(false)
+        composeTestRule
+            .onAllNodesWithTag(C.Tag.STATS_CONTENT)
+            .fetchSemanticsNodes(false)
             .isNotEmpty()
       }
 
