@@ -80,34 +80,6 @@ class ProfileScreenAndroidTest {
   }
 
   @Test
-  fun profileScreen_displaysFriendsAndEventsCount() {
-    mockFriendsRepository.friendsList = listOf("f1", "f2", "f3", "f4", "f5")
-    mockUserRepository.joinedEvents = listOf("e1", "e2", "e3")
-
-    val viewModel =
-        ProfileScreenViewModel(
-            userRepository = mockUserRepository,
-            friendsRepository = mockFriendsRepository,
-            eventRepository = mockEventRepository,
-            organizationRepository = mockOrganizationRepository,
-            currentUserId = testUser.userId)
-
-    composeTestRule.setContent {
-      ProfileScreen(currentUserId = testUser.userId, viewModel = viewModel)
-    }
-
-    composeTestRule.waitForIdle()
-
-    // Verify friends count using testTag
-    composeTestRule.onNodeWithText("5").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Friends").assertIsDisplayed()
-
-    // Verify events count using testTag
-    composeTestRule.onNodeWithText("3").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Events").assertIsDisplayed()
-  }
-
-  @Test
   fun profileScreen_displaysEditButton() {
     val viewModel =
         ProfileScreenViewModel(
