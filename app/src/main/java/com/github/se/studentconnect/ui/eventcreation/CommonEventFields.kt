@@ -539,3 +539,81 @@ internal fun handleMinuteSelection(
   }
   onMinutesChange(selectedMinutes)
 }
+
+/**
+ * Organization Selection Section for creating events.
+ *
+ * Displays a toggle switch to enable creating events as an organization, and a dropdown menu to
+ * select which organization to create the event as.
+ *
+ * @param userOrganizations List of (organizationId, organizationName) pairs
+ * @param createAsOrganization Whether the user has enabled organization creation mode
+ * @param selectedOrganizationId The currently selected organization ID
+ * @param onCreateAsOrganizationChange Callback when the toggle switch changes
+ * @param onOrganizationSelected Callback when an organization is selected from dropdown
+ * @param switchTestTag Test tag for the toggle switch
+ * @param dropdownTestTag Test tag for the dropdown menu
+ */
+@ExperimentalMaterial3Api
+@Composable
+fun OrganizationSelectionSection(
+    userOrganizations: List<Pair<String, String>>,
+    createAsOrganization: Boolean,
+    selectedOrganizationId: String?,
+    onCreateAsOrganizationChange: (Boolean) -> Unit,
+    onOrganizationSelected: (String) -> Unit,
+    switchTestTag: String,
+    dropdownTestTag: String
+) {
+  Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Toggle Switch
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              text = stringResource(R.string.event_label_create_as_organization),
+              style = MaterialTheme.typography.titleMedium,
+              color = MaterialTheme.colorScheme.onSurface)
+          Switch(
+              checked = createAsOrganization,
+              onCheckedChange = onCreateAsOrganizationChange,
+              modifier = Modifier.testTag(switchTestTag))
+        }
+
+    // Organization Dropdown (shown when toggle is on)
+    if (createAsOrganization) {
+      var expanded by remember { mutableStateOf(false) }
+      val selectedOrgName =
+          userOrganizations.find { it.first == selectedOrganizationId }?.second ?: ""
+
+      ExposedDropdownMenuBox(
+          expanded = expanded,
+          onExpandedChange = { expanded = !expanded },
+          modifier = Modifier.fillMaxWidth().testTag(dropdownTestTag)) {
+            OutlinedTextField(
+                value = selectedOrgName,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.event_label_select_organization)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors())
+
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+              userOrganizations.forEach { (orgId, orgName) ->
+                DropdownMenuItem(
+                    text = { Text(orgName) },
+                    onClick = {
+                      onOrganizationSelected(orgId)
+                      expanded = false
+                    },
+                    modifier = Modifier.testTag("orgDropdownItem_$orgId"))
+              }
+            }
+          }
+    }
+  }
+}
