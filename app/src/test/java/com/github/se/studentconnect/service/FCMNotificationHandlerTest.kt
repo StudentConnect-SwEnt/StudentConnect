@@ -158,16 +158,12 @@ class FCMNotificationHandlerTest {
   }
 
   @Test
-  fun processFriendRequest_withNoNotificationId_usesEmptyString() {
+  fun processFriendRequest_withNoNotificationId_doesNothing() {
     val data = mapOf("fromUserId" to "sender-123", "fromUserName" to "John Doe")
 
     handler.processFriendRequest(data, testUserId)
 
-    val captor = argumentCaptor<Notification>()
-    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
-
-    val notification = captor.firstValue as Notification.FriendRequest
-    assertEquals("", notification.id)
+    verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   // ==================== processEventStarting Tests ====================
@@ -252,7 +248,7 @@ class FCMNotificationHandlerTest {
   }
 
   @Test
-  fun processEventStarting_withNoNotificationId_usesEmptyString() {
+  fun processEventStarting_withNoNotificationId_doesNothing() {
     val data =
         mapOf(
             "eventId" to "event-456",
@@ -261,11 +257,7 @@ class FCMNotificationHandlerTest {
 
     handler.processEventStarting(data, testUserId)
 
-    val captor = argumentCaptor<Notification>()
-    verify(mockRepository, times(1)).createNotification(captor.capture(), any(), any())
-
-    val notification = captor.firstValue as Notification.EventStarting
-    assertEquals("", notification.id)
+    verify(mockRepository, never()).createNotification(any(), any(), any())
   }
 
   @Test
