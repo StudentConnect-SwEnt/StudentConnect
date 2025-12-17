@@ -19,6 +19,10 @@
     <dimen name="profile_stat_text_size">22sp</dimen>
     <dimen name="profile_stat_padding">8dp</dimen>
     <dimen name="profile_dialog_button_width">80dp</dimen>
+    <dimen name="profile_badge_size">32dp</dimen>
+    <dimen name="profile_badge_border_width">2dp</dimen>
+    <dimen name="profile_badge_icon_size">20dp</dimen>
+    <dimen name="profile_badge_offset">20dp</dimen>
     
     <!-- Organization Management Screen dimensions -->
     <dimen name="org_management_padding">16dp</dimen>
@@ -37,4 +41,35 @@
     <dimen name="org_management_card_border_width">2dp</dimen>
     <dimen name="org_management_empty_state_padding">32dp</dimen>
     <dimen name="org_management_empty_state_spacing">24dp</dimen>
+    
+    <!-- Typing Indicator dimensions -->
+    <dimen name="typing_indicator_dot_size">6dp</dimen>
+    <dimen name="typing_indicator_padding_horizontal">16dp</dimen>
+    <dimen name="typing_indicator_padding_vertical">8dp</dimen>
+    <dimen name="typing_indicator_spacing">4dp</dimen>
+    
+    <!-- Event View dimensions -->
+    <dimen name="event_view_chat_button_padding_vertical">6dp</dimen>
+    
+    <!-- Event Chat Screen dimensions -->
+    <dimen name="chat_error_padding">16dp</dimen>
+    <dimen name="chat_messages_padding">16dp</dimen>
+    <dimen name="chat_messages_spacing">12dp</dimen>
+    <dimen name="chat_message_max_width">280dp</dimen>
+    <dimen name="chat_message_corner_radius_normal">16dp</dimen>
+    <dimen name="chat_message_corner_radius_small">4dp</dimen>
+    <dimen name="chat_message_padding_horizontal">12dp</dimen>
+    <dimen name="chat_message_padding_vertical">8dp</dimen>
+    <dimen name="chat_message_spacing">4dp</dimen>
+    <dimen name="chat_input_padding_horizontal">16dp</dimen>
+    <dimen name="chat_input_padding_vertical">12dp</dimen>
+    <dimen name="chat_input_spacing">8dp</dimen>
+    <dimen name="chat_input_elevation">8dp</dimen>
+    <dimen name="chat_input_corner_radius">24dp</dimen>
+    <dimen name="chat_send_button_size">48dp</dimen>
+    <dimen name="chat_send_button_icon_size">24dp</dimen>
+    <dimen name="chat_send_button_progress_stroke">2dp</dimen>
+    <dimen name="chat_empty_padding">32dp</dimen>
+    <dimen name="chat_empty_spacing">8dp</dimen>
+    <dimen name="chat_error_card_padding">16dp</dimen>
 </resources>

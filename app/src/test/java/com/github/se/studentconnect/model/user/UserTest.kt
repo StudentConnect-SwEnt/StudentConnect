@@ -1078,4 +1078,122 @@ class UserTest {
     val updatedUser = validUser.update(username = User.UpdateValue.NoChange())
     Assert.assertEquals(validUser.username, updatedUser.username)
   }
+
+  // Tests for pinnedOrganizationId field
+  @Test
+  fun testUserWithPinnedOrganization() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            username = "johndoe",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL",
+            pinnedOrganizationId = "org123",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+    Assert.assertEquals("org123", user.pinnedOrganizationId)
+  }
+
+  @Test
+  fun testUserWithoutPinnedOrganization() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            username = "johndoe",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL",
+            pinnedOrganizationId = null,
+            createdAt = 1000L,
+            updatedAt = 1000L)
+    Assert.assertNull(user.pinnedOrganizationId)
+  }
+
+  @Test
+  fun testUpdatePinnedOrganization() {
+    val updatedUser = validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org456"))
+    Assert.assertEquals("org456", updatedUser.pinnedOrganizationId)
+    Assert.assertEquals(validUser.firstName, updatedUser.firstName)
+    Assert.assertTrue(updatedUser.updatedAt >= validUser.updatedAt)
+  }
+
+  @Test
+  fun testUpdatePinnedOrganizationToNull() {
+    val userWithPinnedOrg =
+        validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org123"))
+    Assert.assertEquals("org123", userWithPinnedOrg.pinnedOrganizationId)
+
+    val updatedUser =
+        userWithPinnedOrg.update(pinnedOrganizationId = User.UpdateValue.SetValue(null))
+    Assert.assertNull(updatedUser.pinnedOrganizationId)
+  }
+
+  @Test
+  fun testUpdatePinnedOrganizationNoChange() {
+    val userWithPinnedOrg =
+        validUser.update(pinnedOrganizationId = User.UpdateValue.SetValue("org123"))
+    val updatedUser = userWithPinnedOrg.update(pinnedOrganizationId = User.UpdateValue.NoChange())
+    Assert.assertEquals("org123", updatedUser.pinnedOrganizationId)
+  }
+
+  @Test
+  fun testToMapIncludesPinnedOrganization() {
+    val user =
+        User(
+            userId = "user123",
+            email = "test@epfl.ch",
+            username = "johndoe",
+            firstName = "John",
+            lastName = "Doe",
+            university = "EPFL",
+            pinnedOrganizationId = "org789",
+            createdAt = 1000L,
+            updatedAt = 1000L)
+    val map = user.toMap()
+    Assert.assertEquals("org789", map["pinnedOrganizationId"])
+  }
+
+  @Test
+  fun testToMapWithNullPinnedOrganization() {
+    val map = validUser.toMap()
+    Assert.assertNull(map["pinnedOrganizationId"])
+  }
+
+  @Test
+  fun testFromMapWithPinnedOrganization() {
+    val map =
+        mapOf(
+            "userId" to "user123",
+            "email" to "test@epfl.ch",
+            "username" to "johndoe",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL",
+            "pinnedOrganizationId" to "org123",
+            "createdAt" to 1000L,
+            "updatedAt" to 1000L)
+    val user = User.fromMap(map)
+    Assert.assertNotNull(user)
+    Assert.assertEquals("org123", user?.pinnedOrganizationId)
+  }
+
+  @Test
+  fun testFromMapWithoutPinnedOrganization() {
+    val map =
+        mapOf(
+            "userId" to "user123",
+            "email" to "test@epfl.ch",
+            "username" to "johndoe",
+            "firstName" to "John",
+            "lastName" to "Doe",
+            "university" to "EPFL",
+            "createdAt" to 1000L,
+            "updatedAt" to 1000L)
+    val user = User.fromMap(map)
+    Assert.assertNotNull(user)
+    Assert.assertNull(user?.pinnedOrganizationId)
+  }
 }

@@ -1,5 +1,10 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.Uri
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
@@ -15,6 +20,17 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.unmockkAll
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +46,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreatePublicEventViewModelTest {
@@ -46,13 +61,14 @@ class CreatePublicEventViewModelTest {
 
   @Before
   fun setUp() {
+    MockKAnnotations.init(this, relaxUnitFun = true)
     Dispatchers.setMain(testDispatcher)
-    mockEventRepository = Mockito.mock(EventRepository::class.java)
-    mockMediaRepository = Mockito.mock(MediaRepository::class.java)
-    mockUserRepository = Mockito.mock(UserRepository::class.java)
-    mockOrganizationRepository = Mockito.mock(OrganizationRepository::class.java)
-    mockFriendsRepository = Mockito.mock(FriendsRepository::class.java)
-    mockNotificationRepository = Mockito.mock(NotificationRepository::class.java)
+    mockEventRepository = mockk(relaxed = true)
+    mockMediaRepository = mockk(relaxed = true)
+    mockUserRepository = mockk(relaxed = true)
+    mockOrganizationRepository = mockk(relaxed = true)
+    mockFriendsRepository = mockk(relaxed = true)
+    mockNotificationRepository = mockk(relaxed = true)
 
     // override providers so ViewModel uses our mocks
     EventRepositoryProvider.overrideForTests(mockEventRepository)
@@ -61,6 +77,9 @@ class CreatePublicEventViewModelTest {
     OrganizationRepositoryProvider.overrideForTests(mockOrganizationRepository)
     FriendsRepositoryProvider.overrideForTests(mockFriendsRepository)
     NotificationRepositoryProvider.overrideForTests(mockNotificationRepository)
+
+    // Default UID for new events to avoid nulls in tests that don't stub getNewUid explicitly
+    every { mockEventRepository.getNewUid() } returns "generated-uid"
 
     viewModel = CreatePublicEventViewModel()
   }
@@ -74,6 +93,7 @@ class CreatePublicEventViewModelTest {
     OrganizationRepositoryProvider.cleanOverrideForTests()
     FriendsRepositoryProvider.cleanOverrideForTests()
     NotificationRepositoryProvider.cleanOverrideForTests()
+    unmockkAll()
   }
 
   @Test
@@ -206,6 +226,48 @@ class CreatePublicEventViewModelTest {
   }
 
   @Test
+  fun `initial state has isGeneratingBanner false`() {
+    assertFalse(viewModel.uiState.value.isGeneratingBanner)
+  }
+
+  @Test
+  fun `updateFlashDurationHours updates hours in state`() {
+    viewModel.updateFlashDurationHours(3)
+    assertEquals(3, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours clamps value to max`() {
+    viewModel.updateFlashDurationHours(10)
+    // Should be clamped to MAX_DURATION_HOURS (5)
+    assertEquals(5, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationHours clamps negative value to 0`() {
+    viewModel.updateFlashDurationHours(-1)
+    assertEquals(0, viewModel.uiState.value.flashDurationHours)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes updates minutes in state`() {
+    viewModel.updateFlashDurationMinutes(30)
+    assertEquals(30, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes clamps value to 59`() {
+    viewModel.updateFlashDurationMinutes(75)
+    assertEquals(59, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
+  fun `updateFlashDurationMinutes clamps negative value to 0`() {
+    viewModel.updateFlashDurationMinutes(-5)
+    assertEquals(0, viewModel.uiState.value.flashDurationMinutes)
+  }
+
+  @Test
   fun `prefill sets all fields from public event`() = runTest {
     val event =
         Event.Public(
@@ -223,7 +285,7 @@ class CreatePublicEventViewModelTest {
             tags = listOf("tech", "conference"),
             website = "https://test.com")
 
-    Mockito.`when`(mockEventRepository.getEvent("test-uid")).thenReturn(event)
+    coEvery { mockEventRepository.getEvent("test-uid") } returns event
 
     // Trigger loadEvent which will call the internal prefill in the coroutine
     viewModel.loadEvent("test-uid")
@@ -268,5 +330,58 @@ class CreatePublicEventViewModelTest {
     assertNull(state.endDate)
     assertEquals("300", state.numberOfParticipantsString)
     assertEquals(listOf("workshop"), state.tags)
+  }
+
+  @Test
+  fun `saveEvent uploads banner immediately when online`() = runTest {
+    // Mock Firebase auth current user
+    mockkStatic(FirebaseAuth::class)
+    mockkStatic("com.google.firebase.FirebaseKt")
+    val mockAuth = mockk<FirebaseAuth>(relaxed = true)
+    val mockUser = mockk<FirebaseUser>(relaxed = true)
+    io.mockk.every { FirebaseAuth.getInstance() } returns mockAuth
+    io.mockk.every { mockAuth.currentUser } returns mockUser
+    io.mockk.every { com.google.firebase.Firebase.auth } returns mockAuth
+    io.mockk.every { mockUser.uid } returns "user-123"
+
+    // Network available
+    val mockContext = mockk<Context>(relaxed = true)
+    val mockCm = mockk<ConnectivityManager>()
+    val mockNetwork = mockk<Network>()
+    val mockCapabilities = mockk<NetworkCapabilities>()
+    io.mockk.every { mockContext.applicationContext } returns mockContext
+    io.mockk.every { mockContext.getSystemService(ConnectivityManager::class.java) } returns mockCm
+    io.mockk.every { mockCm.activeNetwork } returns mockNetwork
+    io.mockk.every { mockCm.getNetworkCapabilities(mockNetwork) } returns mockCapabilities
+    io.mockk.every {
+      mockCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } returns true
+
+    val bannerUri = mockk<Uri>(relaxed = true)
+    viewModel.updateBannerImageUri(bannerUri)
+    viewModel.updateTitle("With Banner")
+    viewModel.updateStartDate(LocalDate.now())
+    viewModel.updateEndDate(LocalDate.now().plusDays(1))
+    viewModel.updateIsFlash(false)
+
+    val newUid = "event-abc"
+    every { mockEventRepository.getNewUid() } returns newUid
+    coEvery { mockMediaRepository.upload(bannerUri, "events/$newUid/banner") } returns
+        "https://example.com/banner"
+
+    viewModel.saveEvent(mockContext)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertEquals("https://example.com/banner", state.bannerImagePath)
+    assertNull(state.bannerImageUri)
+
+    val eventSlot = slot<Event>()
+    coVerify { mockEventRepository.addEvent(capture(eventSlot)) }
+    val savedEvent = eventSlot.captured as Event.Public
+    assertEquals("https://example.com/banner", savedEvent.imageUrl)
+    coVerify { mockMediaRepository.upload(bannerUri, "events/$newUid/banner") }
+
+    unmockkAll()
   }
 }

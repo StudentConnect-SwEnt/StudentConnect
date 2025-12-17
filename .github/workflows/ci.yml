@@ -380,6 +380,7 @@ jobs:
       - name: Assemble APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           ./gradlew assembleNormalRelease --parallel --build-cache \
             -PANDROID_KEYSTORE_PASSWORD="$ANDROID_KEYSTORE_PASSWORD"
@@ -476,4 +477,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -PuseResOverrideForUnitTestResults --parallel --build-cache --stacktrace --info
+
 

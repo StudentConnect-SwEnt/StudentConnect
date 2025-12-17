@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -93,6 +94,7 @@ object EventViewTestTags {
   const val COUNTDOWN_TIMER = "event_view_countdown_timer"
   const val COUNTDOWN_DAYS = "event_view_countdown_days"
   const val TAGS_SECTION = "event_view_tags"
+  const val SUBTITLE_TEXT = "event_view_subtitle_text"
   const val DESCRIPTION_TEXT = "event_view_description_text"
   const val CHAT_BUTTON = "event_view_chat_button"
   const val ACTION_BUTTONS_SECTION = "event_view_action_buttons_section"
@@ -316,6 +318,25 @@ fun EventView(
                   snackbarHostState = snackbarHostState)
         }
       }
+    } else {
+      // Gracefully handle cases where the event couldn't be loaded yet (e.g., pending sync)
+      Box(
+          modifier = Modifier.fillMaxSize().padding(paddingValues),
+          contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              CircularProgressIndicator()
+              Spacer(Modifier.height(12.dp))
+              val message =
+                  uiState.errorMessage
+                      ?: uiState.errorMessageRes?.let { stringResource(it) }
+                      ?: stringResource(R.string.event_loading_message_pending_sync)
+              Text(text = message, style = MaterialTheme.typography.bodyMedium)
+              Spacer(Modifier.height(12.dp))
+              TextButton(onClick = { eventViewModel.fetchEvent(eventUid) }) {
+                Text(stringResource(R.string.event_button_retry))
+              }
+            }
+          }
     }
   }
 }
@@ -438,6 +459,18 @@ private fun BaseEventView(
                       Column(
                           modifier = Modifier.fillMaxWidth().padding(20.dp),
                           verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            if (event is Event.Public && event.subtitle.isNotBlank()) {
+                              Text(
+                                  text = event.subtitle,
+                                  modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
+                                  style =
+                                      MaterialTheme.typography.titleMedium.copy(
+                                          fontWeight = FontWeight.SemiBold),
+                                  color = MaterialTheme.colorScheme.onSurface,
+                                  maxLines = 2,
+                                  overflow = TextOverflow.Ellipsis)
+                            }
+
                             if (event is Event.Public && event.tags.isNotEmpty()) {
                               EventTagsRow(tags = event.tags)
                             }
@@ -472,7 +505,10 @@ private fun BaseEventView(
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                 }
 
-                ChatButton()
+                // Chat Button - only show if user is joined or is owner
+                if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
+                  ChatButton(event = event, navController = navController)
+                }
 
                 // Delete Event Button - only show if user is owner
                 if (AuthenticationProvider.currentUser == event.ownerId) {
@@ -659,12 +695,17 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
 }
 
 @Composable
-private fun ChatButton(context: Context = LocalContext.current) {
+private fun ChatButton(event: Event, navController: NavHostController) {
+  val verticalPadding = dimensionResource(R.dimen.event_view_chat_button_padding_vertical)
   Button(
-      onClick = { DialogNotImplemented(context) },
+      onClick = { navController.navigate(Route.eventChat(event.uid)) },
       modifier =
           Modifier.fillMaxWidth()
-              .padding(start = screenPadding, top = 6.dp, end = screenPadding, bottom = 6.dp)
+              .padding(
+                  start = screenPadding,
+                  top = verticalPadding,
+                  end = screenPadding,
+                  bottom = verticalPadding)
               .testTag(EventViewTestTags.CHAT_BUTTON),
       colors =
           ButtonDefaults.buttonColors(

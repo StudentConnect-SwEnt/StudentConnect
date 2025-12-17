@@ -149,6 +149,73 @@ class StoryRepositoryFirestoreTest {
     assertTrue(result.isEmpty())
   }
 
+  @Test
+  fun getUserJoinedEvents_includesOwnedEvents() = runTest {
+    // Arrange
+    val userId = "user123"
+    val ownedEvent =
+        Event.Public(
+            uid = "owned-event-123",
+            ownerId = userId,
+            title = "Owned Event",
+            subtitle = "Test Subtitle",
+            description = "Test Description",
+            start = Timestamp.now(),
+            isFlash = false)
+    val joinedEvent =
+        Event.Public(
+            uid = "joined-event-456",
+            ownerId = "other-user",
+            title = "Joined Event",
+            subtitle = "Test Subtitle",
+            description = "Test Description",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    // Add owned event to repository
+    mockEventRepository.addEvent(ownedEvent)
+    // Add joined event to repository and mark user as joined
+    mockEventRepository.addEvent(joinedEvent)
+    mockUserRepository.addEventToUser(joinedEvent.uid, userId)
+
+    // Act
+    val result = repository.getUserJoinedEvents(userId)
+
+    // Assert
+    assertEquals(2, result.size)
+    assertTrue(result.any { it.uid == ownedEvent.uid })
+    assertTrue(result.any { it.uid == joinedEvent.uid })
+  }
+
+  @Test
+  fun getUserJoinedEvents_removesDuplicates_whenUserOwnsAndJoinsSameEvent() = runTest {
+    // Arrange
+    val userId = "user123"
+    val eventId = "event-123"
+    val event =
+        Event.Public(
+            uid = eventId,
+            ownerId = userId,
+            title = "Owned and Joined Event",
+            subtitle = "Test Subtitle",
+            description = "Test Description",
+            start = Timestamp.now(),
+            isFlash = false)
+
+    // Add event as owned
+    mockEventRepository.addEvent(event)
+    // Also mark user as joined
+    mockUserRepository.addEventToUser(eventId, userId)
+
+    // Act
+    val result = repository.getUserJoinedEvents(userId)
+
+    // Assert - should only appear once, and prefer owned version
+    assertEquals(1, result.size)
+    assertEquals(eventId, result[0].uid)
+    assertEquals(userId, result[0].ownerId)
+  }
+
   // Note: uploadStory tests that require ImageCompressor are moved to instrumented tests
   // See StoryRepositoryFirestoreInstrumentedTest.kt
 

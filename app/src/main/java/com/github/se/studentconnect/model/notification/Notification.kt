@@ -1,12 +1,14 @@
 package com.github.se.studentconnect.model.notification
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ServerTimestamp
 
 /** Represents the type of notification */
 enum class NotificationType {
   FRIEND_REQUEST,
   EVENT_STARTING,
+  EVENT_INVITATION,
   ORGANIZATION_MEMBER_INVITATION
 }
 
@@ -49,6 +51,7 @@ sealed class Notification {
    * @param userId The user who should receive this notification
    * @param eventId The ID of the event that is starting
    * @param eventTitle The title of the event
+   * @param eventOwnerName The name of the event owner/organizer
    * @param eventStart The start time of the event
    * @param timestamp When the notification was created
    * @param isRead Whether the notification has been read
@@ -58,6 +61,7 @@ sealed class Notification {
       override val userId: String = "",
       val eventId: String = "",
       val eventTitle: String = "",
+      val eventOwnerName: String = "",
       val eventStart: Timestamp? = null,
       @ServerTimestamp override val timestamp: Timestamp? = null,
       override val isRead: Boolean = false
@@ -66,6 +70,34 @@ sealed class Notification {
 
     /** Returns a human-readable message for the notification */
     fun getMessage(): String = "Event \"$eventTitle\" is starting soon"
+  }
+
+  /**
+   * Event invitation notification - sent when someone invites a user to a private event
+   *
+   * @param id Unique identifier for the notification
+   * @param userId The user who should receive this notification
+   * @param eventId The ID of the event
+   * @param eventTitle The title of the event
+   * @param invitedBy The ID of the user who sent the invitation
+   * @param invitedByName The name of the user who sent the invitation
+   * @param timestamp When the notification was created
+   * @param isRead Whether the notification has been read
+   */
+  data class EventInvitation(
+      override val id: String = "",
+      override val userId: String = "",
+      val eventId: String = "",
+      val eventTitle: String = "",
+      val invitedBy: String = "",
+      val invitedByName: String = "",
+      @ServerTimestamp override val timestamp: Timestamp? = null,
+      override val isRead: Boolean = false
+  ) : Notification() {
+    override val type = NotificationType.EVENT_INVITATION
+
+    /** Returns a human-readable message for the notification */
+    fun getMessage(): String = "$invitedByName invited you to \"$eventTitle\""
   }
 
   /**
@@ -109,7 +141,7 @@ sealed class Notification {
               "type" to type.name,
               "fromUserId" to fromUserId,
               "fromUserName" to fromUserName,
-              "timestamp" to timestamp,
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
       is EventStarting ->
           mapOf(
@@ -118,8 +150,20 @@ sealed class Notification {
               "type" to type.name,
               "eventId" to eventId,
               "eventTitle" to eventTitle,
+              "eventOwnerName" to eventOwnerName,
               "eventStart" to eventStart,
-              "timestamp" to timestamp,
+              "timestamp" to getTimestampOrServerTime(),
+              "isRead" to isRead)
+      is EventInvitation ->
+          mapOf(
+              "id" to id,
+              "userId" to userId,
+              "type" to type.name,
+              "eventId" to eventId,
+              "eventTitle" to eventTitle,
+              "invitedBy" to invitedBy,
+              "invitedByName" to invitedByName,
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
       is OrganizationMemberInvitation ->
           mapOf(
@@ -131,10 +175,17 @@ sealed class Notification {
               "role" to role,
               "invitedBy" to invitedBy,
               "invitedByName" to invitedByName,
-              "timestamp" to timestamp,
+              "timestamp" to getTimestampOrServerTime(),
               "isRead" to isRead)
     }
   }
+
+  /**
+   * Helper function to get timestamp or server time if timestamp is null
+   *
+   * @return The timestamp if available, or FieldValue.serverTimestamp() for Firestore to set
+   */
+  private fun getTimestampOrServerTime(): Any = timestamp ?: FieldValue.serverTimestamp()
 
   companion object {
     /**
@@ -167,7 +218,18 @@ sealed class Notification {
                 userId = map["userId"] as? String ?: "",
                 eventId = map["eventId"] as? String ?: "",
                 eventTitle = map["eventTitle"] as? String ?: "",
+                eventOwnerName = map["eventOwnerName"] as? String ?: "",
                 eventStart = map["eventStart"] as? Timestamp,
+                timestamp = map["timestamp"] as? Timestamp,
+                isRead = map["isRead"] as? Boolean ?: false)
+        NotificationType.EVENT_INVITATION ->
+            EventInvitation(
+                id = map["id"] as? String ?: "",
+                userId = map["userId"] as? String ?: "",
+                eventId = map["eventId"] as? String ?: "",
+                eventTitle = map["eventTitle"] as? String ?: "",
+                invitedBy = map["invitedBy"] as? String ?: "",
+                invitedByName = map["invitedByName"] as? String ?: "",
                 timestamp = map["timestamp"] as? Timestamp,
                 isRead = map["isRead"] as? Boolean ?: false)
         NotificationType.ORGANIZATION_MEMBER_INVITATION ->

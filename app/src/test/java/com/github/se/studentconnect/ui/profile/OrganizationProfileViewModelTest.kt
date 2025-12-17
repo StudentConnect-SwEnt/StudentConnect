@@ -1579,6 +1579,12 @@ class OrganizationProfileViewModelTest {
           override suspend fun checkUsernameAvailability(username: String): Boolean = true
 
           override suspend fun leaveEvent(eventId: String, userId: String) {}
+
+          override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+          override suspend fun unpinOrganization(userId: String) {}
+
+          override suspend fun getPinnedOrganization(userId: String): String? = null
         }
 
     viewModel =

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,12 +21,14 @@ import kotlinx.coroutines.launch
  * @param userRepository Repository for user data operations
  * @param friendsRepository Repository for friends data operations
  * @param eventRepository Repository for event data operations
+ * @param organizationRepository Repository for organization data operations
  * @param currentUserId The ID of the current user
  */
 class ProfileScreenViewModel(
     private val userRepository: UserRepository,
     private val friendsRepository: FriendsRepository,
     private val eventRepository: EventRepository,
+    private val organizationRepository: OrganizationRepository,
     private val currentUserId: String
 ) : ViewModel() {
 
@@ -48,6 +52,10 @@ class ProfileScreenViewModel(
   private val _pinnedEvents = MutableStateFlow<List<Event>>(emptyList())
   val pinnedEvents: StateFlow<List<Event>> = _pinnedEvents.asStateFlow()
 
+  // User's organizations state
+  private val _userOrganizations = MutableStateFlow<List<Organization>>(emptyList())
+  val userOrganizations: StateFlow<List<Organization>> = _userOrganizations.asStateFlow()
+
   // Loading state
   private val _isLoading = MutableStateFlow(true)
   val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -59,6 +67,7 @@ class ProfileScreenViewModel(
   init {
     loadUserProfile()
     loadPinnedEvents()
+    loadUserOrganizations()
   }
 
   // Load the user's profile data and stats
@@ -173,6 +182,26 @@ class ProfileScreenViewModel(
       } catch (exception: Exception) {
         Log.e(TAG, "Failed to load pinned events for user: $currentUserId", exception)
         _pinnedEvents.value = emptyList()
+      }
+    }
+  }
+
+  /** Loads the pinned organization for the current user. */
+  fun loadUserOrganizations() {
+    viewModelScope.launch {
+      try {
+        val pinnedOrgId = userRepository.getPinnedOrganization(currentUserId)
+        if (pinnedOrgId != null) {
+          val organization = organizationRepository.getOrganizationById(pinnedOrgId)
+          _userOrganizations.value = listOfNotNull(organization)
+          Log.d(TAG, "Loaded pinned organization for user: $currentUserId")
+        } else {
+          _userOrganizations.value = emptyList()
+          Log.d(TAG, "No pinned organization for user: $currentUserId")
+        }
+      } catch (exception: Exception) {
+        Log.e(TAG, "Failed to load pinned organization for user: $currentUserId", exception)
+        _userOrganizations.value = emptyList()
       }
     }
   }

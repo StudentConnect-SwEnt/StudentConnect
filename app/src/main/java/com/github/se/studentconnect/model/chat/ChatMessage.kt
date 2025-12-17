@@ -13,21 +13,32 @@ import com.google.firebase.Timestamp
  * @property timestamp When the message was sent.
  */
 data class ChatMessage(
-    val messageId: String,
-    val eventId: String,
-    val senderId: String,
-    val senderName: String,
-    val content: String,
+    val messageId: String = "",
+    val eventId: String = "",
+    val senderId: String = "",
+    val senderName: String = "",
+    val content: String = "",
     val timestamp: Timestamp = Timestamp.now()
 ) {
   init {
-    require(messageId.isNotBlank()) { "Message ID cannot be blank" }
-    require(eventId.isNotBlank()) { "Event ID cannot be blank" }
-    require(senderId.isNotBlank()) { "Sender ID cannot be blank" }
-    require(senderName.isNotBlank()) { "Sender name cannot be blank" }
-    require(content.isNotBlank()) { "Message content cannot be blank" }
-    require(content.length <= MAX_CONTENT_LENGTH) {
-      "Message content cannot exceed $MAX_CONTENT_LENGTH characters"
+    // Allow completely empty default instances (all fields empty) for serialization
+    val isDefaultInstance =
+        messageId.isBlank() &&
+            eventId.isBlank() &&
+            senderId.isBlank() &&
+            senderName.isBlank() &&
+            content.isBlank()
+
+    // If not a default instance, validate all fields
+    if (!isDefaultInstance) {
+      require(messageId.isNotBlank()) { "Message ID cannot be blank" }
+      require(eventId.isNotBlank()) { "Event ID cannot be blank" }
+      require(senderId.isNotBlank()) { "Sender ID cannot be blank" }
+      require(senderName.isNotBlank()) { "Sender name cannot be blank" }
+      require(content.isNotBlank()) { "Message content cannot be blank" }
+      require(content.length <= MAX_CONTENT_LENGTH) {
+        "Message content cannot exceed $MAX_CONTENT_LENGTH characters"
+      }
     }
   }
 

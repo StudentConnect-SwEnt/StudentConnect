@@ -11,6 +11,9 @@ import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepository
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollRepository
 import com.github.se.studentconnect.model.poll.PollRepositoryProvider
@@ -27,6 +30,8 @@ data class EventUiState(
     val event: Event? = null,
     val isLoading: Boolean = true,
     val isJoined: Boolean = false,
+    val errorMessage: String? = null,
+    @StringRes val errorMessageRes: Int? = null,
     val showQrScanner: Boolean = false,
     val ticketValidationResult: TicketValidationResult? = null,
     val attendees: List<User> = emptyList(),
@@ -61,48 +66,62 @@ class EventViewModel(
     private val eventRepository: EventRepository = EventRepositoryProvider.repository,
     private val userRepository: UserRepository = UserRepositoryProvider.repository,
     private val pollRepository: PollRepository = PollRepositoryProvider.repository,
-    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository
+    private val friendsRepository: FriendsRepository = FriendsRepositoryProvider.repository,
+    private val notificationRepository: NotificationRepository =
+        NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(EventUiState())
   val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
   fun fetchEvent(eventUid: String) {
-    _uiState.update { it.copy(isLoading = true) }
+    _uiState.update { it.copy(isLoading = true, errorMessage = null, errorMessageRes = null) }
     viewModelScope.launch {
-      val fetchedEvent = eventRepository.getEvent(eventUid)
-      val currentUserUid = AuthenticationProvider.currentUser
+      try {
+        val fetchedEvent = eventRepository.getEvent(eventUid)
+        val currentUserUid = AuthenticationProvider.currentUser
 
-      val participants = eventRepository.getEventParticipants(eventUid)
-      val ownerId = fetchedEvent.ownerId
-      val filteredParticipants = participants.filter { it.uid != ownerId }
-      val participantCount = filteredParticipants.size
+        val participants = eventRepository.getEventParticipants(eventUid)
+        val ownerId = fetchedEvent.ownerId
+        val filteredParticipants = participants.filter { it.uid != ownerId }
+        val participantCount = filteredParticipants.size
 
-      val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
+        val actualIsJoined = filteredParticipants.any { it.uid == currentUserUid }
 
-      val isFull = fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
+        val isFull =
+            fetchedEvent.maxCapacity?.let { max -> participantCount >= max.toInt() } ?: false
 
-      val finalIsJoined = actualIsJoined
+        val finalIsJoined = actualIsJoined
 
-      _uiState.update {
-        it.copy(
-            event = fetchedEvent,
-            isLoading = false,
-            isJoined = finalIsJoined,
-            participantCount = participantCount,
-            isFull = isFull,
-            showInviteFriendsDialog = false,
-            invitedFriendIds = emptySet(),
-            initialInvitedFriendIds = emptySet(),
-            friendsErrorRes = null,
-            isInvitingFriends = false,
-            friends = emptyList(),
-            isLoadingFriends = false)
-      }
+        _uiState.update {
+          it.copy(
+              event = fetchedEvent,
+              isLoading = false,
+              isJoined = finalIsJoined,
+              participantCount = participantCount,
+              isFull = isFull,
+              showInviteFriendsDialog = false,
+              invitedFriendIds = emptySet(),
+              initialInvitedFriendIds = emptySet(),
+              friendsErrorRes = null,
+              isInvitingFriends = false,
+              friends = emptyList(),
+              isLoadingFriends = false,
+              errorMessageRes = null,
+              errorMessage = null)
+        }
 
-      // Fetch active polls if user is already a participant
-      if (finalIsJoined) {
-        fetchActivePolls(eventUid)
+        // Fetch active polls if user is already a participant
+        if (finalIsJoined) {
+          fetchActivePolls(eventUid)
+        }
+      } catch (e: Exception) {
+        _uiState.update {
+          it.copy(
+              isLoading = false,
+              errorMessage = e.message,
+              errorMessageRes = if (e.message == null) R.string.event_error_load else null)
+        }
       }
     }
   }
@@ -337,11 +356,47 @@ class EventViewModel(
 
     viewModelScope.launch {
       _uiState.update { it.copy(isInvitingFriends = true, friendsErrorRes = null) }
+
+      // Fetch current user info to get the actual name
+      // If this fails, we cannot proceed as we need a valid name for notifications
+      val currentUser = userRepository.getUserById(currentUserId)
+      if (currentUser == null) {
+        android.util.Log.e("EventViewModel", "Failed to fetch current user info")
+        _uiState.update {
+          it.copy(isInvitingFriends = false, friendsErrorRes = R.string.event_invite_send_failed)
+        }
+        return@launch
+      }
+
+      val currentUserName = "${currentUser.firstName} ${currentUser.lastName}"
       var hadError = false
+
       toAdd.forEach { friendId ->
         runCatching {
               eventRepository.addInvitationToEvent(event.uid, friendId, currentUserId)
               userRepository.addInvitationToUser(event.uid, friendId, currentUserId)
+
+              // Create notification for event invitation
+              // Notification failures are logged but don't fail the invitation
+              // This is intentional - the invitation is the primary operation
+              val notification =
+                  Notification.EventInvitation(
+                      userId = friendId,
+                      eventId = event.uid,
+                      eventTitle = event.title,
+                      invitedBy = currentUserId,
+                      invitedByName = currentUserName)
+              notificationRepository.createNotification(
+                  notification,
+                  onSuccess = {
+                    android.util.Log.d(
+                        "EventViewModel", "Notification sent to $friendId for event ${event.uid}")
+                  },
+                  onFailure = { e ->
+                    // Log but don't fail - notifications are secondary to the invitation
+                    android.util.Log.w(
+                        "EventViewModel", "Failed to send notification to $friendId", e)
+                  })
             }
             .onFailure { e ->
               android.util.Log.w("EventViewModel", "Failed to invite friend $friendId", e)

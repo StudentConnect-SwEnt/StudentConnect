@@ -476,4 +476,309 @@ class NotificationViewModelTest {
     Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
     Assert.assertFalse(viewModel.uiState.value.isLoading)
   }
+
+  @Test
+  fun markAsRead_eventInvitation_marksCorrectly() = runTest {
+    val eventInvitation =
+        Notification.EventInvitation(
+            id = "invite-1",
+            userId = testUserId,
+            eventId = "event-123",
+            eventTitle = "Basketball Game",
+            invitedBy = "user-456",
+            invitedByName = "Alice Smith",
+            timestamp = Timestamp.Companion.now(),
+            isRead = false)
+
+    val initialNotifications = listOf(eventInvitation)
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(initialNotifications)
+      return@thenAnswer {}
+    }
+
+    Mockito.`when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
+      val onSuccess = invocation.getArgument<() -> Unit>(1)
+      onSuccess()
+    }
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.notifications[0].isRead)
+
+    viewModel.markAsRead("invite-1")
+    advanceUntilIdle()
+
+    Mockito.verify(mockRepository).markAsRead(eq("invite-1"), any(), any())
+    Assert.assertEquals(0, viewModel.uiState.value.unreadCount)
+    Assert.assertTrue(viewModel.uiState.value.notifications[0].isRead)
+  }
+
+  @Test
+  fun markAsRead_eventInvitation_revertsOnFailure() = runTest {
+    val eventInvitation =
+        Notification.EventInvitation(
+            id = "invite-2",
+            userId = testUserId,
+            eventId = "event-456",
+            eventTitle = "Study Group",
+            invitedBy = "user-789",
+            invitedByName = "Bob Johnson",
+            timestamp = Timestamp.Companion.now(),
+            isRead = false)
+
+    val initialNotifications = listOf(eventInvitation)
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(initialNotifications)
+      return@thenAnswer {}
+    }
+
+    val testException = Exception("Network error")
+    Mockito.`when`(mockRepository.markAsRead(any(), any(), any())).thenAnswer { invocation ->
+      val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+      onFailure(testException)
+    }
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+
+    viewModel.markAsRead("invite-2")
+    advanceUntilIdle()
+
+    // Should revert to original state
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.notifications[0].isRead)
+  }
+
+  @Test
+  fun markAllAsRead_eventInvitation_marksCorrectly() = runTest {
+    val notifications =
+        listOf(
+            Notification.EventInvitation(
+                id = "invite-1",
+                userId = testUserId,
+                eventId = "event-123",
+                eventTitle = "Basketball",
+                invitedBy = "user-1",
+                invitedByName = "Alice",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.EventInvitation(
+                id = "invite-2",
+                userId = testUserId,
+                eventId = "event-456",
+                eventTitle = "Soccer",
+                invitedBy = "user-2",
+                invitedByName = "Bob",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.FriendRequest(
+                id = "friend-1",
+                userId = testUserId,
+                fromUserId = "user-3",
+                fromUserName = "Charlie",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false))
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(notifications)
+      return@thenAnswer {}
+    }
+
+    Mockito.`when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
+      val onSuccess = invocation.getArgument<() -> Unit>(1)
+      onSuccess()
+    }
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    Assert.assertEquals(3, viewModel.uiState.value.unreadCount)
+
+    viewModel.markAllAsRead()
+    advanceUntilIdle()
+
+    Mockito.verify(mockRepository).markAllAsRead(eq(testUserId), any(), any())
+    Assert.assertEquals(0, viewModel.uiState.value.unreadCount)
+    Assert.assertTrue(viewModel.uiState.value.notifications.all { it.isRead })
+  }
+
+  @Test
+  fun markAllAsRead_eventInvitation_revertsOnFailure() = runTest {
+    val notifications =
+        listOf(
+            Notification.EventInvitation(
+                id = "invite-1",
+                userId = testUserId,
+                eventId = "event-123",
+                eventTitle = "Tennis",
+                invitedBy = "user-1",
+                invitedByName = "David",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.EventStarting(
+                id = "event-1",
+                userId = testUserId,
+                eventId = "event-789",
+                eventTitle = "Running",
+                eventStart = Timestamp.Companion.now(),
+                timestamp = Timestamp.Companion.now(),
+                isRead = false))
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(notifications)
+      return@thenAnswer {}
+    }
+
+    val testException = Exception("Database error")
+    Mockito.`when`(mockRepository.markAllAsRead(any(), any(), any())).thenAnswer { invocation ->
+      val onFailure = invocation.getArgument<(Exception) -> Unit>(2)
+      onFailure(testException)
+    }
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
+
+    viewModel.markAllAsRead()
+    advanceUntilIdle()
+
+    // Should revert to original state
+    Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
+    Assert.assertTrue(viewModel.uiState.value.notifications.all { !it.isRead })
+  }
+
+  @Test
+  fun uiState_withEventInvitationNotifications_countsCorrectly() {
+    val notifications =
+        listOf(
+            Notification.EventInvitation(
+                id = "invite-1",
+                userId = testUserId,
+                eventId = "event-123",
+                eventTitle = "Hackathon",
+                invitedBy = "user-1",
+                invitedByName = "Emily",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.EventInvitation(
+                id = "invite-2",
+                userId = testUserId,
+                eventId = "event-456",
+                eventTitle = "Workshop",
+                invitedBy = "user-2",
+                invitedByName = "Frank",
+                timestamp = Timestamp.Companion.now(),
+                isRead = true),
+            Notification.FriendRequest(
+                id = "friend-1",
+                userId = testUserId,
+                fromUserId = "user-3",
+                fromUserName = "Grace",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false))
+
+    val unreadCount = notifications.count { !it.isRead }
+
+    Assert.assertEquals(2, unreadCount)
+    Assert.assertEquals(3, notifications.size)
+  }
+
+  @Test
+  fun listener_withEventInvitations_updatesCorrectly() = runTest {
+    val captor = argumentCaptor<(List<Notification>) -> Unit>()
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), captor.capture()))
+        .thenReturn {}
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    val notifications =
+        listOf(
+            Notification.EventInvitation(
+                id = "invite-1",
+                userId = testUserId,
+                eventId = "event-123",
+                eventTitle = "Conference",
+                invitedBy = "user-1",
+                invitedByName = "Helen",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.EventInvitation(
+                id = "invite-2",
+                userId = testUserId,
+                eventId = "event-456",
+                eventTitle = "Seminar",
+                invitedBy = "user-2",
+                invitedByName = "Ian",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false))
+
+    captor.firstValue.invoke(notifications)
+
+    Assert.assertEquals(2, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
+    Assert.assertFalse(viewModel.uiState.value.isLoading)
+    Assert.assertTrue(viewModel.uiState.value.notifications[0] is Notification.EventInvitation)
+    Assert.assertTrue(viewModel.uiState.value.notifications[1] is Notification.EventInvitation)
+  }
+
+  @Test
+  fun deleteNotification_eventInvitation_deletesCorrectly() = runTest {
+    val notifications =
+        listOf(
+            Notification.EventInvitation(
+                id = "invite-1",
+                userId = testUserId,
+                eventId = "event-123",
+                eventTitle = "Party",
+                invitedBy = "user-1",
+                invitedByName = "Jack",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false),
+            Notification.FriendRequest(
+                id = "friend-1",
+                userId = testUserId,
+                fromUserId = "user-2",
+                fromUserName = "Kate",
+                timestamp = Timestamp.Companion.now(),
+                isRead = false))
+
+    Mockito.`when`(mockRepository.listenToNotifications(eq(testUserId), any())).thenAnswer {
+      val callback = it.getArgument<(List<Notification>) -> Unit>(1)
+      callback(notifications)
+      return@thenAnswer {}
+    }
+
+    Mockito.`when`(mockRepository.deleteNotification(any(), any(), any())).thenAnswer { invocation
+      ->
+      val onSuccess = invocation.getArgument<() -> Unit>(1)
+      onSuccess()
+    }
+
+    val viewModel = NotificationViewModel(mockRepository)
+    advanceUntilIdle()
+
+    Assert.assertEquals(2, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(2, viewModel.uiState.value.unreadCount)
+
+    viewModel.deleteNotification("invite-1")
+    advanceUntilIdle()
+
+    Mockito.verify(mockRepository).deleteNotification(eq("invite-1"), any(), any())
+    Assert.assertEquals(1, viewModel.uiState.value.notifications.size)
+    Assert.assertEquals(1, viewModel.uiState.value.unreadCount)
+    Assert.assertTrue(viewModel.uiState.value.notifications[0] is Notification.FriendRequest)
+  }
 }

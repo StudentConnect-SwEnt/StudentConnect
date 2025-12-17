@@ -160,5 +160,11 @@ class SignUpOrchestratorTest {
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {}
+
+    override suspend fun unpinOrganization(userId: String) {}
+
+    override suspend fun getPinnedOrganization(userId: String): String? = null
   }
 }

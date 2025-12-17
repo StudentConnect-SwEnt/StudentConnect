@@ -6,8 +6,13 @@ import com.github.se.studentconnect.model.event.EventParticipant
 import com.github.se.studentconnect.model.event.EventRepository
 import com.github.se.studentconnect.model.event.EventStatistics
 import com.github.se.studentconnect.model.friends.FriendsRepository
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -73,6 +78,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -92,6 +98,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -112,6 +119,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -129,6 +137,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -146,6 +155,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -163,6 +173,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         assertTrue(viewModel.isLoading.value)
@@ -182,6 +193,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -201,6 +213,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -220,6 +233,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -237,6 +251,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -260,6 +275,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -284,6 +300,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -305,6 +322,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -320,6 +338,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         viewModel.loadPinnedEvents()
@@ -338,6 +357,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -356,6 +376,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -373,6 +394,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -399,7 +421,7 @@ class ProfileScreenViewModelTest {
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
@@ -407,7 +429,7 @@ class ProfileScreenViewModelTest {
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent3 =
             Event.Private(
@@ -415,7 +437,7 @@ class ProfileScreenViewModelTest {
                 ownerId = testUser.userId,
                 title = "Created Event 3",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2, createdEvent3)
@@ -432,6 +454,7 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = TestOrganizationRepository(emptyList()),
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -454,7 +477,7 @@ class ProfileScreenViewModelTest {
                 ownerId = testUser.userId,
                 title = "Created Event 1",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
         val createdEvent2 =
             Event.Private(
@@ -462,18 +485,20 @@ class ProfileScreenViewModelTest {
                 ownerId = testUser.userId,
                 title = "Created Event 2",
                 description = "Test",
-                start = com.google.firebase.Timestamp.now(),
+                start = Timestamp.now(),
                 isFlash = false)
 
         eventRepository.createdEvents = listOf(createdEvent1, createdEvent2)
         eventRepository.existingEventIds =
             setOf("joined-event-1", "duplicate-event", "joined-event-2", "created-event-unique")
 
+        val tempOrgRepo = TestOrganizationRepository(emptyList())
         viewModel =
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = tempOrgRepo,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -493,11 +518,13 @@ class ProfileScreenViewModelTest {
         // EventRepository will throw an error when fetching created events
         eventRepository.shouldThrowError = true
 
+        val tempOrgRepo = TestOrganizationRepository(emptyList())
         viewModel =
             ProfileScreenViewModel(
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
+                organizationRepository = tempOrgRepo,
                 currentUserId = testUser.userId)
 
         advanceUntilIdle()
@@ -523,13 +550,86 @@ class ProfileScreenViewModelTest {
                 userRepository = userRepository,
                 friendsRepository = friendsRepository,
                 eventRepository = eventRepository,
-                currentUserId = testUser.userId)
+                currentUserId = testUser.userId,
+                organizationRepository = TestOrganizationRepository(emptyList()))
 
         advanceUntilIdle()
 
         // Should only count existing events (existing-event-1 and existing-event-2), not deleted
         // ones (deleted-event-1 and deleted-event-2)
         assertEquals(2, viewModel.eventsCount.value)
+      }
+
+  @Test
+  fun `loadUserOrganizations loads organizations where user is member`() =
+      testScope.runTest {
+        val testOrg1 =
+            Organization(
+                id = "org1",
+                name = "Test Org",
+                type = OrganizationType.StudentClub,
+                memberUids = listOf("test_user_123"),
+                createdBy = "other_user")
+        val orgRepo = TestOrganizationRepository(listOf(testOrg1))
+
+        // Pin the organization for the user
+        userRepository.pinOrganization(testUser.userId, "org1")
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                organizationRepository = orgRepo,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.userOrganizations.value.size)
+        assertEquals("org1", viewModel.userOrganizations.value[0].id)
+      }
+
+  @Test
+  fun `loadUserOrganizations excludes unrelated organizations`() =
+      testScope.runTest {
+        val unrelatedOrg =
+            Organization(
+                id = "org3",
+                name = "Unrelated Org",
+                type = OrganizationType.Company,
+                memberUids = listOf("other_user"),
+                createdBy = "other_user")
+        val orgRepo = TestOrganizationRepository(listOf(unrelatedOrg))
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                organizationRepository = orgRepo,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.userOrganizations.value.size)
+      }
+
+  @Test
+  fun `loadUserOrganizations handles repository error gracefully`() =
+      testScope.runTest {
+        val orgRepo = TestOrganizationRepository(emptyList(), shouldThrowError = true)
+
+        viewModel =
+            ProfileScreenViewModel(
+                userRepository = userRepository,
+                friendsRepository = friendsRepository,
+                eventRepository = eventRepository,
+                organizationRepository = orgRepo,
+                currentUserId = testUser.userId)
+
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.userOrganizations.value.size)
       }
 
   // Test helper classes
@@ -540,6 +640,7 @@ class ProfileScreenViewModelTest {
       var shouldThrowErrorOnGetJoinedEvents: Boolean = false,
       var joinedEventIds: List<String> = emptyList()
   ) : UserRepository {
+    private val pinnedOrganizations = mutableMapOf<String, String?>()
 
     override suspend fun getUserById(userId: String): User? {
       if (delay > 0) delay(delay)
@@ -604,6 +705,18 @@ class ProfileScreenViewModelTest {
     override suspend fun removePinnedEvent(userId: String, eventId: String) = Unit
 
     override suspend fun getPinnedEvents(userId: String) = emptyList<String>()
+
+    override suspend fun pinOrganization(userId: String, organizationId: String) {
+      pinnedOrganizations[userId] = organizationId
+    }
+
+    override suspend fun unpinOrganization(userId: String) {
+      pinnedOrganizations[userId] = null
+    }
+
+    override suspend fun getPinnedOrganization(userId: String): String? {
+      return pinnedOrganizations[userId]
+    }
   }
 
   private class TestFriendsRepository(
@@ -670,7 +783,7 @@ class ProfileScreenViewModelTest {
               ownerId = "owner",
               title = "Test Event",
               description = "Test",
-              start = com.google.firebase.Timestamp.now(),
+              start = Timestamp.now(),
               isFlash = false)
         } else {
           throw IllegalArgumentException("Event $eventUid does not exist")
@@ -713,5 +826,52 @@ class ProfileScreenViewModelTest {
     override suspend fun getEventStatistics(eventUid: String, followerCount: Int): EventStatistics {
       throw NotImplementedError("Not needed for tests")
     }
+  }
+
+  private class TestOrganizationRepository(
+      var organizations: List<Organization>,
+      var shouldThrowError: Boolean = false
+  ) : OrganizationRepository {
+
+    override suspend fun saveOrganization(organization: Organization) {
+      organizations = organizations + organization
+    }
+
+    override suspend fun getOrganizationById(organizationId: String): Organization? {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organization")
+      }
+      return organizations.find { it.id == organizationId }
+    }
+
+    override suspend fun getAllOrganizations(): List<Organization> {
+      if (shouldThrowError) {
+        throw Exception("Test error loading organizations")
+      }
+      return organizations
+    }
+
+    override suspend fun getNewOrganizationId(): String = "new_org_id"
+
+    override suspend fun sendMemberInvitation(
+        organizationId: String,
+        userId: String,
+        role: String,
+        invitedBy: String
+    ) {}
+
+    override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+    override suspend fun getPendingInvitations(
+        organizationId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun getUserPendingInvitations(
+        userId: String
+    ): List<OrganizationMemberInvitation> = emptyList()
+
+    override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
   }
 }

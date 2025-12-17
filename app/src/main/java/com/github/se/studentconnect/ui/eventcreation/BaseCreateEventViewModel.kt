@@ -1,11 +1,25 @@
 package com.github.se.studentconnect.ui.eventcreation
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
+import android.webkit.MimeTypeMap
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.ai.GeminiService
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepository
+import com.github.se.studentconnect.model.event.EventRepositoryFirestore
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
@@ -20,11 +34,15 @@ import com.github.se.studentconnect.model.organization.OrganizationRepositoryPro
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.service.ImageUploadWorker
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
+import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -32,6 +50,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+
+private const val TAG = "BaseCreateEventViewModel"
 
 /**
  * Abstract Base ViewModel for creating and editing events. Encapsulates common state management and
@@ -54,9 +76,27 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         NotificationRepositoryProvider.repository
 ) : ViewModel() {
 
+  @VisibleForTesting
+  internal data class BannerUploadJob(
+      val filePath: String,
+      val storagePath: String,
+      val eventUid: String,
+      val existingImageUrl: String?
+  )
+
+  @VisibleForTesting
+  internal data class BannerResolution(
+      val bannerPathForEvent: String?,
+      val pendingUpload: BannerUploadJob?
+  )
+
   protected val _navigateToEvent = MutableSharedFlow<String>()
   /** Flow to signal navigation to the created/edited event. */
   val navigateToEvent: SharedFlow<String> = _navigateToEvent.asSharedFlow()
+
+  protected val _snackbarMessage = MutableSharedFlow<String>()
+  /** Flow to emit snackbar messages. */
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   protected val _uiState = MutableStateFlow(initialState)
   /** The current UI state. */
@@ -249,19 +289,40 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     return true
   }
 
-  /**
-   * Resolves the final path for the banner image. Uploads the image if a new URI is selected, or
-   * handles removal/retention of existing image.
-   *
-   * Note: This is private to avoid exposing suspend functions in the ViewModel hierarchy.
-   */
-  private suspend fun resolveBannerImagePath(eventUid: String): String? {
+  /** Prepares banner handling for this save, staging uploads and returning the path to store. */
+  @VisibleForTesting
+  internal suspend fun resolveBannerForSave(context: Context, eventUid: String): BannerResolution {
     val s = uiState.value
     return when {
-      s.bannerImageUri != null ->
-          mediaRepository.upload(s.bannerImageUri!!, "events/$eventUid/banner")
-      s.shouldRemoveBanner -> null
-      else -> s.bannerImagePath
+      s.bannerImageUri != null -> {
+        val hasNetwork = isNetworkAvailable(context)
+
+        if (hasNetwork) {
+          try {
+            val uploadedUrl = mediaRepository.upload(s.bannerImageUri!!, "events/$eventUid/banner")
+            return BannerResolution(bannerPathForEvent = uploadedUrl, pendingUpload = null)
+          } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.w(TAG, "Immediate banner upload failed, staging for background upload", e)
+          }
+        }
+
+        val stagedPath = copyUriToFile(context, s.bannerImageUri!!, eventUid)
+        if (stagedPath == null) {
+          BannerResolution(s.bannerImagePath, null)
+        } else {
+          BannerResolution(
+              bannerPathForEvent = "file://$stagedPath",
+              pendingUpload =
+                  BannerUploadJob(
+                      filePath = stagedPath,
+                      storagePath = "events/$eventUid/banner",
+                      eventUid = eventUid,
+                      existingImageUrl = s.bannerImagePath))
+        }
+      }
+      s.shouldRemoveBanner -> BannerResolution(null, null)
+      else -> BannerResolution(s.bannerImagePath, null)
     }
   }
 
@@ -306,7 +367,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
    * Saves the event to the repository. Handles image uploading and database operations within the
    * ViewModel scope.
    */
-  fun saveEvent() {
+  fun saveEvent(context: Context) {
     if (!validateState()) return
 
     val currentUserId = Firebase.auth.currentUser?.uid
@@ -314,10 +375,11 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
     updateState { copyCommon(isSaving = true) }
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
+    val appContext = context.applicationContext
 
     viewModelScope.launch {
       try {
-        val bannerPath = resolveBannerImagePath(eventUid)
+        val bannerResolution = resolveBannerForSave(appContext, eventUid)
 
         // For flash events, set start time to now and calculate end time from duration
         val s = uiState.value
@@ -340,30 +402,46 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         }
 
         // Build event (computation only)
-        val event = buildEvent(eventUid, currentUserId, bannerPath)
+        val event = buildEvent(eventUid, currentUserId, bannerResolution.bannerPathForEvent)
 
-        if (editingEventUid != null) {
-          eventRepository.editEvent(eventUid, event)
-        } else {
-          eventRepository.addEvent(event)
+        // persist the event
+        // Firestore will cache the write offline and sync later
+        val saveJob =
+            viewModelScope.launch {
+              try {
+                if (editingEventUid != null) {
+                  eventRepository.editEvent(eventUid, event)
+                } else {
+                  eventRepository.addEvent(event)
 
-          // Send notifications for flash events
-          if (s.isFlash) {
-            sendFlashEventNotifications(event, currentUserId)
-          }
-        }
+                  // Send notifications for flash events
+                  if (s.isFlash) {
+                    sendFlashEventNotifications(event, currentUserId)
+                  }
+                }
+              } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Log.w(TAG, "Deferred event save failed", e)
+              }
+            }
+
+        // wait up to a few seconds for the save to complete, but don't block indefinitely when
+        // offline
+        withTimeoutOrNull(5_000) { saveJob.join() }
 
         updateState {
           copyCommon(
               bannerImageUri = null,
-              bannerImagePath = bannerPath,
+              bannerImagePath = bannerResolution.bannerPathForEvent,
               shouldRemoveBanner = false,
               finishedSaving = true,
               isSaving = false)
         }
         _navigateToEvent.emit(eventUid)
+        bannerResolution.pendingUpload?.let { enqueueBannerUpload(appContext, it) }
       } catch (e: Exception) {
-        e.printStackTrace()
+        if (e is CancellationException) throw e
+        Log.w(TAG, "Save failed", e)
         updateState { copyCommon(isSaving = false, finishedSaving = false) }
       }
     }
@@ -380,6 +458,10 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
       val recipients = getNotificationRecipients(ownerId)
       val notificationIdPrefix = "flash_${event.uid}_"
 
+      // Get owner username with @ prefix
+      val eventOwner = userRepository.getUserById(ownerId)
+      val eventOwnerName = eventOwner?.username?.let { "@$it" } ?: ""
+
       for ((index, userId) in recipients.withIndex()) {
         try {
           val notificationId = "${notificationIdPrefix}user_${userId}_$index"
@@ -389,6 +471,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
                   userId = userId,
                   eventId = event.uid,
                   eventTitle = event.title,
+                  eventOwnerName = eventOwnerName,
                   eventStart = event.start,
                   timestamp = Timestamp.now(),
                   isRead = false)
@@ -452,5 +535,92 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     } else {
       Pair(1, 0)
     }
+  }
+
+  private val geminiService = GeminiService()
+
+  /**
+   * Generates a banner using Gemini based on the prompt and current event details.
+   *
+   * @param context Context required for file operations.
+   * @param prompt The user's style/theme prompt.
+   */
+  fun generateBanner(context: android.content.Context, prompt: String) {
+    val s = uiState.value
+    updateState { copyCommon(isGeneratingBanner = true) }
+
+    viewModelScope.launch {
+      val uri =
+          geminiService.generateBanner(
+              context = context,
+              prompt = prompt,
+              eventTitle =
+                  s.title.ifBlank { context.getString(R.string.gemini_default_event_title) },
+              eventDescription =
+                  s.description.ifBlank {
+                    context.getString(R.string.gemini_default_event_description)
+                  })
+
+      updateState {
+        if (uri != null) {
+          copyCommon(bannerImageUri = uri, shouldRemoveBanner = false, isGeneratingBanner = false)
+        } else {
+          copyCommon(isGeneratingBanner = false)
+        }
+      }
+      if (uri == null) {
+        _snackbarMessage.emit(context.getString(R.string.error_banner_generation_failed))
+      }
+    }
+  }
+
+  private suspend fun copyUriToFile(context: Context, sourceUri: Uri, eventUid: String): String? =
+      withContext(Dispatchers.IO) {
+        val dir = File(context.filesDir, "pending_event_banners").apply { mkdirs() }
+        val extension =
+            MimeTypeMap.getSingleton()
+                .getExtensionFromMimeType(context.contentResolver.getType(sourceUri)) ?: "jpg"
+        val target = File(dir, "${eventUid}_${System.currentTimeMillis()}.$extension")
+        try {
+          context.contentResolver.openInputStream(sourceUri)?.use { input ->
+            target.outputStream().use { output -> input.copyTo(output) }
+          } ?: return@withContext null
+          target.absolutePath
+        } catch (e: Exception) {
+          if (e is CancellationException) throw e
+          Log.w(TAG, "Failed to stage banner image for upload", e)
+          val deleted = target.delete()
+          if (!deleted) Log.d(TAG, "Failed to delete staged banner at ${target.absolutePath}")
+          null
+        }
+      }
+
+  private fun enqueueBannerUpload(context: Context, job: BannerUploadJob) {
+    val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+    val workRequest =
+        OneTimeWorkRequestBuilder<ImageUploadWorker>()
+            .setConstraints(constraints)
+            .setInputData(
+                workDataOf(
+                    ImageUploadWorker.KEY_DOCUMENT_ID to job.eventUid,
+                    ImageUploadWorker.KEY_FILE_PATH to job.filePath,
+                    ImageUploadWorker.KEY_STORAGE_PATH to job.storagePath,
+                    ImageUploadWorker.KEY_EXISTING_IMAGE_URL to job.existingImageUrl,
+                    ImageUploadWorker.KEY_COLLECTION_PATH to
+                        EventRepositoryFirestore.EVENTS_COLLECTION_PATH,
+                    ImageUploadWorker.KEY_FIELD_NAME to "imageUrl"))
+            .addTag("event_banner_upload_${job.eventUid}")
+            .build()
+
+    WorkManager.getInstance(context)
+        .enqueueUniqueWork(
+            "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
+  }
+
+  private fun isNetworkAvailable(context: Context): Boolean {
+    val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    val network = cm.activeNetwork ?: return false
+    val capabilities = cm.getNetworkCapabilities(network) ?: return false
+    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
   }
 }
