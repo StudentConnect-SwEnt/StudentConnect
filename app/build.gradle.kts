@@ -306,14 +306,38 @@ configurations.all {
 tasks.withType<Test>().configureEach {
     // Show only failing tests to reduce noise while keeping visibility of failures
     testLogging {
-        events(TestLogEvent.FAILED)
+        events(
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED
+        )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = false
     }
 
     // Print only a summary after all tests
     addTestListener(object : TestListener {
         override fun beforeSuite(suite: TestDescriptor) {}
         override fun beforeTest(testDescriptor: TestDescriptor) {}
-        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            val green = "\u001B[32m"
+            val red = "\u001B[31m"
+            val yellow = "\u001B[33m"
+            val gray = "\u001B[38;5;250m"
+            val reset = "\u001B[0m"
+
+            val status = when (result.resultType) {
+                TestResult.ResultType.SUCCESS -> "${green}[PASS]${reset}"
+                TestResult.ResultType.FAILURE -> "${red}[FAIL]${reset}"
+                TestResult.ResultType.SKIPPED -> "${yellow}[SKIP]${reset}"
+                else -> "[${result.resultType.name}]"
+            }
+
+            val millis = result.endTime - result.startTime
+            println("${status} (${millis} ms) ${testDescriptor.className}${gray}#${testDescriptor.name}${reset}")
+        }
         override fun afterSuite(desc: TestDescriptor, result: TestResult) {
             if (desc.parent == null) {
                 println(
