@@ -31,6 +31,7 @@ sealed class CreateEventUiState {
   abstract val bannerImageUri: Uri?
   abstract val bannerImagePath: String?
   abstract val shouldRemoveBanner: Boolean
+  abstract val isGeneratingBanner: Boolean
 
   /** UI State for creating a Public Event. */
   data class Public(
@@ -52,6 +53,7 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val isGeneratingBanner: Boolean = false,
       val subtitle: String = "",
       val website: String = "",
       val tags: List<String> = emptyList(),
@@ -77,6 +79,7 @@ sealed class CreateEventUiState {
       override val bannerImageUri: Uri? = null,
       override val bannerImagePath: String? = null,
       override val shouldRemoveBanner: Boolean = false,
+      override val isGeneratingBanner: Boolean = false,
   ) : CreateEventUiState()
 }
 
@@ -106,7 +109,8 @@ fun CreateEventUiState.copyCommon(
     isSaving: Boolean = this.isSaving,
     bannerImageUri: Uri? = this.bannerImageUri,
     bannerImagePath: String? = this.bannerImagePath,
-    shouldRemoveBanner: Boolean = this.shouldRemoveBanner
+    shouldRemoveBanner: Boolean = this.shouldRemoveBanner,
+    isGeneratingBanner: Boolean = this.isGeneratingBanner
 ): CreateEventUiState {
   return when (this) {
     is CreateEventUiState.Public ->
@@ -128,7 +132,8 @@ fun CreateEventUiState.copyCommon(
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
-            shouldRemoveBanner = shouldRemoveBanner)
+            shouldRemoveBanner = shouldRemoveBanner,
+            isGeneratingBanner = isGeneratingBanner)
     is CreateEventUiState.Private ->
         copy(
             title = title,
@@ -148,6 +153,7 @@ fun CreateEventUiState.copyCommon(
             isSaving = isSaving,
             bannerImageUri = bannerImageUri,
             bannerImagePath = bannerImagePath,
-            shouldRemoveBanner = shouldRemoveBanner)
+            shouldRemoveBanner = shouldRemoveBanner,
+            isGeneratingBanner = isGeneratingBanner)
   }
 }

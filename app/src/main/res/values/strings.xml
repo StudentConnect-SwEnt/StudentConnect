@@ -169,6 +169,10 @@
     <string name="content_description_live_icon">Live Icon</string>
     <string name="content_description_flash_event">Flash Event</string>
     <string name="event_label_live">LIVE</string>
+
+    <string name="content_description_university">University</string>
+    <string name="content_description_birthday">Birthday</string>
+
     <string name="content_description_event_image">Event Image</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
@@ -401,6 +405,7 @@
     <string name="event_label_subtitle">Subtitle</string>
     <string name="event_placeholder_subtitle">Optional supporting text</string>
     <string name="event_label_description">Description</string>
+    <string name="event_banner_generating">Generating a cool banner...</string>
     <string name="event_placeholder_description">Describe your event</string>
     <string name="event_label_banner">Event Banner</string>
     <string name="event_placeholder_banner">Upload a banner for your event page</string>
@@ -503,15 +508,12 @@
     <string name="organization_label_name">Organization name</string>
 
     <!-- Profile bio and visitor profile strings -->
-    <string name="title_bio">Bio</string>
-    <string name="no_bio_available">No biography available yet.</string>
     <string name="text_request_sent">Request Sent</string>
     <string name="text_remove_friend">Remove Friend</string>
     <string name="text_sending">Sending…</string>
     <string name="text_already_friends">Already Friends</string>
     <string name="text_try_again">Try Again</string>
     <string name="button_add_friend">Add Friend</string>
-    <string name="text_nothing_to_display_yet">Nothing to display yet</string>
 
     <!-- Strings used by VisitorProfileViewModel (moved from hardcoded literals) -->
     <string name="friend_request_already_sent">Friend request already sent</string>
@@ -581,7 +583,7 @@
     <!-- Event Selection for Stories -->
     <string name="event_selection_button_label">Link to Event</string>
     <string name="event_selection_title">Select an Event</string>
-    <string name="event_selection_empty">No joined events available</string>
+    <string name="event_selection_empty">No events available</string>
     <string name="event_selection_loading">Loading events…</string>
     <string name="event_selection_error">Failed to load events</string>
     <string name="event_selection_no_event">No event selected</string>
@@ -593,6 +595,7 @@
     <!-- Pinned Events -->
     <string name="pinned_events_title">Pinned Events</string>
     <string name="pinned_events_empty_state">Pin your favorite past events to display them here :)</string>
+    <string name="pinned_events_empty_state_visitor">This user has no pinned event yet.</string>
     <string name="snackbar_max_pinned_events">Maximum 3 pinned events. Please unpin an event to pin this one.</string>
     <string name="content_description_pin_event">Pin event</string>
     <string name="content_description_unpin_event">Unpin event</string>
@@ -600,7 +603,6 @@
     <string name="content_description_unpin_organization">Unpin organization</string>
     <string name="date_format_pinned_event">dd MMM, yyyy</string>
     <string name="date_format_joined_event">MMM dd, yyyy - HH:mm</string>
-    <string name="text_pinned_events">Pinned Events</string>
 
     <string name="anonymous">Anonymous</string>
     
@@ -612,8 +614,19 @@
     <string name="story_uploaded">Story uploaded!</string>
     <string name="story_upload_failed">Failed to upload story. Check connection and permissions.</string>
     <string name="story_upload_error">Upload error: %s</string>
-    
-    <!-- Story viewer messages -->
+    <string name="gemini_default_event_title">New Event</string>
+    <string name="gemini_default_event_description">An exciting event.</string>
+    <string name="content_description_generate_banner_gemini">Generate Banner with Gemini</string>
+
+    <!-- Gemini dialog strings (added) -->
+    <string name="gemini_dialog_title">Generate with Gemini</string>
+    <string name="gemini_dialog_description">Provide a short prompt and Gemini will generate content for your event.</string>
+    <string name="gemini_dialog_prompt_label">Prompt</string>
+    <string name="gemini_dialog_prompt_placeholder">Describe the event (theme, tone, duration)...</string>
+    <string name="gemini_dialog_prompt_note">The event title and description are already included in the final prompt. Use this field to add an extra description that will be used to generate the image.</string>
+    <string name="gemini_dialog_button_generate">Generate</string>
+    <string name="gemini_generating_cool">Conjuring your masterpiece... ✨</string>
+    <string name="error_banner_generation_failed">Magic failed 🪄. We picked a nice fallback for you!</string>
     <string name="story_no_stories">No stories available</string>
     <string name="story_image_description">Story image by %s</string>
     <string name="story_video">Video Story</string>
@@ -625,14 +638,15 @@
     <string name="story_deleted">Story deleted</string>
     <string name="story_delete_failed">Failed to delete story</string>
     <string name="story_error">Error: %s</string>
-    
+    <string name="story_title_format">%1$s @ %2$s</string>
+
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
     <string name="notification_banner_title_event_starting">Event Starting</string>
     <string name="notification_banner_title_event_invitation">Event Invitation</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
-    
+
     <!-- HomeScreen constants -->
     <string name="home_story_item_width">80dp</string>
     <string name="home_story_spacer_height">8dp</string>
@@ -709,4 +723,5 @@
     <string name="chat_timestamp_just_now">Just now</string>
     <string name="chat_timestamp_yesterday">Yesterday, %1$s</string>
     <string name="button_dismiss">Dismiss</string>
+    <string name="content_description_stars">Stars</string>
 </resources>
