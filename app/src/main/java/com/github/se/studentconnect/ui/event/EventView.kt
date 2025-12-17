@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -49,6 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -66,6 +67,10 @@ import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.screen.statistics.ErrorState
+import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewModel
+import com.github.se.studentconnect.ui.screen.statistics.LoadingState
+import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
@@ -276,18 +281,6 @@ fun EventView(
                             contentDescription = stringResource(R.string.button_view_polls))
                       }
                 }
-                if (event != null && AuthenticationProvider.currentUser == event.ownerId) {
-                  IconButton(
-                      onClick = {
-                        event.let { navController.navigate(Route.eventStatistics(it.uid)) }
-                      },
-                      modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
-                        Icon(
-                            imageVector = Icons.Default.BarChart,
-                            contentDescription =
-                                stringResource(R.string.content_description_view_statistics))
-                      }
-                }
               }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
@@ -359,6 +352,10 @@ private fun BaseEventView(
   val isFull = uiState.isFull
   val participantCount = uiState.participantCount
 
+  val currentUserId = AuthenticationProvider.currentUser
+  val isOwner = currentUserId == event.ownerId
+  var selectedOwnerTab by remember { mutableStateOf(EventOwnerTab.EVENT) }
+
   val context = LocalContext.current
   val repository = MediaRepositoryProvider.repository
   val profileId = event.imageUrl
@@ -381,151 +378,310 @@ private fun BaseEventView(
   LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
 
   Box(modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.BASE_SCREEN)) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top) {
-          Box(
-              modifier =
-                  Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
-                if (imageBitmap != null) {
-                  Image(
-                      bitmap = imageBitmap!!,
-                      contentDescription = stringResource(R.string.content_description_event_image),
-                      modifier = Modifier.fillMaxSize(),
-                      contentScale = ContentScale.Crop)
-                  // Gradient overlay for better text readability
-                  Box(
-                      modifier =
-                          Modifier.fillMaxSize()
-                              .background(
-                                  androidx.compose.ui.graphics.Brush.verticalGradient(
-                                      colors =
-                                          listOf(
-                                              androidx.compose.ui.graphics.Color.Transparent,
-                                              androidx.compose.ui.graphics.Color.Black.copy(
-                                                  alpha = 0.7f)),
-                                      startY = 0f,
-                                      endY = 1000f)))
-                } else {
-                  Box(
-                      modifier =
-                          Modifier.fillMaxSize()
-                              .background(MaterialTheme.colorScheme.secondaryContainer),
-                      contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription =
-                                stringResource(R.string.content_description_event_image),
-                            modifier = Modifier.size(80.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
-                }
-              }
-
-          // Action Buttons Section - Elevated Card Style
-          Card(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(horizontal = 16.dp)
-                      .offset(y = (-40).dp)
-                      .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-              elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-              shape = RoundedCornerShape(20.dp),
-              colors =
-                  CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                      EventActionButtons(
-                          joined = isJoined,
-                          isFull = isFull,
-                          currentEvent = event,
-                          eventViewModel = eventViewModel,
-                          modifier = Modifier,
-                          navController = navController)
-                    }
-              }
-
-          // Main Content with negative margin to overlap with card
-          Column(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
-              verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface)) {
-                      Column(
-                          modifier = Modifier.fillMaxWidth().padding(20.dp),
-                          verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            if (event is Event.Public && event.subtitle.isNotBlank()) {
-                              Text(
-                                  text = event.subtitle,
-                                  modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
-                                  style =
-                                      MaterialTheme.typography.titleMedium.copy(
-                                          fontWeight = FontWeight.SemiBold),
-                                  color = MaterialTheme.colorScheme.onSurface,
-                                  maxLines = 2,
-                                  overflow = TextOverflow.Ellipsis)
-                            }
-
-                            if (event is Event.Public && event.tags.isNotEmpty()) {
-                              EventTagsRow(tags = event.tags)
-                            }
-
-                            Text(
-                                text = stringResource(R.string.event_label_description),
-                                style = titleTextStyle())
-                            Text(
-                                text = event.description,
-                                modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                            ParticipantsInfo(
-                                event = event,
-                                participantCount = participantCount,
-                                onClick = {
-                                  coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                  coroutineScope.launch { eventViewModel.fetchAttendees() }
-                                })
-                          }
-                    }
-
-                if (isJoined &&
-                    uiState.activePolls.isNotEmpty() &&
-                    AuthenticationProvider.currentUser != event.ownerId) {
-                  PollNotificationCard(
-                      onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                      modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-                }
-
-                // Chat Button - only show if user is joined or is owner
-                if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
-                  ChatButton(event = event, navController = navController)
-                }
-
-                // Delete Event Button - only show if user is owner
-                if (AuthenticationProvider.currentUser == event.ownerId) {
-                  DeleteEventButton(
-                      onClick = { eventViewModel.showDeleteConfirmDialog() },
-                      modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-              }
-        }
+    if (!isOwner) {
+      EventDetailsContent(
+          eventViewModel = eventViewModel,
+          event = event,
+          navController = navController,
+          pagerState = pagerState,
+          snackbarHostState = snackbarHostState,
+          isJoined = isJoined,
+          isFull = isFull,
+          participantCount = participantCount,
+          imageBitmap = imageBitmap,
+          timeLeft = timeLeft)
+    } else {
+      OwnerEventTabs(
+          selectedTab = selectedOwnerTab,
+          onTabSelected = { selectedOwnerTab = it },
+          eventViewModel = eventViewModel,
+          event = event,
+          navController = navController,
+          pagerState = pagerState,
+          snackbarHostState = snackbarHostState,
+          isJoined = isJoined,
+          isFull = isFull,
+          participantCount = participantCount,
+          imageBitmap = imageBitmap,
+          timeLeft = timeLeft)
+    }
 
     // Snackbar Host
     SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+  }
+}
+
+private enum class EventOwnerTab {
+  EVENT,
+  STATISTICS
+}
+
+@Composable
+private fun OwnerEventTabs(
+    selectedTab: EventOwnerTab,
+    onTabSelected: (EventOwnerTab) -> Unit,
+    eventViewModel: EventViewModel,
+    event: Event,
+    navController: NavHostController,
+    pagerState: PagerState,
+    snackbarHostState: SnackbarHostState,
+    isJoined: Boolean,
+    isFull: Boolean,
+    participantCount: Int,
+    imageBitmap: ImageBitmap?,
+    timeLeft: Long
+) {
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Top) {
+        EventOwnerTabRow(selectedTab = selectedTab, onTabSelected = onTabSelected)
+
+        when (selectedTab) {
+          EventOwnerTab.EVENT ->
+              EventDetailsContent(
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState,
+                  snackbarHostState = snackbarHostState,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  participantCount = participantCount,
+                  imageBitmap = imageBitmap,
+                  timeLeft = timeLeft)
+          EventOwnerTab.STATISTICS ->
+              EventStatisticsTabContent(eventUid = event.uid, snackbarHostState = snackbarHostState)
+        }
+      }
+}
+
+@Composable
+private fun EventOwnerTabRow(selectedTab: EventOwnerTab, onTabSelected: (EventOwnerTab) -> Unit) {
+  val tabs =
+      listOf(
+          EventOwnerTab.EVENT to stringResource(R.string.tab_event),
+          EventOwnerTab.STATISTICS to stringResource(R.string.tab_statistics))
+  val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+
+  TabRow(selectedTabIndex = selectedIndex, modifier = Modifier.fillMaxWidth()) {
+    tabs.forEachIndexed { index, (tab, title) ->
+      Tab(
+          selected = selectedIndex == index,
+          onClick = { onTabSelected(tab) },
+          text = {
+            Text(
+                text = title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+          })
+    }
+  }
+}
+
+@Composable
+private fun EventDetailsContent(
+    eventViewModel: EventViewModel,
+    event: Event,
+    navController: NavHostController,
+    pagerState: PagerState,
+    snackbarHostState: SnackbarHostState,
+    isJoined: Boolean,
+    isFull: Boolean,
+    participantCount: Int,
+    imageBitmap: ImageBitmap?,
+    timeLeft: Long
+) {
+  val coroutineScope = rememberCoroutineScope()
+
+  Column(
+      modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Top) {
+        Box(
+            modifier =
+                Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
+              if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription =
+                        stringResource(R.string.content_description_event_image),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop)
+                // Gradient overlay for better text readability
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            androidx.compose.ui.graphics.Color.Transparent,
+                                            androidx.compose.ui.graphics.Color.Black.copy(
+                                                alpha = 0.7f)),
+                                    startY = 0f,
+                                    endY = 1000f)))
+              } else {
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center) {
+                      Icon(
+                          imageVector = Icons.Default.Image,
+                          contentDescription =
+                              stringResource(R.string.content_description_event_image),
+                          modifier = Modifier.size(80.dp),
+                          tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+              }
+            }
+
+        // Action Buttons Section - Elevated Card Style
+        Card(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .offset(y = (-40).dp)
+                    .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors =
+                CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+              Column(
+                  modifier = Modifier.fillMaxWidth().padding(16.dp),
+                  verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    EventActionButtons(
+                        joined = isJoined,
+                        isFull = isFull,
+                        currentEvent = event,
+                        eventViewModel = eventViewModel,
+                        modifier = Modifier,
+                        navController = navController)
+                  }
+            }
+
+        // Main Content with negative margin to overlap with card
+        Column(
+            modifier =
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+              CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
+
+              Card(
+                  modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
+                  elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                  shape = RoundedCornerShape(16.dp),
+                  colors =
+                      CardDefaults.cardColors(
+                          containerColor = MaterialTheme.colorScheme.surface)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                          if (event is Event.Public && event.subtitle.isNotBlank()) {
+                            Text(
+                                text = event.subtitle,
+                                modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
+                                style =
+                                    MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis)
+                          }
+
+                          if (event is Event.Public && event.tags.isNotEmpty()) {
+                            EventTagsRow(tags = event.tags)
+                          }
+
+                          Text(
+                              text = stringResource(R.string.event_label_description),
+                              style = titleTextStyle())
+                          Text(
+                              text = event.description,
+                              modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
+                              style = MaterialTheme.typography.bodyLarge,
+                              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+
+                          Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                          ParticipantsInfo(
+                              event = event,
+                              participantCount = participantCount,
+                              onClick = {
+                                coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                                coroutineScope.launch { eventViewModel.fetchAttendees() }
+                              })
+                        }
+                  }
+
+              if (isJoined &&
+                  eventViewModel.uiState.collectAsState().value.activePolls.isNotEmpty() &&
+                  AuthenticationProvider.currentUser != event.ownerId) {
+                PollNotificationCard(
+                    onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+                    modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+              }
+
+              // Chat Button - only show if user is joined or is owner
+              if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
+                ChatButton(event = event, navController = navController)
+              }
+
+              // Delete Event Button - only show if user is owner
+              if (AuthenticationProvider.currentUser == event.ownerId) {
+                DeleteEventButton(
+                    onClick = { eventViewModel.showDeleteConfirmDialog() },
+                    modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
+              }
+
+              Spacer(modifier = Modifier.height(20.dp))
+            }
+      }
+}
+
+@Composable
+private fun EventStatisticsTabContent(
+    eventUid: String,
+    snackbarHostState: SnackbarHostState,
+) {
+  val context = LocalContext.current
+  val viewModel: EventStatisticsViewModel =
+      viewModel(
+          factory =
+              object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                  if (modelClass.isAssignableFrom(EventStatisticsViewModel::class.java)) {
+                    return EventStatisticsViewModel(getString = { id -> context.getString(id) }) as T
+                  }
+                  throw IllegalArgumentException("Unknown ViewModel class")
+                }
+              })
+
+  val uiState by viewModel.uiState.collectAsState()
+
+  LaunchedEffect(eventUid) { viewModel.loadStatistics(eventUid) }
+
+  when {
+    uiState.isLoading -> {
+      LoadingState(modifier = Modifier.fillMaxSize())
+    }
+    uiState.error != null -> {
+      ErrorState(
+          message = uiState.error ?: "",
+          onRetry = {
+            viewModel.refresh()
+          },
+          modifier = Modifier.fillMaxSize())
+    }
+    uiState.statistics != null -> {
+      StatisticsContent(
+          statistics = uiState.statistics!!,
+          animationProgress = uiState.animationProgress,
+          paddingValues = PaddingValues(Dimensions.SpacingNormal))
+    }
   }
 }
 

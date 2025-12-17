@@ -284,6 +284,8 @@
     <string name="tab_for_you">For You</string>
     <string name="tab_all_events">All Events</string>
     <string name="tab_discover">Discover</string>
+    <string name="tab_event">Event</string>
+    <string name="tab_statistics">Statistics</string>
     
     <!-- Toast messages -->
     <string name="toast_camera_closed">Camera closed without capturing a photo</string>
