@@ -3,11 +3,21 @@ package com.github.se.studentconnect.model.event
 import com.github.se.studentconnect.model.location.Location
 import com.google.firebase.Timestamp
 
-/** A class representing an event. */
+/**
+ * A class representing an event.
+ *
+ * Note on ownership:
+ * - `ownerId`: The user ID of the person who created the event (always required)
+ * - `organizationId`: The organization ID if the event is owned by an organization (optional)
+ *
+ * For personal events: organizationId = null, ownerId = creator For organization events:
+ * organizationId = org ID, ownerId = creator (who created it on behalf of org)
+ */
 sealed class Event {
   abstract val uid: String
-  abstract val ownerId: String
-  abstract val organizationId: String? // optional organization ID (if created as organization)
+  abstract val ownerId: String // User who created the event
+  abstract val organizationId:
+      String? // Organization that owns the event (null for personal events)
   abstract val title: String
   abstract val description: String
   abstract val imageUrl: String? // optional image url (in Firebase Storage)

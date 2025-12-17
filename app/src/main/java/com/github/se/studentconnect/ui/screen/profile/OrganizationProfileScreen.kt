@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -661,119 +662,148 @@ private fun EventRow(
       horizontalArrangement =
           Arrangement.spacedBy(OrganizationProfileConstants.EVENT_ROW_SPACING.dp),
       verticalAlignment = Alignment.CenterVertically) {
-        // Event card with image or gradient
-        Box(
-            modifier =
-                Modifier.width(EVENT_CARD_WIDTH.dp)
-                    .height(EVENT_CARD_HEIGHT.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            OrganizationProfileConstants.EVENT_CARD_CORNER_RADIUS.dp))
-                    .testTag("${C.Tag.org_profile_event_card_prefix}_$index")) {
-              // Background image or gradient
-              if (imageBitmap != null) {
-                Image(
-                    bitmap = imageBitmap!!,
-                    contentDescription = "Event banner",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop)
-              } else {
-                // Fallback gradient background
-                Box(
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .background(
-                                if (hasEnded) {
-                                  // Grey background for ended events
-                                  Brush.verticalGradient(
-                                      colors =
-                                          listOf(
-                                              Color.Gray.copy(alpha = 0.3f),
-                                              Color.Gray.copy(alpha = 0.5f)))
-                                } else {
-                                  Brush.verticalGradient(
-                                      colors =
-                                          listOf(
-                                              MaterialTheme.colorScheme.primaryContainer.copy(
-                                                  alpha =
-                                                      OrganizationProfileConstants
-                                                          .PRIMARY_GRADIENT_ALPHA),
-                                              MaterialTheme.colorScheme.primary))
-                                }))
-              }
+        EventCard(event = event, imageBitmap = imageBitmap, hasEnded = hasEnded, index = index)
+        EventDetails(event = event, hasEnded = hasEnded)
+      }
+}
 
-              // Gradient overlay for better text readability
-              Box(
-                  modifier =
-                      Modifier.fillMaxSize()
-                          .background(
-                              Brush.verticalGradient(
-                                  colors =
-                                      listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
+/**
+ * Event card displaying image or gradient background with event info.
+ *
+ * @param event Event data to display
+ * @param imageBitmap Optional bitmap image for the event banner
+ * @param hasEnded Whether the event has ended
+ * @param index Index of the event for test tags
+ */
+@Composable
+private fun EventCard(
+    event: OrganizationEvent,
+    imageBitmap: ImageBitmap?,
+    hasEnded: Boolean,
+    index: Int
+) {
+  Box(
+      modifier =
+          Modifier.width(EVENT_CARD_WIDTH.dp)
+              .height(EVENT_CARD_HEIGHT.dp)
+              .clip(RoundedCornerShape(OrganizationProfileConstants.EVENT_CARD_CORNER_RADIUS.dp))
+              .testTag("${C.Tag.org_profile_event_card_prefix}_$index")) {
+        EventCardBackground(imageBitmap = imageBitmap, hasEnded = hasEnded)
+        EventCardOverlay()
+        EventCardLocationIcon()
+        EventCardInfo(event = event)
+        if (hasEnded) {
+          EventEndedOverlay()
+        }
+      }
+}
 
-              // Location icon
-              Icon(
-                  imageVector = Icons.Default.LocationOn,
-                  contentDescription = "Location",
-                  tint = Color.White,
-                  modifier =
-                      Modifier.padding(OrganizationProfileConstants.EVENT_CARD_PADDING.dp)
-                          .size(OrganizationProfileConstants.LOCATION_ICON_SIZE.dp)
-                          .align(Alignment.TopStart))
+/** Background for event card - displays either an image or gradient. */
+@Composable
+private fun EventCardBackground(imageBitmap: ImageBitmap?, hasEnded: Boolean) {
+  if (imageBitmap != null) {
+    Image(
+        bitmap = imageBitmap,
+        contentDescription = "Event banner",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop)
+  } else {
+    val gradientColors =
+        if (hasEnded) {
+          listOf(Color.Gray.copy(alpha = 0.3f), Color.Gray.copy(alpha = 0.5f))
+        } else {
+          listOf(
+              MaterialTheme.colorScheme.primaryContainer.copy(
+                  alpha = OrganizationProfileConstants.PRIMARY_GRADIENT_ALPHA),
+              MaterialTheme.colorScheme.primary)
+        }
+    Box(
+        modifier =
+            Modifier.fillMaxSize().background(Brush.verticalGradient(colors = gradientColors)))
+  }
+}
 
-              // Event info in card
-              Column(
-                  modifier =
-                      Modifier.align(Alignment.BottomStart)
-                          .padding(OrganizationProfileConstants.EVENT_INFO_PADDING.dp),
-                  verticalArrangement =
-                      Arrangement.spacedBy(OrganizationProfileConstants.EVENT_INFO_SPACING.dp)) {
-                    Text(
-                        text = event.cardTitle,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White)
+/** Gradient overlay for better text readability on event card. */
+@Composable
+private fun EventCardOverlay() {
+  Box(
+      modifier =
+          Modifier.fillMaxSize()
+              .background(
+                  Brush.verticalGradient(
+                      colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)))))
+}
 
-                    Text(
-                        text = event.cardDate,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = OrganizationProfileConstants.WHITE_ALPHA))
-                  }
+/** Location icon displayed at the top start of event card. */
+@Composable
+private fun BoxScope.EventCardLocationIcon() {
+  Icon(
+      imageVector = Icons.Default.LocationOn,
+      contentDescription = "Location",
+      tint = Color.White,
+      modifier =
+          Modifier.padding(OrganizationProfileConstants.EVENT_CARD_PADDING.dp)
+              .size(OrganizationProfileConstants.LOCATION_ICON_SIZE.dp)
+              .align(Alignment.TopStart))
+}
 
-              // "Event Ended" overlay for past events
-              if (hasEnded) {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
-                    contentAlignment = Alignment.Center) {
-                      Text(
-                          text = stringResource(R.string.org_profile_event_ended),
-                          style = MaterialTheme.typography.titleMedium,
-                          fontWeight = FontWeight.Bold,
-                          color = Color.White,
-                          textAlign = TextAlign.Center)
-                    }
-              }
-            }
+/** Event information displayed at the bottom of event card. */
+@Composable
+private fun BoxScope.EventCardInfo(event: OrganizationEvent) {
+  Column(
+      modifier =
+          Modifier.align(Alignment.BottomStart)
+              .padding(OrganizationProfileConstants.EVENT_INFO_PADDING.dp),
+      verticalArrangement =
+          Arrangement.spacedBy(OrganizationProfileConstants.EVENT_INFO_SPACING.dp)) {
+        Text(
+            text = event.cardTitle,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.White)
 
-        // Event details
-        Column(
-            verticalArrangement =
-                Arrangement.spacedBy(OrganizationProfileConstants.EVENT_INFO_SPACING.dp)) {
-              Text(
-                  text = event.title,
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.SemiBold,
-                  color =
-                      if (hasEnded) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                      else MaterialTheme.colorScheme.onSurface)
+        Text(
+            text = event.cardDate,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White.copy(alpha = OrganizationProfileConstants.WHITE_ALPHA))
+      }
+}
 
-              Text(
-                  text = event.subtitle,
-                  style = MaterialTheme.typography.bodyMedium,
-                  color =
-                      if (hasEnded) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                      else MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+/** "Event Ended" overlay for past events. */
+@Composable
+private fun EventEndedOverlay() {
+  Box(
+      modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(R.string.org_profile_event_ended),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            textAlign = TextAlign.Center)
+      }
+}
+
+/** Event details displayed next to the event card. */
+@Composable
+private fun EventDetails(event: OrganizationEvent, hasEnded: Boolean) {
+  Column(
+      verticalArrangement =
+          Arrangement.spacedBy(OrganizationProfileConstants.EVENT_INFO_SPACING.dp)) {
+        Text(
+            text = event.title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color =
+                if (hasEnded) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.onSurface)
+
+        Text(
+            text = event.subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color =
+                if (hasEnded) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.onSurfaceVariant)
       }
 }
 

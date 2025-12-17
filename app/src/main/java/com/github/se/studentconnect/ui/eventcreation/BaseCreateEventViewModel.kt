@@ -281,7 +281,17 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     updateState { copyCommon(selectedOrganizationId = organizationId) }
   }
 
-  /** Loads the organizations that the current user owns (is the creator of). */
+  /**
+   * Loads the organizations that the current user owns (is the creator of).
+   *
+   * This function gracefully handles failures:
+   * - If Firebase is not initialized (e.g., in unit tests), it logs and returns
+   * - If there's no current user, it returns early
+   * - If the repository throws an exception, it catches and logs the error
+   *
+   * On failure, the userOrganizations list remains empty, which is handled by the UI (organization
+   * selection UI is not shown when the list is empty).
+   */
   private fun loadUserOrganizations() {
     val currentUserId =
         try {
@@ -300,6 +310,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
 
         updateState { copyCommon(userOrganizations = userOrgs) }
       } catch (e: Exception) {
+        // Log error but don't crash - userOrganizations stays empty
         Log.e("BaseCreateEventViewModel", "Error loading user organizations", e)
       }
     }
