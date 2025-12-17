@@ -8,6 +8,7 @@ import com.github.se.studentconnect.model.event.EventRepositoryLocal
 import com.github.se.studentconnect.model.friends.FriendsRepository
 import com.github.se.studentconnect.model.friends.FriendsRepositoryLocal
 import com.github.se.studentconnect.model.location.Location
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
 import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
@@ -43,6 +44,9 @@ class EventViewModelPollIntegrationTest {
   private lateinit var pollRepository: PollRepositoryLocal
   private lateinit var friendsRepository: FriendsRepository
   private lateinit var mockContext: Context
+  private lateinit var notificationRepository: NotificationRepositoryLocal
+  private lateinit var personalCalendarRepository:
+      com.github.se.studentconnect.model.calendar.PersonalCalendarRepository
 
   private val testEvent =
       Event.Public(
@@ -65,7 +69,52 @@ class EventViewModelPollIntegrationTest {
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
     friendsRepository = FriendsRepositoryLocal()
-    viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
+    notificationRepository = NotificationRepositoryLocal()
+    personalCalendarRepository =
+        object : com.github.se.studentconnect.model.calendar.PersonalCalendarRepository {
+          override suspend fun getEventsForUser(
+              userId: String
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+
+          override suspend fun getEventsInRange(
+              userId: String,
+              startTime: Timestamp,
+              endTime: Timestamp
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+
+          override suspend fun addEvent(
+              event: com.github.se.studentconnect.model.calendar.PersonalCalendarEvent
+          ) {}
+
+          override suspend fun addEvents(
+              events: List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent>
+          ) {}
+
+          override suspend fun updateEvent(
+              event: com.github.se.studentconnect.model.calendar.PersonalCalendarEvent
+          ) {}
+
+          override suspend fun deleteEvent(eventId: String, userId: String) {}
+
+          override suspend fun deleteEventsBySource(userId: String, sourceCalendar: String) {}
+
+          override suspend fun getNewUid(): String = "test-uid"
+
+          override suspend fun getConflictingEvents(
+              userId: String,
+              startTime: Timestamp,
+              endTime: Timestamp?
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+        }
+
+    viewModel =
+        EventViewModel(
+            eventRepository,
+            userRepository,
+            pollRepository,
+            friendsRepository,
+            notificationRepository,
+            personalCalendarRepository)
     AuthenticationProvider.testUserId = "test-user-id"
 
     mockkObject(NetworkUtils)
