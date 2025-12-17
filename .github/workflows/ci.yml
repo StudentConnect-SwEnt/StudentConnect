@@ -34,7 +34,7 @@ jobs:
           path: app/build/reports/lint-*
 
   unit-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -63,7 +63,7 @@ jobs:
           path: app/build/test-results/testResOverrideDebugUnitTest/
 
   build-test-apks:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-gradle
@@ -86,7 +86,7 @@ jobs:
           path: app/build/tmp/kotlin-classes/resOverrideDebug/
 
   connected-tests:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-24.04
     needs: build-test-apks
     strategy:
       fail-fast: false
