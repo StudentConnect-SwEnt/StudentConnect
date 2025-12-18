@@ -646,6 +646,7 @@
     <string name="story_no_stories">No stories available</string>
     <string name="story_image_description">Story image by %s</string>
     <string name="story_video">Video Story</string>
+    <string name="story_video_error">Unable to play this video</string>
     <string name="story_video_coming_soon">Video playback will be available soon</string>
     <string name="story_delete_title">Delete Story</string>
     <string name="story_delete_message">Are you sure you want to delete this story? This action cannot be undone.</string>
