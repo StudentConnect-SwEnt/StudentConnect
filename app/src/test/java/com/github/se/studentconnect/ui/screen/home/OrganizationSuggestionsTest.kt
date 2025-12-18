@@ -1,10 +1,12 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.net.Uri
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,8 +15,19 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationMemberInvitation
+import com.github.se.studentconnect.model.organization.OrganizationRepository
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.resources.C
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,7 +38,80 @@ import org.robolectric.annotation.Config
 @Config(sdk = [30])
 class OrganizationSuggestionsTest {
 
+  private val fakeMediaRepository =
+      object : MediaRepository {
+        override suspend fun upload(uri: Uri, path: String?): String {
+          return "mock_media_id"
+        }
+
+        override suspend fun download(id: String): Uri {
+          val context = InstrumentationRegistry.getInstrumentation().targetContext
+          return Uri.parse("android.resource://${context.packageName}/${R.drawable.pixel}")
+        }
+
+        override suspend fun delete(id: String) {}
+      }
+
+  private val fakeOrganizationRepository =
+      object : OrganizationRepository {
+        override suspend fun saveOrganization(organization: Organization) {}
+
+        override suspend fun getOrganizationById(organizationId: String): Organization {
+          return Organization(
+              id = organizationId,
+              name = "$organizationId Name",
+              type = OrganizationType.Association,
+              logoUrl = if (organizationId == testOrganizations[0].id) "url" else null,
+              createdBy = "me")
+        }
+
+        override suspend fun getAllOrganizations(): List<Organization> {
+          return emptyList()
+        }
+
+        override suspend fun getNewOrganizationId(): String {
+          return "test-organization-id"
+        }
+
+        override suspend fun sendMemberInvitation(
+            organizationId: String,
+            userId: String,
+            role: String,
+            invitedBy: String
+        ) {}
+
+        override suspend fun acceptMemberInvitation(organizationId: String, userId: String) {}
+
+        override suspend fun rejectMemberInvitation(organizationId: String, userId: String) {}
+
+        override suspend fun getPendingInvitations(
+            organizationId: String
+        ): List<OrganizationMemberInvitation> {
+          return emptyList()
+        }
+
+        override suspend fun getUserPendingInvitations(
+            userId: String
+        ): List<OrganizationMemberInvitation> {
+          return emptyList()
+        }
+
+        override suspend fun addMemberToOrganization(organizationId: String, userId: String) {}
+      }
+
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    OrganizationRepositoryProvider.overrideForTests(fakeOrganizationRepository)
+    MediaRepositoryProvider.overrideForTests(fakeMediaRepository)
+  }
+
+  @After
+  fun teardown() {
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
+  }
 
   private val testOrganizations =
       listOf(
@@ -160,7 +246,7 @@ class OrganizationSuggestionsTest {
   }
 
   @Test
-  fun organizationSuggestions_displaysImagesForAllCards() {
+  fun organizationSuggestions_displaysCorrectImagesForAllCards() {
     composeTestRule.setContent {
       MaterialTheme { OrganizationSuggestions(organizations = testOrganizations) }
     }
@@ -171,16 +257,19 @@ class OrganizationSuggestionsTest {
             "${C.Tag.org_suggestions_card_image}_${testOrganizations[0].id}",
             useUnmergedTree = true)
         .assertExists()
+        .assertContentDescriptionEquals("Organization image")
     composeTestRule
         .onNodeWithTag(
             "${C.Tag.org_suggestions_card_image}_${testOrganizations[1].id}",
             useUnmergedTree = true)
         .assertExists()
+        .assertContentDescriptionEquals("Organization image placeholder")
     composeTestRule
         .onNodeWithTag(
             "${C.Tag.org_suggestions_card_image}_${testOrganizations[2].id}",
             useUnmergedTree = true)
         .assertExists()
+        .assertContentDescriptionEquals("Organization image placeholder")
   }
 
   @Test

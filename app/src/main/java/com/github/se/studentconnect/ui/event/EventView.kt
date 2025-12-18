@@ -55,7 +55,6 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.event.CountDownDisplay
 import com.github.se.studentconnect.ui.event.CountDownViewModel
@@ -72,10 +71,10 @@ import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewMode
 import com.github.se.studentconnect.ui.screen.statistics.LoadingState
 import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
@@ -356,20 +355,8 @@ private fun BaseEventView(
   var selectedOwnerTab by remember { mutableStateOf(EventOwnerTab.EVENT) }
 
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = event.imageUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e("eventViewImage", "Failed to download event image: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -1414,18 +1401,8 @@ private fun AttendeeItem(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = user.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
-
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
   Row(
       modifier =
           modifier

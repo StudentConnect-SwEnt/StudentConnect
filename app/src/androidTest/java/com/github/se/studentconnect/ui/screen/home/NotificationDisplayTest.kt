@@ -1,14 +1,29 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.net.Uri
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,7 +31,49 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NotificationDisplayTest {
 
+  private val eventTest =
+      Event.Public(
+          uid = "event-1",
+          title = "Test Event",
+          description = "This is a test event.",
+          start = Timestamp.now(),
+          ownerId = "user-1",
+          imageUrl = null,
+          isFlash = false,
+          subtitle = "Test Subtitle")
+
+  private val fakeMediaRepository =
+      object : MediaRepository {
+        override suspend fun upload(uri: Uri, path: String?): String {
+          return "test-media-id"
+        }
+
+        override suspend fun download(id: String): Uri {
+          return "test-media-uri".let { Uri.parse(it) }
+        }
+
+        override suspend fun delete(id: String) {}
+      }
+
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
+    OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
+    MediaRepositoryProvider.overrideForTests(fakeMediaRepository)
+    NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
+  }
+
+  @After
+  fun teardown() {
+    EventRepositoryProvider.cleanOverrideForTests()
+    UserRepositoryProvider.cleanOverrideForTests()
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
+    NotificationRepositoryProvider.cleanOverrideForTests()
+  }
 
   @Test
   fun notificationItem_friendRequest_displaysCorrectly() {
@@ -65,6 +122,7 @@ class NotificationDisplayTest {
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
             isRead = false)
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
 
     composeTestRule.setContent {
       AppTheme {

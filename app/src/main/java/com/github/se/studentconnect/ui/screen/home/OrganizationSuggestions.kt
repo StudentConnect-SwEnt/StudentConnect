@@ -12,15 +12,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,7 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.se.studentconnect.R
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 
 private object OrganizationSuggestionsConstants {
   // Section
@@ -134,8 +146,21 @@ private fun OrganizationCard(organization: OrganizationData, onClick: () -> Unit
       }
 }
 
+/**
+ * Composable function to display the organization's image. Displays a placeholder if the image is
+ * not available.
+ */
 @Composable
 private fun OrganizationImage(organizationId: String) {
+  val context = LocalContext.current
+  var organization by remember { mutableStateOf<Organization?>(null) }
+  LaunchedEffect(organization) {
+    organization = OrganizationRepositoryProvider.repository.getOrganizationById(organizationId)
+  }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  organization?.let {
+    LaunchedEffect(organization) { imageBitmap = loadBitmapFromOrganization(context, it) }
+  }
   Box(
       modifier =
           Modifier.fillMaxWidth()
@@ -144,13 +169,26 @@ private fun OrganizationImage(organizationId: String) {
                   color = MaterialTheme.colorScheme.surfaceVariant,
                   shape =
                       RoundedCornerShape(
-                          OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))
-              .testTag("${C.Tag.org_suggestions_card_image}_$organizationId")) {
-        Image(
-            painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
-            contentDescription = stringResource(R.string.content_description_organization_image),
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.matchParentSize())
+                          OrganizationSuggestionsConstants.IMAGE_CORNER_RADIUS_DP.dp))) {
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap!!,
+              contentDescription = stringResource(R.string.content_description_organization_image),
+              contentScale = ContentScale.Crop,
+              modifier =
+                  Modifier.matchParentSize()
+                      .clip(CircleShape)
+                      .testTag("${C.Tag.org_suggestions_card_image}_$organizationId"))
+        } else {
+          Image(
+              painter = painterResource(id = OrganizationSuggestionsConstants.PLACEHOLDER_DRAWABLE),
+              contentDescription =
+                  stringResource(R.string.content_description_organization_image_placeholder),
+              contentScale = ContentScale.Fit,
+              modifier =
+                  Modifier.matchParentSize()
+                      .testTag("${C.Tag.org_suggestions_card_image}_$organizationId"))
+        }
       }
 }
 

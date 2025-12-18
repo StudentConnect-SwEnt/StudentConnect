@@ -2,6 +2,7 @@ package com.github.se.studentconnect.ui.screen.home
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,9 +18,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -72,7 +75,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -86,8 +88,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -105,11 +109,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.story.StoryRepositoryProvider
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.calendar.EventCalendar
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.activities.ActivitiesScreenTestTags
@@ -118,15 +125,19 @@ import com.github.se.studentconnect.ui.screen.camera.CameraModeSelectorScreen
 import com.github.se.studentconnect.ui.utils.EventListScreen
 import com.github.se.studentconnect.ui.utils.FavoritesConfig
 import com.github.se.studentconnect.ui.utils.FilterBar
+import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.formatDateHeader
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
+import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -165,7 +176,7 @@ fun SlidingTabSelector(
 ) {
   val tabs = HomeTabMode.entries
   val selectedIndex = tabs.indexOf(selectedTab)
-  val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+  val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
 
   // Calculate responsive padding based on screen width
@@ -189,25 +200,26 @@ fun SlidingTabSelector(
 
 @Composable
 private fun TabIndicator(selectedIndex: Int) {
+  val boxHeight = (LocalConfiguration.current.screenHeightDp * 0.036f).dp
+  val boxCornerRadius = (LocalConfiguration.current.screenHeightDp * 0.018f).dp
   val indicatorOffsetFraction by
-      androidx.compose.animation.core.animateFloatAsState(
+      animateFloatAsState(
           targetValue = selectedIndex / 3f,
           animationSpec = tween(durationMillis = 300),
           label = "tab_indicator_offset")
 
-  androidx.compose.foundation.layout.BoxWithConstraints(
-      modifier = Modifier.fillMaxWidth().height(40.dp)) {
-        val containerWidth = maxWidth
-        Box(
-            modifier =
-                Modifier.width(containerWidth / 3f)
-                    .fillMaxHeight()
-                    .offset(x = containerWidth * indicatorOffsetFraction)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(20.dp))
-                    .testTag(HomeScreenTestTags.TAB_INDICATOR))
-      }
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(boxHeight)) {
+    val containerWidth = maxWidth
+    Box(
+        modifier =
+            Modifier.width(containerWidth / 3f)
+                .fillMaxHeight()
+                .offset(x = containerWidth * indicatorOffsetFraction)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(boxCornerRadius))
+                .testTag(HomeScreenTestTags.TAB_INDICATOR))
+  }
 }
 
 @Composable
@@ -223,8 +235,9 @@ private fun TabLabels(
   }
 }
 
+/** Single tab item within the tab selector. */
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.TabItem(
+private fun RowScope.TabItem(
     tab: HomeTabMode,
     isSelected: Boolean,
     onTabSelected: (HomeTabMode) -> Unit
@@ -326,7 +339,7 @@ fun HomeScreen(
     onDateSelected: (Date) -> Unit = {},
     onCalendarClick: () -> Unit = {},
     onCalendarDismiss: () -> Unit = {},
-    onApplyFilters: (com.github.se.studentconnect.ui.utils.FilterData) -> Unit = {},
+    onApplyFilters: (FilterData) -> Unit = {},
     onFavoriteToggle: (String) -> Unit = {},
     onToggleFavoritesFilter: () -> Unit = {},
     onClearScrollTarget: () -> Unit = {},
@@ -1058,20 +1071,76 @@ private fun NotificationContent(
       }
 }
 
+/**
+ * Loads and displays the appropriate image for the notification type. Loads a placeholder when no
+ * imageBitmap found.
+ */
 @Composable
 private fun NotificationIcon(notification: Notification) {
-  val icon =
-      when (notification) {
-        is Notification.FriendRequest -> Icons.Default.Person
-        is Notification.EventStarting -> Icons.Default.Event
-        is Notification.EventInvitation -> Icons.Default.Email
-        is Notification.OrganizationMemberInvitation -> Icons.Default.Group
+  val imageSize = (LocalConfiguration.current.screenWidthDp * 0.1).dp
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  var icon by remember { mutableStateOf<ImageVector>(Icons.Default.Notifications) }
+  val context = LocalContext.current
+  when (notification) {
+    is Notification.FriendRequest -> {
+      var user by remember { mutableStateOf<User?>(null) }
+      LaunchedEffect(notification.fromUserId) {
+        user = UserRepositoryProvider.repository.getUserById(notification.fromUserId)
       }
-  Icon(
-      imageVector = icon,
-      contentDescription = null,
-      modifier = Modifier.size(24.dp),
-      tint = MaterialTheme.colorScheme.primary)
+      user?.let { LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user!!) } }
+      if (imageBitmap == null) {
+        icon = Icons.Default.Person
+      }
+    }
+    is Notification.EventInvitation -> {
+      var user by remember { mutableStateOf<User?>(null) }
+      LaunchedEffect(notification.invitedBy) {
+        user = UserRepositoryProvider.repository.getUserById(notification.invitedBy)
+      }
+      user?.let { LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user!!) } }
+      if (imageBitmap == null) {
+        icon = Icons.Default.Email
+      }
+    }
+    is Notification.EventStarting -> {
+      var event by remember { mutableStateOf<Event?>(null) }
+      LaunchedEffect(notification.eventId) {
+        event = EventRepositoryProvider.repository.getEvent(notification.eventId)
+      }
+      event?.let { LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event!!) } }
+      if (imageBitmap == null) {
+        icon = Icons.Default.Event
+      }
+    }
+    is Notification.OrganizationMemberInvitation -> {
+      var orga by remember { mutableStateOf<Organization?>(null) }
+      LaunchedEffect(notification.invitedBy) {
+        orga =
+            OrganizationRepositoryProvider.repository.getOrganizationById(
+                notification.organizationId)
+      }
+      orga?.let {
+        LaunchedEffect(orga) { imageBitmap = loadBitmapFromOrganization(context, orga!!) }
+      }
+      if (imageBitmap == null) {
+        icon = Icons.Default.Group
+      }
+    }
+  }
+  if (imageBitmap != null) {
+    Image(
+        imageBitmap!!,
+        contentDescription = null,
+        modifier = Modifier.size(imageSize).clip(CircleShape),
+        contentScale = ContentScale.Crop)
+  } else {
+
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        modifier = Modifier.size(imageSize),
+        tint = MaterialTheme.colorScheme.primary)
+  }
 }
 
 @Composable
@@ -1224,18 +1293,14 @@ fun StoryItem(
 
   // Download profile picture using MediaRepository (same as profile screen)
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
-        value =
-            avatarUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { // just do nothing
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(avatarUrl) {
+    imageBitmap =
+        loadBitmapFromStringUri(
+            context = context,
+            uri = avatarUrl,
+        )
+  }
 
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
@@ -1624,18 +1689,14 @@ fun StoryViewer(
       if (stories.isNotEmpty()) stories[currentStoryIndex].profilePictureUrl else null
 
   // Download profile picture using MediaRepository (same as profile screen)
-  val repository = MediaRepositoryProvider.repository
-  val avatarBitmap by
-      produceState<ImageBitmap?>(initialValue = null, currentProfilePictureUrl, repository) {
-        value =
-            currentProfilePictureUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { // just do nothing
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var avatarBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(currentProfilePictureUrl) {
+    avatarBitmap =
+        loadBitmapFromStringUri(
+            context = context,
+            uri = currentProfilePictureUrl,
+        )
+  }
 
   AnimatedVisibility(
       visible = isVisible,
@@ -1776,7 +1837,7 @@ private suspend fun scrollToDate(
         buildDateHeaderIndexMap(events, hasTopContent, hasOrganizations, organizationsCount)
 
     // Find the target date header string
-    val targetDateHeader = formatDateHeader(com.google.firebase.Timestamp(targetDate))
+    val targetDateHeader = formatDateHeader(Timestamp(targetDate))
 
     // Look up the index in our map
     val targetIndex = dateHeaderIndexMap[targetDateHeader]

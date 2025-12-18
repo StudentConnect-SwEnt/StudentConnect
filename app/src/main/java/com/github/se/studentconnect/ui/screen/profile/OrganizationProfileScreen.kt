@@ -50,10 +50,10 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,7 +73,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.se.studentconnect.R
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.OrganizationEvent
 import com.github.se.studentconnect.model.organization.OrganizationMember
 import com.github.se.studentconnect.model.organization.OrganizationProfile
@@ -89,8 +88,9 @@ import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Comp
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_AVATAR_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationProfileViewModel.Companion.MEMBER_ICON_SIZE
 import com.github.se.studentconnect.ui.profile.OrganizationTab
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import kotlinx.coroutines.Dispatchers
+import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganizationEvent
+import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 
 /** Callbacks for organization profile actions. */
 data class OrganizationProfileCallbacks(
@@ -307,22 +307,8 @@ private fun OrganizationTopBar(
 @Composable
 private fun AvatarBanner(logoUrl: String? = null, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, logoUrl, repository) {
-        value =
-            logoUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "OrganizationProfileScreen",
-                        "Failed to download organization logo: $id",
-                        it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(logoUrl) { imageBitmap = loadBitmapFromStringUri(context, logoUrl) }
 
   Box(
       modifier =
@@ -633,24 +619,10 @@ private fun EventRow(
 ) {
   val hasEnded = event.hasEnded()
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
 
   // Load event banner image
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, event.imageUrl, repository) {
-        value =
-            event.imageUrl?.let { imageId ->
-              runCatching { repository.download(imageId) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "OrganizationProfileScreen",
-                        "Failed to download event banner: $imageId",
-                        it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromOrganizationEvent(context, event) }
 
   Row(
       modifier =
@@ -1115,21 +1087,9 @@ private fun MemberCard(
 @Composable
 private fun MemberAvatar(member: OrganizationMember, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
   val avatarUrl = member.avatarUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
-        value =
-            avatarUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "OrganizationProfileScreen", "Failed to download member avatar: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(avatarUrl) { imageBitmap = loadBitmapFromStringUri(context, avatarUrl) }
 
   Box(
       modifier =
@@ -1371,21 +1331,8 @@ private fun UserPickerAvatar(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val avatarUrl = user.profilePictureUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
-        value =
-            avatarUrl?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure {
-                    android.util.Log.e(
-                        "OrganizationProfileScreen", "Failed to download user avatar: $id", it)
-                  }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
 
   Box(
       modifier =

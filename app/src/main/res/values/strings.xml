@@ -175,6 +175,7 @@
     <string name="content_description_birthday">Birthday</string>
 
     <string name="content_description_event_image">Event Image</string>
+    <string name="content_description_event_image_placeholder">Event Image Placeholder</string>
     <string name="content_description_participants">Participants</string>
     <string name="content_description_home">Home</string>
     <string name="content_description_action_icon">action icon</string>
@@ -503,6 +504,7 @@
     <!-- Organization suggestions -->
     <string name="org_suggestions_title">Organizations</string>
     <string name="content_description_organization_image">Organization image</string>
+    <string name="content_description_organization_image_placeholder">Organization image placeholder</string>
 
     <!-- Organization event time labels -->
     <string name="org_event_time_today">Today</string>

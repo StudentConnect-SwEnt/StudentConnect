@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.test.platform.app.InstrumentationRegistry
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.media.MediaRepository
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.user.User
@@ -39,7 +41,10 @@ class VisitorProfileScreenTest {
         object : MediaRepository {
           override suspend fun upload(uri: Uri, path: String?): String = "fake-id"
 
-          override suspend fun download(id: String): Uri = Uri.EMPTY
+          override suspend fun download(id: String): Uri {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            return Uri.parse("android.resource://${context.packageName}/${R.drawable.pixel}")
+          }
 
           override suspend fun delete(id: String) = Unit
         })

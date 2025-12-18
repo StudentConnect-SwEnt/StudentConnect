@@ -1,23 +1,80 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.net.Uri
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.NavHostController
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepository
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
+import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryLocal
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.ui.theme.AppTheme
 import com.google.firebase.Timestamp
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class NotificationBannerTest {
+  private val eventTest =
+      Event.Public(
+          uid = "event-1",
+          title = "Test Event",
+          description = "This is a test event.",
+          start = Timestamp.now(),
+          ownerId = "user-1",
+          imageUrl = null,
+          isFlash = false,
+          subtitle = "Test Subtitle")
+
+  private val mediaRepositoryTest =
+      object : MediaRepository {
+        // Implement required methods with no-op or mock behavior
+        override suspend fun upload(uri: Uri, path: String?): String {
+          return "test-media-id"
+        }
+
+        override suspend fun download(id: String): Uri {
+          return Uri.EMPTY
+        }
+
+        override suspend fun delete(id: String) {}
+      }
 
   @get:Rule val composeTestRule = createComposeRule()
+
+  @Before
+  fun setup() {
+    NotificationRepositoryProvider.overrideForTests(NotificationRepositoryLocal())
+    UserRepositoryProvider.overrideForTests(UserRepositoryLocal())
+    EventRepositoryProvider.overrideForTests(EventRepositoryLocal())
+    OrganizationRepositoryProvider.overrideForTests(OrganizationRepositoryLocal())
+    MediaRepositoryProvider.overrideForTests(mediaRepositoryTest)
+  }
+
+  @After
+  fun teardown() {
+    NotificationRepositoryProvider.cleanOverrideForTests()
+    UserRepositoryProvider.cleanOverrideForTests()
+    EventRepositoryProvider.cleanOverrideForTests()
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
+  }
 
   @Test
   fun notificationBanner_friendRequest_displaysCorrectly() {
@@ -63,6 +120,7 @@ class NotificationBannerTest {
             timestamp = Timestamp.now(),
             isRead = false)
 
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
     composeTestRule.setContent {
       AppTheme { NotificationBanner(notification = notification, onDismiss = {}, onClick = {}) }
     }
@@ -289,6 +347,7 @@ class NotificationBannerTest {
 
     var readNotificationId: String? = null
     var dismissCalled = false
+    runBlocking { EventRepositoryProvider.repository.addEvent(eventTest) }
 
     // Mock NavController to avoid navigation graph requirements
     val navController = mockk<NavHostController>(relaxed = true)

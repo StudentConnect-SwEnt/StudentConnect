@@ -15,10 +15,13 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryLocal
+import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepositoryLocal
+import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.runBlocking
@@ -91,6 +94,9 @@ class HomeScreenUITest {
     notificationRepository = NotificationRepositoryLocal()
     viewModel = HomePageViewModel(eventRepository, userRepository)
     notificationViewModel = NotificationViewModel(notificationRepository)
+    NotificationRepositoryProvider.overrideForTests(notificationRepository)
+    EventRepositoryProvider.overrideForTests(eventRepository)
+    UserRepositoryProvider.overrideForTests(userRepository)
 
     runBlocking {
       eventRepository.addEvent(testEvent1)
@@ -102,6 +108,7 @@ class HomeScreenUITest {
   fun tearDown() {
     // Clean up test user ID
     AuthenticationProvider.testUserId = null
+    NotificationRepositoryProvider.cleanOverrideForTests()
   }
 
   @Test
@@ -465,7 +472,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -614,7 +621,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -659,7 +666,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Math Lecture",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -730,7 +737,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event123",
+            eventId = "event-1",
             eventTitle = "Study Session",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -911,7 +918,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-read",
             userId = "user123",
-            eventId = "event456",
+            eventId = "event-2",
             eventTitle = "Workshop",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),
@@ -1150,7 +1157,7 @@ class HomeScreenUITest {
         Notification.EventStarting(
             id = "notif-2",
             userId = "user123",
-            eventId = "event789",
+            eventId = "event-1",
             eventTitle = "Meeting",
             eventStart = Timestamp.now(),
             timestamp = Timestamp.now(),

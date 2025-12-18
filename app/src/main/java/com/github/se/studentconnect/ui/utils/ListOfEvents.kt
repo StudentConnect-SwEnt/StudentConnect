@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.utils
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -34,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
@@ -46,7 +44,6 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 import kotlin.random.Random
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Shared composable for displaying live event badge (flash icon or LIVE text). This eliminates code
@@ -236,18 +233,8 @@ fun EventCard(
   val isLive = now >= event.start && now < endTime
 
   val context = LocalContext.current
-  val repository = MediaRepositoryProvider.repository
-  val profileId = event.imageUrl
-  val imageBitmap by
-      produceState<ImageBitmap?>(initialValue = null, profileId, repository) {
-        value =
-            profileId?.let { id ->
-              runCatching { repository.download(id) }
-                  .onFailure { Log.e("EventCardImage", "Failed to download event image: $id", it) }
-                  .getOrNull()
-                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
-            }
-      }
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
