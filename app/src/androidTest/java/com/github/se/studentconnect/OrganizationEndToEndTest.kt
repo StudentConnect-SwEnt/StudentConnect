@@ -349,10 +349,8 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.waitUntilWithMessage(message = "Create as Org switch visible") {
       composeTestRule.onAllNodesWithTag("createAsOrgSwitch").fetchSemanticsNodes().isNotEmpty()
     }
-    // Scroll to the Tag Selector to ensure the Switch (which is above it) is high enough
-    // to avoid being covered by the Save button overlay.
-    composeTestRule.onNodeWithTag(CreatePublicEventScreenTestTags.TAG_SELECTOR).performScrollTo()
-    composeTestRule.onNodeWithTag("createAsOrgSwitch").performClick()
+
+    composeTestRule.onNodeWithTag("createAsOrgSwitch").performScrollTo().performClick()
 
     // Wait for Dropdown to appear and Select Org
     composeTestRule.waitUntilWithMessage(message = "Org Dropdown visible") {
