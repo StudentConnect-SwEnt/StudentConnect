@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.media.MediaPlayer
 import android.net.Uri
 import android.widget.Toast
 import android.widget.VideoView
@@ -76,6 +77,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1508,7 +1510,7 @@ private fun StoryVideoContent(currentStory: StoryWithUser) {
   }
 
   val preparedListener =
-      android.media.MediaPlayer.OnPreparedListener { player ->
+      MediaPlayer.OnPreparedListener { player ->
         player.isLooping = true
         hasError = false
         isBuffering = false
@@ -1518,39 +1520,38 @@ private fun StoryVideoContent(currentStory: StoryWithUser) {
       }
 
   val errorListener =
-      android.media.MediaPlayer.OnErrorListener { _, _, _ ->
+      MediaPlayer.OnErrorListener { _, _, _ ->
         hasError = true
         isBuffering = false
         true
       }
 
+  val infoListener =
+      MediaPlayer.OnInfoListener { _, what, _ ->
+        when (what) {
+          MediaPlayer.MEDIA_INFO_BUFFERING_START -> isBuffering = true
+          MediaPlayer.MEDIA_INFO_BUFFERING_END,
+          MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START -> isBuffering = false
+        }
+        false
+      }
+
   Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    AndroidView(
-        factory = { context ->
-          VideoView(context).apply {
-            videoViewRef = this
-            setOnPreparedListener(preparedListener)
-            setOnErrorListener(errorListener)
-            setVideoURI(Uri.parse(mediaUrl))
-            tag = mediaUrl
-            start()
-          }
-        },
-        update = { view ->
-          videoViewRef = view
-          val currentUrl = view.tag as? String
-          if (currentUrl != mediaUrl) {
-            isBuffering = true
-            hasError = false
-            view.stopPlayback()
-            view.setOnPreparedListener(preparedListener)
-            view.setOnErrorListener(errorListener)
-            view.setVideoURI(Uri.parse(mediaUrl))
-            view.tag = mediaUrl
-            view.start()
-          }
-        },
-        modifier = Modifier.fillMaxSize())
+    key(mediaUrl) {
+      AndroidView(
+          factory = { context ->
+            VideoView(context).apply {
+              videoViewRef = this
+              setOnPreparedListener(preparedListener)
+              setOnErrorListener(errorListener)
+              setOnInfoListener(infoListener)
+              setVideoURI(Uri.parse(mediaUrl))
+              tag = mediaUrl
+              start()
+            }
+          },
+          modifier = Modifier.fillMaxSize())
+    }
 
     when {
       hasError -> {
