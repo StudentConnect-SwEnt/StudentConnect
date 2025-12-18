@@ -72,7 +72,6 @@ import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewMode
 import com.github.se.studentconnect.ui.screen.statistics.LoadingState
 import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
-import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.CoroutineScope
@@ -108,7 +107,6 @@ object EventViewTestTags {
   const val EDIT_EVENT_BUTTON = "event_view_edit_event_button"
   const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
   const val LOCATION_BUTTON = "event_view_location_button"
-  const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
   const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
   const val LOADING_INDICATOR = "event_view_loading_indicator"
   const val SCAN_QR_BUTTON = "event_view_scan_qr_button"
@@ -1195,11 +1193,6 @@ private fun CommonActionButtons(
       WebsiteButton(publicEvent, context)
       Spacer(Modifier.size(smallSpacing))
     }
-
-    ButtonIcon(
-        id = R.drawable.ic_share,
-        onClick = { DialogNotImplemented(context) },
-        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
 
     Spacer(modifier = Modifier.weight(1f))
 

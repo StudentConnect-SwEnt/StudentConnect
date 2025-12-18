@@ -390,22 +390,6 @@ class EventViewTest {
   }
 
   @Test
-  fun eventView_shareButton_isDisplayed() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.SHARE_EVENT_BUTTON).assertIsDisplayed()
-  }
-
-  @Test
   fun eventView_locationButton_hasClickAction() {
     composeTestRule.setContent {
       val navController = rememberNavController()
@@ -419,22 +403,6 @@ class EventViewTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(EventViewTestTags.LOCATION_BUTTON).assertHasClickAction()
-  }
-
-  @Test
-  fun eventView_shareButton_hasClickAction() {
-    composeTestRule.setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "event") {
-        composable("event") {
-          EventView(
-              eventUid = testEvent.uid, navController = navController, eventViewModel = viewModel)
-        }
-      }
-    }
-
-    composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag(EventViewTestTags.SHARE_EVENT_BUTTON).assertHasClickAction()
   }
 
   @Test

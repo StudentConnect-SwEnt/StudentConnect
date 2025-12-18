@@ -97,7 +97,6 @@ class EventViewComponentsTest {
     composeTestRule.onNodeWithTag("event_view_edit_event_button").assertIsDisplayed()
     composeTestRule.onNodeWithTag("event_view_location_button").assertIsDisplayed()
     composeTestRule.onNodeWithTag("event_view_visit_website_button").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("event_view_share_event_button").assertIsDisplayed()
   }
 
   @Test
@@ -391,7 +390,6 @@ class EventViewComponentsTest {
 
     composeTestRule.onNodeWithTag("event_view_location_button").assertIsDisplayed()
     composeTestRule.onNodeWithTag("event_view_visit_website_button").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("event_view_share_event_button").assertIsDisplayed()
   }
 
   @Test
