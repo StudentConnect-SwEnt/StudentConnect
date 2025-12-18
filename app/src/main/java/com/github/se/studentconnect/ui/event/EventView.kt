@@ -614,7 +614,7 @@ private fun EventInfoCardSection(
                     text = event.subtitle,
                     modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
                     style =
-                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis)
@@ -629,7 +629,7 @@ private fun EventInfoCardSection(
               Text(
                   text = event.description,
                   modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
-                  style = MaterialTheme.typography.bodyLarge,
+                  style = MaterialTheme.typography.titleMedium,
                   color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
 
               HorizontalDivider(
