@@ -93,32 +93,46 @@ class OrganizationProfileViewModel(
   private val _uiState = MutableStateFlow(OrganizationProfileUiState())
   val uiState: StateFlow<OrganizationProfileUiState> = _uiState.asStateFlow()
 
-  private val currentUserId: String? = AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+  private val currentUserId: String?
+    get() =
+        try {
+          AuthenticationProvider.currentUser.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+          Log.e(TAG, "Error getting current user ID", e)
+          null
+        }
 
   init {
+    Log.d(TAG, "Initializing OrganizationProfileViewModel for orgId: $organizationId")
     loadOrganizationData()
   }
 
   /** Loads organization data from the repository. */
   private fun loadOrganizationData() {
+    Log.d(TAG, "loadOrganizationData called")
     _uiState.value = _uiState.value.copy(isLoading = true)
 
     viewModelScope.launch {
       try {
+        Log.d(TAG, "Starting organization load coroutine")
         if (organizationId == null) {
+          Log.e(TAG, "Organization ID is null")
           _uiState.value =
               _uiState.value.copy(
                   isLoading = false, error = "Organization ID is required", organization = null)
           return@launch
         }
 
+        Log.d(TAG, "Fetching organization: $organizationId")
         val organization = organizationRepository.getOrganizationById(organizationId)
         if (organization == null) {
+          Log.e(TAG, "Organization not found")
           _uiState.value =
               _uiState.value.copy(
                   isLoading = false, error = "Organization not found", organization = null)
           return@launch
         }
+        Log.d(TAG, "Organization fetched: ${organization.name}")
 
         val events = fetchOrganizationEvents(organizationId)
         val members = fetchOrganizationMembers(organization)
@@ -126,6 +140,7 @@ class OrganizationProfileViewModel(
         val isOwner = currentUserId == organization.createdBy
         val isFollowing = checkIfUserIsFollowing(isMember, organizationId)
 
+        Log.d(TAG, "Converting to OrganizationProfile")
         val organizationProfile =
             organization.toOrganizationProfile(
                 isFollowing = isFollowing,
@@ -142,6 +157,7 @@ class OrganizationProfileViewModel(
               emptyMap()
             }
 
+        Log.d(TAG, "Updating UI state with organization data")
         _uiState.value =
             _uiState.value.copy(
                 organization = organizationProfile,
@@ -149,6 +165,7 @@ class OrganizationProfileViewModel(
                 isLoading = false,
                 error = null)
       } catch (e: Exception) {
+        Log.e(TAG, "Failed to load organization", e)
         _uiState.value =
             _uiState.value.copy(
                 isLoading = false,
@@ -260,8 +277,8 @@ class OrganizationProfileViewModel(
   }
 
   /**
-   * Handles follow button click. Shows confirmation dialog for unfollowing. Members cannot
-   * unfollow - they must leave the organization first.
+   * Handles follow button click. Shows confirmation dialog for unfollowing. Members cannot unfollow
+   * - they must leave the organization first.
    */
   fun onFollowButtonClick() {
     val currentOrg = _uiState.value.organization ?: return

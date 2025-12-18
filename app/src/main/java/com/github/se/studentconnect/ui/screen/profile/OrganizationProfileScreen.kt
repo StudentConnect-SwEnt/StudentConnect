@@ -158,6 +158,9 @@ fun OrganizationProfileScreen(
     modifier: Modifier = Modifier
 ) {
   val uiState by viewModel.uiState.collectAsState()
+  android.util.Log.d(
+      "OrganizationProfileScreen",
+      "Screen Recomposition. State: isLoading=${uiState.isLoading}, hasOrg=${uiState.organization != null}, error=${uiState.error}")
 
   Scaffold(modifier = modifier.fillMaxSize().testTag(C.Tag.org_profile_screen)) { paddingValues ->
     when {
