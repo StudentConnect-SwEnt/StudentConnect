@@ -6,6 +6,7 @@ import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -39,6 +40,7 @@ class EditNameViewModelTest {
 
   @Before
   fun setUp() {
+    mockContext = mockk(relaxed = true)
     repository = TestUserRepository(testUser)
     viewModel = EditNameViewModel(repository, testUser.userId)
   }
