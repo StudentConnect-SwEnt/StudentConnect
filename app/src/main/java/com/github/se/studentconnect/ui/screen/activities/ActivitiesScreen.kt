@@ -529,23 +529,24 @@ fun InvitationCarouselCard(
  */
 @Composable
 fun CarouselImage(imageBitmap: ImageBitmap?, modifier: Modifier = Modifier) {
+  val cornerRadius = (LocalConfiguration.current.screenWidthDp * 0.05).dp
   if (imageBitmap != null) {
     Image(
         imageBitmap,
-        contentDescription = "Event Image",
+        contentDescription = stringResource(R.string.content_description_event_image),
         modifier =
             Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(cornerRadius))
                 .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
                 .then(modifier),
         contentScale = ContentScale.Crop)
   } else {
     Icon(
         imageVector = Icons.Default.Image,
-        contentDescription = "Event Image Placeholder",
+        contentDescription = stringResource(R.string.content_description_event_image_placeholder),
         modifier =
             Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(cornerRadius))
                 .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
                 .then(modifier),
         tint = MaterialTheme.colorScheme.onPrimary)

@@ -200,13 +200,15 @@ fun SlidingTabSelector(
 
 @Composable
 private fun TabIndicator(selectedIndex: Int) {
+  val boxHeight = (LocalConfiguration.current.screenHeightDp * 0.036f).dp
+  val boxCornerRadius = (LocalConfiguration.current.screenHeightDp * 0.018f).dp
   val indicatorOffsetFraction by
       animateFloatAsState(
           targetValue = selectedIndex / 3f,
           animationSpec = tween(durationMillis = 300),
           label = "tab_indicator_offset")
 
-  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(40.dp)) {
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(boxHeight)) {
     val containerWidth = maxWidth
     Box(
         modifier =
@@ -214,7 +216,8 @@ private fun TabIndicator(selectedIndex: Int) {
                 .fillMaxHeight()
                 .offset(x = containerWidth * indicatorOffsetFraction)
                 .background(
-                    color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp))
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(boxCornerRadius))
                 .testTag(HomeScreenTestTags.TAB_INDICATOR))
   }
 }
@@ -232,6 +235,7 @@ private fun TabLabels(
   }
 }
 
+/** Single tab item within the tab selector. */
 @Composable
 private fun RowScope.TabItem(
     tab: HomeTabMode,
@@ -1073,6 +1077,7 @@ private fun NotificationContent(
  */
 @Composable
 private fun NotificationIcon(notification: Notification) {
+  val imageSize = (LocalConfiguration.current.screenWidthDp * 0.1).dp
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   var icon by remember { mutableStateOf<ImageVector>(Icons.Default.Notifications) }
   val context = LocalContext.current
@@ -1126,14 +1131,14 @@ private fun NotificationIcon(notification: Notification) {
     Image(
         imageBitmap!!,
         contentDescription = null,
-        modifier = Modifier.size(24.dp).clip(CircleShape),
-    )
+        modifier = Modifier.size(imageSize).clip(CircleShape),
+        contentScale = ContentScale.Crop)
   } else {
 
     Icon(
         imageVector = icon,
         contentDescription = null,
-        modifier = Modifier.size(24.dp),
+        modifier = Modifier.size(imageSize),
         tint = MaterialTheme.colorScheme.primary)
   }
 }
