@@ -414,21 +414,28 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     }
     composeTestRule.onNodeWithText("Accept").performClick()
 
-    /* 6. Show in profile on the management screen that the user have joined the organization
+    // 6. Show in profile on the management screen that the user have joined the organization
     // and pin it
-    navigateToOrganization(orgName)
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+    composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
+      composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Navigate to My Organizations
+    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
+    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
+      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
+    }
+
     composeTestRule
-            .onNode(hasContentDescription("pin", substring = true, ignoreCase = true))
-            .performClick()
+        .onNode(hasContentDescription("pin", substring = true, ignoreCase = true))
+        .performClick()
 
     // 7. After pinning the event, we show that there exists a the badge on the profile page
     composeTestRule.onNodeWithContentDescription("Back").performClick()
     composeTestRule.waitUntilWithMessage(message = "Badge visible") {
-        composeTestRule
-                .onAllNodesWithContentDescription(orgName)
-                .fetchSemanticsNodes()
-                .isNotEmpty()
-    }*/
+      composeTestRule.onAllNodesWithContentDescription(orgName).fetchSemanticsNodes().isNotEmpty()
+    }
   }
 
   private fun createOrganization(orgName: String) {
