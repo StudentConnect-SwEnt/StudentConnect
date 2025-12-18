@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.activities.Invitation
 import com.github.se.studentconnect.model.user.User
@@ -21,6 +22,7 @@ class EditNameViewModelTest {
 
   private lateinit var repository: TestUserRepository
   private lateinit var viewModel: EditNameViewModel
+  private lateinit var mockContext: Context
   private val testUser =
       User(
           userId = "test_user",
@@ -82,7 +84,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty first name`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("Doe")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -98,7 +100,7 @@ class EditNameViewModelTest {
   fun `saveName validates empty last name`() = runTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -113,7 +115,7 @@ class EditNameViewModelTest {
   fun `saveName validates both empty names`() = runTest {
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -130,7 +132,7 @@ class EditNameViewModelTest {
   fun `saveName validates whitespace only names`() = runTest {
     viewModel.updateFirstName("   ")
     viewModel.updateLastName("   ")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for validation to complete
     kotlinx.coroutines.delay(200)
@@ -150,7 +152,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(newFirstName)
     viewModel.updateLastName(newLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -170,7 +172,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(firstNameWithWhitespace)
     viewModel.updateLastName(lastNameWithWhitespace)
 
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -188,7 +190,7 @@ class EditNameViewModelTest {
     errorViewModel.updateFirstName("John")
     errorViewModel.updateLastName("Doe")
 
-    errorViewModel.saveName()
+    errorViewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -202,7 +204,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName("John")
     viewModel.updateLastName("Doe")
 
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -215,7 +217,7 @@ class EditNameViewModelTest {
     // Given: there are validation errors
     viewModel.updateFirstName("")
     viewModel.updateLastName("")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // When: clearErrors is called
     viewModel.clearErrors()
@@ -232,7 +234,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(specialFirstName)
     viewModel.updateLastName(specialLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -250,7 +252,7 @@ class EditNameViewModelTest {
     viewModel.updateFirstName(longFirstName)
     viewModel.updateLastName(longLastName)
 
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -266,7 +268,7 @@ class EditNameViewModelTest {
     // First save
     viewModel.updateFirstName("Alice")
     viewModel.updateLastName("Smith")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for first save to complete
     kotlinx.coroutines.delay(300)
@@ -274,7 +276,7 @@ class EditNameViewModelTest {
     // Second save
     viewModel.updateFirstName("Bob")
     viewModel.updateLastName("Johnson")
-    viewModel.saveName()
+    viewModel.saveName(mockContext)
 
     // Wait for second save to complete
     kotlinx.coroutines.delay(300)

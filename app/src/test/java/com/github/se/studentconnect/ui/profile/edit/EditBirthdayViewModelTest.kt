@@ -1,10 +1,12 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.mockk
 import java.util.Calendar
 import java.util.TimeZone
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +27,7 @@ class EditBirthdayViewModelTest {
 
   private lateinit var repository: TestableUserRepositoryLocal
   private lateinit var viewModel: EditBirthdayViewModel
+  private lateinit var mockContext: Context
   private val testUser =
       User(
           userId = "test_user",
@@ -42,6 +45,7 @@ class EditBirthdayViewModelTest {
 
   @Before
   fun setUp() = runTest {
+    mockContext = mockk(relaxed = true)
     repository = TestableUserRepositoryLocal()
     repository.saveUser(testUser)
     viewModel = EditBirthdayViewModel(repository, testUser.userId)
@@ -151,7 +155,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -173,7 +177,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     errorViewModel.updateSelectedDate(millis)
-    errorViewModel.saveBirthday()
+    errorViewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -193,7 +197,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -212,7 +216,7 @@ class EditBirthdayViewModelTest {
 
     val timeBefore = System.currentTimeMillis()
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -283,7 +287,7 @@ class EditBirthdayViewModelTest {
   fun `resetState resets UI state to Idle`() = runTest {
     // Trigger an error
     repository.shouldThrowOnSave = RuntimeException("Error")
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for error
     kotlinx.coroutines.delay(200)
@@ -306,7 +310,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Check loading state immediately
     kotlinx.coroutines.delay(50)
@@ -332,7 +336,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
@@ -349,7 +353,7 @@ class EditBirthdayViewModelTest {
     calendar1.set(2000, Calendar.JANUARY, 15, 0, 0, 0)
     calendar1.set(Calendar.MILLISECOND, 0)
     viewModel.updateSelectedDate(calendar1.timeInMillis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for first save to complete
     kotlinx.coroutines.delay(300)
@@ -359,7 +363,7 @@ class EditBirthdayViewModelTest {
     calendar2.set(1995, Calendar.DECEMBER, 25, 0, 0, 0)
     calendar2.set(Calendar.MILLISECOND, 0)
     viewModel.updateSelectedDate(calendar2.timeInMillis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for second save to complete
     kotlinx.coroutines.delay(300)
@@ -398,7 +402,7 @@ class EditBirthdayViewModelTest {
     val millis = calendar.timeInMillis
 
     viewModel.updateSelectedDate(millis)
-    viewModel.saveBirthday()
+    viewModel.saveBirthday(mockContext)
 
     // Wait for save to complete
     kotlinx.coroutines.delay(200)
