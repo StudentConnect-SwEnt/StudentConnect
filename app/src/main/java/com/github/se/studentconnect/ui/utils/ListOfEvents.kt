@@ -41,6 +41,7 @@ import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.ui.screen.home.OrganizationSuggestions
+import com.github.se.studentconnect.ui.theme.Dimensions
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar

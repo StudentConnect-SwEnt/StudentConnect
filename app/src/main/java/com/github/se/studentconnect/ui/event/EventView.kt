@@ -512,7 +512,7 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
                     .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
             elevation =
                 CardDefaults.cardElevation(defaultElevation = Dimensions.EventCardElevation),
-            shape = RoundedCornerShape(Dimensions.EvenevetCardCornerRadius),
+            shape = RoundedCornerShape(Dimensions.EventCardCornerRadius),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
               Column(
                   modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
