@@ -141,12 +141,14 @@ fun ProfileHeader(
                     StatItem(
                         count = stats.friendsCount,
                         label = stringResource(R.string.label_friends),
-                        onClick = callbacks.onFriendsClick)
+                        onClick = callbacks.onFriendsClick,
+                        modifier = Modifier.testTag("friends_count"))
 
                     StatItem(
                         count = stats.eventsCount,
                         label = stringResource(R.string.label_events),
-                        onClick = callbacks.onEventsClick)
+                        onClick = callbacks.onEventsClick,
+                        modifier = Modifier.testTag("events_count"))
                   }
             }
 

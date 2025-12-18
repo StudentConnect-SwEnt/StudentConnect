@@ -206,15 +206,14 @@ fun SlidingTabSelector(
 
 @Composable
 private fun TabIndicator(selectedIndex: Int) {
-  val boxHeight = (LocalConfiguration.current.screenHeightDp * 0.036f).dp
-  val boxCornerRadius = (LocalConfiguration.current.screenHeightDp * 0.018f).dp
+  val boxCornerRadius = 20.dp // Half of 40.dp
   val indicatorOffsetFraction by
       animateFloatAsState(
           targetValue = selectedIndex / 3f,
           animationSpec = tween(durationMillis = 300),
           label = "tab_indicator_offset")
 
-  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(boxHeight)) {
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(40.dp)) {
     val containerWidth = maxWidth
     Box(
         modifier =

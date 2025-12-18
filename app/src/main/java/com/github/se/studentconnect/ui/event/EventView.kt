@@ -60,6 +60,7 @@ import com.github.se.studentconnect.ui.event.CountDownViewModel
 import com.github.se.studentconnect.ui.event.EventUiState
 import com.github.se.studentconnect.ui.event.EventViewModel
 import com.github.se.studentconnect.ui.event.InviteFriendsDialog
+import com.github.se.studentconnect.ui.event.ScheduleConflictCard
 import com.github.se.studentconnect.ui.event.TicketValidationResult
 import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
@@ -501,6 +502,7 @@ private data class EventDetailsContentParams(
 
 @Composable
 private fun EventDetailsContent(params: EventDetailsContentParams) {
+  val uiState by params.eventViewModel.uiState.collectAsState()
   val coroutineScope = rememberCoroutineScope()
 
   Column(
@@ -540,6 +542,17 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
                     .padding(horizontal = Dimensions.SpacingNormal)
                     .offset(y = Dimensions.EventContentOffsetNegative),
             verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
+
+              // Show conflict card if event dates are available
+              if (params.event.start != null) {
+                ScheduleConflictCard(
+                    eventStart = params.event.start,
+                    eventEnd = params.event.end,
+                    conflictingItems = uiState.conflictingEvents,
+                    isCheckingConflicts = uiState.isCheckingConflicts,
+                    onConflictClick = { /* Optional: Navigate to calendar */})
+              }
+
               CountdownCard(
                   timeLeft = params.timeLeft, event = params.event, isJoined = params.isJoined)
 
@@ -753,10 +766,12 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
                       textAlign = TextAlign.Center)
                 }
                 timeLeft > DAY_IN_SECONDS -> {
+                  val daysCount = days(timeLeft)
+                  val daysLabel = if (daysCount == "1") "day" else "days"
                   Text(
                       modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_DAYS),
                       color = MaterialTheme.colorScheme.primary,
-                      text = days(timeLeft) + " days left",
+                      text = "$daysCount $daysLabel left",
                       style = MaterialTheme.typography.displaySmall,
                       textAlign = TextAlign.Center)
                 }

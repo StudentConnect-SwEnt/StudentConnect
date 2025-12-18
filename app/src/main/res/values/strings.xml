@@ -656,13 +656,13 @@
     <string name="story_delete_failed">Failed to delete story</string>
     <string name="story_error">Error: %s</string>
     <string name="story_title_format">%1$s @ %2$s</string>
-
+    
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
     <string name="notification_banner_title_event_starting">Event Starting</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
-
+    
     <!-- HomeScreen constants -->
     <string name="home_story_item_width">80dp</string>
     <string name="home_story_spacer_height">8dp</string>
@@ -770,4 +770,45 @@
     <string name="content_description_change_logo">Change organization logo</string>
     <string name="content_description_remove_member">Remove member from organization</string>
     <string name="content_description_change_member_role">Change member role</string>
+
+    <!-- Personal Calendar -->
+    <string name="calendar_section_title">My Calendar</string>
+    <string name="my_calendar">My Calendar</string>
+    <string name="import_schedule">Import schedule</string>
+    <string name="import_calendar_events_title">Import calendar events</string>
+    <string name="import_calendar_events_desc">Import .ics files to add events to your calendar</string>
+    <string name="import_ics">Import ICS</string>
+    <string name="import_ics_button_text">Import</string>
+    <string name="joined">Joined</string>
+    <string name="created">Created</string>
+    <string name="imported">Imported</string>
+    <string name="personal">Personal</string>
+    <string name="sun">Sun</string>
+    <string name="mon">Mon</string>
+    <string name="tue">Tue</string>
+    <string name="wed">Wed</string>
+    <string name="thu">Thu</string>
+    <string name="fri">Fri</string>
+    <string name="sat">Sat</string>
+    <string name="no_events_scheduled">No events scheduled</string>
+    <string name="calendar_import">Import calendar</string>
+    <string name="calendar_no_events_for_day">No events scheduled for this day</string>
+    <string name="calendar_conflict_title">Schedule Conflict</string>
+    <string name="calendar_conflict_count">%d event at the same time</string>
+    <string name="calendar_conflict_count_plural">%d events at the same time</string>
+    <string name="calendar_no_conflict">No schedule conflicts</string>
+    <string name="calendar_conflict_same_time">Same time</string>
+    <string name="calendar_conflict_starts_during">Starts during event</string>
+    <string name="calendar_conflict_ends_during">Ends during event</string>
+    <string name="calendar_conflict_overlaps">Overlaps</string>
+    <string name="calendar_import_success">Successfully imported %d events</string>
+    <string name="calendar_import_error">Failed to import calendar</string>
+    <string name="error_load_calendar">Failed to load calendar events</string>
+    <string name="error_import_events">Failed to import events</string>
+
+    <!-- Personal Calendar Section -->
+    <string name="personal_calendar_title">My Calendar</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+    <string name="no_events_for_date">No events scheduled for this day</string>
 </resources>

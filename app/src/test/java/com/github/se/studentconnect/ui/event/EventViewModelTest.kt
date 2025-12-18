@@ -68,6 +68,19 @@ class EventViewModelTest {
   private lateinit var friendsRepository: FriendsRepository
   private lateinit var notificationRepository: NotificationRepositoryLocal
   private lateinit var mockContext: Context
+  private lateinit var personalCalendarRepository:
+      com.github.se.studentconnect.model.calendar.PersonalCalendarRepository
+
+  // Helper to create view models in tests without invoking the default Firestore-backed provider
+  private fun createTestViewModel(
+      eventRepo: EventRepository,
+      userRepo: UserRepositoryLocal,
+      pollRepo: PollRepositoryLocal,
+      friendsRepo: FriendsRepository,
+      notificationRepo: NotificationRepositoryLocal
+  ): EventViewModel =
+      EventViewModel(
+          eventRepo, userRepo, pollRepo, friendsRepo, notificationRepo, personalCalendarRepository)
 
   private val testEvent =
       Event.Public(
@@ -91,13 +104,51 @@ class EventViewModelTest {
     pollRepository = PollRepositoryLocal()
     friendsRepository = FakeFriendsRepository()
     notificationRepository = NotificationRepositoryLocal()
+    personalCalendarRepository =
+        object : com.github.se.studentconnect.model.calendar.PersonalCalendarRepository {
+          override suspend fun getEventsForUser(
+              userId: String
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+
+          override suspend fun getEventsInRange(
+              userId: String,
+              startTime: Timestamp,
+              endTime: Timestamp
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+
+          override suspend fun addEvent(
+              event: com.github.se.studentconnect.model.calendar.PersonalCalendarEvent
+          ) {}
+
+          override suspend fun addEvents(
+              events: List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent>
+          ) {}
+
+          override suspend fun updateEvent(
+              event: com.github.se.studentconnect.model.calendar.PersonalCalendarEvent
+          ) {}
+
+          override suspend fun deleteEvent(eventId: String, userId: String) {}
+
+          override suspend fun deleteEventsBySource(userId: String, sourceCalendar: String) {}
+
+          override suspend fun getNewUid(): String = "test-uid"
+
+          override suspend fun getConflictingEvents(
+              userId: String,
+              startTime: Timestamp,
+              endTime: Timestamp?
+          ): List<com.github.se.studentconnect.model.calendar.PersonalCalendarEvent> = emptyList()
+        }
+
     viewModel =
         EventViewModel(
             eventRepository,
             userRepository,
             pollRepository,
             friendsRepository,
-            notificationRepository)
+            notificationRepository,
+            personalCalendarRepository)
     // Force un utilisateur courant non vide pendant les tests
     AuthenticationProvider.testUserId = "test-user-id"
   }
@@ -410,7 +461,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -477,7 +528,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -721,7 +772,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
     val localNotificationRepo = NotificationRepositoryLocal()
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
@@ -782,7 +833,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
     val localNotificationRepo2 = NotificationRepositoryLocal()
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo2)
 
     vm.fetchEvent(event.uid)
@@ -821,7 +872,7 @@ class EventViewModelTest {
 
     // Inject state into view model
     viewModel =
-        EventViewModel(
+        createTestViewModel(
             eventRepository,
             userRepository,
             pollRepository,
@@ -1095,7 +1146,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -1134,7 +1185,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -1174,7 +1225,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -1214,7 +1265,7 @@ class EventViewModelTest {
           }
         }
     val mockViewModel =
-        EventViewModel(
+        createTestViewModel(
             errorThrowingRepo,
             userRepository,
             pollRepository,
@@ -1298,7 +1349,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
 
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
@@ -1380,7 +1431,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId, friend2.userId))
 
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
@@ -1457,7 +1508,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
 
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
@@ -1521,7 +1572,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
 
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
@@ -1580,7 +1631,7 @@ class EventViewModelTest {
     val fakeFriendsRepo = FakeFriendsRepository(listOf(friend1.userId))
 
     val vm =
-        EventViewModel(
+        createTestViewModel(
             localEventRepo, localUserRepo, localPollRepo, fakeFriendsRepo, localNotificationRepo)
 
     vm.fetchEvent(event.uid)
