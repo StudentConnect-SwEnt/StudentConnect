@@ -540,11 +540,18 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Start Now").assertIsEnabled().performClick()
 
-    // 10. Completion
-    composeTestRule.waitUntilWithMessage(
-        message = "Back to Management Screen", timeoutMillis = 30_000) {
-          composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-        }
+    // 10. Completion - Explicitly navigate to verify
+    // Navigate to Profile
+    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
+    composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
+      composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
+    }
+
+    // Navigate to My Organizations
+    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
+    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
+      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
+    }
   }
 
   private fun navigateToOrganization(orgName: String) {
