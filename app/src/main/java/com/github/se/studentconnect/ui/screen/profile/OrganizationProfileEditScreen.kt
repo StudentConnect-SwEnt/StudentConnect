@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -204,17 +205,23 @@ private fun OrganizationEditTopBar(
         FilledTonalButton(
             onClick = onSave,
             enabled = !isSaving && !isLoading,
-            modifier = Modifier.padding(end = 12.dp),
+            modifier =
+                Modifier.padding(
+                    end = dimensionResource(R.dimen.org_edit_top_bar_save_button_end_padding)),
             colors =
                 ButtonDefaults.filledTonalButtonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer)) {
               if (isSaving) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
+                    modifier =
+                        Modifier.size(dimensionResource(R.dimen.org_edit_top_bar_progress_size)),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    strokeWidth = 2.dp)
-                Spacer(modifier = Modifier.width(8.dp))
+                    strokeWidth = dimensionResource(R.dimen.org_edit_top_bar_progress_stroke_width))
+                Spacer(
+                    modifier =
+                        Modifier.width(
+                            dimensionResource(R.dimen.org_edit_top_bar_progress_spacing)))
               }
               Text(
                   text =
@@ -258,9 +265,14 @@ private fun OrganizationEditContent(
     modifier: Modifier = Modifier
 ) {
   LazyColumn(
-      modifier = modifier.fillMaxSize().padding(horizontal = 20.dp).testTag("profile_edit_list"),
-      verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        item { Spacer(modifier = Modifier.height(16.dp)) }
+      modifier =
+          modifier
+              .fillMaxSize()
+              .padding(horizontal = dimensionResource(R.dimen.org_edit_horizontal_padding))
+              .testTag("profile_edit_list"),
+      verticalArrangement =
+          Arrangement.spacedBy(dimensionResource(R.dimen.org_edit_vertical_spacing))) {
+        item { Spacer(modifier = Modifier.height(dimensionResource(R.dimen.org_edit_top_spacing))) }
 
         // Logo section with enhanced visuals
         item {
@@ -286,7 +298,7 @@ private fun OrganizationEditContent(
                   uiState.nameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
               modifier = Modifier.fillMaxWidth(),
               singleLine = true,
-              shape = RoundedCornerShape(12.dp))
+              shape = RoundedCornerShape(dimensionResource(R.dimen.org_edit_field_corner_radius)))
         }
 
         item {
@@ -308,16 +320,20 @@ private fun OrganizationEditContent(
                     uiState.descriptionError?.let {
                       { Text(it, color = MaterialTheme.colorScheme.error) }
                     },
-                modifier = Modifier.fillMaxWidth().height(140.dp),
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .height(dimensionResource(R.dimen.org_edit_description_height)),
                 maxLines = 6,
-                shape = RoundedCornerShape(12.dp))
+                shape = RoundedCornerShape(dimensionResource(R.dimen.org_edit_field_corner_radius)))
 
             // Character count
             Text(
                 text = "${uiState.description.length} characters",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.End).padding(top = 4.dp))
+                modifier =
+                    Modifier.align(Alignment.End)
+                        .padding(top = dimensionResource(R.dimen.org_edit_description_top_padding)))
           }
         }
 
@@ -339,7 +355,7 @@ private fun OrganizationEditContent(
 
         // Social Links section
         item {
-          Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(dimensionResource(R.dimen.org_edit_section_spacing)))
           SectionHeader(title = stringResource(R.string.section_social_links))
         }
         item {
@@ -367,7 +383,7 @@ private fun OrganizationEditContent(
                     painter = painterResource(R.drawable.ic_logo_instagram),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp))
+                    modifier = Modifier.size(dimensionResource(R.dimen.org_edit_social_icon_size)))
               },
               modifier = Modifier.fillMaxWidth(),
               singleLine = true,
@@ -383,7 +399,7 @@ private fun OrganizationEditContent(
                     painter = painterResource(R.drawable.ic_logo_x),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp))
+                    modifier = Modifier.size(dimensionResource(R.dimen.org_edit_social_icon_size)))
               },
               modifier = Modifier.fillMaxWidth(),
               singleLine = true,
@@ -399,7 +415,7 @@ private fun OrganizationEditContent(
                     painter = painterResource(R.drawable.ic_logo_linkedin),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp))
+                    modifier = Modifier.size(dimensionResource(R.dimen.org_edit_social_icon_size)))
               },
               modifier = Modifier.fillMaxWidth(),
               singleLine = true,
@@ -408,12 +424,14 @@ private fun OrganizationEditContent(
 
         // Members section
         item {
-          Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(dimensionResource(R.dimen.org_edit_section_spacing)))
           SectionHeader(title = stringResource(R.string.section_members))
         }
         items(uiState.members) { member -> MemberEditCard(member = member, viewModel = viewModel) }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        item {
+          Spacer(modifier = Modifier.height(dimensionResource(R.dimen.org_edit_bottom_spacing)))
+        }
       }
 }
 
@@ -423,23 +441,32 @@ private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth()) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 12.dp)) {
+        modifier =
+            Modifier.padding(
+                vertical = dimensionResource(R.dimen.org_edit_section_header_vertical_padding))) {
           Box(
               modifier =
-                  Modifier.width(4.dp)
-                      .height(24.dp)
+                  Modifier.width(dimensionResource(R.dimen.org_edit_section_header_indicator_width))
+                      .height(dimensionResource(R.dimen.org_edit_section_header_indicator_height))
                       .background(
-                          MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(2.dp)))
-          Spacer(modifier = Modifier.width(12.dp))
+                          MaterialTheme.colorScheme.primary,
+                          shape =
+                              RoundedCornerShape(
+                                  dimensionResource(
+                                      R.dimen.org_edit_section_header_indicator_corner_radius))))
+          Spacer(
+              modifier = Modifier.width(dimensionResource(R.dimen.org_edit_section_header_spacing)))
           Text(
               text = title,
               style = MaterialTheme.typography.titleLarge,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
-              letterSpacing = 0.5.sp)
+              letterSpacing =
+                  dimensionResource(R.dimen.org_edit_section_header_letter_spacing).value.sp)
         }
     HorizontalDivider(
-        thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        thickness = dimensionResource(R.dimen.org_edit_section_divider_thickness),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
   }
 }
 
@@ -477,21 +504,28 @@ private fun LogoSection(
   ElevatedCard(
       modifier = modifier.fillMaxWidth(),
       colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)) {
+      elevation =
+          CardDefaults.elevatedCardElevation(
+              defaultElevation = dimensionResource(R.dimen.org_edit_card_elevation))) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(dimensionResource(R.dimen.org_edit_logo_card_padding)),
             horizontalAlignment = Alignment.CenterHorizontally) {
               // Logo display with enhanced styling
               Surface(
-                  modifier = Modifier.size(140.dp),
+                  modifier = Modifier.size(dimensionResource(R.dimen.org_edit_logo_size)),
                   shape = CircleShape,
                   color = MaterialTheme.colorScheme.primaryContainer,
-                  shadowElevation = 4.dp,
-                  tonalElevation = 2.dp) {
+                  shadowElevation = dimensionResource(R.dimen.org_edit_logo_shadow_elevation),
+                  tonalElevation = dimensionResource(R.dimen.org_edit_logo_tonal_elevation)) {
                     Box(
                         modifier =
                             Modifier.fillMaxSize()
-                                .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(
+                                    dimensionResource(R.dimen.org_edit_logo_border_width),
+                                    MaterialTheme.colorScheme.primary,
+                                    CircleShape)
                                 .clickable { imageLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center) {
                           if (logoBitmap != null) {
@@ -506,11 +540,16 @@ private fun LogoSection(
                               Icon(
                                   imageVector = Icons.Default.Business,
                                   contentDescription = null,
-                                  modifier = Modifier.size(64.dp),
+                                  modifier =
+                                      Modifier.size(
+                                          dimensionResource(R.dimen.org_edit_logo_icon_size)),
                                   tint = MaterialTheme.colorScheme.primary)
-                              Spacer(modifier = Modifier.height(4.dp))
+                              Spacer(
+                                  modifier =
+                                      Modifier.height(
+                                          dimensionResource(R.dimen.org_edit_logo_icon_spacing)))
                               Text(
-                                  text = "Tap to add",
+                                  text = stringResource(R.string.text_tap_to_add),
                                   style = MaterialTheme.typography.labelSmall,
                                   color = MaterialTheme.colorScheme.onPrimaryContainer)
                             }
@@ -519,53 +558,80 @@ private fun LogoSection(
                           // Edit icon overlay with better positioning
                           Surface(
                               modifier =
-                                  Modifier.size(44.dp).align(Alignment.BottomEnd).padding(4.dp),
+                                  Modifier.size(
+                                          dimensionResource(R.dimen.org_edit_logo_edit_button_size))
+                                      .align(Alignment.BottomEnd)
+                                      .padding(
+                                          dimensionResource(
+                                              R.dimen.org_edit_logo_edit_button_padding)),
                               shape = CircleShape,
                               color = MaterialTheme.colorScheme.primary,
-                              shadowElevation = 6.dp) {
+                              shadowElevation =
+                                  dimensionResource(R.dimen.org_edit_logo_edit_button_shadow)) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
                                     contentDescription =
                                         stringResource(R.string.content_description_change_logo),
-                                    modifier = Modifier.size(22.dp).padding(11.dp),
+                                    modifier =
+                                        Modifier.size(
+                                                dimensionResource(
+                                                    R.dimen.org_edit_logo_edit_button_icon_size))
+                                            .padding(
+                                                dimensionResource(
+                                                    R.dimen
+                                                        .org_edit_logo_edit_button_icon_padding)),
                                     tint = MaterialTheme.colorScheme.onPrimary)
                               }
                         }
                   }
 
-              Spacer(modifier = Modifier.height(20.dp))
+              Spacer(
+                  modifier =
+                      Modifier.height(dimensionResource(R.dimen.org_edit_logo_buttons_top_spacing)))
 
               // Buttons with improved styling
-              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FilledTonalButton(
-                    onClick = { imageLauncher.launch("image/*") },
-                    modifier = Modifier.height(48.dp)) {
-                      Icon(
-                          imageVector = Icons.Default.Edit,
-                          contentDescription = null,
-                          modifier = Modifier.size(18.dp))
-                      Spacer(modifier = Modifier.width(8.dp))
-                      Text(
-                          text = stringResource(R.string.button_change_logo),
-                          fontWeight = FontWeight.Medium)
-                    }
+              Row(
+                  horizontalArrangement =
+                      Arrangement.spacedBy(
+                          dimensionResource(R.dimen.org_edit_logo_buttons_spacing))) {
+                    FilledTonalButton(
+                        onClick = { imageLauncher.launch("image/*") },
+                        modifier =
+                            Modifier.height(
+                                dimensionResource(R.dimen.org_edit_logo_button_height))) {
+                          Icon(
+                              imageVector = Icons.Default.Edit,
+                              contentDescription = null,
+                              modifier =
+                                  Modifier.size(
+                                      dimensionResource(R.dimen.org_edit_logo_button_icon_size)))
+                          Spacer(
+                              modifier =
+                                  Modifier.width(
+                                      dimensionResource(R.dimen.org_edit_logo_button_icon_spacing)))
+                          Text(
+                              text = stringResource(R.string.button_change_logo),
+                              fontWeight = FontWeight.Medium)
+                        }
 
-                AnimatedVisibility(
-                    visible = logoUrl != null || logoUri != null,
-                    enter = fadeIn(),
-                    exit = fadeOut()) {
-                      TextButton(
-                          onClick = { viewModel.removeLogo() },
-                          modifier = Modifier.height(48.dp),
-                          colors =
-                              ButtonDefaults.textButtonColors(
-                                  contentColor = MaterialTheme.colorScheme.error)) {
-                            Text(
-                                text = stringResource(R.string.button_remove_logo),
-                                fontWeight = FontWeight.Medium)
-                          }
-                    }
-              }
+                    AnimatedVisibility(
+                        visible = logoUrl != null || logoUri != null,
+                        enter = fadeIn(),
+                        exit = fadeOut()) {
+                          TextButton(
+                              onClick = { viewModel.removeLogo() },
+                              modifier =
+                                  Modifier.height(
+                                      dimensionResource(R.dimen.org_edit_logo_button_height)),
+                              colors =
+                                  ButtonDefaults.textButtonColors(
+                                      contentColor = MaterialTheme.colorScheme.error)) {
+                                Text(
+                                    text = stringResource(R.string.button_remove_logo),
+                                    fontWeight = FontWeight.Medium)
+                              }
+                        }
+                  }
             }
       }
 }
@@ -583,14 +649,18 @@ private fun OrganizationTypeSelector(
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(bottom = 12.dp))
+        modifier =
+            Modifier.padding(
+                bottom = dimensionResource(R.dimen.org_edit_type_selector_bottom_spacing)))
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      OrganizationType.entries.forEach { type ->
-        OrganizationTypeItem(
-            type = type, isSelected = selectedType == type, onTypeSelected = onTypeSelected)
-      }
-    }
+    Column(
+        verticalArrangement =
+            Arrangement.spacedBy(dimensionResource(R.dimen.org_edit_type_selector_item_spacing))) {
+          OrganizationType.entries.forEach { type ->
+            OrganizationTypeItem(
+                type = type, isSelected = selectedType == type, onTypeSelected = onTypeSelected)
+          }
+        }
   }
 }
 
@@ -609,9 +679,17 @@ private fun OrganizationTypeItem(
                   if (isSelected) MaterialTheme.colorScheme.primaryContainer
                   else MaterialTheme.colorScheme.surface),
       elevation =
-          CardDefaults.elevatedCardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)) {
+          CardDefaults.elevatedCardElevation(
+              defaultElevation =
+                  if (isSelected) dimensionResource(R.dimen.org_edit_type_card_elevation_selected)
+                  else dimensionResource(R.dimen.org_edit_type_card_elevation_default))) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(
+                        horizontal =
+                            dimensionResource(R.dimen.org_edit_type_card_horizontal_padding),
+                        vertical = dimensionResource(R.dimen.org_edit_type_card_vertical_padding)),
             verticalAlignment = Alignment.CenterVertically) {
               RadioButton(
                   selected = isSelected,
@@ -619,7 +697,8 @@ private fun OrganizationTypeItem(
                   colors =
                       androidx.compose.material3.RadioButtonDefaults.colors(
                           selectedColor = MaterialTheme.colorScheme.primary))
-              Spacer(modifier = Modifier.width(12.dp))
+              Spacer(
+                  modifier = Modifier.width(dimensionResource(R.dimen.org_edit_type_card_spacing)))
               Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = getOrganizationTypeLabel(type),
@@ -630,7 +709,7 @@ private fun OrganizationTypeItem(
                         else MaterialTheme.colorScheme.onSurface)
                 if (isSelected) {
                   Text(
-                      text = "Selected",
+                      text = stringResource(R.string.text_selected),
                       style = MaterialTheme.typography.bodySmall,
                       color = MaterialTheme.colorScheme.primary)
                 }
@@ -676,21 +755,28 @@ private fun MemberEditCard(
       colors =
           CardDefaults.elevatedCardColors(
               containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-      shape = RoundedCornerShape(16.dp)) {
+      elevation =
+          CardDefaults.elevatedCardElevation(
+              defaultElevation = dimensionResource(R.dimen.org_edit_member_card_elevation)),
+      shape = RoundedCornerShape(dimensionResource(R.dimen.org_edit_member_card_corner_radius))) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(dimensionResource(R.dimen.org_edit_member_card_padding)),
             verticalAlignment = Alignment.CenterVertically) {
               // Enhanced avatar with border
               Surface(
-                  modifier = Modifier.size(56.dp),
+                  modifier = Modifier.size(dimensionResource(R.dimen.org_edit_member_avatar_size)),
                   shape = CircleShape,
                   color = MaterialTheme.colorScheme.primaryContainer,
-                  shadowElevation = 2.dp) {
+                  shadowElevation = dimensionResource(R.dimen.org_edit_card_elevation)) {
                     Box(
                         modifier =
                             Modifier.fillMaxSize()
-                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                                .border(
+                                    dimensionResource(R.dimen.org_edit_member_avatar_border_width),
+                                    MaterialTheme.colorScheme.primary,
+                                    CircleShape),
                         contentAlignment = Alignment.Center) {
                           if (avatarBitmap != null) {
                             Image(
@@ -703,12 +789,17 @@ private fun MemberEditCard(
                                 imageVector = Icons.Outlined.Person,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp))
+                                modifier =
+                                    Modifier.size(
+                                        dimensionResource(
+                                            R.dimen.org_edit_member_avatar_icon_size)))
                           }
                         }
                   }
 
-              Spacer(modifier = Modifier.width(16.dp))
+              Spacer(
+                  modifier =
+                      Modifier.width(dimensionResource(R.dimen.org_edit_member_avatar_spacing)))
 
               // Name and role with improved typography
               Column(modifier = Modifier.weight(1f)) {
@@ -719,7 +810,9 @@ private fun MemberEditCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(
+                    modifier =
+                        Modifier.height(dimensionResource(R.dimen.org_edit_member_name_spacing)))
                 Text(
                     text = member.role,
                     style = MaterialTheme.typography.bodyMedium,
@@ -728,50 +821,80 @@ private fun MemberEditCard(
 
               // Action buttons (only for non-owners)
               if (!member.isOwner) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                  // Change role button
-                  Surface(
-                      modifier = Modifier.size(40.dp),
-                      shape = CircleShape,
-                      color = MaterialTheme.colorScheme.primaryContainer,
-                      onClick = { viewModel.showChangeRoleDialog(member) }) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription =
-                                stringResource(R.string.content_description_change_member_role),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(10.dp))
-                      }
+                Row(
+                    horizontalArrangement =
+                        Arrangement.spacedBy(
+                            dimensionResource(R.dimen.org_edit_member_action_button_spacing))) {
+                      // Change role button
+                      Surface(
+                          modifier =
+                              Modifier.size(
+                                  dimensionResource(R.dimen.org_edit_member_action_button_size)),
+                          shape = CircleShape,
+                          color = MaterialTheme.colorScheme.primaryContainer,
+                          onClick = { viewModel.showChangeRoleDialog(member) }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription =
+                                    stringResource(R.string.content_description_change_member_role),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier =
+                                    Modifier.padding(
+                                        dimensionResource(
+                                            R.dimen.org_edit_member_action_button_padding)))
+                          }
 
-                  // Remove button
-                  Surface(
-                      modifier = Modifier.size(40.dp),
-                      shape = CircleShape,
-                      color = MaterialTheme.colorScheme.errorContainer,
-                      onClick = { viewModel.showRemoveMemberDialog(member) }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription =
-                                stringResource(R.string.content_description_remove_member),
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(10.dp))
-                      }
-                }
+                      // Remove button
+                      Surface(
+                          modifier =
+                              Modifier.size(
+                                  dimensionResource(R.dimen.org_edit_member_action_button_size)),
+                          shape = CircleShape,
+                          color = MaterialTheme.colorScheme.errorContainer,
+                          onClick = { viewModel.showRemoveMemberDialog(member) }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription =
+                                    stringResource(R.string.content_description_remove_member),
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier =
+                                    Modifier.padding(
+                                        dimensionResource(
+                                            R.dimen.org_edit_member_action_button_padding)))
+                          }
+                    }
               } else {
                 // Enhanced owner badge
                 Surface(
-                    shape = RoundedCornerShape(20.dp),
+                    shape =
+                        RoundedCornerShape(
+                            dimensionResource(R.dimen.org_edit_member_owner_badge_corner_radius)),
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shadowElevation = 2.dp) {
+                    shadowElevation =
+                        dimensionResource(R.dimen.org_edit_member_owner_badge_elevation)) {
                       Row(
-                          modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                          modifier =
+                              Modifier.padding(
+                                  horizontal =
+                                      dimensionResource(
+                                          R.dimen.org_edit_member_owner_badge_horizontal_padding),
+                                  vertical =
+                                      dimensionResource(
+                                          R.dimen.org_edit_member_owner_badge_vertical_padding)),
                           verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_crown),
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
+                                modifier =
+                                    Modifier.size(
+                                        dimensionResource(
+                                            R.dimen.org_edit_member_owner_badge_icon_size)))
+                            Spacer(
+                                modifier =
+                                    Modifier.width(
+                                        dimensionResource(
+                                            R.dimen.org_edit_member_owner_badge_spacing)))
                             Text(
                                 text = stringResource(R.string.text_role_owner),
                                 style = MaterialTheme.typography.labelMedium,
@@ -784,7 +907,16 @@ private fun MemberEditCard(
       }
 }
 
-/** Enhanced remove member confirmation dialog. */
+/**
+ * Displays a confirmation dialog for removing a member from the organization.
+ *
+ * Shows a warning message with the member's name and requires explicit confirmation before
+ * proceeding with the removal. The action cannot be undone once confirmed.
+ *
+ * @param member The member to be removed from the organization
+ * @param onConfirm Callback invoked when the user confirms the removal
+ * @param onDismiss Callback invoked when the user cancels or dismisses the dialog
+ */
 @Composable
 private fun RemoveMemberDialog(
     member: OrganizationMemberEdit,
@@ -804,9 +936,11 @@ private fun RemoveMemberDialog(
           Text(
               text = stringResource(R.string.dialog_remove_member_message, member.name),
               style = MaterialTheme.typography.bodyLarge)
-          Spacer(modifier = Modifier.height(8.dp))
+          Spacer(
+              modifier =
+                  Modifier.height(dimensionResource(R.dimen.org_edit_dialog_message_spacing)))
           Text(
-              text = "This action cannot be undone.",
+              text = stringResource(R.string.dialog_action_cannot_be_undone),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.error,
               fontWeight = FontWeight.Medium)
@@ -829,7 +963,7 @@ private fun RemoveMemberDialog(
           Text(text = stringResource(R.string.button_cancel), fontWeight = FontWeight.Medium)
         }
       },
-      shape = RoundedCornerShape(20.dp))
+      shape = RoundedCornerShape(dimensionResource(R.dimen.org_edit_dialog_corner_radius)))
 }
 
 /** Enhanced change role dialog with card-based selection. */
@@ -856,16 +990,22 @@ private fun ChangeRoleDialog(
               text = stringResource(R.string.dialog_select_role, member.name),
               style = MaterialTheme.typography.bodyLarge,
               color = MaterialTheme.colorScheme.onSurface)
-          Spacer(modifier = Modifier.height(20.dp))
+          Spacer(
+              modifier =
+                  Modifier.height(
+                      dimensionResource(R.dimen.org_edit_dialog_role_selection_top_spacing)))
 
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            availableRoles.forEach { role ->
-              RoleSelectionItem(
-                  role = role,
-                  isSelected = selectedRole == role,
-                  onRoleSelected = { selectedRole = it })
-            }
-          }
+          Column(
+              verticalArrangement =
+                  Arrangement.spacedBy(
+                      dimensionResource(R.dimen.org_edit_dialog_role_selection_item_spacing))) {
+                availableRoles.forEach { role ->
+                  RoleSelectionItem(
+                      role = role,
+                      isSelected = selectedRole == role,
+                      onRoleSelected = { selectedRole = it })
+                }
+              }
         }
       },
       confirmButton = {
@@ -878,7 +1018,7 @@ private fun ChangeRoleDialog(
           Text(text = stringResource(R.string.button_cancel), fontWeight = FontWeight.Medium)
         }
       },
-      shape = RoundedCornerShape(20.dp))
+      shape = RoundedCornerShape(dimensionResource(R.dimen.org_edit_dialog_corner_radius)))
 }
 
 @Composable
@@ -891,12 +1031,24 @@ private fun RoleSelectionItem(role: String, isSelected: Boolean, onRoleSelected:
                   if (isSelected) MaterialTheme.colorScheme.primaryContainer
                   else MaterialTheme.colorScheme.surfaceVariant),
       elevation =
-          CardDefaults.elevatedCardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)) {
+          CardDefaults.elevatedCardElevation(
+              defaultElevation =
+                  if (isSelected)
+                      dimensionResource(R.dimen.org_edit_dialog_role_card_elevation_selected)
+                  else dimensionResource(R.dimen.org_edit_dialog_role_card_elevation_default))) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(
+                        horizontal =
+                            dimensionResource(R.dimen.org_edit_dialog_role_card_horizontal_padding),
+                        vertical =
+                            dimensionResource(R.dimen.org_edit_dialog_role_card_vertical_padding)),
             verticalAlignment = Alignment.CenterVertically) {
               RadioButton(selected = isSelected, onClick = { onRoleSelected(role) })
-              Spacer(modifier = Modifier.width(12.dp))
+              Spacer(
+                  modifier =
+                      Modifier.width(dimensionResource(R.dimen.org_edit_dialog_role_card_spacing)))
               Text(
                   text = role,
                   style = MaterialTheme.typography.bodyLarge,

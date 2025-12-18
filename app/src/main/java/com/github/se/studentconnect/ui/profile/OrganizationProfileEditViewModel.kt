@@ -165,7 +165,9 @@ class OrganizationProfileEditViewModel(
         user?.let {
           val role =
               organization.memberRoles[uid]
-                  ?: if (uid == organization.createdBy) "Owner" else "Member"
+                  ?: if (uid == organization.createdBy)
+                      appContext.getString(com.github.se.studentconnect.R.string.text_role_owner)
+                  else appContext.getString(com.github.se.studentconnect.R.string.text_role_member)
           OrganizationMemberEdit(
               userId = uid,
               name = it.getFullName(),
@@ -220,19 +222,38 @@ class OrganizationProfileEditViewModel(
     _uiState.value = _uiState.value.copy(roles = roles)
   }
 
-  /** Updates the social links. */
+  /**
+   * Updates the organization website URL.
+   *
+   * @param url The website URL, or null to clear it
+   */
   fun updateSocialWebsite(url: String?) {
     _uiState.value = _uiState.value.copy(socialWebsite = url)
   }
 
+  /**
+   * Updates the organization Instagram URL.
+   *
+   * @param url The Instagram URL, or null to clear it
+   */
   fun updateSocialInstagram(url: String?) {
     _uiState.value = _uiState.value.copy(socialInstagram = url)
   }
 
+  /**
+   * Updates the organization X (formerly Twitter) URL.
+   *
+   * @param url The X URL, or null to clear it
+   */
   fun updateSocialX(url: String?) {
     _uiState.value = _uiState.value.copy(socialX = url)
   }
 
+  /**
+   * Updates the organization LinkedIn URL.
+   *
+   * @param url The LinkedIn URL, or null to clear it
+   */
   fun updateSocialLinkedIn(url: String?) {
     _uiState.value = _uiState.value.copy(socialLinkedIn = url)
   }
