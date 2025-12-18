@@ -549,7 +549,7 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
 
     // Navigate to My Organizations
     composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
+    composeTestRule.waitUntilWithMessage(message = orgName) {
       composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
     }
   }
