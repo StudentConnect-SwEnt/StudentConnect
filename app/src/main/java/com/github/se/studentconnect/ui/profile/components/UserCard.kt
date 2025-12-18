@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -168,7 +170,8 @@ fun UserCard(user: User, modifier: Modifier = Modifier, onClick: (() -> Unit)? =
 @Composable
 private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, user)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
 
   CardContainer(modifier = modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -203,7 +206,7 @@ private fun UserCardFront(user: User, modifier: Modifier = Modifier) {
                       stringResource(R.string.content_description_profile_picture)
                   if (imageBitmap != null) {
                     Image(
-                        bitmap = imageBitmap,
+                        bitmap = imageBitmap!!,
                         contentDescription = profilePictureDescription,
                         modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop)

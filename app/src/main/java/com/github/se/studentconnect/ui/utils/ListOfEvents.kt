@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -232,7 +233,8 @@ fun EventCard(
   val isLive = now >= event.start && now < endTime
 
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, event)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
@@ -244,7 +246,7 @@ fun EventCard(
           Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
             if (imageBitmap != null) {
               Image(
-                  bitmap = imageBitmap,
+                  bitmap = imageBitmap!!,
                   contentDescription =
                       stringResource(R.string.content_description_event_card_picture),
                   modifier =

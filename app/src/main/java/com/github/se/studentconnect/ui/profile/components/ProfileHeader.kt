@@ -33,16 +33,18 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -114,7 +116,8 @@ fun ProfileHeader(
           onOrganizationClick = callbacks.onOrganizationClick)
   val showDialog: MutableState<Boolean> = remember { mutableStateOf(false) }
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, user)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
 
   Column(
       modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.profile_header_padding)),
@@ -232,7 +235,8 @@ private fun OrganizationBadge(organization: Organization, modifier: Modifier = M
   val density = LocalDensity.current
 
   // Load organization logo if available
-  val logoBitmap = loadBitmapFromOrganization(context, organization)
+  var logoBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(organization) { logoBitmap = loadBitmapFromOrganization(context, organization) }
 
   val textColor = MaterialTheme.colorScheme.onSurface
   val backgroundColor = MaterialTheme.colorScheme.surface

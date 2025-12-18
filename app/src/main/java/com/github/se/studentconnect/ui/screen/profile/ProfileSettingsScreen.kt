@@ -35,10 +35,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -275,7 +278,8 @@ private fun ProfileHeaderSection(
     modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, user)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
 
   Column(
       modifier = modifier.fillMaxWidth(),
@@ -291,7 +295,7 @@ private fun ProfileHeaderSection(
               contentAlignment = Alignment.Center) {
                 if (imageBitmap != null) {
                   Image(
-                      bitmap = imageBitmap,
+                      bitmap = imageBitmap!!,
                       contentDescription =
                           stringResource(R.string.content_description_profile_picture),
                       modifier = Modifier.fillMaxSize(),

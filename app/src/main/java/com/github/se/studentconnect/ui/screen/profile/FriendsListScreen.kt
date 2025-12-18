@@ -31,11 +31,16 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -173,7 +178,8 @@ private fun FriendsList(
 @Composable
 private fun FriendItem(friend: User, onFriendClick: (String) -> Unit) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, friend)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(friend) { imageBitmap = loadBitmapFromUser(context, friend) }
 
   Row(
       modifier =
@@ -189,7 +195,7 @@ private fun FriendItem(friend: User, onFriendClick: (String) -> Unit) {
             contentAlignment = Alignment.Center) {
               if (imageBitmap != null) {
                 Image(
-                    bitmap = imageBitmap,
+                    bitmap = imageBitmap!!,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
                     modifier =

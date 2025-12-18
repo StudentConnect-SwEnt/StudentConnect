@@ -34,6 +34,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -354,7 +355,8 @@ private fun BaseEventView(
   val participantCount = uiState.participantCount
 
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, event)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
 
   val countDownViewModel: CountDownViewModel = viewModel()
   val timeLeft by countDownViewModel.timeLeft.collectAsState()
@@ -371,7 +373,7 @@ private fun BaseEventView(
                   Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
                 if (imageBitmap != null) {
                   Image(
-                      bitmap = imageBitmap,
+                      bitmap = imageBitmap!!,
                       contentDescription = stringResource(R.string.content_description_event_image),
                       modifier = Modifier.fillMaxSize(),
                       contentScale = ContentScale.Crop)
@@ -1136,7 +1138,8 @@ private fun AttendeeItem(
     modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromUser(context, user)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(user) { imageBitmap = loadBitmapFromUser(context, user) }
   Row(
       modifier =
           modifier
@@ -1152,7 +1155,7 @@ private fun AttendeeItem(
             contentAlignment = Alignment.Center) {
               if (imageBitmap != null) {
                 Image(
-                    bitmap = imageBitmap,
+                    bitmap = imageBitmap!!,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
                     modifier = Modifier.size(56.dp).clip(CircleShape),

@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -308,7 +309,8 @@ private fun BoxScope.EventCardContent(
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, event)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
 
   // Calculate sizes relative to screen width
   val contentPadding = screenWidth * 0.04f
@@ -321,7 +323,7 @@ private fun BoxScope.EventCardContent(
       horizontalArrangement = Arrangement.spacedBy(contentSpacing)) {
         if (imageBitmap != null) {
           Image(
-              bitmap = imageBitmap,
+              bitmap = imageBitmap!!,
               contentDescription = eventImageDescription,
               modifier = Modifier.size(imageSize).clip(RoundedCornerShape(imageCornerRadius)),
               contentScale = androidx.compose.ui.layout.ContentScale.Crop)

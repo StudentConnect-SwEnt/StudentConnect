@@ -10,10 +10,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -187,7 +193,8 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
   val context = LocalContext.current
-  val imageBitmap = loadBitmapFromEvent(context, event)
+  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
 
   // Calculate sizes relative to screen width
   val contentPadding = screenWidth * 0.04f
@@ -201,7 +208,7 @@ private fun PinnedEventCardContent(event: Event, formattedDate: String) {
         // Event image
         if (imageBitmap != null) {
           Image(
-              bitmap = imageBitmap,
+              bitmap = imageBitmap!!,
               contentDescription = eventImageDescription,
               modifier = Modifier.size(imageSize).clip(RoundedCornerShape(imageCornerRadius)),
               contentScale = androidx.compose.ui.layout.ContentScale.Crop)
