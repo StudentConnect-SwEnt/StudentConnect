@@ -20,7 +20,6 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
-import io.mockk.any
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
