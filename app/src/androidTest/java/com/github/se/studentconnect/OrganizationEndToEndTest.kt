@@ -347,16 +347,31 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
 
     // Switch to Org Mode
     composeTestRule.waitUntilWithMessage(message = "Create as Org switch visible") {
-      composeTestRule.onAllNodesWithTag("createAsOrgSwitch").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithTag(CreatePublicEventScreenTestTags.CREATE_AS_ORG_SWITCH)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    composeTestRule.onNodeWithTag("createAsOrgSwitch").performScrollTo().performClick()
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.CREATE_AS_ORG_SWITCH)
+        .performScrollTo()
+    composeTestRule.waitForIdle()
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.CREATE_AS_ORG_SWITCH)
+        .performClick()
 
     // Wait for Dropdown to appear and Select Org
     composeTestRule.waitUntilWithMessage(message = "Org Dropdown visible") {
-      composeTestRule.onAllNodesWithTag("orgDropdown").fetchSemanticsNodes().isNotEmpty()
+      composeTestRule
+          .onAllNodesWithTag(CreatePublicEventScreenTestTags.ORG_DROPDOWN)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
-    composeTestRule.onNodeWithTag("orgDropdown").performScrollTo().performClick()
+    composeTestRule
+        .onNodeWithTag(CreatePublicEventScreenTestTags.ORG_DROPDOWN)
+        .performScrollTo()
+        .performClick()
     composeTestRule.onAllNodesWithText(orgName).onLast().performClick()
 
     composeTestRule
