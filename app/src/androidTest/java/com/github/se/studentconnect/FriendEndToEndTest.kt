@@ -110,6 +110,42 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
     openFriendsListFromProfile()
     openFriendProfileFromList(user2FullName)
     assertVisitorProfileShowsFriendship(user2FullName, user2Username)
+    // 12-14. First user removes friend and verifies non-friendship
+    removeFriendFromVisitorProfile()
+    assertVisitorProfileShowsNoFriendship(user2FullName, user2Username)
+    scenario.close()
+
+    // 15-17. Second user confirms the friendship was removed
+    signInAndLaunchMain(email = user2Email, password = user2Password, username = user2Username)
+    navigateToEventFromHome(eventTitle, eventUid)
+    openAttendeesList()
+    openAttendeeProfile(user1FullName)
+    assertVisitorProfileShowsNoFriendship(user1FullName, user1Username)
+    scenario.close()
+
+    // 18-20. First user sends another friend request
+    signInAndLaunchMain(email = user1Email, password = user1Password, username = user1Username)
+    navigateToEventFromHome(eventTitle, eventUid)
+    openAttendeesList()
+    openAttendeeProfile(user2FullName)
+    sendFriendRequestAndVerify()
+    scenario.close()
+
+    // 21-24. Second user rejects the new request and checks non-friendship
+    signInAndLaunchMain(email = user2Email, password = user2Password, username = user2Username)
+    rejectFriendRequestFrom(user1FullName)
+    navigateToEventFromHome(eventTitle, eventUid)
+    openAttendeesList()
+    openAttendeeProfile(user1FullName)
+    assertVisitorProfileShowsNoFriendship(user1FullName, user1Username)
+    scenario.close()
+
+    // 25-26. First user checks again that they are still not friends
+    signInAndLaunchMain(email = user1Email, password = user1Password, username = user1Username)
+    navigateToEventFromHome(eventTitle, eventUid)
+    openAttendeesList()
+    openAttendeeProfile(user2FullName)
+    assertVisitorProfileShowsNoFriendship(user2FullName, user2Username)
   }
 
   private fun signInAndLaunchMain(email: String, password: String, username: String) {
@@ -498,5 +534,99 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
               .fetchSemanticsNodes()
               .isNotEmpty()
         }
+  }
+
+  private fun assertVisitorProfileShowsNoFriendship(fullName: String, username: String) {
+    composeTestRule
+        .onNodeWithTag(C.Tag.visitor_profile_user_name)
+        .assertExists()
+        .assertTextEquals(fullName)
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_033, message = "add friend button to appear") {
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.visitor_profile_add_friend)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_remove_friend).assertDoesNotExist()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 10_779, message = "username @$username to be visible") {
+          composeTestRule
+              .onAllNodesWithText("@$username", useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+  }
+
+  private fun removeFriendFromVisitorProfile() {
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_034, message = "remove friend button to appear for unfriending") {
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.visitor_profile_remove_friend)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_remove_friend).performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 10_035, message = "remove friend confirmation dialog to appear") {
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.visitor_profile_dialog_confirm)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.onNodeWithTag(C.Tag.visitor_profile_dialog_confirm).performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 15_035, message = "add friend button to reappear after removing friend") {
+          composeTestRule
+              .onAllNodesWithTag(C.Tag.visitor_profile_add_friend)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+  }
+
+  private fun rejectFriendRequestFrom(fromUserFullName: String) {
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 20_043, message = "notification button to be visible for rejection") {
+          composeTestRule.onAllNodesWithTag("NotificationButton").fetchSemanticsNodes().isNotEmpty()
+        }
+
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 20_044, message = "friend request notification to appear for rejection") {
+          composeTestRule
+              .onAllNodesWithText(
+                  "$fromUserFullName sent you a friend request",
+                  substring = true,
+                  useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    val rejectButtonMatcher =
+        SemanticsMatcher("reject notification button") {
+          it.config
+              .getOrNull(SemanticsProperties.TestTag)
+              ?.startsWith(C.Tag.reject_notification_button_prefix) == true
+        }
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 20_045, message = "reject friend request button to appear") {
+          composeTestRule
+              .onAllNodes(rejectButtonMatcher, useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.onAllNodes(rejectButtonMatcher, useUnmergedTree = true).onFirst().performClick()
+
+    composeTestRule.onNodeWithTag("NotificationButton").performClick()
   }
 }
