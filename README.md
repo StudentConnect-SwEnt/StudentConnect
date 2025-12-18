@@ -1,6 +1,8 @@
-# StudentConnect
+<h1 align="center">StudentConnect</h1>
+<p align="center"><strong>Switzerland’s student life hub</strong></p>
+<p align="center"><sup>Kotlin · Jetpack Compose · Firebase · Mapbox · AI</sup></p>
 
-Mobile app built by students, for students in Switzerland to connect through events, interests, and campus associations.
+📱 Mobile app built by students, for students in Switzerland to connect through events, interests, and campus associations.
 
 ## Overview
 StudentConnect centralizes student life: discover and host events, join associations, chat with peers, and navigate campus activities from one place. The app is built with Jetpack Compose and Firebase, with maps, chat, AI-generated banners, and QR-powered networking baked in.
