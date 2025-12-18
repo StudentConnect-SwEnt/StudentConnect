@@ -2,7 +2,6 @@ package com.github.se.studentconnect.model.calendar
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 /** Firestore implementation of PersonalCalendarRepository. */
@@ -20,11 +19,11 @@ class PersonalCalendarRepositoryFirestore(private val firestore: FirebaseFiresto
     return try {
       collection
           .whereEqualTo("userId", userId)
-          .orderBy("start", Query.Direction.ASCENDING)
           .get()
           .await()
           .documents
           .mapNotNull { doc -> doc.data?.let { PersonalCalendarEvent.fromMap(it) } }
+          .sortedBy { it.start }
     } catch (e: Exception) {
       android.util.Log.e("PersonalCalendarRepo", "Error getting events for user: $userId", e)
       emptyList()
@@ -39,13 +38,12 @@ class PersonalCalendarRepositoryFirestore(private val firestore: FirebaseFiresto
     return try {
       collection
           .whereEqualTo("userId", userId)
-          .whereGreaterThanOrEqualTo("start", startTime)
-          .whereLessThanOrEqualTo("start", endTime)
-          .orderBy("start", Query.Direction.ASCENDING)
           .get()
           .await()
           .documents
           .mapNotNull { doc -> doc.data?.let { PersonalCalendarEvent.fromMap(it) } }
+          .filter { it.start >= startTime && it.start <= endTime }
+          .sortedBy { it.start }
     } catch (e: Exception) {
       android.util.Log.e("PersonalCalendarRepo", "Error getting events in range", e)
       emptyList()

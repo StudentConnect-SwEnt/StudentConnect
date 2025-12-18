@@ -185,13 +185,23 @@ class EventViewModel(
           // Combine and map to CalendarItem
           val personalItems =
               personalEvents.map { pEvent ->
-                CalendarItem.Personal(
-                    uid = pEvent.uid,
-                    title = pEvent.title,
-                    start = pEvent.start,
-                    end = pEvent.end,
-                    location = pEvent.location,
-                    color = pEvent.color ?: "#2196F3")
+                if (pEvent.sourceCalendar == "Imported") {
+                  CalendarItem.Imported(
+                      uid = pEvent.uid,
+                      title = pEvent.title,
+                      start = pEvent.start,
+                      end = pEvent.end,
+                      location = pEvent.location,
+                      color = "#9C27B0")
+                } else {
+                  CalendarItem.Personal(
+                      uid = pEvent.uid,
+                      title = pEvent.title,
+                      start = pEvent.start,
+                      end = pEvent.end,
+                      location = pEvent.location,
+                      color = pEvent.color ?: "#2196F3")
+                }
               }
 
           val joinedItems =

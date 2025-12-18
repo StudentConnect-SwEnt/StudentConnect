@@ -14,6 +14,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -101,9 +102,18 @@ fun ProfileScreen(
   val eventsCount by viewModel.eventsCount.collectAsState()
   val pinnedEvents by viewModel.pinnedEvents.collectAsState()
   val userOrganizations by viewModel.userOrganizations.collectAsState()
+  val calendarError by calendarViewModel.error.collectAsState()
 
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
+
+  // Show toast on calendar error
+  LaunchedEffect(calendarError) {
+    calendarError?.let {
+      Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+      calendarViewModel.clearError()
+    }
+  }
   val configuration = LocalConfiguration.current
   val screenWidth = configuration.screenWidthDp.dp
 

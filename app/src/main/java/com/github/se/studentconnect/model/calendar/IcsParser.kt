@@ -123,8 +123,16 @@ object IcsParser {
     val start = parseDateTime(startValue, isAllDay) ?: return null
     val end = endValue?.let { parseDateTime(it, isAllDay) }
 
+    val externalUid = eventData["UID"]
+    val internalUid =
+        if (externalUid != null) {
+          UUID.nameUUIDFromBytes((userId + externalUid).toByteArray()).toString()
+        } else {
+          generateUid()
+        }
+
     return PersonalCalendarEvent(
-        uid = generateUid(),
+        uid = internalUid,
         userId = userId,
         title = unescapeIcsText(title),
         description = eventData["DESCRIPTION"]?.let { unescapeIcsText(it) },
@@ -133,7 +141,7 @@ object IcsParser {
         end = end,
         isAllDay = isAllDay,
         sourceCalendar = sourceCalendar,
-        externalUid = eventData["UID"])
+        externalUid = externalUid)
   }
 
   private fun parseDateTime(value: String, isAllDay: Boolean): Timestamp? {

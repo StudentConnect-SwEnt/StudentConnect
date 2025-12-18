@@ -238,6 +238,28 @@ class PersonalCalendarViewModel(
             IcsParser.parseIcs(
                 inputStream = inputStream, userId = userId, sourceCalendar = "Imported")
 
+        // Get existing events to check for duplicates
+        val existingEvents = repository.getEventsForUser(userId)
+
+        // Find existing events that match the externalUid of new events
+        val newExternalUids = newEvents.mapNotNull { it.externalUid }.toSet()
+        val duplicatesToDelete =
+            existingEvents.filter {
+              it.externalUid != null && newExternalUids.contains(it.externalUid)
+            }
+
+        // Delete old duplicates
+        if (duplicatesToDelete.isNotEmpty()) {
+          duplicatesToDelete.forEach { event ->
+            try {
+              repository.deleteEvent(event.uid, userId)
+            } catch (e: Exception) {
+              Log.e(TAG, "Error deleting duplicate event: ${event.uid}", e)
+            }
+          }
+          Log.d(TAG, "Deleted ${duplicatesToDelete.size} duplicate events")
+        }
+
         // Add all events to the repository in a batch
         repository.addEvents(newEvents)
 
