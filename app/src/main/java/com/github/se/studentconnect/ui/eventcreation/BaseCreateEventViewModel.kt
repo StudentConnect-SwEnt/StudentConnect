@@ -364,7 +364,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     val s = uiState.value
     return when {
       s.bannerImageUri != null -> {
-        val hasNetwork = isNetworkAvailable(context)
+        val hasNetwork = NetworkUtils.isNetworkAvailable(context)
 
         if (hasNetwork) {
           try {
@@ -700,7 +700,4 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
             "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
   }
 
-  private fun isNetworkAvailable(context: Context): Boolean {
-    return NetworkUtils.isNetworkAvailable(context)
-  }
 }
