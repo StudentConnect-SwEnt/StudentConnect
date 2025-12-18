@@ -310,10 +310,18 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
               .isNotEmpty()
         }
 
-    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).performClick()
+    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).performScrollTo().performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_031, message = "attendee list to be visible") {
+        timeoutMillis = 20_039, message = "participants page to become active") {
+          composeTestRule
+              .onAllNodesWithText("Participants", useUnmergedTree = true)
+              .fetchSemanticsNodes()
+              .isNotEmpty()
+        }
+
+    composeTestRule.waitUntilWithMessage(
+        timeoutMillis = 20_041, message = "attendee list to be visible") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.ATTENDEE_LIST)
               .fetchSemanticsNodes()
