@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,7 +69,7 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
   }
 
   /** Validates and saves the name. */
-  fun saveName() {
+  fun saveName(context: Context) {
     val trimmedFirstName = _firstName.value.trim()
     val trimmedLastName = _lastName.value.trim()
 
@@ -90,6 +91,9 @@ class EditNameViewModel(userRepository: UserRepository, userId: String) :
     }
 
     if (hasError) return
+
+    // Check network and notify if offline
+    checkAndNotifyOffline(context)
 
     executeWithErrorHandling(
         operation = {

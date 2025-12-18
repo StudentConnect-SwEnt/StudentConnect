@@ -1,6 +1,5 @@
 package com.github.se.studentconnect.ui.eventcreation
 
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.ui.navigation.Route
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import java.time.format.DateTimeFormatter
 
 /** Constant Test Tags for the Private Event Screen */
@@ -144,7 +144,7 @@ fun CreatePrivateEventScreen(
       canSave = canSave,
       onSave = { createPrivateEventViewModel.saveEvent(context) },
       testTags = shellTestTags,
-      snackbarHost = { SnackbarHost(snackbarHostState) }) { onFocusChange ->
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) }) { onFocusChange ->
 
         // Title and Description
         EventTitleAndDescriptionFields(
@@ -196,6 +196,7 @@ fun CreatePrivateEventScreen(
 
         // Location
         EventLocationField(
+            snackbarHostState = snackbarHostState,
             location = uiState.location,
             onLocationChange = createPrivateEventViewModel::updateLocation,
             testTag = CreatePrivateEventScreenTestTags.LOCATION_INPUT)

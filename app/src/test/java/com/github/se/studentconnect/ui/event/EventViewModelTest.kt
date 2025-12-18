@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.content.Context
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -13,6 +14,7 @@ import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.google.firebase.Timestamp
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -65,6 +67,7 @@ class EventViewModelTest {
   private lateinit var pollRepository: PollRepositoryLocal
   private lateinit var friendsRepository: FriendsRepository
   private lateinit var notificationRepository: NotificationRepositoryLocal
+  private lateinit var mockContext: Context
 
   private val testEvent =
       Event.Public(
@@ -82,6 +85,7 @@ class EventViewModelTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    mockContext = mockk(relaxed = true)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
@@ -504,7 +508,7 @@ class EventViewModelTest {
     viewModel.fetchEvent(testEvent.uid)
     advanceUntilIdle()
 
-    viewModel.joinEvent(testEvent.uid)
+    viewModel.joinEvent(testEvent.uid, mockContext)
     advanceUntilIdle()
 
     // Assert
@@ -628,7 +632,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act - try to join as owner
-    viewModel.joinEvent(testEvent.uid)
+    viewModel.joinEvent(testEvent.uid, mockContext)
     advanceUntilIdle()
 
     // Assert - owner should not be counted as participant
@@ -649,7 +653,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    viewModel.joinEvent(eventWithCapacity.uid)
+    viewModel.joinEvent(eventWithCapacity.uid, mockContext)
     advanceUntilIdle()
 
     // Assert
@@ -918,7 +922,7 @@ class EventViewModelTest {
     advanceUntilIdle()
 
     // Act
-    viewModel.joinEvent(testEvent.uid)
+    viewModel.joinEvent(testEvent.uid, mockContext)
     advanceUntilIdle()
 
     // Assert

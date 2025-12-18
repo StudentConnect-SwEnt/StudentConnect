@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.event
 
+import android.content.Context
 import com.github.se.studentconnect.model.authentication.AuthenticationProvider
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventParticipant
@@ -11,7 +12,12 @@ import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -36,6 +42,7 @@ class EventViewModelPollIntegrationTest {
   private lateinit var userRepository: UserRepositoryLocal
   private lateinit var pollRepository: PollRepositoryLocal
   private lateinit var friendsRepository: FriendsRepository
+  private lateinit var mockContext: Context
 
   private val testEvent =
       Event.Public(
@@ -53,18 +60,23 @@ class EventViewModelPollIntegrationTest {
   @Before
   fun setup() {
     Dispatchers.setMain(testDispatcher)
+    mockContext = mockk(relaxed = true)
     eventRepository = EventRepositoryLocal()
     userRepository = UserRepositoryLocal()
     pollRepository = PollRepositoryLocal()
     friendsRepository = FriendsRepositoryLocal()
     viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     AuthenticationProvider.testUserId = "test-user-id"
+
+    mockkObject(NetworkUtils)
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
     AuthenticationProvider.testUserId = null
+    unmockkAll()
   }
 
   @Test
@@ -246,7 +258,7 @@ class EventViewModelPollIntegrationTest {
     advanceUntilIdle()
 
     // Act
-    viewModel.joinEvent(testEvent.uid)
+    viewModel.joinEvent(testEvent.uid, mockContext)
     advanceUntilIdle()
 
     // Assert

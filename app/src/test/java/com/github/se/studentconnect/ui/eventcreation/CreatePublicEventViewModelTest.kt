@@ -19,6 +19,7 @@ import com.github.se.studentconnect.model.organization.OrganizationRepository
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -28,6 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
@@ -80,6 +82,10 @@ class CreatePublicEventViewModelTest {
 
     // Default UID for new events to avoid nulls in tests that don't stub getNewUid explicitly
     every { mockEventRepository.getNewUid() } returns "generated-uid"
+
+    // Mock NetworkUtils to return network available by default
+    mockkObject(NetworkUtils)
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
 
     viewModel = CreatePublicEventViewModel()
   }

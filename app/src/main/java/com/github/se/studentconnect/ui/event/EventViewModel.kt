@@ -20,8 +20,12 @@ import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -73,6 +77,9 @@ class EventViewModel(
 
   private val _uiState = MutableStateFlow(EventUiState())
   val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
+
+  private val _snackbarMessage = MutableSharedFlow<String>()
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   fun fetchEvent(eventUid: String) {
     _uiState.update { it.copy(isLoading = true, errorMessage = null, errorMessageRes = null) }
@@ -145,8 +152,18 @@ class EventViewModel(
     }
   }
 
-  fun joinEvent(eventUid: String) {
+  fun joinEvent(eventUid: String, context: android.content.Context) {
     val currentUserUid = AuthenticationProvider.currentUser
+
+    // Check network and show snackbar if offline
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
+    if (isOffline) {
+      viewModelScope.launch {
+        _snackbarMessage.emit(context.getString(R.string.offline_no_internet_message))
+      }
+      return
+    }
+
     viewModelScope.launch {
       val event = _uiState.value.event
       val ownerId = event?.ownerId

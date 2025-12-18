@@ -12,8 +12,13 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.ui.screen.profile.edit.EditBirthdayScreen
+import com.github.se.studentconnect.utils.NetworkUtils
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -52,6 +57,14 @@ class EditBirthdayScreenTest {
   fun setUp() {
     repository = TestableUserRepositoryLocal(testUser)
     navigatedBack = false
+
+    mockkObject(NetworkUtils)
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
+  }
+
+  @After
+  fun tearDown() {
+    unmockkAll()
   }
 
   @Test
@@ -298,7 +311,8 @@ class EditBirthdayScreenTest {
 
     // Wait for error message
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithText("Network error").assertExists()
+    Thread.sleep(300) // Give time for snackbar to appear
+    composeTestRule.onNodeWithText("Network error", useUnmergedTree = true).assertExists()
 
     // Should NOT navigate back on error
     assertFalse(navigatedBack)

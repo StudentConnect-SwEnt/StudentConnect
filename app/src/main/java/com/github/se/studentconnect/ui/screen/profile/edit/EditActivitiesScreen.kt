@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +22,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditActivitiesViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /**
  * Screen for selecting user activities/hobbies with searchable multi-select interface.
@@ -46,6 +48,12 @@ fun EditActivitiesScreen(
   val selectedActivities by viewModel.selectedActivities.collectAsState()
   val uiState by viewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
+  }
 
   LaunchedEffect(uiState) {
     when (val state = uiState) {
@@ -83,7 +91,7 @@ fun EditActivitiesScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
           // Search Bar
@@ -128,7 +136,7 @@ fun EditActivitiesScreen(
               }
 
           ProfileSaveButton(
-              onClick = { viewModel.saveActivities() },
+              onClick = { viewModel.saveActivities(context) },
               isLoading = isLoading,
               enabled = !isLoading,
               text = stringResource(R.string.button_save),

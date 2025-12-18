@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -15,6 +16,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.EditBirthdayViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /**
  * Screen for editing user birthday with Material 3 DatePicker.
@@ -37,6 +39,12 @@ fun EditBirthdayScreen(
   val birthdayString by viewModel.birthdayString.collectAsState()
   val uiState by viewModel.uiState.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
+  }
 
   // Create DatePickerState without initialSelectedDateMillis to avoid ghost circle
   val datePickerState = rememberDatePickerState()
@@ -99,7 +107,7 @@ fun EditBirthdayScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
@@ -127,7 +135,7 @@ fun EditBirthdayScreen(
 
               // Save Button
               ProfileSaveButton(
-                  onClick = { viewModel.saveBirthday() },
+                  onClick = { viewModel.saveBirthday(context) },
                   isLoading = uiState is EditBirthdayViewModel.UiState.Loading,
                   enabled =
                       uiState !is EditBirthdayViewModel.UiState.Loading &&

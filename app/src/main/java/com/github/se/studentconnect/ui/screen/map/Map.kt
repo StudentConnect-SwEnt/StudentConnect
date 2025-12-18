@@ -29,7 +29,6 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -59,6 +58,7 @@ import com.github.se.studentconnect.model.friends.FriendLocation
 import com.github.se.studentconnect.model.map.LocationRepositoryImpl
 import com.github.se.studentconnect.model.map.RequestLocationPermission
 import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.google.firebase.Timestamp
 import com.mapbox.geojson.Point
 import com.mapbox.maps.dsl.cameraOptions
@@ -226,7 +226,7 @@ fun MapScreen(
                   .semantics { testTag = C.Tag.map_container })
     }
 
-    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    TopSnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.TopCenter))
   }
 }
 

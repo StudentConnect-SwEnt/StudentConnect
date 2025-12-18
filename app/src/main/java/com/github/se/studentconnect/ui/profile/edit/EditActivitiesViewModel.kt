@@ -1,13 +1,18 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.Activities
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.saveUserWithTimeout
+import com.github.se.studentconnect.utils.NetworkUtils
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -35,6 +40,10 @@ class EditActivitiesViewModel(
   // UI State
   private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
   val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+  // Snackbar messages
+  private val _snackbarMessage = MutableSharedFlow<String>()
+  val snackbarMessage: SharedFlow<String> = _snackbarMessage.asSharedFlow()
 
   init {
     loadCurrentActivities()
@@ -81,7 +90,15 @@ class EditActivitiesViewModel(
   }
 
   /** Saves the selected activities to Firebase. */
-  fun saveActivities() {
+  fun saveActivities(context: Context) {
+    // Check network and notify if offline
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
+    if (isOffline) {
+      viewModelScope.launch {
+        _snackbarMessage.emit(context.getString(R.string.offline_changes_sync_message))
+      }
+    }
+
     viewModelScope.launch {
       try {
         _uiState.value = UiState.Loading

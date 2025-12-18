@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,6 +70,7 @@ import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewMode
 import com.github.se.studentconnect.ui.screen.statistics.LoadingState
 import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
@@ -163,6 +163,11 @@ fun EventView(
       snackbarHostState.showSnackbar(context.getString(messageRes))
       eventViewModel.clearDeleteEventMessage()
     }
+  }
+
+  // Handle snackbar messages from ViewModel
+  LaunchedEffect(Unit) {
+    eventViewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   // QR Scanner Dialog
@@ -396,7 +401,8 @@ private fun BaseEventView(
     }
 
     // Snackbar Host
-    SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    TopSnackbarHost(
+        hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
   }
 }
 
@@ -1109,13 +1115,14 @@ private fun NonOwnerActionButtons(
   val eventIsFuture = now < currentEvent.start
   val canJoin = !isFull && eventIsFuture
   val canLeave = joined && !eventIsOver
+  val context = LocalContext.current
 
   Button(
       onClick = {
         if (canLeave) {
           eventViewModel.showLeaveConfirmDialog()
         } else if (canJoin) {
-          eventViewModel.joinEvent(eventUid = currentEvent.uid)
+          eventViewModel.joinEvent(eventUid = currentEvent.uid, context = context)
         }
       },
       modifier =

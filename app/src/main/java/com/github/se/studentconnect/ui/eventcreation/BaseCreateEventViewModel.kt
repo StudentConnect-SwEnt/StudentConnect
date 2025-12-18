@@ -1,8 +1,6 @@
 package com.github.se.studentconnect.ui.eventcreation
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
@@ -35,6 +33,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.service.ImageUploadWorker
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
@@ -365,7 +364,7 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     val s = uiState.value
     return when {
       s.bannerImageUri != null -> {
-        val hasNetwork = isNetworkAvailable(context)
+        val hasNetwork = NetworkUtils.isNetworkAvailable(context)
 
         if (hasNetwork) {
           try {
@@ -448,6 +447,14 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
           return
         }
     checkNotNull(currentUserId)
+
+    // Check network status and show feedback if offline
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
+    if (isOffline) {
+      viewModelScope.launch {
+        _snackbarMessage.emit(context.getString(R.string.offline_changes_sync_message))
+      }
+    }
 
     updateState { copyCommon(isSaving = true) }
     val eventUid = editingEventUid ?: eventRepository.getNewUid()
@@ -691,12 +698,5 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
     WorkManager.getInstance(context)
         .enqueueUniqueWork(
             "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
-  }
-
-  private fun isNetworkAvailable(context: Context): Boolean {
-    val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
-    val network = cm.activeNetwork ?: return false
-    val capabilities = cm.getNetworkCapabilities(network) ?: return false
-    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
   }
 }

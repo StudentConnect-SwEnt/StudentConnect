@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -14,6 +15,7 @@ import com.github.se.studentconnect.ui.components.BioTextField
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditBioViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /** Standard button height following Material Design guidelines */
 private val BUTTON_HEIGHT = 56.dp
@@ -41,6 +43,7 @@ fun EditBioScreen(
   val characterCount by viewModel.characterCount.collectAsState()
   val validationError by viewModel.validationError.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
 
   // Handle UI state changes
   LaunchedEffect(uiState) {
@@ -57,6 +60,11 @@ fun EditBioScreen(
         /* Nothing */
       }
     }
+  }
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   Scaffold(
@@ -77,7 +85,7 @@ fun EditBioScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
@@ -105,7 +113,7 @@ fun EditBioScreen(
 
               // Save Button
               Button(
-                  onClick = { viewModel.saveBio() },
+                  onClick = { viewModel.saveBio(context) },
                   modifier = Modifier.fillMaxWidth().height(BUTTON_HEIGHT),
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&

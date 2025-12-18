@@ -66,7 +66,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -129,11 +128,13 @@ import com.github.se.studentconnect.ui.utils.FilterData
 import com.github.se.studentconnect.ui.utils.HomeSearchBar
 import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
@@ -390,7 +391,7 @@ fun HomeScreen(
       }) {
         Scaffold(
             modifier = Modifier.fillMaxSize().testTag("HomePage"),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
             topBar = {
               if (pagerState.currentPage == HomeScreenConstants.PAGER_HOME_PAGE) {
                 HomeTopBar(
@@ -1612,6 +1613,8 @@ private fun StoryViewerContent(
     onShowDeleteConfirmation: () -> Unit
 ) {
   val currentStory = stories[currentStoryIndex]
+  val context = LocalContext.current
+  val isOffline = !NetworkUtils.isNetworkAvailable(context)
 
   Box(
       modifier =
@@ -1629,7 +1632,16 @@ private fun StoryViewerContent(
                     })
               }
               .testTag(HomeScreenTestTags.STORY_VIEWER)) {
-        StoryMediaContent(currentStory)
+        if (isOffline) {
+          // Show offline message in place of story content
+          Text(
+              text = stringResource(R.string.offline_no_internet_message),
+              color = Color.White,
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.align(Alignment.Center).padding(16.dp))
+        } else {
+          StoryMediaContent(currentStory)
+        }
 
         Box(modifier = Modifier.align(Alignment.TopCenter)) {
           StoryProgressIndicators(stories, currentStoryIndex)

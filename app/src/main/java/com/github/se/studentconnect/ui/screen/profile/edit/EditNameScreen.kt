@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -16,6 +17,7 @@ import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.components.ProfileSaveButton
 import com.github.se.studentconnect.ui.profile.edit.BaseEditViewModel
 import com.github.se.studentconnect.ui.profile.edit.EditNameViewModel
+import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 
 /**
  * Screen for editing user name (first name and last name).
@@ -40,6 +42,7 @@ fun EditNameScreen(
   val firstNameError by viewModel.firstNameError.collectAsState()
   val lastNameError by viewModel.lastNameError.collectAsState()
   val snackbarHostState = remember { SnackbarHostState() }
+  val context = LocalContext.current
 
   // Handle UI state changes
   LaunchedEffect(uiState) {
@@ -56,6 +59,11 @@ fun EditNameScreen(
       }
       else -> {}
     }
+  }
+
+  // Handle snackbar messages
+  LaunchedEffect(Unit) {
+    viewModel.snackbarMessage.collect { message -> snackbarHostState.showSnackbar(message) }
   }
 
   Scaffold(
@@ -78,7 +86,7 @@ fun EditNameScreen(
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface))
       },
-      snackbarHost = { SnackbarHost(snackbarHostState) },
+      snackbarHost = { TopSnackbarHost(hostState = snackbarHostState) },
       modifier = modifier) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
@@ -135,7 +143,7 @@ fun EditNameScreen(
 
               // Save Button
               ProfileSaveButton(
-                  onClick = { viewModel.saveName() },
+                  onClick = { viewModel.saveName(context) },
                   isLoading = uiState is BaseEditViewModel.UiState.Loading,
                   enabled =
                       uiState !is BaseEditViewModel.UiState.Loading &&

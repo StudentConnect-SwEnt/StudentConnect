@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,19 +19,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.model.location.LocationRepository
 import com.github.se.studentconnect.model.location.LocationRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -105,10 +110,13 @@ fun LocationTextField(
     selectedLocation: Location? = null,
     onLocationChange: (Location?) -> Unit,
     locationTextFieldViewModel: LocationTextFieldViewModel = viewModel(),
+    snackbarHostState: SnackbarHostState? = null,
 ) {
+  val context = LocalContext.current
   val locationTextFieldUiState by locationTextFieldViewModel.uiState.collectAsState()
   val locationSuggestions = locationTextFieldUiState.locationSuggestions
   val isLoadingLocationSuggestions = locationTextFieldUiState.isLoadingLocationSuggestions
+  val coroutineScope = rememberCoroutineScope()
 
   var userSelectedLocation by remember { mutableStateOf(selectedLocation) }
   var hasActiveQuery by remember { mutableStateOf(false) }
@@ -145,6 +153,16 @@ fun LocationTextField(
       locationTextFieldViewModel.clearSuggestions()
       return@LaunchedEffect
     }
+    // Check network before searching
+    if (!NetworkUtils.isNetworkAvailable(context)) {
+      snackbarHostState?.let { snackbar ->
+        snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message))
+      }
+      dropdownVisible = false
+      hasActiveQuery = false
+      locationTextFieldViewModel.clearSuggestions()
+      return@LaunchedEffect
+    }
     locationTextFieldViewModel.updateLocationSuggestions(trimmedQuery)
   }
 
@@ -178,6 +196,7 @@ fun LocationTextField(
           }
         }
 
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
     FormTextField(
         modifier =
             modifier.menuAnchor(MenuAnchorType.PrimaryEditable).focusRequester(focusRequester),
@@ -186,8 +205,20 @@ fun LocationTextField(
           val newText = it.text
           locationFieldValue = it
           val hasText = newText.isNotBlank()
-          dropdownVisible = hasText
-          hasActiveQuery = hasText
+          // Disable search when offline
+          if (hasText && isOffline) {
+            snackbarHostState?.let { snackbar ->
+              coroutineScope.launch {
+                snackbar.showSnackbar(context.getString(R.string.offline_no_internet_message))
+              }
+            }
+            dropdownVisible = false
+            hasActiveQuery = false
+            locationTextFieldViewModel.clearSuggestions()
+            return@FormTextField
+          }
+          dropdownVisible = hasText && !isOffline
+          hasActiveQuery = hasText && !isOffline
           if (userSelectedLocation != null) {
             userSelectedLocation = null
             onLocationChange(null)
@@ -195,6 +226,7 @@ fun LocationTextField(
         },
         label = label,
         placeholder = placeholder,
+        enabled = !isOffline,
         errorText =
             if (locationFieldValue.text.isNotBlank() && userSelectedLocation == null)
                 "Select a location from the suggestions"

@@ -1,8 +1,10 @@
 package com.github.se.studentconnect.ui.profile.edit
 
+import android.content.Context
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,6 +21,7 @@ class EditActivitiesViewModelTest {
 
   private lateinit var repository: UserRepositoryLocal
   private lateinit var viewModel: EditActivitiesViewModel
+  private lateinit var mockContext: Context
   private val testUser =
       User(
           userId = "test_user",
@@ -35,6 +38,7 @@ class EditActivitiesViewModelTest {
 
   @Before
   fun setUp() = runTest {
+    mockContext = mockk(relaxed = true)
     repository = UserRepositoryLocal()
     repository.saveUser(testUser)
     viewModel = EditActivitiesViewModel(repository, testUser.userId)
@@ -215,7 +219,7 @@ class EditActivitiesViewModelTest {
     kotlinx.coroutines.delay(200)
 
     viewModel.toggleActivity("Tennis")
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -235,7 +239,7 @@ class EditActivitiesViewModelTest {
     // Ensure some time passes to guarantee timestamp difference
     kotlinx.coroutines.delay(10)
 
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -252,7 +256,7 @@ class EditActivitiesViewModelTest {
 
     kotlinx.coroutines.delay(200)
 
-    testViewModel.saveActivities()
+    testViewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -267,7 +271,7 @@ class EditActivitiesViewModelTest {
 
     viewModel.toggleActivity("Tennis")
     viewModel.toggleActivity("Running")
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -287,7 +291,7 @@ class EditActivitiesViewModelTest {
     viewModel.toggleActivity("Coding")
     viewModel.toggleActivity("Reading")
 
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -302,12 +306,12 @@ class EditActivitiesViewModelTest {
     kotlinx.coroutines.delay(200)
 
     viewModel.toggleActivity("Tennis")
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
     viewModel.toggleActivity("Running")
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 
@@ -322,7 +326,7 @@ class EditActivitiesViewModelTest {
 
     assertTrue(viewModel.uiState.value is EditActivitiesViewModel.UiState.Idle)
 
-    viewModel.saveActivities()
+    viewModel.saveActivities(mockContext)
 
     kotlinx.coroutines.delay(200)
 

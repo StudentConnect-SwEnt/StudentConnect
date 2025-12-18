@@ -739,6 +739,10 @@
     <string name="button_dismiss">Dismiss</string>
     <string name="content_description_stars">Stars</string>
 
+    <!-- Offline mode feedback messages -->
+    <string name="offline_changes_sync_message">You\'re offline. Changes will sync automatically when connection is restored.</string>
+    <string name="offline_no_internet_message">No internet connection. Try again later.</string>
+
     <!-- Organization Edit Screen -->
     <string name="title_edit_organization">Edit Organization</string>
     <string name="label_organization_name">Organization Name</string>
