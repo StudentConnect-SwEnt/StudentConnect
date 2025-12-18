@@ -6,6 +6,7 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.util.MainDispatcherRule
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -39,6 +40,7 @@ class EditBioViewModelTest {
 
   @Before
   fun setUp() {
+    mockContext = mockk(relaxed = true)
     repository = TestUserRepository(testUser)
     viewModel = EditBioViewModel(repository, testUser.userId)
   }
