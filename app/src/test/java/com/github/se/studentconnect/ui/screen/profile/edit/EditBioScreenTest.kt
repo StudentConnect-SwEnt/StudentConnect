@@ -370,12 +370,14 @@ class EditBioScreenTest {
     // Click save
     composeTestRule.onNodeWithText("Save").performClick()
 
-    // Wait for error message
+    // Wait for error message to appear in snackbar
     composeTestRule.waitForIdle()
-    Thread.sleep(200)
+    composeTestRule.waitUntil(timeoutMillis = 3000) {
+      composeTestRule.onAllNodesWithText("Network error").fetchSemanticsNodes().isNotEmpty()
+    }
 
     // Should show error message in snackbar
-    composeTestRule.onNodeWithText("Network error").assertExists()
+    composeTestRule.onNodeWithText("Network error", useUnmergedTree = true).assertExists()
 
     // Should NOT navigate back
     assert(!navigatedBack)
