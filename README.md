@@ -26,7 +26,11 @@ StudentConnect centralizes student life: discover and host events, join associat
 
 MVVM with a repository layer (`model/`), Compose UI in `ui/`, and background workers/notifications in `service/`.
 
-![Architecture diagram](docs/architecture/architecture-diagram.svg).
+![Architecture diagram](docs/architecture/architecture-diagram.svg)
+
+## Wiki
+
+See the [Project wiki](https://github.com/StudentConnect-SwEnt/StudentConnect/wiki).
 
 ## Design
 
@@ -76,10 +80,12 @@ cd StudentConnect
 - **Coverage:** `./gradlew jacocoTestReport` (optionally set `-PcoverageFlavor=resOverride`).
 
 ## Team
-- Ali El Azdi
-- Othmane Housni
-- Amir Bouchaoui
-- Habib Aissa
-- Hamza Zoubayri
-- Rita Naimi
-- Tristan Bourquin
+| Name |
+| --- |
+| Ali El Azdi |
+| Othmane Housni |
+| Amir Bouchaoui |
+| Habib Aissa |
+| Hamza Zoubayri |
+| Rita Naimi |
+| Tristan Bourquin |
