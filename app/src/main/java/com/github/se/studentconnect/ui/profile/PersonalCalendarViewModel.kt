@@ -238,8 +238,8 @@ class PersonalCalendarViewModel(
             IcsParser.parseIcs(
                 inputStream = inputStream, userId = userId, sourceCalendar = "Imported")
 
-        // Add each event to the repository
-        newEvents.forEach { event -> repository.addEvent(event) }
+        // Add all events to the repository in a batch
+        repository.addEvents(newEvents)
 
         Log.d(TAG, "Imported ${newEvents.size} events from ICS file")
 

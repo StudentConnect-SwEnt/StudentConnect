@@ -59,7 +59,7 @@ object IcsParser {
 
     reader.useLines { lines ->
       lines.forEach { rawLine ->
-        val line = rawLine.trimEnd()
+        val line = rawLine.trimEnd().removePrefix("\uFEFF")
 
         when {
           line == BEGIN_VCALENDAR -> inCalendar = true
@@ -138,11 +138,12 @@ object IcsParser {
 
   private fun parseDateTime(value: String, isAllDay: Boolean): Timestamp? {
     return try {
+      val trimmedValue = value.trim()
       val date =
           when {
-            isAllDay || value.length == 8 -> dateFormat.parse(value)
-            value.endsWith("Z") -> dateTimeFormatZ.parse(value)
-            else -> dateTimeFormat.parse(value)
+            isAllDay || trimmedValue.length == 8 -> dateFormat.parse(trimmedValue)
+            trimmedValue.endsWith("Z") -> dateTimeFormatZ.parse(trimmedValue)
+            else -> dateTimeFormat.parse(trimmedValue)
           }
       date?.let { Timestamp(it.time / 1000, 0) }
     } catch (e: Exception) {
