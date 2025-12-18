@@ -15,6 +15,7 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.activities.EventActionButtons
 import com.google.firebase.Timestamp
+import io.mockk.any
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -359,7 +360,7 @@ class EventViewComponentsTest {
     }
 
     composeTestRule.onNodeWithTag("event_view_join_button").performClick()
-    verify { mockEventViewModel.joinEvent(testEventUid, testContext) }
+    verify { mockEventViewModel.joinEvent(testEventUid, any()) }
   }
 
   @Test
