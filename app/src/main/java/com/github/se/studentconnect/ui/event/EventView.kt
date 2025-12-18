@@ -472,7 +472,7 @@ private fun EventOwnerTabRow(selectedTab: EventOwnerTab, onTabSelected: (EventOw
           EventOwnerTab.STATISTICS to stringResource(R.string.tab_statistics))
   val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
 
-  TabRow(
+  PrimaryTabRow(
       selectedTabIndex = selectedIndex,
       modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.OWNER_TAB_ROW)) {
         tabs.forEachIndexed { index, (tab, title) ->
@@ -555,7 +555,6 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
               EventInfoCardSection(
                   event = params.event,
                   eventViewModel = params.eventViewModel,
-                  navController = params.navController,
                   pagerState = params.pagerState,
                   participantCount = params.participantCount,
                   coroutineScope = coroutineScope)
@@ -613,7 +612,6 @@ private fun EventImageSection(imageBitmap: ImageBitmap?) {
 private fun EventInfoCardSection(
     event: Event,
     eventViewModel: EventViewModel,
-    navController: NavHostController,
     pagerState: PagerState,
     participantCount: Int,
     coroutineScope: CoroutineScope

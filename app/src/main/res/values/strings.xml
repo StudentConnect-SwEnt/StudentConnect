@@ -477,7 +477,6 @@
     <string name="poll_notification_vote">Vote Now</string>
     <string name="button_view_polls">View Polls</string>
     <string name="button_view_statistics">View Statistics</string>
-    <string name="content_description_view_statistics">View event statistics</string>
     <string name="button_create_poll">Poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
