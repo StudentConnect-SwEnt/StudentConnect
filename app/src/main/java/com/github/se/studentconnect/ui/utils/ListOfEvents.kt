@@ -1,5 +1,6 @@
 package com.github.se.studentconnect.ui.utils
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -33,10 +34,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
+import com.github.se.studentconnect.model.organization.Organization
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.screen.home.OrganizationData
 import com.github.se.studentconnect.ui.screen.home.OrganizationSuggestions
+import com.github.se.studentconnect.ui.theme.Dimensions
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -80,14 +86,16 @@ fun LiveEventBadge(isLive: Boolean, isFlash: Boolean, modifier: Modifier = Modif
                 .background(
                     MaterialTheme.colorScheme.error.copy(alpha = C.FlashEvent.BADGE_ALPHA),
                     shape = CircleShape)
-                .padding(horizontal = 10.dp, vertical = 5.dp),
+                .padding(
+                    horizontal = Dimensions.LiveBadgeHorizontalPadding,
+                    vertical = Dimensions.LiveBadgeVerticalPadding),
         verticalAlignment = Alignment.CenterVertically) {
           Icon(
               imageVector = Icons.Filled.Circle,
               contentDescription = stringResource(R.string.content_description_live_icon),
               tint = MaterialTheme.colorScheme.onError,
-              modifier = Modifier.size(8.dp))
-          Spacer(modifier = Modifier.width(6.dp))
+              modifier = Modifier.size(Dimensions.LiveBadgeIconSize))
+          Spacer(modifier = Modifier.width(Dimensions.LiveBadgeSpacerWidth))
           Text(
               text = stringResource(R.string.event_label_live),
               color = MaterialTheme.colorScheme.onError,
@@ -143,9 +151,12 @@ fun EventListScreen(
     organizationSuggestionsConfig: OrganizationSuggestionsConfig = OrganizationSuggestionsConfig()
 ) {
   if (events.isEmpty()) {
-    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-      Text("No events found matching your criteria.", style = MaterialTheme.typography.bodyLarge)
-    }
+    Box(
+        modifier = Modifier.fillMaxSize().padding(Dimensions.SpacingNormal),
+        contentAlignment = Alignment.Center) {
+          Text(
+              "No events found matching your criteria.", style = MaterialTheme.typography.bodyLarge)
+        }
     return
   }
 
@@ -167,7 +178,12 @@ fun EventListScreen(
   LazyColumn(
       state = listState,
       modifier = Modifier.fillMaxSize().testTag("event_list"),
-      contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
+      contentPadding =
+          PaddingValues(
+              start = Dimensions.SpacingNormal,
+              end = Dimensions.SpacingNormal,
+              top = Dimensions.SpacingNormal,
+              bottom = Dimensions.SpacingNormal)) {
         topContent?.let { header -> item(key = "event_list_header") { header() } }
 
         groupedEvents.entries.forEachIndexed { index, (dateHeader, eventsOnDate) ->
@@ -194,7 +210,7 @@ fun EventListScreen(
               OrganizationSuggestions(
                   organizations = organizationSuggestionsConfig.organizations,
                   onOrganizationClick = organizationSuggestionsConfig.onOrganizationClick,
-                  modifier = Modifier.padding(vertical = 16.dp))
+                  modifier = Modifier.padding(vertical = Dimensions.SpacingNormal))
             }
           }
         }
@@ -235,6 +251,39 @@ fun EventCard(
   val context = LocalContext.current
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
   LaunchedEffect(event) { imageBitmap = loadBitmapFromEvent(context, event) }
+
+  // Fetch event creator information
+  val userRepository = UserRepositoryProvider.repository
+  val organizationRepository = OrganizationRepositoryProvider.repository
+
+  // Fetch user creator (for personal events)
+  val creator by
+      produceState<User?>(initialValue = null, event.ownerId, event.organizationId) {
+        // Only fetch user if it's not an organization event
+        if (event.organizationId == null) {
+          value =
+              runCatching { userRepository.getUserById(event.ownerId) }
+                  .onFailure {
+                    Log.e("EventCard", "Failed to fetch creator for event ${event.uid}", it)
+                  }
+                  .getOrNull()
+        } else {
+          value = null
+        }
+      }
+
+  // Fetch organization creator (for organization events)
+  val organization by
+      produceState<Organization?>(initialValue = null, event.organizationId) {
+        value =
+            event.organizationId?.let { orgId ->
+              runCatching { organizationRepository.getOrganizationById(orgId) }
+                  .onFailure {
+                    Log.e("EventCard", "Failed to fetch organization for event ${event.uid}", it)
+                  }
+                  .getOrNull()
+            }
+      }
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
@@ -243,7 +292,7 @@ fun EventCard(
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.fillMaxWidth()) {
-          Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
+          Box(modifier = Modifier.fillMaxWidth().height(Dimensions.EventCardImageHeight)) {
             if (imageBitmap != null) {
               Image(
                   bitmap = imageBitmap!!,
@@ -251,7 +300,10 @@ fun EventCard(
                       stringResource(R.string.content_description_event_card_picture),
                   modifier =
                       Modifier.fillMaxSize()
-                          .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                          .clip(
+                              RoundedCornerShape(
+                                  topStart = Dimensions.EventCardCornerRadius,
+                                  topEnd = Dimensions.EventCardCornerRadius)),
                   contentScale = ContentScale.Crop)
             } else {
               Image(
@@ -259,7 +311,10 @@ fun EventCard(
                   contentDescription = event.title,
                   modifier =
                       Modifier.fillMaxSize()
-                          .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                          .clip(
+                              RoundedCornerShape(
+                                  topStart = Dimensions.EventCardCornerRadius,
+                                  topEnd = Dimensions.EventCardCornerRadius)),
                   contentScale = ContentScale.Crop)
             }
 
@@ -292,7 +347,7 @@ fun EventCard(
                     Modifier.align(Alignment.TopStart)
                         .padding(C.FlashEvent.BADGE_OUTER_PADDING_DP.dp))
           }
-          Column(modifier = Modifier.padding(16.dp)) {
+          Column(modifier = Modifier.padding(Dimensions.EventCardContentPadding)) {
             Text(
                 text = event.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -308,7 +363,26 @@ fun EventCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = MAX_LINES_FOR_ADDRESS_TEXT,
                 overflow = TextOverflow.Ellipsis)
-            Spacer(modifier = Modifier.height(12.dp))
+            // Display organization name if it's an organization event, otherwise display user name
+            organization?.let { org ->
+              Spacer(modifier = Modifier.height(4.dp))
+              Text(
+                  text = "by ${org.name}",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.testTag("event_card_creator_${event.uid}"))
+            }
+                ?: creator?.let { user ->
+                  Spacer(modifier = Modifier.height(4.dp))
+                  Text(
+                      text =
+                          stringResource(
+                              R.string.text_event_creator_by, user.firstName, user.lastName),
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      modifier = Modifier.testTag("event_card_creator_${event.uid}"))
+                }
+            Spacer(modifier = Modifier.height(Dimensions.SpacingMedium))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -327,7 +401,7 @@ fun EventCard(
                       color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             if (event is Event.Public && event.tags.isNotEmpty()) {
-              Spacer(modifier = Modifier.height(12.dp))
+              Spacer(modifier = Modifier.height(Dimensions.SpacingMedium))
               Row(
                   horizontalArrangement = Arrangement.spacedBy(8.dp),
                   modifier = Modifier.fillMaxWidth()) {
@@ -345,8 +419,10 @@ fun Chip(tag: String) {
       modifier =
           Modifier.background(
                   color = MaterialTheme.colorScheme.surfaceVariant,
-                  shape = RoundedCornerShape(8.dp))
-              .padding(horizontal = 10.dp, vertical = 5.dp)) {
+                  shape = RoundedCornerShape(Dimensions.EventCardChipCornerRadius))
+              .padding(
+                  horizontal = Dimensions.EventCardChipHorizontalPadding,
+                  vertical = Dimensions.EventCardChipVerticalPadding)) {
         Text(
             text = tag.uppercase(),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
