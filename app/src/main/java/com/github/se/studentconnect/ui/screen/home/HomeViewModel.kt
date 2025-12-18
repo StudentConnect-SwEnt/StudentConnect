@@ -717,4 +717,12 @@ constructor(
           eventCalendar[Calendar.DAY_OF_MONTH] == calendar[Calendar.DAY_OF_MONTH]
     }
   }
+
+  suspend fun checkUserExists(userId: String): Boolean {
+    return try {
+      userRepository.getUserById(userId) != null
+    } catch (e: Exception) {
+      false
+    }
+  }
 }

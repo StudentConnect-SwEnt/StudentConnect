@@ -74,6 +74,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -110,6 +111,7 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.event.EventRepositoryProvider
 import com.github.se.studentconnect.model.friends.FriendsRepositoryProvider
+import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
@@ -132,13 +134,14 @@ import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.github.se.studentconnect.ui.utils.formatDateHeader
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
-import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -1294,14 +1297,18 @@ fun StoryItem(
 
   // Download profile picture using MediaRepository (same as profile screen)
   val context = LocalContext.current
-  var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-  LaunchedEffect(avatarUrl) {
-    imageBitmap =
-        loadBitmapFromStringUri(
-            context = context,
-            uri = avatarUrl,
-        )
-  }
+  val repository = MediaRepositoryProvider.repository
+  val imageBitmap by
+      produceState<ImageBitmap?>(initialValue = null, avatarUrl, repository) {
+        value =
+            avatarUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { // just do nothing
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
 
   Box(modifier = if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier) {
     Column(
@@ -1701,14 +1708,18 @@ fun StoryViewer(
       if (stories.isNotEmpty()) stories[currentStoryIndex].profilePictureUrl else null
 
   // Download profile picture using MediaRepository (same as profile screen)
-  var avatarBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-  LaunchedEffect(currentProfilePictureUrl) {
-    avatarBitmap =
-        loadBitmapFromStringUri(
-            context = context,
-            uri = currentProfilePictureUrl,
-        )
-  }
+  val repository = MediaRepositoryProvider.repository
+  val avatarBitmap by
+      produceState<ImageBitmap?>(initialValue = null, currentProfilePictureUrl, repository) {
+        value =
+            currentProfilePictureUrl?.let { id ->
+              runCatching { repository.download(id) }
+                  .onFailure { // just do nothing
+                  }
+                  .getOrNull()
+                  ?.let { loadBitmapFromUri(context, it, Dispatchers.IO) }
+            }
+      }
 
   AnimatedVisibility(
       visible = isVisible,
