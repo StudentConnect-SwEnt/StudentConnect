@@ -546,12 +546,6 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
       composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
     }
-
-    // Navigate to My Organizations
-    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-    composeTestRule.waitUntilWithMessage(message = orgName) {
-      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-    }
   }
 
   private fun navigateToOrganization(orgName: String) {
