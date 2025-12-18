@@ -676,7 +676,6 @@ private fun EventAdditionalActionsSection(
   if (isJoined && uiState.activePolls.isNotEmpty() && currentUserId != event.ownerId) {
     PollNotificationCard(
         onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-        onDismissClick = {},
         modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
   }
 
