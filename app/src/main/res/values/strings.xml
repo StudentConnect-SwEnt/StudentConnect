@@ -656,7 +656,6 @@
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
     <string name="notification_banner_title_event_starting">Event Starting</string>
-    <string name="notification_banner_title_event_invitation">Event Invitation</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
 

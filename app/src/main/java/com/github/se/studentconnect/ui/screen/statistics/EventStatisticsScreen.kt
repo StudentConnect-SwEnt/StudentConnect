@@ -158,7 +158,6 @@ fun EventStatisticsScreen(
 }
 
 /** Loading state with elegant progress indicator. */
-@VisibleForTesting
 @Composable
 internal fun LoadingState(modifier: Modifier = Modifier) {
   Box(modifier = modifier.testTag(C.Tag.STATS_LOADING), contentAlignment = Alignment.Center) {
@@ -178,7 +177,6 @@ internal fun LoadingState(modifier: Modifier = Modifier) {
 }
 
 /** Error state with retry option. */
-@VisibleForTesting
 @Composable
 internal fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
   Box(modifier = modifier.testTag(C.Tag.STATS_ERROR), contentAlignment = Alignment.Center) {
@@ -204,7 +202,6 @@ internal fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier
 }
 
 /** Main statistics content with animated cards. */
-@VisibleForTesting
 @Composable
 internal fun StatisticsContent(
     statistics: EventStatistics,
