@@ -59,10 +59,9 @@ import androidx.compose.ui.window.Dialog
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
+import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
-import com.github.se.studentconnect.resources.C
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -421,7 +420,7 @@ private fun UserNameHeader(
             modifier =
                 if (isVisitorMode)
                     Modifier.testTag(
-                        com.github.se.studentconnect.resources.C.Tag.visitor_profile_user_name)
+                        C.Tag.visitor_profile_user_name)
                 else Modifier)
 
         LogoutButton(
