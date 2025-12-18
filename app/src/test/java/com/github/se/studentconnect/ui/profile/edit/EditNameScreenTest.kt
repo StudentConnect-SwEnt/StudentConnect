@@ -48,11 +48,11 @@ class EditNameScreenTest {
   fun setUp() {
     repository = TestUserRepository(testUser)
     navigatedBack = false
-    
+
     mockkObject(NetworkUtils)
     every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }
-  
+
   @After
   fun tearDown() {
     unmockkAll()
@@ -355,7 +355,7 @@ class EditNameScreenTest {
 
     // Wait for error message
     composeTestRule.waitForIdle()
-    delay(300) // Give time for snackbar to appear
+    Thread.sleep(300) // Give time for snackbar to appear
 
     // Should show error message in snackbar
     composeTestRule.onNodeWithText("Network error", useUnmergedTree = true).assertExists()

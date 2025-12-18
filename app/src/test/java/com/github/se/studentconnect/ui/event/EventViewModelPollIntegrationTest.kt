@@ -67,7 +67,7 @@ class EventViewModelPollIntegrationTest {
     friendsRepository = FriendsRepositoryLocal()
     viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     AuthenticationProvider.testUserId = "test-user-id"
-    
+
     mockkObject(NetworkUtils)
     every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }

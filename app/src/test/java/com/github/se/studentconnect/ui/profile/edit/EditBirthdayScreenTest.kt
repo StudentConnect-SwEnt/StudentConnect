@@ -57,11 +57,11 @@ class EditBirthdayScreenTest {
   fun setUp() {
     repository = TestableUserRepositoryLocal(testUser)
     navigatedBack = false
-    
+
     mockkObject(NetworkUtils)
     every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }
-  
+
   @After
   fun tearDown() {
     unmockkAll()
@@ -311,7 +311,7 @@ class EditBirthdayScreenTest {
 
     // Wait for error message
     composeTestRule.waitForIdle()
-    delay(300) // Give time for snackbar to appear
+    Thread.sleep(300) // Give time for snackbar to appear
     composeTestRule.onNodeWithText("Network error", useUnmergedTree = true).assertExists()
 
     // Should NOT navigate back on error
