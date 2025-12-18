@@ -38,6 +38,7 @@
     <string name="error_failed_to_load_messages">Failed to load messages: %1$s</string>
     <string name="error_failed_to_send_message">Failed to send message: %1$s</string>
     <string name="error_failed_to_update_pin">Failed to update pin: %s</string>
+    <string name="error_unknown_viewmodel_class">Unknown ViewModel class</string>
 
     <!-- Success messages -->
     <string name="success_name_updated">Name updated successfully</string>
@@ -285,6 +286,8 @@
     <string name="tab_for_you">For You</string>
     <string name="tab_all_events">All Events</string>
     <string name="tab_discover">Discover</string>
+    <string name="tab_event">Event</string>
+    <string name="tab_statistics">Statistics</string>
     
     <!-- Toast messages -->
     <string name="toast_camera_closed">Camera closed without capturing a photo</string>
@@ -475,7 +478,6 @@
     <string name="poll_notification_vote">Vote Now</string>
     <string name="button_view_polls">View Polls</string>
     <string name="button_view_statistics">View Statistics</string>
-    <string name="content_description_view_statistics">View event statistics</string>
     <string name="button_create_poll">Poll</string>
     <string name="polls_list_screen_title">Event Polls</string>
     <string name="polls_list_no_polls">No polls available for this event</string>
@@ -656,7 +658,6 @@
     <!-- Notification banner -->
     <string name="notification_banner_title_friend_request">New Friend Request</string>
     <string name="notification_banner_title_event_starting">Event Starting</string>
-    <string name="notification_banner_title_event_invitation">Event Invitation</string>
     <string name="notification_banner_title_organization_invitation">Organization Invitation</string>
     <string name="notification_banner_dismiss">Dismiss</string>
 

@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -49,6 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
@@ -65,6 +66,10 @@ import com.github.se.studentconnect.ui.event.days
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.poll.CreatePollDialog
 import com.github.se.studentconnect.ui.screen.camera.QrScannerScreen
+import com.github.se.studentconnect.ui.screen.statistics.ErrorState
+import com.github.se.studentconnect.ui.screen.statistics.EventStatisticsViewModel
+import com.github.se.studentconnect.ui.screen.statistics.LoadingState
+import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
@@ -118,8 +123,10 @@ object EventViewTestTags {
   const val BASE_SCREEN = "event_view_base_screen"
   const val CREATE_POLL_BUTTON = "event_view_create_poll_button"
   const val VIEW_POLLS_BUTTON = "event_view_view_polls_button"
-  const val VIEW_STATISTICS_BUTTON = "event_view_view_statistics_button"
   const val POLL_NOTIFICATION_CARD = "event_view_poll_notification_card"
+  const val OWNER_TAB_ROW = "event_view_owner_tab_row"
+  const val OWNER_TAB_EVENT = "event_view_owner_tab_event"
+  const val OWNER_TAB_STATISTICS = "event_view_owner_tab_statistics"
   const val LEAVE_CONFIRMATION_DIALOG = "event_view_leave_confirmation_dialog"
   const val LEAVE_CONFIRMATION_CONFIRM = "event_view_leave_confirmation_confirm"
   const val LEAVE_CONFIRMATION_CANCEL = "event_view_leave_confirmation_cancel"
@@ -262,31 +269,18 @@ fun EventView(
                   }
             },
             actions = {
-              if (pagerState.currentPage == 1) {
-                if (isJoined ||
-                    (event != null && AuthenticationProvider.currentUser == event.ownerId)) {
-                  IconButton(
-                      onClick = {
-                        event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
-                      },
-                      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_poll),
-                            contentDescription = stringResource(R.string.button_view_polls))
-                      }
-                }
-                if (event != null && AuthenticationProvider.currentUser == event.ownerId) {
-                  IconButton(
-                      onClick = {
-                        event.let { navController.navigate(Route.eventStatistics(it.uid)) }
-                      },
-                      modifier = Modifier.testTag(EventViewTestTags.VIEW_STATISTICS_BUTTON)) {
-                        Icon(
-                            imageVector = Icons.Default.BarChart,
-                            contentDescription =
-                                stringResource(R.string.content_description_view_statistics))
-                      }
-                }
+              if (pagerState.currentPage == 1 &&
+                  (isJoined ||
+                      (event != null && AuthenticationProvider.currentUser == event.ownerId))) {
+                IconButton(
+                    onClick = {
+                      event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
+                    },
+                    modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
+                      Icon(
+                          painter = painterResource(id = R.drawable.ic_poll),
+                          contentDescription = stringResource(R.string.button_view_polls))
+                    }
               }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
@@ -328,13 +322,13 @@ fun EventView(
           contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
               CircularProgressIndicator()
-              Spacer(Modifier.height(12.dp))
+              Spacer(Modifier.height(Dimensions.SpacingMedium))
               val message =
                   uiState.errorMessage
                       ?: uiState.errorMessageRes?.let { stringResource(it) }
                       ?: stringResource(R.string.event_loading_message_pending_sync)
               Text(text = message, style = MaterialTheme.typography.bodyMedium)
-              Spacer(Modifier.height(12.dp))
+              Spacer(Modifier.height(Dimensions.SpacingMedium))
               TextButton(onClick = { eventViewModel.fetchEvent(eventUid) }) {
                 Text(stringResource(R.string.event_button_retry))
               }
@@ -352,11 +346,14 @@ private fun BaseEventView(
     pagerState: PagerState,
     snackbarHostState: SnackbarHostState
 ) {
-  val coroutineScope = rememberCoroutineScope()
   val uiState by eventViewModel.uiState.collectAsState()
   val isJoined = uiState.isJoined
   val isFull = uiState.isFull
   val participantCount = uiState.participantCount
+
+  val currentUserId = AuthenticationProvider.currentUser
+  val isOwner = currentUserId == event.ownerId
+  var selectedOwnerTab by remember { mutableStateOf(EventOwnerTab.EVENT) }
 
   val context = LocalContext.current
   var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -368,151 +365,357 @@ private fun BaseEventView(
   LaunchedEffect(event) { event.let { countDownViewModel.startCountdown(it.start) } }
 
   Box(modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.BASE_SCREEN)) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top) {
-          Box(
-              modifier =
-                  Modifier.fillMaxWidth().height(320.dp).testTag(EventViewTestTags.EVENT_IMAGE)) {
-                if (imageBitmap != null) {
-                  Image(
-                      bitmap = imageBitmap!!,
-                      contentDescription = stringResource(R.string.content_description_event_image),
-                      modifier = Modifier.fillMaxSize(),
-                      contentScale = ContentScale.Crop)
-                  // Gradient overlay for better text readability
-                  Box(
-                      modifier =
-                          Modifier.fillMaxSize()
-                              .background(
-                                  androidx.compose.ui.graphics.Brush.verticalGradient(
-                                      colors =
-                                          listOf(
-                                              androidx.compose.ui.graphics.Color.Transparent,
-                                              androidx.compose.ui.graphics.Color.Black.copy(
-                                                  alpha = 0.7f)),
-                                      startY = 0f,
-                                      endY = 1000f)))
-                } else {
-                  Box(
-                      modifier =
-                          Modifier.fillMaxSize()
-                              .background(MaterialTheme.colorScheme.secondaryContainer),
-                      contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription =
-                                stringResource(R.string.content_description_event_image),
-                            modifier = Modifier.size(80.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                      }
-                }
-              }
-
-          // Action Buttons Section - Elevated Card Style
-          Card(
-              modifier =
-                  Modifier.fillMaxWidth()
-                      .padding(horizontal = 16.dp)
-                      .offset(y = (-40).dp)
-                      .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
-              elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-              shape = RoundedCornerShape(20.dp),
-              colors =
-                  CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                      EventActionButtons(
-                          joined = isJoined,
-                          isFull = isFull,
-                          currentEvent = event,
-                          eventViewModel = eventViewModel,
-                          modifier = Modifier,
-                          navController = navController)
-                    }
-              }
-
-          // Main Content with negative margin to overlap with card
-          Column(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).offset(y = (-30).dp),
-              verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface)) {
-                      Column(
-                          modifier = Modifier.fillMaxWidth().padding(20.dp),
-                          verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            if (event is Event.Public && event.subtitle.isNotBlank()) {
-                              Text(
-                                  text = event.subtitle,
-                                  modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
-                                  style =
-                                      MaterialTheme.typography.titleMedium.copy(
-                                          fontWeight = FontWeight.SemiBold),
-                                  color = MaterialTheme.colorScheme.onSurface,
-                                  maxLines = 2,
-                                  overflow = TextOverflow.Ellipsis)
-                            }
-
-                            if (event is Event.Public && event.tags.isNotEmpty()) {
-                              EventTagsRow(tags = event.tags)
-                            }
-
-                            Text(
-                                text = stringResource(R.string.event_label_description),
-                                style = titleTextStyle())
-                            Text(
-                                text = event.description,
-                                modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                            ParticipantsInfo(
-                                event = event,
-                                participantCount = participantCount,
-                                onClick = {
-                                  coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                  coroutineScope.launch { eventViewModel.fetchAttendees() }
-                                })
-                          }
-                    }
-
-                if (isJoined &&
-                    uiState.activePolls.isNotEmpty() &&
-                    AuthenticationProvider.currentUser != event.ownerId) {
-                  PollNotificationCard(
-                      onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                      modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-                }
-
-                // Chat Button - only show if user is joined or is owner
-                if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
-                  ChatButton(event = event, navController = navController)
-                }
-
-                // Delete Event Button - only show if user is owner
-                if (AuthenticationProvider.currentUser == event.ownerId) {
-                  DeleteEventButton(
-                      onClick = { eventViewModel.showDeleteConfirmDialog() },
-                      modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-              }
-        }
+    if (!isOwner) {
+      EventDetailsContent(
+          params =
+              EventDetailsContentParams(
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  participantCount = participantCount,
+                  imageBitmap = imageBitmap,
+                  timeLeft = timeLeft))
+    } else {
+      OwnerEventTabs(
+          selectedTab = selectedOwnerTab,
+          onTabSelected = { selectedOwnerTab = it },
+          params =
+              OwnerEventTabsParams(
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState,
+                  snackbarHostState = snackbarHostState,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  participantCount = participantCount,
+                  imageBitmap = imageBitmap,
+                  timeLeft = timeLeft))
+    }
 
     // Snackbar Host
     SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+  }
+}
+
+private enum class EventOwnerTab {
+  EVENT,
+  STATISTICS
+}
+
+private data class OwnerEventTabsParams(
+    val eventViewModel: EventViewModel,
+    val event: Event,
+    val navController: NavHostController,
+    val pagerState: PagerState,
+    val snackbarHostState: SnackbarHostState,
+    val isJoined: Boolean,
+    val isFull: Boolean,
+    val participantCount: Int,
+    val imageBitmap: ImageBitmap?,
+    val timeLeft: Long
+)
+
+@Composable
+private fun OwnerEventTabs(
+    selectedTab: EventOwnerTab,
+    onTabSelected: (EventOwnerTab) -> Unit,
+    params: OwnerEventTabsParams
+) {
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Top) {
+        EventOwnerTabRow(selectedTab = selectedTab, onTabSelected = onTabSelected)
+
+        when (selectedTab) {
+          EventOwnerTab.EVENT ->
+              EventDetailsContent(
+                  params =
+                      EventDetailsContentParams(
+                          eventViewModel = params.eventViewModel,
+                          event = params.event,
+                          navController = params.navController,
+                          pagerState = params.pagerState,
+                          isJoined = params.isJoined,
+                          isFull = params.isFull,
+                          participantCount = params.participantCount,
+                          imageBitmap = params.imageBitmap,
+                          timeLeft = params.timeLeft))
+          EventOwnerTab.STATISTICS -> EventStatisticsTabContent(eventUid = params.event.uid)
+        }
+      }
+}
+
+@Composable
+private fun EventOwnerTabRow(selectedTab: EventOwnerTab, onTabSelected: (EventOwnerTab) -> Unit) {
+  val tabs =
+      listOf(
+          EventOwnerTab.EVENT to stringResource(R.string.tab_event),
+          EventOwnerTab.STATISTICS to stringResource(R.string.tab_statistics))
+  val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+
+  PrimaryTabRow(
+      selectedTabIndex = selectedIndex,
+      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.OWNER_TAB_ROW)) {
+        tabs.forEachIndexed { index, (tab, title) ->
+          val testTag =
+              when (tab) {
+                EventOwnerTab.EVENT -> EventViewTestTags.OWNER_TAB_EVENT
+                EventOwnerTab.STATISTICS -> EventViewTestTags.OWNER_TAB_STATISTICS
+              }
+          Tab(
+              selected = selectedIndex == index,
+              onClick = { onTabSelected(tab) },
+              modifier = Modifier.testTag(testTag),
+              text = {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+              })
+        }
+      }
+}
+
+private data class EventDetailsContentParams(
+    val eventViewModel: EventViewModel,
+    val event: Event,
+    val navController: NavHostController,
+    val pagerState: PagerState,
+    val isJoined: Boolean,
+    val isFull: Boolean,
+    val participantCount: Int,
+    val imageBitmap: ImageBitmap?,
+    val timeLeft: Long
+)
+
+@Composable
+private fun EventDetailsContent(params: EventDetailsContentParams) {
+  val coroutineScope = rememberCoroutineScope()
+
+  Column(
+      modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Top) {
+        EventImageSection(imageBitmap = params.imageBitmap)
+
+        // Action Buttons Section - Elevated Card Style
+        Card(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = Dimensions.SpacingNormal)
+                    .offset(y = Dimensions.EventCardOffsetNegative)
+                    .testTag(EventViewTestTags.ACTION_BUTTONS_SECTION),
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = Dimensions.EventCardElevation),
+            shape = RoundedCornerShape(Dimensions.EventCardCornerRadius),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+              Column(
+                  modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
+                  verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingMedium)) {
+                    EventActionButtons(
+                        joined = params.isJoined,
+                        isFull = params.isFull,
+                        currentEvent = params.event,
+                        eventViewModel = params.eventViewModel,
+                        modifier = Modifier,
+                        navController = params.navController)
+                  }
+            }
+
+        // Main Content with negative margin to overlap with card
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = Dimensions.SpacingNormal)
+                    .offset(y = Dimensions.EventContentOffsetNegative),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
+              CountdownCard(
+                  timeLeft = params.timeLeft, event = params.event, isJoined = params.isJoined)
+
+              EventInfoCardSection(
+                  event = params.event,
+                  eventViewModel = params.eventViewModel,
+                  pagerState = params.pagerState,
+                  participantCount = params.participantCount,
+                  coroutineScope = coroutineScope)
+
+              EventAdditionalActionsSection(
+                  event = params.event,
+                  eventViewModel = params.eventViewModel,
+                  navController = params.navController,
+                  isJoined = params.isJoined)
+            }
+      }
+}
+
+@Composable
+private fun EventImageSection(imageBitmap: ImageBitmap?) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .height(Dimensions.EventImageHeight)
+              .testTag(EventViewTestTags.EVENT_IMAGE)) {
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap,
+              contentDescription = stringResource(R.string.content_description_event_image),
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop)
+          // Gradient overlay for better text readability
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(
+                          androidx.compose.ui.graphics.Brush.verticalGradient(
+                              colors =
+                                  listOf(
+                                      androidx.compose.ui.graphics.Color.Transparent,
+                                      androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f)),
+                              startY = 0f,
+                              endY = 1000f)))
+        } else {
+          Box(
+              modifier =
+                  Modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondaryContainer),
+              contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Image,
+                    contentDescription = stringResource(R.string.content_description_event_image),
+                    modifier = Modifier.size(Dimensions.EventImageIconSize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+        }
+      }
+}
+
+@Composable
+private fun EventInfoCardSection(
+    event: Event,
+    eventViewModel: EventViewModel,
+    pagerState: PagerState,
+    participantCount: Int,
+    coroutineScope: CoroutineScope
+) {
+  Card(
+      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
+      elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.EventInfoCardElevation),
+      shape = RoundedCornerShape(Dimensions.EventInfoCardCornerRadius),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.EventInfoCardPadding),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
+              if (event is Event.Public && event.subtitle.isNotBlank()) {
+                Text(
+                    text = event.subtitle,
+                    modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
+                    style =
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis)
+              }
+
+              if (event is Event.Public && event.tags.isNotEmpty()) {
+                EventTagsRow(tags = event.tags)
+              }
+
+              Text(
+                  text = stringResource(R.string.event_label_description), style = titleTextStyle())
+              Text(
+                  text = event.description,
+                  modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
+                  style = MaterialTheme.typography.bodyLarge,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+
+              HorizontalDivider(
+                  modifier = Modifier.padding(vertical = Dimensions.EventDividerPadding))
+
+              ParticipantsInfo(
+                  event = event,
+                  participantCount = participantCount,
+                  onClick = {
+                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                    coroutineScope.launch { eventViewModel.fetchAttendees() }
+                  })
+            }
+      }
+}
+
+@Composable
+private fun EventAdditionalActionsSection(
+    event: Event,
+    eventViewModel: EventViewModel,
+    navController: NavHostController,
+    isJoined: Boolean
+) {
+  val uiState by eventViewModel.uiState.collectAsState()
+  val currentUserId = AuthenticationProvider.currentUser
+
+  if (isJoined && uiState.activePolls.isNotEmpty() && currentUserId != event.ownerId) {
+    PollNotificationCard(
+        onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+        modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+  }
+
+  if (isJoined || currentUserId == event.ownerId) {
+    ChatButton(event = event, navController = navController)
+  }
+
+  if (currentUserId == event.ownerId) {
+    DeleteEventButton(
+        onClick = { eventViewModel.showDeleteConfirmDialog() },
+        modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
+  }
+
+  Spacer(modifier = Modifier.height(Dimensions.EventSpacerHeight))
+}
+
+@Composable
+private fun EventStatisticsTabContent(
+    eventUid: String,
+) {
+  val context = LocalContext.current
+  val viewModel: EventStatisticsViewModel =
+      viewModel(
+          factory =
+              object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                  if (modelClass.isAssignableFrom(EventStatisticsViewModel::class.java)) {
+                    return EventStatisticsViewModel(getString = { id -> context.getString(id) })
+                        as T
+                  }
+                  throw IllegalArgumentException(
+                      context.getString(R.string.error_unknown_viewmodel_class))
+                }
+              })
+
+  val uiState by viewModel.uiState.collectAsState()
+
+  LaunchedEffect(eventUid) { viewModel.loadStatistics(eventUid) }
+
+  when {
+    uiState.isLoading -> {
+      LoadingState(modifier = Modifier.fillMaxSize())
+    }
+    uiState.error != null -> {
+      ErrorState(
+          message = uiState.error ?: "",
+          onRetry = { viewModel.refresh() },
+          modifier = Modifier.fillMaxSize())
+    }
+    uiState.statistics != null -> {
+      StatisticsContent(
+          statistics = uiState.statistics!!,
+          animationProgress = uiState.animationProgress,
+          paddingValues = PaddingValues(Dimensions.SpacingNormal))
+    }
   }
 }
 
@@ -524,12 +727,12 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
 
   Card(
       modifier = Modifier.fillMaxWidth(),
-      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-      shape = RoundedCornerShape(16.dp),
+      elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.EventInfoCardElevation),
+      shape = RoundedCornerShape(Dimensions.EventInfoCardCornerRadius),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall)) {
               // Countdown Timer
               when {
                 eventHasStarted && timeLeft <= 0 -> {
@@ -585,8 +788,9 @@ private fun AttendeesList(
 
   LazyColumn(
       modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.ATTENDEE_LIST),
-      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
+      contentPadding =
+          PaddingValues(horizontal = Dimensions.SpacingNormal, vertical = Dimensions.SpacingNormal),
+      verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall),
   ) {
     if (isJoined && user != null && user != owner) {
       item {
@@ -628,13 +832,13 @@ private fun AttendeesList(
 @Composable
 private fun EventTagsRow(tags: List<String>, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth().testTag(EventViewTestTags.TAGS_SECTION)) {
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(Dimensions.SpacingSmall))
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall)) {
           tags.forEach { tag ->
             Surface(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(Dimensions.EventTagCornerRadius),
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer) {
                   Text(
@@ -642,7 +846,10 @@ private fun EventTagsRow(tags: List<String>, modifier: Modifier = Modifier) {
                       style = MaterialTheme.typography.bodyMedium,
                       maxLines = 1,
                       overflow = TextOverflow.Ellipsis,
-                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                      modifier =
+                          Modifier.padding(
+                              horizontal = Dimensions.EventTagHorizontalPadding,
+                              vertical = Dimensions.EventTagVerticalPadding))
                 }
           }
         }
@@ -665,11 +872,11 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall)) {
               Icon(
                   painter = painterResource(id = R.drawable.ic_group),
                   contentDescription = stringResource(R.string.content_description_participants),
-                  modifier = Modifier.size(24.dp))
+                  modifier = Modifier.size(Dimensions.IconSizeMedium))
               val participantsText =
                   if (capacity != null) {
                     "$participantCount / $capacity"
@@ -680,10 +887,13 @@ private fun ParticipantsInfo(event: Event, participantCount: Int, onClick: () ->
             }
         capacity?.let { maxCap ->
           val progress = (participantCount.toFloat() / maxCap.toFloat()).coerceIn(0f, 1f)
-          Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(Dimensions.SpacingSmall))
           LinearProgressIndicator(
               progress = { progress },
-              modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)),
+              modifier =
+                  Modifier.fillMaxWidth()
+                      .height(Dimensions.EventProgressHeight)
+                      .clip(RoundedCornerShape(Dimensions.EventProgressCornerRadius)),
               color =
                   if (progress < 0.75f) MaterialTheme.colorScheme.primary
                   else MaterialTheme.colorScheme.error,
@@ -773,103 +983,117 @@ fun EventActionButtons(
   val currentUserId = AuthenticationProvider.currentUser
   val isOwner = currentUserId == currentEvent.ownerId
 
-  Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    if (isOwner) {
-      // First row: Blue textual buttons with icons (Create Poll, Scan, Edit)
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(
-            onClick = { eventViewModel.showCreatePollDialog() },
-            modifier =
-                Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.CREATE_POLL_BUTTON),
-            colors =
-                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-              Row(
-                  horizontalArrangement = Arrangement.Center,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_poll),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(stringResource(R.string.button_create_poll), maxLines = 1)
-                  }
-            }
+  Column(
+      modifier = modifier.fillMaxWidth(),
+      verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingMedium)) {
+        if (isOwner) {
+          // First row: Blue textual buttons with icons (Create Poll, Scan, Edit)
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingSmall)) {
+                Button(
+                    onClick = { eventViewModel.showCreatePollDialog() },
+                    modifier =
+                        Modifier.weight(1f)
+                            .height(Dimensions.ButtonHeightSmall)
+                            .testTag(EventViewTestTags.CREATE_POLL_BUTTON),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary)) {
+                      Row(
+                          horizontalArrangement = Arrangement.Center,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_poll),
+                                contentDescription = null,
+                                modifier = Modifier.size(Dimensions.EventButtonIconSize))
+                            Spacer(modifier = Modifier.width(Dimensions.EventButtonIconSpacing))
+                            Text(stringResource(R.string.button_create_poll), maxLines = 1)
+                          }
+                    }
 
-        Button(
-            onClick = { eventViewModel.showQrScanner() },
-            modifier = Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON),
-            colors =
-                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-              Row(
-                  horizontalArrangement = Arrangement.Center,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.QrCodeScanner,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(stringResource(R.string.button_scan), maxLines = 1)
-                  }
-            }
+                Button(
+                    onClick = { eventViewModel.showQrScanner() },
+                    modifier =
+                        Modifier.weight(1f)
+                            .height(Dimensions.ButtonHeightSmall)
+                            .testTag(EventViewTestTags.SCAN_QR_BUTTON),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary)) {
+                      Row(
+                          horizontalArrangement = Arrangement.Center,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = null,
+                                modifier = Modifier.size(Dimensions.EventButtonIconSize))
+                            Spacer(modifier = Modifier.width(Dimensions.EventButtonIconSpacing))
+                            Text(stringResource(R.string.button_scan), maxLines = 1)
+                          }
+                    }
 
-        val editRoute =
-            when (currentEvent) {
-              is Event.Public -> Route.editPublicEvent(currentEvent.uid)
-              is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
-            }
+                val editRoute =
+                    when (currentEvent) {
+                      is Event.Public -> Route.editPublicEvent(currentEvent.uid)
+                      is Event.Private -> Route.editPrivateEvent(currentEvent.uid)
+                    }
 
-        Button(
-            onClick = { navController.navigate(editRoute) },
-            modifier =
-                Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.EDIT_EVENT_BUTTON),
-            colors =
-                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-              Row(
-                  horizontalArrangement = Arrangement.Center,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(stringResource(R.string.button_edit), maxLines = 1)
-                  }
-            }
+                Button(
+                    onClick = { navController.navigate(editRoute) },
+                    modifier =
+                        Modifier.weight(1f)
+                            .height(Dimensions.ButtonHeightSmall)
+                            .testTag(EventViewTestTags.EDIT_EVENT_BUTTON),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary)) {
+                      Row(
+                          horizontalArrangement = Arrangement.Center,
+                          verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = null,
+                                modifier = Modifier.size(Dimensions.EventButtonIconSize))
+                            Spacer(modifier = Modifier.width(Dimensions.EventButtonIconSpacing))
+                            Text(stringResource(R.string.button_edit), maxLines = 1)
+                          }
+                    }
+              }
+
+          // Second row: Circular icon buttons (invite, location, website, share)
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingMedium),
+              verticalAlignment = Alignment.CenterVertically) {
+                if (currentEvent is Event.Private) {
+                  ButtonIcon(
+                      id = R.drawable.ic_group,
+                      onClick = { eventViewModel.showInviteFriendsDialog() },
+                      modifier = Modifier.testTag("event_view_invite_friends_button"))
+                }
+
+                CommonActionButtons(
+                    currentEvent = currentEvent, context = context, navController = navController)
+              }
+        } else {
+          // Non-owner: Join/Leave button
+          NonOwnerActionButtons(
+              joined = joined,
+              isFull = isFull,
+              currentEvent = currentEvent,
+              eventViewModel = eventViewModel)
+
+          // Second row: Circular icon buttons (location, website, share)
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(Dimensions.SpacingMedium),
+              verticalAlignment = Alignment.CenterVertically) {
+                CommonActionButtons(
+                    currentEvent = currentEvent, context = context, navController = navController)
+              }
+        }
       }
-
-      // Second row: Circular icon buttons (invite, location, website, share)
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-          verticalAlignment = Alignment.CenterVertically) {
-            if (currentEvent is Event.Private) {
-              ButtonIcon(
-                  id = R.drawable.ic_group,
-                  onClick = { eventViewModel.showInviteFriendsDialog() },
-                  modifier = Modifier.testTag("event_view_invite_friends_button"))
-            }
-
-            CommonActionButtons(
-                currentEvent = currentEvent, context = context, navController = navController)
-          }
-    } else {
-      // Non-owner: Join/Leave button
-      NonOwnerActionButtons(
-          joined = joined,
-          isFull = isFull,
-          currentEvent = currentEvent,
-          eventViewModel = eventViewModel)
-
-      // Second row: Circular icon buttons (location, website, share)
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-          verticalAlignment = Alignment.CenterVertically) {
-            CommonActionButtons(
-                currentEvent = currentEvent, context = context, navController = navController)
-          }
-    }
-  }
 }
 
 /** Non-owner action buttons (Join/Leave) */
@@ -897,7 +1121,7 @@ private fun NonOwnerActionButtons(
       },
       modifier =
           Modifier.fillMaxWidth()
-              .height(56.dp)
+              .height(Dimensions.ButtonHeight)
               .testTag(
                   if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
                   else EventViewTestTags.JOIN_BUTTON),
@@ -1023,13 +1247,13 @@ private fun ButtonIcon(onClick: () -> Unit, id: Int, modifier: Modifier = Modifi
       onClick = onClick,
       modifier =
           modifier
-              .size(48.dp)
+              .size(Dimensions.EventCircularButtonSize)
               .clip(CircleShape)
               .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
         Icon(
             painter = painterResource(id = id),
             contentDescription = stringResource(R.string.content_description_action_button),
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(Dimensions.IconSizeMedium),
             tint = MaterialTheme.colorScheme.onPrimaryContainer)
       }
 }
@@ -1053,7 +1277,7 @@ private fun QrScannerDialog(
                 .fillMaxHeight(0.7f)
                 .testTag(EventViewTestTags.QR_SCANNER_DIALOG),
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(16.dp)) {
+        shape = RoundedCornerShape(Dimensions.EventQrDialogCornerRadius)) {
           Box(modifier = Modifier.fillMaxSize()) {
             QrScannerScreen(
                 onBackClick = onDismiss,
@@ -1085,13 +1309,15 @@ private fun ValidationResultOverlay(
           Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
       contentAlignment = Alignment.Center) {
         Card(
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier.padding(Dimensions.EventQrDialogPadding),
             colors =
                 CardDefaults.cardColors(containerColor = getValidationContainerColor(result))) {
               Column(
-                  modifier = Modifier.padding(24.dp).testTag(getValidationTestTag(result)),
+                  modifier =
+                      Modifier.padding(Dimensions.EventQrDialogContentPadding)
+                          .testTag(getValidationTestTag(result)),
                   horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                  verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
                     ValidationIcon(result = result)
                     ValidationTitle(result = result)
                     ValidationMessage(result = result)
@@ -1120,7 +1346,7 @@ private fun ValidationIcon(result: TicketValidationResult) {
   Icon(
       painter = painterResource(id = iconRes),
       contentDescription = null,
-      modifier = Modifier.size(64.dp),
+      modifier = Modifier.size(Dimensions.EventValidationIconSize),
       tint = getValidationContentColor(result))
 }
 
@@ -1188,11 +1414,11 @@ private fun AttendeeItem(
           modifier
               .fillMaxWidth()
               .clickable(onClick = onClick)
-              .padding(vertical = 8.dp, horizontal = 16.dp),
+              .padding(vertical = Dimensions.SpacingSmall, horizontal = Dimensions.SpacingNormal),
       verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier =
-                Modifier.size(56.dp)
+                Modifier.size(Dimensions.EventProfileImageSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center) {
@@ -1201,14 +1427,14 @@ private fun AttendeeItem(
                     bitmap = imageBitmap!!,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
-                    modifier = Modifier.size(56.dp).clip(CircleShape),
+                    modifier = Modifier.size(Dimensions.EventProfileImageSize).clip(CircleShape),
                     contentScale = ContentScale.Crop)
               } else {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription =
                         stringResource(R.string.content_description_friend_profile_picture),
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(Dimensions.EventProfileIconSize),
                     tint = MaterialTheme.colorScheme.primary)
               }
             }
@@ -1250,11 +1476,16 @@ private fun PollNotificationCard(onVoteNowClick: () -> Unit, modifier: Modifier 
       modifier =
           modifier
               .fillMaxWidth()
-              .padding(start = screenPadding, end = screenPadding, top = 8.dp, bottom = 8.dp),
+              .padding(
+                  start = screenPadding,
+                  end = screenPadding,
+                  top = Dimensions.EventPollCardPadding,
+                  bottom = Dimensions.EventPollCardPadding),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-      elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
+      elevation =
+          CardDefaults.cardElevation(defaultElevation = Dimensions.EventInfoCardElevation)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Column(modifier = Modifier.weight(1f)) {
@@ -1263,7 +1494,7 @@ private fun PollNotificationCard(onVoteNowClick: () -> Unit, modifier: Modifier 
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer)
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Dimensions.SpacingTiny))
                 Text(
                     text = stringResource(R.string.poll_notification_message),
                     style = MaterialTheme.typography.bodyMedium,
