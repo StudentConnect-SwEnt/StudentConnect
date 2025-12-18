@@ -385,4 +385,21 @@ class NavigationTest {
     val route2 = Route.eventChat("")
     assertEquals("eventChat/", route2)
   }
+
+  @Test
+  fun `Route organizationProfileEdit returns correct route`() {
+    val route = Route.organizationProfileEdit("org123")
+    assertEquals("organizationProfileEdit/org123", route)
+  }
+
+  @Test
+  fun `Route ORGANIZATION_PROFILE_EDIT constant contains organizationId parameter`() {
+    assertTrue(Route.ORGANIZATION_PROFILE_EDIT.contains("{organizationId}"))
+  }
+
+  @Test
+  fun `Route organizationProfileEdit handles special characters in ID`() {
+    val route = Route.organizationProfileEdit("org-123-abc")
+    assertEquals("organizationProfileEdit/org-123-abc", route)
+  }
 }

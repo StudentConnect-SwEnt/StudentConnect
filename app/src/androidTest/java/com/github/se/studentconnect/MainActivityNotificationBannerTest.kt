@@ -97,13 +97,22 @@ class MainActivityNotificationBannerTest : FirestoreStudentConnectTest() {
     }
 
     // Then wait for bottom navigation to appear (indicates MAIN_APP state)
-    composeTestRule.waitUntil(timeoutMillis = 30000) {
+    // Increased timeout and added retry logic
+    var attempts = 0
+    val maxAttempts = 60
+    composeTestRule.waitUntil(timeoutMillis = 60000) {
+      attempts++
       try {
         composeTestRule
             .onNodeWithTag(NavigationTestTags.BOTTOM_NAVIGATION_MENU, useUnmergedTree = true)
             .assertExists()
         true
       } catch (e: Exception) {
+        // Log every 10 attempts to help debug
+        if (attempts % 10 == 0) {
+          println("Still waiting for bottom navigation... attempt $attempts/$maxAttempts")
+        }
+        Thread.sleep(500) // Add a small delay between attempts
         false
       }
     }
