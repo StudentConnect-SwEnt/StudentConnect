@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
-import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.User
@@ -51,7 +50,6 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 import kotlin.random.Random
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Shared composable for displaying live event badge (flash icon or LIVE text). This eliminates code
