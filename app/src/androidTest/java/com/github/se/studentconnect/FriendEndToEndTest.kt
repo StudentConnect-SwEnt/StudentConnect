@@ -17,7 +17,6 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.activities.EventViewTestTags
-import com.github.se.studentconnect.ui.eventcreation.CreatePublicEventScreenTestTags
 import com.github.se.studentconnect.ui.navigation.NavigationTestTags
 import com.github.se.studentconnect.utils.FirebaseEmulator
 import com.github.se.studentconnect.utils.FirestoreStudentConnectTest
@@ -310,7 +309,10 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
               .isNotEmpty()
         }
 
-    composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).performScrollTo().performClick()
+    composeTestRule
+        .onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO)
+        .performScrollTo()
+        .performClick()
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 20_039, message = "participants page to become active") {
@@ -336,15 +338,16 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 30_030, message = "attendee $fullName to appear in list") {
-          composeTestRule.onAllNodes(attendeeMatcher, useUnmergedTree = true).fetchSemanticsNodes()
+          composeTestRule
+              .onAllNodes(attendeeMatcher, useUnmergedTree = true)
+              .fetchSemanticsNodes()
               .isNotEmpty()
         }
 
     composeTestRule.onAllNodes(attendeeMatcher, useUnmergedTree = true).onFirst().performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_032,
-        message = "visitor profile to open for attendee $fullName") {
+        timeoutMillis = 20_032, message = "visitor profile to open for attendee $fullName") {
           composeTestRule
               .onAllNodesWithTag(C.Tag.visitor_profile_screen)
               .fetchSemanticsNodes()
@@ -380,10 +383,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
   private fun acceptFriendRequestFrom(fromUserFullName: String) {
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 20_033, message = "notification button to be visible") {
-          composeTestRule
-              .onAllNodesWithTag("NotificationButton")
-              .fetchSemanticsNodes()
-              .isNotEmpty()
+          composeTestRule.onAllNodesWithTag("NotificationButton").fetchSemanticsNodes().isNotEmpty()
         }
 
     composeTestRule.onNodeWithTag("NotificationButton").performClick()
@@ -401,13 +401,16 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
     val acceptButtonMatcher =
         SemanticsMatcher("accept notification button") {
-          it.config.getOrNull(SemanticsProperties.TestTag)
+          it.config
+              .getOrNull(SemanticsProperties.TestTag)
               ?.startsWith(C.Tag.accept_notification_button_prefix) == true
         }
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 20_035, message = "accept friend request button to appear") {
-          composeTestRule.onAllNodes(acceptButtonMatcher, useUnmergedTree = true).fetchSemanticsNodes()
+          composeTestRule
+              .onAllNodes(acceptButtonMatcher, useUnmergedTree = true)
+              .fetchSemanticsNodes()
               .isNotEmpty()
         }
 
@@ -434,7 +437,9 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
     composeTestRule.waitUntilWithMessage(
         timeoutMillis = 20_036, message = "friends stat to be visible on profile") {
-          composeTestRule.onAllNodes(friendsStatMatcher, useUnmergedTree = true).fetchSemanticsNodes()
+          composeTestRule
+              .onAllNodes(friendsStatMatcher, useUnmergedTree = true)
+              .fetchSemanticsNodes()
               .isNotEmpty()
         }
 
