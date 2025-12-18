@@ -35,7 +35,9 @@ import androidx.navigation.NavHostController
 import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.media.MediaRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
 import com.github.se.studentconnect.ui.navigation.Route
@@ -258,7 +260,7 @@ fun EventCard(
 
   // Fetch user creator (for personal events)
   val creator by
-      produceState<com.github.se.studentconnect.model.user.User?>(
+      produceState<User?>(
           initialValue = null, event.ownerId, event.organizationId) {
             // Only fetch user if it's not an organization event
             if (event.organizationId == null) {
@@ -275,7 +277,7 @@ fun EventCard(
 
   // Fetch organization creator (for organization events)
   val organization by
-      produceState<com.github.se.studentconnect.model.organization.Organization?>(
+      produceState<Organization?>(
           initialValue = null, event.organizationId) {
             value =
                 event.organizationId?.let { orgId ->
