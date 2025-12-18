@@ -75,6 +75,7 @@ import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private val screenPadding = 25.dp
