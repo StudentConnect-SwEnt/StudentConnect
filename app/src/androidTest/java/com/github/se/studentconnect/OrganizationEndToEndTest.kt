@@ -14,6 +14,7 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -191,6 +192,11 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
   @NoAnonymousSignIn
   @Test
   fun organizationCompleteLifecycle() {
+    // Ensure no stale repository overrides from other tests (CI runs all tests in one process)
+    OrganizationRepositoryProvider.cleanOverrideForTests()
+    MediaRepositoryProvider.cleanOverrideForTests()
+    NotificationRepositoryProvider.cleanOverrideForTests()
+
     // Override MediaRepository and NotificationRepository
     MediaRepositoryProvider.overrideForTests(FakeMediaRepository())
     NotificationRepositoryProvider.overrideForTests(FakeNotificationRepository())
