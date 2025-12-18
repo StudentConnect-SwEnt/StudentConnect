@@ -35,8 +35,8 @@ import com.github.se.studentconnect.R
 import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.ui.navigation.Route
 import com.github.se.studentconnect.ui.profile.JoinedEventsViewModel
-import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.TopSnackbarHost
+import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import java.text.SimpleDateFormat
 import java.util.Locale
 

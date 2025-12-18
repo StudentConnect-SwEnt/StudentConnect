@@ -71,7 +71,6 @@ import com.github.se.studentconnect.ui.screen.statistics.LoadingState
 import com.github.se.studentconnect.ui.screen.statistics.StatisticsContent
 import com.github.se.studentconnect.ui.theme.Dimensions
 import com.github.se.studentconnect.ui.utils.TopSnackbarHost
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.Timestamp

@@ -60,9 +60,8 @@ import com.github.se.studentconnect.ui.profile.EditableProfileField
 import com.github.se.studentconnect.ui.profile.EditableProfileFieldMultiline
 import com.github.se.studentconnect.ui.profile.EditingField
 import com.github.se.studentconnect.ui.profile.ProfileViewModel
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.github.se.studentconnect.ui.utils.TopSnackbarHost
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.collections.joinToString
 

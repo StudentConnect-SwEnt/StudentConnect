@@ -130,12 +130,11 @@ import com.github.se.studentconnect.ui.utils.OrganizationSuggestionsConfig
 import com.github.se.studentconnect.ui.utils.Panel
 import com.github.se.studentconnect.ui.utils.TopSnackbarHost
 import com.github.se.studentconnect.ui.utils.formatDateHeader
-import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
-import com.github.se.studentconnect.utils.NetworkUtils
 import com.github.se.studentconnect.ui.utils.loadBitmapFromEvent
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromStringUri
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
