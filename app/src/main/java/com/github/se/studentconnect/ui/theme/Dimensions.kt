@@ -65,4 +65,19 @@ object Dimensions {
   val EventDividerPadding = 8.dp
   val EventPollCardPadding = 8.dp
   val EventPollCardSpacing = 4.dp
+
+  // Event Card specific (for list views)
+  val EventCardImageHeight = 180.dp
+  val EventCardBottomPadding = 16.dp
+  val EventCardContentPadding = 16.dp
+  val EventCardFavoriteButtonSize = 36.dp
+  val EventCardFavoriteButtonPadding = 8.dp
+  val EventCardChipCornerRadius = 8.dp
+  val EventCardChipHorizontalPadding = 10.dp
+  val EventCardChipVerticalPadding = 5.dp
+  val EventCardTagSpacing = 8.dp
+  val LiveBadgeHorizontalPadding = 10.dp
+  val LiveBadgeVerticalPadding = 5.dp
+  val LiveBadgeIconSize = 8.dp
+  val LiveBadgeSpacerWidth = 6.dp
 }
