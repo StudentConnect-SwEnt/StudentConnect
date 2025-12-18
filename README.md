@@ -87,6 +87,10 @@ cd StudentConnect
 - **Lint:** `./gradlew lintNormalDebug`
 - **Coverage:** `./gradlew jacocoTestReport` (optionally set `-PcoverageFlavor=resOverride`).
 
+## Quality
+
+- 5 end-to-end journeys covered: event creation from template, user flow, friend flow, search flow, organization flow.
+
 ## Team
 
 | Name |
