@@ -20,6 +20,7 @@ import com.github.se.studentconnect.model.poll.PollRepositoryProvider
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
+import com.github.se.studentconnect.utils.NetworkUtils
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -155,11 +156,10 @@ class EventViewModel(
     val currentUserUid = AuthenticationProvider.currentUser
 
     // Check network and show snackbar if offline
-    val isOffline = !com.github.se.studentconnect.utils.NetworkUtils.isNetworkAvailable(context)
+    val isOffline = !NetworkUtils.isNetworkAvailable(context)
     if (isOffline) {
       viewModelScope.launch {
-        _snackbarMessage.emit(
-            context.getString(com.github.se.studentconnect.R.string.offline_no_internet_message))
+        _snackbarMessage.emit(context.getString(R.string.offline_no_internet_message))
       }
       return
     }
