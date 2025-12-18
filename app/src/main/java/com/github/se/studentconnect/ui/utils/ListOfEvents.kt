@@ -260,35 +260,32 @@ fun EventCard(
 
   // Fetch user creator (for personal events)
   val creator by
-      produceState<User?>(
-          initialValue = null, event.ownerId, event.organizationId) {
-            // Only fetch user if it's not an organization event
-            if (event.organizationId == null) {
-              value =
-                  runCatching { userRepository.getUserById(event.ownerId) }
-                      .onFailure {
-                        Log.e("EventCard", "Failed to fetch creator for event ${event.uid}", it)
-                      }
-                      .getOrNull()
-            } else {
-              value = null
-            }
-          }
+      produceState<User?>(initialValue = null, event.ownerId, event.organizationId) {
+        // Only fetch user if it's not an organization event
+        if (event.organizationId == null) {
+          value =
+              runCatching { userRepository.getUserById(event.ownerId) }
+                  .onFailure {
+                    Log.e("EventCard", "Failed to fetch creator for event ${event.uid}", it)
+                  }
+                  .getOrNull()
+        } else {
+          value = null
+        }
+      }
 
   // Fetch organization creator (for organization events)
   val organization by
-      produceState<Organization?>(
-          initialValue = null, event.organizationId) {
-            value =
-                event.organizationId?.let { orgId ->
-                  runCatching { organizationRepository.getOrganizationById(orgId) }
-                      .onFailure {
-                        Log.e(
-                            "EventCard", "Failed to fetch organization for event ${event.uid}", it)
-                      }
-                      .getOrNull()
-                }
-          }
+      produceState<Organization?>(initialValue = null, event.organizationId) {
+        value =
+            event.organizationId?.let { orgId ->
+              runCatching { organizationRepository.getOrganizationById(orgId) }
+                  .onFailure {
+                    Log.e("EventCard", "Failed to fetch organization for event ${event.uid}", it)
+                  }
+                  .getOrNull()
+            }
+      }
   Card(
       onClick = onClick,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("event_card_${event.uid}"),
