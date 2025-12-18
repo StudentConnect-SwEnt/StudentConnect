@@ -997,7 +997,9 @@ fun EventActionButtons(
                 Button(
                     onClick = { eventViewModel.showQrScanner() },
                     modifier =
-                        Modifier.weight(1f).height(48.dp).testTag(EventViewTestTags.SCAN_QR_BUTTON),
+                        Modifier.weight(1f)
+                            .height(Dimensions.ButtonHeightSmall)
+                            .testTag(EventViewTestTags.SCAN_QR_BUTTON),
                     colors =
                         ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary)) {
