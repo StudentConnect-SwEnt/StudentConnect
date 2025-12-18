@@ -1117,7 +1117,7 @@ private fun NonOwnerActionButtons(
   val canLeave = joined && !eventIsOver
   val context = LocalContext.current
 
-    Button(
+  Button(
       onClick = {
         if (canLeave) {
           eventViewModel.showLeaveConfirmDialog()
