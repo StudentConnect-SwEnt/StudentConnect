@@ -15,12 +15,12 @@ import com.github.se.studentconnect.model.event.Event
 import com.github.se.studentconnect.model.location.Location
 import com.github.se.studentconnect.ui.activities.EventActionButtons
 import com.google.firebase.Timestamp
-import io.mockk.any
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
+import io.mockk.any
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
