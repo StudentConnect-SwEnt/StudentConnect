@@ -12,8 +12,12 @@ import com.github.se.studentconnect.model.poll.Poll
 import com.github.se.studentconnect.model.poll.PollOption
 import com.github.se.studentconnect.model.poll.PollRepositoryLocal
 import com.github.se.studentconnect.model.user.UserRepositoryLocal
+import com.github.se.studentconnect.utils.NetworkUtils
 import com.google.firebase.Timestamp
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNotNull
@@ -63,12 +67,16 @@ class EventViewModelPollIntegrationTest {
     friendsRepository = FriendsRepositoryLocal()
     viewModel = EventViewModel(eventRepository, userRepository, pollRepository, friendsRepository)
     AuthenticationProvider.testUserId = "test-user-id"
+    
+    mockkObject(NetworkUtils)
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
     AuthenticationProvider.testUserId = null
+    unmockkAll()
   }
 
   @Test

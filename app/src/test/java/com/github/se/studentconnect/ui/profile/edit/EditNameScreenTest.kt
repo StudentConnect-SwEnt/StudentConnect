@@ -8,7 +8,12 @@ import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepository
 import com.github.se.studentconnect.ui.profile.ProfileConstants
 import com.github.se.studentconnect.ui.screen.profile.edit.EditNameScreen
+import com.github.se.studentconnect.utils.NetworkUtils
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.delay
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +48,14 @@ class EditNameScreenTest {
   fun setUp() {
     repository = TestUserRepository(testUser)
     navigatedBack = false
+    
+    mockkObject(NetworkUtils)
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
+  }
+  
+  @After
+  fun tearDown() {
+    unmockkAll()
   }
 
   @Test
@@ -342,9 +355,10 @@ class EditNameScreenTest {
 
     // Wait for error message
     composeTestRule.waitForIdle()
+    delay(300) // Give time for snackbar to appear
 
     // Should show error message in snackbar
-    composeTestRule.onNodeWithText("Network error").assertExists()
+    composeTestRule.onNodeWithText("Network error", useUnmergedTree = true).assertExists()
 
     // Should NOT navigate back
     assert(!navigatedBack)

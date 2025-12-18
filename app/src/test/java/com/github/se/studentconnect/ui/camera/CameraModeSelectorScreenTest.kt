@@ -13,6 +13,7 @@ import com.github.se.studentconnect.ui.screen.camera.StoryUploadCallbacks
 import com.github.se.studentconnect.ui.screen.camera.StoryUploadParams
 import com.github.se.studentconnect.ui.screen.camera.handleStoryUpload
 import com.github.se.studentconnect.util.MainDispatcherRule
+import com.github.se.studentconnect.utils.NetworkUtils
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -62,6 +63,9 @@ class CameraModeSelectorScreenTest {
     storyAccepted = false
 
     mockkObject(AuthenticationProvider)
+    mockkObject(NetworkUtils)
+    // Default to network available for all tests
+    every { NetworkUtils.isNetworkAvailable(any()) } returns true
   }
 
   @After
