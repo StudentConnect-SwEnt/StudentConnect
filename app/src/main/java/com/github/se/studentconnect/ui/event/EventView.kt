@@ -402,7 +402,8 @@ private fun BaseEventView(
     }
 
     // Snackbar Host
-    TopSnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    TopSnackbarHost(
+        hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
   }
 }
 
