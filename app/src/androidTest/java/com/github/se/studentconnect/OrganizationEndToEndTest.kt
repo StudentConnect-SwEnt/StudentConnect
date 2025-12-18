@@ -421,11 +421,8 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
       composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
     }
 
-    // Navigate to My Organizations
-    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
-      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-    }
+    // Navigate to My Organizations and retry if needed
+    ensureOrganizationVisible(orgName)
 
     composeTestRule
         .onNode(hasContentDescription("pin", substring = true, ignoreCase = true))
@@ -555,11 +552,7 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
       composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
     }
 
-    // Navigate to My Organizations
-    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
-      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-    }
+    ensureOrganizationVisible(orgName)
 
     // Click on the Organization
     composeTestRule.onNodeWithText(orgName).performClick()
@@ -594,5 +587,35 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
             lastName = "$username last name",
             university = "EPFL",
             hobbies = listOf("Music", "Running")))
+  }
+
+  private fun ensureOrganizationVisible(orgName: String) {
+    val maxRetries = 5
+    var attempts = 0
+    while (attempts < maxRetries) {
+      // Navigate to My Organizations
+      composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
+
+      // Check if org is visible
+      try {
+        composeTestRule.waitUntil(timeoutMillis = 2000) {
+          composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
+        }
+        return // Found it!
+      } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
+        // Not found, go back and retry
+        composeTestRule.onNodeWithContentDescription("Back").performClick()
+        // Wait for Profile screen to be ready before retrying
+        composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
+          composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
+        }
+        attempts++
+      }
+    }
+    // Final attempt or fail
+    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
+    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
+      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
+    }
   }
 }
