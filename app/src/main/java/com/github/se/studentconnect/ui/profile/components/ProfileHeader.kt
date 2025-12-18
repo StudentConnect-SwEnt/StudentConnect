@@ -418,10 +418,7 @@ private fun UserNameHeader(
             fontSize = dimensionResource(R.dimen.profile_name_text_size).value.sp,
             color = MaterialTheme.colorScheme.onSurface,
             modifier =
-                if (isVisitorMode)
-                    Modifier.testTag(
-                        C.Tag.visitor_profile_user_name)
-                else Modifier)
+                if (isVisitorMode) Modifier.testTag(C.Tag.visitor_profile_user_name) else Modifier)
 
         LogoutButton(
             isVisitorMode = isVisitorMode, onLogoutClick = onLogoutClick, showDialog = showDialog)
