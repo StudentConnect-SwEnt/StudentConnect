@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -270,19 +271,18 @@ fun EventView(
                   }
             },
             actions = {
-              if (pagerState.currentPage == 1) {
-                if (isJoined ||
-                    (event != null && AuthenticationProvider.currentUser == event.ownerId)) {
-                  IconButton(
-                      onClick = {
-                        event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
-                      },
-                      modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_poll),
-                            contentDescription = stringResource(R.string.button_view_polls))
-                      }
-                }
+              if (pagerState.currentPage == 1 &&
+                  (isJoined ||
+                      (event != null && AuthenticationProvider.currentUser == event.ownerId))) {
+                IconButton(
+                    onClick = {
+                      event?.let { navController.navigate(Route.pollsListScreen(it.uid)) }
+                    },
+                    modifier = Modifier.testTag(EventViewTestTags.VIEW_POLLS_BUTTON)) {
+                      Icon(
+                          painter = painterResource(id = R.drawable.ic_poll),
+                          contentDescription = stringResource(R.string.button_view_polls))
+                    }
               }
             },
             modifier = Modifier.testTag(EventViewTestTags.TOP_APP_BAR),
@@ -348,7 +348,6 @@ private fun BaseEventView(
     pagerState: PagerState,
     snackbarHostState: SnackbarHostState
 ) {
-  val coroutineScope = rememberCoroutineScope()
   val uiState by eventViewModel.uiState.collectAsState()
   val isJoined = uiState.isJoined
   val isFull = uiState.isFull
@@ -386,7 +385,6 @@ private fun BaseEventView(
           event = event,
           navController = navController,
           pagerState = pagerState,
-          snackbarHostState = snackbarHostState,
           isJoined = isJoined,
           isFull = isFull,
           participantCount = participantCount,
@@ -396,16 +394,18 @@ private fun BaseEventView(
       OwnerEventTabs(
           selectedTab = selectedOwnerTab,
           onTabSelected = { selectedOwnerTab = it },
-          eventViewModel = eventViewModel,
-          event = event,
-          navController = navController,
-          pagerState = pagerState,
-          snackbarHostState = snackbarHostState,
-          isJoined = isJoined,
-          isFull = isFull,
-          participantCount = participantCount,
-          imageBitmap = imageBitmap,
-          timeLeft = timeLeft)
+          params =
+              OwnerEventTabsParams(
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState,
+                  snackbarHostState = snackbarHostState,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  participantCount = participantCount,
+                  imageBitmap = imageBitmap,
+                  timeLeft = timeLeft))
     }
 
     // Snackbar Host
@@ -418,20 +418,24 @@ private enum class EventOwnerTab {
   STATISTICS
 }
 
+private data class OwnerEventTabsParams(
+    val eventViewModel: EventViewModel,
+    val event: Event,
+    val navController: NavHostController,
+    val pagerState: PagerState,
+    val snackbarHostState: SnackbarHostState,
+    val isJoined: Boolean,
+    val isFull: Boolean,
+    val participantCount: Int,
+    val imageBitmap: ImageBitmap?,
+    val timeLeft: Long
+)
+
 @Composable
 private fun OwnerEventTabs(
     selectedTab: EventOwnerTab,
     onTabSelected: (EventOwnerTab) -> Unit,
-    eventViewModel: EventViewModel,
-    event: Event,
-    navController: NavHostController,
-    pagerState: PagerState,
-    snackbarHostState: SnackbarHostState,
-    isJoined: Boolean,
-    isFull: Boolean,
-    participantCount: Int,
-    imageBitmap: ImageBitmap?,
-    timeLeft: Long
+    params: OwnerEventTabsParams
 ) {
   Column(
       modifier = Modifier.fillMaxSize(),
@@ -442,18 +446,16 @@ private fun OwnerEventTabs(
         when (selectedTab) {
           EventOwnerTab.EVENT ->
               EventDetailsContent(
-                  eventViewModel = eventViewModel,
-                  event = event,
-                  navController = navController,
-                  pagerState = pagerState,
-                  snackbarHostState = snackbarHostState,
-                  isJoined = isJoined,
-                  isFull = isFull,
-                  participantCount = participantCount,
-                  imageBitmap = imageBitmap,
-                  timeLeft = timeLeft)
-          EventOwnerTab.STATISTICS ->
-              EventStatisticsTabContent(eventUid = event.uid, snackbarHostState = snackbarHostState)
+                  eventViewModel = params.eventViewModel,
+                  event = params.event,
+                  navController = params.navController,
+                  pagerState = params.pagerState,
+                  isJoined = params.isJoined,
+                  isFull = params.isFull,
+                  participantCount = params.participantCount,
+                  imageBitmap = params.imageBitmap,
+                  timeLeft = params.timeLeft)
+          EventOwnerTab.STATISTICS -> EventStatisticsTabContent(eventUid = params.event.uid)
         }
       }
 }
@@ -496,7 +498,6 @@ private fun EventDetailsContent(
     event: Event,
     navController: NavHostController,
     pagerState: PagerState,
-    snackbarHostState: SnackbarHostState,
     isJoined: Boolean,
     isFull: Boolean,
     participantCount: Int,
@@ -618,7 +619,7 @@ private fun EventDetailsContent(
                               style = MaterialTheme.typography.bodyLarge,
                               color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
 
-                          Divider(
+                          HorizontalDivider(
                               modifier =
                                   Modifier.padding(vertical = Dimensions.EventDividerPadding))
 
@@ -660,7 +661,6 @@ private fun EventDetailsContent(
 @Composable
 private fun EventStatisticsTabContent(
     eventUid: String,
-    snackbarHostState: SnackbarHostState,
 ) {
   val context = LocalContext.current
   val viewModel: EventStatisticsViewModel =
