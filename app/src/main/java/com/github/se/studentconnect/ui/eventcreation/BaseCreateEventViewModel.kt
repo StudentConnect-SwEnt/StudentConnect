@@ -699,5 +699,4 @@ abstract class BaseCreateEventViewModel<S : CreateEventUiState>(
         .enqueueUniqueWork(
             "event_banner_upload_${job.eventUid}", ExistingWorkPolicy.REPLACE, workRequest)
   }
-
 }
