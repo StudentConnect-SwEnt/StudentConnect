@@ -766,10 +766,12 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
                       textAlign = TextAlign.Center)
                 }
                 timeLeft > DAY_IN_SECONDS -> {
+                  val daysCount = days(timeLeft)
+                  val daysLabel = if (daysCount == "1") "day" else "days"
                   Text(
                       modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_DAYS),
                       color = MaterialTheme.colorScheme.primary,
-                      text = days(timeLeft) + " days left",
+                      text = "$daysCount $daysLabel left",
                       style = MaterialTheme.typography.displaySmall,
                       textAlign = TextAlign.Center)
                 }
