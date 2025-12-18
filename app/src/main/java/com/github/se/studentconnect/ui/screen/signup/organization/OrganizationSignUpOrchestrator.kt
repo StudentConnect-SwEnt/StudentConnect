@@ -108,7 +108,8 @@ fun OrganizationSignUpOrchestrator(
                   orgRepository.saveOrganization(organization)
 
                   // Go back to profile after successful creation
-                  onBackToSelection()
+                  val mainDispatcher = kotlinx.coroutines.Dispatchers.Main
+                  kotlinx.coroutines.withContext(mainDispatcher) { onBackToSelection() }
                 } catch (e: Exception) {
                   Log.e("OrganizationSignUp", "Failed to create organization", e)
                   isSubmitting = false
