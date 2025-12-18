@@ -12,9 +12,13 @@ Many students in Switzerland, especially newcomers, face difficulties building s
 
 ---
 
-## Design Prototype
+## Architecture
 
-View the design on [Figma](https://www.figma.com/design/o08ZOLr2SxUiip650CyqbW/App?m=auto&t=pcxsobh043Boudab-1)
+![Architecture Diagram](https://raw.githubusercontent.com/StudentConnect-SwEnt/StudentConnect/refs/heads/main/docs/architecture/architecture-diagram.svg)
+
+## Design
+
+View the design on [Figma](https://www.figma.com/design/o08ZOLr2SxUiip650CyqbW/App?m=auto&t=pcxsobh043Boudab-1).
 
 ## Development Setup
 
