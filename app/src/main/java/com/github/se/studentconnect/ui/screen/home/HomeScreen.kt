@@ -1,6 +1,9 @@
 package com.github.se.studentconnect.ui.screen.home
 
+import android.media.MediaPlayer
+import android.net.Uri
 import android.widget.Toast
+import android.widget.VideoView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -70,9 +73,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,6 +105,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -152,7 +158,6 @@ private object HomeScreenConstants {
   const val STORIES_ROW_BOTTOM_PADDING_DP = 12
   const val STORIES_ROW_HORIZONTAL_SPACING_DP = 16
   const val STORIES_ROW_HORIZONTAL_PADDING_DP = 8
-  const val STORY_VIDEO_SPACER_HEIGHT_DP = 8
   const val PAGER_SCANNER_PAGE = 0
   const val PAGER_HOME_PAGE = 1
 }
@@ -1461,7 +1466,7 @@ private fun StoryMediaContent(currentStory: StoryWithUser) {
       StoryImageContent(currentStory)
     }
     com.github.se.studentconnect.model.story.MediaType.VIDEO -> {
-      StoryVideoPlaceholder()
+      StoryVideoContent(currentStory)
     }
   }
 }
@@ -1491,21 +1496,75 @@ private fun StoryImageContent(currentStory: StoryWithUser) {
 }
 
 @Composable
-private fun StoryVideoPlaceholder() {
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
-          Text(
-              text = stringResource(R.string.story_video),
-              color = Color.White,
-              style = MaterialTheme.typography.headlineSmall)
-          Spacer(modifier = Modifier.height(HomeScreenConstants.STORY_VIDEO_SPACER_HEIGHT_DP.dp))
-          Text(
-              text = stringResource(R.string.story_video_coming_soon),
-              color = Color.White.copy(alpha = 0.7f),
-              style = MaterialTheme.typography.bodyMedium)
+private fun StoryVideoContent(currentStory: StoryWithUser) {
+  val mediaUrl = currentStory.story.mediaUrl
+  var isBuffering by remember(mediaUrl) { mutableStateOf(true) }
+  var hasError by remember(mediaUrl) { mutableStateOf(false) }
+  var videoViewRef by remember { mutableStateOf<VideoView?>(null) }
+
+  DisposableEffect(mediaUrl) {
+    onDispose {
+      videoViewRef?.stopPlayback()
+      videoViewRef = null
+    }
+  }
+
+  val preparedListener =
+      MediaPlayer.OnPreparedListener { player ->
+        player.isLooping = true
+        hasError = false
+        isBuffering = false
+        if (!player.isPlaying) {
+          player.start()
         }
+      }
+
+  val errorListener =
+      MediaPlayer.OnErrorListener { _, _, _ ->
+        hasError = true
+        isBuffering = false
+        true
+      }
+
+  val infoListener =
+      MediaPlayer.OnInfoListener { _, what, _ ->
+        when (what) {
+          MediaPlayer.MEDIA_INFO_BUFFERING_START -> isBuffering = true
+          MediaPlayer.MEDIA_INFO_BUFFERING_END,
+          MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START -> isBuffering = false
+        }
+        false
+      }
+
+  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    key(mediaUrl) {
+      AndroidView(
+          factory = { context ->
+            VideoView(context).apply {
+              videoViewRef = this
+              setOnPreparedListener(preparedListener)
+              setOnErrorListener(errorListener)
+              setOnInfoListener(infoListener)
+              setVideoURI(Uri.parse(mediaUrl))
+              tag = mediaUrl
+              start()
+            }
+          },
+          modifier = Modifier.fillMaxSize())
+    }
+
+    when {
+      hasError -> {
+        Text(
+            text = stringResource(R.string.story_video_error),
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(16.dp))
+      }
+      isBuffering -> {
+        CircularProgressIndicator(color = Color.White)
+      }
+    }
   }
 }
 
