@@ -502,6 +502,7 @@ private data class EventDetailsContentParams(
 
 @Composable
 private fun EventDetailsContent(params: EventDetailsContentParams) {
+  val uiState by params.eventViewModel.uiState.collectAsState()
   val coroutineScope = rememberCoroutineScope()
 
   Column(
@@ -543,10 +544,10 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
             verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
 
               // Show conflict card if event dates are available
-              if (event.start != null) {
+              if (params.event.start != null) {
                 ScheduleConflictCard(
-                    eventStart = event.start,
-                    eventEnd = event.end,
+                    eventStart = params.event.start,
+                    eventEnd = params.event.end,
                     conflictingItems = uiState.conflictingEvents,
                     isCheckingConflicts = uiState.isCheckingConflicts,
                     onConflictClick = { /* Optional: Navigate to calendar */})
