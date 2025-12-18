@@ -75,6 +75,7 @@ import com.github.se.studentconnect.ui.theme.Dimensions
 import com.github.se.studentconnect.ui.utils.DialogNotImplemented
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -447,15 +448,17 @@ private fun OwnerEventTabs(
         when (selectedTab) {
           EventOwnerTab.EVENT ->
               EventDetailsContent(
-                  eventViewModel = params.eventViewModel,
-                  event = params.event,
-                  navController = params.navController,
-                  pagerState = params.pagerState,
-                  isJoined = params.isJoined,
-                  isFull = params.isFull,
-                  participantCount = params.participantCount,
-                  imageBitmap = params.imageBitmap,
-                  timeLeft = params.timeLeft)
+                  params =
+                      EventDetailsContentParams(
+                          eventViewModel = params.eventViewModel,
+                          event = params.event,
+                          navController = params.navController,
+                          pagerState = params.pagerState,
+                          isJoined = params.isJoined,
+                          isFull = params.isFull,
+                          participantCount = params.participantCount,
+                          imageBitmap = params.imageBitmap,
+                          timeLeft = params.timeLeft))
           EventOwnerTab.STATISTICS -> EventStatisticsTabContent(eventUid = params.event.uid)
         }
       }
@@ -564,6 +567,130 @@ private fun EventDetailsContent(params: EventDetailsContentParams) {
                   isJoined = params.isJoined)
             }
       }
+}
+
+@Composable
+private fun EventImageSection(imageBitmap: ImageBitmap?) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .height(Dimensions.EventImageHeight)
+              .testTag(EventViewTestTags.EVENT_IMAGE)) {
+        if (imageBitmap != null) {
+          Image(
+              bitmap = imageBitmap,
+              contentDescription = stringResource(R.string.content_description_event_image),
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop)
+          // Gradient overlay for better text readability
+          Box(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .background(
+                          androidx.compose.ui.graphics.Brush.verticalGradient(
+                              colors =
+                                  listOf(
+                                      androidx.compose.ui.graphics.Color.Transparent,
+                                      androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f)),
+                              startY = 0f,
+                              endY = 1000f)))
+        } else {
+          Box(
+              modifier =
+                  Modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondaryContainer),
+              contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Image,
+                    contentDescription = stringResource(R.string.content_description_event_image),
+                    modifier = Modifier.size(Dimensions.EventImageIconSize),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+              }
+        }
+      }
+}
+
+@Composable
+private fun EventInfoCardSection(
+    event: Event,
+    eventViewModel: EventViewModel,
+    navController: NavHostController,
+    pagerState: PagerState,
+    participantCount: Int,
+    coroutineScope: CoroutineScope
+) {
+  Card(
+      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
+      elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.EventInfoCardElevation),
+      shape = RoundedCornerShape(Dimensions.EventInfoCardCornerRadius),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.EventInfoCardPadding),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
+              if (event is Event.Public && event.subtitle.isNotBlank()) {
+                Text(
+                    text = event.subtitle,
+                    modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
+                    style =
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis)
+              }
+
+              if (event is Event.Public && event.tags.isNotEmpty()) {
+                EventTagsRow(tags = event.tags)
+              }
+
+              Text(
+                  text = stringResource(R.string.event_label_description), style = titleTextStyle())
+              Text(
+                  text = event.description,
+                  modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
+                  style = MaterialTheme.typography.bodyLarge,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+
+              HorizontalDivider(
+                  modifier = Modifier.padding(vertical = Dimensions.EventDividerPadding))
+
+              ParticipantsInfo(
+                  event = event,
+                  participantCount = participantCount,
+                  onClick = {
+                    coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                    coroutineScope.launch { eventViewModel.fetchAttendees() }
+                  })
+            }
+      }
+}
+
+@Composable
+private fun EventAdditionalActionsSection(
+    event: Event,
+    eventViewModel: EventViewModel,
+    navController: NavHostController,
+    isJoined: Boolean
+) {
+  val uiState by eventViewModel.uiState.collectAsState()
+  val currentUserId = AuthenticationProvider.currentUser
+
+  if (isJoined && uiState.activePolls.isNotEmpty() && currentUserId != event.ownerId) {
+    PollNotificationCard(
+        onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
+        onDismissClick = {},
+        modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
+  }
+
+  if (isJoined || currentUserId == event.ownerId) {
+    ChatButton(event = event, navController = navController)
+  }
+
+  if (currentUserId == event.ownerId) {
+    DeleteEventButton(
+        onClick = { eventViewModel.showDeleteConfirmDialog() },
+        modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
+  }
+
+  Spacer(modifier = Modifier.height(Dimensions.EventSpacerHeight))
 }
 
 @Composable
