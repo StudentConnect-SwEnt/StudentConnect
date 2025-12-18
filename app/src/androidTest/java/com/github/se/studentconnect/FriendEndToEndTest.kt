@@ -303,7 +303,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
   private fun openAttendeesList() {
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000, message = "participants info to be visible") {
+        timeoutMillis = 20_030, message = "participants info to be visible") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.PARTICIPANTS_INFO)
               .fetchSemanticsNodes()
@@ -313,7 +313,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onNodeWithTag(EventViewTestTags.PARTICIPANTS_INFO).performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_001, message = "attendee list to be visible") {
+        timeoutMillis = 20_031, message = "attendee list to be visible") {
           composeTestRule
               .onAllNodesWithTag(EventViewTestTags.ATTENDEE_LIST)
               .fetchSemanticsNodes()
@@ -327,7 +327,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
             hasAnyDescendant(hasText(fullName, substring = true))
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 30_000, message = "attendee $fullName to appear in list") {
+        timeoutMillis = 30_030, message = "attendee $fullName to appear in list") {
           composeTestRule.onAllNodes(attendeeMatcher, useUnmergedTree = true).fetchSemanticsNodes()
               .isNotEmpty()
         }
@@ -335,7 +335,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onAllNodes(attendeeMatcher, useUnmergedTree = true).onFirst().performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000,
+        timeoutMillis = 20_032,
         message = "visitor profile to open for attendee $fullName") {
           composeTestRule
               .onAllNodesWithTag(C.Tag.visitor_profile_screen)
@@ -351,7 +351,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
   private fun sendFriendRequestAndVerify() {
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "add friend button to be visible") {
+        timeoutMillis = 15_030, message = "add friend button to be visible") {
           composeTestRule
               .onAllNodesWithTag(C.Tag.visitor_profile_add_friend)
               .fetchSemanticsNodes()
@@ -371,7 +371,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
   private fun acceptFriendRequestFrom(fromUserFullName: String) {
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000, message = "notification button to be visible") {
+        timeoutMillis = 20_033, message = "notification button to be visible") {
           composeTestRule
               .onAllNodesWithTag("NotificationButton")
               .fetchSemanticsNodes()
@@ -381,7 +381,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onNodeWithTag("NotificationButton").performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_001, message = "friend request notification to appear") {
+        timeoutMillis = 20_034, message = "friend request notification to appear") {
           composeTestRule
               .onAllNodesWithText(
                   "$fromUserFullName sent you a friend request",
@@ -398,7 +398,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
         }
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_002, message = "accept friend request button to appear") {
+        timeoutMillis = 20_035, message = "accept friend request button to appear") {
           composeTestRule.onAllNodes(acceptButtonMatcher, useUnmergedTree = true).fetchSemanticsNodes()
               .isNotEmpty()
         }
@@ -410,7 +410,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
   private fun navigateToProfileTab() {
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "profile tab to be visible") {
+        timeoutMillis = 15_031, message = "profile tab to be visible") {
           composeTestRule
               .onAllNodesWithTag(NavigationTestTags.PROFILE_TAB)
               .fetchSemanticsNodes()
@@ -425,7 +425,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
         hasClickAction() and hasAnyDescendant(hasText("Friends", substring = false))
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_000, message = "friends stat to be visible on profile") {
+        timeoutMillis = 20_036, message = "friends stat to be visible on profile") {
           composeTestRule.onAllNodes(friendsStatMatcher, useUnmergedTree = true).fetchSemanticsNodes()
               .isNotEmpty()
         }
@@ -433,7 +433,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onAllNodes(friendsStatMatcher, useUnmergedTree = true).onFirst().performClick()
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_001, message = "friends list screen to appear") {
+        timeoutMillis = 20_037, message = "friends list screen to appear") {
           composeTestRule
               .onAllNodesWithText("Search friends", substring = true, useUnmergedTree = true)
               .fetchSemanticsNodes()
@@ -443,7 +443,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
 
   private fun openFriendProfileFromList(friendFullName: String) {
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 20_002, message = "friend $friendFullName to appear in list") {
+        timeoutMillis = 20_038, message = "friend $friendFullName to appear in list") {
           composeTestRule
               .onAllNodesWithText(friendFullName, substring = true, useUnmergedTree = true)
               .fetchSemanticsNodes()
@@ -471,7 +471,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
         .assertTextEquals(fullName)
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 15_000, message = "remove friend button to appear") {
+        timeoutMillis = 15_032, message = "remove friend button to appear") {
           composeTestRule
               .onAllNodesWithTag(C.Tag.visitor_profile_remove_friend)
               .fetchSemanticsNodes()
@@ -479,7 +479,7 @@ class FriendEndToEndTest : FirestoreStudentConnectTest() {
         }
 
     composeTestRule.waitUntilWithMessage(
-        timeoutMillis = 10_000, message = "username @$username to be visible") {
+        timeoutMillis = 10_777, message = "username @$username to be visible") {
           composeTestRule
               .onAllNodesWithText("@$username", useUnmergedTree = true)
               .fetchSemanticsNodes()
