@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -381,15 +380,17 @@ private fun BaseEventView(
   Box(modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.BASE_SCREEN)) {
     if (!isOwner) {
       EventDetailsContent(
-          eventViewModel = eventViewModel,
-          event = event,
-          navController = navController,
-          pagerState = pagerState,
-          isJoined = isJoined,
-          isFull = isFull,
-          participantCount = participantCount,
-          imageBitmap = imageBitmap,
-          timeLeft = timeLeft)
+          params =
+              EventDetailsContentParams(
+                  eventViewModel = eventViewModel,
+                  event = event,
+                  navController = navController,
+                  pagerState = pagerState,
+                  isJoined = isJoined,
+                  isFull = isFull,
+                  participantCount = participantCount,
+                  imageBitmap = imageBitmap,
+                  timeLeft = timeLeft))
     } else {
       OwnerEventTabs(
           selectedTab = selectedOwnerTab,
@@ -492,63 +493,27 @@ private fun EventOwnerTabRow(selectedTab: EventOwnerTab, onTabSelected: (EventOw
       }
 }
 
+private data class EventDetailsContentParams(
+    val eventViewModel: EventViewModel,
+    val event: Event,
+    val navController: NavHostController,
+    val pagerState: PagerState,
+    val isJoined: Boolean,
+    val isFull: Boolean,
+    val participantCount: Int,
+    val imageBitmap: ImageBitmap?,
+    val timeLeft: Long
+)
+
 @Composable
-private fun EventDetailsContent(
-    eventViewModel: EventViewModel,
-    event: Event,
-    navController: NavHostController,
-    pagerState: PagerState,
-    isJoined: Boolean,
-    isFull: Boolean,
-    participantCount: Int,
-    imageBitmap: ImageBitmap?,
-    timeLeft: Long
-) {
+private fun EventDetailsContent(params: EventDetailsContentParams) {
   val coroutineScope = rememberCoroutineScope()
 
   Column(
       modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Top) {
-        Box(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .height(Dimensions.EventImageHeight)
-                    .testTag(EventViewTestTags.EVENT_IMAGE)) {
-              if (imageBitmap != null) {
-                Image(
-                    bitmap = imageBitmap,
-                    contentDescription = stringResource(R.string.content_description_event_image),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop)
-                // Gradient overlay for better text readability
-                Box(
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .background(
-                                androidx.compose.ui.graphics.Brush.verticalGradient(
-                                    colors =
-                                        listOf(
-                                            androidx.compose.ui.graphics.Color.Transparent,
-                                            androidx.compose.ui.graphics.Color.Black.copy(
-                                                alpha = 0.7f)),
-                                    startY = 0f,
-                                    endY = 1000f)))
-              } else {
-                Box(
-                    modifier =
-                        Modifier.fillMaxSize()
-                            .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center) {
-                      Icon(
-                          imageVector = Icons.Default.Image,
-                          contentDescription =
-                              stringResource(R.string.content_description_event_image),
-                          modifier = Modifier.size(Dimensions.EventImageIconSize),
-                          tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-              }
-            }
+        EventImageSection(imageBitmap = params.imageBitmap)
 
         // Action Buttons Section - Elevated Card Style
         Card(
@@ -565,12 +530,12 @@ private fun EventDetailsContent(
                   modifier = Modifier.fillMaxWidth().padding(Dimensions.SpacingNormal),
                   verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingMedium)) {
                     EventActionButtons(
-                        joined = isJoined,
-                        isFull = isFull,
-                        currentEvent = event,
-                        eventViewModel = eventViewModel,
+                        joined = params.isJoined,
+                        isFull = params.isFull,
+                        currentEvent = params.event,
+                        eventViewModel = params.eventViewModel,
                         modifier = Modifier,
-                        navController = navController)
+                        navController = params.navController)
                   }
             }
 
@@ -581,79 +546,22 @@ private fun EventDetailsContent(
                     .padding(horizontal = Dimensions.SpacingNormal)
                     .offset(y = Dimensions.EventContentOffsetNegative),
             verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
-              CountdownCard(timeLeft = timeLeft, event = event, isJoined = isJoined)
+              CountdownCard(
+                  timeLeft = params.timeLeft, event = params.event, isJoined = params.isJoined)
 
-              Card(
-                  modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.INFO_SECTION),
-                  elevation =
-                      CardDefaults.cardElevation(
-                          defaultElevation = Dimensions.EventInfoCardElevation),
-                  shape = RoundedCornerShape(Dimensions.EventInfoCardCornerRadius),
-                  colors =
-                      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(Dimensions.EventInfoCardPadding),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.SpacingNormal)) {
-                          if (event is Event.Public && event.subtitle.isNotBlank()) {
-                            Text(
-                                text = event.subtitle,
-                                modifier = Modifier.testTag(EventViewTestTags.SUBTITLE_TEXT),
-                                style =
-                                    MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis)
-                          }
+              EventInfoCardSection(
+                  event = params.event,
+                  eventViewModel = params.eventViewModel,
+                  navController = params.navController,
+                  pagerState = params.pagerState,
+                  participantCount = params.participantCount,
+                  coroutineScope = coroutineScope)
 
-                          if (event is Event.Public && event.tags.isNotEmpty()) {
-                            EventTagsRow(tags = event.tags)
-                          }
-
-                          Text(
-                              text = stringResource(R.string.event_label_description),
-                              style = titleTextStyle())
-                          Text(
-                              text = event.description,
-                              modifier = Modifier.testTag(EventViewTestTags.DESCRIPTION_TEXT),
-                              style = MaterialTheme.typography.bodyLarge,
-                              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-
-                          HorizontalDivider(
-                              modifier =
-                                  Modifier.padding(vertical = Dimensions.EventDividerPadding))
-
-                          ParticipantsInfo(
-                              event = event,
-                              participantCount = participantCount,
-                              onClick = {
-                                coroutineScope.launch { pagerState.animateScrollToPage(0) }
-                                coroutineScope.launch { eventViewModel.fetchAttendees() }
-                              })
-                        }
-                  }
-
-              if (isJoined &&
-                  eventViewModel.uiState.collectAsState().value.activePolls.isNotEmpty() &&
-                  AuthenticationProvider.currentUser != event.ownerId) {
-                PollNotificationCard(
-                    onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                    modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
-              }
-
-              // Chat Button - only show if user is joined or is owner
-              if (isJoined || AuthenticationProvider.currentUser == event.ownerId) {
-                ChatButton(event = event, navController = navController)
-              }
-
-              // Delete Event Button - only show if user is owner
-              if (AuthenticationProvider.currentUser == event.ownerId) {
-                DeleteEventButton(
-                    onClick = { eventViewModel.showDeleteConfirmDialog() },
-                    modifier = Modifier.testTag(EventViewTestTags.DELETE_EVENT_BUTTON))
-              }
-
-              Spacer(modifier = Modifier.height(Dimensions.EventSpacerHeight))
+              EventAdditionalActionsSection(
+                  event = params.event,
+                  eventViewModel = params.eventViewModel,
+                  navController = params.navController,
+                  isJoined = params.isJoined)
             }
       }
 }
