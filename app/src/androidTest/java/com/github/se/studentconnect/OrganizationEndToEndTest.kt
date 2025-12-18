@@ -537,12 +537,14 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onNodeWithText("+ Add role").performClick()
 
     Espresso.closeSoftKeyboard()
-    composeTestRule.onNodeWithText("Start Now").performClick()
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Start Now").assertIsEnabled().performClick()
 
     // 10. Completion
-    composeTestRule.waitUntilWithMessage(message = "Back to Management Screen") {
-      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-    }
+    composeTestRule.waitUntilWithMessage(
+        message = "Back to Management Screen", timeoutMillis = 30_000) {
+          composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
+        }
   }
 
   private fun navigateToOrganization(orgName: String) {
