@@ -107,7 +107,6 @@ object EventViewTestTags {
   const val EDIT_EVENT_BUTTON = "event_view_edit_event_button"
   const val VISIT_WEBSITE_BUTTON = "event_view_visit_website_button"
   const val LOCATION_BUTTON = "event_view_location_button"
-  const val SHARE_EVENT_BUTTON = "event_view_share_event_button"
   const val LEAVE_EVENT_BUTTON = "event_view_leave_event_button"
   const val LOADING_INDICATOR = "event_view_loading_indicator"
   const val SCAN_QR_BUTTON = "event_view_scan_qr_button"
@@ -1182,11 +1181,6 @@ private fun CommonActionButtons(
       WebsiteButton(publicEvent, context)
       Spacer(Modifier.size(smallSpacing))
     }
-
-    ButtonIcon(
-        id = R.drawable.ic_share,
-        onClick = { DialogNotImplemented(context) },
-        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
 
     Spacer(modifier = Modifier.weight(1f))
 
