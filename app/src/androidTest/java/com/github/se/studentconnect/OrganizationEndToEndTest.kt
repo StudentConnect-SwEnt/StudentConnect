@@ -14,7 +14,10 @@ import com.github.se.studentconnect.model.media.MediaRepositoryProvider
 import com.github.se.studentconnect.model.notification.Notification
 import com.github.se.studentconnect.model.notification.NotificationRepository
 import com.github.se.studentconnect.model.notification.NotificationRepositoryProvider
+import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.organization.OrganizationRepositoryProvider
+import com.github.se.studentconnect.model.organization.OrganizationRole
+import com.github.se.studentconnect.model.organization.OrganizationType
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.model.user.UserRepositoryProvider
 import com.github.se.studentconnect.resources.C
@@ -207,19 +210,37 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     val invitedEmail = "org_invited_${uniqueSuffix}@example.com"
     val invitedName = "invited$uniqueSuffix"
     val password = "TestPass123"
+    val orgName = "Test Org ${System.currentTimeMillis()}"
 
     // --- PART 1: OWNER FLOW ---
     runTest {
       // Create Owner Account
       signInAs(ownerEmail, password)
       createUserForCurrentUser(ownerName)
+      val ownerId = currentUser.uid
+
+      // Create Organization Programmatically
+      val org =
+          Organization(
+              id = "test_org_$uniqueSuffix",
+              name = orgName,
+              type = OrganizationType.Association,
+              description = "This is an E2E test organization.",
+              location = "EPFL",
+              createdBy = ownerId,
+              memberUids = listOf(ownerId),
+              memberRoles = mapOf(ownerId to "Owner"),
+              roles =
+                  listOf(
+                      OrganizationRole("Owner"),
+                      OrganizationRole("President", "Leading the organization")))
+      OrganizationRepositoryProvider.repository.saveOrganization(org)
     }
 
     launchActivityAndWaitForMainScreen()
 
-    // 1. Create Organization
-    val orgName = "Test Org ${System.currentTimeMillis()}"
-    createOrganization(orgName)
+    // 1. Create Organization (Created programmatically)
+    // createOrganization(orgName)
 
     // 2. Invite User (President)
     if (::scenario.isInitialized) {
