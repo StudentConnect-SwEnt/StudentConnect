@@ -83,7 +83,7 @@ class EventViewTest {
           subtitle = "Test Subtitle",
           description = "This is a test event description.",
           start = Timestamp.now(),
-          end = Timestamp.now(),
+          end = Timestamp(Timestamp.now().seconds + 3600, Timestamp.now().nanoseconds),
           location = Location(latitude = 46.52, longitude = 6.57, name = "EPFL"),
           website = "https://example.com",
           ownerId = "owner123",
@@ -1051,7 +1051,11 @@ class EventViewTest {
 
   @Test
   fun eventView_fullEvent_displaysFullButton() {
-    val fullEvent = testEvent.copy(uid = "full-event", maxCapacity = 2u)
+    val fullEvent =
+        testEvent.copy(
+            uid = "full-event",
+            maxCapacity = 2u,
+            start = Timestamp(Timestamp.now().seconds + 100, Timestamp.now().nanoseconds))
     runBlocking {
       eventRepository.addEvent(fullEvent)
       eventRepository.addParticipantToEvent(fullEvent.uid, EventParticipant("user1"))
@@ -1090,7 +1094,9 @@ class EventViewTest {
   fun eventView_startedEvent_displaysStartedButton() {
     val pastEvent =
         testEvent.copy(
-            uid = "started-event", start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0))
+            uid = "started-event",
+            start = Timestamp(System.currentTimeMillis() / 1000 - 3600, 0),
+            end = null)
     runBlocking { eventRepository.addEvent(pastEvent) }
 
     AuthenticationProvider.testUserId = "different-user"

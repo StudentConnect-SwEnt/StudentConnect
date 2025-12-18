@@ -529,4 +529,57 @@ class JoinedEventsViewModelTest {
     // State should reflect what's in repo (empty)
     assert(!viewModel.uiState.value.pinnedEventIds.contains(eventId))
   }
+
+  @Test
+  fun `pinned events move to top of list and are sorted by pin order`() = runTest {
+    // Given - 3 past events, oldest to newest
+    val joinedEventIds = listOf(event1Id, event2Id, event3Id)
+    val oldest = createMockPublicEvent(event1Id, "Old", daysAgo = 10)
+    val middle = createMockPublicEvent(event2Id, "Middle", daysAgo = 5)
+    val newest = createMockPublicEvent(event3Id, "New", daysAgo = 1)
+
+    coEvery { mockUserRepository.getJoinedEvents(testUserId) } returns joinedEventIds
+    coEvery { mockUserRepository.getPinnedEvents(testUserId) } returns emptyList()
+    coEvery { mockEventRepository.getAllVisibleEvents() } returns emptyList()
+    coEvery { mockEventRepository.getEvent(event1Id) } returns oldest
+    coEvery { mockEventRepository.getEvent(event2Id) } returns middle
+    coEvery { mockEventRepository.getEvent(event3Id) } returns newest
+    coEvery { mockUserRepository.addPinnedEvent(any(), any()) } just Runs
+    coEvery { mockUserRepository.removePinnedEvent(any(), any()) } just Runs
+
+    viewModel.loadJoinedEvents()
+    advanceUntilIdle()
+
+    // Initially sorted by date (newest first)
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event3Id, event2Id, event1Id))
+
+    // When - Pin oldest event
+    viewModel.togglePinEvent(event1Id, "Max")
+    advanceUntilIdle()
+
+    // Then - Pinned event moves to top
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event1Id, event3Id, event2Id))
+
+    // When - Pin middle event
+    viewModel.togglePinEvent(event2Id, "Max")
+    advanceUntilIdle()
+
+    // Then - Both pinned events at top, sorted by pin order (oldest pinned first)
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event1Id, event2Id, event3Id))
+
+    // When - Unpin first event
+    viewModel.togglePinEvent(event1Id, "Max")
+    advanceUntilIdle()
+
+    // Then - Only event2 pinned at top, rest sorted by date
+    assert(
+        viewModel.uiState.value.filteredEvents.map { it.uid } ==
+            listOf(event2Id, event3Id, event1Id))
+  }
 }

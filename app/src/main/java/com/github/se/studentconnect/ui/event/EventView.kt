@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -295,7 +296,10 @@ fun EventView(
     // Only show loading indicator on initial load, not when refreshing an existing event
     if (isLoading && event == null) {
       Box(
-          modifier = Modifier.fillMaxSize().testTag(EventViewTestTags.LOADING_INDICATOR),
+          modifier =
+              Modifier.fillMaxSize()
+                  .padding(paddingValues)
+                  .testTag(EventViewTestTags.LOADING_INDICATOR),
           contentAlignment = Alignment.Center,
       ) {
         CircularProgressIndicator()
@@ -488,7 +492,6 @@ private fun BaseEventView(
                     AuthenticationProvider.currentUser != event.ownerId) {
                   PollNotificationCard(
                       onVoteNowClick = { navController.navigate(Route.pollsListScreen(event.uid)) },
-                      onDismissClick = {},
                       modifier = Modifier.testTag(EventViewTestTags.POLL_NOTIFICATION_CARD))
                 }
 
@@ -516,7 +519,8 @@ private fun BaseEventView(
 @Composable
 private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
   val now = Timestamp.now()
-  val eventHasStarted = now >= event.start
+  val eventIsOver = now > (event.end ?: now)
+  val eventHasStarted = now >= event.start && !eventIsOver
 
   Card(
       modifier = Modifier.fillMaxWidth(),
@@ -546,6 +550,15 @@ private fun CountdownCard(timeLeft: Long, event: Event, isJoined: Boolean) {
                       color = MaterialTheme.colorScheme.primary,
                       text = days(timeLeft) + " days left",
                       style = MaterialTheme.typography.displaySmall,
+                      textAlign = TextAlign.Center)
+                }
+                eventIsOver && timeLeft <= 0 -> {
+                  Text(
+                      modifier = Modifier.fillMaxWidth().testTag(EventViewTestTags.COUNTDOWN_TIMER),
+                      color = MaterialTheme.colorScheme.primary,
+                      text = stringResource(R.string.event_is_over),
+                      style = MaterialTheme.typography.displaySmall,
+                      fontWeight = FontWeight.Bold,
                       textAlign = TextAlign.Center)
                 }
                 else -> {
@@ -859,6 +872,7 @@ fun EventActionButtons(
   }
 }
 
+/** Non-owner action buttons (Join/Leave) */
 @Composable
 private fun NonOwnerActionButtons(
     joined: Boolean,
@@ -867,13 +881,17 @@ private fun NonOwnerActionButtons(
     eventViewModel: EventViewModel
 ) {
   val now = Timestamp.now()
-  val eventHasStarted = now >= currentEvent.start
+  val eventIsOver = now > (currentEvent.end ?: now)
+  val eventHasStarted = now >= currentEvent.start && !eventIsOver
+  val eventIsFuture = now < currentEvent.start
+  val canJoin = !isFull && eventIsFuture
+  val canLeave = joined && !eventIsOver
 
   Button(
       onClick = {
-        if (joined) {
+        if (canLeave) {
           eventViewModel.showLeaveConfirmDialog()
-        } else if (!isFull && !eventHasStarted) {
+        } else if (canJoin) {
           eventViewModel.joinEvent(eventUid = currentEvent.uid)
         }
       },
@@ -883,7 +901,7 @@ private fun NonOwnerActionButtons(
               .testTag(
                   if (joined) EventViewTestTags.LEAVE_EVENT_BUTTON
                   else EventViewTestTags.JOIN_BUTTON),
-      enabled = joined || (!eventHasStarted && !isFull),
+      enabled = canLeave || canJoin,
       colors =
           ButtonDefaults.buttonColors(
               containerColor =
@@ -893,11 +911,11 @@ private fun NonOwnerActionButtons(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
-              val showIcon = joined || (!eventHasStarted && !isFull)
+              val showIcon = canLeave || canJoin
               if (showIcon) {
                 Icon(
                     painter =
-                        if (joined) painterResource(id = R.drawable.ic_arrow_right)
+                        if (canLeave) painterResource(id = R.drawable.ic_arrow_right)
                         else painterResource(id = R.drawable.ic_add),
                     contentDescription = stringResource(R.string.content_description_action_icon),
                     modifier = Modifier.size(iconSize))
@@ -906,9 +924,10 @@ private fun NonOwnerActionButtons(
               Text(
                   text =
                       when {
-                        joined -> stringResource(R.string.button_leave)
-                        isFull -> stringResource(R.string.button_full)
+                        canLeave -> stringResource(R.string.button_leave)
                         eventHasStarted -> stringResource(R.string.button_started)
+                        eventIsOver -> stringResource(R.string.button_over)
+                        isFull -> stringResource(R.string.button_full)
                         else -> stringResource(R.string.button_join)
                       },
                   style = MaterialTheme.typography.titleMedium,
@@ -924,54 +943,78 @@ private fun CommonActionButtons(
     context: Context,
     navController: NavHostController
 ) {
-  // Only show location button if location exists
-  if (currentEvent.location != null) {
-    ButtonIcon(
-        id = R.drawable.ic_location_pin,
-        onClick = {
-          currentEvent.location?.let { location ->
-            // Navigate to map with location and event UID to automatically select and display the
-            // event
-            val route =
-                Route.mapWithLocation(
-                    location.latitude, location.longitude, eventUid = currentEvent.uid)
-            navController.navigate(route)
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
-  }
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    // Only show location button if location exists
+    if (currentEvent.location != null) {
+      LocationButton(currentEvent, navController)
+      Spacer(Modifier.size(smallSpacing))
+    }
 
-  // Only show website button if event is Public and has a non-empty website
-  val publicEvent = currentEvent as? Event.Public
-  val websiteUrl = publicEvent?.website
-  if (!websiteUrl.isNullOrEmpty()) {
-    ButtonIcon(
-        id = R.drawable.ic_web,
-        onClick = {
-          currentEvent.website?.let { website ->
-            val fixedUrl =
-                when {
-                  website.startsWith(HTTP_PROTOCOL) -> website
-                  website.startsWith(HTTPS_PROTOCOL) -> website
-                  else -> HTTPS_PROTOCOL + website
-                }
-            try {
-              val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
-              context.startActivity(intent)
-            } catch (_: ActivityNotFoundException) {
-              Toast.makeText(
-                      context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
-                  .show()
-            }
-          }
-        },
-        modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
-  }
+    // Only show website button if event is Public and has a non-empty website
+    val publicEvent = currentEvent as? Event.Public
+    val websiteUrl = publicEvent?.website
+    if (!websiteUrl.isNullOrEmpty()) {
+      WebsiteButton(publicEvent, context)
+      Spacer(Modifier.size(smallSpacing))
+    }
 
+    ButtonIcon(
+        id = R.drawable.ic_share,
+        onClick = { DialogNotImplemented(context) },
+        modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+
+    Spacer(modifier = Modifier.weight(1f))
+
+    Text(
+        text =
+            if (currentEvent.participationFee == null) stringResource(R.string.event_free)
+            else
+                currentEvent.participationFee!!.toString() +
+                    stringResource(R.string.event_currency),
+        maxLines = 1,
+    )
+  }
+}
+
+@Composable
+private fun LocationButton(currentEvent: Event, navController: NavHostController) {
   ButtonIcon(
-      id = R.drawable.ic_share,
-      onClick = { DialogNotImplemented(context) },
-      modifier = Modifier.testTag(EventViewTestTags.SHARE_EVENT_BUTTON))
+      id = R.drawable.ic_location_pin,
+      onClick = {
+        currentEvent.location?.let { location ->
+          // Navigate to map with location and event UID to automatically select and display the
+          // event
+          val route =
+              Route.mapWithLocation(
+                  location.latitude, location.longitude, eventUid = currentEvent.uid)
+          navController.navigate(route)
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.LOCATION_BUTTON))
+}
+
+@Composable
+private fun WebsiteButton(currentEvent: Event.Public, context: Context) {
+  ButtonIcon(
+      id = R.drawable.ic_web,
+      onClick = {
+        currentEvent.website?.let { website ->
+          val fixedUrl =
+              when {
+                website.startsWith(HTTP_PROTOCOL) -> website
+                website.startsWith(HTTPS_PROTOCOL) -> website
+                else -> HTTPS_PROTOCOL + website
+              }
+          try {
+            val intent = Intent(Intent.ACTION_VIEW, fixedUrl.toUri())
+            context.startActivity(intent)
+          } catch (_: ActivityNotFoundException) {
+            Toast.makeText(context, context.getString(R.string.toast_no_browser), Toast.LENGTH_LONG)
+                .show()
+          }
+        }
+      },
+      modifier = Modifier.testTag(EventViewTestTags.VISIT_WEBSITE_BUTTON))
 }
 
 @Composable
@@ -1202,11 +1245,7 @@ private fun getValidationTestTag(result: TicketValidationResult) =
     }
 
 @Composable
-private fun PollNotificationCard(
-    onVoteNowClick: () -> Unit,
-    onDismissClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun PollNotificationCard(onVoteNowClick: () -> Unit, modifier: Modifier = Modifier) {
   Card(
       modifier =
           modifier

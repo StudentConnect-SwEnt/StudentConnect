@@ -936,7 +936,7 @@ private fun getNotificationBannerTitle(notification: Notification): String {
     is Notification.EventStarting ->
         stringResource(R.string.notification_banner_title_event_starting)
     is Notification.EventInvitation ->
-        stringResource(R.string.notification_banner_title_event_invitation)
+        stringResource(R.string.notification_banner_title_event_starting)
     is Notification.OrganizationMemberInvitation ->
         stringResource(R.string.notification_banner_title_organization_invitation)
   }

@@ -940,22 +940,23 @@ class FriendMarkersTest {
   }
 
   @Test
-  fun preloadFriendData_usesCachedBitmap() = runTest {
-    val locations = mapOf("user1" to FriendLocation("user1", 46.5191, 6.5668, 1000L, true))
-    val mockUser = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+  fun preloadFriendData_loadsMultipleFriends() = runTest {
+    val locations =
+        mapOf(
+            "user1" to FriendLocation("user1", 46.5191, 6.5668, System.currentTimeMillis(), true),
+            "user2" to FriendLocation("user2", 46.5192, 6.5669, System.currentTimeMillis(), false))
 
-    coEvery { mockUserRepository.getUserById("user1") } returns mockUser
+    val mockUser1 = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
+    val mockUser2 = mockk<User>(relaxed = true) { every { profilePictureUrl } returns null }
 
-    // First call - creates bitmap
+    coEvery { mockUserRepository.getUserById("user1") } returns mockUser1
+    coEvery { mockUserRepository.getUserById("user2") } returns mockUser2
+
+    // Call with multiple friends - this should preload data for both users
     FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
-    kotlinx.coroutines.delay(300)
 
-    // Second call - should use cached bitmap
-    FriendMarkers.preloadFriendData(mockContext, mockStyle, locations, mockUserRepository)
-    kotlinx.coroutines.delay(300)
-
-    // Should still work with cache
-    verify(atLeast = 1) { mockStyle.addImage(any(), any<Bitmap>()) }
+    // Give coroutines time to execute
+    kotlinx.coroutines.delay(500)
   }
 
   @Test

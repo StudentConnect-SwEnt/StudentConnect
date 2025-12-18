@@ -61,6 +61,8 @@ import com.github.se.studentconnect.model.organization.Organization
 import com.github.se.studentconnect.model.user.User
 import com.github.se.studentconnect.ui.utils.loadBitmapFromOrganization
 import com.github.se.studentconnect.ui.utils.loadBitmapFromUser
+import com.github.se.studentconnect.resources.C
+import com.github.se.studentconnect.ui.utils.loadBitmapFromUri
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -469,7 +471,8 @@ private fun UsernameSection(user: User, showUsername: Boolean) {
         text = "@${user.username}",
         style = MaterialTheme.typography.bodyMedium,
         fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.testTag(C.Tag.visitor_profile_user_id))
   }
 }
 
@@ -485,7 +488,8 @@ private fun BioSection(user: User) {
         text = user.bio ?: "",
         style = MaterialTheme.typography.bodyMedium,
         fontSize = dimensionResource(R.dimen.profile_body_text_size).value.sp,
-        color = MaterialTheme.colorScheme.onSurface)
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.testTag(C.Tag.visitor_profile_bio))
 
     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.profile_spacing_small)))
   }
