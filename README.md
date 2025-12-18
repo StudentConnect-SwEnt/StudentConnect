@@ -98,3 +98,7 @@ cd StudentConnect
 | Hamza Zoubayri |
 | Rita Naimi |
 | Tristan Bourquin |
+
+---
+
+<p align="center"><strong>StudentConnect · SWENT Project</strong></p>
