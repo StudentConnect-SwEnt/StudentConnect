@@ -414,24 +414,12 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     }
     composeTestRule.onNodeWithText("Accept").performClick()
 
-    // 6. Show in profile on the management screen that the user have joined the organization
-    // and pin it
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
-      composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
-    }
+    // 6. Show in profile that the user has joined the organization
+    navigateToOrganization(orgName)
 
-    // Navigate to My Organizations and retry if needed
-    ensureOrganizationVisible(orgName)
-
-    composeTestRule
-        .onNode(hasContentDescription("pin", substring = true, ignoreCase = true))
-        .performClick()
-
-    // 7. After pinning the event, we show that there exists a the badge on the profile page
-    composeTestRule.onNodeWithContentDescription("Back").performClick()
-    composeTestRule.waitUntilWithMessage(message = "Badge visible") {
-      composeTestRule.onAllNodesWithContentDescription(orgName).fetchSemanticsNodes().isNotEmpty()
+    // Verify "Member" status on the profile (Follow button becomes Check icon / Member text)
+    composeTestRule.waitUntilWithMessage(message = "Member status visible") {
+      composeTestRule.onAllNodesWithText("Member").fetchSemanticsNodes().isNotEmpty()
     }
   }
 
@@ -538,24 +526,39 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
     composeTestRule.onNodeWithText("Start Now").assertIsEnabled().performClick()
 
     // 10. Completion - Explicitly navigate to verify
-    // Navigate to Profile
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
-      composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
-    }
+    navigateToOrganization(orgName)
   }
 
   private fun navigateToOrganization(orgName: String) {
-    // Navigate to Profile
-    composeTestRule.onNodeWithTag(NavigationTestTags.PROFILE_TAB).performClick()
-    composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
-      composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
+    // Navigate to Home Tab
+    composeTestRule.onNodeWithTag(NavigationTestTags.HOME_TAB).performClick()
+
+    // Click on Search Bar
+    composeTestRule.onNodeWithTag("search_input_field", useUnmergedTree = true).performClick()
+
+    // Type Organization Name
+    composeTestRule
+        .onNodeWithTag("search_input_field", useUnmergedTree = true)
+        .performTextInput(orgName)
+
+    // Dismiss keyboard
+    Espresso.closeSoftKeyboard()
+
+    // Wait for the organization to appear in the search results
+    // We target the result specifically by excluding the input field
+    composeTestRule.waitUntilWithMessage(message = "Organization found in search") {
+      composeTestRule
+          .onAllNodes(hasText(orgName, substring = true) and hasTestTag("search_input_field").not())
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
-    ensureOrganizationVisible(orgName)
-
     // Click on the Organization
-    composeTestRule.onNodeWithText(orgName).performClick()
+    composeTestRule
+        .onNode(hasText(orgName, substring = true) and hasTestTag("search_input_field").not())
+        .performClick()
+
+    // Wait for Org Profile
     composeTestRule.waitUntilWithMessage(message = "Org Profile visible") {
       composeTestRule.onAllNodesWithTag(C.Tag.org_profile_screen).fetchSemanticsNodes().isNotEmpty()
     }
@@ -587,35 +590,5 @@ class OrganizationEndToEndTest : FirestoreStudentConnectTest() {
             lastName = "$username last name",
             university = "EPFL",
             hobbies = listOf("Music", "Running")))
-  }
-
-  private fun ensureOrganizationVisible(orgName: String) {
-    val maxRetries = 5
-    var attempts = 0
-    while (attempts < maxRetries) {
-      // Navigate to My Organizations
-      composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-
-      // Check if org is visible
-      try {
-        composeTestRule.waitUntil(timeoutMillis = 2000) {
-          composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-        }
-        return // Found it!
-      } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
-        // Not found, go back and retry
-        composeTestRule.onNodeWithContentDescription("Back").performClick()
-        // Wait for Profile screen to be ready before retrying
-        composeTestRule.waitUntilWithMessage(message = "Profile screen visible") {
-          composeTestRule.onAllNodesWithText("Organizations").fetchSemanticsNodes().isNotEmpty()
-        }
-        attempts++
-      }
-    }
-    // Final attempt or fail
-    composeTestRule.onNodeWithText("Organizations").performScrollTo().performClick()
-    composeTestRule.waitUntilWithMessage(message = "Organization List visible") {
-      composeTestRule.onAllNodesWithText(orgName).fetchSemanticsNodes().isNotEmpty()
-    }
   }
 }
